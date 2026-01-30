@@ -65,7 +65,7 @@ func (this *Oxfun) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @see https://docs.ox.fun/?json#get-v3-tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oxfun) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -98,7 +98,7 @@ func (this *Oxfun) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @see https://docs.ox.fun/?json#get-v3-tickers
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Oxfun) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -174,7 +174,7 @@ func (this *Oxfun) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 5, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Oxfun) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -207,7 +207,7 @@ func (this *Oxfun) FetchOrderBook(symbol string, options ...FetchOrderBookOption
  * @see https://docs.ox.fun/?json#get-v3-funding-estimates
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Oxfun) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -240,7 +240,7 @@ func (this *Oxfun) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
  * @see https://docs.ox.fun/?json#get-v3-funding-estimates
  * @param {string} symbol unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {Order[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Oxfun) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -271,7 +271,7 @@ func (this *Oxfun) FetchFundingRate(symbol string, options ...FetchFundingRateOp
  * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Oxfun) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -317,7 +317,7 @@ func (this *Oxfun) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
  * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Oxfun) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -360,7 +360,7 @@ func (this *Oxfun) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([
  * @see https://docs.ox.fun/?json#get-v3-leverage-tiers
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Oxfun) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -396,7 +396,7 @@ func (this *Oxfun) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Lev
  * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Oxfun) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -481,7 +481,7 @@ func (this *Oxfun) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.asset] currency id, if empty the exchange returns info about all currencies
  * @param {string} [params.subAcc] Name of sub account. If no subAcc is given, then the response contains only the account linked to the API-Key.
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Oxfun) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -497,7 +497,7 @@ func (this *Oxfun) FetchBalance(params ...interface{}) (Balances, error) {
  * @description fetch subaccounts associated with a profile
  * @see https://docs.ox.fun/?json#get-v3-account-names
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Oxfun) FetchAccounts(params ...interface{}) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
@@ -517,7 +517,7 @@ func (this *Oxfun) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @param {string} fromAccount account id to transfer from
  * @param {string} toAccount account id to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Oxfun) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -548,7 +548,7 @@ func (this *Oxfun) Transfer(code string, amount float64, fromAccount string, toA
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Oxfun) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -592,7 +592,7 @@ func (this *Oxfun) FetchTransfers(options ...FetchTransfersOptions) ([]TransferE
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Oxfun) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -623,7 +623,7 @@ func (this *Oxfun) FetchDepositAddress(code string, options ...FetchDepositAddre
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Oxfun) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -669,7 +669,7 @@ func (this *Oxfun) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Oxfun) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -721,7 +721,7 @@ func (this *Oxfun) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.tfaType] GOOGLE, or AUTHY_SECRET, or YUBIKEY, for 2FA
  * @param {string} [params.code] 2FA code
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Oxfun) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -755,7 +755,7 @@ func (this *Oxfun) Withdraw(code string, amount float64, address string, options
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.subAcc]
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Oxfun) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -803,7 +803,7 @@ func (this *Oxfun) FetchPositions(options ...FetchPositionsOptions) ([]Position,
  * @param {string} [params.timeInForce] GTC (default), IOC, FOK, PO, MAKER_ONLY or MAKER_ONLY_REPRICE (reprices order to the best maker only price if the specified price were to lead to a taker trade)
  * @param {string} [params.selfTradePrevention] NONE, EXPIRE_MAKER, EXPIRE_TAKER or EXPIRE_BOTH for more info check here {@link https://docs.ox.fun/?json#self-trade-prevention-modes}
  * @param {string} [params.displayQuantity] for an iceberg order, pass both quantity and displayQuantity fields in the order request
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -839,7 +839,7 @@ func (this *Oxfun) CreateOrder(symbol string, typeVar string, side string, amoun
  * @param {int} [params.timestamp] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected.
  * @param {int} [params.recvWindow] *for all orders* in milliseconds. If orders reach the matching engine and the current timestamp exceeds timestamp + recvWindow, then all orders will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
  * @param {string} [params.responseType] *for all orders* FULL or ACK
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -868,7 +868,7 @@ func (this *Oxfun) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -898,7 +898,7 @@ func (this *Oxfun) CreateMarketBuyOrderWithCost(symbol string, cost float64, opt
  * @param {string} [symbol] not used by oxfun fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.clientOrderId] the client order id of the order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -935,7 +935,7 @@ func (this *Oxfun) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.orderId] a unique id for the order
  * @param {int} [params.clientOrderId] the client order id of the order
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -983,7 +983,7 @@ func (this *Oxfun) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @param {int} [params.timestamp] in milliseconds
  * @param {int} [params.recvWindow] in milliseconds
  * @param {string} [params.responseType] 'FULL' or 'ACK'
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -1053,7 +1053,7 @@ func (this *Oxfun) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
  * @param {int} [params.timestamp] in milliseconds
  * @param {int} [params.recvWindow] in milliseconds
  * @param {string} [params.responseType] 'FULL' or 'ACK'
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Oxfun) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -1084,8 +1084,14 @@ func (this *Oxfun) CancelOrders(ids []string, options ...CancelOrdersOptions) ([
 func (this *Oxfun) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Oxfun) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Oxfun) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Oxfun) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Oxfun) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1164,6 +1170,9 @@ func (this *Oxfun) EditLimitSellOrder(id string, symbol string, amount float64, 
 }
 func (this *Oxfun) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *Oxfun) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Oxfun) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1302,6 +1311,9 @@ func (this *Oxfun) FetchOption(symbol string, options ...FetchOptionOptions) (Op
 }
 func (this *Oxfun) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Oxfun) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Oxfun) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

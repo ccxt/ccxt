@@ -59,22 +59,22 @@ class htx(ccxt.async_support.htx):
                             },
                             'future': {
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/ws',
-                                    'private': 'wss://api.hbdm.com/notification',
+                                    'public': 'wss://api.hbdm.vn/ws',
+                                    'private': 'wss://api.hbdm.vn/notification',
                                 },
                             },
                             'swap': {
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/swap-ws',
-                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                             },
                         },
@@ -141,8 +141,10 @@ class htx(ccxt.async_support.htx):
         })
 
     def request_id(self):
+        self.lock_id()
         requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
         self.options['requestId'] = requestId
+        self.unlock_id()
         return str(requestId)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -154,7 +156,7 @@ class htx(ccxt.async_support.htx):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -176,7 +178,7 @@ class htx(ccxt.async_support.htx):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -247,7 +249,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -269,7 +271,7 @@ class htx(ccxt.async_support.htx):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -412,25 +414,26 @@ class htx(ccxt.async_support.htx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        allowedLimits = [20, 150]
+        allowedLimits = [5, 20, 150, 400]
         # 2) 5-level/20-level incremental MBP is a tick by tick feed,
         # which means whenever there is an order book change at that level, it pushes an update
         # 150-levels/400-level incremental MBP feed is based on the gap
         # between two snapshots at 100ms interval.
         options = self.safe_dict(self.options, 'watchOrderBook', {})
-        depth = self.safe_integer(options, 'depth', 150)
-        if not self.in_array(depth, allowedLimits):
-            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 20 and 150 only')
+        if limit is None:
+            limit = self.safe_integer(options, 'depth', 150)
+        if not self.in_array(limit, allowedLimits):
+            raise ExchangeError(self.id + ' watchOrderBook market accepts limits of 5, 20, 150 or 400 only')
         messageHash = None
         if market['spot']:
-            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(depth)
+            messageHash = 'market.' + market['id'] + '.mbp.' + self.number_to_string(limit)
         else:
-            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(depth) + '.high_freq'
+            messageHash = 'market.' + market['id'] + '.depth.size_' + self.number_to_string(limit) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         method = self.handle_order_book_subscription
         if not market['spot']:
@@ -451,7 +454,7 @@ class htx(ccxt.async_support.htx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -760,7 +763,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -849,7 +852,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         type = None
@@ -1416,7 +1419,7 @@ class htx(ccxt.async_support.htx):
         https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -1914,7 +1917,7 @@ class htx(ccxt.async_support.htx):
                 pingTs = self.safe_integer(message, 'ts')
                 await client.send({'op': 'pong', 'ts': pingTs})
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed ' + self.exception_message(e))
             client.reset(error)
 
     def handle_ping(self, client: Client, message):

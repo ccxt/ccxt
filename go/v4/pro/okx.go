@@ -188,7 +188,7 @@ func  (this *OkxCore) Subscribe(access interface{}, messageHash interface{}, cha
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *OkxCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -221,7 +221,7 @@ func  (this *OkxCore) WatchTrades(symbol interface{}, optionalArgs ...interface{
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be 'trades' and 'trades-all'
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *OkxCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -294,7 +294,7 @@ func  (this *OkxCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ..
  * @param {string[]} symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, trades by default. Can be trades, trades-all
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *OkxCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -315,7 +315,7 @@ func  (this *OkxCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs 
             var messageHashes interface{} = []interface{}{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
-                ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add("unsubscribe:", channel), symbol))
+                ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), symbol))
                 var marketId interface{} = this.MarketId(symbol)
                 var topic interface{} = map[string]interface{} {
                     "channel": channel,
@@ -352,7 +352,7 @@ func  (this *OkxCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs 
  * @description unWatches from the stream channel
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *OkxCore) UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -428,7 +428,7 @@ func  (this *OkxCore) HandleTrades(client interface{}, message interface{})  {
  * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func  (this *OkxCore) WatchFundingRate(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -455,7 +455,7 @@ func  (this *OkxCore) WatchFundingRate(symbol interface{}, optionalArgs ...inter
  * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
  * @param {string[]} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+ * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
 func  (this *OkxCore) WatchFundingRates(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -541,7 +541,7 @@ func  (this *OkxCore) HandleFundingRate(client interface{}, message interface{})
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -575,7 +575,7 @@ func  (this *OkxCore) WatchTicker(symbol interface{}, optionalArgs ...interface{
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) UnWatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -601,7 +601,7 @@ func  (this *OkxCore) UnWatchTicker(symbol interface{}, optionalArgs ...interfac
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -643,7 +643,7 @@ func  (this *OkxCore) WatchTickers(optionalArgs ...interface{}) <- chan interfac
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) WatchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -677,7 +677,7 @@ func  (this *OkxCore) WatchMarkPrice(symbol interface{}, optionalArgs ...interfa
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) WatchMarkPrices(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -719,7 +719,7 @@ func  (this *OkxCore) WatchMarkPrices(optionalArgs ...interface{}) <- chan inter
  * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) UnWatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -813,7 +813,7 @@ func  (this *OkxCore) HandleTicker(client interface{}, message interface{})  {
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *OkxCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1485,7 +1485,7 @@ func  (this *OkxCore) HandleOHLCV(client interface{}, message interface{})  {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *OkxCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1537,7 +1537,7 @@ func  (this *OkxCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfa
  * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *OkxCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1613,7 +1613,7 @@ func  (this *OkxCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] the maximum amount of order book entries to return
  * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *OkxCore) UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1679,7 +1679,7 @@ func  (this *OkxCore) UnWatchOrderBookForSymbols(symbols interface{}, optionalAr
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.limit] the maximum amount of order book entries to return
  * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *OkxCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1973,7 +1973,7 @@ func  (this *OkxCore) Authenticate(optionalArgs ...interface{}) <- chan interfac
  * @name okx#watchBalance
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *OkxCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2091,7 +2091,7 @@ func  (this *OkxCore) OrderToTrade(order interface{}, optionalArgs ...interface{
  * @param {bool} [params.trigger] true if fetching trigger or conditional trades
  * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
  * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *OkxCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2335,7 +2335,7 @@ func  (this *OkxCore) HandlePositions(client interface{}, message interface{})  
  * @param {bool} [params.trigger] true if fetching trigger or conditional orders
  * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
  * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OkxCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2401,7 +2401,7 @@ func  (this *OkxCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
             }()
             return ch
         }
-func  (this *OkxCore) HandleOrders(client interface{}, message interface{}, optionalArgs ...interface{})  {
+func  (this *OkxCore) HandleOrders(client interface{}, message interface{})  {
     //
     //     {
     //         "arg":{
@@ -2456,8 +2456,6 @@ func  (this *OkxCore) HandleOrders(client interface{}, message interface{}, opti
     //         ]
     //     }
     //
-    subscription := ccxt.GetArg(optionalArgs, 0, nil)
-    _ = subscription
     this.HandleMyTrades(client, message)
     var arg interface{} = this.SafeValue(message, "arg", map[string]interface{} {})
     var channel interface{} = this.SafeString(arg, "channel")
@@ -2597,7 +2595,7 @@ func  (this *OkxCore) RequestId() interface{}  {
  * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} params.test test order, default false
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OkxCore) CreateOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2621,6 +2619,12 @@ func  (this *OkxCore) CreateOrderWs(symbol interface{}, typeVar interface{}, sid
             op = ccxt.GetValue(opparamsVariable,0)
             params = ccxt.GetValue(opparamsVariable,1)
             var args interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+            var market interface{} = this.Market(symbol)
+            var instIdCode interface{} = this.SafeInteger(market, "instIdCode")
+            if ccxt.IsTrue(!ccxt.IsEqual(instIdCode, nil)) {
+                ccxt.Remove(args, "instId")
+                ccxt.AddElementToObject(args, "instIdCode", instIdCode)
+            }
             var ordType interface{} = this.SafeString(args, "ordType")
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(ordType, "trigger"))) || ccxt.IsTrue((ccxt.IsEqual(ordType, "conditional")))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "oco")))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "move_order_stop")))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "iceberg")))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "twap")))) {
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or batch-order")))
@@ -2634,9 +2638,9 @@ func  (this *OkxCore) CreateOrderWs(symbol interface{}, typeVar interface{}, sid
                 "args": []interface{}{args},
             }
         
-                retRes212115 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes212115)
-                ch <- retRes212115
+                retRes212715 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes212715)
+                ch <- retRes212715
                 return nil
         
             }()
@@ -2688,7 +2692,7 @@ func  (this *OkxCore) HandlePlaceOrders(client interface{}, message interface{})
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OkxCore) EditOrderWs(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2702,11 +2706,11 @@ func  (this *OkxCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes21748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes21748)
+            retRes21808 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes21808)
         
-            retRes21758 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes21758)
+            retRes21818 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes21818)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var op interface{} = nil
@@ -2714,15 +2718,21 @@ func  (this *OkxCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
             op = ccxt.GetValue(opparamsVariable,0)
             params = ccxt.GetValue(opparamsVariable,1)
             var args interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
+            var market interface{} = this.Market(symbol)
+            var instIdCode interface{} = this.SafeInteger(market, "instIdCode")
+            if ccxt.IsTrue(!ccxt.IsEqual(instIdCode, nil)) {
+                ccxt.Remove(args, "instId")
+                ccxt.AddElementToObject(args, "instIdCode", instIdCode)
+            }
             var request interface{} = map[string]interface{} {
                 "id": messageHash,
                 "op": op,
                 "args": []interface{}{args},
             }
         
-                retRes218615 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-                ccxt.PanicOnError(retRes218615)
-                ch <- retRes218615
+                retRes219815 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+                ccxt.PanicOnError(retRes219815)
+                ch <- retRes219815
                 return nil
         
             }()
@@ -2737,7 +2747,7 @@ func  (this *OkxCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clOrdId] client order id
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OkxCore) CancelOrderWs(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2752,17 +2762,19 @@ func  (this *OkxCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs() requires a symbol argument")))
             }
         
-            retRes22048 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22048)
+            retRes22168 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes22168)
         
-            retRes22058 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes22058)
+            retRes22178 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes22178)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var clientOrderId interface{} = this.SafeString2(params, "clOrdId", "clientOrderId")
             params = this.Omit(params, []interface{}{"clientOrderId", "clOrdId"})
+            var market interface{} = this.Market(symbol)
+            var instIdCode interface{} = this.SafeInteger(market, "instIdCode")
             var arg interface{} = map[string]interface{} {
-                "instId": this.MarketId(symbol),
+                "instIdCode": instIdCode,
             }
             if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
                 ccxt.AddElementToObject(arg, "clOrdId", clientOrderId)
@@ -2775,9 +2787,9 @@ func  (this *OkxCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
                 "args": []interface{}{this.Extend(arg, params)},
             }
         
-                retRes222315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes222315)
-                ch <- retRes222315
+                retRes223715 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes223715)
+                ch <- retRes223715
                 return nil
         
             }()
@@ -2791,7 +2803,7 @@ func  (this *OkxCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OkxCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2810,19 +2822,23 @@ func  (this *OkxCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrdersWs() requires a symbol argument")))
             }
         
-            retRes22448 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22448)
+            retRes22588 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes22588)
         
-            retRes22458 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes22458)
+            retRes22598 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes22598)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var args interface{} = []interface{}{}
+            var market interface{} = this.Market(symbol)
+            var instIdCode interface{} = this.SafeInteger(market, "instIdCode")
+            var instParams interface{} = map[string]interface{} {
+                "instIdCode": instIdCode,
+            }
             for i := 0; ccxt.IsLessThan(i, idsLength); i++ {
-                var arg interface{} = map[string]interface{} {
-                    "instId": this.MarketId(symbol),
+                var arg interface{} = this.Extend(instParams, map[string]interface{} {
                     "ordId": ccxt.GetValue(ids, i),
-                }
+                })
                 ccxt.AppendToArray(&args, arg)
             }
             var request interface{} = map[string]interface{} {
@@ -2831,9 +2847,9 @@ func  (this *OkxCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{
                 "args": args,
             }
         
-                retRes226115 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-                ccxt.PanicOnError(retRes226115)
-                ch <- retRes226115
+                retRes227915 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+                ccxt.PanicOnError(retRes227915)
+                ch <- retRes227915
                 return nil
         
             }()
@@ -2846,7 +2862,7 @@ func  (this *OkxCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{
  * @description cancel all open orders of a type. Only applicable to ccxt.Option in Portfolio Margin mode, and MMP privilege is required.
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *OkxCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -2861,11 +2877,11 @@ func  (this *OkxCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan int
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs() requires a symbol argument")))
             }
         
-            retRes22778 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22778)
+            retRes22958 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes22958)
         
-            retRes22788 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes22788)
+            retRes22968 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes22968)
             var market interface{} = this.Market(symbol)
             if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "type"), "option")) {
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs is only applicable to ccxt.Option in Portfolio Margin mode, and MMP privilege is required.")))
@@ -2881,9 +2897,9 @@ func  (this *OkxCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan int
         }, params)},
             }
         
-                retRes229315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes229315)
-                ch <- retRes229315
+                retRes231115 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes231115)
+                ch <- retRes231115
                 return nil
         
             }()

@@ -67,7 +67,7 @@ apex.fetchTime ([params])
 query for account info
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-balance  
 
@@ -87,7 +87,7 @@ apex.fetchBalance ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data  
 
@@ -147,7 +147,7 @@ apex.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
 
@@ -168,7 +168,7 @@ apex.fetchTicker (symbol[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
 
@@ -214,7 +214,7 @@ apex.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-market-depth-v3  
 
@@ -236,7 +236,7 @@ apex.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-newest-trading-data-v3  
 
@@ -261,7 +261,7 @@ apex.fetchTrades (symbol[, since, limit, params])
 retrieves the open interest of a contract trading pair
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3  
 
@@ -282,7 +282,7 @@ apex.fetchOpenInterest (symbol[, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3  
 
@@ -290,7 +290,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -307,7 +307,7 @@ apex.fetchFundingRateHistory (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-creating-orders  
 
@@ -320,6 +320,8 @@ create a trade order
 | price | <code>float</code> | No | the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.stopLossPrice | <code>float</code> | No | The price a stop loss order is triggered at |
+| params.takeProfitPrice | <code>float</code> | No | The price a take profit order is triggered at |
 | params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "POST_ONLY" |
 | params.postOnly | <code>bool</code> | No | true or false |
 | params.reduceOnly | <code>bool</code> | No | Ensures that the executed order does not flip the opened position. |
@@ -337,7 +339,7 @@ apex.createOrder (symbol, type, side, amount[, price, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -361,7 +363,7 @@ apex.transfer (code, amount, fromAccount, toAccount[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-all-open-orders  
 
@@ -382,7 +384,7 @@ apex.cancelAllOrders (symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-post-cancel-order  
 
@@ -404,7 +406,7 @@ apex.cancelOrder (id, symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -431,7 +433,7 @@ apex.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-open-orders  
 
@@ -454,7 +456,7 @@ apex.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple orders made by the user *classic accounts only*
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-all-order-history  
 
@@ -483,7 +485,7 @@ apex.fetchOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history  
 
@@ -507,7 +509,7 @@ apex.fetchOrderTrades (id, symbol[, since, limit, params])
 fetches information on multiple orders made by the user *classic accounts only*
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-trade-history  
 
@@ -534,7 +536,7 @@ apex.fetchMyTrades (symbol[, since, limit, params])
 fetches information on multiple orders made by the user *classic accounts only*
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-funding-rate  
 
@@ -582,7 +584,7 @@ apex.setLeverage (leverage, symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#privateapi-v3-for-omni-get-retrieve-user-account-data  
 
@@ -603,7 +605,7 @@ apex.fetchPositions ([symbols, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint  
 
@@ -626,7 +628,7 @@ apex.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a list of symbols
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint  
 
@@ -649,7 +651,7 @@ apex.watchTradesForSymbols (symbols[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint  
 
@@ -671,7 +673,7 @@ apex.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint  
 
@@ -693,7 +695,7 @@ apex.watchOrderBookForSymbols (symbols[, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint  
 
@@ -714,7 +716,7 @@ apex.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#websocket-v3-for-omni-websocket-endpoint  
 
@@ -782,7 +784,7 @@ apex.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#private-websocket  
 
@@ -829,7 +831,7 @@ apex.watchPositions ([symbols, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>apex</code>](#apex)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://api-docs.pro.apex.exchange/#private-websocket  
 

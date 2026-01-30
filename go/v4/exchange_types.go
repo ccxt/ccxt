@@ -11,8 +11,12 @@ import (
 // Utility functions for safe extraction from maps
 func SafeFloatTyped(m interface{}, key interface{}) *float64 {
 	res := SafeFloat(m, key, math.NaN())
+
 	if res != nil {
 		resFloat := res.(float64)
+		if math.IsNaN(resFloat) {
+			return nil
+		}
 		return &resFloat
 	}
 	return nil
@@ -105,6 +109,10 @@ type MarketInterface struct {
 
 // CreateMarketInterface initializes the MarketInterface struct
 func NewMarketInterface(data interface{}) MarketInterface {
+	if data == nil {
+		return MarketInterface{}
+	}
+
 	m := data.(map[string]interface{})
 
 	// Handle limits if present
@@ -1212,24 +1220,30 @@ func NewOpenInterests(fundingRatesData2 interface{}) OpenInterests {
 }
 
 type Liquidation struct {
-	Symbol     *string
-	QuoteValue *float64
-	BaseValue  *float64
-	Timestamp  *int64
-	Datetime   *string
-	Side       *string
-	Info       map[string]interface{}
+	Symbol       *string
+	QuoteValue   *float64
+	BaseValue    *float64
+	Timestamp    *int64
+	Datetime     *string
+	Side         *string
+	Contracts    *float64
+	ContractSize *float64
+	Price        *float64
+	Info         map[string]interface{}
 }
 
 func NewLiquidation(data interface{}) Liquidation {
 	return Liquidation{
-		Symbol:     SafeStringTyped(data, "symbol"),
-		QuoteValue: SafeFloatTyped(data, "quoteValue"),
-		BaseValue:  SafeFloatTyped(data, "baseValue"),
-		Timestamp:  SafeInt64Typed(data, "timestamp"),
-		Datetime:   SafeStringTyped(data, "datetime"),
-		Side:       SafeStringTyped(data, "side"),
-		Info:       GetInfo(data),
+		Symbol:       SafeStringTyped(data, "symbol"),
+		QuoteValue:   SafeFloatTyped(data, "quoteValue"),
+		BaseValue:    SafeFloatTyped(data, "baseValue"),
+		Timestamp:    SafeInt64Typed(data, "timestamp"),
+		Datetime:     SafeStringTyped(data, "datetime"),
+		Side:         SafeStringTyped(data, "side"),
+		Contracts:    SafeFloatTyped(data, "contracts"),
+		ContractSize: SafeFloatTyped(data, "contractSize"),
+		Price:        SafeFloatTyped(data, "price"),
+		Info:         GetInfo(data),
 	}
 }
 
@@ -1672,6 +1686,7 @@ func NewLedgerEntry(data interface{}) LedgerEntry {
 
 type Greeks struct {
 	Info                  map[string]interface{}
+	Symbol                *string
 	Timestamp             *int64
 	Datetime              *string
 	Delta                 *float64
@@ -1679,6 +1694,9 @@ type Greeks struct {
 	Theta                 *float64
 	Vega                  *float64
 	Rho                   *float64
+	Vanna                 *float64
+	Volga                 *float64
+	Charm                 *float64
 	BidSize               *float64
 	AskSize               *float64
 	BidImpliedVolatility  *float64
@@ -1695,12 +1713,16 @@ func NewGreeks(data interface{}) Greeks {
 	return Greeks{
 		Info:                  GetInfo(data),
 		Timestamp:             SafeInt64Typed(data, "timestamp"),
+		Symbol:                SafeStringTyped(data, "symbol"),
 		Datetime:              SafeStringTyped(data, "datetime"),
 		Delta:                 SafeFloatTyped(data, "delta"),
 		Gamma:                 SafeFloatTyped(data, "gamma"),
 		Theta:                 SafeFloatTyped(data, "theta"),
 		Vega:                  SafeFloatTyped(data, "vega"),
 		Rho:                   SafeFloatTyped(data, "rho"),
+		Vanna:                 SafeFloatTyped(data, "vanna"),
+		Volga:                 SafeFloatTyped(data, "volga"),
+		Charm:                 SafeFloatTyped(data, "charm"),
 		BidSize:               SafeFloatTyped(data, "bidSize"),
 		AskSize:               SafeFloatTyped(data, "askSize"),
 		BidImpliedVolatility:  SafeFloatTyped(data, "bidImpliedVolatility"),
@@ -1927,7 +1949,12 @@ func NewLeverageTier(data interface{}) LeverageTier {
 // array helpers
 
 func NewTradeArray(trades2 interface{}) []Trade {
-	trades := trades2.([]interface{})
+	var trades []interface{}
+	if tr, ok := trades2.(*ArrayCache); ok {
+		trades = tr.ToArray()
+	} else {
+		trades = trades2.([]interface{})
+	}
 	result := make([]Trade, 0, len(trades))
 	for _, t := range trades {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -1939,7 +1966,13 @@ func NewTradeArray(trades2 interface{}) []Trade {
 }
 
 func NewOrderArray(orders2 interface{}) []Order {
-	orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+
+	}
 	result := make([]Order, 0, len(orders))
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {
@@ -1963,7 +1996,15 @@ func NewGreeksArray(orders2 interface{}) []Greeks {
 }
 
 func NewOHLCVArray(orders2 interface{}) []OHLCV {
-	orders := orders2.([]interface{})
+	// orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else if tr2, ok := orders2.(*ArrayCacheByTimestamp); ok {
+		orders = tr2.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+	}
 	result := make([]OHLCV, 0, len(orders))
 	for _, t := range orders {
 		if ohlcvlist, ok := t.([]interface{}); ok {
@@ -2035,7 +2076,15 @@ func NewTransferEntryArray(orders2 interface{}) []TransferEntry {
 }
 
 func NewPositionArray(orders2 interface{}) []Position {
-	orders := orders2.([]interface{})
+	// orders := orders2.([]interface{})
+	var orders []interface{}
+	if tr, ok := orders2.(*ArrayCache); ok {
+		orders = tr.ToArray()
+	} else if tr2, ok := orders2.(*ArrayCacheBySymbolBySide); ok {
+		orders = tr2.ToArray()
+	} else {
+		orders = orders2.([]interface{})
+	}
 	result := make([]Position, 0, len(orders))
 	for _, t := range orders {
 		if tradeMap, ok := t.(map[string]interface{}); ok {

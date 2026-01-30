@@ -370,6 +370,13 @@ public partial class Exchange
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> EditOrderWithClientOrderId(string clientOrderId, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
     public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -581,6 +588,11 @@ public partial class Exchange
         var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
     }
+    public async Task<Order> FetchOrderWithClientOrderId(string clientOrderId, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrderWithClientOrderId(clientOrderId, symbol, parameters);
+        return new Order(res);
+    }
     public async Task<Order> FetchOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderWs(id, symbol, parameters);
@@ -756,6 +768,11 @@ public partial class Exchange
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
+    public async Task<Order> CancelOrderWithClientOrderId(string clientOrderId, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrderWithClientOrderId(clientOrderId, symbol, parameters);
+        return new Order(res);
+    }
     public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrderWs(id, symbol, parameters);
@@ -764,6 +781,11 @@ public partial class Exchange
     public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> CancelOrdersWithClientOrderIds(List<string> clientOrderIds, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrdersWithClientOrderIds(clientOrderIds, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
@@ -843,6 +865,13 @@ public partial class Exchange
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
@@ -1110,6 +1139,11 @@ public partial class Exchange
         var res = await this.createStopMarketOrderWs(symbol, side, amount, triggerPrice, parameters);
         return new Order(res);
     }
+    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSubAccount(name, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
@@ -1258,10 +1292,12 @@ public partial class Exchange
     }
 }
 // class wrappers
+public class  Alp: alp { public Alp(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Arkham: arkham { public Arkham(object args = null) : base(args) { } }
 public class  Ascendex: ascendex { public Ascendex(object args = null) : base(args) { } }
+public class  Aster: aster { public Aster(object args = null) : base(args) { } }
 public class  Backpack: backpack { public Backpack(object args = null) : base(args) { } }
 public class  Bequant: bequant { public Bequant(object args = null) : base(args) { } }
 public class  Bigone: bigone { public Bigone(object args = null) : base(args) { } }
@@ -1288,11 +1324,12 @@ public class  Bittrade: bittrade { public Bittrade(object args = null) : base(ar
 public class  Bitvavo: bitvavo { public Bitvavo(object args = null) : base(args) { } }
 public class  Blockchaincom: blockchaincom { public Blockchaincom(object args = null) : base(args) { } }
 public class  Blofin: blofin { public Blofin(object args = null) : base(args) { } }
-public class  Btcalpha: btcalpha { public Btcalpha(object args = null) : base(args) { } }
 public class  Btcbox: btcbox { public Btcbox(object args = null) : base(args) { } }
 public class  Btcmarkets: btcmarkets { public Btcmarkets(object args = null) : base(args) { } }
 public class  Btcturk: btcturk { public Btcturk(object args = null) : base(args) { } }
+public class  Bullish: bullish { public Bullish(object args = null) : base(args) { } }
 public class  Bybit: bybit { public Bybit(object args = null) : base(args) { } }
+public class  Bydfi: bydfi { public Bydfi(object args = null) : base(args) { } }
 public class  Cex: cex { public Cex(object args = null) : base(args) { } }
 public class  Coinbase: coinbase { public Coinbase(object args = null) : base(args) { } }
 public class  Coinbaseadvanced: coinbaseadvanced { public Coinbaseadvanced(object args = null) : base(args) { } }
@@ -1308,11 +1345,13 @@ public class  Coinsph: coinsph { public Coinsph(object args = null) : base(args)
 public class  Coinspot: coinspot { public Coinspot(object args = null) : base(args) { } }
 public class  Cryptocom: cryptocom { public Cryptocom(object args = null) : base(args) { } }
 public class  Cryptomus: cryptomus { public Cryptomus(object args = null) : base(args) { } }
+public class  Deepcoin: deepcoin { public Deepcoin(object args = null) : base(args) { } }
 public class  Defx: defx { public Defx(object args = null) : base(args) { } }
 public class  Delta: delta { public Delta(object args = null) : base(args) { } }
 public class  Deribit: deribit { public Deribit(object args = null) : base(args) { } }
 public class  Derive: derive { public Derive(object args = null) : base(args) { } }
 public class  Digifinex: digifinex { public Digifinex(object args = null) : base(args) { } }
+public class  Dydx: dydx { public Dydx(object args = null) : base(args) { } }
 public class  Exmo: exmo { public Exmo(object args = null) : base(args) { } }
 public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { } }
 public class  Foxbit: foxbit { public Foxbit(object args = null) : base(args) { } }
@@ -1341,7 +1380,6 @@ public class  Modetrade: modetrade { public Modetrade(object args = null) : base
 public class  Myokx: myokx { public Myokx(object args = null) : base(args) { } }
 public class  Ndax: ndax { public Ndax(object args = null) : base(args) { } }
 public class  Novadax: novadax { public Novadax(object args = null) : base(args) { } }
-public class  Oceanex: oceanex { public Oceanex(object args = null) : base(args) { } }
 public class  Okx: okx { public Okx(object args = null) : base(args) { } }
 public class  Okxus: okxus { public Okxus(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
@@ -1363,4 +1401,5 @@ public class  Woofipro: woofipro { public Woofipro(object args = null) : base(ar
 public class  Xt: xt { public Xt(object args = null) : base(args) { } }
 public class  Yobit: yobit { public Yobit(object args = null) : base(args) { } }
 public class  Zaif: zaif { public Zaif(object args = null) : base(args) { } }
+public class  Zebpay: zebpay { public Zebpay(object args = null) : base(args) { } }
 public class  Zonda: zonda { public Zonda(object args = null) : base(args) { } }

@@ -332,18 +332,19 @@ func (this *DefxCore) Describe() interface{} {
 		"commonCurrencies": map[string]interface{}{},
 		"exceptions": map[string]interface{}{
 			"exact": map[string]interface{}{
-				"404":                    BadRequest,
-				"missing_auth_signature": AuthenticationError,
-				"order_rejected":         InvalidOrder,
-				"invalid_order_id":       InvalidOrder,
-				"filter_lotsize_maxqty":  InvalidOrder,
-				"filter_notional_min":    InvalidOrder,
+				"404":                                     BadRequest,
+				"missing_auth_signature":                  AuthenticationError,
+				"leverage_higher_than_capped_leverage":    BadRequest,
+				"order_rejected":                          InvalidOrder,
+				"invalid_order_id":                        InvalidOrder,
+				"filter_lotsize_maxqty":                   InvalidOrder,
+				"filter_notional_min":                     InvalidOrder,
 				"failed_index_price_up_multiplier_filter": InvalidOrder,
-				"no_open_orders":            InvalidOrder,
-				"active_position_not_found": InvalidOrder,
-				"position_inactive":         InvalidOrder,
-				"invalid_position_id":       InvalidOrder,
-				"Internal server error":     ExchangeError,
+				"no_open_orders":                          InvalidOrder,
+				"active_position_not_found":               InvalidOrder,
+				"position_inactive":                       InvalidOrder,
+				"invalid_position_id":                     InvalidOrder,
+				"Internal server error":                   ExchangeError,
 			},
 			"broad": map[string]interface{}{
 				"Bad Request": BadRequest,
@@ -359,7 +360,7 @@ func (this *DefxCore) Describe() interface{} {
  * @description the latest known information on the availability of the exchange API
  * @see https://api-docs.defx.com/#4b03bb3b-a0fa-4dfb-b96c-237bde0ce9e6
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *DefxCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -687,7 +688,7 @@ func (this *DefxCore) ParseMarket(market interface{}) interface{} {
  * @see https://api-docs.defx.com/#fe6f81d0-2f3a-4eee-976f-c8fc8f4c5d56
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DefxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -697,8 +698,8 @@ func (this *DefxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes6668 := (<-this.LoadMarkets())
-		PanicOnError(retRes6668)
+		retRes6678 := (<-this.LoadMarkets())
+		PanicOnError(retRes6678)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -744,7 +745,7 @@ func (this *DefxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
  * @see https://api-docs.defx.com/#8c61cfbd-40d9-410e-b014-f5b36eba51d1
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DefxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -756,8 +757,8 @@ func (this *DefxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes7088 := (<-this.LoadMarkets())
-		PanicOnError(retRes7088)
+		retRes7098 := (<-this.LoadMarkets())
+		PanicOnError(retRes7098)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -926,8 +927,8 @@ func (this *DefxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes8548 := (<-this.LoadMarkets())
-		PanicOnError(retRes8548)
+		retRes8558 := (<-this.LoadMarkets())
+		PanicOnError(retRes8558)
 		var market interface{} = this.Market(symbol)
 		var maxLimit interface{} = 1000
 		if IsTrue(IsEqual(limit, nil)) {
@@ -998,7 +999,7 @@ func (this *DefxCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *DefxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1012,8 +1013,8 @@ func (this *DefxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes9278 := (<-this.LoadMarkets())
-		PanicOnError(retRes9278)
+		retRes9288 := (<-this.LoadMarkets())
+		PanicOnError(retRes9288)
 		var market interface{} = this.Market(symbol)
 		var maxLimit interface{} = 50
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1055,7 +1056,7 @@ func (this *DefxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *DefxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1071,8 +1072,8 @@ func (this *DefxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes9658 := (<-this.LoadMarkets())
-		PanicOnError(retRes9658)
+		retRes9668 := (<-this.LoadMarkets())
+		PanicOnError(retRes9668)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market interface{} = this.Market(symbol)
@@ -1187,7 +1188,7 @@ func (this *DefxCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.slab] slab from market.info.depthSlabs
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *DefxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1199,8 +1200,8 @@ func (this *DefxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10758 := (<-this.LoadMarkets())
-		PanicOnError(retRes10758)
+		retRes10768 := (<-this.LoadMarkets())
+		PanicOnError(retRes10768)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 10 // limit must be one of [5, 10, 20]
@@ -1253,7 +1254,7 @@ func (this *DefxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *DefxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1263,8 +1264,8 @@ func (this *DefxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes11248 := (<-this.LoadMarkets())
-		PanicOnError(retRes11248)
+		retRes11258 := (<-this.LoadMarkets())
+		PanicOnError(retRes11258)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1297,7 +1298,7 @@ func (this *DefxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interfa
  * @see https://api-docs.defx.com/#12168192-4e7b-4458-a001-e8b80961f0b7
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *DefxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1307,8 +1308,8 @@ func (this *DefxCore) FetchFundingRate(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes11538 := (<-this.LoadMarkets())
-		PanicOnError(retRes11538)
+		retRes11548 := (<-this.LoadMarkets())
+		PanicOnError(retRes11548)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1379,7 +1380,7 @@ func (this *DefxCore) ParseFundingRate(contract interface{}, optionalArgs ...int
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api-docs.defx.com/#26414338-14f7-40a1-b246-f8ea8571493f
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *DefxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1389,8 +1390,8 @@ func (this *DefxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes12198 := (<-this.LoadMarkets())
-		PanicOnError(retRes12198)
+		retRes12208 := (<-this.LoadMarkets())
+		PanicOnError(retRes12208)
 
 		response := (<-this.V1PrivateGetApiWalletBalance(params))
 		PanicOnError(response)
@@ -1439,7 +1440,7 @@ func (this *DefxCore) ParseBalance(balances interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
  * @param {string} [params.reduceOnly] for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to true or in hedge mode. For spot margin and option reduceOnly is a boolean.
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1451,8 +1452,8 @@ func (this *DefxCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12658 := (<-this.LoadMarkets())
-		PanicOnError(retRes12658)
+		retRes12668 := (<-this.LoadMarkets())
+		PanicOnError(retRes12668)
 		var market interface{} = this.Market(symbol)
 		var reduceOnly interface{} = this.SafeBool2(params, "reduceOnly", "reduce_only")
 		params = this.Omit(params, []interface{}{"reduceOnly", "reduce_only"})
@@ -1644,7 +1645,7 @@ func (this *DefxCore) ParseOrder(order interface{}, optionalArgs ...interface{})
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1656,8 +1657,8 @@ func (this *DefxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14538 := (<-this.LoadMarkets())
-		PanicOnError(retRes14538)
+		retRes14548 := (<-this.LoadMarkets())
+		PanicOnError(retRes14548)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 			"idType":  "orderId",
@@ -1705,7 +1706,7 @@ func (this *DefxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
  * @see https://api-docs.defx.com/#db5531da-3692-4a53-841f-6ad6495f823a
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1717,8 +1718,8 @@ func (this *DefxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14958 := (<-this.LoadMarkets())
-		PanicOnError(retRes14958)
+		retRes14968 := (<-this.LoadMarkets())
+		PanicOnError(retRes14968)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbols": []interface{}{GetValue(market, "id")},
@@ -1750,7 +1751,7 @@ func (this *DefxCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
  * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DefxCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1763,8 +1764,8 @@ func (this *DefxCore) FetchPosition(symbol interface{}, optionalArgs ...interfac
 			panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
 		}
 
-		retRes15248 := (<-this.LoadMarkets())
-		PanicOnError(retRes15248)
+		retRes15258 := (<-this.LoadMarkets())
+		PanicOnError(retRes15258)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1805,7 +1806,7 @@ func (this *DefxCore) FetchPosition(symbol interface{}, optionalArgs ...interfac
  * @see https://api-docs.defx.com/#d89dbb86-9aba-4f59-ac5d-a97ff25ea80e
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DefxCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1817,8 +1818,8 @@ func (this *DefxCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15618 := (<-this.LoadMarkets())
-		PanicOnError(retRes15618)
+		retRes15628 := (<-this.LoadMarkets())
+		PanicOnError(retRes15628)
 
 		response := (<-this.V1PrivateGetApiPositionActive(params))
 		PanicOnError(response)
@@ -1908,7 +1909,7 @@ func (this *DefxCore) ParsePosition(position interface{}, optionalArgs ...interf
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1920,8 +1921,8 @@ func (this *DefxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16468 := (<-this.LoadMarkets())
-		PanicOnError(retRes16468)
+		retRes16478 := (<-this.LoadMarkets())
+		PanicOnError(retRes16478)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 			"idType":  "orderId",
@@ -1984,7 +1985,7 @@ func (this *DefxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2000,8 +2001,8 @@ func (this *DefxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17058 := (<-this.LoadMarkets())
-		PanicOnError(retRes17058)
+		retRes17068 := (<-this.LoadMarkets())
+		PanicOnError(retRes17068)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			var market interface{} = this.Market(symbol)
@@ -2071,7 +2072,7 @@ func (this *DefxCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2090,9 +2091,9 @@ func (this *DefxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 			"statuses": "OPEN",
 		}
 
-		retRes177415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(req, params)))
-		PanicOnError(retRes177415)
-		ch <- retRes177415
+		retRes177515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(req, params)))
+		PanicOnError(retRes177515)
+		ch <- retRes177515
 		return nil
 
 	}()
@@ -2109,7 +2110,7 @@ func (this *DefxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2128,9 +2129,9 @@ func (this *DefxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inte
 			"statuses": "FILLED",
 		}
 
-		retRes179315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(req, params)))
-		PanicOnError(retRes179315)
-		ch <- retRes179315
+		retRes179415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(req, params)))
+		PanicOnError(retRes179415)
+		ch <- retRes179415
 		return nil
 
 	}()
@@ -2147,7 +2148,7 @@ func (this *DefxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2166,9 +2167,9 @@ func (this *DefxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan in
 			"statuses": "CANCELED",
 		}
 
-		retRes181215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(req, params)))
-		PanicOnError(retRes181215)
-		ch <- retRes181215
+		retRes181315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(req, params)))
+		PanicOnError(retRes181315)
+		ch <- retRes181315
 		return nil
 
 	}()
@@ -2187,7 +2188,7 @@ func (this *DefxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan in
  * @param {string} [params.type] 'MARKET' or 'LIMIT'
  * @param {string} [params.quantity] how much of currency you want to trade in units of base currency
  * @param {string} [params.price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *DefxCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2199,8 +2200,8 @@ func (this *DefxCore) ClosePosition(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18308 := (<-this.LoadMarkets())
-		PanicOnError(retRes18308)
+		retRes18318 := (<-this.LoadMarkets())
+		PanicOnError(retRes18318)
 		var positionId interface{} = this.SafeString(params, "positionId")
 		if IsTrue(IsEqual(positionId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " closePosition() requires a positionId")))
@@ -2246,7 +2247,7 @@ func (this *DefxCore) ClosePosition(symbol interface{}, optionalArgs ...interfac
  * @description closes all open positions for a market type
  * @see https://api-docs.defx.com/#d6f63b43-100e-47a9-998c-8b6c0c72d204
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *DefxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2256,8 +2257,8 @@ func (this *DefxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18728 := (<-this.LoadMarkets())
-		PanicOnError(retRes18728)
+		retRes18738 := (<-this.LoadMarkets())
+		PanicOnError(retRes18738)
 
 		response := (<-this.V1PrivateDeleteApiPositionAll(params))
 		PanicOnError(response)
@@ -2291,7 +2292,7 @@ func (this *DefxCore) CloseAllPositions(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *DefxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2307,17 +2308,17 @@ func (this *DefxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes19028 := (<-this.LoadMarkets())
-		PanicOnError(retRes19028)
+		retRes19038 := (<-this.LoadMarkets())
+		PanicOnError(retRes19038)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes190619 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes190619)
-			ch <- retRes190619
+			retRes190719 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes190719)
+			ch <- retRes190719
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2405,7 +2406,7 @@ func (this *DefxCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *DefxCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2417,8 +2418,8 @@ func (this *DefxCore) Withdraw(code interface{}, amount interface{}, address int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19898 := (<-this.LoadMarkets())
-		PanicOnError(retRes19898)
+		retRes19908 := (<-this.LoadMarkets())
+		PanicOnError(retRes19908)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"amount": this.CurrencyToPrecision(code, amount),
@@ -2497,8 +2498,8 @@ func (this *DefxCore) SetLeverage(leverage interface{}, optionalArgs ...interfac
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes20538 := (<-this.LoadMarkets())
-		PanicOnError(retRes20538)
+		retRes20548 := (<-this.LoadMarkets())
+		PanicOnError(retRes20548)
 		var request interface{} = map[string]interface{}{
 			"leverage": this.NumberToString(leverage),
 		}

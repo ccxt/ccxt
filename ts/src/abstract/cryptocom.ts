@@ -19,6 +19,7 @@ interface Exchange {
     v1PublicGetPublicGetValuations (params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetExpiredSettlementPrice (params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetInsurance (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetPublicGetAnnouncements (params?: {}): Promise<implicitReturnType>;
     v1PublicGetPublicGetRiskParameters (params?: {}): Promise<implicitReturnType>;
     v1PublicPostPublicStakingGetConversionRate (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateSetCancelOnDisconnect (params?: {}): Promise<implicitReturnType>;
@@ -50,6 +51,13 @@ interface Exchange {
     v1PrivatePostPrivateGetDepositHistory (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetFeeRate (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetInstrumentFeeRate (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatDepositInfo (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatDepositHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatCreateWithdraw (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatTransactionQuota (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatTransactionLimit (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateFiatFiatGetBankAccounts (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingStake (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingUnstake (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingGetStakingPosition (params?: {}): Promise<implicitReturnType>;
@@ -60,6 +68,8 @@ interface Exchange {
     v1PrivatePostPrivateStakingConvert (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingGetOpenConvert (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingGetConvertHistory (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateCreateIsolatedMarginTransfer (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateChangeIsolatedMarginLeverage (params?: {}): Promise<implicitReturnType>;
     v2PublicGetPublicAuth (params?: {}): Promise<implicitReturnType>;
     v2PublicGetPublicGetInstruments (params?: {}): Promise<implicitReturnType>;
     v2PublicGetPublicGetBook (params?: {}): Promise<implicitReturnType>;

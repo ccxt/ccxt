@@ -190,232 +190,266 @@ func (this *OkxCore) Describe() interface{} {
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
-					"market/books-full":                                      2,
-					"market/tickers":                                         1,
-					"market/ticker":                                          1,
-					"market/index-tickers":                                   1,
-					"market/books":                                           Divide(1, 2),
-					"market/books-lite":                                      Divide(5, 3),
-					"market/candles":                                         Divide(1, 2),
-					"market/history-candles":                                 1,
-					"market/index-candles":                                   1,
-					"market/history-index-candles":                           2,
-					"market/mark-price-candles":                              1,
-					"market/history-mark-price-candles":                      2,
-					"market/trades":                                          Divide(1, 5),
-					"market/history-trades":                                  2,
-					"market/option/instrument-family-trades":                 1,
-					"market/platform-24-volume":                              10,
-					"market/open-oracle":                                     50,
-					"market/exchange-rate":                                   20,
-					"market/index-components":                                1,
-					"public/market-data-history":                             4,
-					"public/economic-calendar":                               50,
-					"market/block-tickers":                                   1,
-					"market/block-ticker":                                    1,
-					"public/block-trades":                                    1,
-					"public/instruments":                                     1,
-					"public/delivery-exercise-history":                       Divide(1, 2),
-					"public/open-interest":                                   1,
-					"public/funding-rate":                                    1,
-					"public/funding-rate-history":                            1,
-					"public/price-limit":                                     1,
-					"public/opt-summary":                                     1,
-					"public/estimated-price":                                 2,
-					"public/discount-rate-interest-free-quota":               10,
-					"public/time":                                            2,
-					"public/mark-price":                                      2,
-					"public/position-tiers":                                  2,
-					"public/interest-rate-loan-quota":                        10,
-					"public/vip-interest-rate-loan-quota":                    10,
-					"public/underlying":                                      1,
-					"public/insurance-fund":                                  2,
-					"public/convert-contract-coin":                           2,
-					"public/option-trades":                                   1,
-					"public/instrument-tick-bands":                           4,
-					"rubik/stat/trading-data/support-coin":                   4,
-					"rubik/stat/taker-volume":                                4,
-					"rubik/stat/margin/loan-ratio":                           4,
-					"rubik/stat/contracts/long-short-account-ratio":          4,
-					"rubik/stat/contracts/long-short-account-ratio-contract": 4,
-					"rubik/stat/contracts/open-interest-volume":              4,
-					"rubik/stat/option/open-interest-volume":                 4,
-					"rubik/stat/option/open-interest-volume-ratio":           4,
-					"rubik/stat/option/open-interest-volume-expiry":          4,
-					"rubik/stat/option/open-interest-volume-strike":          4,
-					"rubik/stat/option/taker-block-volume":                   4,
-					"system/status":                                          50,
-					"sprd/spreads":                                           1,
-					"sprd/books":                                             Divide(1, 2),
-					"sprd/ticker":                                            1,
-					"sprd/public-trades":                                     Divide(1, 5),
-					"market/sprd-ticker":                                     2,
-					"market/sprd-candles":                                    2,
-					"market/sprd-history-candles":                            2,
-					"tradingBot/grid/ai-param":                               1,
-					"tradingBot/grid/min-investment":                         1,
-					"tradingBot/public/rsi-back-testing":                     1,
-					"asset/exchange-list":                                    Divide(5, 3),
-					"finance/staking-defi/eth/apy-history":                   Divide(5, 3),
-					"finance/staking-defi/sol/apy-history":                   Divide(5, 3),
-					"finance/savings/lending-rate-summary":                   Divide(5, 3),
-					"finance/savings/lending-rate-history":                   Divide(5, 3),
-					"finance/fixed-loan/lending-offers":                      Divide(10, 3),
-					"finance/fixed-loan/lending-apy-history":                 Divide(10, 3),
-					"finance/fixed-loan/pending-lending-volume":              Divide(10, 3),
-					"finance/sfp/dcd/products":                               Divide(2, 3),
-					"copytrading/public-lead-traders":                        4,
-					"copytrading/public-weekly-pnl":                          4,
-					"copytrading/public-stats":                               4,
-					"copytrading/public-preference-currency":                 4,
-					"copytrading/public-current-subpositions":                4,
-					"copytrading/public-subpositions-history":                4,
-					"support/announcements-types":                            20,
+					"market/tickers":                             1,
+					"market/ticker":                              1,
+					"market/books":                               Divide(1, 2),
+					"market/books-full":                          2,
+					"market/candles":                             Divide(1, 2),
+					"market/history-candles":                     1,
+					"market/trades":                              Divide(1, 5),
+					"market/history-trades":                      2,
+					"market/option/instrument-family-trades":     1,
+					"market/platform-24-volume":                  10,
+					"market/call-auction-detail":                 1,
+					"market/books-sbe":                           10,
+					"market/block-tickers":                       1,
+					"market/block-ticker":                        1,
+					"market/sprd-ticker":                         1,
+					"market/sprd-candles":                        Divide(1, 2),
+					"market/sprd-history-candles":                1,
+					"market/index-tickers":                       1,
+					"market/index-candles":                       1,
+					"market/history-index-candles":               2,
+					"market/mark-price-candles":                  1,
+					"market/history-mark-price-candles":          1,
+					"market/exchange-rate":                       20,
+					"market/index-components":                    1,
+					"market/open-oracle":                         50,
+					"market/books-lite":                          Divide(5, 3),
+					"public/option-trades":                       1,
+					"public/block-trades":                        1,
+					"public/instruments":                         1,
+					"public/estimated-price":                     2,
+					"public/delivery-exercise-history":           Divide(1, 2),
+					"public/estimated-settlement-info":           2,
+					"public/settlement-history":                  Divide(1, 2),
+					"public/funding-rate":                        2,
+					"public/funding-rate-history":                2,
+					"public/open-interest":                       1,
+					"public/price-limit":                         1,
+					"public/opt-summary":                         1,
+					"public/discount-rate-interest-free-quota":   10,
+					"public/time":                                2,
+					"public/mark-price":                          2,
+					"public/position-tiers":                      2,
+					"public/interest-rate-loan-quota":            10,
+					"public/underlying":                          1,
+					"public/insurance-fund":                      2,
+					"public/convert-contract-coin":               2,
+					"public/instrument-tick-bands":               4,
+					"public/premium-history":                     1,
+					"public/economic-calendar":                   50,
+					"public/market-data-history":                 4,
+					"public/vip-interest-rate-loan-quota":        10,
+					"rubik/stat/trading-data/support-coin":       4,
+					"rubik/stat/contracts/open-interest-history": 2,
+					"rubik/stat/taker-volume":                    4,
+					"rubik/stat/taker-volume-contract":           4,
+					"rubik/stat/margin/loan-ratio":               4,
+					"rubik/stat/contracts/long-short-account-ratio-contract-top-trader": 4,
+					"rubik/stat/contracts/long-short-account-ratio-contract":            4,
+					"rubik/stat/contracts/long-short-account-ratio":                     4,
+					"rubik/stat/contracts/open-interest-volume":                         4,
+					"rubik/stat/option/open-interest-volume":                            4,
+					"rubik/stat/option/open-interest-volume-ratio":                      4,
+					"rubik/stat/option/open-interest-volume-expiry":                     4,
+					"rubik/stat/option/open-interest-volume-strike":                     4,
+					"rubik/stat/option/taker-block-volume":                              4,
+					"system/status":                                                     50,
+					"sprd/spreads":                                                      1,
+					"sprd/books":                                                        1,
+					"sprd/public-trades":                                                1,
+					"sprd/ticker":                                                       1,
+					"tradingBot/grid/ai-param":                                          1,
+					"tradingBot/grid/min-investment":                                    1,
+					"tradingBot/public/rsi-back-testing":                                1,
+					"tradingBot/grid/grid-quantity":                                     4,
+					"asset/exchange-list":                                               Divide(5, 3),
+					"finance/staking-defi/eth/apy-history":                              Divide(5, 3),
+					"finance/staking-defi/sol/apy-history":                              Divide(5, 3),
+					"finance/savings/lending-rate-summary":                              Divide(5, 3),
+					"finance/savings/lending-rate-history":                              Divide(5, 3),
+					"finance/fixed-loan/lending-offers":                                 Divide(10, 3),
+					"finance/fixed-loan/lending-apy-history":                            Divide(10, 3),
+					"finance/fixed-loan/pending-lending-volume":                         Divide(10, 3),
+					"finance/sfp/dcd/products":                                          Divide(2, 3),
+					"copytrading/public-config":                                         4,
+					"copytrading/public-lead-traders":                                   4,
+					"copytrading/public-weekly-pnl":                                     4,
+					"copytrading/public-pnl":                                            4,
+					"copytrading/public-stats":                                          4,
+					"copytrading/public-preference-currency":                            4,
+					"copytrading/public-current-subpositions":                           4,
+					"copytrading/public-subpositions-history":                           4,
+					"copytrading/public-copy-traders":                                   4,
+					"support/announcements":                                             4,
+					"support/announcements-types":                                       20,
+				},
+				"post": map[string]interface{}{
+					"tradingBot/grid/min-investment": 1,
 				},
 			},
 			"private": map[string]interface{}{
 				"get": map[string]interface{}{
-					"rfq/counterparties":                               4,
-					"rfq/maker-instrument-settings":                    4,
-					"rfq/mmp-config":                                   4,
-					"rfq/rfqs":                                         10,
-					"rfq/quotes":                                       10,
-					"rfq/trades":                                       4,
-					"rfq/public-trades":                                4,
-					"sprd/order":                                       Divide(1, 3),
-					"sprd/orders-pending":                              Divide(1, 3),
-					"sprd/orders-history":                              Divide(1, 2),
-					"sprd/orders-history-archive":                      Divide(1, 2),
-					"sprd/trades":                                      Divide(1, 3),
-					"trade/order":                                      Divide(1, 3),
-					"trade/orders-pending":                             Divide(1, 3),
-					"trade/orders-history":                             Divide(1, 2),
-					"trade/orders-history-archive":                     1,
-					"trade/fills":                                      Divide(1, 3),
-					"trade/fills-history":                              2.2,
-					"trade/fills-archive":                              2,
-					"trade/order-algo":                                 1,
-					"trade/orders-algo-pending":                        1,
-					"trade/orders-algo-history":                        1,
-					"trade/easy-convert-currency-list":                 20,
-					"trade/easy-convert-history":                       20,
-					"trade/one-click-repay-currency-list":              20,
-					"trade/one-click-repay-currency-list-v2":           20,
-					"trade/one-click-repay-history":                    20,
-					"trade/one-click-repay-history-v2":                 20,
-					"trade/account-rate-limit":                         1,
-					"asset/currencies":                                 Divide(5, 3),
-					"asset/balances":                                   Divide(5, 3),
-					"asset/non-tradable-assets":                        Divide(5, 3),
-					"asset/asset-valuation":                            10,
-					"asset/transfer-state":                             10,
-					"asset/bills":                                      Divide(5, 3),
-					"asset/deposit-lightning":                          5,
-					"asset/deposit-address":                            Divide(5, 3),
-					"asset/deposit-history":                            Divide(5, 3),
-					"asset/withdrawal-history":                         Divide(5, 3),
-					"asset/deposit-withdraw-status":                    20,
-					"asset/convert/currencies":                         Divide(5, 3),
-					"asset/convert/currency-pair":                      Divide(5, 3),
-					"asset/convert/history":                            Divide(5, 3),
-					"asset/monthly-statement":                          2,
-					"account/instruments":                              1,
-					"account/balance":                                  2,
-					"account/positions":                                2,
-					"account/positions-history":                        100,
-					"account/account-position-risk":                    2,
-					"account/bills":                                    Divide(5, 3),
-					"account/bills-archive":                            Divide(5, 3),
-					"account/bills-history-archive":                    2,
-					"account/config":                                   4,
-					"account/max-size":                                 1,
-					"account/max-avail-size":                           1,
-					"account/leverage-info":                            1,
-					"account/adjust-leverage-info":                     4,
-					"account/max-loan":                                 1,
-					"account/trade-fee":                                4,
-					"account/interest-accrued":                         4,
-					"account/interest-rate":                            4,
-					"account/max-withdrawal":                           1,
-					"account/risk-state":                               2,
-					"account/quick-margin-borrow-repay-history":        4,
-					"account/borrow-repay-history":                     4,
-					"account/vip-interest-accrued":                     4,
-					"account/vip-interest-deducted":                    4,
-					"account/vip-loan-order-list":                      4,
-					"account/vip-loan-order-detail":                    4,
-					"account/interest-limits":                          4,
-					"account/greeks":                                   2,
-					"account/position-tiers":                           2,
-					"account/mmp-config":                               4,
-					"account/fixed-loan/borrowing-limit":               4,
-					"account/fixed-loan/borrowing-quote":               5,
-					"account/fixed-loan/borrowing-orders-list":         5,
-					"account/spot-manual-borrow-repay":                 30,
-					"account/set-auto-repay":                           4,
-					"account/spot-borrow-repay-history":                4,
-					"account/move-positions-history":                   10,
-					"users/subaccount/list":                            10,
-					"account/subaccount/balances":                      Divide(10, 3),
-					"asset/subaccount/balances":                        Divide(10, 3),
-					"account/subaccount/max-withdrawal":                1,
-					"asset/subaccount/bills":                           Divide(5, 3),
-					"asset/subaccount/managed-subaccount-bills":        Divide(5, 3),
-					"users/entrust-subaccount-list":                    10,
-					"account/subaccount/interest-limits":               4,
-					"users/subaccount/apikey":                          10,
-					"tradingBot/grid/orders-algo-pending":              1,
-					"tradingBot/grid/orders-algo-history":              1,
-					"tradingBot/grid/orders-algo-details":              1,
-					"tradingBot/grid/sub-orders":                       1,
-					"tradingBot/grid/positions":                        1,
-					"tradingBot/grid/ai-param":                         1,
-					"tradingBot/signal/signals":                        1,
-					"tradingBot/signal/orders-algo-details":            1,
-					"tradingBot/signal/orders-algo-history":            1,
-					"tradingBot/signal/positions":                      1,
-					"tradingBot/signal/positions-history":              1,
-					"tradingBot/signal/sub-orders":                     1,
-					"tradingBot/signal/event-history":                  1,
-					"tradingBot/recurring/orders-algo-pending":         1,
-					"tradingBot/recurring/orders-algo-history":         1,
-					"tradingBot/recurring/orders-algo-details":         1,
-					"tradingBot/recurring/sub-orders":                  1,
-					"finance/savings/balance":                          Divide(5, 3),
-					"finance/savings/lending-history":                  Divide(5, 3),
-					"finance/staking-defi/offers":                      Divide(10, 3),
-					"finance/staking-defi/orders-active":               Divide(10, 3),
-					"finance/staking-defi/orders-history":              Divide(10, 3),
-					"finance/staking-defi/eth/balance":                 Divide(5, 3),
-					"finance/staking-defi/eth/purchase-redeem-history": Divide(5, 3),
-					"finance/staking-defi/eth/product-info":            3,
-					"finance/staking-defi/sol/balance":                 Divide(5, 3),
-					"finance/staking-defi/sol/purchase-redeem-history": Divide(5, 3),
-					"copytrading/current-subpositions":                 1,
-					"copytrading/subpositions-history":                 1,
-					"copytrading/instruments":                          4,
-					"copytrading/profit-sharing-details":               4,
-					"copytrading/total-profit-sharing":                 4,
-					"copytrading/unrealized-profit-sharing-details":    4,
-					"copytrading/copy-settings":                        4,
-					"copytrading/batch-leverage-info":                  4,
-					"copytrading/current-lead-traders":                 4,
-					"copytrading/lead-traders-history":                 4,
-					"broker/nd/info":                                   10,
-					"broker/nd/subaccount-info":                        10,
-					"broker/nd/subaccount/apikey":                      10,
-					"asset/broker/nd/subaccount-deposit-address":       Divide(5, 3),
-					"asset/broker/nd/subaccount-deposit-history":       4,
-					"asset/broker/nd/subaccount-withdrawal-history":    4,
-					"broker/nd/rebate-daily":                           100,
-					"broker/nd/rebate-per-orders":                      300,
-					"finance/sfp/dcd/order":                            2,
-					"finance/sfp/dcd/orders":                           2,
-					"broker/fd/rebate-per-orders":                      300,
-					"broker/fd/if-rebate":                              5,
-					"affiliate/invitee/detail":                         1,
-					"users/partner/if-rebate":                          1,
-					"support/announcements":                            4,
+					"rfq/counterparties":                                 4,
+					"rfq/maker-instrument-settings":                      4,
+					"rfq/mmp-config":                                     4,
+					"rfq/rfqs":                                           10,
+					"rfq/quotes":                                         10,
+					"rfq/trades":                                         4,
+					"rfq/public-trades":                                  4,
+					"sprd/order":                                         1,
+					"sprd/orders-pending":                                2,
+					"sprd/orders-history":                                1,
+					"sprd/orders-history-archive":                        1,
+					"sprd/trades":                                        1,
+					"trade/order":                                        Divide(1, 3),
+					"trade/orders-pending":                               Divide(1, 3),
+					"trade/orders-history":                               Divide(1, 2),
+					"trade/orders-history-archive":                       1,
+					"trade/fills":                                        Divide(1, 3),
+					"trade/fills-history":                                2,
+					"trade/fills-archive":                                2,
+					"trade/order-algo":                                   1,
+					"trade/orders-algo-pending":                          1,
+					"trade/orders-algo-history":                          1,
+					"trade/easy-convert-currency-list":                   20,
+					"trade/easy-convert-history":                         20,
+					"trade/one-click-repay-currency-list":                20,
+					"trade/one-click-repay-currency-list-v2":             20,
+					"trade/one-click-repay-history":                      20,
+					"trade/one-click-repay-history-v2":                   20,
+					"trade/account-rate-limit":                           1,
+					"asset/currencies":                                   Divide(5, 3),
+					"asset/balances":                                     Divide(5, 3),
+					"asset/non-tradable-assets":                          Divide(5, 3),
+					"asset/asset-valuation":                              10,
+					"asset/transfer-state":                               1,
+					"asset/bills":                                        Divide(5, 3),
+					"asset/bills-history":                                10,
+					"asset/deposit-lightning":                            5,
+					"asset/deposit-address":                              Divide(5, 3),
+					"asset/deposit-history":                              Divide(5, 3),
+					"asset/withdrawal-history":                           Divide(5, 3),
+					"asset/deposit-withdraw-status":                      20,
+					"asset/monthly-statement":                            2,
+					"asset/convert/currencies":                           Divide(5, 3),
+					"asset/convert/currency-pair":                        Divide(5, 3),
+					"asset/convert/history":                              Divide(5, 3),
+					"account/instruments":                                1,
+					"account/balance":                                    2,
+					"account/positions":                                  2,
+					"account/positions-history":                          2,
+					"account/account-position-risk":                      2,
+					"account/bills":                                      2,
+					"account/bills-archive":                              4,
+					"account/bills-history-archive":                      2,
+					"account/config":                                     4,
+					"account/max-size":                                   1,
+					"account/max-avail-size":                             1,
+					"account/leverage-info":                              1,
+					"account/adjust-leverage-info":                       4,
+					"account/max-loan":                                   1,
+					"account/trade-fee":                                  4,
+					"account/interest-accrued":                           4,
+					"account/interest-rate":                              4,
+					"account/max-withdrawal":                             1,
+					"account/risk-state":                                 2,
+					"account/interest-limits":                            4,
+					"account/spot-borrow-repay-history":                  4,
+					"account/greeks":                                     2,
+					"account/position-tiers":                             2,
+					"account/set-account-switch-precheck":                4,
+					"account/collateral-assets":                          4,
+					"account/mmp-config":                                 4,
+					"account/move-positions-history":                     10,
+					"account/precheck-set-delta-neutral":                 20,
+					"account/quick-margin-borrow-repay-history":          4,
+					"account/borrow-repay-history":                       4,
+					"account/vip-interest-accrued":                       4,
+					"account/vip-interest-deducted":                      4,
+					"account/vip-loan-order-list":                        4,
+					"account/vip-loan-order-detail":                      4,
+					"account/fixed-loan/borrowing-limit":                 4,
+					"account/fixed-loan/borrowing-quote":                 5,
+					"account/fixed-loan/borrowing-orders-list":           5,
+					"account/spot-manual-borrow-repay":                   30,
+					"account/set-auto-repay":                             4,
+					"users/subaccount/list":                              10,
+					"account/subaccount/balances":                        Divide(10, 3),
+					"asset/subaccount/balances":                          Divide(10, 3),
+					"account/subaccount/max-withdrawal":                  1,
+					"asset/subaccount/bills":                             Divide(5, 3),
+					"asset/subaccount/managed-subaccount-bills":          Divide(5, 3),
+					"users/entrust-subaccount-list":                      10,
+					"account/subaccount/interest-limits":                 4,
+					"users/subaccount/apikey":                            10,
+					"tradingBot/grid/orders-algo-pending":                1,
+					"tradingBot/grid/orders-algo-history":                1,
+					"tradingBot/grid/orders-algo-details":                1,
+					"tradingBot/grid/sub-orders":                         1,
+					"tradingBot/grid/positions":                          1,
+					"tradingBot/grid/ai-param":                           1,
+					"tradingBot/signal/signals":                          1,
+					"tradingBot/signal/orders-algo-details":              1,
+					"tradingBot/signal/orders-algo-pending":              1,
+					"tradingBot/signal/orders-algo-history":              1,
+					"tradingBot/signal/positions":                        1,
+					"tradingBot/signal/positions-history":                2,
+					"tradingBot/signal/sub-orders":                       1,
+					"tradingBot/signal/event-history":                    1,
+					"tradingBot/recurring/orders-algo-pending":           1,
+					"tradingBot/recurring/orders-algo-history":           1,
+					"tradingBot/recurring/orders-algo-details":           1,
+					"tradingBot/recurring/sub-orders":                    1,
+					"finance/savings/balance":                            Divide(5, 3),
+					"finance/savings/lending-history":                    Divide(5, 3),
+					"finance/staking-defi/offers":                        Divide(10, 3),
+					"finance/staking-defi/orders-active":                 Divide(10, 3),
+					"finance/staking-defi/orders-history":                Divide(10, 3),
+					"finance/staking-defi/eth/product-info":              Divide(10, 3),
+					"finance/staking-defi/eth/balance":                   Divide(5, 3),
+					"finance/staking-defi/eth/purchase-redeem-history":   Divide(5, 3),
+					"finance/staking-defi/sol/product-info":              Divide(10, 3),
+					"finance/staking-defi/sol/balance":                   Divide(5, 3),
+					"finance/staking-defi/sol/purchase-redeem-history":   Divide(5, 3),
+					"finance/flexible-loan/borrow-currencies":            4,
+					"finance/flexible-loan/collateral-assets":            4,
+					"finance/flexible-loan/max-collateral-redeem-amount": 4,
+					"finance/flexible-loan/loan-info":                    4,
+					"finance/flexible-loan/loan-history":                 4,
+					"finance/flexible-loan/interest-accrued":             4,
+					"copytrading/current-subpositions":                   1,
+					"copytrading/subpositions-history":                   1,
+					"copytrading/instruments":                            4,
+					"copytrading/profit-sharing-details":                 4,
+					"copytrading/total-profit-sharing":                   4,
+					"copytrading/unrealized-profit-sharing-details":      4,
+					"copytrading/total-unrealized-profit-sharing":        4,
+					"copytrading/config":                                 4,
+					"copytrading/copy-settings":                          4,
+					"copytrading/current-lead-traders":                   4,
+					"copytrading/batch-leverage-info":                    4,
+					"copytrading/lead-traders-history":                   4,
+					"broker/dma/subaccount-info":                         2,
+					"broker/dma/subaccount-trade-fee":                    10,
+					"broker/dma/subaccount/apikey":                       10,
+					"broker/dma/rebate-per-orders":                       300,
+					"broker/fd/rebate-per-orders":                        300,
+					"broker/fd/if-rebate":                                5,
+					"broker/nd/info":                                     10,
+					"broker/nd/subaccount-info":                          10,
+					"broker/nd/subaccount/apikey":                        10,
+					"asset/broker/nd/subaccount-deposit-address":         Divide(5, 3),
+					"asset/broker/nd/subaccount-deposit-history":         4,
+					"asset/broker/nd/subaccount-withdrawal-history":      4,
+					"broker/nd/rebate-daily":                             100,
+					"broker/nd/rebate-per-orders":                        300,
+					"finance/sfp/dcd/order":                              2,
+					"finance/sfp/dcd/orders":                             2,
+					"affiliate/invitee/detail":                           1,
+					"users/partner/if-rebate":                            1,
+					"support/announcements":                              4,
 				},
 				"post": map[string]interface{}{
 					"rfq/create-rfq":                                    4,
@@ -430,6 +464,7 @@ func (this *OkxCore) Describe() interface{} {
 					"rfq/cancel-quote":                                  0.4,
 					"rfq/cancel-batch-quotes":                           10,
 					"rfq/cancel-all-quotes":                             10,
+					"rfq/cancel-all-after":                              10,
 					"sprd/order":                                        1,
 					"sprd/cancel-order":                                 1,
 					"sprd/mass-cancel":                                  1,
@@ -443,53 +478,64 @@ func (this *OkxCore) Describe() interface{} {
 					"trade/amend-batch-orders":                          Divide(1, 150),
 					"trade/close-position":                              1,
 					"trade/fills-archive":                               172800,
-					"trade/order-algo":                                  1,
-					"trade/cancel-algos":                                1,
-					"trade/amend-algos":                                 1,
 					"trade/cancel-advance-algos":                        1,
 					"trade/easy-convert":                                20,
 					"trade/one-click-repay":                             20,
 					"trade/one-click-repay-v2":                          20,
 					"trade/mass-cancel":                                 4,
 					"trade/cancel-all-after":                            10,
-					"asset/transfer":                                    10,
+					"trade/order-precheck":                              4,
+					"trade/order-algo":                                  1,
+					"trade/cancel-algos":                                1,
+					"trade/amend-algos":                                 1,
+					"asset/transfer":                                    5,
 					"asset/withdrawal":                                  Divide(5, 3),
 					"asset/withdrawal-lightning":                        5,
 					"asset/cancel-withdrawal":                           Divide(5, 3),
 					"asset/convert-dust-assets":                         10,
-					"asset/convert/estimate-quote":                      1,
+					"asset/monthly-statement":                           1296000,
+					"asset/convert/estimate-quote":                      50,
 					"asset/convert/trade":                               1,
-					"asset/monthly-statement":                           1,
+					"account/bills-history-archive":                     72000,
 					"account/set-position-mode":                         4,
 					"account/set-leverage":                              1,
 					"account/position/margin-balance":                   1,
+					"account/set-fee-type":                              4,
 					"account/set-greeks":                                4,
 					"account/set-isolated-mode":                         4,
+					"account/spot-manual-borrow-repay":                  30,
+					"account/set-auto-repay":                            4,
 					"account/quick-margin-borrow-repay":                 4,
 					"account/borrow-repay":                              Divide(5, 3),
 					"account/simulated_margin":                          10,
 					"account/position-builder":                          10,
+					"account/position-builder-graph":                    50,
 					"account/set-riskOffset-type":                       2,
 					"account/activate-option":                           4,
 					"account/set-auto-loan":                             4,
+					"account/account-level-switch-preset":               4,
 					"account/set-account-level":                         4,
+					"account/set-collateral-assets":                     4,
 					"account/mmp-reset":                                 4,
-					"account/mmp-config":                                100,
+					"account/mmp-config":                                50,
 					"account/fixed-loan/borrowing-order":                5,
 					"account/fixed-loan/amend-borrowing-order":          5,
 					"account/fixed-loan/manual-reborrow":                5,
 					"account/fixed-loan/repay-borrowing-order":          5,
-					"account/bills-history-archive":                     72000,
 					"account/move-positions":                            10,
+					"account/set-auto-earn":                             10,
 					"account/set-settle-currency":                       1,
-					"users/subaccount/modify-apikey":                    10,
+					"account/set-trading-config":                        20,
 					"asset/subaccount/transfer":                         10,
-					"users/subaccount/set-transfer-out":                 10,
 					"account/subaccount/set-loan-allocation":            4,
 					"users/subaccount/create-subaccount":                10,
+					"users/subaccount/apikey":                           10,
+					"users/subaccount/modify-apikey":                    10,
 					"users/subaccount/subaccount-apikey":                10,
 					"users/subaccount/delete-apikey":                    10,
+					"users/subaccount/set-transfer-out":                 10,
 					"tradingBot/grid/order-algo":                        1,
+					"tradingBot/grid/amend-algo-basic-param":            1,
 					"tradingBot/grid/amend-order-algo":                  1,
 					"tradingBot/grid/stop-order-algo":                   1,
 					"tradingBot/grid/close-position":                    1,
@@ -514,16 +560,21 @@ func (this *OkxCore) Describe() interface{} {
 					"tradingBot/recurring/stop-order-algo":              1,
 					"finance/savings/purchase-redempt":                  Divide(5, 3),
 					"finance/savings/set-lending-rate":                  Divide(5, 3),
-					"finance/staking-defi/purchase":                     3,
-					"finance/staking-defi/redeem":                       3,
-					"finance/staking-defi/cancel":                       3,
+					"finance/staking-defi/purchase":                     5,
+					"finance/staking-defi/redeem":                       5,
+					"finance/staking-defi/cancel":                       5,
 					"finance/staking-defi/eth/purchase":                 5,
 					"finance/staking-defi/eth/redeem":                   5,
+					"finance/staking-defi/eth/cancel-redeem":            5,
 					"finance/staking-defi/sol/purchase":                 5,
 					"finance/staking-defi/sol/redeem":                   5,
+					"finance/staking-defi/sol/cancel-redeem":            5,
+					"finance/flexible-loan/max-loan":                    4,
+					"finance/flexible-loan/adjust-collateral":           4,
 					"copytrading/algo-order":                            1,
 					"copytrading/close-subposition":                     1,
 					"copytrading/set-instruments":                       4,
+					"copytrading/amend-profit-sharing-ratio":            4,
 					"copytrading/first-copy-settings":                   4,
 					"copytrading/amend-copy-settings":                   4,
 					"copytrading/stop-copy-trading":                     4,
@@ -542,6 +593,8 @@ func (this *OkxCore) Describe() interface{} {
 					"finance/sfp/dcd/quote":                             10,
 					"finance/sfp/dcd/order":                             10,
 					"broker/nd/report-subaccount-ip":                    0.25,
+					"broker/dma/subaccount/apikey":                      Divide(1, 4),
+					"broker/dma/trades":                                 36000,
 					"broker/fd/rebate-per-orders":                       36000,
 				},
 			},
@@ -1259,8 +1312,7 @@ func (this *OkxCore) Describe() interface{} {
 			}),
 		},
 		"commonCurrencies": map[string]interface{}{
-			"AE":  "AET",
-			"WIN": "WINTOKEN",
+			"AE": "AET",
 		},
 	})
 }
@@ -1368,7 +1420,7 @@ func (this *OkxCore) SafeMarket(optionalArgs ...interface{}) interface{} {
  * @description the latest known information on the availability of the exchange API
  * @see https://www.okx.com/docs-v5/en/#status-get-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *OkxCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1475,7 +1527,7 @@ func (this *OkxCore) FetchTime(optionalArgs ...interface{}) <-chan interface{} {
  * @description fetch all the accounts associated with a profile
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-account-configuration
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *OkxCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1567,8 +1619,8 @@ func (this *OkxCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes159312 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes159312)
+			retRes164712 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes164712)
 		}
 		var types interface{} = []interface{}{"spot", "future", "swap", "option"}
 		var fetchMarketsOption interface{} = this.SafeDict(this.Options, "fetchMarkets")
@@ -1646,6 +1698,12 @@ func (this *OkxCore) ParseMarket(market interface{}) interface{} {
 	//         "uly": "BTC-USD"
 	//     }
 	//
+	// for swap "preopen" markets, only `instId` and `instType` are present
+	//
+	//         instId: "ETH-USD_UM-SWAP",
+	//         instType: "SWAP",
+	//         state: "preopen",
+	//
 	var id interface{} = this.SafeString(market, "instId")
 	var typeVar interface{} = this.SafeStringLower(market, "instType")
 	if IsTrue(IsEqual(typeVar, "futures")) {
@@ -1675,6 +1733,10 @@ func (this *OkxCore) ParseMarket(market interface{}) interface{} {
 	var base interface{} = this.SafeCurrencyCode(baseId)
 	var quote interface{} = this.SafeCurrencyCode(quoteId)
 	var symbol interface{} = Add(Add(base, "/"), quote)
+	// handle preopen empty markets
+	if IsTrue(IsTrue(IsEqual(base, "")) || IsTrue(IsEqual(quote, ""))) {
+		symbol = id
+	}
 	var expiry interface{} = nil
 	var strikePrice interface{} = nil
 	var optionType interface{} = nil
@@ -1704,8 +1766,10 @@ func (this *OkxCore) ParseMarket(market interface{}) interface{} {
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var maxSpotCost interface{} = this.SafeNumber(market, "maxMktSz")
 	var status interface{} = this.SafeString(market, "state")
+	var instIdCode interface{} = this.SafeInteger(market, "instIdCode")
 	return this.Extend(fees, map[string]interface{}{
 		"id":             id,
+		"instIdCode":     instIdCode,
 		"symbol":         symbol,
 		"base":           base,
 		"quote":          quote,
@@ -1985,7 +2049,7 @@ func (this *OkxCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interfa
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *OkxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1997,8 +2061,8 @@ func (this *OkxCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19768 := (<-this.LoadMarkets())
-		PanicOnError(retRes19768)
+		retRes20428 := (<-this.LoadMarkets())
+		PanicOnError(retRes20428)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2139,7 +2203,7 @@ func (this *OkxCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2149,8 +2213,8 @@ func (this *OkxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21088 := (<-this.LoadMarkets())
-		PanicOnError(retRes21088)
+		retRes21748 := (<-this.LoadMarkets())
+		PanicOnError(retRes21748)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2201,7 +2265,7 @@ func (this *OkxCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-tickers
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2213,8 +2277,8 @@ func (this *OkxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21558 := (<-this.LoadMarkets())
-		PanicOnError(retRes21558)
+		retRes22218 := (<-this.LoadMarkets())
+		PanicOnError(retRes22218)
 		symbols = this.MarketSymbols(symbols)
 		var market interface{} = this.GetMarketFromSymbols(symbols)
 		var marketType interface{} = nil
@@ -2278,7 +2342,7 @@ func (this *OkxCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2288,8 +2352,8 @@ func (this *OkxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22138 := (<-this.LoadMarkets())
-		PanicOnError(retRes22138)
+		retRes22798 := (<-this.LoadMarkets())
+		PanicOnError(retRes22798)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2327,7 +2391,7 @@ func (this *OkxCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interfac
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-mark-price
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2339,8 +2403,8 @@ func (this *OkxCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22478 := (<-this.LoadMarkets())
-		PanicOnError(retRes22478)
+		retRes23138 := (<-this.LoadMarkets())
+		PanicOnError(retRes23138)
 		symbols = this.MarketSymbols(symbols)
 		var market interface{} = this.GetMarketFromSymbols(symbols)
 		var marketType interface{} = nil
@@ -2477,7 +2541,7 @@ func (this *OkxCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'publicGetMarketTrades' or 'publicGetMarketHistoryTrades' default is 'publicGetMarketTrades'
  * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *OkxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2491,17 +2555,17 @@ func (this *OkxCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes23778 := (<-this.LoadMarkets())
-		PanicOnError(retRes23778)
+		retRes24438 := (<-this.LoadMarkets())
+		PanicOnError(retRes24438)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes238119 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
-			PanicOnError(retRes238119)
-			ch <- retRes238119
+			retRes244719 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+			PanicOnError(retRes244719)
+			ch <- retRes244719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2631,8 +2695,8 @@ func (this *OkxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24908 := (<-this.LoadMarkets())
-		PanicOnError(retRes24908)
+		retRes25568 := (<-this.LoadMarkets())
+		PanicOnError(retRes25568)
 		var market interface{} = this.Market(symbol)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -2640,9 +2704,9 @@ func (this *OkxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes249519 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
-			PanicOnError(retRes249519)
-			ch <- retRes249519
+			retRes256119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
+			PanicOnError(retRes256119)
+			ch <- retRes256119
 			return nil
 		}
 		var priceType interface{} = this.SafeString(params, "price")
@@ -2755,10 +2819,10 @@ func (this *OkxCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *OkxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2777,17 +2841,17 @@ func (this *OkxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes25998 := (<-this.LoadMarkets())
-		PanicOnError(retRes25998)
+		retRes26658 := (<-this.LoadMarkets())
+		PanicOnError(retRes26658)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes260319 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes260319)
-			ch <- retRes260319
+			retRes266919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes266919)
+			ch <- retRes266919
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2933,7 +2997,7 @@ func (this *OkxCore) ParseTradingFee(fee interface{}, optionalArgs ...interface{
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-fee-rates
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *OkxCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2943,8 +3007,8 @@ func (this *OkxCore) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27438 := (<-this.LoadMarkets())
-		PanicOnError(retRes27438)
+		retRes28098 := (<-this.LoadMarkets())
+		PanicOnError(retRes28098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instType": this.ConvertToInstrumentType(GetValue(market, "type")),
@@ -2995,7 +3059,7 @@ func (this *OkxCore) FetchTradingFee(symbol interface{}, optionalArgs ...interfa
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *OkxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3005,8 +3069,8 @@ func (this *OkxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27938 := (<-this.LoadMarkets())
-		PanicOnError(retRes27938)
+		retRes28598 := (<-this.LoadMarkets())
+		PanicOnError(retRes28598)
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
 		query := GetValue(marketTypequeryVariable, 1)
@@ -3139,7 +3203,7 @@ func (this *OkxCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3149,8 +3213,8 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes29208 := (<-this.LoadMarkets())
-		PanicOnError(retRes29208)
+		retRes29868 := (<-this.LoadMarkets())
+		PanicOnError(retRes29868)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot markets only")))
@@ -3160,9 +3224,9 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
 			"tgtCcy":                            "quote_ccy",
 		}
 
-		retRes292915 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes292915)
-		ch <- retRes292915
+		retRes299515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes299515)
+		ch <- retRes299515
 		return nil
 
 	}()
@@ -3177,7 +3241,7 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inter
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3187,8 +3251,8 @@ func (this *OkxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes29438 := (<-this.LoadMarkets())
-		PanicOnError(retRes29438)
+		retRes30098 := (<-this.LoadMarkets())
+		PanicOnError(retRes30098)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot markets only")))
@@ -3198,9 +3262,9 @@ func (this *OkxCore) CreateMarketSellOrderWithCost(symbol interface{}, cost inte
 			"tgtCcy":                            "quote_ccy",
 		}
 
-		retRes295215 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes295215)
-		ch <- retRes295215
+		retRes301815 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes301815)
+		ch <- retRes301815
 		return nil
 
 	}()
@@ -3212,33 +3276,41 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 	params := GetArg(optionalArgs, 1, map[string]interface{}{})
 	_ = params
 	var market interface{} = this.Market(symbol)
+	var takeProfitPrice interface{} = this.SafeValue2(params, "takeProfitPrice", "tpTriggerPx")
+	var stopLossPrice interface{} = this.SafeValue2(params, "stopLossPrice", "slTriggerPx")
+	var conditional interface{} = IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))) || IsTrue((IsEqual(typeVar, "conditional")))
 	var request interface{} = map[string]interface{}{
 		"instId":  GetValue(market, "id"),
 		"side":    side,
 		"ordType": typeVar,
-		"sz":      this.AmountToPrecision(symbol, amount),
+	}
+	var isConditionalOrOCO interface{} = IsTrue(conditional) || IsTrue((IsEqual(typeVar, "oco")))
+	var closeFraction interface{} = this.SafeString(params, "closeFraction")
+	var shouldOmitSize interface{} = IsTrue(isConditionalOrOCO) && IsTrue(!IsEqual(closeFraction, nil))
+	if !IsTrue(shouldOmitSize) {
+		AddElementToObject(request, "sz", this.AmountToPrecision(symbol, amount))
 	}
 	var spot interface{} = GetValue(market, "spot")
 	var contract interface{} = GetValue(market, "contract")
 	var triggerPrice interface{} = this.SafeValueN(params, []interface{}{"triggerPrice", "stopPrice", "triggerPx"})
 	var timeInForce interface{} = this.SafeString(params, "timeInForce", "GTC")
-	var takeProfitPrice interface{} = this.SafeValue2(params, "takeProfitPrice", "tpTriggerPx")
+	// const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
 	var tpOrdPx interface{} = this.SafeValue(params, "tpOrdPx", price)
 	var tpTriggerPxType interface{} = this.SafeString(params, "tpTriggerPxType", "last")
-	var stopLossPrice interface{} = this.SafeValue2(params, "stopLossPrice", "slTriggerPx")
+	// const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
 	var slOrdPx interface{} = this.SafeValue(params, "slOrdPx", price)
 	var slTriggerPxType interface{} = this.SafeString(params, "slTriggerPxType", "last")
 	var clientOrderId interface{} = this.SafeString2(params, "clOrdId", "clientOrderId")
 	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-	var stopLossDefined interface{} = (!IsEqual(stopLoss, nil))
 	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-	var takeProfitDefined interface{} = (!IsEqual(takeProfit, nil))
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 	var trailingPercent interface{} = this.SafeString2(params, "trailingPercent", "callbackRatio")
 	var isTrailingPercentOrder interface{} = !IsEqual(trailingPercent, nil)
 	var trailingPrice interface{} = this.SafeString2(params, "trailingPrice", "callbackSpread")
 	var isTrailingPriceOrder interface{} = !IsEqual(trailingPrice, nil)
 	var trigger interface{} = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((IsEqual(typeVar, "trigger")))
-	var isReduceOnly interface{} = this.SafeValue(params, "reduceOnly", false)
+	var isReduceOnly interface{} = IsTrue(this.SafeValue(params, "reduceOnly", false)) || IsTrue((!IsEqual(closeFraction, nil)))
 	var defaultMarginMode interface{} = this.SafeString2(this.Options, "defaultMarginMode", "marginMode", "cross")
 	var marginMode interface{} = this.SafeString2(params, "marginMode", "tdMode") // cross or isolated, tdMode not ommited so as to be extended into the request
 	var margin interface{} = false
@@ -3295,7 +3367,7 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 	params = this.Omit(params, []interface{}{"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"})
 	var ioc interface{} = IsTrue((IsEqual(timeInForce, "IOC"))) || IsTrue((IsEqual(typeVar, "ioc")))
 	var fok interface{} = IsTrue((IsEqual(timeInForce, "FOK"))) || IsTrue((IsEqual(typeVar, "fok")))
-	var conditional interface{} = IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))) || IsTrue((IsEqual(typeVar, "conditional")))
+	// const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
 	var marketIOC interface{} = IsTrue((IsTrue(isMarketOrder) && IsTrue(ioc))) || IsTrue((IsEqual(typeVar, "optimal_limit_ioc")))
 	var defaultTgtCcy interface{} = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy interface{} = this.SafeString(params, "tgtCcy", defaultTgtCcy)
@@ -3354,9 +3426,9 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 	} else if IsTrue(isTrailingPriceOrder) {
 		AddElementToObject(request, "callbackSpread", trailingPrice)
 		AddElementToObject(request, "ordType", "move_order_stop")
-	} else if IsTrue(IsTrue(stopLossDefined) || IsTrue(takeProfitDefined)) {
+	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		var attachAlgoOrd interface{} = map[string]interface{}{}
-		if IsTrue(stopLossDefined) {
+		if IsTrue(hasStopLoss) {
 			var stopLossTriggerPrice interface{} = this.SafeValueN(stopLoss, []interface{}{"triggerPrice", "stopPrice", "slTriggerPx"})
 			if IsTrue(IsEqual(stopLossTriggerPrice, nil)) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")))
@@ -3394,7 +3466,7 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
 			}
 			attachAlgoOrd = this.Extend(attachAlgoOrd, slOrder)
 		}
-		if IsTrue(takeProfitDefined) {
+		if IsTrue(hasTakeProfit) {
 			var takeProfitTriggerPrice interface{} = this.SafeValueN(takeProfit, []interface{}{"triggerPrice", "stopPrice", "tpTriggerPx"})
 			if IsTrue(IsEqual(takeProfitTriggerPrice, nil)) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")))
@@ -3521,7 +3593,7 @@ func (this *OkxCore) CreateOrderRequest(symbol interface{}, typeVar interface{},
  * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
  * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
  * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3533,8 +3605,8 @@ func (this *OkxCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes32818 := (<-this.LoadMarkets())
-		PanicOnError(retRes32818)
+		retRes33568 := (<-this.LoadMarkets())
+		PanicOnError(retRes33568)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 		var method interface{} = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
@@ -3585,7 +3657,7 @@ func (this *OkxCore) CreateOrder(symbol interface{}, typeVar interface{}, side i
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3595,8 +3667,8 @@ func (this *OkxCore) CreateOrders(orders interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes33248 := (<-this.LoadMarkets())
-		PanicOnError(retRes33248)
+		retRes33998 := (<-this.LoadMarkets())
+		PanicOnError(retRes33998)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -3680,8 +3752,8 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
 	var takeProfitTriggerPriceType interface{} = this.SafeString(params, "newTpTriggerPxType", "last")
 	var stopLoss interface{} = this.SafeValue(params, "stopLoss")
 	var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-	var stopLossDefined interface{} = (!IsEqual(stopLoss, nil))
-	var takeProfitDefined interface{} = (!IsEqual(takeProfit, nil))
+	var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+	var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 	if IsTrue(isAlgoOrder) {
 		if IsTrue(IsTrue((IsEqual(stopLossTriggerPrice, nil))) && IsTrue((IsEqual(takeProfitTriggerPrice, nil)))) {
 			panic(BadRequest(Add(this.Id, " editOrder() requires a stopLossPrice or takeProfitPrice parameter for editing an algo order")))
@@ -3713,7 +3785,7 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
 			AddElementToObject(request, "newTpOrdPx", Ternary(IsTrue((IsEqual(typeVar, "market"))), "-1", this.PriceToPrecision(symbol, takeProfitPrice)))
 			AddElementToObject(request, "newTpTriggerPxType", takeProfitTriggerPriceType)
 		}
-		if IsTrue(stopLossDefined) {
+		if IsTrue(hasStopLoss) {
 			stopLossTriggerPrice = this.SafeValue(stopLoss, "triggerPrice")
 			stopLossPrice = this.SafeValue(stopLoss, "price")
 			var stopLossType interface{} = this.SafeString(stopLoss, "type")
@@ -3721,7 +3793,7 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
 			AddElementToObject(request, "newSlOrdPx", Ternary(IsTrue((IsEqual(stopLossType, "market"))), "-1", this.PriceToPrecision(symbol, stopLossPrice)))
 			AddElementToObject(request, "newSlTriggerPxType", stopLossTriggerPriceType)
 		}
-		if IsTrue(takeProfitDefined) {
+		if IsTrue(hasTakeProfit) {
 			takeProfitTriggerPrice = this.SafeValue(takeProfit, "triggerPrice")
 			takeProfitPrice = this.SafeValue(takeProfit, "price")
 			var takeProfitType interface{} = this.SafeString(takeProfit, "type")
@@ -3772,7 +3844,7 @@ func (this *OkxCore) EditOrderRequest(id interface{}, symbol interface{}, typeVa
  * @param {float} [params.takeProfit.price] used for take profit limit orders, not used for take profit market price orders
  * @param {string} [params.takeProfit.type] 'market' or 'limit' used to specify the take profit price type
  * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3786,8 +3858,8 @@ func (this *OkxCore) EditOrder(id interface{}, symbol interface{}, typeVar inter
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes34918 := (<-this.LoadMarkets())
-		PanicOnError(retRes34918)
+		retRes35668 := (<-this.LoadMarkets())
+		PanicOnError(retRes35668)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 		var isAlgoOrder interface{} = nil
@@ -3843,7 +3915,7 @@ func (this *OkxCore) EditOrder(id interface{}, symbol interface{}, typeVar inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if trigger orders
  * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3868,8 +3940,8 @@ func (this *OkxCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-
 			return nil
 		}
 
-		retRes35508 := (<-this.LoadMarkets())
-		PanicOnError(retRes35508)
+		retRes36258 := (<-this.LoadMarkets())
+		PanicOnError(retRes36258)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -3920,7 +3992,7 @@ func (this *OkxCore) ParseIds(ids interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/trigger order
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3936,8 +4008,8 @@ func (this *OkxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes36048 := (<-this.LoadMarkets())
-		PanicOnError(retRes36048)
+		retRes36798 := (<-this.LoadMarkets())
+		PanicOnError(retRes36798)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = []interface{}{}
 		var options interface{} = this.SafeValue(this.Options, "cancelOrders", map[string]interface{}{})
@@ -4046,7 +4118,7 @@ func (this *OkxCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/trigger order
  * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4056,8 +4128,8 @@ func (this *OkxCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37078 := (<-this.LoadMarkets())
-		PanicOnError(retRes37078)
+		retRes37828 := (<-this.LoadMarkets())
+		PanicOnError(retRes37828)
 		var request interface{} = []interface{}{}
 		var options interface{} = this.SafeDict(this.Options, "cancelOrders", map[string]interface{}{})
 		var defaultMethod interface{} = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
@@ -4155,8 +4227,8 @@ func (this *OkxCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37898 := (<-this.LoadMarkets())
-		PanicOnError(retRes37898)
+		retRes38648 := (<-this.LoadMarkets())
+		PanicOnError(retRes38648)
 		var request interface{} = map[string]interface{}{
 			"timeOut": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
@@ -4488,7 +4560,7 @@ func (this *OkxCore) ParseOrder(order interface{}, optionalArgs ...interface{}) 
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra and exchange specific parameters
  * @param {boolean} [params.trigger] true if fetching trigger orders
- * @returns [an order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4503,8 +4575,8 @@ func (this *OkxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-c
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes41208 := (<-this.LoadMarkets())
-		PanicOnError(retRes41208)
+		retRes41958 := (<-this.LoadMarkets())
+		PanicOnError(retRes41958)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -4660,7 +4732,7 @@ func (this *OkxCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-c
  * @param {string} [params.algoId] Algo ID "'433845797218942976'"
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4676,17 +4748,17 @@ func (this *OkxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes42738 := (<-this.LoadMarkets())
-		PanicOnError(retRes42738)
+		retRes43488 := (<-this.LoadMarkets())
+		PanicOnError(retRes43488)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes427719 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
-			PanicOnError(retRes427719)
-			ch <- retRes427719
+			retRes435219 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+			PanicOnError(retRes435219)
+			ch <- retRes435219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4843,7 +4915,7 @@ func (this *OkxCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfa
  * @param {string} [params.algoId] Algo ID "'433845797218942976'"
  * @param {int} [params.until] timestamp in ms to fetch orders for
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4859,8 +4931,8 @@ func (this *OkxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes44368 := (<-this.LoadMarkets())
-		PanicOnError(retRes44368)
+		retRes45118 := (<-this.LoadMarkets())
+		PanicOnError(retRes45118)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -5046,7 +5118,7 @@ func (this *OkxCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan int
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.method] method to be used, either 'privateGetTradeOrdersHistory', 'privateGetTradeOrdersHistoryArchive' or 'privateGetTradeOrdersAlgoHistory' default is 'privateGetTradeOrdersHistory'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5062,17 +5134,17 @@ func (this *OkxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes46248 := (<-this.LoadMarkets())
-		PanicOnError(retRes46248)
+		retRes46998 := (<-this.LoadMarkets())
+		PanicOnError(retRes46998)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes462819 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes462819)
-			ch <- retRes462819
+			retRes470319 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes470319)
+			ch <- retRes470319
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -5248,7 +5320,7 @@ func (this *OkxCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OkxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5264,17 +5336,17 @@ func (this *OkxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes48038 := (<-this.LoadMarkets())
-		PanicOnError(retRes48038)
+		retRes48788 := (<-this.LoadMarkets())
+		PanicOnError(retRes48788)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes480719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes480719)
-			ch <- retRes480719
+			retRes488219 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes488219)
+			ch <- retRes488219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -5343,7 +5415,7 @@ func (this *OkxCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OkxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5362,9 +5434,9 @@ func (this *OkxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
 			"ordId": id,
 		}
 
-		retRes488215 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes488215)
-		ch <- retRes488215
+		retRes495715 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes495715)
+		ch <- retRes495715
 		return nil
 
 	}()
@@ -5385,7 +5457,7 @@ func (this *OkxCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *OkxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5401,17 +5473,17 @@ func (this *OkxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes49028 := (<-this.LoadMarkets())
-		PanicOnError(retRes49028)
+		retRes49778 := (<-this.LoadMarkets())
+		PanicOnError(retRes49778)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes490619 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes490619)
-			ch <- retRes490619
+			retRes498119 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes498119)
+			ch <- retRes498119
 			return nil
 		}
 		var options interface{} = this.SafeDict(this.Options, "fetchLedger", map[string]interface{}{})
@@ -5712,7 +5784,7 @@ func (this *OkxCore) ParseDepositAddress(depositAddress interface{}, optionalArg
  * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *OkxCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5722,8 +5794,8 @@ func (this *OkxCore) FetchDepositAddressesByNetwork(code interface{}, optionalAr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes52038 := (<-this.LoadMarkets())
-		PanicOnError(retRes52038)
+		retRes52788 := (<-this.LoadMarkets())
+		PanicOnError(retRes52788)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy": GetValue(currency, "id"),
@@ -5771,7 +5843,7 @@ func (this *OkxCore) FetchDepositAddressesByNetwork(code interface{}, optionalAr
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network name for the deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *OkxCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5781,8 +5853,8 @@ func (this *OkxCore) FetchDepositAddress(code interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes52478 := (<-this.LoadMarkets())
-		PanicOnError(retRes52478)
+		retRes53228 := (<-this.LoadMarkets())
+		PanicOnError(retRes53228)
 		var rawNetwork interface{} = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
 		params = this.Omit(params, "network")
 		code = this.SafeCurrencyCode(code)
@@ -5826,7 +5898,7 @@ func (this *OkxCore) FetchDepositAddress(code interface{}, optionalArgs ...inter
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5842,8 +5914,8 @@ func (this *OkxCore) Withdraw(code interface{}, amount interface{}, address inte
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes52858 := (<-this.LoadMarkets())
-		PanicOnError(retRes52858)
+		retRes53608 := (<-this.LoadMarkets())
+		PanicOnError(retRes53608)
 		var currency interface{} = this.Currency(code)
 		if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetLength(tag), 0)))) {
 			address = Add(Add(address, ":"), tag)
@@ -5912,7 +5984,7 @@ func (this *OkxCore) Withdraw(code interface{}, amount interface{}, address inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5928,17 +6000,17 @@ func (this *OkxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes53488 := (<-this.LoadMarkets())
-		PanicOnError(retRes53488)
+		retRes54238 := (<-this.LoadMarkets())
+		PanicOnError(retRes54238)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes535219 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes535219)
-			ch <- retRes535219
+			retRes542719 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes542719)
+			ch <- retRes542719
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6014,7 +6086,7 @@ func (this *OkxCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface
  * @param {string} id deposit id
  * @param {string} code filter by currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6026,8 +6098,8 @@ func (this *OkxCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes54278 := (<-this.LoadMarkets())
-		PanicOnError(retRes54278)
+		retRes55028 := (<-this.LoadMarkets())
+		PanicOnError(retRes55028)
 		var request interface{} = map[string]interface{}{
 			"depId": id,
 		}
@@ -6060,7 +6132,7 @@ func (this *OkxCore) FetchDeposit(id interface{}, optionalArgs ...interface{}) <
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6076,17 +6148,17 @@ func (this *OkxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes54568 := (<-this.LoadMarkets())
-		PanicOnError(retRes54568)
+		retRes55318 := (<-this.LoadMarkets())
+		PanicOnError(retRes55318)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes546019 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes546019)
-			ch <- retRes546019
+			retRes553519 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes553519)
+			ch <- retRes553519
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6154,7 +6226,7 @@ func (this *OkxCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interf
  * @param {string} id withdrawal id
  * @param {string} code unified currency code of the currency withdrawn, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchWithdrawal(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6166,8 +6238,8 @@ func (this *OkxCore) FetchWithdrawal(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes55278 := (<-this.LoadMarkets())
-		PanicOnError(retRes55278)
+		retRes56028 := (<-this.LoadMarkets())
+		PanicOnError(retRes56028)
 		var request interface{} = map[string]interface{}{
 			"wdId": id,
 		}
@@ -6360,7 +6432,7 @@ func (this *OkxCore) ParseTransaction(transaction interface{}, optionalArgs ...i
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated'
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *OkxCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6370,8 +6442,8 @@ func (this *OkxCore) FetchLeverage(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57168 := (<-this.LoadMarkets())
-		PanicOnError(retRes57168)
+		retRes57918 := (<-this.LoadMarkets())
+		PanicOnError(retRes57918)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -6450,7 +6522,7 @@ func (this *OkxCore) ParseLeverage(leverage interface{}, optionalArgs ...interfa
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6460,8 +6532,8 @@ func (this *OkxCore) FetchPosition(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57888 := (<-this.LoadMarkets())
-		PanicOnError(retRes57888)
+		retRes58638 := (<-this.LoadMarkets())
+		PanicOnError(retRes58638)
 		var market interface{} = this.Market(symbol)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
@@ -6544,7 +6616,7 @@ func (this *OkxCore) FetchPosition(symbol interface{}, optionalArgs ...interface
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6556,8 +6628,8 @@ func (this *OkxCore) FetchPositions(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes58668 := (<-this.LoadMarkets())
-		PanicOnError(retRes58668)
+		retRes59418 := (<-this.LoadMarkets())
+		PanicOnError(retRes59418)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var marketIds interface{} = []interface{}{}
@@ -6650,7 +6722,7 @@ func (this *OkxCore) FetchPositions(optionalArgs ...interface{}) <-chan interfac
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.instType] MARGIN (if needed)
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPositionsForSymbol(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6660,9 +6732,9 @@ func (this *OkxCore) FetchPositionsForSymbol(symbol interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes595715 := (<-this.FetchPositions([]interface{}{symbol}, params))
-		PanicOnError(retRes595715)
-		ch <- retRes595715
+		retRes603215 := (<-this.FetchPositions([]interface{}{symbol}, params))
+		PanicOnError(retRes603215)
+		ch <- retRes603215
 		return nil
 
 	}()
@@ -6798,7 +6870,7 @@ func (this *OkxCore) ParsePosition(position interface{}, optionalArgs ...interfa
 	if IsTrue(IsEqual(initialMarginPercentage, nil)) {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if IsTrue(IsEqual(initialMarginString, nil)) {
-		initialMarginString = Precise.StringMul(initialMarginPercentage, notionalString)
+		initialMarginString = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), entryPriceString), leverageString)
 	}
 	var rounder interface{} = "0.00005" // round to closest 0.01%
 	var maintenanceMarginPercentage interface{} = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4))
@@ -6849,7 +6921,7 @@ func (this *OkxCore) ParsePosition(position interface{}, optionalArgs ...interfa
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *OkxCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6859,8 +6931,8 @@ func (this *OkxCore) Transfer(code interface{}, amount interface{}, fromAccount 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes61428 := (<-this.LoadMarkets())
-		PanicOnError(retRes61428)
+		retRes62178 := (<-this.LoadMarkets())
+		PanicOnError(retRes62178)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -7005,8 +7077,8 @@ func (this *OkxCore) FetchTransfer(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes62768 := (<-this.LoadMarkets())
-		PanicOnError(retRes62768)
+		retRes63518 := (<-this.LoadMarkets())
+		PanicOnError(retRes63518)
 		var request interface{} = map[string]interface{}{
 			"transId": id,
 		}
@@ -7052,7 +7124,7 @@ func (this *OkxCore) FetchTransfer(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *OkxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7068,8 +7140,8 @@ func (this *OkxCore) FetchTransfers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes63198 := (<-this.LoadMarkets())
-		PanicOnError(retRes63198)
+		retRes63948 := (<-this.LoadMarkets())
+		PanicOnError(retRes63948)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{
 			"type": "1",
@@ -7280,7 +7352,7 @@ func (this *OkxCore) ParseFundingInterval(interval interface{}) interface{} {
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *OkxCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7290,9 +7362,9 @@ func (this *OkxCore) FetchFundingInterval(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes651515 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes651515)
-		ch <- retRes651515
+		retRes659015 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes659015)
+		ch <- retRes659015
 		return nil
 
 	}()
@@ -7306,7 +7378,7 @@ func (this *OkxCore) FetchFundingInterval(symbol interface{}, optionalArgs ...in
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *OkxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7316,8 +7388,8 @@ func (this *OkxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes65288 := (<-this.LoadMarkets())
-		PanicOnError(retRes65288)
+		retRes66038 := (<-this.LoadMarkets())
+		PanicOnError(retRes66038)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets")))
@@ -7361,7 +7433,7 @@ func (this *OkxCore) FetchFundingRate(symbol interface{}, optionalArgs ...interf
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-funding-rate
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}
+ * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
  */
 func (this *OkxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7373,8 +7445,8 @@ func (this *OkxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes65688 := (<-this.LoadMarkets())
-		PanicOnError(retRes65688)
+		retRes66438 := (<-this.LoadMarkets())
+		PanicOnError(retRes66438)
 		symbols = this.MarketSymbols(symbols, "swap", true)
 		var request interface{} = map[string]interface{}{
 			"instId": "ANY",
@@ -7416,7 +7488,7 @@ func (this *OkxCore) FetchFundingRates(optionalArgs ...interface{}) <-chan inter
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *OkxCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7432,8 +7504,8 @@ func (this *OkxCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes66048 := (<-this.LoadMarkets())
-		PanicOnError(retRes66048)
+		retRes66798 := (<-this.LoadMarkets())
+		PanicOnError(retRes66798)
 		var request interface{} = map[string]interface{}{
 			"type": "8",
 		}
@@ -7546,8 +7618,8 @@ func (this *OkxCore) SetLeverage(leverage interface{}, optionalArgs ...interface
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
 
-		retRes67728 := (<-this.LoadMarkets())
-		PanicOnError(retRes67728)
+		retRes68478 := (<-this.LoadMarkets())
+		PanicOnError(retRes68478)
 		var market interface{} = this.Market(symbol)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
@@ -7726,8 +7798,8 @@ func (this *OkxCore) SetMarginMode(marginMode interface{}, optionalArgs ...inter
 			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode must be either cross or isolated")))
 		}
 
-		retRes69038 := (<-this.LoadMarkets())
-		PanicOnError(retRes69038)
+		retRes69788 := (<-this.LoadMarkets())
+		PanicOnError(retRes69788)
 		var market interface{} = this.Market(symbol)
 		var lever interface{} = this.SafeInteger2(params, "lever", "leverage")
 		if IsTrue(IsTrue(IsTrue((IsEqual(lever, nil))) || IsTrue((IsLessThan(lever, 1)))) || IsTrue((IsGreaterThan(lever, 125)))) {
@@ -7770,7 +7842,7 @@ func (this *OkxCore) SetMarginMode(marginMode interface{}, optionalArgs ...inter
  * @description fetch the borrow interest rates of all currencies
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7780,8 +7852,8 @@ func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes69428 := (<-this.LoadMarkets())
-		PanicOnError(retRes69428)
+		retRes70178 := (<-this.LoadMarkets())
+		PanicOnError(retRes70178)
 
 		response := (<-this.PrivateGetAccountInterestRate(params))
 		PanicOnError(response)
@@ -7817,7 +7889,7 @@ func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...interface{}) <-chan i
  * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-interest-rate
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *OkxCore) FetchCrossBorrowRate(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7827,8 +7899,8 @@ func (this *OkxCore) FetchCrossBorrowRate(code interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes69748 := (<-this.LoadMarkets())
-		PanicOnError(retRes69748)
+		retRes70498 := (<-this.LoadMarkets())
+		PanicOnError(retRes70498)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy": GetValue(currency, "id"),
@@ -7922,7 +7994,7 @@ func (this *OkxCore) ParseBorrowRateHistories(response interface{}, codes interf
  * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
  * @param {int} [limit] max number of borrow rate prices to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+ * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
 func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7938,8 +8010,8 @@ func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes70648 := (<-this.LoadMarkets())
-		PanicOnError(retRes70648)
+		retRes71398 := (<-this.LoadMarkets())
+		PanicOnError(retRes71398)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "before", since)
@@ -7980,9 +8052,9 @@ func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-cha
  * @see https://www.okx.com/docs-v5/en/#financial-product-savings-get-public-borrow-history-public
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *OkxCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7996,8 +8068,8 @@ func (this *OkxCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes71088 := (<-this.LoadMarkets())
-		PanicOnError(retRes71088)
+		retRes71838 := (<-this.LoadMarkets())
+		PanicOnError(retRes71838)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy": GetValue(currency, "id"),
@@ -8041,8 +8113,8 @@ func (this *OkxCore) ModifyMarginHelper(symbol interface{}, amount interface{}, 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes71428 := (<-this.LoadMarkets())
-		PanicOnError(retRes71428)
+		retRes72178 := (<-this.LoadMarkets())
+		PanicOnError(retRes72178)
 		var market interface{} = this.Market(symbol)
 		var posSide interface{} = this.SafeString(params, "posSide", "net")
 		params = this.Omit(params, []interface{}{"posSide"})
@@ -8166,7 +8238,7 @@ func (this *OkxCore) ParseMarginModification(data interface{}, optionalArgs ...i
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *OkxCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8176,9 +8248,9 @@ func (this *OkxCore) ReduceMargin(symbol interface{}, amount interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes726115 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes726115)
-		ch <- retRes726115
+		retRes733615 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes733615)
+		ch <- retRes733615
 		return nil
 
 	}()
@@ -8193,7 +8265,7 @@ func (this *OkxCore) ReduceMargin(symbol interface{}, amount interface{}, option
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *OkxCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8203,9 +8275,9 @@ func (this *OkxCore) AddMargin(symbol interface{}, amount interface{}, optionalA
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes727515 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes727515)
-		ch <- retRes727515
+		retRes735015 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes735015)
+		ch <- retRes735015
 		return nil
 
 	}()
@@ -8220,7 +8292,7 @@ func (this *OkxCore) AddMargin(symbol interface{}, amount interface{}, optionalA
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated'
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *OkxCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8230,8 +8302,8 @@ func (this *OkxCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes72898 := (<-this.LoadMarkets())
-		PanicOnError(retRes72898)
+		retRes73648 := (<-this.LoadMarkets())
+		PanicOnError(retRes73648)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
 		var uly interface{} = this.SafeString(GetValue(market, "info"), "uly")
@@ -8340,11 +8412,11 @@ func (this *OkxCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ...
  * @param {string} code the unified currency code for the currency of the interest
  * @param {string} symbol the market symbol of an isolated margin market, if undefined, the interest for cross margin markets is returned
  * @param {int} [since] timestamp in ms of the earliest time to receive interest records for
- * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure} to retrieve
+ * @param {int} [limit] the number of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure} to retrieve
  * @param {object} [params] exchange specific parameters
  * @param {int} [params.type] Loan type 1 - VIP loans 2 - Market loans *Default is Market loans*
  * @param {string} [params.marginMode] 'cross' or 'isolated'
- * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *OkxCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8362,8 +8434,8 @@ func (this *OkxCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes73958 := (<-this.LoadMarkets())
-		PanicOnError(retRes73958)
+		retRes74708 := (<-this.LoadMarkets())
+		PanicOnError(retRes74708)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -8449,7 +8521,7 @@ func (this *OkxCore) ParseBorrowInterest(info interface{}, optionalArgs ...inter
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *OkxCore) BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8459,8 +8531,8 @@ func (this *OkxCore) BorrowCrossMargin(code interface{}, amount interface{}, opt
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes74748 := (<-this.LoadMarkets())
-		PanicOnError(retRes74748)
+		retRes75498 := (<-this.LoadMarkets())
+		PanicOnError(retRes75498)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"ccy":  GetValue(currency, "id"),
@@ -8504,7 +8576,7 @@ func (this *OkxCore) BorrowCrossMargin(code interface{}, amount interface{}, opt
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *OkxCore) RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8514,8 +8586,8 @@ func (this *OkxCore) RepayCrossMargin(code interface{}, amount interface{}, opti
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75148 := (<-this.LoadMarkets())
-		PanicOnError(retRes75148)
+		retRes75898 := (<-this.LoadMarkets())
+		PanicOnError(retRes75898)
 		var id interface{} = this.SafeString2(params, "id", "ordId")
 		params = this.Omit(params, "id")
 		if IsTrue(IsEqual(id, nil)) {
@@ -8588,7 +8660,7 @@ func (this *OkxCore) ParseMarginLoan(info interface{}, optionalArgs ...interface
  * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *OkxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8598,8 +8670,8 @@ func (this *OkxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75828 := (<-this.LoadMarkets())
-		PanicOnError(retRes75828)
+		retRes76578 := (<-this.LoadMarkets())
+		PanicOnError(retRes76578)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -8648,7 +8720,7 @@ func (this *OkxCore) FetchOpenInterest(symbol interface{}, optionalArgs ...inter
  * @param {string} params.instType Instrument type, options: 'SWAP', 'FUTURES', 'OPTION', default to 'SWAP'
  * @param {string} params.uly Underlying, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
  * @param {string} params.instFamily Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
- * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *OkxCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8660,8 +8732,8 @@ func (this *OkxCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes76278 := (<-this.LoadMarkets())
-		PanicOnError(retRes76278)
+		retRes77028 := (<-this.LoadMarkets())
+		PanicOnError(retRes77028)
 		symbols = this.MarketSymbols(symbols, nil, true, true)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -8730,7 +8802,7 @@ func (this *OkxCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan inte
  * @param {int} [limit] Not used by okx, but parsed internally by CCXT
  * @param {object} [params] Exchange specific parameters
  * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
- * @returns An array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *OkxCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8752,8 +8824,8 @@ func (this *OkxCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs .
 			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")))
 		}
 
-		retRes76948 := (<-this.LoadMarkets())
-		PanicOnError(retRes76948)
+		retRes77698 := (<-this.LoadMarkets())
+		PanicOnError(retRes77698)
 		// handle unified currency code or symbol
 		var currencyId interface{} = nil
 		var market interface{} = nil
@@ -8885,7 +8957,7 @@ func (this *OkxCore) SetSandboxMode(enable interface{}) {
  * @see https://www.okx.com/docs-v5/en/#rest-api-funding-get-currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *OkxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8897,8 +8969,8 @@ func (this *OkxCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes78188 := (<-this.LoadMarkets())
-		PanicOnError(retRes78188)
+		retRes78938 := (<-this.LoadMarkets())
+		PanicOnError(retRes78938)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(codes, nil)) {
 			var ids interface{} = this.CurrencyIds(codes)
@@ -9036,7 +9108,7 @@ func (this *OkxCore) ParseDepositWithdrawFees(response interface{}, optionalArgs
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
- * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
 func (this *OkxCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9055,8 +9127,8 @@ func (this *OkxCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
 		}
 
-		retRes79528 := (<-this.LoadMarkets())
-		PanicOnError(retRes79528)
+		retRes80278 := (<-this.LoadMarkets())
+		PanicOnError(retRes80278)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
@@ -9159,7 +9231,7 @@ func (this *OkxCore) ParseSettlements(settlements interface{}, market interface{
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-underlying
  * @param {object} [params] exchange specific params
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
- * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
+ * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
 func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9169,8 +9241,8 @@ func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes80518 := (<-this.LoadMarkets())
-		PanicOnError(retRes80518)
+		retRes81268 := (<-this.LoadMarkets())
+		PanicOnError(retRes81268)
 		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -9215,7 +9287,7 @@ func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan i
  * @see https://www.okx.com/docs-v5/en/#public-data-rest-api-get-option-market-data
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *OkxCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9225,8 +9297,8 @@ func (this *OkxCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes80908 := (<-this.LoadMarkets())
-		PanicOnError(retRes80908)
+		retRes81658 := (<-this.LoadMarkets())
+		PanicOnError(retRes81658)
 		var market interface{} = this.Market(symbol)
 		var marketId interface{} = GetValue(market, "id")
 		var optionParts interface{} = Split(marketId, "-")
@@ -9293,7 +9365,7 @@ func (this *OkxCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.uly Underlying, either uly or instFamily is required
  * @param {string} params.instFamily Instrument family, either uly or instFamily is required
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *OkxCore) FetchAllGreeks(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9305,8 +9377,8 @@ func (this *OkxCore) FetchAllGreeks(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes81528 := (<-this.LoadMarkets())
-		PanicOnError(retRes81528)
+		retRes82278 := (<-this.LoadMarkets())
+		PanicOnError(retRes82278)
 		var request interface{} = map[string]interface{}{}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var symbolsLength interface{} = nil
@@ -9445,7 +9517,7 @@ func (this *OkxCore) ParseGreeks(greeks interface{}, optionalArgs ...interface{}
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
  * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9457,8 +9529,8 @@ func (this *OkxCore) ClosePosition(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes82868 := (<-this.LoadMarkets())
-		PanicOnError(retRes82868)
+		retRes83618 := (<-this.LoadMarkets())
+		PanicOnError(retRes83618)
 		var market interface{} = this.Market(symbol)
 		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		var code interface{} = this.SafeString(params, "code")
@@ -9523,7 +9595,7 @@ func (this *OkxCore) ClosePosition(symbol interface{}, optionalArgs ...interface
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-ticker
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *OkxCore) FetchOption(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9533,8 +9605,8 @@ func (this *OkxCore) FetchOption(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes83458 := (<-this.LoadMarkets())
-		PanicOnError(retRes83458)
+		retRes84208 := (<-this.LoadMarkets())
+		PanicOnError(retRes84208)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -9586,7 +9658,7 @@ func (this *OkxCore) FetchOption(symbol interface{}, optionalArgs ...interface{}
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *OkxCore) FetchOptionChain(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9596,8 +9668,8 @@ func (this *OkxCore) FetchOptionChain(code interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes83938 := (<-this.LoadMarkets())
-		PanicOnError(retRes83938)
+		retRes84688 := (<-this.LoadMarkets())
+		PanicOnError(retRes84688)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"uly":      Add(GetValue(currency, "code"), "-USD"),
@@ -9698,7 +9770,7 @@ func (this *OkxCore) ParseOption(chain interface{}, optionalArgs ...interface{})
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9710,8 +9782,8 @@ func (this *OkxCore) FetchConvertQuote(fromCode interface{}, toCode interface{},
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes84878 := (<-this.LoadMarkets())
-		PanicOnError(retRes84878)
+		retRes85628 := (<-this.LoadMarkets())
+		PanicOnError(retRes85628)
 		var request interface{} = map[string]interface{}{
 			"baseCcy":  ToUpper(fromCode),
 			"quoteCcy": ToUpper(toCode),
@@ -9769,7 +9841,7 @@ func (this *OkxCore) FetchConvertQuote(fromCode interface{}, toCode interface{},
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9781,8 +9853,8 @@ func (this *OkxCore) CreateConvertTrade(id interface{}, fromCode interface{}, to
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes85418 := (<-this.LoadMarkets())
-		PanicOnError(retRes85418)
+		retRes86168 := (<-this.LoadMarkets())
+		PanicOnError(retRes86168)
 		var request interface{} = map[string]interface{}{
 			"quoteId":  id,
 			"baseCcy":  fromCode,
@@ -9838,7 +9910,7 @@ func (this *OkxCore) CreateConvertTrade(id interface{}, fromCode interface{}, to
  * @param {string} id the id of the trade that you want to fetch
  * @param {string} [code] the unified currency code of the conversion trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) FetchConvertTrade(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9850,8 +9922,8 @@ func (this *OkxCore) FetchConvertTrade(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes85938 := (<-this.LoadMarkets())
-		PanicOnError(retRes85938)
+		retRes86688 := (<-this.LoadMarkets())
+		PanicOnError(retRes86688)
 		var request interface{} = map[string]interface{}{
 			"clTReqId": id,
 		}
@@ -9909,7 +9981,7 @@ func (this *OkxCore) FetchConvertTrade(id interface{}, optionalArgs ...interface
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
- * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9925,8 +9997,8 @@ func (this *OkxCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes86478 := (<-this.LoadMarkets())
-		PanicOnError(retRes86478)
+		retRes87228 := (<-this.LoadMarkets())
+		PanicOnError(retRes87228)
 		var request interface{} = map[string]interface{}{}
 		requestparamsVariable := this.HandleUntilOption("after", request, params)
 		request = GetValue(requestparamsVariable, 0)
@@ -10061,8 +10133,8 @@ func (this *OkxCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes87638 := (<-this.LoadMarkets())
-		PanicOnError(retRes87638)
+		retRes88388 := (<-this.LoadMarkets())
+		PanicOnError(retRes88388)
 
 		response := (<-this.PrivateGetAssetConvertCurrencies(params))
 		PanicOnError(response)
@@ -10174,7 +10246,7 @@ func (this *OkxCore) HandleErrors(httpCode interface{}, reason interface{}, url 
  * @param {int} [limit] the maximum number of entries to retrieve
  * @param {object} params extra parameters specific to the exchange api endpoint
  * @param {boolean} [params.auto] true if fetching auto margin increases
- * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10192,8 +10264,8 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes88728 := (<-this.LoadMarkets())
-		PanicOnError(retRes88728)
+		retRes89478 := (<-this.LoadMarkets())
+		PanicOnError(retRes89478)
 		var auto interface{} = this.SafeBool(params, "auto")
 		if IsTrue(IsEqual(typeVar, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a type argument")))
@@ -10306,7 +10378,7 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) <
  * @param {string} [params.posId] position id, there is attribute expiration, the posid will be expired if it is more than 30 days after the last full close position, then position will use new posid
  * @param {string} [params.before] timestamp in ms of the earliest position to fetch based on the last update time of the position
  * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10322,8 +10394,8 @@ func (this *OkxCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes89798 := (<-this.LoadMarkets())
-		PanicOnError(retRes89798)
+		retRes90548 := (<-this.LoadMarkets())
+		PanicOnError(retRes90548)
 		var marginMode interface{} = this.SafeString(params, "marginMode")
 		var instType interface{} = this.SafeStringUpper(params, "instType")
 		params = this.Omit(params, []interface{}{"until", "marginMode", "instType"})
@@ -10403,7 +10475,7 @@ func (this *OkxCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan i
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ratio to fetch
- * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
 func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10421,8 +10493,8 @@ func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes90558 := (<-this.LoadMarkets())
-		PanicOnError(retRes90558)
+		retRes91308 := (<-this.LoadMarkets())
+		PanicOnError(retRes91308)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),

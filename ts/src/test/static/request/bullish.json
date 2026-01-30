@@ -1,0 +1,344 @@
+{
+    "exchange": "bullish",
+    "options": {
+        "tradingAccountId": "123456789",
+        "tokenExpires": 9999999999999
+    },
+    "skipKeys": [
+        "createdAtDatetime[gte]",
+        "createdAtDatetime[lte]",
+        "createdAtDatetime%5bgte%5d",
+        "createdAtDatetime%5blte%5d",
+        "createdAtDatetime%5Bgte%5D",
+        "createdAtDatetime%5Blte%5D",
+        "tradingAccountId"
+    ],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchTransfers": [
+            {
+                "description": "Fetch transfers with symbol, since and limit",
+                "method": "fetchTransfers",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/history/transfer?tradingAccountId=111054475936334&assetSymbol=USDC&_pageSize=5&createdAtDatetime%5Bgte%5D=2025-12-01T09%3A46%3A51.168Z&createdAtDatetime%5Blte%5D=2025-12-01T11%3A03%3A20.421Z",
+                "input": [
+                    "USDC",
+                    1764582411168,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "Fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/markets/ETH-USDC-PERP/funding-rate?_pageSize=5",
+                "input": [
+                    "ETH/USDC:USDC",
+                    null,
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "Fetch order trades",
+                "method": "fetchOrderTrades",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/trades?tradingAccountId=111795880131063&orderId=913055493538710529",
+                "input": [
+                    "913055493538710529"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/trades?tradingAccountId=111795880131063",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "Fetch canceled and closed orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&status=CLOSED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CANCELLED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders?tradingAccountId=111795880131063&status=CLOSED",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&status=OPEN",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders with market and since",
+                "method": "fetchOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/history/orders?tradingAccountId=111795880131063&symbol=USDTUSDC&createdAtDatetime%5Bgte%5D=2025-11-24T10%3A56%3A29.115Z&createdAtDatetime%5Blte%5D=2025-12-01T10%3A56%3A29.115Z",
+                "input": [
+                    "USDT/USDC",
+                    1763981789115
+                ],
+                "output": null
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit order by clientOrderId",
+                "method": "editOrder",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/command",
+                "input": [
+                    123,
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    12,
+                    0.55,
+                    {
+                        "clientOrderId": "987654321",
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"commandType\":\"V1AmendOrder\",\"symbol\":\"USDTUSDC\",\"tradingAccountId\":\"111795880131063\",\"type\":\"POST_ONLY\",\"quantity\":\"12\",\"price\":\"0.55\",\"clientOrderId\":\"987654321\"}"
+            },
+            {
+                "description": "Edit order by order id",
+                "method": "editOrder",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/command",
+                "input": [
+                    "913020243366380545",
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    10,
+                    0.5
+                ],
+                "output": "{\"commandType\":\"V1AmendOrder\",\"symbol\":\"USDTUSDC\",\"tradingAccountId\":\"111795880131063\",\"orderId\":\"913020243366380545\",\"type\":\"LIMIT\",\"quantity\":\"10\",\"price\":\"0.5\"}"
+            }
+        ],
+        "createTriggerOrder": [
+            {
+                "description": "Create spot trigger order",
+                "method": "createTriggerOrder",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders",
+                "input": [
+                    "USDT/USDC",
+                    "limit",
+                    "buy",
+                    20,
+                    0.5,
+                    1.2
+                ],
+                "output": "{\"commandType\":\"V3CreateOrder\",\"symbol\":\"USDTUSDC\",\"side\":\"BUY\",\"quantity\":\"20\",\"price\":\"0.5\",\"tradingAccountId\":\"111795880131063\",\"stopPrice\":\"1.2\",\"type\":\"STOP_LIMIT\",\"timeInForce\":\"GTC\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/candle?timeBucket=1m&createdAtDatetime[gte]=2025-06-10T09:38:20.623Z&createdAtDatetime[lte]=2025-06-10T11:18:20.623Z&_pageSize=100",
+                "input": [
+                    "BTC/USDC",
+                    "1m"
+                ],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/accounts/asset?tradingAccountId=111309424211255",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/wallets/deposit-instructions/crypto/USDC",
+                "input": [
+                    "USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/accounts/trading-accounts",
+                "input": [],
+                "output": null
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel all orders for ETH/USDT market",
+                "method": "cancelAllOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/command",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": "{\"tradingAccountId\":\"111795880131063\",\"symbol\":\"ETHUSDT\",\"commandType\":\"V1CancelAllOrdersByMarket\"}"
+            },
+            {
+                "description": "Cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/command",
+                "input": [],
+                "output": "{\"tradingAccountId\":\"111795880131063\",\"commandType\":\"V1CancelAllOrders\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/command",
+                "input": [
+                    "847411698592121857",
+                    "BTC/USDC"
+                ],
+                "output": "{\"symbol\":\"BTCUSDC\",\"tradingAccountId\":\"111309424211255\",\"commandType\":\"V3CancelOrder\",\"orderId\":\"847411698592121857\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order",
+                "method": "fetchOrder",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/orders/847411698592121857?tradingAccountId=111309424211255",
+                "input": [
+                    "847411698592121857"
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Create spot limit sell postOnly order",
+                "method": "createOrder",
+                "url": "https://api.exchange.bullish.com/trading-api/v2/orders",
+                "input": [
+                    "USDT/USDC",
+                    "limit",
+                    "sell",
+                    20,
+                    2,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"commandType\":\"V3CreateOrder\",\"symbol\":\"USDTUSDC\",\"side\":\"SELL\",\"quantity\":\"20\",\"price\":\"2\",\"tradingAccountId\":\"111795880131063\",\"type\":\"POST_ONLY\",\"timeInForce\":\"GTC\"}"
+            },
+            {
+                "description": "Create spot market buy order",
+                "method": "createOrder",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v2/orders",
+                "input": [
+                    "BTC/USDC",
+                    "market",
+                    "buy",
+                    1,
+                    100000
+                ],
+                "output": "{\"commandType\":\"V3CreateOrder\",\"symbol\":\"BTCUSDC\",\"side\":\"BUY\",\"quantity\":\"1\",\"tradingAccountId\":\"111309424211255\",\"type\":\"MARKET\",\"timeInForce\":\"GTC\"}"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for BTC/USDC",
+                "method": "fetchTicker",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/tick",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/history/markets/BTCUSDC/trades",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTC-USDC-PERP/orderbook/hybrid",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            },
+            {
+                "description": "Fetch order book for spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets/BTCUSDC/orderbook/hybrid",
+                "input": [
+                    "BTC/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "Fetch time",
+                "method": "fetchTime",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/time",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets",
+                "input": []
+            }
+        ]
+    }
+}

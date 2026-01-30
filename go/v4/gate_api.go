@@ -11,6 +11,14 @@ func (this *GateCore) PublicWalletGetCurrencyChains(args ...interface{}) <-chan 
 	return this.callEndpointAsync("publicWalletGetCurrencyChains", args...)
 }
 
+func (this *GateCore) PublicUnifiedGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicUnifiedGetCurrencies", args...)
+}
+
+func (this *GateCore) PublicUnifiedGetHistoryLoanRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicUnifiedGetHistoryLoanRate", args...)
+}
+
 func (this *GateCore) PublicSpotGetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
 }
@@ -47,6 +55,22 @@ func (this *GateCore) PublicSpotGetTime(args ...interface{}) <-chan interface{} 
 	return this.callEndpointAsync("publicSpotGetTime", args...)
 }
 
+func (this *GateCore) PublicSpotGetInsuranceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetInsuranceHistory", args...)
+}
+
+func (this *GateCore) PublicMarginGetUniCurrencyPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMarginGetUniCurrencyPairs", args...)
+}
+
+func (this *GateCore) PublicMarginGetUniCurrencyPairsCurrencyPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMarginGetUniCurrencyPairsCurrencyPair", args...)
+}
+
+func (this *GateCore) PublicMarginGetLoanMarginTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicMarginGetLoanMarginTiers", args...)
+}
+
 func (this *GateCore) PublicMarginGetCurrencyPairs(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicMarginGetCurrencyPairs", args...)
 }
@@ -67,12 +91,8 @@ func (this *GateCore) PublicMarginGetCrossCurrenciesCurrency(args ...interface{}
 	return this.callEndpointAsync("publicMarginGetCrossCurrenciesCurrency", args...)
 }
 
-func (this *GateCore) PublicMarginGetUniCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetUniCurrencyPairs", args...)
-}
-
-func (this *GateCore) PublicMarginGetUniCurrencyPairsCurrencyPair(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicMarginGetUniCurrencyPairsCurrencyPair", args...)
+func (this *GateCore) PublicFlash_swapGetCurrencyPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicFlash_swapGetCurrencyPairs", args...)
 }
 
 func (this *GateCore) PublicFlash_swapGetCurrencies(args ...interface{}) <-chan interface{} {
@@ -159,6 +179,10 @@ func (this *GateCore) PublicDeliveryGetSettleInsurance(args ...interface{}) <-ch
 	return this.callEndpointAsync("publicDeliveryGetSettleInsurance", args...)
 }
 
+func (this *GateCore) PublicDeliveryGetSettleRiskLimitTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicDeliveryGetSettleRiskLimitTiers", args...)
+}
+
 func (this *GateCore) PublicOptionsGetUnderlyings(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicOptionsGetUnderlyings", args...)
 }
@@ -213,6 +237,34 @@ func (this *GateCore) PublicEarnGetUniCurrencies(args ...interface{}) <-chan int
 
 func (this *GateCore) PublicEarnGetUniCurrenciesCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicEarnGetUniCurrenciesCurrency", args...)
+}
+
+func (this *GateCore) PublicEarnGetDualInvestmentPlan(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicEarnGetDualInvestmentPlan", args...)
+}
+
+func (this *GateCore) PublicEarnGetStructuredProducts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicEarnGetStructuredProducts", args...)
+}
+
+func (this *GateCore) PublicLoanGetCollateralCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicLoanGetCollateralCurrencies", args...)
+}
+
+func (this *GateCore) PublicLoanGetMultiCollateralCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicLoanGetMultiCollateralCurrencies", args...)
+}
+
+func (this *GateCore) PublicLoanGetMultiCollateralLtv(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicLoanGetMultiCollateralLtv", args...)
+}
+
+func (this *GateCore) PublicLoanGetMultiCollateralFixedRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicLoanGetMultiCollateralFixedRate", args...)
+}
+
+func (this *GateCore) PublicLoanGetMultiCollateralCurrentRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicLoanGetMultiCollateralCurrentRate", args...)
 }
 
 func (this *GateCore) PrivateWithdrawalsPostWithdrawals(args ...interface{}) <-chan interface{} {
@@ -291,6 +343,10 @@ func (this *GateCore) PrivateWalletGetPush(args ...interface{}) <-chan interface
 	return this.callEndpointAsync("privateWalletGetPush", args...)
 }
 
+func (this *GateCore) PrivateWalletGetGetLowCapExchangeList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateWalletGetGetLowCapExchangeList", args...)
+}
+
 func (this *GateCore) PrivateWalletPostTransfers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateWalletPostTransfers", args...)
 }
@@ -351,16 +407,20 @@ func (this *GateCore) PrivateUnifiedGetAccounts(args ...interface{}) <-chan inte
 	return this.callEndpointAsync("privateUnifiedGetAccounts", args...)
 }
 
-func (this *GateCore) PrivateUnifiedGetAccountMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetAccountMode", args...)
-}
-
 func (this *GateCore) PrivateUnifiedGetBorrowable(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUnifiedGetBorrowable", args...)
 }
 
 func (this *GateCore) PrivateUnifiedGetTransferable(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUnifiedGetTransferable", args...)
+}
+
+func (this *GateCore) PrivateUnifiedGetTransferables(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedGetTransferables", args...)
+}
+
+func (this *GateCore) PrivateUnifiedGetBatchBorrowable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedGetBatchBorrowable", args...)
 }
 
 func (this *GateCore) PrivateUnifiedGetLoans(args ...interface{}) <-chan interface{} {
@@ -375,20 +435,20 @@ func (this *GateCore) PrivateUnifiedGetInterestRecords(args ...interface{}) <-ch
 	return this.callEndpointAsync("privateUnifiedGetInterestRecords", args...)
 }
 
-func (this *GateCore) PrivateUnifiedGetEstimateRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetEstimateRate", args...)
-}
-
-func (this *GateCore) PrivateUnifiedGetCurrencyDiscountTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedGetCurrencyDiscountTiers", args...)
-}
-
 func (this *GateCore) PrivateUnifiedGetRiskUnits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUnifiedGetRiskUnits", args...)
 }
 
 func (this *GateCore) PrivateUnifiedGetUnifiedMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUnifiedGetUnifiedMode", args...)
+}
+
+func (this *GateCore) PrivateUnifiedGetEstimateRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedGetEstimateRate", args...)
+}
+
+func (this *GateCore) PrivateUnifiedGetCurrencyDiscountTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedGetCurrencyDiscountTiers", args...)
 }
 
 func (this *GateCore) PrivateUnifiedGetLoanMarginTiers(args ...interface{}) <-chan interface{} {
@@ -403,8 +463,8 @@ func (this *GateCore) PrivateUnifiedGetLeverageUserCurrencySetting(args ...inter
 	return this.callEndpointAsync("privateUnifiedGetLeverageUserCurrencySetting", args...)
 }
 
-func (this *GateCore) PrivateUnifiedPostAccountMode(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUnifiedPostAccountMode", args...)
+func (this *GateCore) PrivateUnifiedGetAccountMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedGetAccountMode", args...)
 }
 
 func (this *GateCore) PrivateUnifiedPostLoans(args ...interface{}) <-chan interface{} {
@@ -417,6 +477,14 @@ func (this *GateCore) PrivateUnifiedPostPortfolioCalculator(args ...interface{})
 
 func (this *GateCore) PrivateUnifiedPostLeverageUserCurrencySetting(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUnifiedPostLeverageUserCurrencySetting", args...)
+}
+
+func (this *GateCore) PrivateUnifiedPostCollateralCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedPostCollateralCurrencies", args...)
+}
+
+func (this *GateCore) PrivateUnifiedPostAccountMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUnifiedPostAccountMode", args...)
 }
 
 func (this *GateCore) PrivateUnifiedPutUnifiedMode(args ...interface{}) <-chan interface{} {
@@ -531,6 +599,34 @@ func (this *GateCore) PrivateMarginGetTransferable(args ...interface{}) <-chan i
 	return this.callEndpointAsync("privateMarginGetTransferable", args...)
 }
 
+func (this *GateCore) PrivateMarginGetUniEstimateRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUniEstimateRate", args...)
+}
+
+func (this *GateCore) PrivateMarginGetUniLoans(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUniLoans", args...)
+}
+
+func (this *GateCore) PrivateMarginGetUniLoanRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUniLoanRecords", args...)
+}
+
+func (this *GateCore) PrivateMarginGetUniInterestRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUniInterestRecords", args...)
+}
+
+func (this *GateCore) PrivateMarginGetUniBorrowable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUniBorrowable", args...)
+}
+
+func (this *GateCore) PrivateMarginGetUserLoanMarginTiers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUserLoanMarginTiers", args...)
+}
+
+func (this *GateCore) PrivateMarginGetUserAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginGetUserAccount", args...)
+}
+
 func (this *GateCore) PrivateMarginGetLoans(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMarginGetLoans", args...)
 }
@@ -591,28 +687,16 @@ func (this *GateCore) PrivateMarginGetCrossBorrowable(args ...interface{}) <-cha
 	return this.callEndpointAsync("privateMarginGetCrossBorrowable", args...)
 }
 
-func (this *GateCore) PrivateMarginGetUniEstimateRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniEstimateRate", args...)
-}
-
-func (this *GateCore) PrivateMarginGetUniLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniLoans", args...)
-}
-
-func (this *GateCore) PrivateMarginGetUniLoanRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniLoanRecords", args...)
-}
-
-func (this *GateCore) PrivateMarginGetUniInterestRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniInterestRecords", args...)
-}
-
-func (this *GateCore) PrivateMarginGetUniBorrowable(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginGetUniBorrowable", args...)
-}
-
 func (this *GateCore) PrivateMarginPostAutoRepay(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMarginPostAutoRepay", args...)
+}
+
+func (this *GateCore) PrivateMarginPostUniLoans(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginPostUniLoans", args...)
+}
+
+func (this *GateCore) PrivateMarginPostLeverageUserMarketSetting(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateMarginPostLeverageUserMarketSetting", args...)
 }
 
 func (this *GateCore) PrivateMarginPostLoans(args ...interface{}) <-chan interface{} {
@@ -635,10 +719,6 @@ func (this *GateCore) PrivateMarginPostCrossRepayments(args ...interface{}) <-ch
 	return this.callEndpointAsync("privateMarginPostCrossRepayments", args...)
 }
 
-func (this *GateCore) PrivateMarginPostUniLoans(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateMarginPostUniLoans", args...)
-}
-
 func (this *GateCore) PrivateMarginPatchLoansLoanId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMarginPatchLoansLoanId", args...)
 }
@@ -649,14 +729,6 @@ func (this *GateCore) PrivateMarginPatchLoanRecordsLoanRecordId(args ...interfac
 
 func (this *GateCore) PrivateMarginDeleteLoansLoanId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateMarginDeleteLoansLoanId", args...)
-}
-
-func (this *GateCore) PrivateFlash_swapGetCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapGetCurrencies", args...)
-}
-
-func (this *GateCore) PrivateFlash_swapGetCurrencyPairs(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFlash_swapGetCurrencyPairs", args...)
 }
 
 func (this *GateCore) PrivateFlash_swapGetOrders(args ...interface{}) <-chan interface{} {
@@ -689,6 +761,10 @@ func (this *GateCore) PrivateFuturesGetSettlePositions(args ...interface{}) <-ch
 
 func (this *GateCore) PrivateFuturesGetSettlePositionsContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesGetSettlePositionsContract", args...)
+}
+
+func (this *GateCore) PrivateFuturesGetSettleGetLeverageContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesGetSettleGetLeverageContract", args...)
 }
 
 func (this *GateCore) PrivateFuturesGetSettleDualCompPositionsContract(args ...interface{}) <-chan interface{} {
@@ -731,8 +807,8 @@ func (this *GateCore) PrivateFuturesGetSettleFee(args ...interface{}) <-chan int
 	return this.callEndpointAsync("privateFuturesGetSettleFee", args...)
 }
 
-func (this *GateCore) PrivateFuturesGetSettleRiskLimitTiers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateFuturesGetSettleRiskLimitTiers", args...)
+func (this *GateCore) PrivateFuturesGetSettleRiskLimitTable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesGetSettleRiskLimitTable", args...)
 }
 
 func (this *GateCore) PrivateFuturesGetSettlePriceOrders(args ...interface{}) <-chan interface{} {
@@ -751,12 +827,28 @@ func (this *GateCore) PrivateFuturesPostSettlePositionsContractLeverage(args ...
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractLeverage", args...)
 }
 
+func (this *GateCore) PrivateFuturesPostSettlePositionsContractSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractSetLeverage", args...)
+}
+
 func (this *GateCore) PrivateFuturesPostSettlePositionsContractRiskLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractRiskLimit", args...)
 }
 
+func (this *GateCore) PrivateFuturesPostSettlePositionsCrossMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettlePositionsCrossMode", args...)
+}
+
+func (this *GateCore) PrivateFuturesPostSettleDualCompPositionsCrossMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettleDualCompPositionsCrossMode", args...)
+}
+
 func (this *GateCore) PrivateFuturesPostSettleDualMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettleDualMode", args...)
+}
+
+func (this *GateCore) PrivateFuturesPostSettleSetPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettleSetPositionMode", args...)
 }
 
 func (this *GateCore) PrivateFuturesPostSettleDualCompPositionsContractMargin(args ...interface{}) <-chan interface{} {
@@ -787,12 +879,24 @@ func (this *GateCore) PrivateFuturesPostSettleBatchCancelOrders(args ...interfac
 	return this.callEndpointAsync("privateFuturesPostSettleBatchCancelOrders", args...)
 }
 
+func (this *GateCore) PrivateFuturesPostSettleBatchAmendOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettleBatchAmendOrders", args...)
+}
+
+func (this *GateCore) PrivateFuturesPostSettleBboOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettleBboOrders", args...)
+}
+
 func (this *GateCore) PrivateFuturesPostSettlePriceOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettlePriceOrders", args...)
 }
 
 func (this *GateCore) PrivateFuturesPutSettleOrdersOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPutSettleOrdersOrderId", args...)
+}
+
+func (this *GateCore) PrivateFuturesPutSettlePriceOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPutSettlePriceOrdersOrderId", args...)
 }
 
 func (this *GateCore) PrivateFuturesDeleteSettleOrders(args ...interface{}) <-chan interface{} {
@@ -959,14 +1063,6 @@ func (this *GateCore) PrivateOptionsDeleteOrdersOrderId(args ...interface{}) <-c
 	return this.callEndpointAsync("privateOptionsDeleteOrdersOrderId", args...)
 }
 
-func (this *GateCore) PrivateEarnGetUniCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniCurrencies", args...)
-}
-
-func (this *GateCore) PrivateEarnGetUniCurrenciesCurrency(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateEarnGetUniCurrenciesCurrency", args...)
-}
-
 func (this *GateCore) PrivateEarnGetUniLends(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateEarnGetUniLends", args...)
 }
@@ -987,8 +1083,72 @@ func (this *GateCore) PrivateEarnGetUniInterestStatusCurrency(args ...interface{
 	return this.callEndpointAsync("privateEarnGetUniInterestStatusCurrency", args...)
 }
 
+func (this *GateCore) PrivateEarnGetUniChart(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetUniChart", args...)
+}
+
+func (this *GateCore) PrivateEarnGetUniRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetUniRate", args...)
+}
+
+func (this *GateCore) PrivateEarnGetStakingEth2RateRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetStakingEth2RateRecords", args...)
+}
+
+func (this *GateCore) PrivateEarnGetDualOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetDualOrders", args...)
+}
+
+func (this *GateCore) PrivateEarnGetDualBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetDualBalance", args...)
+}
+
+func (this *GateCore) PrivateEarnGetStructuredOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetStructuredOrders", args...)
+}
+
+func (this *GateCore) PrivateEarnGetStakingCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetStakingCoins", args...)
+}
+
+func (this *GateCore) PrivateEarnGetStakingOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetStakingOrderList", args...)
+}
+
+func (this *GateCore) PrivateEarnGetStakingAwardList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetStakingAwardList", args...)
+}
+
+func (this *GateCore) PrivateEarnGetStakingAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetStakingAssets", args...)
+}
+
+func (this *GateCore) PrivateEarnGetUniCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetUniCurrencies", args...)
+}
+
+func (this *GateCore) PrivateEarnGetUniCurrenciesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetUniCurrenciesCurrency", args...)
+}
+
 func (this *GateCore) PrivateEarnPostUniLends(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateEarnPostUniLends", args...)
+}
+
+func (this *GateCore) PrivateEarnPostStakingEth2Swap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnPostStakingEth2Swap", args...)
+}
+
+func (this *GateCore) PrivateEarnPostDualOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnPostDualOrders", args...)
+}
+
+func (this *GateCore) PrivateEarnPostStructuredOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnPostStructuredOrders", args...)
+}
+
+func (this *GateCore) PrivateEarnPostStakingSwap(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnPostStakingSwap", args...)
 }
 
 func (this *GateCore) PrivateEarnPutUniInterestReinvest(args ...interface{}) <-chan interface{} {
@@ -1023,10 +1183,6 @@ func (this *GateCore) PrivateLoanGetCollateralLtv(args ...interface{}) <-chan in
 	return this.callEndpointAsync("privateLoanGetCollateralLtv", args...)
 }
 
-func (this *GateCore) PrivateLoanGetCollateralCurrencies(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateLoanGetCollateralCurrencies", args...)
-}
-
 func (this *GateCore) PrivateLoanGetMultiCollateralOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLoanGetMultiCollateralOrders", args...)
 }
@@ -1045,6 +1201,10 @@ func (this *GateCore) PrivateLoanGetMultiCollateralMortgage(args ...interface{})
 
 func (this *GateCore) PrivateLoanGetMultiCollateralCurrencyQuota(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateLoanGetMultiCollateralCurrencyQuota", args...)
+}
+
+func (this *GateCore) PrivateLoanGetCollateralCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateLoanGetCollateralCurrencies", args...)
 }
 
 func (this *GateCore) PrivateLoanGetMultiCollateralCurrencies(args ...interface{}) <-chan interface{} {
@@ -1091,6 +1251,10 @@ func (this *GateCore) PrivateAccountGetDetail(args ...interface{}) <-chan interf
 	return this.callEndpointAsync("privateAccountGetDetail", args...)
 }
 
+func (this *GateCore) PrivateAccountGetMainKeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateAccountGetMainKeys", args...)
+}
+
 func (this *GateCore) PrivateAccountGetRateLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateAccountGetRateLimit", args...)
 }
@@ -1107,12 +1271,20 @@ func (this *GateCore) PrivateAccountGetStpGroupsDebitFee(args ...interface{}) <-
 	return this.callEndpointAsync("privateAccountGetStpGroupsDebitFee", args...)
 }
 
+func (this *GateCore) PrivateAccountGetDebitFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateAccountGetDebitFee", args...)
+}
+
 func (this *GateCore) PrivateAccountPostStpGroups(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateAccountPostStpGroups", args...)
 }
 
 func (this *GateCore) PrivateAccountPostStpGroupsStpIdUsers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateAccountPostStpGroupsStpIdUsers", args...)
+}
+
+func (this *GateCore) PrivateAccountPostDebitFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateAccountPostDebitFee", args...)
 }
 
 func (this *GateCore) PrivateAccountDeleteStpGroupsStpIdUsers(args ...interface{}) <-chan interface{} {
@@ -1125,4 +1297,68 @@ func (this *GateCore) PrivateRebateGetAgencyTransactionHistory(args ...interface
 
 func (this *GateCore) PrivateRebateGetAgencyCommissionHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateRebateGetAgencyCommissionHistory", args...)
+}
+
+func (this *GateCore) PrivateRebateGetPartnerTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetPartnerTransactionHistory", args...)
+}
+
+func (this *GateCore) PrivateRebateGetPartnerCommissionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetPartnerCommissionHistory", args...)
+}
+
+func (this *GateCore) PrivateRebateGetPartnerSubList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetPartnerSubList", args...)
+}
+
+func (this *GateCore) PrivateRebateGetBrokerCommissionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetBrokerCommissionHistory", args...)
+}
+
+func (this *GateCore) PrivateRebateGetBrokerTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetBrokerTransactionHistory", args...)
+}
+
+func (this *GateCore) PrivateRebateGetUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetUserInfo", args...)
+}
+
+func (this *GateCore) PrivateRebateGetUserSubRelation(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateRebateGetUserSubRelation", args...)
+}
+
+func (this *GateCore) PrivateOtcGetGetUserDefBank(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetGetUserDefBank", args...)
+}
+
+func (this *GateCore) PrivateOtcGetOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetOrderList", args...)
+}
+
+func (this *GateCore) PrivateOtcGetStableCoinOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetStableCoinOrderList", args...)
+}
+
+func (this *GateCore) PrivateOtcGetOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetOrderDetail", args...)
+}
+
+func (this *GateCore) PrivateOtcPostQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostQuote", args...)
+}
+
+func (this *GateCore) PrivateOtcPostOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderCreate", args...)
+}
+
+func (this *GateCore) PrivateOtcPostStableCoinOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostStableCoinOrderCreate", args...)
+}
+
+func (this *GateCore) PrivateOtcPostOrderPaid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderPaid", args...)
+}
+
+func (this *GateCore) PrivateOtcPostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderCancel", args...)
 }

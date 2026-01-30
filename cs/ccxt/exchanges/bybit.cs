@@ -87,6 +87,7 @@ public partial class bybit : Exchange
                 { "fetchLongShortRatio", false },
                 { "fetchLongShortRatioHistory", true },
                 { "fetchMarginAdjustmentHistory", false },
+                { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", true },
@@ -227,6 +228,10 @@ public partial class bybit : Exchange
                         { "v5/spot-cross-margin-trade/borrow-token", 5 },
                         { "v5/crypto-loan/collateral-data", 5 },
                         { "v5/crypto-loan/loanable-data", 5 },
+                        { "v5/crypto-loan-common/loanable-data", 5 },
+                        { "v5/crypto-loan-common/collateral-data", 5 },
+                        { "v5/crypto-loan-fixed/supply-order-quote", 5 },
+                        { "v5/crypto-loan-fixed/borrow-order-quote", 5 },
                         { "v5/ins-loan/product-infos", 5 },
                         { "v5/ins-loan/ensure-tokens-convert", 5 },
                         { "v5/earn/product", 5 },
@@ -310,7 +315,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin-greeks", 1 },
                         { "v5/account/fee-rate", 10 },
                         { "v5/account/info", 5 },
-                        { "v5/account/transaction-log", 1 },
+                        { "v5/account/transaction-log", 1.66 },
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
@@ -339,6 +344,13 @@ public partial class bybit : Exchange
                         { "v5/asset/withdraw/query-record", 10 },
                         { "v5/asset/withdraw/withdrawable-amount", 5 },
                         { "v5/asset/withdraw/vasp/list", 5 },
+                        { "v5/asset/convert/small-balance-list", 5 },
+                        { "v5/asset/convert/small-balance-history", 5 },
+                        { "v5/fiat/query-coin-list", 5 },
+                        { "v5/fiat/reference-price", 5 },
+                        { "v5/fiat/trade-query", 5 },
+                        { "v5/fiat/query-trade-history", 5 },
+                        { "v5/fiat/balance-query", 5 },
                         { "v5/user/query-sub-members", 5 },
                         { "v5/user/query-api", 5 },
                         { "v5/user/sub-apikeys", 5 },
@@ -354,6 +366,7 @@ public partial class bybit : Exchange
                         { "v5/spot-margin-trade/position-tiers", 5 },
                         { "v5/spot-margin-trade/coinstate", 5 },
                         { "v5/spot-margin-trade/repayment-available-amount", 5 },
+                        { "v5/spot-margin-trade/get-auto-repay-mode", 5 },
                         { "v5/spot-cross-margin-trade/loan-info", 1 },
                         { "v5/spot-cross-margin-trade/account", 1 },
                         { "v5/spot-cross-margin-trade/orders", 1 },
@@ -364,6 +377,18 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan/borrow-history", 5 },
                         { "v5/crypto-loan/max-collateral-amount", 5 },
                         { "v5/crypto-loan/adjustment-history", 5 },
+                        { "v5/crypto-loan-common/max-collateral-amount", 10 },
+                        { "v5/crypto-loan-common/adjustment-history", 10 },
+                        { "v5/crypto-loan-common/position", 10 },
+                        { "v5/crypto-loan-flexible/ongoing-coin", 10 },
+                        { "v5/crypto-loan-flexible/borrow-history", 10 },
+                        { "v5/crypto-loan-flexible/repayment-history", 10 },
+                        { "v5/crypto-loan-fixed/borrow-contract-info", 10 },
+                        { "v5/crypto-loan-fixed/supply-contract-info", 10 },
+                        { "v5/crypto-loan-fixed/borrow-order-info", 10 },
+                        { "v5/crypto-loan-fixed/renew-info", 10 },
+                        { "v5/crypto-loan-fixed/supply-order-info", 10 },
+                        { "v5/crypto-loan-fixed/repayment-history", 10 },
                         { "v5/ins-loan/product-infos", 5 },
                         { "v5/ins-loan/ensure-tokens-convert", 5 },
                         { "v5/ins-loan/loan-order", 5 },
@@ -376,8 +401,11 @@ public partial class bybit : Exchange
                         { "v5/broker/earnings-info", 5 },
                         { "v5/broker/account-info", 5 },
                         { "v5/broker/asset/query-sub-member-deposit-record", 10 },
+                        { "v5/earn/product", 5 },
                         { "v5/earn/order", 5 },
                         { "v5/earn/position", 5 },
+                        { "v5/earn/yield", 5 },
+                        { "v5/earn/hourly-yield", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "spot/v3/private/order", 2.5 },
@@ -462,6 +490,7 @@ public partial class bybit : Exchange
                         { "v5/account/mmp-reset", 5 },
                         { "v5/account/borrow", 5 },
                         { "v5/account/repay", 5 },
+                        { "v5/account/no-convert-repay", 5 },
                         { "v5/asset/exchange/quote-apply", 1 },
                         { "v5/asset/exchange/convert-execute", 1 },
                         { "v5/asset/transfer/inter-transfer", 50 },
@@ -470,6 +499,10 @@ public partial class bybit : Exchange
                         { "v5/asset/deposit/deposit-to-account", 5 },
                         { "v5/asset/withdraw/create", 50 },
                         { "v5/asset/withdraw/cancel", 50 },
+                        { "v5/asset/covert/get-quote", 10 },
+                        { "v5/asset/covert/small-balance-execute", 10 },
+                        { "v5/fiat/quote-apply", 10 },
+                        { "v5/fiat/trade-execute", 10 },
                         { "v5/user/create-sub-member", 10 },
                         { "v5/user/create-sub-api", 10 },
                         { "v5/user/frozen-sub-member", 10 },
@@ -481,13 +514,27 @@ public partial class bybit : Exchange
                         { "v5/spot-lever-token/redeem", 2.5 },
                         { "v5/spot-margin-trade/switch-mode", 5 },
                         { "v5/spot-margin-trade/set-leverage", 5 },
+                        { "v5/spot-margin-trade/set-auto-repay-mode", 5 },
                         { "v5/spot-cross-margin-trade/loan", 2.5 },
                         { "v5/spot-cross-margin-trade/repay", 2.5 },
                         { "v5/spot-cross-margin-trade/switch", 2.5 },
                         { "v5/crypto-loan/borrow", 5 },
                         { "v5/crypto-loan/repay", 5 },
                         { "v5/crypto-loan/adjust-ltv", 5 },
+                        { "v5/crypto-loan-common/adjust-ltv", 50 },
+                        { "v5/crypto-loan-common/max-loan", 10 },
+                        { "v5/crypto-loan-flexible/borrow", 50 },
+                        { "v5/crypto-loan-flexible/repay", 50 },
+                        { "v5/crypto-loan-flexible/repay-collateral", 50 },
+                        { "v5/crypto-loan-fixed/borrow", 50 },
+                        { "v5/crypto-loan-fixed/renew", 50 },
+                        { "v5/crypto-loan-fixed/supply", 50 },
+                        { "v5/crypto-loan-fixed/borrow-order-cancel", 50 },
+                        { "v5/crypto-loan-fixed/supply-order-cancel", 50 },
+                        { "v5/crypto-loan-fixed/fully-repay", 50 },
+                        { "v5/crypto-loan-fixed/repay-collateral", 50 },
                         { "v5/ins-loan/association-uid", 5 },
+                        { "v5/ins-loan/repay-loan", 5 },
                         { "v5/lending/purchase", 5 },
                         { "v5/lending/redeem", 5 },
                         { "v5/lending/redeem-cancel", 5 },
@@ -786,6 +833,7 @@ public partial class bybit : Exchange
                     { "170203", typeof(InvalidOrder) },
                     { "170204", typeof(InvalidOrder) },
                     { "170206", typeof(InvalidOrder) },
+                    { "170209", typeof(RestrictedLocation) },
                     { "170210", typeof(InvalidOrder) },
                     { "170213", typeof(OrderNotFound) },
                     { "170217", typeof(InvalidOrder) },
@@ -800,6 +848,8 @@ public partial class bybit : Exchange
                     { "170229", typeof(InvalidOrder) },
                     { "170234", typeof(ExchangeError) },
                     { "170241", typeof(ManualInteractionNeeded) },
+                    { "170371", typeof(InvalidOrder) },
+                    { "170372", typeof(InvalidOrder) },
                     { "175000", typeof(InvalidOrder) },
                     { "175001", typeof(InvalidOrder) },
                     { "175002", typeof(InvalidOrder) },
@@ -966,6 +1016,7 @@ public partial class bybit : Exchange
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "types", new List<object>() {"spot", "linear", "inverse", "option"} },
+                    { "options", new List<object>() {"BTC", "ETH", "SOL", "XRP", "MNT", "DOGE"} },
                 } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
@@ -1735,32 +1786,38 @@ public partial class bybit : Exchange
                 }));
             } else if (isTrue(isEqual(marketType, "option")))
             {
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "BTC" },
-                }));
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "ETH" },
-                }));
-                ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
-                    { "baseCoin", "SOL" },
-                }));
+                object optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new List<object>() {"BTC", "ETH", "SOL"});
+                for (object j = 0; isLessThan(j, getArrayLength(optionsCurrencies)); postFixIncrement(ref j))
+                {
+                    object currency = getValue(optionsCurrencies, j);
+                    ((IList<object>)promisesUnresolved).Add(this.fetchOptionMarkets(new Dictionary<string, object>() {
+                        { "baseCoin", currency },
+                    }));
+                }
             } else
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
             }
         }
         object promises = await promiseAll(promisesUnresolved);
-        object spotMarkets = this.safeList(promises, 0, new List<object>() {});
-        object linearMarkets = this.safeList(promises, 1, new List<object>() {});
-        object inverseMarkets = this.safeList(promises, 2, new List<object>() {});
-        object btcOptionMarkets = this.safeList(promises, 3, new List<object>() {});
-        object ethOptionMarkets = this.safeList(promises, 4, new List<object>() {});
-        object solOptionMarkets = this.safeList(promises, 5, new List<object>() {});
-        object futureMarkets = this.arrayConcat(linearMarkets, inverseMarkets);
-        object optionMarkets = this.arrayConcat(btcOptionMarkets, ethOptionMarkets);
-        optionMarkets = this.arrayConcat(optionMarkets, solOptionMarkets);
-        object derivativeMarkets = this.arrayConcat(futureMarkets, optionMarkets);
-        return this.arrayConcat(spotMarkets, derivativeMarkets);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        {
+            object parsedMarket = getValue(promises, i);
+            result = this.arrayConcat(result, parsedMarket);
+        }
+        // const spotMarkets = this.safeList (promises, 0, []);
+        // const linearMarkets = this.safeList (promises, 1, []);
+        // const inverseMarkets = this.safeList (promises, 2, []);
+        // const btcOptionMarkets = this.safeList (promises, 3, []);
+        // const ethOptionMarkets = this.safeList (promises, 4, []);
+        // const solOptionMarkets = this.safeList (promises, 5, []);
+        // const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
+        // let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
+        // optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
+        // const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
+        // return this.arrayConcat (spotMarkets, derivativeMarkets);
+        return result;
     }
 
     public async virtual Task<object> fetchSpotMarkets(object parameters)
@@ -2383,7 +2440,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/tickers
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -2456,7 +2513,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
-     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -2575,7 +2632,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] *contract only* 'linear', 'inverse'
      * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -2805,7 +2862,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/tickers
      * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
@@ -2892,11 +2949,11 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -2912,7 +2969,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 200);
+            return await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, 200);
         }
         if (isTrue(isEqual(limit, null)))
         {
@@ -2922,6 +2979,7 @@ public partial class bybit : Exchange
             { "limit", limit },
         };
         object market = this.market(symbol);
+        object fundingTimeFrameMins = this.safeInteger(getValue(market, "info"), "fundingInterval");
         symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         object type = null;
@@ -2949,7 +3007,11 @@ public partial class bybit : Exchange
             {
                 // end time is required when since is not empty
                 object fundingInterval = multiply(multiply(multiply(60, 60), 8), 1000);
-                ((IDictionary<string,object>)request)["endTime"] = add(since, multiply(limit, fundingInterval));
+                if (isTrue(!isEqual(fundingTimeFrameMins, null)))
+                {
+                    fundingInterval = multiply(multiply(fundingTimeFrameMins, 60), 1000);
+                }
+                ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(limit, fundingInterval));
             }
         }
         object response = await this.publicGetV5MarketFundingHistory(this.extend(request, parameters));
@@ -3259,7 +3321,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'option', 'spot']
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -3320,7 +3382,7 @@ public partial class bybit : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -3576,7 +3638,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -4036,7 +4098,7 @@ public partial class bybit : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -4061,7 +4123,7 @@ public partial class bybit : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -4102,19 +4164,22 @@ public partial class bybit : Exchange
      * @param {string} [params.positionIdx] *contracts only* 0 for one-way mode, 1 buy side of hedged mode, 2 sell side of hedged mode
      * @param {bool} [params.hedged] *contracts only* true for hedged mode, false for one way mode, default is false
      * @param {int} [params.isLeverage] *unified spot only* false then spot trading true then margin trading
-     * @param {string} [params.tpslMode] *contract only* 'full' or 'partial'
+     * @param {string} [params.tpslMode] *contract only* 'Full' or 'Partial'
      * @param {string} [params.mmp] *option only* market maker protection
      * @param {string} [params.triggerDirection] *contract only* the direction for trigger orders, 'ascending' or 'descending'
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price at which a stop loss order is triggered at
+     * @param {float} [params.stopLossLimitPrice] The limit price for a stoploss order (only when used in OCO with takeProfitPrice)
      * @param {float} [params.takeProfitPrice] The price at which a take profit order is triggered at
+     * @param {float} [params.takeProfitLimitPrice] The limit price for a takeprofit order (only when used in OCO combination with stopLossPrice)
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @param {boolean} [params.tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -4123,15 +4188,13 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         object parts = await this.isUnifiedEnabled();
         object enableUnifiedAccount = getValue(parts, 1);
-        object trailingAmount = this.safeString2(parameters, "trailingAmount", "trailingStop");
-        object stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
-        object isStopLoss = !isEqual(stopLossPrice, null);
-        object isTakeProfit = !isEqual(takeProfitPrice, null);
+        object isTrailingOrder = !isEqual(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
+        object isStopLossOrder = !isEqual(this.safeString(parameters, "stopLossPrice"), null);
+        object isTakeProfitOrder = !isEqual(this.safeString(parameters, "takeProfitPrice"), null);
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, enableUnifiedAccount);
+        object switchToOco = isTrue((isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder))) || isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
         object defaultMethod = null;
-        if (isTrue(isTrue((isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLoss)) || isTrue(isTakeProfit))) && !isTrue(getValue(market, "spot"))))
+        if (isTrue(isTrue((isTrue(isTrailingOrder) || isTrue(switchToOco))) && !isTrue(getValue(market, "spot"))))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4148,7 +4211,7 @@ public partial class bybit : Exchange
             response = await this.privatePostV5PositionTradingStop(orderRequest);
         } else
         {
-            response = await this.privatePostV5OrderCreate(orderRequest); // already extended inside createOrderRequest
+            response = await this.privatePostV5OrderCreate(orderRequest);
         }
         //
         //     {
@@ -4173,10 +4236,6 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object lowerCaseType = ((string)type).ToLower();
-        if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(lowerCaseType, "limit")))))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price argument for limit orders")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -4189,17 +4248,18 @@ public partial class bybit : Exchange
         object takeProfit = this.safeValue(parameters, "takeProfit");
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activePrice", this.numberToString(price));
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "trailingStop");
-        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        object isTrailingOrder = !isEqual(trailingAmount, null);
         object isTriggerOrder = !isEqual(triggerPrice, null);
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
+        object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
+        object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
         object isMarket = isEqual(lowerCaseType, "market");
         object isLimit = isEqual(lowerCaseType, "limit");
         object isBuy = isEqual(side, "buy");
+        object switchToOco = isTrue((isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder))) || isTrue(this.safeBool(parameters, "tradingStopEndpoint", false));
         object defaultMethod = null;
-        if (isTrue(isTrue((isTrue(isTrue(isTrailingAmountOrder) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder))) && !isTrue(getValue(market, "spot"))))
+        if (isTrue(isTrue(isTrailingOrder) || isTrue(switchToOco)))
         {
             defaultMethod = "privatePostV5PositionTradingStop";
         } else
@@ -4210,38 +4270,80 @@ public partial class bybit : Exchange
         var methodparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "method", defaultMethod);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        object isAlternativeEndpoint = isEqual(method, "privatePostV5PositionTradingStop");
-        object amountString = this.getAmount(symbol, amount);
-        object priceString = ((bool) isTrue((!isEqual(price, null)))) ? this.getPrice(symbol, this.numberToString(price)) : null;
-        if (isTrue(isTrue(isTrailingAmountOrder) || isTrue(isAlternativeEndpoint)))
+        object endpointIsTradingStop = isEqual(method, "privatePostV5PositionTradingStop");
+        if (isTrue(isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(lowerCaseType, "limit")))) && !isTrue(endpointIsTradingStop)))
         {
-            if (isTrue(isTrue(isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)) || isTrue(isTriggerOrder)) || isTrue(getValue(market, "spot"))))
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder requires a price argument for limit orders")) ;
+        }
+        // workaround, bcz for some langs we have to allow 0.0 as input (bcz of type)
+        if (!isTrue(Precise.stringGt(this.numberToString(amount), "0")))
+        {
+            amount = null;
+        }
+        object amountString = ((bool) isTrue((!isEqual(amount, null)))) ? this.getAmount(symbol, amount) : null;
+        object priceString = ((bool) isTrue((!isEqual(price, null)))) ? this.getPrice(symbol, this.numberToString(price)) : null;
+        if (isTrue(endpointIsTradingStop))
+        {
+            if (isTrue(isTrue(isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)) || isTrue(isTriggerOrder)) || isTrue(getValue(market, "spot"))))
             {
                 throw new InvalidOrder ((string)add(this.id, " the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders")) ;
             }
-            if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
+            if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
             {
-                if (isTrue(isStopLossTriggerOrder))
+                object tpslModeSl = null;
+                object tpslModeTp = null;
+                if (isTrue(isStopLossOrder))
                 {
                     ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, stopLossTriggerPrice);
-                    if (isTrue(isLimit))
+                    object stopLossLimitPrice = this.safeString2(parameters, "stopLossLimitPrice", "slLimitPrice");
+                    if (isTrue(!isEqual(stopLossLimitPrice, null)))
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
+                        tpslModeSl = "Partial";
                         ((IDictionary<string,object>)request)["slOrderType"] = "Limit";
-                        ((IDictionary<string,object>)request)["slLimitPrice"] = priceString;
+                        ((IDictionary<string,object>)request)["slLimitPrice"] = stopLossLimitPrice;
                         ((IDictionary<string,object>)request)["slSize"] = amountString;
-                    }
-                } else if (isTrue(isTakeProfitTriggerOrder))
-                {
-                    ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
-                    if (isTrue(isLimit))
+                    } else
                     {
-                        ((IDictionary<string,object>)request)["tpslMode"] = "Partial";
-                        ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
-                        ((IDictionary<string,object>)request)["tpLimitPrice"] = priceString;
-                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                        ((IDictionary<string,object>)request)["slOrderType"] = "Market";
+                        if (isTrue(!isEqual(amountString, null)))
+                        {
+                            ((IDictionary<string,object>)request)["slSize"] = amountString;
+                            tpslModeSl = "Partial";
+                        } else
+                        {
+                            tpslModeSl = "Full";
+                        }
                     }
                 }
+                if (isTrue(isTakeProfitOrder))
+                {
+                    ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, takeProfitTriggerPrice);
+                    object takeProfitLimitPrice = this.safeString2(parameters, "takeProfitLimitPrice", "tpLimitPrice");
+                    if (isTrue(!isEqual(takeProfitLimitPrice, null)))
+                    {
+                        tpslModeTp = "Partial";
+                        ((IDictionary<string,object>)request)["tpOrderType"] = "Limit";
+                        ((IDictionary<string,object>)request)["tpLimitPrice"] = takeProfitLimitPrice;
+                        ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                    } else
+                    {
+                        ((IDictionary<string,object>)request)["tpOrderType"] = "Market";
+                        if (isTrue(!isEqual(amountString, null)))
+                        {
+                            ((IDictionary<string,object>)request)["tpSize"] = amountString;
+                            tpslModeTp = "Partial";
+                        } else
+                        {
+                            tpslModeTp = "Full";
+                        }
+                    }
+                }
+                if (isTrue(!isEqual(tpslModeSl, tpslModeTp)))
+                {
+                    throw new InvalidOrder ((string)add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
+                }
+                ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl; // same as tpslModeTp
+                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice"});
             }
         } else
         {
@@ -4271,7 +4373,7 @@ public partial class bybit : Exchange
                 if (isTrue(!isEqual(triggerPrice, null)))
                 {
                     ((IDictionary<string,object>)request)["orderFilter"] = "StopOrder";
-                } else if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
+                } else if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
                 {
                     ((IDictionary<string,object>)request)["orderFilter"] = "tpslOrder";
                 }
@@ -4355,19 +4457,19 @@ public partial class bybit : Exchange
             }
         } else
         {
-            if (isTrue(!isTrue(isTrailingAmountOrder) && !isTrue(isAlternativeEndpoint)))
+            if (isTrue(!isTrue(isTrailingOrder) && !isTrue(endpointIsTradingStop)))
             {
                 ((IDictionary<string,object>)request)["qty"] = amountString;
             }
         }
-        if (isTrue(isTrailingAmountOrder))
+        if (isTrue(isTrailingOrder))
         {
             if (isTrue(!isEqual(trailingTriggerPrice, null)))
             {
                 ((IDictionary<string,object>)request)["activePrice"] = this.getPrice(symbol, trailingTriggerPrice);
             }
             ((IDictionary<string,object>)request)["trailingStop"] = trailingAmount;
-        } else if (isTrue(isTrue(isTriggerOrder) && !isTrue(isAlternativeEndpoint)))
+        } else if (isTrue(isTrue(isTriggerOrder) && !isTrue(endpointIsTradingStop)))
         {
             object triggerDirection = this.safeString(parameters, "triggerDirection");
             parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerDirection"});
@@ -4387,22 +4489,22 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue(isAsending)) ? 1 : 2;
             }
             ((IDictionary<string,object>)request)["triggerPrice"] = this.getPrice(symbol, triggerPrice);
-        } else if (isTrue(isTrue((isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder))) && !isTrue(isAlternativeEndpoint)))
+        } else if (isTrue(isTrue((isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder))) && !isTrue(endpointIsTradingStop)))
         {
             if (isTrue(isBuy))
             {
-                ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue(isStopLossTriggerOrder)) ? 1 : 2;
+                ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue(isStopLossOrder)) ? 1 : 2;
             } else
             {
-                ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue(isStopLossTriggerOrder)) ? 2 : 1;
+                ((IDictionary<string,object>)request)["triggerDirection"] = ((bool) isTrue(isStopLossOrder)) ? 2 : 1;
             }
-            triggerPrice = ((bool) isTrue(isStopLossTriggerOrder)) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            triggerPrice = ((bool) isTrue(isStopLossOrder)) ? stopLossTriggerPrice : takeProfitTriggerPrice;
             ((IDictionary<string,object>)request)["triggerPrice"] = this.getPrice(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["reduceOnly"] = true;
         }
-        if (isTrue(isTrue((isTrue(isStopLoss) || isTrue(isTakeProfit))) && !isTrue(isAlternativeEndpoint)))
+        if (isTrue(isTrue((isTrue(hasStopLoss) || isTrue(hasTakeProfit))) && !isTrue(endpointIsTradingStop)))
         {
-            if (isTrue(isStopLoss))
+            if (isTrue(hasStopLoss))
             {
                 object slTriggerPrice = this.safeValue2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
                 ((IDictionary<string,object>)request)["stopLoss"] = this.getPrice(symbol, slTriggerPrice);
@@ -4426,7 +4528,7 @@ public partial class bybit : Exchange
                     throw new InvalidOrder ((string)add(this.id, " createOrder(): attached stopLoss is not supported for spot market orders")) ;
                 }
             }
-            if (isTrue(isTakeProfit))
+            if (isTrue(hasTakeProfit))
             {
                 object tpTriggerPrice = this.safeValue2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                 ((IDictionary<string,object>)request)["takeProfit"] = this.getPrice(symbol, tpTriggerPrice);
@@ -4471,7 +4573,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -4571,8 +4673,15 @@ public partial class bybit : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "orderId", id },
         };
+        object clientOrderId = this.safeString2(parameters, "orderLinkId", "clientOrderId");
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["orderId"] = id;
+        } else
+        {
+            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
+        }
         object category = null;
         var categoryparametersVariable = this.getBybitType("editOrderRequest", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4591,13 +4700,13 @@ public partial class bybit : Exchange
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopLoss = !isEqual(stopLoss, null);
-        object isTakeProfit = !isEqual(takeProfit, null);
-        if (isTrue(isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder)))
+        object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
+        object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
+        object hasStopLoss = !isEqual(stopLoss, null);
+        object hasTakeProfit = !isEqual(takeProfit, null);
+        if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
         {
-            triggerPrice = ((bool) isTrue(isStopLossTriggerOrder)) ? stopLossTriggerPrice : takeProfitTriggerPrice;
+            triggerPrice = ((bool) isTrue(isStopLossOrder)) ? stopLossTriggerPrice : takeProfitTriggerPrice;
         }
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -4606,9 +4715,9 @@ public partial class bybit : Exchange
             object triggerBy = this.safeString(parameters, "triggerBy", "LastPrice");
             ((IDictionary<string,object>)request)["triggerBy"] = triggerBy;
         }
-        if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
+        if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
-            if (isTrue(isStopLoss))
+            if (isTrue(hasStopLoss))
             {
                 object slTriggerPrice = this.safeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss);
                 object stopLossRequest = ((bool) isTrue((isEqual(slTriggerPrice, "0")))) ? slTriggerPrice : this.getPrice(symbol, slTriggerPrice);
@@ -4616,7 +4725,7 @@ public partial class bybit : Exchange
                 object slTriggerBy = this.safeString(parameters, "slTriggerBy", "LastPrice");
                 ((IDictionary<string,object>)request)["slTriggerBy"] = slTriggerBy;
             }
-            if (isTrue(isTakeProfit))
+            if (isTrue(hasTakeProfit))
             {
                 object tpTriggerPrice = this.safeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit);
                 object takeProfitRequest = ((bool) isTrue((isEqual(tpTriggerPrice, "0")))) ? tpTriggerPrice : this.getPrice(symbol, tpTriggerPrice);
@@ -4624,11 +4733,6 @@ public partial class bybit : Exchange
                 object tpTriggerBy = this.safeString(parameters, "tpTriggerBy", "LastPrice");
                 ((IDictionary<string,object>)request)["tpTriggerBy"] = tpTriggerBy;
             }
-        }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
-        if (isTrue(!isEqual(clientOrderId, null)))
-        {
-            ((IDictionary<string,object>)request)["orderLinkId"] = clientOrderId;
         }
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "stopLossPrice", "takeProfitPrice", "triggerPrice", "clientOrderId", "stopLoss", "takeProfit"});
         return request;
@@ -4648,6 +4752,7 @@ public partial class bybit : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] unique client order id
      * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
      * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] The price that a take profit order is triggered at
@@ -4658,7 +4763,7 @@ public partial class bybit : Exchange
      * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
      * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -4668,6 +4773,7 @@ public partial class bybit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a symbol argument")) ;
         }
+        object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePostV5OrderAmend(this.extend(request, parameters));
         //
@@ -4686,7 +4792,8 @@ public partial class bybit : Exchange
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
             { "id", this.safeString(result, "orderId") },
-        });
+            { "clientOrderId", this.safeString(result, "orderLinkId") },
+        }, market);
     }
 
     /**
@@ -4696,7 +4803,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrders(object orders, object parameters = null)
     {
@@ -4824,7 +4931,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
      * @param {boolean} [params.stop] alias for trigger
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -4862,7 +4969,7 @@ public partial class bybit : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] client order ids
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
@@ -4994,7 +5101,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
      * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
@@ -5097,7 +5204,7 @@ public partial class bybit : Exchange
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
      * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -5186,7 +5293,7 @@ public partial class bybit : Exchange
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOrderClassic(object id, object symbol = null, object parameters = null)
     {
@@ -5228,7 +5335,7 @@ public partial class bybit : Exchange
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.acknowledged] to suppress the warning, set to true
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -5349,7 +5456,7 @@ public partial class bybit : Exchange
          * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
          * @param {int} [params.until] the latest time in ms to fetch entries for
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
          */
         object enableUnifiedAccount = this.safeBool(res, 1);
         if (isTrue(enableUnifiedAccount))
@@ -5375,7 +5482,7 @@ public partial class bybit : Exchange
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOrdersClassic(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5494,7 +5601,7 @@ public partial class bybit : Exchange
      * @param {string} [params.type] market type, ['swap', 'option', 'spot']
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
@@ -5533,7 +5640,7 @@ public partial class bybit : Exchange
      * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
      * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
@@ -5573,7 +5680,7 @@ public partial class bybit : Exchange
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5705,7 +5812,7 @@ public partial class bybit : Exchange
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5733,9 +5840,9 @@ public partial class bybit : Exchange
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -5762,7 +5869,7 @@ public partial class bybit : Exchange
      * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
      * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5887,7 +5994,7 @@ public partial class bybit : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5917,7 +6024,7 @@ public partial class bybit : Exchange
      * @param {string} [params.type] market type, ['swap', 'option', 'spot']
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6031,7 +6138,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
@@ -6086,7 +6193,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -6114,7 +6221,7 @@ public partial class bybit : Exchange
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.cursor] used for pagination
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6189,7 +6296,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6380,7 +6487,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -6665,7 +6772,7 @@ public partial class bybit : Exchange
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -6728,7 +6835,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
@@ -6811,7 +6918,7 @@ public partial class bybit : Exchange
      * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
      * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
@@ -7074,7 +7181,16 @@ public partial class bybit : Exchange
         market = this.safeMarket(contract, market, null, "contract");
         object size = Precise.stringAbs(this.safeString2(position, "size", "qty"));
         object side = this.safeString(position, "side");
-        if (isTrue(!isEqual(side, null)))
+        object positionIdx = this.safeString(position, "positionIdx");
+        object hedged = null;
+        if (isTrue(!isEqual(positionIdx, null)))
+        {
+            hedged = (!isEqual(positionIdx, "0"));
+        }
+        if (isTrue(isTrue((!isEqual(hedged, null))) && isTrue(hedged)))
+        {
+            side = ((bool) isTrue((isEqual(positionIdx, "1")))) ? "long" : "short";
+        } else if (isTrue(!isEqual(side, null)))
         {
             if (isTrue(isEqual(side, "Buy")))
             {
@@ -7087,7 +7203,16 @@ public partial class bybit : Exchange
                 side = null;
             }
         }
-        object notional = this.safeString2(position, "positionValue", "cumExitValue");
+        object notional = null;
+        object contractSize = this.safeString(market, "contractSize");
+        object markPrice = this.safeString(position, "markPrice");
+        if (isTrue(getValue(market, "inverse")))
+        {
+            notional = Precise.stringDiv(Precise.stringMul(size, contractSize), markPrice);
+        } else
+        {
+            notional = this.safeString2(position, "positionValue", "cumExitValue");
+        }
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         object initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         object maintenanceMarginString = this.safeString(position, "positionMM");
@@ -7097,19 +7222,8 @@ public partial class bybit : Exchange
         {
             lastUpdateTimestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "updatedAt", "updatedTime"});
         }
-        object tradeMode = this.safeInteger(position, "tradeMode", 0);
-        object marginMode = null;
-        if (isTrue(isTrue((!isTrue(getValue(this.options, "enableUnifiedAccount")))) || isTrue((isTrue(getValue(this.options, "enableUnifiedAccount")) && isTrue(getValue(market, "inverse"))))))
-        {
-            // tradeMode would work for classic and UTA(inverse)
-            if (!isTrue(isHistory))
-            {
-                marginMode = ((bool) isTrue((isEqual(tradeMode, 1)))) ? "isolated" : "cross";
-            }
-        }
         object collateralString = this.safeString(position, "positionBalance");
         object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
-        object markPrice = this.safeString(position, "markPrice");
         object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
         object leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
@@ -7155,8 +7269,6 @@ public partial class bybit : Exchange
         }
         object maintenanceMarginPercentage = Precise.stringDiv(maintenanceMarginString, notional);
         object marginRatio = Precise.stringDiv(maintenanceMarginString, collateralString, 4);
-        object positionIdx = this.safeString(position, "positionIdx");
-        object hedged = isTrue((!isEqual(positionIdx, null))) && isTrue((!isEqual(positionIdx, "0")));
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -7180,7 +7292,7 @@ public partial class bybit : Exchange
             { "markPrice", this.parseNumber(markPrice) },
             { "lastPrice", this.safeNumber(position, "avgExitPrice") },
             { "collateral", this.parseNumber(collateralString) },
-            { "marginMode", marginMode },
+            { "marginMode", null },
             { "side", side },
             { "percentage", null },
             { "stopLossPrice", this.safeNumber2(position, "stop_loss", "stopLoss") },
@@ -7196,7 +7308,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/position
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
@@ -7523,7 +7635,7 @@ public partial class bybit : Exchange
      * @param {object} [params] exchange specific parameters
      * @param {string} [params.interval] 5m, 15m, 30m, 1h, 4h, 1d
      * @param {string} [params.category] "linear" or "inverse"
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
@@ -7653,7 +7765,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
     {
@@ -7727,7 +7839,7 @@ public partial class bybit : Exchange
      * @param {number} [since] the earliest time in ms to fetch borrrow interest for
      * @param {number} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7773,10 +7885,10 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
      * @param {string} code unified currency code
      * @param {int} [since] timestamp for the earliest borrow rate
-     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
     {
@@ -7858,7 +7970,7 @@ public partial class bybit : Exchange
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.transferId] UUID, which is unique across the platform
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -7914,7 +8026,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -7977,11 +8089,11 @@ public partial class bybit : Exchange
      * @method
      * @name bybit#borrowCrossMargin
      * @description create a loan to borrow margin
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/borrow
+     * @see https://bybit-exchange.github.io/docs/v5/account/borrow
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
@@ -7990,37 +8102,34 @@ public partial class bybit : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
-            { "qty", this.currencyToPrecision(code, amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
         };
-        object response = await this.privatePostV5SpotCrossMarginTradeLoan(this.extend(request, parameters));
+        object response = await this.privatePostV5AccountBorrow(this.extend(request, parameters));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //             "transactId": "14143"
+        //             "coin": "BTC",
+        //             "amount": "0.001"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662617848970
+        //         "retExtInfo": {},
+        //         "time": 1763194940073
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object transaction = this.parseMarginLoan(result, currency);
-        return this.extend(transaction, new Dictionary<string, object>() {
-            { "symbol", null },
-            { "amount", amount },
-        });
+        return this.parseMarginLoan(result, currency);
     }
 
     /**
      * @method
      * @name bybit#repayCrossMargin
      * @description repay borrowed margin and interest
-     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/repay
+     * @see https://bybit-exchange.github.io/docs/v5/account/no-convert-repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
@@ -8029,24 +8138,23 @@ public partial class bybit : Exchange
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
-            { "qty", this.numberToString(amount) },
+            { "amount", this.numberToString(amount) },
         };
-        object response = await this.privatePostV5SpotCrossMarginTradeRepay(this.extend(request, parameters));
+        object response = await this.privatePostV5AccountNoConvertRepay(this.extend(request, parameters));
         //
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
         //         "result": {
-        //            "repayId": "12128"
+        //             "resultStatus": "SU"
         //         },
-        //         "retExtInfo": null,
-        //         "time": 1662618298452
+        //         "retExtInfo": {},
+        //         "time": 1763195201119
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
-            { "symbol", null },
             { "amount", amount },
         });
     }
@@ -8057,19 +8165,21 @@ public partial class bybit : Exchange
         // borrowCrossMargin
         //
         //     {
-        //         "transactId": "14143"
+        //         "coin": "BTC",
+        //         "amount": "0.001"
         //     }
         //
         // repayCrossMargin
         //
         //     {
-        //         "repayId": "12128"
+        //         "resultStatus": "SU"
         //     }
         //
+        object currencyId = this.safeString(info, "coin");
         return new Dictionary<string, object>() {
-            { "id", this.safeString2(info, "transactId", "repayId") },
-            { "currency", this.safeString(currency, "code") },
-            { "amount", null },
+            { "id", null },
+            { "currency", this.safeCurrencyCode(currencyId, currency) },
+            { "amount", this.safeString(info, "amount") },
             { "symbol", null },
             { "timestamp", null },
             { "datetime", null },
@@ -8179,7 +8289,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
@@ -8225,7 +8335,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -8271,7 +8381,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] market type, ['swap', 'option', 'spot']
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -8386,7 +8496,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
      * @param {string[]} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -8641,7 +8751,7 @@ public partial class bybit : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
-     * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+     * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
     public async virtual Task<object> fetchVolatilityHistory(object code, object parameters = null)
     {
@@ -8702,7 +8812,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     public async override Task<object> fetchGreeks(object symbol, object parameters = null)
     {
@@ -8772,7 +8882,7 @@ public partial class bybit : Exchange
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
     {
@@ -8908,7 +9018,7 @@ public partial class bybit : Exchange
      * @param {string} [params.type] market type, ['swap', 'option', 'spot']
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     public async override Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9089,7 +9199,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
@@ -9200,7 +9310,7 @@ public partial class bybit : Exchange
      * @param {int} [limit] the maximum number of funding history structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9314,7 +9424,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/tickers
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     public async override Task<object> fetchOption(object symbol, object parameters = null)
     {
@@ -9379,7 +9489,7 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/tickers
      * @param {string} code base currency to fetch an option chain for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     public async override Task<object> fetchOptionChain(object code, object parameters = null)
     {
@@ -9501,7 +9611,7 @@ public partial class bybit : Exchange
      * @param {object} params extra parameters specific to the exchange api endpoint
      * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
      * @param {string} [params.subType] 'linear' or 'inverse'
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9694,7 +9804,7 @@ public partial class bybit : Exchange
      * @param {float} [amount] how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -9755,7 +9865,7 @@ public partial class bybit : Exchange
      * @param {string} toCode the currency that you want to buy and convert into
      * @param {float} amount how much you want to trade in units of the from currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
@@ -9790,7 +9900,7 @@ public partial class bybit : Exchange
      * @param {string} [code] the unified currency code of the conversion trade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
-     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
@@ -9862,7 +9972,7 @@ public partial class bybit : Exchange
      * @param {int} [limit] the maximum number of conversion structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
-     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+     * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
     public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9978,7 +10088,7 @@ public partial class bybit : Exchange
      * @param {int} [since] the earliest time in ms to fetch ratios for
      * @param {int} [limit] the maximum number of long short ratio structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+     * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
      */
     public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
@@ -10052,6 +10162,61 @@ public partial class bybit : Exchange
             { "timeframe", null },
             { "longShortRatio", this.parseToNumeric(Precise.stringDiv(longString, shortString)) },
         };
+    }
+
+    /**
+     * @method
+     * @name bybit#fetchMarginMode
+     * @description fetches the margin mode of the trading pair
+     * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+     * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    public async override Task<object> fetchMarginMode(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object response = await this.privateGetV5AccountInfo(parameters);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "marginMode": "REGULAR_MARGIN",
+        //             "updatedTime": "1723481446000",
+        //             "unifiedMarginStatus": 5,
+        //             "dcpStatus": "OFF",
+        //             "timeWindow": 0,
+        //             "smpGroup": 0,
+        //             "isMasterTrader": false,
+        //             "spotHedgingStatus": "OFF"
+        //         }
+        //     }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseMarginMode(result, market);
+    }
+
+    public override object parseMarginMode(object marginMode, object market = null)
+    {
+        object marginType = this.safeString(marginMode, "marginMode");
+        return new Dictionary<string, object>() {
+            { "info", marginMode },
+            { "symbol", this.safeSymbol(null, market) },
+            { "marginMode", this.parseMarginModeType(marginType) },
+        };
+    }
+
+    public virtual object parseMarginModeType(object marginMode)
+    {
+        object marginModes = new Dictionary<string, object>() {
+            { "ISOLATED_MARGIN", "isolated" },
+            { "REGULAR_MARGIN", "cross" },
+            { "PORTFOLIO_MARGIN", "portfolio" },
+        };
+        return this.safeString(marginModes, marginMode, marginMode);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

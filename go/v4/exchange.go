@@ -3,6 +3,7 @@ package ccxt
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	j "encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,10 @@ import (
 	"sync"
 	"time"
 
+	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type Exchange struct {
@@ -55,6 +59,8 @@ type Exchange struct {
 	Timeout                int64
 	MAX_VALUE              float64
 	RateLimit              float64
+	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm   string
 	TokenBucket            map[string]interface{}
 	Throttler              *Throttler
 	NewUpdates             bool
@@ -101,7 +107,7 @@ type Exchange struct {
 	Password      string
 	Uid           string
 	AccountId     string
-	Token         string
+	Token         interface{}
 	Login         string
 	PrivateKey    string
 	WalletAddress string
@@ -181,6 +187,9 @@ type Exchange struct {
 	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -474,6 +483,7 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
+		ch <- true
 		return true
 	}()
 	return ch
@@ -1109,6 +1119,9 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 }
 
 func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	if this.Markets == nil {
+		panic("Markets not loaded, please call LoadMarkets() first")
+	}
 	// market := this.Markets[symbol]
 	market, ok := this.Markets.Load(symbol)
 	if !ok {
@@ -1173,6 +1186,28 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
 	}
+}
+
+func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{} {
+	include := true
+	if len(includeStack) > 0 {
+		include = includeStack[0].(bool)
+	}
+
+	var message string
+
+	if include {
+		message = fmt.Sprintf("[%T] %+v", exc, exc)
+	} else {
+		message = fmt.Sprintf("[%T] %v", exc, exc)
+	}
+
+	length := len(message)
+	if length > 100000 {
+		length = 100000
+	}
+
+	return message[:length]
 }
 
 func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
@@ -1306,6 +1341,52 @@ func (this *Exchange) GetZKTransferSignatureObj(seed interface{}, params interfa
 		ch <- "panic:" + "Apex currently does not support transfer asset in Go language"
 	}()
 	return ch
+}
+
+func (this *Exchange) LoadDydxProtos() <-chan interface{} {
+	ch := make(chan interface{})
+
+	go func() {
+		defer close(ch)
+		defer func() {
+			if r := recover(); r != nil {
+				ch <- "panic:" + ToString(r)
+			}
+		}()
+
+		ch <- "panic:" + "Dydx currently does not support transfer asset in Go language"
+	}()
+	return ch
+}
+
+func (this *Exchange) ToDydxLong(numStr interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) RetrieveDydxCredentials(entropy interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSimulation(
+	message interface{},
+	memo interface{},
+	sequence interface{},
+	publicKey interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxForSigning(
+	message interface{},
+	memo interface{},
+	chainId interface{},
+	account interface{},
+	authenticators interface{},
+	fee interface{}) interface{} {
+	return nil
+}
+
+func (this *Exchange) EncodeDydxTxRaw(signDoc interface{}, signature interface{}) interface{} {
+	return nil
 }
 
 func (this *Exchange) ExtendExchangeOptions(options2 interface{}) {
@@ -1885,15 +1966,16 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			cache := (*orderBookInterface.GetCache()).([]interface{})
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
-				stored.(OrderBookInterface).Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[int(index):])
-				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
+				orderBookInterface.Reset(orderBook)
+				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				orderBookInterface.SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*Client).Resolve(stored, messageHash)
 				return nil
@@ -1974,5 +2056,26 @@ func (this *Exchange) IsBinaryMessage(message interface{}) bool {
 }
 
 func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
-	return nil //tmp add protobuf
+	var msg pb.PushDataV3ApiWrapper
+	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
+	}
+	jsonBytes, _ := protojson.Marshal(&msg)
+	var v interface{}
+	_ = json.Unmarshal(jsonBytes, &v)
+	return v
+}
+
+func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
+	return ""
+}
+
+func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
+	return true
 }

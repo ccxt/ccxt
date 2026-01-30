@@ -56,22 +56,22 @@ class htx extends \ccxt\async\htx {
                             ),
                             'future' => array(
                                 'linear' => array(
-                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public' => 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/linear-swap-notification',
                                 ),
                                 'inverse' => array(
-                                    'public' => 'wss://api.hbdm.com/ws',
-                                    'private' => 'wss://api.hbdm.com/notification',
+                                    'public' => 'wss://api.hbdm.vn/ws',
+                                    'private' => 'wss://api.hbdm.vn/notification',
                                 ),
                             ),
                             'swap' => array(
                                 'inverse' => array(
-                                    'public' => 'wss://api.hbdm.com/swap-ws',
-                                    'private' => 'wss://api.hbdm.com/swap-notification',
+                                    'public' => 'wss://api.hbdm.vn/swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/swap-notification',
                                 ),
                                 'linear' => array(
-                                    'public' => 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private' => 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public' => 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private' => 'wss://api.hbdm.vn/linear-swap-notification',
                                 ),
                             ),
                         ),
@@ -139,8 +139,10 @@ class htx extends \ccxt\async\htx {
     }
 
     public function request_id() {
+        $this->lock_id();
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
+        $this->unlock_id();
         return (string) $requestId;
     }
 
@@ -154,7 +156,7 @@ class htx extends \ccxt\async\htx {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -180,7 +182,7 @@ class htx extends \ccxt\async\htx {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -256,7 +258,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -282,7 +284,7 @@ class htx extends \ccxt\async\htx {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -432,34 +434,36 @@ class htx extends \ccxt\async\htx {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-$depth-data
-             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-$depth-data
-             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-$depth-data
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-$market-depth-data
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-$market-depth-data
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-$market-depth-data
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $allowedLimits = array( 20, 150 );
+            $allowedLimits = array( 5, 20, 150, 400 );
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
             // between two snapshots at 100ms interval.
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
-            $depth = $this->safe_integer($options, 'depth', 150);
-            if (!$this->in_array($depth, $allowedLimits)) {
-                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 20 and 150 only');
+            if ($limit === null) {
+                $limit = $this->safe_integer($options, 'depth', 150);
+            }
+            if (!$this->in_array($limit, $allowedLimits)) {
+                throw new ExchangeError($this->id . ' watchOrderBook $market accepts limits of 5, 20, 150 or 400 only');
             }
             $messageHash = null;
             if ($market['spot']) {
-                $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($depth);
+                $messageHash = 'market.' . $market['id'] . '.mbp.' . $this->number_to_string($limit);
             } else {
-                $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($depth) . '.high_freq';
+                $messageHash = 'market.' . $market['id'] . '.depth.size_' . $this->number_to_string($limit) . '.high_freq';
             }
             $url = $this->get_url_by_market_type($market['type'], $market['linear'], false, true);
             $method = array($this, 'handle_order_book_subscription');
@@ -485,7 +489,7 @@ class htx extends \ccxt\async\htx {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->limit] orderbook limit, default is null
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -822,7 +826,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());
@@ -923,7 +927,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $type = null;
@@ -1524,7 +1528,7 @@ class htx extends \ccxt\async\htx {
              * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -2065,7 +2069,7 @@ class htx extends \ccxt\async\htx {
                     Async\await($client->send (array( 'op' => 'pong', 'ts' => $pingTs )));
                 }
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' pong failed ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' pong failed ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();

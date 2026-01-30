@@ -232,7 +232,7 @@ func  (this *AscendexCore) HandleOHLCV(client interface{}, message interface{}) 
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *AscendexCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -264,7 +264,7 @@ func  (this *AscendexCore) WatchTrades(symbol interface{}, optionalArgs ...inter
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *AscendexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -354,7 +354,7 @@ func  (this *AscendexCore) HandleTrades(client interface{}, message interface{})
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *AscendexCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -415,7 +415,7 @@ func  (this *AscendexCore) WatchOrderBookSnapshot(symbol interface{}, optionalAr
             }()
             return ch
         }
-func  (this *AscendexCore) FetchOrderBookSnapshot(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
+func  (this *AscendexCore) FetchOrderBookSnapshotCustom(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
             go func() interface{} {
                 defer close(ch)
@@ -557,7 +557,7 @@ func  (this *AscendexCore) HandleOrderBookMessage(client interface{}, message in
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://ascendex.github.io/ascendex-pro-api/#channel-order-and-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *AscendexCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -698,7 +698,7 @@ func  (this *AscendexCore) HandleBalance(client interface{}, message interface{}
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *AscendexCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -763,7 +763,7 @@ func  (this *AscendexCore) HandleOrder(client interface{}, message interface{}) 
     //     "sn": 19399016185,
     //     "orderId": "r17f9d7983faU7223046196CMlrj3bfC",
     //     "s": "LTC/USDT",
-    //     "ot": "ccxt.Limit",
+    //     "ot": "Limit",
     //     "t": 1647614461160,
     //     "p": "50",
     //     "q": "0.1",
@@ -815,7 +815,7 @@ func  (this *AscendexCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     //          "sn": 19399016185, //sequence number
     //          "orderId": "r17f9d7983faU7223046196CMlrj3bfC",
     //          "s": "LTC/USDT",
-    //          "ot": "ccxt.Limit", // order type
+    //          "ot": "Limit", // order type
     //          "t": 1647614461160, // last execution timestamp
     //          "p": "50", // price
     //          "q": "0.1", // quantity
@@ -845,7 +845,7 @@ func  (this *AscendexCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     //     "ct": 1647622515413, // order creation time
     //     "orderId": "r17f9df469b1U7223046196Okf5Kbmd",
     //     "sd": "Buy", // side
-    //     "ot": "ccxt.Limit", // order type
+    //     "ot": "Limit", // order type
     //     "ei": "NULL_VAL",
     //     "q": "1", // quantity
     //     "p": "50", //price
@@ -1174,7 +1174,7 @@ func  (this *AscendexCore) HandleOrderBookSubscription(client interface{}, messa
     }
     ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]interface{} {}))
     if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(this.Options, "defaultType"), "swap")) || ccxt.IsTrue(ccxt.GetValue(market, "contract"))) {
-        this.Spawn(this.FetchOrderBookSnapshot, symbol)
+        this.Spawn(this.FetchOrderBookSnapshotCustom, symbol)
     } else {
         this.Spawn(this.WatchOrderBookSnapshot, symbol)
     }
@@ -1194,7 +1194,7 @@ func  (this *AscendexCore) Pong(client interface{}, message interface{}) <- chan
                                 }
                                 ret_ = func(this *AscendexCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " handlePing failed with error "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)

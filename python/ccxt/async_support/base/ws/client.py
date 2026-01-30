@@ -72,6 +72,7 @@ class Client(object):
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
+        self.options = config
         self.connected = Future()
 
     def future(self, message_hash):
@@ -117,7 +118,7 @@ class Client(object):
             self.log(iso8601(milliseconds()), 'receive loop')
         if not self.closed():
             # let's drain the aiohttp buffer to avoid latency
-            if len(self.buffer) > 1:
+            if self.buffer and len(self.buffer) > 1:
                 size_delta = 0
                 while len(self.buffer) > 1:
                     message, size = self.buffer.popleft()
@@ -186,6 +187,16 @@ class Client(object):
         # looks like they exposed it in C
         # this means we can bypass it
         # https://github.com/aio-libs/aiohttp/blob/master/aiohttp/_websocket/reader_c.pxd#L53C24-L53C31
+        # these checks are necessary to protect these errors: AttributeError: 'NoneType' object has no attribute '_buffer'
+        # upon getting an error message
+        if self.connection is None:
+            return None
+        if self.connection._conn is None:
+            return None
+        if self.connection._conn.protocol is None:
+            return None
+        if self.connection._conn.protocol._payload is None:
+            return None
         return self.connection._conn.protocol._payload._buffer
 
     def connect(self, session, backoff_delay=0):
@@ -224,9 +235,8 @@ class Client(object):
     def handle_text_or_binary_message(self, data):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
-        if isinstance(data, bytes):
-            if self.decompressBinary:
-                data = data.decode()
+        if self.decompressBinary and isinstance(data, bytes):
+            data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):
@@ -279,6 +289,10 @@ class Client(object):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         # call aenter here to simulate async with otherwise we get the error "await not called with future"
         # if connecting to a non-existent endpoint
+        # set cookies if defined
+        if 'cookies' in self.options:
+            for key, value in self.options['cookies'].items():
+                session.cookie_jar.update_cookies({key: value})
         if (self.proxy):
             return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
         return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()
@@ -294,6 +308,8 @@ class Client(object):
                 send_msg = json.dumps(message, separators=(',', ':'))
             else:
                 send_msg = orjson.dumps(message).decode('utf-8')
+        if self.closed():
+            raise ConnectionError('Cannot Send Message: Connection closed before send')
         return await self.connection.send_str(send_msg)
 
     async def close(self, code=1000):

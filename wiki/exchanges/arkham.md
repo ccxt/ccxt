@@ -103,7 +103,7 @@ arkham.fetchTime ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://arkm.com/docs#get/public/book  
 
@@ -151,7 +151,7 @@ arkham.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -171,7 +171,7 @@ arkham.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://arkm.com/docs#get/public/trades  
 
@@ -196,7 +196,7 @@ arkham.fetchTrades (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://arkm.com/docs#get/orders/history  
 
@@ -220,7 +220,7 @@ arkham.fetchClosedOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://arkm.com/docs#get/orders  
 
@@ -244,7 +244,7 @@ arkham.fetchOpenOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://arkm.com/docs#post/orders/cancel  
 
@@ -266,7 +266,7 @@ arkham.cancelOrder (id, symbol[, params])
 cancel all open orders in a market
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://arkm.com/docs#post/orders/cancel/all  
 
@@ -287,7 +287,7 @@ arkham.cancelAllOrders (symbol[, params])
 create a trade order on the exchange
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: [An order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: [An order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://arkm.com/docs#post/orders/new  
 
@@ -320,7 +320,7 @@ arkham.createOrder (symbol, type, side, amount[, price, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://arkm.com/docs#get/trades/time  
 
@@ -345,7 +345,7 @@ arkham.fetchMyTrades ([symbol, since, limit, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://arkm.com/docs#get/user  
 
@@ -365,7 +365,7 @@ arkham.fetchAccounts ([params])
 query for account info
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://arkm.com/docs#get/account/balances  
 
@@ -385,7 +385,7 @@ arkham.fetchBalance ([params])
 create a currency deposit address
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://arkm.com/docs#post/account/deposit/addresses/new  
 
@@ -406,7 +406,7 @@ arkham.createDepositAddress (code[, params])
 fetch the deposit addresses for a currency associated with this account
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/#/?id=address-structure), indexed by the network
+**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/?id=address-structure), indexed by the network
 
 **See**: https://arkm.com/docs#get/account/deposit/addresses  
 
@@ -427,7 +427,7 @@ arkham.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://arkm.com/docs#get/account/deposit/addresses  
 
@@ -448,7 +448,7 @@ arkham.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://arkm.com/docs#get/account/deposits  
 
@@ -471,7 +471,7 @@ arkham.fetchDeposits (code[, since, limit, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://arkm.com/docs#get/account/fees  
 
@@ -492,7 +492,7 @@ arkham.fetchTradingFees ([params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**: https://arkm.com/docs#get/account/funding-rate-payments  
 
@@ -516,7 +516,7 @@ arkham.fetchFundingHistory ([symbol, since, limit, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**: https://arkm.com/docs#get/account/leverage  
 
@@ -559,7 +559,7 @@ arkham.setLeverage (leverage, symbol[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**: https://arkm.com/docs#get/public/margin-schedules  
 
@@ -580,7 +580,7 @@ arkham.fetchLeverageTiers (symbols[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://arkm.com/docs#stream/ticker  
 
@@ -625,7 +625,7 @@ arkham.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://arkm.com/docs#stream/l2_updates  
 
@@ -647,7 +647,7 @@ arkham.watchOrderBook (symbol[, limit, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://arkm.com/docs#stream/trades  
 
@@ -670,7 +670,7 @@ arkham.watchTrades (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://arkm.com/docs#stream/balances  
 
@@ -714,7 +714,7 @@ arkham.watchPositions ([symbols, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>arkham</code>](#arkham)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://arkm.com/docs#stream/order_statuses  
 

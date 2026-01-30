@@ -670,6 +670,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapi_get_portfolio_earn_asset_balance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapi_get_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -1099,6 +1102,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapi_post_portfolio_earn_asset_transfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
+    public function sapi_post_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -1450,6 +1456,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapipublic_get_depth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapipublic_get_rpidepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapipublic_get_trades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -1515,6 +1524,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapipublic_get_insurancebalance($params = array()) {
         return $this->request('insuranceBalance', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapipublic_get_symboladlrisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapipublic_get_tradingschedule($params = array()) {
+        return $this->request('tradingSchedule', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
     public function fapidata_get_delivery_price($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -1651,6 +1666,18 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiprivate_get_convert_orderstatus($params = array()) {
         return $this->request('convert/orderStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiprivate_get_algoorder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_get_openalgoorders($params = array()) {
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
+    }
+    public function fapiprivate_get_allalgoorders($params = array()) {
+        return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiprivate_get_stock_contract($params = array()) {
+        return $this->request('stock/contract', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 50));
+    }
     public function fapiprivate_post_batchorders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -1665,6 +1692,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiprivate_post_order($params = array()) {
         return $this->request('order', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function fapiprivate_post_order_test($params = array()) {
+        return $this->request('order/test', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_post_leverage($params = array()) {
         return $this->request('leverage', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -1693,6 +1723,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiprivate_post_convert_acceptquote($params = array()) {
         return $this->request('convert/acceptQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function fapiprivate_post_algoorder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function fapiprivate_put_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -1713,6 +1746,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiprivate_delete_listenkey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_delete_algoorder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiprivate_delete_algoopenorders($params = array()) {
+        return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function fapipublicv2_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -1821,6 +1860,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function eapiprivate_get_blocktrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiprivate_get_comission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -1974,6 +2016,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function private_post_orderlist_otoco($params = array()) {
         return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_opo($params = array()) {
+        return $this->request('orderList/opo', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_opoco($params = array()) {
+        return $this->request('orderList/opoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
@@ -2971,6 +3019,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapiGetPortfolioEarnAssetBalance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapiGetPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3400,6 +3451,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function sapiPostPortfolioEarnAssetTransfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
+    public function sapiPostPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -3751,6 +3805,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiPublicGetDepth($params = array()) {
         return $this->request('depth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 2, "byLimit" => [[50, 2], [100, 5], [500, 10], [1000, 20]]));
     }
+    public function fapiPublicGetRpiDepth($params = array()) {
+        return $this->request('rpiDepth', 'fapiPublic', 'GET', $params, null, null, array("cost" => 20));
+    }
     public function fapiPublicGetTrades($params = array()) {
         return $this->request('trades', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -3816,6 +3873,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiPublicGetInsuranceBalance($params = array()) {
         return $this->request('insuranceBalance', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPublicGetSymbolAdlRisk($params = array()) {
+        return $this->request('symbolAdlRisk', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPublicGetTradingSchedule($params = array()) {
+        return $this->request('tradingSchedule', 'fapiPublic', 'GET', $params, null, null, array("cost" => 5));
     }
     public function fapiDataGetDeliveryPrice($params = array()) {
         return $this->request('delivery-price', 'fapiData', 'GET', $params, null, null, array("cost" => 1));
@@ -3952,6 +4015,18 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiPrivateGetConvertOrderStatus($params = array()) {
         return $this->request('convert/orderStatus', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function fapiPrivateGetAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateGetOpenAlgoOrders($params = array()) {
+        return $this->request('openAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
+    }
+    public function fapiPrivateGetAllAlgoOrders($params = array()) {
+        return $this->request('allAlgoOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function fapiPrivateGetStockContract($params = array()) {
+        return $this->request('stock/contract', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 50));
+    }
     public function fapiPrivatePostBatchOrders($params = array()) {
         return $this->request('batchOrders', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 5));
     }
@@ -3966,6 +4041,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function fapiPrivatePostOrderTest($params = array()) {
+        return $this->request('order/test', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivatePostLeverage($params = array()) {
         return $this->request('leverage', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -3994,6 +4072,9 @@ abstract class binanceusdm extends \ccxt\binance {
     public function fapiPrivatePostConvertAcceptQuote($params = array()) {
         return $this->request('convert/acceptQuote', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 20));
     }
+    public function fapiPrivatePostAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function fapiPrivatePutListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -4014,6 +4095,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function fapiPrivateDeleteListenKey($params = array()) {
         return $this->request('listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateDeleteAlgoOrder($params = array()) {
+        return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    public function fapiPrivateDeleteAlgoOpenOrders($params = array()) {
+        return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function fapiPublicV2GetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -4122,6 +4209,9 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function eapiPrivateGetBlockTrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function eapiPrivateGetComission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
@@ -4275,6 +4365,12 @@ abstract class binanceusdm extends \ccxt\binance {
     }
     public function privatePostOrderListOtoco($params = array()) {
         return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOpo($params = array()) {
+        return $this->request('orderList/opo', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOpoco($params = array()) {
+        return $this->request('orderList/opoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));

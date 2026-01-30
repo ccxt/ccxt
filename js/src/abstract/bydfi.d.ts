@@ -1,0 +1,52 @@
+import { implicitReturnType } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetV1PublicApiLimits(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketExchangeInfo(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketDepth(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketKlines(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketTicker24hr(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketTickerPrice(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketMarkPrice(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketFundingRate(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketFundingRateHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetV1SwapMarketRiskLimit(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AccountAssets(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AccountTransferRecords(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SpotDepositRecords(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SpotWithdrawRecords(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradeOpenOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradePlanOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradeLeverage(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradeHistoryOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradeHistoryTrade(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradePositionHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapTradePositions(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapAccountBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapUserDataAssetsMargin(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SwapUserDataPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentTeams(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAgentLinks(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentRegularOverview(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAgentSubOverview(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentPartenerUserDeposit(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentPartenerUsersData(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAffiliateUids(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAffiliateCommission(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentInternalWithdrawalStatus(params?: {}): Promise<implicitReturnType>;
+    privatePostV1AccountTransfer(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradePlaceOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradeBatchPlaceOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradeEditOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradeBatchEditOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradeCancelAllOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradeLeverage(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapTradeBatchLeverageMargin(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapUserDataMarginType(params?: {}): Promise<implicitReturnType>;
+    privatePostV1SwapUserDataPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    privatePostV1AgentInternalWithdrawal(params?: {}): Promise<implicitReturnType>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

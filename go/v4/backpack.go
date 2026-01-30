@@ -58,6 +58,7 @@ func (this *BackpackCore) Describe() interface{} {
 			"createTrailingPercentOrder":           false,
 			"createTriggerOrder":                   true,
 			"fetchAccounts":                        false,
+			"fetchAllGreeks":                       false,
 			"fetchBalance":                         true,
 			"fetchCanceledAndClosedOrders":         false,
 			"fetchCanceledOrders":                  false,
@@ -76,6 +77,7 @@ func (this *BackpackCore) Describe() interface{} {
 			"fetchFundingRate":                     true,
 			"fetchFundingRateHistory":              true,
 			"fetchFundingRates":                    false,
+			"fetchGreeks":                          false,
 			"fetchIndexOHLCV":                      true,
 			"fetchLedger":                          false,
 			"fetchLeverage":                        false,
@@ -90,6 +92,8 @@ func (this *BackpackCore) Describe() interface{} {
 			"fetchOpenInterestHistory":             true,
 			"fetchOpenOrder":                       true,
 			"fetchOpenOrders":                      true,
+			"fetchOption":                          false,
+			"fetchOptionChain":                     false,
 			"fetchOrder":                           false,
 			"fetchOrderBook":                       true,
 			"fetchOrders":                          true,
@@ -110,6 +114,7 @@ func (this *BackpackCore) Describe() interface{} {
 			"fetchTradingFees":                     false,
 			"fetchTransactions":                    false,
 			"fetchTransfers":                       false,
+			"fetchVolatilityHistory":               false,
 			"fetchWithdrawals":                     true,
 			"reduceMargin":                         false,
 			"sandbox":                              false,
@@ -520,7 +525,7 @@ func (this *BackpackCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 		//                     "depositEnabled": true,
 		//                     "displayName": "Jito",
 		//                     "maximumWithdrawal": null,
-		//                     "minimumDeposit": "0.29",
+		//                     "minimumDeposit": "0.28",
 		//                     "minimumWithdrawal": "0.58",
 		//                     "withdrawEnabled": true,
 		//                     "withdrawalFee": "0.29"
@@ -620,8 +625,8 @@ func (this *BackpackCore) FetchMarkets(optionalArgs ...interface{}) <-chan inter
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes60712 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes60712)
+			retRes61212 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes61212)
 		}
 
 		response := (<-this.PublicGetApiV1Markets(params))
@@ -823,7 +828,7 @@ func (this *BackpackCore) ParseMarketType(typeVar interface{}) interface{} {
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BackpackCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -835,8 +840,8 @@ func (this *BackpackCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8128 := (<-this.LoadMarkets())
-		PanicOnError(retRes8128)
+		retRes8178 := (<-this.LoadMarkets())
+		PanicOnError(retRes8178)
 		var request interface{} = map[string]interface{}{}
 
 		response := (<-this.PublicGetApiV1Tickers(this.Extend(request, params)))
@@ -857,7 +862,7 @@ func (this *BackpackCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BackpackCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -867,8 +872,8 @@ func (this *BackpackCore) FetchTicker(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8298 := (<-this.LoadMarkets())
-		PanicOnError(retRes8298)
+		retRes8348 := (<-this.LoadMarkets())
+		PanicOnError(retRes8348)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -959,8 +964,8 @@ func (this *BackpackCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9038 := (<-this.LoadMarkets())
-		PanicOnError(retRes9038)
+		retRes9088 := (<-this.LoadMarkets())
+		PanicOnError(retRes9088)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1020,8 +1025,8 @@ func (this *BackpackCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes9438 := (<-this.LoadMarkets())
-		PanicOnError(retRes9438)
+		retRes9488 := (<-this.LoadMarkets())
+		PanicOnError(retRes9488)
 		var market interface{} = this.Market(symbol)
 		var interval interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request interface{} = map[string]interface{}{
@@ -1091,7 +1096,7 @@ func (this *BackpackCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interfac
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_mark_prices
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BackpackCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1101,8 +1106,8 @@ func (this *BackpackCore) FetchFundingRate(symbol interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes10138 := (<-this.LoadMarkets())
-		PanicOnError(retRes10138)
+		retRes10188 := (<-this.LoadMarkets())
+		PanicOnError(retRes10188)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadRequest(Add(Add(this.Id, " fetchFundingRate() symbol does not support market "), symbol)))
@@ -1166,7 +1171,7 @@ func (this *BackpackCore) ParseFundingRate(contract interface{}, optionalArgs ..
  * @see https://docs.backpack.exchange/#tag/Markets/operation/get_open_interest
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=interest-history-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
  */
 func (this *BackpackCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1176,8 +1181,8 @@ func (this *BackpackCore) FetchOpenInterest(symbol interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes10728 := (<-this.LoadMarkets())
-		PanicOnError(retRes10728)
+		retRes10778 := (<-this.LoadMarkets())
+		PanicOnError(retRes10778)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadRequest(Add(Add(this.Id, " fetchOpenInterest() symbol does not support market "), symbol)))
@@ -1229,7 +1234,7 @@ func (this *BackpackCore) ParseOpenInterest(interest interface{}, optionalArgs .
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of funding rate structures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BackpackCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1248,8 +1253,8 @@ func (this *BackpackCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes11228 := (<-this.LoadMarkets())
-		PanicOnError(retRes11228)
+		retRes11278 := (<-this.LoadMarkets())
+		PanicOnError(retRes11278)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1302,7 +1307,7 @@ func (this *BackpackCore) FetchFundingRateHistory(optionalArgs ...interface{}) <
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.offset] the number of trades to skip, default is 0
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BackpackCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1316,8 +1321,8 @@ func (this *BackpackCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes11718 := (<-this.LoadMarkets())
-		PanicOnError(retRes11718)
+		retRes11768 := (<-this.LoadMarkets())
+		PanicOnError(retRes11768)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1355,7 +1360,7 @@ func (this *BackpackCore) FetchTrades(symbol interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BackpackCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1371,8 +1376,8 @@ func (this *BackpackCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes12038 := (<-this.LoadMarkets())
-		PanicOnError(retRes12038)
+		retRes12088 := (<-this.LoadMarkets())
+		PanicOnError(retRes12088)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1408,12 +1413,12 @@ func (this *BackpackCore) ParseTrade(trade interface{}, optionalArgs ...interfac
 	//
 	// fetchTrades
 	//     {
-	//         "id": 8721564,
+	//         "id": 8721563,
 	//         "isBuyerMaker": false,
 	//         "price": "117427.6",
 	//         "quantity": "0.00016",
 	//         "quoteQuantity": "18.788416",
-	//         "timestamp": 1753123916818
+	//         "timestamp": 1753123916819
 	//     }
 	//
 	// fetchMyTrades
@@ -1482,7 +1487,7 @@ func (this *BackpackCore) ParseTrade(trade interface{}, optionalArgs ...interfac
  * @description the latest known information on the availability of the exchange API
  * @see https://docs.backpack.exchange/#tag/System/operation/get_status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *BackpackCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1550,7 +1555,7 @@ func (this *BackpackCore) FetchTime(optionalArgs ...interface{}) <-chan interfac
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.backpack.exchange/#tag/Capital/operation/get_balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BackpackCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1560,8 +1565,8 @@ func (this *BackpackCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes13508 := (<-this.LoadMarkets())
-		PanicOnError(retRes13508)
+		retRes13558 := (<-this.LoadMarkets())
+		PanicOnError(retRes13558)
 
 		response := (<-this.PrivateGetApiV1Capital(params))
 		PanicOnError(response)
@@ -1609,7 +1614,7 @@ func (this *BackpackCore) ParseBalance(response interface{}) interface{} {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BackpackCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1625,8 +1630,8 @@ func (this *BackpackCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes13958 := (<-this.LoadMarkets())
-		PanicOnError(retRes13958)
+		retRes14008 := (<-this.LoadMarkets())
+		PanicOnError(retRes14008)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1666,7 +1671,7 @@ func (this *BackpackCore) FetchDeposits(optionalArgs ...interface{}) <-chan inte
  * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BackpackCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1682,8 +1687,8 @@ func (this *BackpackCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14308 := (<-this.LoadMarkets())
-		PanicOnError(retRes14308)
+		retRes14358 := (<-this.LoadMarkets())
+		PanicOnError(retRes14358)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -1723,8 +1728,8 @@ func (this *BackpackCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan i
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.network] the network to withdraw on (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @param {string} params.network the network to withdraw on (mandatory)
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BackpackCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1736,13 +1741,13 @@ func (this *BackpackCore) Withdraw(code interface{}, amount interface{}, address
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14658 := (<-this.LoadMarkets())
-		PanicOnError(retRes14658)
+		retRes14708 := (<-this.LoadMarkets())
+		PanicOnError(retRes14708)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
-			"symbol":  GetValue(currency, "id"),
-			"amount":  this.NumberToString(amount),
-			"address": address,
+			"symbol":   GetValue(currency, "id"),
+			"quantity": this.NumberToString(amount),
+			"address":  address,
 		}
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "clientId", tag) // memo or tag
@@ -1906,7 +1911,7 @@ func (this *BackpackCore) ParseTransactionStatus(status interface{}) interface{}
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BackpackCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1916,14 +1921,14 @@ func (this *BackpackCore) FetchDepositAddress(code interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16288 := (<-this.LoadMarkets())
-		PanicOnError(retRes16288)
+		retRes16338 := (<-this.LoadMarkets())
+		PanicOnError(retRes16338)
 		var networkCode interface{} = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
 		params = GetValue(networkCodeparamsVariable, 1)
 		if IsTrue(IsEqual(networkCode, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/#/?id=network-codes")))
+			panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddress() requires a network parameter, see https://docs.ccxt.com/?id=network-codes")))
 		}
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
@@ -1987,7 +1992,7 @@ func (this *BackpackCore) ParseDepositAddress(depositAddress interface{}, option
  * @param {object} [params.stopLoss] *swap markets only - stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
  * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BackpackCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1999,8 +2004,8 @@ func (this *BackpackCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16918 := (<-this.LoadMarkets())
-		PanicOnError(retRes16918)
+		retRes16968 := (<-this.LoadMarkets())
+		PanicOnError(retRes16968)
 		var market interface{} = this.Market(symbol)
 		var orderRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -2021,7 +2026,7 @@ func (this *BackpackCore) CreateOrder(symbol interface{}, typeVar interface{}, s
  * @see https://docs.backpack.exchange/#tag/Order/operation/execute_order_batch
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BackpackCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2031,8 +2036,8 @@ func (this *BackpackCore) CreateOrders(orders interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17088 := (<-this.LoadMarkets())
-		PanicOnError(retRes17088)
+		retRes17138 := (<-this.LoadMarkets())
+		PanicOnError(retRes17138)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -2156,7 +2161,7 @@ func (this *BackpackCore) EncodeOrderSide(side interface{}) interface{} {
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BackpackCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2172,8 +2177,8 @@ func (this *BackpackCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes18228 := (<-this.LoadMarkets())
-		PanicOnError(retRes18228)
+		retRes18278 := (<-this.LoadMarkets())
+		PanicOnError(retRes18278)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2199,7 +2204,7 @@ func (this *BackpackCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
  * @param {string} id order id
  * @param {string} symbol not used by hollaex fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BackpackCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2211,8 +2216,8 @@ func (this *BackpackCore) FetchOpenOrder(id interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18448 := (<-this.LoadMarkets())
-		PanicOnError(retRes18448)
+		retRes18498 := (<-this.LoadMarkets())
+		PanicOnError(retRes18498)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
 		}
@@ -2240,7 +2245,7 @@ func (this *BackpackCore) FetchOpenOrder(id interface{}, optionalArgs ...interfa
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BackpackCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2252,8 +2257,8 @@ func (this *BackpackCore) CancelOrder(id interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18688 := (<-this.LoadMarkets())
-		PanicOnError(retRes18688)
+		retRes18738 := (<-this.LoadMarkets())
+		PanicOnError(retRes18738)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2280,7 +2285,7 @@ func (this *BackpackCore) CancelOrder(id interface{}, optionalArgs ...interface{
  * @see https://docs.backpack.exchange/#tag/Order/operation/cancel_open_orders
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BackpackCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2292,8 +2297,8 @@ func (this *BackpackCore) CancelAllOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18918 := (<-this.LoadMarkets())
-		PanicOnError(retRes18918)
+		retRes18968 := (<-this.LoadMarkets())
+		PanicOnError(retRes18968)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
@@ -2337,8 +2342,8 @@ func (this *BackpackCore) FetchOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes19158 := (<-this.LoadMarkets())
-		PanicOnError(retRes19158)
+		retRes19208 := (<-this.LoadMarkets())
+		PanicOnError(retRes19208)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2528,7 +2533,7 @@ func (this *BackpackCore) ParseOrderSide(side interface{}) interface{} {
  * @see https://docs.backpack.exchange/#tag/Futures/operation/get_positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BackpackCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2540,8 +2545,8 @@ func (this *BackpackCore) FetchPositions(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21028 := (<-this.LoadMarkets())
-		PanicOnError(retRes21028)
+		retRes21078 := (<-this.LoadMarkets())
+		PanicOnError(retRes21078)
 
 		response := (<-this.PrivateGetApiV1Position(params))
 		PanicOnError(response)
@@ -2657,7 +2662,7 @@ func (this *BackpackCore) ParsePosition(position interface{}, optionalArgs ...in
  * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch (default now)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BackpackCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2673,8 +2678,8 @@ func (this *BackpackCore) FetchFundingHistory(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes22118 := (<-this.LoadMarkets())
-		PanicOnError(retRes22118)
+		retRes22168 := (<-this.LoadMarkets())
+		PanicOnError(retRes22168)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {

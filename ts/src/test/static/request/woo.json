@@ -5,34 +5,19 @@
     "methods": {
         "withdraw": [
             {
-                "description": "withdraw USDT on ETH",
+                "description": "withdraw v3",
                 "method": "withdraw",
-                "url": "https://api.woox.io/v1/asset/withdraw",
+                "url": "https://api.woox.io/v3/asset/wallet/withdraw",
                 "input": [
                     "USDT",
                     10,
-                    "0x0000000000000000000000000000000000000000",
-                    null,
-                    {
-                        "network": "ETH"
-                    }
-                ],
-                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
-            },
-            {
-                "description": "withdraw USDT on ERC20",
-                "method": "withdraw",
-                "url": "https://api.woox.io/v1/asset/withdraw",
-                "input": [
-                    "USDT",
-                    10,
-                    "0x0000000000000000000000000000000000000000",
+                    "0x34625d5f0b6575503a0669994dea24271bfbd443",
                     null,
                     {
                         "network": "ERC20"
                     }
                 ],
-                "output": "address=0x0000000000000000000000000000000000000000&amount=10&token=ETH_USDT"
+                "output": "{\"address\":\"0x34625d5f0b6575503a0669994dea24271bfbd443\",\"amount\":10,\"network\":\"ETH\",\"token\":\"USDT\"}"
             }
         ],
         "createOrder": [
@@ -290,23 +275,10 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
+                "description": "Fetch Balances",
                 "method": "fetchBalance",
-                "url": "https://api.woox.io/v3/balances?type=spot",
+                "url": "https://api.woox.io/v3/asset/balances",
                 "input": [
-                    {
-                        "type": "spot"
-                    }
-                ]
-            },
-            {
-                "description": "Fetch swap Balance",
-                "method": "fetchBalance",
-                "url": "https://api.woox.io/v3/balances?type=swap",
-                "input": [
-                    {
-                        "type": "swap"
-                    }
                 ]
             }
         ],
@@ -501,7 +473,7 @@
             {
                 "description": "fetchOHLCV with since & until",
                 "method": "fetchOHLCV",
-                "url": "https://api.woox.io/v3/public/klineHistory?after=1704067200000&before=1704067300000&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?after=1704067199999&before=1704067300000&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",
@@ -693,16 +665,16 @@
         ],
         "transfer": [
             {
-                "description": "transfer",
+                "description": "transfer v3",
                 "method": "transfer",
-                "url": "https://api.woox.io/v1/asset/main_sub_transfer",
+                "url": "https://api.woox.io/v3/asset/transfer",
                 "input": [
-                    "USDT",
-                    1000,
-                    "0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3",
-                    "c01e6940-a735-4022-9b6c-9d3971cdfdfa"
+                    "USDC",
+                    5,
+                    "251bf5c4-f3c8-4544-bb8b-80001007c3c0",
+                    "d8ce1671-8bd4-4f6a-b037-196ee5687109"
                 ],
-                "output": "amount=1000&from_application_id=0f1bd3cd-dba2-4563-b8bb-0adb1bfb83a3&to_application_id=c01e6940-a735-4022-9b6c-9d3971cdfdfa&token=USDT"
+                "output": "{\"amount\":5,\"from\":{\"applicationId\":\"251bf5c4-f3c8-4544-bb8b-80001007c3c0\"},\"to\":{\"applicationId\":\"d8ce1671-8bd4-4f6a-b037-196ee5687109\"},\"token\":\"USDC\"}"
             }
         ],
         "fetchFundingRateHistory": [

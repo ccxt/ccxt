@@ -1228,7 +1228,7 @@ func (this *PhemexCore) CustomParseOrderBook(orderbook interface{}, symbol inter
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *PhemexCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1593,7 +1593,7 @@ func (this *PhemexCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#query24hrsticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *PhemexCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1687,7 +1687,7 @@ func (this *PhemexCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
  * @see https://phemex-docs.github.io/#query-24-hours-ticker-for-all-symbols       // inverse
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *PhemexCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1747,7 +1747,7 @@ func (this *PhemexCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *PhemexCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2217,7 +2217,7 @@ func (this *PhemexCore) ParseSwapBalance(response interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] spot or swap
  * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *PhemexCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2786,7 +2786,7 @@ func (this *PhemexCore) ParseOrder(order interface{}, optionalArgs ...interface{
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
  * @param {string} [params.posSide] *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
  * @param {bool} [params.hedged] *swap only* true for hedged mode, false for one way mode, default is false
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2810,9 +2810,9 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		}
 		var clientOrderId interface{} = this.SafeString2(params, "clOrdID", "clientOrderId")
 		var stopLoss interface{} = this.SafeValue(params, "stopLoss")
-		var stopLossDefined interface{} = (!IsEqual(stopLoss, nil))
 		var takeProfit interface{} = this.SafeValue(params, "takeProfit")
-		var takeProfitDefined interface{} = (!IsEqual(takeProfit, nil))
+		var hasStopLoss interface{} = (!IsEqual(stopLoss, nil))
+		var hasTakeProfit interface{} = (!IsEqual(takeProfit, nil))
 		var isStableSettled interface{} = IsTrue((IsEqual(GetValue(market, "settle"), "USDT"))) || IsTrue((IsEqual(GetValue(market, "settle"), "USDC")))
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			var brokerId interface{} = this.SafeString(this.Options, "brokerId", "CCXT123456")
@@ -2917,8 +2917,8 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 					}
 				}
 			}
-			if IsTrue(IsTrue(stopLossDefined) || IsTrue(takeProfitDefined)) {
-				if IsTrue(stopLossDefined) {
+			if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
+				if IsTrue(hasStopLoss) {
 					var stopLossTriggerPrice interface{} = this.SafeValue2(stopLoss, "triggerPrice", "stopPrice")
 					if IsTrue(IsEqual(stopLossTriggerPrice, nil)) {
 						panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"] for a stop loss order")))
@@ -2937,7 +2937,7 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 						AddElementToObject(request, "slPxRp", this.PriceToPrecision(symbol, slLimitPrice))
 					}
 				}
-				if IsTrue(takeProfitDefined) {
+				if IsTrue(hasTakeProfit) {
 					var takeProfitTriggerPrice interface{} = this.SafeValue2(takeProfit, "triggerPrice", "stopPrice")
 					if IsTrue(IsEqual(takeProfitTriggerPrice, nil)) {
 						panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"] for a take profit order")))
@@ -3096,7 +3096,7 @@ func (this *PhemexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3188,7 +3188,7 @@ func (this *PhemexCore) EditOrder(id interface{}, symbol interface{}, typeVar in
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3250,7 +3250,7 @@ func (this *PhemexCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#cancelall
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3308,7 +3308,7 @@ func (this *PhemexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3383,7 +3383,7 @@ func (this *PhemexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3450,7 +3450,7 @@ func (this *PhemexCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3546,7 +3546,7 @@ func (this *PhemexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.settle] the settlement currency to fetch orders for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PhemexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3656,7 +3656,7 @@ func (this *PhemexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *PhemexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3678,19 +3678,23 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
+		var typeVar interface{} = nil
+		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+		typeVar = GetValue(typeVarparamsVariable, 0)
+		params = GetValue(typeVarparamsVariable, 1)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			limit = mathMin(200, limit)
 			AddElementToObject(request, "limit", limit)
 		}
-		var isUSDTSettled interface{} = IsTrue((IsEqual(symbol, nil))) || IsTrue((IsEqual(this.SafeString(market, "settle"), "USDT")))
+		var isUSDTSettled interface{} = IsTrue((!IsEqual(typeVar, "spot"))) && IsTrue((IsTrue((IsEqual(symbol, nil))) || IsTrue((IsEqual(this.SafeString(market, "settle"), "USDT")))))
 		if IsTrue(isUSDTSettled) {
 			AddElementToObject(request, "currency", "USDT")
 			AddElementToObject(request, "offset", 0)
 			if IsTrue(IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", 200)
 			}
-		} else {
+		} else if IsTrue(!IsEqual(symbol, nil)) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -3701,7 +3705,8 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 
 			response = (<-this.PrivateGetExchangeOrderV2TradingList(this.Extend(request, params)))
 			PanicOnError(response)
-		} else if IsTrue(GetValue(market, "swap")) {
+		} else if IsTrue(IsEqual(typeVar, "swap")) {
+			AddElementToObject(request, "tradeType", "Trade")
 
 			response = (<-this.PrivateGetExchangeOrderTrade(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3836,7 +3841,7 @@ func (this *PhemexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *PhemexCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3846,8 +3851,8 @@ func (this *PhemexCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes35148 := (<-this.LoadMarkets())
-		PanicOnError(retRes35148)
+		retRes35178 := (<-this.LoadMarkets())
+		PanicOnError(retRes35178)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -3907,7 +3912,7 @@ func (this *PhemexCore) FetchDepositAddress(code interface{}, optionalArgs ...in
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *PhemexCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3923,8 +3928,8 @@ func (this *PhemexCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes35708 := (<-this.LoadMarkets())
-		PanicOnError(retRes35708)
+		retRes35738 := (<-this.LoadMarkets())
+		PanicOnError(retRes35738)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -3969,7 +3974,7 @@ func (this *PhemexCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *PhemexCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3985,8 +3990,8 @@ func (this *PhemexCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36118 := (<-this.LoadMarkets())
-		PanicOnError(retRes36118)
+		retRes36148 := (<-this.LoadMarkets())
+		PanicOnError(retRes36148)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -4174,7 +4179,7 @@ func (this *PhemexCore) ParseTransaction(transaction interface{}, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
  * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *PhemexCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4186,8 +4191,8 @@ func (this *PhemexCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes37958 := (<-this.LoadMarkets())
-		PanicOnError(retRes37958)
+		retRes37988 := (<-this.LoadMarkets())
+		PanicOnError(retRes37988)
 		symbols = this.MarketSymbols(symbols)
 		var subType interface{} = nil
 		var code interface{} = this.SafeString2(params, "currency", "code", "USDT")
@@ -4489,7 +4494,7 @@ func (this *PhemexCore) ParsePosition(position interface{}, optionalArgs ...inte
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *PhemexCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4508,8 +4513,8 @@ func (this *PhemexCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires a symbol argument")))
 		}
 
-		retRes40858 := (<-this.LoadMarkets())
-		PanicOnError(retRes40858)
+		retRes40888 := (<-this.LoadMarkets())
+		PanicOnError(retRes40888)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -4603,7 +4608,7 @@ func (this *PhemexCore) ParseFundingFeeToPrecision(value interface{}, optionalAr
  * @description fetch the current funding rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *PhemexCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4613,8 +4618,8 @@ func (this *PhemexCore) FetchFundingRate(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes41728 := (<-this.LoadMarkets())
-		PanicOnError(retRes41728)
+		retRes41758 := (<-this.LoadMarkets())
+		PanicOnError(retRes41758)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -4740,7 +4745,7 @@ func (this *PhemexCore) ParseFundingRate(contract interface{}, optionalArgs ...i
  * @param {string} symbol unified market symbol of the market to set margin in
  * @param {float} amount the amount to set the margin to
  * @param {object} [params] parameters specific to the exchange API endpoint
- * @returns {object} A [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *PhemexCore) SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4750,8 +4755,8 @@ func (this *PhemexCore) SetMargin(symbol interface{}, amount interface{}, option
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes42918 := (<-this.LoadMarkets())
-		PanicOnError(retRes42918)
+		retRes42948 := (<-this.LoadMarkets())
+		PanicOnError(retRes42948)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":       GetValue(market, "id"),
@@ -4832,8 +4837,8 @@ func (this *PhemexCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes43568 := (<-this.LoadMarkets())
-		PanicOnError(retRes43568)
+		retRes43598 := (<-this.LoadMarkets())
+		PanicOnError(retRes43598)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -4853,9 +4858,9 @@ func (this *PhemexCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			}
 			AddElementToObject(request, "leverageRr", Ternary(IsTrue(isCross), Precise.StringNeg(Precise.StringAbs(currentLeverage)), Precise.StringAbs(currentLeverage)))
 
-			retRes437519 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
-			PanicOnError(retRes437519)
-			ch <- retRes437519
+			retRes437819 := (<-this.PrivatePutGPositionsLeverage(this.Extend(request, params)))
+			PanicOnError(retRes437819)
+			ch <- retRes437819
 			return nil
 		}
 		var leverage interface{} = this.SafeInteger(params, "leverage")
@@ -4867,9 +4872,9 @@ func (this *PhemexCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 		}
 		AddElementToObject(request, "leverage", leverage)
 
-		retRes438515 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
-		PanicOnError(retRes438515)
-		ch <- retRes438515
+		retRes438815 := (<-this.PrivatePutPositionsLeverage(this.Extend(request, params)))
+		PanicOnError(retRes438815)
+		ch <- retRes438815
 		return nil
 
 	}()
@@ -4897,8 +4902,8 @@ func (this *PhemexCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
 		_ = params
 		this.CheckRequiredArgument("setPositionMode", symbol, "symbol")
 
-		retRes44008 := (<-this.LoadMarkets())
-		PanicOnError(retRes44008)
+		retRes44038 := (<-this.LoadMarkets())
+		PanicOnError(retRes44038)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "settle"), "USDT")) {
 			panic(BadSymbol(Add(this.Id, " setPositionMode() supports USDT settled markets only")))
@@ -4912,9 +4917,9 @@ func (this *PhemexCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
 			AddElementToObject(request, "targetPosMode", "OneWay")
 		}
 
-		retRes441315 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
-		PanicOnError(retRes441315)
-		ch <- retRes441315
+		retRes441615 := (<-this.PrivatePutGPositionsSwitchPosModeSync(this.Extend(request, params)))
+		PanicOnError(retRes441615)
+		ch <- retRes441615
 		return nil
 
 	}()
@@ -4927,7 +4932,7 @@ func (this *PhemexCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *PhemexCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4939,8 +4944,8 @@ func (this *PhemexCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes44258 := (<-this.LoadMarkets())
-		PanicOnError(retRes44258)
+		retRes44288 := (<-this.LoadMarkets())
+		PanicOnError(retRes44288)
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var first interface{} = this.SafeValue(symbols, 0)
 			var market interface{} = this.Market(first)
@@ -5165,8 +5170,8 @@ func (this *PhemexCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between -100 and 100")))
 		}
 
-		retRes46198 := (<-this.LoadMarkets())
-		PanicOnError(retRes46198)
+		retRes46228 := (<-this.LoadMarkets())
+		PanicOnError(retRes46228)
 		var isHedged interface{} = this.SafeBool(params, "hedged", false)
 		var longLeverageRr interface{} = this.SafeInteger(params, "longLeverageRr")
 		var shortLeverageRr interface{} = this.SafeInteger(params, "shortLeverageRr")
@@ -5213,7 +5218,7 @@ func (this *PhemexCore) SetLeverage(leverage interface{}, optionalArgs ...interf
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *PhemexCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5223,8 +5228,8 @@ func (this *PhemexCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes46608 := (<-this.LoadMarkets())
-		PanicOnError(retRes46608)
+		retRes46638 := (<-this.LoadMarkets())
+		PanicOnError(retRes46638)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeValue(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -5315,7 +5320,7 @@ func (this *PhemexCore) Transfer(code interface{}, amount interface{}, fromAccou
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *PhemexCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5331,8 +5336,8 @@ func (this *PhemexCore) FetchTransfers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes47458 := (<-this.LoadMarkets())
-		PanicOnError(retRes47458)
+		retRes47488 := (<-this.LoadMarkets())
+		PanicOnError(retRes47488)
 		if IsTrue(IsEqual(code, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires a code argument")))
 		}
@@ -5452,11 +5457,11 @@ func (this *PhemexCore) ParseTransferStatus(status interface{}) interface{} {
  * @see https://phemex-docs.github.io/#query-funding-rate-history-2
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {int} [params.until] timestamp in ms of the latest funding rate
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5475,8 +5480,8 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes48688 := (<-this.LoadMarkets())
-		PanicOnError(retRes48688)
+		retRes48718 := (<-this.LoadMarkets())
+		PanicOnError(retRes48718)
 		var market interface{} = this.Market(symbol)
 		var isUsdtSettled interface{} = IsTrue(IsEqual(GetValue(market, "settle"), "USDT")) || IsTrue(IsEqual(GetValue(market, "settle"), "USDC"))
 		if !IsTrue(GetValue(market, "swap")) {
@@ -5488,9 +5493,9 @@ func (this *PhemexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes487719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes487719)
-			ch <- retRes487719
+			retRes488019 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+			PanicOnError(retRes488019)
+			ch <- retRes488019
 			return nil
 		}
 		var customSymbol interface{} = nil
@@ -5586,8 +5591,8 @@ func (this *PhemexCore) Withdraw(code interface{}, amount interface{}, address i
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes49508 := (<-this.LoadMarkets())
-		PanicOnError(retRes49508)
+		retRes49538 := (<-this.LoadMarkets())
+		PanicOnError(retRes49538)
 		this.CheckAddress(address)
 		var currency interface{} = this.Currency(code)
 		var networkCode interface{} = nil
@@ -5661,7 +5666,7 @@ func (this *PhemexCore) Withdraw(code interface{}, amount interface{}, address i
  * @see https://phemex-docs.github.io/#query-24-hours-ticker
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *PhemexCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5671,8 +5676,8 @@ func (this *PhemexCore) FetchOpenInterest(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes50188 := (<-this.LoadMarkets())
-		PanicOnError(retRes50188)
+		retRes50218 := (<-this.LoadMarkets())
+		PanicOnError(retRes50218)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest is only supported for contract markets.")))
@@ -5755,7 +5760,7 @@ func (this *PhemexCore) ParseOpenInterest(interest interface{}, optionalArgs ...
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} amount how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *PhemexCore) FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5767,8 +5772,8 @@ func (this *PhemexCore) FetchConvertQuote(fromCode interface{}, toCode interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes50968 := (<-this.LoadMarkets())
-		PanicOnError(retRes50968)
+		retRes50998 := (<-this.LoadMarkets())
+		PanicOnError(retRes50998)
 		var fromCurrency interface{} = this.Currency(fromCode)
 		var toCurrency interface{} = this.Currency(toCode)
 		var valueScale interface{} = this.SafeInteger(fromCurrency, "valueScale")
@@ -5817,7 +5822,7 @@ func (this *PhemexCore) FetchConvertQuote(fromCode interface{}, toCode interface
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *PhemexCore) CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5829,8 +5834,8 @@ func (this *PhemexCore) CreateConvertTrade(id interface{}, fromCode interface{},
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes51418 := (<-this.LoadMarkets())
-		PanicOnError(retRes51418)
+		retRes51448 := (<-this.LoadMarkets())
+		PanicOnError(retRes51448)
 		var fromCurrency interface{} = this.Currency(fromCode)
 		var toCurrency interface{} = this.Currency(toCode)
 		var valueScale interface{} = this.SafeInteger(fromCurrency, "valueScale")
@@ -5885,7 +5890,7 @@ func (this *PhemexCore) CreateConvertTrade(id interface{}, fromCode interface{},
  * @param {string} [params.until] the end time in ms
  * @param {string} [params.fromCurrency] the currency that you sold and converted from
  * @param {string} [params.toCurrency] the currency that you bought and converted into
- * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *PhemexCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5901,8 +5906,8 @@ func (this *PhemexCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes51928 := (<-this.LoadMarkets())
-		PanicOnError(retRes51928)
+		retRes51958 := (<-this.LoadMarkets())
+		PanicOnError(retRes51958)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(request, "fromCurrency", code)

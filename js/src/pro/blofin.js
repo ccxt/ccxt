@@ -83,7 +83,7 @@ export default class blofin extends blofinRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchTrades';
@@ -98,7 +98,7 @@ export default class blofin extends blofinRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -155,7 +155,7 @@ export default class blofin extends blofinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
@@ -170,7 +170,7 @@ export default class blofin extends blofinRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -238,7 +238,7 @@ export default class blofin extends blofinRest {
      * @see https://docs.blofin.com/index.html#ws-tickers-channel
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         params['callerMethodName'] = 'watchTicker';
@@ -254,7 +254,7 @@ export default class blofin extends blofinRest {
      * @see https://docs.blofin.com/index.html#ws-tickers-channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         if (symbols === undefined) {
@@ -304,7 +304,7 @@ export default class blofin extends blofinRest {
      * @see https://docs.blofin.com/index.html#ws-tickers-channel
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -443,7 +443,7 @@ export default class blofin extends blofinRest {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.blofin.com/index.html#ws-account-channel
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -485,11 +485,14 @@ export default class blofin extends blofinRest {
      * @method
      * @name biofin#watchOrders
      * @description watches information on multiple orders made by the user
+     * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+     * @param {boolean} [params.trigger] set to true for trigger orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrders';
@@ -501,16 +504,21 @@ export default class blofin extends blofinRest {
      * @name blofin#watchOrdersForSymbols
      * @description watches information on multiple orders made by the user across multiple symbols
      * @see https://docs.blofin.com/index.html#ws-order-channel
+     * @see https://docs.blofin.com/index.html#ws-algo-orders-channel
      * @param {string[]} symbols
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+     * @param {boolean} [params.trigger] set to true for trigger orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */
     async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
         await this.loadMarkets();
-        const orders = await this.watchMultipleWrapper(false, 'orders', 'watchOrdersForSymbols', symbols, params);
+        const trigger = this.safeValue2(params, 'stop', 'trigger');
+        params = this.omit(params, ['stop', 'trigger']);
+        const channel = trigger ? 'orders-algo' : 'orders';
+        const orders = await this.watchMultipleWrapper(false, channel, 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
             const first = this.safeValue(orders, 0);
             const tradeSymbol = this.safeString(first, 'symbol');
@@ -648,7 +656,7 @@ export default class blofin extends blofinRest {
             messageHashes.push(channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
-        if (this.inArray(channelName, ['orders', 'positions'])) {
+        if (this.inArray(channelName, ['orders', 'orders-algo', 'positions'])) {
             rawSubscriptions = [{ 'channel': channelName }];
         }
         const request = this.getSubscriptionRequest(rawSubscriptions);
@@ -686,6 +694,7 @@ export default class blofin extends blofinRest {
             // private
             'account': this.handleBalance,
             'orders': this.handleOrders,
+            'orders-algo': this.handleOrders,
             'positions': this.handlePositions,
         };
         let method = undefined;

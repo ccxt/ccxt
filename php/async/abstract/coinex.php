@@ -427,6 +427,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2_public_get_futures_funding_rate_history($params = array()) {
         return $this->request('futures/funding-rate-history', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2_public_get_futures_premium_index_history($params = array()) {
+        return $this->request('futures/premium-index-history', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_public_get_futures_position_level($params = array()) {
         return $this->request('futures/position-level', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -457,11 +460,20 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2_private_get_account_subs_transfer_history($params = array()) {
         return $this->request('account/subs/transfer-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
+    public function v2_private_get_account_subs_balance($params = array()) {
+        return $this->request('account/subs/balance', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_private_get_account_subs_spot_balance($params = array()) {
         return $this->request('account/subs/spot-balance', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2_private_get_account_trade_fee_rate($params = array()) {
         return $this->request('account/trade-fee-rate', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function v2_private_get_account_futures_market_settings($params = array()) {
+        return $this->request('account/futures-market-settings', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_private_get_account_info($params = array()) {
+        return $this->request('account/info', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2_private_get_assets_spot_balance($params = array()) {
         return $this->request('assets/spot/balance', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
@@ -481,6 +493,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2_private_get_assets_credit_info($params = array()) {
         return $this->request('assets/credit/info', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
+    public function v2_private_get_assets_spot_transcation_history($params = array()) {
+        return $this->request('assets/spot/transcation-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_private_get_assets_margin_borrow_history($params = array()) {
         return $this->request('assets/margin/borrow-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
@@ -498,6 +513,12 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2_private_get_assets_transfer_history($params = array()) {
         return $this->request('assets/transfer-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function v2_private_get_assets_amm_liquidity_pool($params = array()) {
+        return $this->request('assets/amm/liquidity-pool', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function v2_private_get_assets_amm_income_history($params = array()) {
+        return $this->request('assets/amm/income-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
     public function v2_private_get_spot_order_status($params = array()) {
         return $this->request('spot/order-status', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 8));
@@ -565,6 +586,24 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2_private_get_futures_position_settle_history($params = array()) {
         return $this->request('futures/position-settle-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2_private_get_refer_referee($params = array()) {
+        return $this->request('refer/referee', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_private_get_refer_referee_rebate_record($params = array()) {
+        return $this->request('refer/referee-rebate/record', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_private_get_refer_referee_rebate_detail($params = array()) {
+        return $this->request('refer/referee-rebate/detail', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_private_get_refer_agent_referee($params = array()) {
+        return $this->request('refer/agent-referee', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_private_get_refer_agent_rebate_record($params = array()) {
+        return $this->request('refer/agent-rebate/record', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_private_get_refer_agent_rebate_detail($params = array()) {
+        return $this->request('refer/agent-rebate/detail', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_private_post_account_subs($params = array()) {
         return $this->request('account/subs', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
     }
@@ -588,6 +627,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2_private_post_account_settings($params = array()) {
         return $this->request('account/settings', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
+    }
+    public function v2_private_post_account_futures_market_settings($params = array()) {
+        return $this->request('account/futures-market-settings', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
     }
     public function v2_private_post_assets_margin_borrow($params = array()) {
         return $this->request('assets/margin/borrow', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
@@ -631,6 +673,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2_private_post_spot_modify_stop_order($params = array()) {
         return $this->request('spot/modify-stop-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 13.334));
     }
+    public function v2_private_post_spot_batch_modify_order($params = array()) {
+        return $this->request('spot/batch-modify-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 13.334));
+    }
     public function v2_private_post_spot_cancel_all_order($params = array()) {
         return $this->request('spot/cancel-all-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -669,6 +714,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2_private_post_futures_modify_stop_order($params = array()) {
         return $this->request('futures/modify-stop-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function v2_private_post_futures_batch_modify_order($params = array()) {
+        return $this->request('futures/batch-modify-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2_private_post_futures_cancel_all_order($params = array()) {
         return $this->request('futures/cancel-all-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
@@ -1126,6 +1174,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2PublicGetFuturesFundingRateHistory($params = array()) {
         return $this->request('futures/funding-rate-history', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2PublicGetFuturesPremiumIndexHistory($params = array()) {
+        return $this->request('futures/premium-index-history', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2PublicGetFuturesPositionLevel($params = array()) {
         return $this->request('futures/position-level', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1156,11 +1207,20 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2PrivateGetAccountSubsTransferHistory($params = array()) {
         return $this->request('account/subs/transfer-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
+    public function v2PrivateGetAccountSubsBalance($params = array()) {
+        return $this->request('account/subs/balance', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2PrivateGetAccountSubsSpotBalance($params = array()) {
         return $this->request('account/subs/spot-balance', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PrivateGetAccountTradeFeeRate($params = array()) {
         return $this->request('account/trade-fee-rate', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function v2PrivateGetAccountFuturesMarketSettings($params = array()) {
+        return $this->request('account/futures-market-settings', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateGetAccountInfo($params = array()) {
+        return $this->request('account/info', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PrivateGetAssetsSpotBalance($params = array()) {
         return $this->request('assets/spot/balance', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
@@ -1180,6 +1240,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2PrivateGetAssetsCreditInfo($params = array()) {
         return $this->request('assets/credit/info', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
+    public function v2PrivateGetAssetsSpotTranscationHistory($params = array()) {
+        return $this->request('assets/spot/transcation-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2PrivateGetAssetsMarginBorrowHistory($params = array()) {
         return $this->request('assets/margin/borrow-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
@@ -1197,6 +1260,12 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2PrivateGetAssetsTransferHistory($params = array()) {
         return $this->request('assets/transfer-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function v2PrivateGetAssetsAmmLiquidityPool($params = array()) {
+        return $this->request('assets/amm/liquidity-pool', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
+    }
+    public function v2PrivateGetAssetsAmmIncomeHistory($params = array()) {
+        return $this->request('assets/amm/income-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
     }
     public function v2PrivateGetSpotOrderStatus($params = array()) {
         return $this->request('spot/order-status', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 8));
@@ -1264,6 +1333,24 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2PrivateGetFuturesPositionSettleHistory($params = array()) {
         return $this->request('futures/position-settle-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2PrivateGetReferReferee($params = array()) {
+        return $this->request('refer/referee', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateGetReferRefereeRebateRecord($params = array()) {
+        return $this->request('refer/referee-rebate/record', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateGetReferRefereeRebateDetail($params = array()) {
+        return $this->request('refer/referee-rebate/detail', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateGetReferAgentReferee($params = array()) {
+        return $this->request('refer/agent-referee', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateGetReferAgentRebateRecord($params = array()) {
+        return $this->request('refer/agent-rebate/record', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivateGetReferAgentRebateDetail($params = array()) {
+        return $this->request('refer/agent-rebate/detail', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2PrivatePostAccountSubs($params = array()) {
         return $this->request('account/subs', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
     }
@@ -1287,6 +1374,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2PrivatePostAccountSettings($params = array()) {
         return $this->request('account/settings', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
+    }
+    public function v2PrivatePostAccountFuturesMarketSettings($params = array()) {
+        return $this->request('account/futures-market-settings', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
     }
     public function v2PrivatePostAssetsMarginBorrow($params = array()) {
         return $this->request('assets/margin/borrow', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 40));
@@ -1330,6 +1420,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2PrivatePostSpotModifyStopOrder($params = array()) {
         return $this->request('spot/modify-stop-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 13.334));
     }
+    public function v2PrivatePostSpotBatchModifyOrder($params = array()) {
+        return $this->request('spot/batch-modify-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 13.334));
+    }
     public function v2PrivatePostSpotCancelAllOrder($params = array()) {
         return $this->request('spot/cancel-all-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1368,6 +1461,9 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2PrivatePostFuturesModifyStopOrder($params = array()) {
         return $this->request('futures/modify-stop-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function v2PrivatePostFuturesBatchModifyOrder($params = array()) {
+        return $this->request('futures/batch-modify-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2PrivatePostFuturesCancelAllOrder($params = array()) {
         return $this->request('futures/cancel-all-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));

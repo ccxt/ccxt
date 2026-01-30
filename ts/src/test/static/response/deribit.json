@@ -3387,6 +3387,75 @@
                   }
                 ]
               }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterest for an inverse perpetual market",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "high": "93099.5",
+                            "low": "81773.0",
+                            "last": "87435.0",
+                            "instrument_name": "BTC-PERPETUAL",
+                            "bid_price": "87196.5",
+                            "ask_price": "87421.0",
+                            "open_interest": "9978637780",
+                            "mark_price": "87315.46",
+                            "creation_timestamp": "1763674555976",
+                            "price_change": "-3.2467",
+                            "volume": "7424.32524741",
+                            "estimated_delivery_price": "87177.7",
+                            "base_currency": "BTC",
+                            "quote_currency": "USD",
+                            "volume_usd": "664973880.0",
+                            "volume_notional": "664973880.0",
+                            "current_funding": "0.00108022",
+                            "funding_8h": "-7.996e-4",
+                            "mid_price": "87308.75"
+                        }
+                    ],
+                    "usIn": "1763674555976514",
+                    "usOut": "1763674555976721",
+                    "usDiff": "207",
+                    "testnet": true
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "openInterestAmount": null,
+                    "openInterestValue": 9978637780,
+                    "timestamp": 1763674555976,
+                    "datetime": "2025-11-20T21:35:55.976Z",
+                    "info": {
+                        "high": "93099.5",
+                        "low": "81773.0",
+                        "last": "87435.0",
+                        "instrument_name": "BTC-PERPETUAL",
+                        "bid_price": "87196.5",
+                        "ask_price": "87421.0",
+                        "open_interest": "9978637780",
+                        "mark_price": "87315.46",
+                        "creation_timestamp": "1763674555976",
+                        "price_change": "-3.2467",
+                        "volume": "7424.32524741",
+                        "estimated_delivery_price": "87177.7",
+                        "base_currency": "BTC",
+                        "quote_currency": "USD",
+                        "volume_usd": "664973880.0",
+                        "volume_notional": "664973880.0",
+                        "current_funding": "0.00108022",
+                        "funding_8h": "-7.996e-4",
+                        "mid_price": "87308.75"
+                    },
+                    "baseVolume": null,
+                    "quoteVolume": null
+                }
+            }
         ]
     }
 }

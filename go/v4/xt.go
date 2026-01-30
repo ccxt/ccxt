@@ -42,6 +42,7 @@ func (this *XtCore) Describe() interface{} {
 			"createReduceOnlyOrder":          true,
 			"editOrder":                      true,
 			"fetchAccounts":                  false,
+			"fetchAllGreeks":                 false,
 			"fetchBalance":                   true,
 			"fetchBidsAsks":                  true,
 			"fetchBorrowInterest":            false,
@@ -66,6 +67,7 @@ func (this *XtCore) Describe() interface{} {
 			"fetchFundingRate":               true,
 			"fetchFundingRateHistory":        true,
 			"fetchFundingRates":              false,
+			"fetchGreeks":                    false,
 			"fetchIndexOHLCV":                false,
 			"fetchL3OrderBook":               false,
 			"fetchLedger":                    true,
@@ -80,6 +82,8 @@ func (this *XtCore) Describe() interface{} {
 			"fetchOpenInterest":              false,
 			"fetchOpenInterestHistory":       false,
 			"fetchOpenOrders":                true,
+			"fetchOption":                    false,
+			"fetchOptionChain":               false,
 			"fetchOrder":                     true,
 			"fetchOrderBook":                 true,
 			"fetchOrderBooks":                false,
@@ -103,6 +107,7 @@ func (this *XtCore) Describe() interface{} {
 			"fetchTransactions":              false,
 			"fetchTransfer":                  false,
 			"fetchTransfers":                 false,
+			"fetchVolatilityHistory":         false,
 			"fetchWithdrawal":                false,
 			"fetchWithdrawals":               true,
 			"fetchWithdrawalWhitelist":       false,
@@ -954,8 +959,8 @@ func (this *XtCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{}
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes98612 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes98612)
+			retRes99112 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes99112)
 		}
 		var promisesUnresolved interface{} = []interface{}{this.FetchSpotMarkets(params), this.FetchSwapAndFutureMarkets(params)}
 
@@ -1413,17 +1418,17 @@ func (this *XtCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14058 := (<-this.LoadMarkets())
-		PanicOnError(retRes14058)
+		retRes14108 := (<-this.LoadMarkets())
+		PanicOnError(retRes14108)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes140919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes140919)
-			ch <- retRes140919
+			retRes141419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes141419)
+			ch <- retRes141419
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -1562,8 +1567,8 @@ func (this *XtCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15338 := (<-this.LoadMarkets())
-		PanicOnError(retRes15338)
+		retRes15388 := (<-this.LoadMarkets())
+		PanicOnError(retRes15388)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1675,8 +1680,8 @@ func (this *XtCore) FetchTicker(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16258 := (<-this.LoadMarkets())
-		PanicOnError(retRes16258)
+		retRes16308 := (<-this.LoadMarkets())
+		PanicOnError(retRes16308)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1775,8 +1780,8 @@ func (this *XtCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17028 := (<-this.LoadMarkets())
-		PanicOnError(retRes17028)
+		retRes17078 := (<-this.LoadMarkets())
+		PanicOnError(retRes17078)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			symbols = this.MarketSymbols(symbols)
@@ -1887,8 +1892,8 @@ func (this *XtCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17898 := (<-this.LoadMarkets())
-		PanicOnError(retRes17898)
+		retRes17948 := (<-this.LoadMarkets())
+		PanicOnError(retRes17948)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
@@ -2009,8 +2014,8 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    nil,
-		"quoteVolume":   this.SafeNumber2(ticker, "a", "v"),
+		"baseVolume":    this.SafeNumber(ticker, "a"),
+		"quoteVolume":   this.SafeNumber(ticker, "v"),
 		"info":          ticker,
 	}, market)
 }
@@ -2039,8 +2044,8 @@ func (this *XtCore) FetchTrades(symbol interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes19198 := (<-this.LoadMarkets())
-		PanicOnError(retRes19198)
+		retRes19248 := (<-this.LoadMarkets())
+		PanicOnError(retRes19248)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2138,8 +2143,8 @@ func (this *XtCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes19938 := (<-this.LoadMarkets())
-		PanicOnError(retRes19938)
+		retRes19988 := (<-this.LoadMarkets())
+		PanicOnError(retRes19988)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2444,8 +2449,8 @@ func (this *XtCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22738 := (<-this.LoadMarkets())
-		PanicOnError(retRes22738)
+		retRes22788 := (<-this.LoadMarkets())
+		PanicOnError(retRes22788)
 		var typeVar interface{} = nil
 		var subType interface{} = nil
 		var response interface{} = nil
@@ -2585,7 +2590,7 @@ func (this *XtCore) ParseBalance(response interface{}) interface{} {
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *XtCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2595,16 +2600,16 @@ func (this *XtCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24008 := (<-this.LoadMarkets())
-		PanicOnError(retRes24008)
+		retRes24058 := (<-this.LoadMarkets())
+		PanicOnError(retRes24058)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 
-		retRes240515 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
-		PanicOnError(retRes240515)
-		ch <- retRes240515
+		retRes241015 := (<-this.CreateOrder(symbol, "market", "buy", cost, 1, params))
+		PanicOnError(retRes241015)
+		ch <- retRes241015
 		return nil
 
 	}()
@@ -2644,21 +2649,21 @@ func (this *XtCore) CreateOrder(symbol interface{}, typeVar interface{}, side in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24328 := (<-this.LoadMarkets())
-		PanicOnError(retRes24328)
+		retRes24378 := (<-this.LoadMarkets())
+		PanicOnError(retRes24378)
 		var market interface{} = this.Market(symbol)
 		symbol = GetValue(market, "symbol")
 		if IsTrue(GetValue(market, "spot")) {
 
-			retRes243619 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes243619)
-			ch <- retRes243619
+			retRes244119 := (<-this.CreateSpotOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes244119)
+			ch <- retRes244119
 			return nil
 		} else {
 
-			retRes243819 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
-			PanicOnError(retRes243819)
-			ch <- retRes243819
+			retRes244319 := (<-this.CreateContractOrder(symbol, typeVar, side, amount, price, params))
+			PanicOnError(retRes244319)
+			ch <- retRes244319
 			return nil
 		}
 
@@ -2675,8 +2680,8 @@ func (this *XtCore) CreateSpotOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24438 := (<-this.LoadMarkets())
-		PanicOnError(retRes24438)
+		retRes24488 := (<-this.LoadMarkets())
+		PanicOnError(retRes24488)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2754,8 +2759,8 @@ func (this *XtCore) CreateContractOrder(symbol interface{}, typeVar interface{},
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25048 := (<-this.LoadMarkets())
-		PanicOnError(retRes25048)
+		retRes25098 := (<-this.LoadMarkets())
+		PanicOnError(retRes25098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":  GetValue(market, "id"),
@@ -2872,8 +2877,8 @@ func (this *XtCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25958 := (<-this.LoadMarkets())
-		PanicOnError(retRes25958)
+		retRes26008 := (<-this.LoadMarkets())
+		PanicOnError(retRes26008)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3086,8 +3091,8 @@ func (this *XtCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes27728 := (<-this.LoadMarkets())
-		PanicOnError(retRes27728)
+		retRes27778 := (<-this.LoadMarkets())
+		PanicOnError(retRes27778)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3273,8 +3278,8 @@ func (this *XtCore) FetchOrdersByStatus(status interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes29258 := (<-this.LoadMarkets())
-		PanicOnError(retRes29258)
+		retRes29308 := (<-this.LoadMarkets())
+		PanicOnError(retRes29308)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3606,9 +3611,9 @@ func (this *XtCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes321715 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes321715)
-		ch <- retRes321715
+		retRes322215 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes322215)
+		ch <- retRes322215
 		return nil
 
 	}()
@@ -3645,9 +3650,9 @@ func (this *XtCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes323715 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-		PanicOnError(retRes323715)
-		ch <- retRes323715
+		retRes324215 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+		PanicOnError(retRes324215)
+		ch <- retRes324215
 		return nil
 
 	}()
@@ -3684,9 +3689,9 @@ func (this *XtCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes325715 := (<-this.FetchOrdersByStatus("canceled", symbol, since, limit, params))
-		PanicOnError(retRes325715)
-		ch <- retRes325715
+		retRes326215 := (<-this.FetchOrdersByStatus("canceled", symbol, since, limit, params))
+		PanicOnError(retRes326215)
+		ch <- retRes326215
 		return nil
 
 	}()
@@ -3718,8 +3723,8 @@ func (this *XtCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes32768 := (<-this.LoadMarkets())
-		PanicOnError(retRes32768)
+		retRes32818 := (<-this.LoadMarkets())
+		PanicOnError(retRes32818)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3833,8 +3838,8 @@ func (this *XtCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes33588 := (<-this.LoadMarkets())
-		PanicOnError(retRes33588)
+		retRes33638 := (<-this.LoadMarkets())
+		PanicOnError(retRes33638)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3940,8 +3945,8 @@ func (this *XtCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes34328 := (<-this.LoadMarkets())
-		PanicOnError(retRes34328)
+		retRes34378 := (<-this.LoadMarkets())
+		PanicOnError(retRes34378)
 		var request interface{} = map[string]interface{}{
 			"orderIds": ids,
 		}
@@ -4189,8 +4194,8 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36608 := (<-this.LoadMarkets())
-		PanicOnError(retRes36608)
+		retRes36658 := (<-this.LoadMarkets())
+		PanicOnError(retRes36658)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -4232,7 +4237,7 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		//             "hasNext": false,
 		//             "items": [
 		//                 {
-		//                     "id": "207260567109387524",
+		//                     "id": "207260567109387525",
 		//                     "coin": "usdt",
 		//                     "symbol": "btc_usdt",
 		//                     "type": "FEE",
@@ -4327,8 +4332,8 @@ func (this *XtCore) FetchDepositAddress(code interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37778 := (<-this.LoadMarkets())
-		PanicOnError(retRes37778)
+		retRes37828 := (<-this.LoadMarkets())
+		PanicOnError(retRes37828)
 		var networkCode interface{} = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -4407,8 +4412,8 @@ func (this *XtCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes38338 := (<-this.LoadMarkets())
-		PanicOnError(retRes38338)
+		retRes38388 := (<-this.LoadMarkets())
+		PanicOnError(retRes38388)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -4485,8 +4490,8 @@ func (this *XtCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes38908 := (<-this.LoadMarkets())
-		PanicOnError(retRes38908)
+		retRes38958 := (<-this.LoadMarkets())
+		PanicOnError(retRes38958)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -4561,8 +4566,8 @@ func (this *XtCore) Withdraw(code interface{}, amount interface{}, address inter
 		_ = params
 		this.CheckAddress(address)
 
-		retRes39498 := (<-this.LoadMarkets())
-		PanicOnError(retRes39498)
+		retRes39548 := (<-this.LoadMarkets())
+		PanicOnError(retRes39548)
 		var currency interface{} = this.Currency(code)
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
@@ -4722,8 +4727,8 @@ func (this *XtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
 
-		retRes40898 := (<-this.LoadMarkets())
-		PanicOnError(retRes40898)
+		retRes40948 := (<-this.LoadMarkets())
+		PanicOnError(retRes40948)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue((GetValue(market, "contract"))) {
 			panic(BadSymbol(Add(this.Id, " setLeverage() supports contract markets only")))
@@ -4772,7 +4777,7 @@ func (this *XtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{
  * @param {float} amount amount of margin to add
  * @param {object} params extra parameters specific to the xt api endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4782,9 +4787,9 @@ func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalAr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes413015 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
-		PanicOnError(retRes413015)
-		ch <- retRes413015
+		retRes413515 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+		PanicOnError(retRes413515)
+		ch <- retRes413515
 		return nil
 
 	}()
@@ -4800,7 +4805,7 @@ func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalAr
  * @param {float} amount the amount of margin to remove
  * @param {object} params extra parameters specific to the xt api endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *XtCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4810,9 +4815,9 @@ func (this *XtCore) ReduceMargin(symbol interface{}, amount interface{}, optiona
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes414515 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
-		PanicOnError(retRes414515)
-		ch <- retRes414515
+		retRes415015 := (<-this.ModifyMarginHelper(symbol, amount, "SUB", params))
+		PanicOnError(retRes415015)
+		ch <- retRes415015
 		return nil
 
 	}()
@@ -4828,8 +4833,8 @@ func (this *XtCore) ModifyMarginHelper(symbol interface{}, amount interface{}, a
 		var positionSide interface{} = this.SafeString(params, "positionSide")
 		this.CheckRequiredArgument("setLeverage", positionSide, "positionSide", []interface{}{"LONG", "SHORT"})
 
-		retRes41518 := (<-this.LoadMarkets())
-		PanicOnError(retRes41518)
+		retRes41568 := (<-this.LoadMarkets())
+		PanicOnError(retRes41568)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":       GetValue(market, "id"),
@@ -4890,7 +4895,7 @@ func (this *XtCore) ParseMarginModification(data interface{}, optionalArgs ...in
  * @see https://doc.xt.com/#futures_quotesgetLeverageBrackets
  * @param {string} [symbols] a list of unified market symbols
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *XtCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4902,8 +4907,8 @@ func (this *XtCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes42038 := (<-this.LoadMarkets())
-		PanicOnError(retRes42038)
+		retRes42088 := (<-this.LoadMarkets())
+		PanicOnError(retRes42088)
 		var subType interface{} = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchLeverageTiers", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
@@ -4997,7 +5002,7 @@ func (this *XtCore) ParseLeverageTiers(response interface{}, optionalArgs ...int
  * @see https://doc.xt.com/#futures_quotesgetLeverageBracket
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *XtCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5007,8 +5012,8 @@ func (this *XtCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes42868 := (<-this.LoadMarkets())
-		PanicOnError(retRes42868)
+		retRes42918 := (<-this.LoadMarkets())
+		PanicOnError(retRes42918)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -5126,17 +5131,17 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes43798 := (<-this.LoadMarkets())
-		PanicOnError(retRes43798)
+		retRes43848 := (<-this.LoadMarkets())
+		PanicOnError(retRes43848)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes438319 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
-			PanicOnError(retRes438319)
-			ch <- retRes438319
+			retRes438819 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "id", "id", 1, 200))
+			PanicOnError(retRes438819)
+			ch <- retRes438819
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -5217,7 +5222,7 @@ func (this *XtCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan 
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5227,9 +5232,9 @@ func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes445515 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes445515)
-		ch <- retRes445515
+		retRes446015 := (<-this.FetchFundingRate(symbol, params))
+		PanicOnError(retRes446015)
+		ch <- retRes446015
 		return nil
 
 	}()
@@ -5243,7 +5248,7 @@ func (this *XtCore) FetchFundingInterval(symbol interface{}, optionalArgs ...int
  * @see https://doc.xt.com/#futures_quotesgetFundingRate
  * @param {string} symbol unified market symbol
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *XtCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5253,8 +5258,8 @@ func (this *XtCore) FetchFundingRate(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes44688 := (<-this.LoadMarkets())
-		PanicOnError(retRes44688)
+		retRes44738 := (<-this.LoadMarkets())
+		PanicOnError(retRes44738)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -5346,7 +5351,7 @@ func (this *XtCore) ParseFundingRate(contract interface{}, optionalArgs ...inter
  * @param {int} [since] the starting timestamp in milliseconds
  * @param {int} [limit] the number of entries to return
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5362,8 +5367,8 @@ func (this *XtCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes45518 := (<-this.LoadMarkets())
-		PanicOnError(retRes45518)
+		retRes45568 := (<-this.LoadMarkets())
+		PanicOnError(retRes45568)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
@@ -5463,7 +5468,7 @@ func (this *XtCore) ParseFundingHistory(contract interface{}, optionalArgs ...in
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5473,8 +5478,8 @@ func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes46428 := (<-this.LoadMarkets())
-		PanicOnError(retRes46428)
+		retRes46478 := (<-this.LoadMarkets())
+		PanicOnError(retRes46478)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -5544,7 +5549,7 @@ func (this *XtCore) FetchPosition(symbol interface{}, optionalArgs ...interface{
  * @see https://doc.xt.com/#futures_usergetPosition
  * @param {string} [symbols] list of unified market symbols, not supported with xt
  * @param {object} params extra parameters specific to the xt api endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *XtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5556,8 +5561,8 @@ func (this *XtCore) FetchPositions(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes47038 := (<-this.LoadMarkets())
-		PanicOnError(retRes47038)
+		retRes47088 := (<-this.LoadMarkets())
+		PanicOnError(retRes47088)
 		var subType interface{} = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", nil, params)
 		subType = GetValue(subTypeparamsVariable, 0)
@@ -5676,7 +5681,7 @@ func (this *XtCore) ParsePosition(position interface{}, optionalArgs ...interfac
  * @param {string} fromAccount account to transfer from -  spot, swap, leverage, finance
  * @param {string} toAccount account to transfer to - spot, swap, leverage, finance
  * @param {object} params extra parameters specific to the whitebit api endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *XtCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5686,8 +5691,8 @@ func (this *XtCore) Transfer(code interface{}, amount interface{}, fromAccount i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes48138 := (<-this.LoadMarkets())
-		PanicOnError(retRes48138)
+		retRes48188 := (<-this.LoadMarkets())
+		PanicOnError(retRes48188)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeValue(this.Options, "accountsById")
 		var fromAccountId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -5763,8 +5768,8 @@ func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes48728 := (<-this.LoadMarkets())
-		PanicOnError(retRes48728)
+		retRes48778 := (<-this.LoadMarkets())
+		PanicOnError(retRes48778)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports contract markets only")))
@@ -5825,7 +5830,7 @@ func (this *XtCore) SetMarginMode(marginMode interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopLoss] price to set a stop-loss on an open position
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5842,8 +5847,8 @@ func (this *XtCore) EditOrder(id interface{}, symbol interface{}, typeVar interf
 			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an amount argument")))
 		}
 
-		retRes49328 := (<-this.LoadMarkets())
-		PanicOnError(retRes49328)
+		retRes49378 := (<-this.LoadMarkets())
+		PanicOnError(retRes49378)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		var stopLoss interface{} = this.SafeNumber2(params, "stopLoss", "triggerStopPrice")

@@ -121,6 +121,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Exchange Capabilities](./examples/js/exchange-capabilities.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/js/exchange-rate-limiter-rollingWindow.md)
+
 - [Exchanges By Volume](./examples/js/exchanges-by-volume.md)
 
 - [Exchanges](./examples/js/exchanges.md)
@@ -130,6 +132,8 @@ node path/to/example.js # substitute for actual filename here
 - [Fetch All Tickers To Files 2](./examples/js/fetch-all-tickers-to-files-2.md)
 
 - [Fetch All Tickers To Files](./examples/js/fetch-all-tickers-to-files.md)
+
+- [Fetch Balance All Exchanges](./examples/js/fetch-balance-all-exchanges.md)
 
 - [Fetch Balance](./examples/js/fetch-balance.md)
 
@@ -186,6 +190,8 @@ node path/to/example.js # substitute for actual filename here
 - [Hybridcjsexample](./examples/js/hybridCJSExample.md)
 
 - [Hybridesmexample](./examples/js/hybridESMExample.md)
+
+- [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
 
 - [Idex Fetch Balance](./examples/js/idex-fetch-balance.md)
 

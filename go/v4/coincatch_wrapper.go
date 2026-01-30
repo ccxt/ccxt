@@ -65,7 +65,7 @@ func (this *Coincatch) FetchCurrencies(params ...interface{}) (Currencies, error
  * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
  * @param {string[]} [codes] list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Coincatch) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 
@@ -116,7 +116,7 @@ func (this *Coincatch) FetchMarkets(params ...interface{}) ([]MarketInterface, e
  * @see https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coincatch) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -147,7 +147,7 @@ func (this *Coincatch) FetchTicker(symbol string, options ...FetchTickerOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
  * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Coincatch) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -183,7 +183,7 @@ func (this *Coincatch) FetchTickers(options ...FetchTickersOptions) (Tickers, er
  * @param {int} [limit] the maximum amount of order book entries to return (maximum and default value is 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Coincatch) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -269,7 +269,7 @@ func (this *Coincatch) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) (
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest entry to fetch
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Coincatch) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -307,7 +307,7 @@ func (this *Coincatch) FetchTrades(symbol string, options ...FetchTradesOptions)
  * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Coincatch) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -339,7 +339,7 @@ func (this *Coincatch) FetchFundingRate(symbol string, options ...FetchFundingRa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.pageNo] the page number to fetch
  * @param {bool} [params.nextPage] whether to query the next page (default false)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Coincatch) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -383,7 +383,7 @@ func (this *Coincatch) FetchFundingRateHistory(options ...FetchFundingRateHistor
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' (default 'umcbl')
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Coincatch) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -404,7 +404,7 @@ func (this *Coincatch) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} toAccount 'spot' or 'swap' or 'mix_usdt' or 'mix_usd' - account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique id for the transfer
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Coincatch) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -433,7 +433,7 @@ func (this *Coincatch) Transfer(code string, amount float64, fromAccount string,
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Coincatch) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -466,7 +466,7 @@ func (this *Coincatch) FetchDepositAddress(code string, options ...FetchDepositA
  * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
  * @param {int} [params.pageNo] pageNo default 1
  * @param {int} [params.pageSize] pageSize (default 20, max 100)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Coincatch) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -515,7 +515,7 @@ func (this *Coincatch) FetchDeposits(options ...FetchDepositsOptions) ([]Transac
  * @param {string} [params.clientOid] clientOid
  * @param {string} [params.orderId] The response orderId
  * @param {string} [params.idLessThan] Requests the content on the page before this ID (older data), the value input should be the orderId of the corresponding interface.
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coincatch) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -564,7 +564,7 @@ func (this *Coincatch) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]T
  * @param {string} params.network network for withdraw (mandatory)
  * @param {string} [params.remark] remark
  * @param {string} [params.clientOid] custom id
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Coincatch) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -598,7 +598,7 @@ func (this *Coincatch) Withdraw(code string, amount float64, address string, opt
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -639,7 +639,7 @@ func (this *Coincatch) CreateMarketBuyOrderWithCost(symbol string, cost float64,
  * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
  * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
  * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -677,7 +677,7 @@ func (this *Coincatch) CreateOrder(symbol string, typeVar string, side string, a
  * @param {float} [takeProfit] the take profit price, in units of the quote currency
  * @param {float} [stopLoss] the stop loss price, in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {
 
@@ -720,7 +720,7 @@ func (this *Coincatch) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeV
  * @see https://coincatch.github.io/github.io/en/spot/#batch-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params (max 50 entries)
  * @param {object} [params] extra parameters specific to the api endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -753,7 +753,7 @@ func (this *Coincatch) CreateOrders(orders []OrderRequest, options ...CreateOrde
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -800,7 +800,7 @@ func (this *Coincatch) EditOrder(id string, symbol string, typeVar string, side 
  * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
  * @param {string} params.triggerPrice *mandatory* the price that the order is to be triggered at
  * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) EditSpotOrder(id string, symbol string, typeVar string, side string, amount float64, options ...EditSpotOrderOptions) (Order, error) {
 
@@ -837,7 +837,7 @@ func (this *Coincatch) EditSpotOrder(id string, symbol string, typeVar string, s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -881,7 +881,7 @@ func (this *Coincatch) FetchOrder(id string, options ...FetchOrderOptions) (Orde
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
  * @param {string} [params.marginCoin] *swap only* the margin coin of the market to fetch entries for
  * @param {string} [params.isPlan] *swap trigger only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -930,7 +930,7 @@ func (this *Coincatch) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
  * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchOpenSpotOrders(options ...FetchOpenSpotOrdersOptions) ([]Order, error) {
 
@@ -982,7 +982,7 @@ func (this *Coincatch) FetchOpenSpotOrders(options ...FetchOpenSpotOrdersOptions
  * @param {string} [params.isPlan] 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
  * @param {string} [params.productType] 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
  * @param {string} [params.marginCoin] the margin coin of the market to fetch entries for
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchOpenSwapOrders(options ...FetchOpenSwapOrdersOptions) ([]Order, error) {
 
@@ -1036,7 +1036,7 @@ func (this *Coincatch) FetchOpenSwapOrders(options ...FetchOpenSwapOrdersOptions
  * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -1086,7 +1086,7 @@ func (this *Coincatch) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
  * @param {int} [params.until] *for trigger orders only* the latest time in ms to fetch orders for
  * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
  * @param {string} [params.lastEndId] *for trigger orders only* the last order id to fetch entries after
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchCanceledAndClosedSpotOrders(options ...FetchCanceledAndClosedSpotOrdersOptions) ([]Order, error) {
 
@@ -1138,7 +1138,7 @@ func (this *Coincatch) FetchCanceledAndClosedSpotOrders(options ...FetchCanceled
  * @param {boolean} [params.trigger] true if fetching trigger orders (default false)
  * @param {string} [params.isPlan] *swap only* 'plan' or 'profit_loss' ('plan' (default) for trigger (plan) orders, 'profit_loss' for stop-loss and take-profit orders)
  * @param {string} [params.productType] *swap only* 'umcbl' or 'dmcbl' - the product type of the market to fetch entries for (default 'umcbl')
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) FetchCanceledAndClosedSwapOrders(options ...FetchCanceledAndClosedSwapOrdersOptions) ([]Order, error) {
 
@@ -1189,7 +1189,7 @@ func (this *Coincatch) FetchCanceledAndClosedSwapOrders(options ...FetchCanceled
  * @param {bool} [params.trigger] true for canceling a trigger order (default false)
  * @param {bool} [params.stop] *swap only* an alternative for trigger param
  * @param {string} [params.planType] *swap trigger only* the type of the plan order to cancel: 'profit_plan' - profit order, 'loss_plan' - loss order, 'normal_plan' - plan order, 'pos_profit' - position profit, 'pos_loss' - position loss, 'moving_plan' - Trailing TP/SL, 'track_plan' - Trailing Stop
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -1267,7 +1267,7 @@ func (this *Coincatch) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Ord
  * @param {string} symbol *is mandatory* unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Coincatch) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -1352,7 +1352,7 @@ func (this *Coincatch) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, 
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Coincatch) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -1395,7 +1395,7 @@ func (this *Coincatch) FetchOrderTrades(id string, options ...FetchOrderTradesOp
  * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *Coincatch) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
 
@@ -1525,7 +1525,7 @@ func (this *Coincatch) SetPositionMode(hedged bool, options ...SetPositionModeOp
  * @see https://coincatch.github.io/github.io/en/mix/#get-single-account
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Coincatch) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1589,7 +1589,7 @@ func (this *Coincatch) SetLeverage(leverage int64, options ...SetLeverageOptions
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string}  [params.side] 'long' or 'short' *for non-hedged position mode only* (default 'long')
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coincatch) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1618,7 +1618,7 @@ func (this *Coincatch) FetchPosition(symbol string, options ...FetchPositionOpti
  * @description fetch all open positions for specific symbol
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coincatch) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 
@@ -1648,7 +1648,7 @@ func (this *Coincatch) FetchPositionsForSymbol(symbol string, options ...FetchPo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl' if symbols are not provided)
  * @param {string} [params.marginCoin] the settle currency of the positions, needs to match the productType
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Coincatch) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1694,7 +1694,7 @@ func (this *Coincatch) FetchPositions(options ...FetchPositionsOptions) ([]Posit
  * @param {string} [params.business] *swap only*
  * @param {string} [params.lastEndId] *swap only*
  * @param {bool} [params.next] *swap only*
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Coincatch) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1735,8 +1735,14 @@ func (this *Coincatch) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry
 func (this *Coincatch) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Coincatch) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Coincatch) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Coincatch) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Coincatch) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1809,6 +1815,9 @@ func (this *Coincatch) EditLimitOrder(id string, symbol string, side string, amo
 }
 func (this *Coincatch) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
+}
+func (this *Coincatch) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Coincatch) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1944,6 +1953,9 @@ func (this *Coincatch) FetchOption(symbol string, options ...FetchOptionOptions)
 }
 func (this *Coincatch) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Coincatch) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Coincatch) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

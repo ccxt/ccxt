@@ -32,7 +32,7 @@ func NewKucoinfuturesFromCore(core *KucoinfuturesCore) *Kucoinfutures {
  * @description the latest known information on the availability of the exchange API
  * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Kucoinfutures) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
 	res := <-this.Core.FetchStatus(params...)
@@ -128,7 +128,7 @@ func (this *Kucoinfutures) FetchOHLCV(symbol string, options ...FetchOHLCVOption
  * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Kucoinfutures) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -157,7 +157,7 @@ func (this *Kucoinfutures) FetchDepositAddress(code string, options ...FetchDepo
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Kucoinfutures) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -190,7 +190,7 @@ func (this *Kucoinfutures) FetchOrderBook(symbol string, options ...FetchOrderBo
  * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoinfutures) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -218,7 +218,7 @@ func (this *Kucoinfutures) FetchTicker(symbol string, options ...FetchTickerOpti
  * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-current-mark-price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoinfutures) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
 
@@ -247,7 +247,7 @@ func (this *Kucoinfutures) FetchMarkPrice(symbol string, options ...FetchMarkPri
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoinfutures) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -279,7 +279,7 @@ func (this *Kucoinfutures) FetchTickers(options ...FetchTickersOptions) (Tickers
  * @description fetches the bid and ask price and volume for multiple markets
  * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 
@@ -314,7 +314,7 @@ func (this *Kucoinfutures) FetchBidsAsks(options ...FetchBidsAsksOptions) (Ticke
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Kucoinfutures) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -357,7 +357,7 @@ func (this *Kucoinfutures) FetchFundingHistory(options ...FetchFundingHistoryOpt
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Kucoinfutures) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -385,7 +385,7 @@ func (this *Kucoinfutures) FetchPosition(symbol string, options ...FetchPosition
  * @see https://docs.kucoin.com/futures/#get-position-list
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Kucoinfutures) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -422,7 +422,7 @@ func (this *Kucoinfutures) FetchPositions(options ...FetchPositionsOptions) ([]P
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] closing end time
  * @param {int} [params.pageId] page id
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Kucoinfutures) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
 
@@ -492,7 +492,7 @@ func (this *Kucoinfutures) FetchPositionsHistory(options ...FetchPositionsHistor
  * @param {bool} [params.test] set to true to use the test order endpoint (does not submit order, use to validate params)
  * @param {bool} [params.forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
  * @param {string} [params.positionSide] *swap and future only* hedged two-way position side, LONG or SHORT
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -525,7 +525,7 @@ func (this *Kucoinfutures) CreateOrder(symbol string, typeVar string, side strin
  * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -555,7 +555,7 @@ func (this *Kucoinfutures) CreateOrders(orders []OrderRequest, options ...Create
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] cancel order by client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -590,7 +590,7 @@ func (this *Kucoinfutures) CancelOrder(id string, options ...CancelOrderOptions)
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -667,7 +667,7 @@ func (this *Kucoinfutures) CancelAllOrders(options ...CancelAllOrdersOptions) ([
  * @param {string} [params.side] buy or sell
  * @param {string} [params.type] limit or market
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
@@ -716,7 +716,7 @@ func (this *Kucoinfutures) FetchOrdersByStatus(status interface{}, options ...Fe
  * @param {string} [params.side] buy or sell
  * @param {string} [params.type] limit, or market
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -767,7 +767,7 @@ func (this *Kucoinfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions
  * @param {string} [params.type] limit, or market
  * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -811,7 +811,7 @@ func (this *Kucoinfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Kucoinfutures) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -844,7 +844,7 @@ func (this *Kucoinfutures) FetchOrder(id string, options ...FetchOrderOptions) (
  * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Kucoinfutures) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -872,7 +872,7 @@ func (this *Kucoinfutures) FetchFundingRate(symbol string, options ...FetchFundi
  * @see https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Kucoinfutures) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 
@@ -900,7 +900,7 @@ func (this *Kucoinfutures) FetchFundingInterval(symbol string, options ...FetchF
  * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-futures
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Kucoinfutures) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -921,7 +921,7 @@ func (this *Kucoinfutures) FetchBalance(params ...interface{}) (Balances, error)
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -953,7 +953,7 @@ func (this *Kucoinfutures) Transfer(code string, amount float64, fromAccount str
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] End time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Kucoinfutures) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -998,7 +998,7 @@ func (this *Kucoinfutures) FetchMyTrades(options ...FetchMyTradesOptions) ([]Tra
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Kucoinfutures) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -1037,7 +1037,7 @@ func (this *Kucoinfutures) FetchTrades(symbol string, options ...FetchTradesOpti
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Kucoinfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1081,7 +1081,7 @@ func (this *Kucoinfutures) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Kucoinfutures) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1124,7 +1124,7 @@ func (this *Kucoinfutures) FetchWithdrawals(options ...FetchWithdrawalsOptions) 
  * @see https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Kucoinfutures) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
@@ -1152,10 +1152,10 @@ func (this *Kucoinfutures) FetchMarketLeverageTiers(symbol string, options ...Fe
  * @description fetches historical funding rate prices
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] not used by kucuoinfutures
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Kucoinfutures) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1198,7 +1198,7 @@ func (this *Kucoinfutures) FetchFundingRateHistory(options ...FetchFundingRateHi
  * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-futures
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Kucoinfutures) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -1226,7 +1226,7 @@ func (this *Kucoinfutures) FetchTradingFee(symbol string, options ...FetchTradin
  * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-margin-mode
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *Kucoinfutures) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
 
@@ -1322,7 +1322,7 @@ func (this *Kucoinfutures) SetPositionMode(hedged bool, options ...SetPositionMo
  * @see https://www.kucoin.com/docs/rest/futures-trading/positions/get-cross-margin-leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Kucoinfutures) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1382,8 +1382,14 @@ func (this *Kucoinfutures) SetLeverage(leverage int64, options ...SetLeverageOpt
 func (this *Kucoinfutures) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
+func (this *Kucoinfutures) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
+	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
+}
 func (this *Kucoinfutures) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
+}
+func (this *Kucoinfutures) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Kucoinfutures) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)
@@ -1465,6 +1471,9 @@ func (this *Kucoinfutures) EditLimitSellOrder(id string, symbol string, amount f
 }
 func (this *Kucoinfutures) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
+}
+func (this *Kucoinfutures) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
 func (this *Kucoinfutures) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
@@ -1594,6 +1603,9 @@ func (this *Kucoinfutures) FetchOption(symbol string, options ...FetchOptionOpti
 }
 func (this *Kucoinfutures) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
+}
+func (this *Kucoinfutures) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
+	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Kucoinfutures) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)

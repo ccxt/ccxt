@@ -594,7 +594,7 @@ func (this *BlofinCore) ParseMarket(market interface{}) interface{} {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BlofinCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -716,7 +716,7 @@ func (this *BlofinCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @see https://blofin.com/docs#get-tickers
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BlofinCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -753,7 +753,7 @@ func (this *BlofinCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BlofinCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -789,7 +789,7 @@ func (this *BlofinCore) FetchMarkPrice(symbol interface{}, optionalArgs ...inter
  * @see https://blofin.com/docs#get-tickers
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BlofinCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -889,7 +889,7 @@ func (this *BlofinCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BlofinCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1035,11 +1035,11 @@ func (this *BlofinCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
  * @see https://blofin.com/docs#get-funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BlofinCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1153,7 +1153,7 @@ func (this *BlofinCore) ParseFundingRate(contract interface{}, optionalArgs ...i
  * @see https://blofin.com/docs#get-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BlofinCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1317,7 +1317,7 @@ func (this *BlofinCore) ParseTradingFee(fee interface{}, optionalArgs ...interfa
  * @see https://blofin.com/docs#get-futures-account-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BlofinCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1398,16 +1398,16 @@ func (this *BlofinCore) CreateOrderRequest(symbol interface{}, typeVar interface
 	var stopLoss interface{} = this.SafeDict(params, "stopLoss")
 	var takeProfit interface{} = this.SafeDict(params, "takeProfit")
 	params = this.Omit(params, []interface{}{"stopLoss", "takeProfit", "hedged"})
-	var isStopLoss interface{} = !IsEqual(stopLoss, nil)
-	var isTakeProfit interface{} = !IsEqual(takeProfit, nil)
-	if IsTrue(IsTrue(isStopLoss) || IsTrue(isTakeProfit)) {
-		if IsTrue(isStopLoss) {
+	var hasStopLoss interface{} = !IsEqual(stopLoss, nil)
+	var hasTakeProfit interface{} = !IsEqual(takeProfit, nil)
+	if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
+		if IsTrue(hasStopLoss) {
 			var slTriggerPrice interface{} = this.SafeString2(stopLoss, "triggerPrice", "stopPrice")
 			AddElementToObject(request, "slTriggerPrice", this.PriceToPrecision(symbol, slTriggerPrice))
 			var slOrderPrice interface{} = this.SafeString(stopLoss, "price", "-1")
 			AddElementToObject(request, "slOrderPrice", this.PriceToPrecision(symbol, slOrderPrice))
 		}
-		if IsTrue(isTakeProfit) {
+		if IsTrue(hasTakeProfit) {
 			var tpTriggerPrice interface{} = this.SafeString2(takeProfit, "triggerPrice", "stopPrice")
 			AddElementToObject(request, "tpTriggerPrice", this.PriceToPrecision(symbol, tpTriggerPrice))
 			var tpPrice interface{} = this.SafeString(takeProfit, "price", "-1")
@@ -1488,12 +1488,14 @@ func (this *BlofinCore) ParseOrder(order interface{}, optionalArgs ...interface{
 	} else if IsTrue(IsEqual(typeVar, "ioc")) {
 		timeInForce = "IOC"
 		typeVar = "limit"
+	} else if IsTrue(IsEqual(typeVar, "conditional")) {
+		typeVar = "trigger"
 	}
 	var marketId interface{} = this.SafeString(order, "instId")
 	market = this.SafeMarket(marketId, market)
 	var symbol interface{} = this.SafeSymbol(marketId, market, "-")
 	var filled interface{} = this.SafeString(order, "filledSize")
-	var price interface{} = this.SafeString2(order, "px", "price")
+	var price interface{} = this.SafeStringN(order, []interface{}{"px", "price", "orderPrice"})
 	var average interface{} = this.SafeString(order, "averagePrice")
 	var status interface{} = this.ParseOrderStatus(this.SafeString(order, "state"))
 	var feeCostString interface{} = this.SafeString(order, "fee")
@@ -1584,7 +1586,7 @@ func (this *BlofinCore) ParseOrder(order interface{}, optionalArgs ...interface{
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
  * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlofinCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1596,8 +1598,8 @@ func (this *BlofinCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13998 := (<-this.LoadMarkets())
-		PanicOnError(retRes13998)
+		retRes14018 := (<-this.LoadMarkets())
+		PanicOnError(retRes14018)
 		var market interface{} = this.Market(symbol)
 		var tpsl interface{} = this.SafeBool(params, "tpsl", false)
 		params = this.Omit(params, "tpsl")
@@ -1607,19 +1609,21 @@ func (this *BlofinCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params = GetValue(methodparamsVariable, 1)
 		var isStopLossPriceDefined interface{} = !IsEqual(this.SafeString(params, "stopLossPrice"), nil)
 		var isTakeProfitPriceDefined interface{} = !IsEqual(this.SafeString(params, "takeProfitPrice"), nil)
-		var isTriggerOrder interface{} = !IsEqual(this.SafeString(params, "triggerPrice"), nil)
+		var hasTriggerPrice interface{} = !IsEqual(this.SafeString(params, "triggerPrice"), nil)
 		var isType2Order interface{} = (IsTrue(isStopLossPriceDefined) || IsTrue(isTakeProfitPriceDefined))
 		var response interface{} = nil
 		var reduceOnly interface{} = this.SafeBool(params, "reduceOnly")
 		if IsTrue(!IsEqual(reduceOnly, nil)) {
 			AddElementToObject(params, "reduceOnly", Ternary(IsTrue(reduceOnly), "true", "false"))
 		}
-		if IsTrue(IsTrue(IsTrue(tpsl) || IsTrue((IsEqual(method, "privatePostTradeOrderTpsl")))) || IsTrue(isType2Order)) {
+		var isTpslOrder interface{} = IsTrue(IsTrue(tpsl) || IsTrue((IsEqual(method, "privatePostTradeOrderTpsl")))) || IsTrue(isType2Order)
+		var isTriggerOrder interface{} = IsTrue(hasTriggerPrice) || IsTrue((IsEqual(method, "privatePostTradeOrderAlgo")))
+		if IsTrue(isTpslOrder) {
 			var tpslRequest interface{} = this.CreateTpslOrderRequest(symbol, typeVar, side, amount, price, params)
 
 			response = (<-this.PrivatePostTradeOrderTpsl(tpslRequest))
 			PanicOnError(response)
-		} else if IsTrue(IsTrue(isTriggerOrder) || IsTrue((IsEqual(method, "privatePostTradeOrderAlgo")))) {
+		} else if IsTrue(isTriggerOrder) {
 			var triggerRequest interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
 			response = (<-this.PrivatePostTradeOrderAlgo(triggerRequest))
@@ -1630,11 +1634,10 @@ func (this *BlofinCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 			response = (<-this.PrivatePostTradeOrder(request))
 			PanicOnError(response)
 		}
-		if IsTrue(IsTrue(isTriggerOrder) || IsTrue((IsEqual(method, "privatePostTradeOrderAlgo")))) {
+		if IsTrue(IsTrue(isTpslOrder) || IsTrue(isTriggerOrder)) {
 			var dataDict interface{} = this.SafeDict(response, "data", map[string]interface{}{})
-			var triggerOrder interface{} = this.ParseOrder(dataDict, market)
 
-			ch <- triggerOrder
+			ch <- this.ParseOrder(dataDict, market)
 			return nil
 		}
 		var data interface{} = this.SafeList(response, "data", []interface{}{})
@@ -1704,7 +1707,7 @@ func (this *BlofinCore) CreateTpslOrderRequest(symbol interface{}, typeVar inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] True if cancelling a trigger/conditional
  * @param {boolean} [params.tpsl] True if cancelling a tpsl order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlofinCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1719,8 +1722,8 @@ func (this *BlofinCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes14928 := (<-this.LoadMarkets())
-		PanicOnError(retRes14928)
+		retRes14958 := (<-this.LoadMarkets())
+		PanicOnError(retRes14958)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -1777,7 +1780,7 @@ func (this *BlofinCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @see https://blofin.com/docs#place-multiple-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlofinCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1787,8 +1790,8 @@ func (this *BlofinCore) CreateOrders(orders interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes15378 := (<-this.LoadMarkets())
-		PanicOnError(retRes15378)
+		retRes15408 := (<-this.LoadMarkets())
+		PanicOnError(retRes15408)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -1827,7 +1830,7 @@ func (this *BlofinCore) CreateOrders(orders interface{}, optionalArgs ...interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] True if fetching trigger or conditional orders
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlofinCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1843,17 +1846,17 @@ func (this *BlofinCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes15728 := (<-this.LoadMarkets())
-		PanicOnError(retRes15728)
+		retRes15758 := (<-this.LoadMarkets())
+		PanicOnError(retRes15758)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes157619 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
-			PanicOnError(retRes157619)
-			ch <- retRes157619
+			retRes157919 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+			PanicOnError(retRes157919)
+			ch <- retRes157919
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -1907,7 +1910,7 @@ func (this *BlofinCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] Timestamp in ms of the latest time to retrieve trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BlofinCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1923,17 +1926,17 @@ func (this *BlofinCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16208 := (<-this.LoadMarkets())
-		PanicOnError(retRes16208)
+		retRes16238 := (<-this.LoadMarkets())
+		PanicOnError(retRes16238)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes162419 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes162419)
-			ch <- retRes162419
+			retRes162719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes162719)
+			ch <- retRes162719
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -1971,7 +1974,7 @@ func (this *BlofinCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlofinCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1987,17 +1990,17 @@ func (this *BlofinCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16568 := (<-this.LoadMarkets())
-		PanicOnError(retRes16568)
+		retRes16598 := (<-this.LoadMarkets())
+		PanicOnError(retRes16598)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes166019 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes166019)
-			ch <- retRes166019
+			retRes166319 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes166319)
+			ch <- retRes166319
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2038,7 +2041,7 @@ func (this *BlofinCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BlofinCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2054,17 +2057,17 @@ func (this *BlofinCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16958 := (<-this.LoadMarkets())
-		PanicOnError(retRes16958)
+		retRes16988 := (<-this.LoadMarkets())
+		PanicOnError(retRes16988)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes169919 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes169919)
-			ch <- retRes169919
+			retRes170219 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes170219)
+			ch <- retRes170219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2106,7 +2109,7 @@ func (this *BlofinCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BlofinCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2122,17 +2125,17 @@ func (this *BlofinCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17358 := (<-this.LoadMarkets())
-		PanicOnError(retRes17358)
+		retRes17388 := (<-this.LoadMarkets())
+		PanicOnError(retRes17388)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes173919 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes173919)
-			ch <- retRes173919
+			retRes174219 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes174219)
+			ch <- retRes174219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2320,7 +2323,7 @@ func (this *BlofinCore) ParseIds(ids interface{}) interface{} {
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/trigger order
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlofinCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2336,8 +2339,8 @@ func (this *BlofinCore) CancelOrders(ids interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes19268 := (<-this.LoadMarkets())
-		PanicOnError(retRes19268)
+		retRes19298 := (<-this.LoadMarkets())
+		PanicOnError(retRes19298)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = []interface{}{}
 		var options interface{} = this.SafeDict(this.Options, "cancelOrders", map[string]interface{}{})
@@ -2409,7 +2412,7 @@ func (this *BlofinCore) CancelOrders(ids interface{}, optionalArgs ...interface{
  * @param {string} fromAccount account to transfer from (funding, swap, copy_trading, earn)
  * @param {string} toAccount account to transfer to (funding, swap, copy_trading, earn)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BlofinCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2419,8 +2422,8 @@ func (this *BlofinCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes19928 := (<-this.LoadMarkets())
-		PanicOnError(retRes19928)
+		retRes19958 := (<-this.LoadMarkets())
+		PanicOnError(retRes19958)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -2467,7 +2470,7 @@ func (this *BlofinCore) ParseTransfer(transfer interface{}, optionalArgs ...inte
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BlofinCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2477,8 +2480,8 @@ func (this *BlofinCore) FetchPosition(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20348 := (<-this.LoadMarkets())
-		PanicOnError(retRes20348)
+		retRes20378 := (<-this.LoadMarkets())
+		PanicOnError(retRes20378)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instId": GetValue(market, "id"),
@@ -2508,7 +2511,7 @@ func (this *BlofinCore) FetchPosition(symbol interface{}, optionalArgs ...interf
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BlofinCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2520,8 +2523,8 @@ func (this *BlofinCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes20598 := (<-this.LoadMarkets())
-		PanicOnError(retRes20598)
+		retRes20628 := (<-this.LoadMarkets())
+		PanicOnError(retRes20628)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PrivateGetAccountPositions(params))
@@ -2659,7 +2662,7 @@ func (this *BlofinCore) ParsePosition(position interface{}, optionalArgs ...inte
  * @param {string[]} symbols a list of unified market symbols, required on blofin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated'
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *BlofinCore) FetchLeverages(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2671,8 +2674,8 @@ func (this *BlofinCore) FetchLeverages(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21928 := (<-this.LoadMarkets())
-		PanicOnError(retRes21928)
+		retRes21958 := (<-this.LoadMarkets())
+		PanicOnError(retRes21958)
 		if IsTrue(IsEqual(symbols, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverages() requires a symbols argument")))
 		}
@@ -2734,7 +2737,7 @@ func (this *BlofinCore) FetchLeverages(optionalArgs ...interface{}) <-chan inter
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated'
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *BlofinCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2744,8 +2747,8 @@ func (this *BlofinCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22488 := (<-this.LoadMarkets())
-		PanicOnError(retRes22488)
+		retRes22518 := (<-this.LoadMarkets())
+		PanicOnError(retRes22518)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -2827,8 +2830,8 @@ func (this *BlofinCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
 		}
 
-		retRes23118 := (<-this.LoadMarkets())
-		PanicOnError(retRes23118)
+		retRes23148 := (<-this.LoadMarkets())
+		PanicOnError(retRes23148)
 		var market interface{} = this.Market(symbol)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params, "cross")
@@ -2868,7 +2871,7 @@ func (this *BlofinCore) SetLeverage(leverage interface{}, optionalArgs ...interf
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
  * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BlofinCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2880,8 +2883,8 @@ func (this *BlofinCore) ClosePosition(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes23458 := (<-this.LoadMarkets())
-		PanicOnError(retRes23458)
+		retRes23488 := (<-this.LoadMarkets())
+		PanicOnError(retRes23488)
 		var market interface{} = this.Market(symbol)
 		var clientOrderId interface{} = this.SafeString(params, "clientOrderId")
 		var marginMode interface{} = nil
@@ -2918,7 +2921,7 @@ func (this *BlofinCore) ClosePosition(symbol interface{}, optionalArgs ...interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] True if fetching trigger or conditional orders
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BlofinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2934,17 +2937,17 @@ func (this *BlofinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23768 := (<-this.LoadMarkets())
-		PanicOnError(retRes23768)
+		retRes23798 := (<-this.LoadMarkets())
+		PanicOnError(retRes23798)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes238019 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes238019)
-			ch <- retRes238019
+			retRes238319 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes238319)
+			ch <- retRes238319
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2991,7 +2994,7 @@ func (this *BlofinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @see https://docs.blofin.com/index.html#get-margin-mode
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *BlofinCore) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3001,8 +3004,8 @@ func (this *BlofinCore) FetchMarginMode(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24198 := (<-this.LoadMarkets())
-		PanicOnError(retRes24198)
+		retRes24228 := (<-this.LoadMarkets())
+		PanicOnError(retRes24228)
 		var market interface{} = this.Market(symbol)
 
 		response := (<-this.PrivateGetAccountMarginMode(params))
@@ -3055,8 +3058,8 @@ func (this *BlofinCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 		_ = params
 		this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []interface{}{"cross", "isolated"})
 
-		retRes24558 := (<-this.LoadMarkets())
-		PanicOnError(retRes24558)
+		retRes24588 := (<-this.LoadMarkets())
+		PanicOnError(retRes24588)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3151,8 +3154,8 @@ func (this *BlofinCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
 			"positionMode": Ternary(IsTrue(hedged), "long_short_mode", "net_mode"),
 		}
 
-		retRes252815 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-		PanicOnError(retRes252815)
+		retRes253115 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+		PanicOnError(retRes253115)
 		//
 		//     {
 		//         "code": "0",
@@ -3162,7 +3165,7 @@ func (this *BlofinCore) SetPositionMode(hedged interface{}, optionalArgs ...inte
 		//         }
 		//     }
 		//
-		ch <- retRes252815
+		ch <- retRes253115
 		return nil
 
 	}()
