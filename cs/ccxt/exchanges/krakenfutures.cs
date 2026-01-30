@@ -1552,6 +1552,7 @@ public partial class krakenfutures : Exchange
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1572,14 +1573,23 @@ public partial class krakenfutures : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
-        object response = await this.historyGetOrders(this.extend(request, parameters));
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        object response = null;
+        if (isTrue(isTrigger))
+        {
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
+            response = await this.historyGetTriggers(this.extend(request, parameters));
+        } else
+        {
+            response = await this.historyGetOrders(this.extend(request, parameters));
+        }
         object allOrders = this.safeList(response, "elements", new List<object>() {});
         object closedOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
         {
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
-            object orderPlaced = this.safeDict(eventVar, "OrderPlaced");
+            object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated");
             if (isTrue(!isEqual(orderPlaced, null)))
             {
                 object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
@@ -1603,6 +1613,7 @@ public partial class krakenfutures : Exchange
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1623,19 +1634,29 @@ public partial class krakenfutures : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = since;
         }
-        object response = await this.historyGetOrders(this.extend(request, parameters));
+        object response = null;
+        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        if (isTrue(isTrigger))
+        {
+            parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
+            response = await this.historyGetTriggers(this.extend(request, parameters));
+        } else
+        {
+            response = await this.historyGetOrders(this.extend(request, parameters));
+        }
         object allOrders = this.safeList(response, "elements", new List<object>() {});
         object canceledAndRejected = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(allOrders)); postFixIncrement(ref i))
         {
             object order = getValue(allOrders, i);
             object eventVar = this.safeDict(order, "event", new Dictionary<string, object>() {});
-            object orderPlaced = this.safeDict(eventVar, "OrderPlaced");
+            object isCancelledTriggerOrder = (inOp(eventVar, "OrderTriggerCancelled"));
+            object orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled");
             if (isTrue(!isEqual(orderPlaced, null)))
             {
                 object innerOrder = this.safeDict(orderPlaced, "order", new Dictionary<string, object>() {});
                 object filled = this.safeString(innerOrder, "filled");
-                if (isTrue(isEqual(filled, "0")))
+                if (isTrue(isTrue(isEqual(filled, "0")) || isTrue(isCancelledTriggerOrder)))
                 {
                     ((IDictionary<string,object>)innerOrder)["status"] = "canceled"; // status not available in the response
                     ((IList<object>)canceledAndRejected).Add(innerOrder);
@@ -3122,7 +3143,13 @@ public partial class krakenfutures : Exchange
             body = postData;
         } else if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
         {
-            postData = this.urlencode(parameters);
+            if (isTrue(inOp(parameters, "orderIds")))
+            {
+                postData = this.urlencodeWithArrayRepeat(parameters);
+            } else
+            {
+                postData = this.urlencode(parameters);
+            }
             query = add(query, add("?", postData));
         }
         object url = add(getValue(getValue(this.urls, "api"), api), query);

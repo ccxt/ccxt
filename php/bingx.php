@@ -69,6 +69,7 @@ class bingx extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
@@ -1810,6 +1811,91 @@ class bingx extends Exchange {
             'fundingRate' => $this->safe_number($contract, 'fundingRate'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding received
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for
+         * @param {int} [$since] timestamp in ms of the earliest funding to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingHistory', $symbol, $since, $limit, '24h', $params);
+        }
+        $request = array(
+            'incomeType' => 'FUNDING_FEE',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'endTime');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['endTime'] = $until;
+        }
+        $response = $this->swapV2PrivateGetUserIncome ($this->extend($request, $params));
+        //         {
+        //             "code" => 0,
+        //             "msg" => "",
+        //             "data" => array(
+        //                 {
+        //                 "symbol" => "LDO-USDT",
+        //                 "incomeType" => "FUNDING_FEE",
+        //                 "income" => "-0.0292",
+        //                 "asset" => "USDT",
+        //                 "info" => "Funding Fee",
+        //                 "time" => 1702713615000,
+        //                 "tranId" => "170***6*2_3*9_20***97",
+        //                 "tradeId" => "170***6*2_3*9_20***97"
+        //                 }
+        //             )
+        //         }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_incomes($data, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        // {
+        //     "symbol" => "LDO-USDT",
+        //     "incomeType" => "FUNDING_FEE",
+        //     "income" => "-0.0292",
+        //     "asset" => "USDT",
+        //     "info" => "Funding Fee",
+        //     "time" => 1702713615000,
+        //     "tranId" => "170***6*2_3*9_20***97",
+        //     "tradeId" => "170***6*2_3*9_20***97"
+        // }
+        $marketId = $this->safe_string($income, 'symbol');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->safe_integer($income, 'time');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'tranId'),
+            'amount' => $this->safe_number($income, 'income'),
+            'type' => 'funding',
         );
     }
 

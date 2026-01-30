@@ -30,7 +30,7 @@ declare function setProxyOptions(exchange: Exchange, skippedProperties: object, 
 declare function concat(a?: any[], b?: any[]): any[];
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
 declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, key: string | number): void;
-declare function deepEqual(a: any, b: any): boolean;
+declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare const _default: {
     deepEqual: typeof deepEqual;
