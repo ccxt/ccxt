@@ -27,6 +27,8 @@ import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFr
 import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
+import testEthMethods from './test.ethMethods.js';
+import testCapitalize from './test.capitalize.js';
 async function baseTestsInit() {
     testLanguageSpecific();
     testAfterConstructor();
@@ -35,6 +37,7 @@ async function baseTestsInit() {
     testCryptography();
     testDatetime();
     testDecimalToPrecision();
+    testCapitalize();
     testNumberToString();
     testPrecise();
     testSafeMethods();
@@ -49,6 +52,7 @@ async function baseTestsInit() {
     testRemoveRepeatedElementsFromArray();
     testParsePrecision();
     testArraysConcat();
+    testEthMethods();
     await testSleep();
 }
 export default baseTestsInit;

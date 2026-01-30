@@ -584,16 +584,23 @@ export default class hyperliquid extends Exchange {
         let fetchDexesList = [];
         const options = this.safeDict (this.options, 'fetchMarkets', {});
         const hip3 = this.safeDict (options, 'hip3', {});
-        const dexesProvided = this.safeList (hip3, 'dexes'); // let users provide their own list of dexes to load
+        const dexesProvided = this.safeList (hip3, 'dexes', []); // let users provide their own list of dexes to load
         const maxLimit = this.safeInteger (hip3, 'limit', 10);
-        if (dexesProvided !== undefined) {
-            const userProvidedDexesLength = dexesProvided.length;
+        const userProvidedDexesLength = dexesProvided.length;
+        if (userProvidedDexesLength > 0) {
             if (userProvidedDexesLength > 0) {
                 fetchDexesList = dexesProvided;
             }
         } else {
+            const fetchDexesLength = fetchDexes.length;
             for (let i = 1; i < maxLimit; i++) {
+                if (i >= fetchDexesLength) {
+                    break;
+                }
                 const dex = this.safeDict (fetchDexes, i, {});
+                if (dex === undefined) {
+                    continue;
+                }
                 const dexName = this.safeString (dex, 'name');
                 fetchDexesList.push (dexName);
             }
@@ -1069,6 +1076,14 @@ export default class hyperliquid extends Exchange {
         });
     }
 
+    updateSpotCurrencyCode (code: string): string {
+        if (code === undefined) {
+            return code;
+        }
+        const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
+        return this.safeString (spotCurrencyMapping, code, code);
+    }
+
     /**
      * @method
      * @name hyperliquid#fetchBalance
@@ -1136,7 +1151,8 @@ export default class hyperliquid extends Exchange {
             const spotBalances: Dict = { 'info': response };
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const code = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+                const unifiedCode = this.safeCurrencyCode (this.safeString (balance, 'coin'));
+                const code = isSpot ? this.updateSpotCurrencyCode (unifiedCode) : unifiedCode;
                 const account = this.account ();
                 const total = this.safeString (balance, 'total');
                 const used = this.safeString (balance, 'hold');
@@ -1402,6 +1418,7 @@ export default class hyperliquid extends Exchange {
             'datetime': undefined,
             'previousClose': this.safeNumber (ticker, 'prevDayPx'),
             'close': this.safeNumber (ticker, 'midPx'),
+            'last': this.safeNumber (ticker, 'price'),
             'bid': this.safeNumber (bidAsk, 0),
             'ask': this.safeNumber (bidAsk, 1),
             'quoteVolume': this.safeNumber (ticker, 'dayNtlVlm'),
@@ -1599,7 +1616,7 @@ export default class hyperliquid extends Exchange {
         };
     }
 
-    actionHash (action, vaultAddress, nonce) {
+    actionHash (action, vaultAddress, nonce, expiresAfter = undefined) {
         const dataBinary = this.packb (action);
         const dataHex = this.binaryToBase16 (dataBinary);
         let data = dataHex;
@@ -1610,11 +1627,15 @@ export default class hyperliquid extends Exchange {
             data += '01';
             data += vaultAddress;
         }
+        if (expiresAfter !== undefined) {
+            data += '00';
+            data += '00000' + this.intToBase16 (expiresAfter);
+        }
         return this.hash (this.base16ToBinary (data), keccak, 'binary');
     }
 
-    signL1Action (action, nonce, vaultAdress = undefined): object {
-        const hash = this.actionHash (action, vaultAdress, nonce);
+    signL1Action (action, nonce, vaultAdress = undefined, expiresAfter = undefined): object {
+        const hash = this.actionHash (action, vaultAdress, nonce, expiresAfter);
         const isTestnet = this.safeBool (this.options, 'sandboxMode', false);
         const phantomAgent = this.constructPhantomAgent (hash, isTestnet);
         // const data: Dict = {
@@ -3014,6 +3035,7 @@ export default class hyperliquid extends Exchange {
         if (entry === undefined) {
             entry = order;
         }
+        const filled = this.safeDict (order, 'filled', {});
         const coin = this.safeString (entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
@@ -3058,7 +3080,7 @@ export default class hyperliquid extends Exchange {
             'amount': totalAmount,
             'cost': undefined,
             'average': this.safeString (entry, 'avgPx'),
-            'filled': Precise.stringSub (totalAmount, remaining),
+            'filled': this.safeString (filled, 'totalSz', Precise.stringSub (totalAmount, remaining)),
             'remaining': remaining,
             'status': this.parseOrderStatus (status),
             'fee': undefined,
@@ -3535,7 +3557,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'add', params);
@@ -3551,7 +3573,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.vaultAddress] the vault address
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
@@ -3980,7 +4002,7 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {string} [params.subAccountAddress] sub account user address
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -4368,6 +4390,36 @@ export default class hyperliquid extends Exchange {
             'weight': weight,
         };
         const signature = this.signL1Action (action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#createAccount
+     * @description creates a sub-account under the main account
+     * @param {string} name the name of the sub-account
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
+     * @returns {object} a response object
+     */
+    async createSubAccount (name: string, params = {}) {
+        const nonce = this.milliseconds ();
+        const request: Dict = {
+            'nonce': nonce,
+        };
+        const action: Dict = {
+            'type': 'createSubAccount',
+            'name': name,
+        };
+        const expiresAfter = this.safeInteger (params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            params = this.omit (params, 'expiresAfter');
+            request['expiresAfter'] = expiresAfter;
+        }
+        const signature = this.signL1Action (action, nonce, undefined, expiresAfter);
         request['action'] = action;
         request['signature'] = signature;
         const response = await this.privatePostExchange (this.extend (request, params));

@@ -2595,9 +2595,11 @@ export default class binance extends binanceRest {
         const response = await this.fetchBalance(params);
         this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve();
-        client.resolve(this.balance[type], type + ':balance');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance[type], type + ':balance');
+        }
     }
     /**
      * @method
@@ -2744,7 +2746,12 @@ export default class binance extends binanceRest {
                 payload['symbol'] = market['id'];
             }
         }
-        const type = this.getMarketType('fetchPositionsWs', market, params);
+        let type = this.getMarketType('fetchPositionsWs', market, params);
+        if (symbols === undefined && (type === 'spot')) {
+            // when symbols aren't provide
+            // we shouldn't rely on the defaultType
+            type = 'future';
+        }
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest(this.id + ' fetchPositionsWs only supports swap markets');
         }
@@ -4038,9 +4045,11 @@ export default class binance extends binanceRest {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, type + ':position');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, type + ':position');
+        }
     }
     handlePositions(client, message) {
         //

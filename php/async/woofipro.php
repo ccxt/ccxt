@@ -37,6 +37,9 @@ class woofipro extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
@@ -61,12 +64,21 @@ class woofipro extends Exchange {
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
                 'fetchAccounts' => false,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => false,
                 'fetchConvertQuote' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
@@ -77,7 +89,10 @@ class woofipro extends Exchange {
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchMarginAdjustmentHistory' => false,
@@ -89,6 +104,8 @@ class woofipro extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -106,8 +123,11 @@ class woofipro extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => 'emulated',
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
                 'setPositionMode' => false,
@@ -2459,7 +2479,7 @@ class woofipro extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
              * @param {int} [$limit] max number of ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $params));
             $currency = $this->safe_value($currencyRows, 0);

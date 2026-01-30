@@ -54,6 +54,7 @@
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [reserveRequestWeight](#reserverequestweight)
+* [createAccount](#createaccount)
 * [createOrdersWs](#createordersws)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -65,11 +66,13 @@
 * [watchTickers](#watchtickers)
 * [unWatchTickers](#unwatchtickers)
 * [watchMyTrades](#watchmytrades)
+* [unWatchMyTrades](#unwatchmytrades)
 * [watchTrades](#watchtrades)
 * [unWatchTrades](#unwatchtrades)
 * [watchOHLCV](#watchohlcv)
 * [unWatchOHLCV](#unwatchohlcv)
 * [watchOrders](#watchorders)
+* [unWatchOrders](#unwatchorders)
 
 <a name="fetchStatus" id="fetchstatus"></a>
 
@@ -973,7 +976,7 @@ hyperliquid.setLeverage (leverage, symbol[, params])
 add margin
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -997,7 +1000,7 @@ hyperliquid.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -1097,7 +1100,7 @@ hyperliquid.fetchTradingFee (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 
 | Param | Type | Required | Description |
@@ -1245,6 +1248,27 @@ Instead of trading to increase the address based rate limits, this action allows
 
 ```javascript
 hyperliquid.reserveRequestWeight (weight[, params])
+```
+
+
+<a name="createAccount" id="createaccount"></a>
+
+### createAccount{docsify-ignore}
+creates a sub-account under the main account
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - a response object
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| name | <code>string</code> | Yes | the name of the sub-account |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the sub-account will expire |
+
+
+```javascript
+hyperliquid.createAccount (name[, params])
 ```
 
 
@@ -1438,6 +1462,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 
 
 ```javascript
@@ -1459,6 +1484,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 | params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market |
 
 
@@ -1481,6 +1507,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 
 
 ```javascript
@@ -1509,6 +1536,28 @@ watches information on multiple trades made by the user
 
 ```javascript
 hyperliquid.watchMyTrades (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchMyTrades" id="unwatchmytrades"></a>
+
+### unWatchMyTrades{docsify-ignore}
+unWatches information on multiple trades made by the user
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.unWatchMyTrades (symbol[, params])
 ```
 
 
@@ -1623,5 +1672,27 @@ watches information on multiple orders made by the user
 
 ```javascript
 hyperliquid.watchOrders (symbol[, since, limit, params])
+```
+
+
+<a name="unWatchOrders" id="unwatchorders"></a>
+
+### unWatchOrders{docsify-ignore}
+unWatches information on multiple orders made by the user
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.user | <code>string</code> | No | user address, will default to this.walletAddress if not provided |
+
+
+```javascript
+hyperliquid.unWatchOrders (symbol[, params])
 ```
 

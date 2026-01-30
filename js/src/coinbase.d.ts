@@ -205,7 +205,7 @@ export default class coinbase extends Exchange {
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntryStatus(status: any): string;
@@ -432,12 +432,13 @@ export default class coinbase extends Exchange {
      * @method
      * @name coinbase#withdraw
      * @description make a withdrawal
-     * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     withdraw(code: string, amount: number, address: string, tag?: Str, params?: {}): Promise<Transaction>;
@@ -620,4 +621,15 @@ export default class coinbase extends Exchange {
         headers: any;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    /**
+     * @method
+     * @name coinbase#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies (when available)
+     * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] account ID to fetch deposit addresses for
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+     */
+    fetchDepositAddresses(codes?: Strings, params?: {}): Promise<DepositAddress[]>;
 }

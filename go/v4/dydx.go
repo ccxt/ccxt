@@ -507,9 +507,9 @@ func (this *DydxCore) ParseMarket(market interface{}) interface{} {
 	var marketId interface{} = this.SafeString(market, "ticker")
 	var parts interface{} = Split(marketId, "-")
 	var baseName interface{} = this.SafeString(parts, 0)
-	var base interface{} = this.SafeCurrencyCode(baseName)
+	var baseId interface{} = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
+	var base interface{} = this.SafeCurrencyCode(baseId)
 	var quote interface{} = this.SafeCurrencyCode(quoteId)
-	var baseId interface{} = this.SafeString(market, "baseId")
 	var settleId interface{} = "USDC"
 	var settle interface{} = this.SafeCurrencyCode(settleId)
 	var symbol interface{} = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
@@ -540,11 +540,11 @@ func (this *DydxCore) ParseMarket(market interface{}) interface{} {
 		"option":         false,
 		"active":         active,
 		"contract":       contract,
+		"contractSize":   this.ParseNumber("1"),
 		"linear":         true,
 		"inverse":        false,
 		"taker":          nil,
 		"maker":          nil,
-		"contractSize":   nil,
 		"expiry":         nil,
 		"expiryDatetime": nil,
 		"strike":         nil,
@@ -2099,7 +2099,7 @@ func (this *DydxCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *DydxCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.28';
+$version = '4.5.35';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.28';
+    const VERSION = '4.5.35';
 
     public $browser;
     public $marketsLoading = null;
@@ -715,6 +715,7 @@ class Exchange extends \ccxt\Exchange {
                 'price' => array( 'min' => null, 'max' => null ),
                 'cost' => array( 'min' => null, 'max' => null ),
             ),
+            'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
     }
 
@@ -743,10 +744,14 @@ class Exchange extends \ccxt\Exchange {
     public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from $dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if (is_bool($value)) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -771,7 +776,14 @@ class Exchange extends \ccxt\Exchange {
          * safely extract a $dictionary from $dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
@@ -814,7 +826,14 @@ class Exchange extends \ccxt\Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function handle_deltas($orderbook, $deltas) {
@@ -1609,12 +1628,16 @@ class Exchange extends \ccxt\Exchange {
         if ($this->rateLimit > 0) {
             $refillRate = 1 / $this->rateLimit;
         }
+        $useLeaky = ($this->rollingWindowSize === 0.0) || ($this->rateLimiterAlgorithm === 'leakyBucket');
+        $algorithm = $useLeaky ? 'leakyBucket' : 'rollingWindow';
         $defaultBucket = array(
             'delay' => 0.001,
             'capacity' => 1,
             'cost' => 1,
-            'maxCapacity' => $this->safe_integer($this->options, 'maxRequestsQueue', 1000),
             'refillRate' => $refillRate,
+            'algorithm' => $algorithm,
+            'windowSize' => $this->rollingWindowSize,
+            'rateLimit' => $this->rateLimit,
         );
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
         $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
@@ -5045,6 +5068,10 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchCanceledOrders() is not supported yet');
+    }
+
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -5612,6 +5639,10 @@ class Exchange extends \ccxt\Exchange {
             $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
             return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         }) ();
+    }
+
+    public function create_sub_account(string $name, $params = array ()) {
+        throw new NotSupported($this->id . ' createSubAccount() is not supported yet');
     }
 
     public function safe_currency_code(?string $currencyId, ?array $currency = null) {
@@ -6420,7 +6451,8 @@ class Exchange extends \ccxt\Exchange {
                 $uniqueResults = $this->remove_repeated_elements_from_array($result);
             }
             $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
-            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+            $sortedRes = $this->sort_by($uniqueResults, $key);
+            return $this->filter_by_since_limit($sortedRes, $since, $limit, $key);
         }) ();
     }
 
@@ -6938,6 +6970,12 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function load_markets_and_sign_in() {
+        return Async\async(function ()  {
+            Async\await(Promise\all(array( $this->load_markets(), $this->sign_in() )));
+        }) ();
+    }
+
     public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetches the history of margin added or reduced from contract isolated positions
@@ -7177,5 +7215,32 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
+    }
+
+    public function timeframe_from_milliseconds(float $ms) {
+        if ($ms <= 0) {
+            return '';
+        }
+        $second = 1000;
+        $minute = 60 * $second;
+        $hour = 60 * $minute;
+        $day = 24 * $hour;
+        $week = 7 * $day;
+        if (fmod($ms, $week) === 0) {
+            return ($ms / $week) . 'w';
+        }
+        if (fmod($ms, $day) === 0) {
+            return ($ms / $day) . 'd';
+        }
+        if (fmod($ms, $hour) === 0) {
+            return ($ms / $hour) . 'h';
+        }
+        if (fmod($ms, $minute) === 0) {
+            return ($ms / $minute) . 'm';
+        }
+        if (fmod($ms, $second) === 0) {
+            return ($ms / $second) . 's';
+        }
+        return '';
     }
 }

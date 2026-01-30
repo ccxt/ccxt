@@ -48,6 +48,7 @@ class xt extends xt$1["default"] {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': false,
@@ -72,6 +73,7 @@ class xt extends xt$1["default"] {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': true,
@@ -86,6 +88,8 @@ class xt extends xt$1["default"] {
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -109,6 +113,7 @@ class xt extends xt$1["default"] {
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -1897,8 +1902,8 @@ class xt extends xt$1["default"] {
             'change': this.safeNumber(ticker, 'cv'),
             'percentage': this.parseNumber(percentage),
             'average': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': this.safeNumber2(ticker, 'a', 'v'),
+            'baseVolume': this.safeNumber(ticker, 'a'),
+            'quoteVolume': this.safeNumber(ticker, 'v'),
             'info': ticker,
         }, market);
     }
@@ -3736,7 +3741,7 @@ class xt extends xt$1["default"] {
         //             "hasNext": false,
         //             "items": [
         //                 {
-        //                     "id": "207260567109387524",
+        //                     "id": "207260567109387525",
         //                     "coin": "usdt",
         //                     "symbol": "btc_usdt",
         //                     "type": "FEE",
@@ -4159,7 +4164,7 @@ class xt extends xt$1["default"] {
      * @param {float} amount amount of margin to add
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'ADD', params);
@@ -4173,7 +4178,7 @@ class xt extends xt$1["default"] {
      * @param {float} amount the amount of margin to remove
      * @param {object} params extra parameters specific to the xt api endpoint
      * @param {string} params.positionSide 'LONG' or 'SHORT'
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'SUB', params);

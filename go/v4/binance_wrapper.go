@@ -1108,7 +1108,7 @@ func (this *Binance) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (map[string]interface{}, error) {
+func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
 	opts := FetchCanceledOrdersOptionsStruct{}
 
@@ -1137,9 +1137,9 @@ func (this *Binance) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 	}
 	res := <-this.Core.FetchCanceledOrders(symbol, since, limit, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**
@@ -2478,7 +2478,7 @@ func (this *Binance) FetchMySettlementHistory(options ...FetchMySettlementHistor
  * @param {string} id the identification number of the ledger entry
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Binance) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
 
@@ -2521,7 +2521,7 @@ func (this *Binance) FetchLedgerEntry(id string, options ...FetchLedgerEntryOpti
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Binance) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

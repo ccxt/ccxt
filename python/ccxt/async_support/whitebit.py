@@ -2431,7 +2431,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         {...}                                 # More withdrawal transactions
         #     ]
         #
-        return self.parse_transactions(response, currency, since, limit)
+        return self.parse_transactions(self.safe_list(response, 'records', []), currency, since, limit)
 
     async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -2752,7 +2752,7 @@ class whitebit(Exchange, ImplicitAPI):
         #
         #     []
         #
-        return self.extend({'id': uniqueId}, self.parse_transaction(response, currency))
+        return self.extend(self.parse_transaction(response, currency), {'id': uniqueId})
 
     def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
@@ -2807,7 +2807,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
-            'tag': None,
+            'tag': self.safe_string(transaction, 'memo'),
             'tagTo': None,
             'comment': self.safe_string(transaction, 'description'),
             'internal': None,

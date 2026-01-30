@@ -37,6 +37,9 @@ class woofipro extends woofipro$1["default"] {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -61,12 +64,21 @@ class woofipro extends woofipro$1["default"] {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
@@ -77,7 +89,10 @@ class woofipro extends woofipro$1["default"] {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarginAdjustmentHistory': false,
@@ -89,6 +104,8 @@ class woofipro extends woofipro$1["default"] {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -106,8 +123,11 @@ class woofipro extends woofipro$1["default"] {
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': false,
@@ -2383,7 +2403,7 @@ class woofipro extends woofipro$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         const currencyRows = await this.getAssetHistoryRows(code, since, limit, params);

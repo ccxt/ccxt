@@ -27,6 +27,12 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
                 { "watchPosition", false },
+                { "unWatchOrderBook", true },
+                { "unWatchTickers", true },
+                { "unWatchTrades", true },
+                { "unWatchOHLCV", true },
+                { "unWatchMyTrades", true },
+                { "unWatchOrders", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -60,7 +66,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
@@ -96,7 +102,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.slippage] the slippage for market order
      * @param {string} [params.vaultAddress] the vault address for order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -134,7 +140,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -169,7 +175,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderId] list of client order ids to cancel instead of order ids
      * @param {string} [params.vaultAddress] the vault address for order cancellation
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
@@ -207,7 +213,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id to cancel instead of order id
      * @param {string} [params.vaultAddress] the vault address for order cancellation
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
@@ -224,7 +230,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -253,7 +259,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -334,7 +340,8 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -360,8 +367,9 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -370,10 +378,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         symbols = this.marketSymbols(symbols, null, true);
         object messageHash = "tickers";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object channel = "webData2";
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", channel);
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
-                { "type", "webData2" },
+                { "type", channel },
                 { "user", "0x0000000000000000000000000000000000000000" },
             } },
         };
@@ -410,7 +422,8 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
@@ -418,12 +431,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true);
         object subMessageHash = "tickers";
+        object channel = "webData2";
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "unWatchTickers", "channel", channel);
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
         object messageHash = add("unsubscribe:", subMessageHash);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
-                { "type", "webData2" },
+                { "type", channel },
                 { "user", "0x0000000000000000000000000000000000000000" },
             } },
         };
@@ -440,7 +457,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -471,6 +488,41 @@ public partial class hyperliquid : ccxt.hyperliquid
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchMyTrades
+     * @description unWatches information on multiple trades made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> unWatchMyTrades(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
+        }
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("unWatchMyTrades", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object messageHash = "unsubscribe:myTrades";
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "subscription", new Dictionary<string, object>() {
+                { "type", "userFills" },
+                { "user", userAddress },
+            } },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watch(url, messageHash, message, messageHash);
     }
 
     public virtual object handleWsTickers(WebSocketClient client, object message)
@@ -554,7 +606,12 @@ public partial class hyperliquid : ccxt.hyperliquid
                     }, market);
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
                 }
-                object messageHash = add("tickers:", this.safeString(data, "dex"));
+                object messageHash = "tickers";
+                object dexMessage = this.safeString(data, "dex");
+                if (isTrue(!isEqual(dexMessage, null)))
+                {
+                    messageHash = add(messageHash, add(":", dexMessage));
+                }
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.tickers, messageHash});
                 return true;
             }
@@ -671,7 +728,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -704,7 +761,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -975,7 +1032,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1008,6 +1065,41 @@ public partial class hyperliquid : ccxt.hyperliquid
             limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    public async override Task<object> unWatchOrders(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
+        }
+        object messageHash = "unsubscribe:order";
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("unWatchOrders", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "method", "unsubscribe" },
+            { "subscription", new Dictionary<string, object>() {
+                { "type", "orderUpdates" },
+                { "user", userAddress },
+            } },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watch(url, messageHash, message, messageHash);
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -1205,6 +1297,28 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
+    public virtual void handleOrderUnsubscription(WebSocketClient client, object subscription)
+    {
+        object subHash = "order";
+        object unSubHash = add("unsubscribe:", subHash);
+        this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
+        object topicStructure = new Dictionary<string, object>() {
+            { "topic", "orders" },
+        };
+        this.cleanCache(topicStructure);
+    }
+
+    public virtual void handleMyTradesUnsubscription(WebSocketClient client, object subscription)
+    {
+        object subHash = "myTrades";
+        object unSubHash = add("unsubscribe:", subHash);
+        this.cleanUnsubscription(client as WebSocketClient, subHash, unSubHash, true);
+        object topicStructure = new Dictionary<string, object>() {
+            { "topic", "myTrades" },
+        };
+        this.cleanCache(topicStructure);
+    }
+
     public virtual void handleSubscriptionResponse(WebSocketClient client, object message)
     {
         // {
@@ -1249,6 +1363,12 @@ public partial class hyperliquid : ccxt.hyperliquid
             } else if (isTrue(isEqual(type, "candle")))
             {
                 this.handleOHLCVUnsubscription(client as WebSocketClient, subscription);
+            } else if (isTrue(isEqual(type, "orderUpdates")))
+            {
+                this.handleOrderUnsubscription(client as WebSocketClient, subscription);
+            } else if (isTrue(isEqual(type, "userFills")))
+            {
+                this.handleMyTradesUnsubscription(client as WebSocketClient, subscription);
             }
         }
     }
@@ -1319,7 +1439,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //       "channel": "pong"
         //   }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 

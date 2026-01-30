@@ -42,6 +42,9 @@ class woofipro(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -66,12 +69,21 @@ class woofipro(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
                 'fetchAccounts': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
                 'fetchClosedOrders': True,
                 'fetchConvertCurrencies': False,
                 'fetchConvertQuote': False,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDeposits': True,
@@ -82,7 +94,10 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchMarginAdjustmentHistory': False,
@@ -94,6 +109,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -111,8 +128,11 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
                 'setPositionMode': False,
@@ -2294,7 +2314,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         currencyRows = await self.get_asset_history_rows(code, since, limit, params)
         currency = self.safe_value(currencyRows, 0)

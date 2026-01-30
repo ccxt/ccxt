@@ -2549,7 +2549,7 @@ export default class whitebit extends Exchange {
         //         { ... }                                 // More withdrawal transactions
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return this.parseTransactions(this.safeList(response, 'records', []), currency, since, limit);
     }
     /**
      * @method
@@ -2888,7 +2888,7 @@ export default class whitebit extends Exchange {
         //
         //     []
         //
-        return this.extend({ 'id': uniqueId }, this.parseTransaction(response, currency));
+        return this.extend(this.parseTransaction(response, currency), { 'id': uniqueId });
     }
     parseTransaction(transaction, currency = undefined) {
         //
@@ -2943,7 +2943,7 @@ export default class whitebit extends Exchange {
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
-            'tag': undefined,
+            'tag': this.safeString(transaction, 'memo'),
             'tagTo': undefined,
             'comment': this.safeString(transaction, 'description'),
             'internal': undefined,

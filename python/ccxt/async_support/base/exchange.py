@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.28'
+__version__ = '4.5.35'
 
 # -----------------------------------------------------------------------------
 
@@ -416,6 +416,7 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
+        self.open()  # ensure self.asyncio_loop is set
         self.clients = self.clients or {}
         if url not in self.clients:
             on_message = self.handle_message
@@ -1641,6 +1642,9 @@ class Exchange(BaseExchange):
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchCanceledOrders() is not supported yet')
+
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
 
@@ -1855,6 +1859,9 @@ class Exchange(BaseExchange):
         query = self.extend(params, {'stopPrice': triggerPrice})
         return await self.create_order_ws(symbol, 'market', side, amount, None, query)
 
+    async def create_sub_account(self, name: str, params={}):
+        raise NotSupported(self.id + ' createSubAccount() is not supported yet')
+
     async def fetch_last_prices(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchLastPrices() is not supported yet')
 
@@ -2041,7 +2048,8 @@ class Exchange(BaseExchange):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None
@@ -2201,6 +2209,9 @@ class Exchange(BaseExchange):
             return positions
         else:
             raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    async def load_markets_and_sign_in(self):
+        await asyncio.gather(*[self.load_markets(), self.sign_in()])
 
     async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """

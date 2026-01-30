@@ -71,7 +71,7 @@ public partial class dydx : ccxt.dydx
      * @see https://docs.dydx.xyz/indexer-client/websockets#trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -105,7 +105,7 @@ public partial class dydx : ccxt.dydx
         //                 "size": "0.024",
         //                 "price": "114581",
         //                 "type": "LIMIT",
-        //                 "createdAt": "2025-08-04T00:42:07.118Z",
+        //                 "createdAt": "2025-08-04T00:42:07.119Z",
         //                 "createdAtHeight": "45487245"
         //             }
         //         ]
@@ -138,13 +138,13 @@ public partial class dydx : ccxt.dydx
     {
         //
         // {
-        //     "id": "02b6148d0000000200000005",
+        //     "id": "02b6148d0000000200000003",
         //     "side": "BUY",
         //     "size": "0.024",
         //     "price": "114581",
         //     "type": "LIMIT",
         //     "createdAt": "2025-08-04T00:42:07.118Z",
-        //     "createdAtHeight": "45487245"
+        //     "createdAtHeight": "45487244"
         // }
         //
         object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
@@ -173,7 +173,7 @@ public partial class dydx : ccxt.dydx
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -198,7 +198,7 @@ public partial class dydx : ccxt.dydx
      * @see https://docs.dydx.xyz/indexer-client/websockets#orders
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {

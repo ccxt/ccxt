@@ -276,6 +276,7 @@ func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...ccxt.UnWatch
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hyperliquid) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
@@ -303,6 +304,7 @@ func (this *Hyperliquid) WatchTicker(symbol string, options ...ccxt.WatchTickerO
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -336,6 +338,7 @@ func (this *Hyperliquid) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hyperliquid) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (interface{}, error) {
@@ -405,6 +408,39 @@ func (this *Hyperliquid) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]
         return nil, ccxt.CreateReturnError(res)
     }
     return ccxt.NewTradeArray(res), nil
+}
+/**
+ * @method
+ * @name hyperliquid#unWatchMyTrades
+ * @description unWatches information on multiple trades made by the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchMyTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchMyTrades(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
 }
 /**
  * @method
@@ -595,6 +631,39 @@ func (this *Hyperliquid) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt
     }
     return ccxt.NewOrderArray(res), nil
 }
+/**
+ * @method
+ * @name hyperliquid#unWatchOrders
+ * @description unWatches information on multiple orders made by the user
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ */
+func (this *Hyperliquid) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchOrders(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
 // missing typed methods from base
 //nolint
 func (this *Hyperliquid) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
@@ -767,10 +836,8 @@ func (this *Hyperliquid) FetchTradesWs(symbol string, options ...ccxt.FetchTrade
 func (this *Hyperliquid) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
 func (this *Hyperliquid) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
 func (this *Hyperliquid) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
-func (this *Hyperliquid) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
 func (this *Hyperliquid) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...ccxt.UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
 func (this *Hyperliquid) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
-func (this *Hyperliquid) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
 func (this *Hyperliquid) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
 func (this *Hyperliquid) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
 func (this *Hyperliquid) WatchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}

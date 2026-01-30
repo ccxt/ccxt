@@ -121,6 +121,8 @@ node path/to/example.js # substitute for actual filename here
 
 - [Exchange Capabilities](./examples/js/exchange-capabilities.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/js/exchange-rate-limiter-rollingWindow.md)
+
 - [Exchanges By Volume](./examples/js/exchanges-by-volume.md)
 
 - [Exchanges](./examples/js/exchanges.md)

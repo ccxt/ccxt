@@ -1351,7 +1351,7 @@ public partial class hyperliquid
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1543,5 +1543,10 @@ public partial class hyperliquid
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createSubAccount(name, parameters);
+        return ((Dictionary<string, object>)res);
     }
 }

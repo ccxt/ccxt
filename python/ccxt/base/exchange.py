@@ -4,10 +4,11 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.28'
+__version__ = '4.5.35'
 
 # -----------------------------------------------------------------------------
 
+from traceback import format_exception
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -33,7 +34,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool, Order
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, NumType, Strings, CancellationRequest, Bool, Order
 
 # -----------------------------------------------------------------------------
 
@@ -76,7 +77,7 @@ from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as Type
 # dydx
 try:
     from ccxt.static_dependencies.mnemonic import Mnemonic
-    from ccxt.static_dependencies.bip import Bip44
+    from ccxt.static_dependencies.bip.bip44 import Bip44
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
         AuthInfo,
@@ -369,7 +370,7 @@ class Exchange(object):
     minFundingAddressLength = 1  # used in check_address
     substituteCommonCurrencyCodes = True
     quoteJsonNumbers = True
-    number: Num = float  # or str (a pointer to a class)
+    number: NumType = float  # or str (a pointer to a class)
     handleContentTypeApplicationZip = False
     # whether fees should be summed by currency code
     reduceFees = True
@@ -1002,16 +1003,35 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def deep_extend(*args):
+    def deep_extend(*args, _all_dicts=False):
+        # extra argument is just for internal use, no need to use that in implementations
         result = None
+        result_is_dict = False
+
         for arg in args:
-            if isinstance(arg, dict):
-                if not isinstance(result, dict):
+            # if _all_dicts or (arg is not None and arg.__class__ is dict):
+            if _all_dicts or isinstance(arg, dict):
+                # This is a dict (even if empty) so set the return type.
+                if result is None or not result_is_dict:
                     result = {}
-                for key in arg:
-                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+                    result_is_dict = True
+
+                # Skip actual merging if dict is empty.
+                if not arg:
+                    continue
+
+                for key, value in arg.items():
+                    current = result.get(key)
+                    # if current is not None and current.__class__ is dict and value.__class__ is dict:
+                    if isinstance(current, dict) and isinstance(value, dict):
+                        result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
+                    else:
+                        result[key] = value
             else:
+                # arg is None or other non-dict.
                 result = arg
+                result_is_dict = False
+
         return result
 
     @staticmethod
@@ -1411,6 +1431,21 @@ class Exchange(object):
     def eth_encode_structured_data(domain, messageTypes, message):
         encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
+
+    @staticmethod
+    def eth_get_address_from_private_key(private_key):
+        # method returns the Ethereum address from a "0x"-prefixed private key
+        # Remove "0x" prefix if present
+        clean_private_key = Exchange.remove0x_prefix(private_key)
+        # Use coincurve to get the public key
+        private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
+        # Get uncompressed public key (remove the 0x04 prefix)
+        public_key_bytes = private_key_obj.public_key.format(compressed=False)[1:]
+        # Hash the public key with Keccak256
+        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
+        # Convert to hex and add 0x prefix
+        address_hex = '0x' + address_bytes.hex()
+        return address_hex
 
     @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
@@ -1934,6 +1969,11 @@ class Exchange(object):
     def set_property(self, obj, property, value):
         setattr(obj, property, value)
 
+    def exception_message(self, exc, include_stack=True):
+        message = '[' + type(exc).__name__ + '] ' + (str(exc) if include_stack else "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6)))
+        length = min(100000, len(message))
+        return message[0:length]
+
     def un_camel_case(self, str):
         return re.sub('(?!^)([A-Z]+)', r'_\1', str).lower()
 
@@ -2051,7 +2091,7 @@ class Exchange(object):
 
     def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
         if not encode_as_any:
-            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+            raise NotSupported(self.id + ' requires protobuf and pycryptodome to encode messages, please install it with `pip install "protobuf==5.29.5"` and `pycryptodome==3.18.0`')
         messages = [
             encode_as_any(
                 message,
@@ -2514,6 +2554,7 @@ class Exchange(object):
                 'price': {'min': None, 'max': None},
                 'cost': {'min': None, 'max': None},
             },
+            'rollingWindowSize': 60000,  # default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         }
 
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
@@ -2541,7 +2582,10 @@ class Exchange(object):
         safely extract boolean value from dictionary or list
         :returns bool | None:
         """
-        return self.safe_bool_n(dictionary, [key], defaultValue)
+        value = self.safe_value(dictionary, key, defaultValue)
+        if isinstance(value, bool):
+            return value
+        return defaultValue
 
     def safe_dict_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: dict = None):
         """
@@ -2562,7 +2606,12 @@ class Exchange(object):
         safely extract a dictionary from dictionary or list
         :returns dict | None:
         """
-        return self.safe_dict_n(dictionary, [key], defaultValue)
+        value = self.safe_value(dictionary, key, defaultValue)
+        if value is None:
+            return defaultValue
+        if isinstance(value, dict):
+            return value
+        return defaultValue
 
     def safe_dict_2(self, dictionary, key1: IndexType, key2: str, defaultValue: dict = None):
         """
@@ -2599,7 +2648,12 @@ class Exchange(object):
         safely extract an Array from dictionary or list
         :returns Array | None:
         """
-        return self.safe_list_n(dictionaryOrList, [key], defaultValue)
+        value = self.safe_value(dictionaryOrList, key, defaultValue)
+        if value is None:
+            return defaultValue
+        if isinstance(value, list):
+            return value
+        return defaultValue
 
     def handle_deltas(self, orderbook, deltas):
         for i in range(0, len(deltas)):
@@ -3211,14 +3265,16 @@ class Exchange(object):
         refillRate = self.MAX_VALUE
         if self.rateLimit > 0:
             refillRate = 1 / self.rateLimit
+        useLeaky = (self.rollingWindowSize == 0.0) or (self.rateLimiterAlgorithm == 'leakyBucket')
+        algorithm = 'leakyBucket' if useLeaky else 'rollingWindow'
         defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
             'refillRate': refillRate,
-            'algorithm': self.rateLimiterAlgorithm,
+            'algorithm': algorithm,
             'windowSize': self.rollingWindowSize,
-            'maxWeight': self.rollingWindowSize / self.rateLimit,   # ms_of_window / ms_of_rate_limit
+            'rateLimit': self.rateLimit,
         }
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
         self.tokenBucket = self.extend(defaultBucket, existingBucket)
@@ -5957,6 +6013,9 @@ class Exchange(object):
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
 
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchCanceledOrders() is not supported yet')
+
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
 
@@ -6354,6 +6413,9 @@ class Exchange(object):
             raise NotSupported(self.id + ' createStopMarketOrderWs() is not supported yet')
         query = self.extend(params, {'stopPrice': triggerPrice})
         return self.create_order_ws(symbol, 'market', side, amount, None, query)
+
+    def create_sub_account(self, name: str, params={}):
+        raise NotSupported(self.id + ' createSubAccount() is not supported yet')
 
     def safe_currency_code(self, currencyId: Str, currency: Currency = None):
         currency = self.safe_currency(currencyId, currency)
@@ -7017,7 +7079,8 @@ class Exchange(object):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None
@@ -7436,6 +7499,9 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
 
+    def load_markets_and_sign_in(self):
+        [self.load_markets(), self.sign_in()]
+
     def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches the history of margin added or reduced from contract isolated positions
@@ -7634,3 +7700,23 @@ class Exchange(object):
                     bidsaskSymbol = bidsaskSymbols[i]
                     if bidsaskSymbol in self.bidsasks:
                         del self.bidsasks[bidsaskSymbol]
+
+    def timeframe_from_milliseconds(self, ms: float):
+        if ms <= 0:
+            return ''
+        second = 1000
+        minute = 60 * second
+        hour = 60 * minute
+        day = 24 * hour
+        week = 7 * day
+        if ms % week == 0:
+            return(ms / week) + 'w'
+        if ms % day == 0:
+            return(ms / day) + 'd'
+        if ms % hour == 0:
+            return(ms / hour) + 'h'
+        if ms % minute == 0:
+            return(ms / minute) + 'm'
+        if ms % second == 0:
+            return(ms / second) + 's'
+        return ''

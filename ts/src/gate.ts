@@ -50,6 +50,7 @@ export default class gate extends Exchange {
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
                         'loan': 'https://api.gateio.ws/api/v4',
+                        'otc': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -474,6 +475,7 @@ export default class gate extends Exchange {
                             '{settle}/account_book': 1,
                             '{settle}/positions': 1,
                             '{settle}/positions/{contract}': 1,
+                            '{settle}/get_leverage/{contract}': 1,
                             '{settle}/dual_comp/positions/{contract}': 1,
                             '{settle}/orders': 1,
                             '{settle}/orders_timerange': 1,
@@ -491,10 +493,12 @@ export default class gate extends Exchange {
                         'post': {
                             '{settle}/positions/{contract}/margin': 1,
                             '{settle}/positions/{contract}/leverage': 1,
+                            '{settle}/positions/{contract}/set_leverage': 1,
                             '{settle}/positions/{contract}/risk_limit': 1,
                             '{settle}/positions/cross_mode': 1,
                             '{settle}/dual_comp/positions/cross_mode': 1,
                             '{settle}/dual_mode': 1,
+                            '{settle}/set_position_mode': 1,
                             '{settle}/dual_comp/positions/{contract}/margin': 1,
                             '{settle}/dual_comp/positions/{contract}/leverage': 1,
                             '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
@@ -581,6 +585,7 @@ export default class gate extends Exchange {
                             'uni/rate': 20 / 15,
                             'staking/eth2/rate_records': 20 / 15,
                             'dual/orders': 20 / 15,
+                            'dual/balance': 20 / 15,
                             'structured/orders': 20 / 15,
                             'staking/coins': 20 / 15,
                             'staking/order_list': 20 / 15,
@@ -661,6 +666,21 @@ export default class gate extends Exchange {
                             'broker/transaction_history': 20 / 15,
                             'user/info': 20 / 15,
                             'user/sub_relation': 20 / 15,
+                        },
+                    },
+                    'otc': {
+                        'get': {
+                            'get_user_def_bank': 1,
+                            'order/list': 1,
+                            'stable_coin/order/list': 1,
+                            'order/detail': 1,
+                        },
+                        'post': {
+                            'quote': 1,
+                            'order/create': 1,
+                            'stable_coin/order/create': 1,
+                            'order/paid': 1,
+                            'order/cancel': 1,
                         },
                     },
                 },
@@ -1038,7 +1058,7 @@ export default class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': BadRequest,
+                    'INVALID_PARAM_VALUE': InvalidOrder, // {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
                     'INVALID_PROTOCOL': BadRequest,
                     'INVALID_ARGUMENT': BadRequest,
                     'INVALID_REQUEST_BODY': BadRequest,
@@ -1134,6 +1154,7 @@ export default class gate extends Exchange {
                     'POSITION_HOLDING': BadRequest,
                     'USER_LOAN_EXCEEDED': BadRequest, // {"label":"USER_LOAN_EXCEEDED","message":"Max loan amount per user would be exceeded"}
                     'NO_CHANGE': InvalidOrder, // {"label":"NO_CHANGE","message":"No change is made"}
+                    'PRICE_THRESHOLD_EXCEEDED': InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
                 'broad': {},
             },
@@ -4957,6 +4978,24 @@ export default class gate extends Exchange {
         //
         //  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
+        // cancel trigger order returns timestamps in ms
+        //   id: '2007047737421336576',
+        //   id_string: '2007047737421336576',
+        //   trigger_time: '0',
+        //   trade_id: '0',
+        //   trade_id_string: '',
+        //   status: 'finished',
+        //   finish_as: 'cancelled',
+        //   reason: '',
+        //   create_time: '1767352444402496'
+        //   finish_time: '1767352509535790',
+        //   is_stop_order: false,
+        //   stop_trigger: { rule: '0', trigger_price: '', order_price: '' },
+        //   me_order_id: '0',
+        //   me_order_id_string: '',
+        //   order_type: '',
+        //   in_dual_mode: false,
+        //   parent_id: '0',
         const succeeded = this.safeBool (order, 'succeeded', true);
         if (!succeeded) {
             // cancelOrders response
@@ -4999,13 +5038,31 @@ export default class gate extends Exchange {
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
         }
         const rawStatus = this.safeStringN (order, [ 'finish_as', 'status', 'open' ]);
-        let timestamp = this.safeInteger (order, 'create_time_ms');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp2 (order, 'create_time', 'ctime');
+        let timestampStr = this.safeString (order, 'create_time_ms');
+        if (timestampStr === undefined) {
+            timestampStr = this.safeString2 (order, 'create_time', 'ctime');
+            if (timestampStr !== undefined) {
+                if (timestampStr.length === 10 || timestampStr.indexOf ('.') >= 0) {
+                    // ts in seconds, multiply to ms
+                    timestampStr = Precise.stringMul (timestampStr, '1000');
+                } else if (timestampStr.length === 16) {
+                    // ts in microseconds, divide to ms
+                    timestampStr = Precise.stringDiv (timestampStr, '1000');
+                }
+            }
         }
-        let lastTradeTimestamp = this.safeInteger (order, 'update_time_ms');
-        if (lastTradeTimestamp === undefined) {
-            lastTradeTimestamp = this.safeTimestamp2 (order, 'update_time', 'finish_time');
+        let lastTradeTimestampStr = this.safeString (order, 'update_time_ms');
+        if (lastTradeTimestampStr === undefined) {
+            lastTradeTimestampStr = this.safeString2 (order, 'update_time', 'finish_time');
+            if (lastTradeTimestampStr !== undefined) {
+                if (lastTradeTimestampStr.length === 10 || lastTradeTimestampStr.indexOf ('.') >= 0) {
+                    // ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.stringMul (lastTradeTimestampStr, '1000');
+                } else if (lastTradeTimestampStr.length === 16) {
+                    // ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.stringDiv (lastTradeTimestampStr, '1000');
+                }
+            }
         }
         let marketType = 'contract';
         if (('currency_pair' in order) || ('market' in order)) {
@@ -5051,6 +5108,14 @@ export default class gate extends Exchange {
                 cost = amount;
                 amount = Precise.stringDiv (amount, averageString);
             }
+        }
+        let timestamp = undefined;
+        let lastTradeTimestamp = undefined;
+        if (timestampStr !== undefined) {
+            timestamp = this.parseToInt (timestampStr);
+        }
+        if (lastTradeTimestampStr !== undefined) {
+            lastTradeTimestamp = this.parseToInt (lastTradeTimestampStr);
         }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
@@ -6833,6 +6898,7 @@ export default class gate extends Exchange {
         } else {
             this.checkRequiredCredentials ();
             let queryString = '';
+            let rawQueryString = '';
             let requiresURLEncoding = false;
             if (((type === 'futures') || (type === 'delivery')) && method === 'POST') {
                 const pathParts = path.split ('/');
@@ -6841,6 +6907,8 @@ export default class gate extends Exchange {
             }
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys (query).length) {
+                    // https://github.com/ccxt/ccxt/issues/27663
+                    rawQueryString = this.rawencode (query);
                     queryString = this.urlencode (query);
                     // https://github.com/ccxt/ccxt/issues/25570
                     if (queryString.indexOf ('currencies=') >= 0 && queryString.indexOf ('%2C') >= 0) {
@@ -6866,7 +6934,7 @@ export default class gate extends Exchange {
             const timestamp = this.parseToInt (nonce / 1000);
             const timestampString = timestamp.toString ();
             const signaturePath = '/api/' + this.version + entirePath;
-            const payloadArray = [ method.toUpperCase (), signaturePath, queryString, bodySignature, timestampString ];
+            const payloadArray = [ method.toUpperCase (), signaturePath, rawQueryString, bodySignature, timestampString ];
             // eslint-disable-next-line quotes
             const payload = payloadArray.join ("\n");
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha512);
@@ -6950,7 +7018,7 @@ export default class gate extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, -amount, params);
@@ -6965,7 +7033,7 @@ export default class gate extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, params);
@@ -7260,7 +7328,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

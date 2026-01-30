@@ -110,6 +110,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
@@ -120,6 +121,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -131,6 +133,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
@@ -147,6 +150,17 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchMyTrades
+     * @description unWatches information on multiple trades made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     handleWsTickers(client: Client, message: any): boolean;
     parseWsTicker(rawTicker: any, market?: Market): Ticker;
     handleMyTrades(client: Client, message: any): void;
@@ -213,12 +227,25 @@ export default class hyperliquid extends hyperliquidRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name hyperliquid#unWatchOrders
+     * @description unWatches information on multiple orders made by the user
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     */
+    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleOrderBookUnsubscription(client: Client, subscription: Dict): void;
     handleTradesUnsubscription(client: Client, subscription: Dict): void;
     handleTickersUnsubscription(client: Client, subscription: Dict): void;
     handleOHLCVUnsubscription(client: Client, subscription: Dict): void;
+    handleOrderUnsubscription(client: Client, subscription: Dict): void;
+    handleMyTradesUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     ping(client: Client): {

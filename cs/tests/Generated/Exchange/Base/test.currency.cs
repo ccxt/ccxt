@@ -63,8 +63,23 @@ public partial class testMainClass : BaseTest
         {
             return;
         }
-        //
-        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        try
+        {
+            testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        } catch(Exception e)
+        {
+            object message = exchange.exceptionMessage(e);
+            // check structure if key is numeric, not string
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(message, "\"id\" key"), 0)))
+            {
+                // @ts-ignore
+                ((IDictionary<string,object>)format)["id"] = 123;
+                testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+            } else
+            {
+                assert(isEqual(message, ""), message);
+            }
+        }
         //
         testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");

@@ -47,6 +47,7 @@
 * [fetchPosition](#fetchposition)
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchPortfolioDetails](#fetchportfoliodetails)
+* [fetchDepositAddresses](#fetchdepositaddresses)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -344,7 +345,7 @@ coinbase.fetchBalance ([params])
 Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
 
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.cdp.coinbase.com/coinbase-app/docs/api-transactions#list-transactions  
 
@@ -743,7 +744,7 @@ make a withdrawal
 **Kind**: instance method of [<code>coinbase</code>](#coinbase)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money  
+**See**: https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -752,6 +753,7 @@ make a withdrawal
 | address | <code>string</code> | Yes | the address to withdraw to |
 | tag | <code>string</code> | No | an optional tag for the withdrawal |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.network | <code>string</code> | No | the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc. |
 
 
 ```javascript
@@ -1057,5 +1059,27 @@ Fetch details for a specific portfolio by UUID
 
 ```javascript
 coinbase.fetchPortfolioDetails (portfolioUuid[, params])
+```
+
+
+<a name="fetchDepositAddresses" id="fetchdepositaddresses"></a>
+
+### fetchDepositAddresses{docsify-ignore}
+fetch deposit addresses for multiple currencies (when available)
+
+**Kind**: instance method of [<code>coinbase</code>](#coinbase)  
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by currency code
+
+**See**: https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| codes | <code>Array&lt;string&gt;</code> | No | list of unified currency codes, default is undefined (all currencies) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountId | <code>string</code> | No | account ID to fetch deposit addresses for |
+
+
+```javascript
+coinbase.fetchDepositAddresses ([codes, params])
 ```
 

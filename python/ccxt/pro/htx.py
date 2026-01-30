@@ -59,22 +59,22 @@ class htx(ccxt.async_support.htx):
                             },
                             'future': {
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/ws',
-                                    'private': 'wss://api.hbdm.com/notification',
+                                    'public': 'wss://api.hbdm.vn/ws',
+                                    'private': 'wss://api.hbdm.vn/notification',
                                 },
                             },
                             'swap': {
                                 'inverse': {
-                                    'public': 'wss://api.hbdm.com/swap-ws',
-                                    'private': 'wss://api.hbdm.com/swap-notification',
+                                    'public': 'wss://api.hbdm.vn/swap-ws',
+                                    'private': 'wss://api.hbdm.vn/swap-notification',
                                 },
                                 'linear': {
-                                    'public': 'wss://api.hbdm.com/linear-swap-ws',
-                                    'private': 'wss://api.hbdm.com/linear-swap-notification',
+                                    'public': 'wss://api.hbdm.vn/linear-swap-ws',
+                                    'private': 'wss://api.hbdm.vn/linear-swap-notification',
                                 },
                             },
                         },
@@ -1917,7 +1917,7 @@ class htx(ccxt.async_support.htx):
                 pingTs = self.safe_integer(message, 'ts')
                 await client.send({'op': 'pong', 'ts': pingTs})
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed ' + self.exception_message(e))
             client.reset(error)
 
     def handle_ping(self, client: Client, message):

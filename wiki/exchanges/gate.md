@@ -1323,7 +1323,7 @@ gate.fetchBorrowInterest ([code, symbol, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**
 
@@ -1349,7 +1349,7 @@ gate.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**
 
@@ -1446,7 +1446,7 @@ gate.fetchMySettlementHistory (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 

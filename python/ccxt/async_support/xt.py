@@ -61,6 +61,7 @@ class xt(Exchange, ImplicitAPI):
                 'createReduceOnlyOrder': True,
                 'editOrder': True,
                 'fetchAccounts': False,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': True,
                 'fetchBorrowInterest': False,
@@ -85,6 +86,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchL3OrderBook': False,
                 'fetchLedger': True,
@@ -99,6 +101,8 @@ class xt(Exchange, ImplicitAPI):
                 'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderBooks': False,
@@ -122,6 +126,7 @@ class xt(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
                 'fetchWithdrawalWhitelist': False,
@@ -1862,8 +1867,8 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
+            'baseVolume': self.safe_number(ticker, 'a'),
+            'quoteVolume': self.safe_number(ticker, 'v'),
             'info': ticker,
         }, market)
 
@@ -3553,7 +3558,7 @@ class xt(Exchange, ImplicitAPI):
         #             "hasNext": False,
         #             "items": [
         #                 {
-        #                     "id": "207260567109387524",
+        #                     "id": "207260567109387525",
         #                     "coin": "usdt",
         #                     "symbol": "btc_usdt",
         #                     "type": "FEE",
@@ -3965,7 +3970,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'ADD', params)
 
@@ -3979,7 +3984,7 @@ class xt(Exchange, ImplicitAPI):
         :param float amount: the amount of margin to remove
         :param dict params: extra parameters specific to the xt api endpoint
         :param str params['positionSide']: 'LONG' or 'SHORT'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 

@@ -72,7 +72,7 @@ public partial class coinbase : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDeposit", true },
                 { "fetchDepositAddress", "emulated" },
-                { "fetchDepositAddresses", false },
+                { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", true },
                 { "fetchDepositMethodId", true },
                 { "fetchDepositMethodIds", true },
@@ -635,12 +635,12 @@ public partial class coinbase : Exchange
         //     }
         //
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        object length = getArrayLength(accounts);
-        object lastIndex = subtract(length, 1);
-        object last = this.safeDict(accounts, lastIndex);
+        object accountsLength = getArrayLength(accounts);
         object cursor = this.safeString(response, "cursor");
-        if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((!isEqual(cursor, "")))))
+        if (isTrue(isTrue(isTrue((isGreaterThan(accountsLength, 0))) && isTrue((!isEqual(cursor, null)))) && isTrue((!isEqual(cursor, "")))))
         {
+            object lastIndex = subtract(accountsLength, 1);
+            object last = this.safeDict(accounts, lastIndex);
             ((IDictionary<string,object>)last)["cursor"] = cursor;
             ((List<object>)accounts)[Convert.ToInt32(lastIndex)] = last;
         }
@@ -2302,7 +2302,8 @@ public partial class coinbase : Exchange
         //     }
         //
         object data = this.safeList(response, "trades", new List<object>() {});
-        object ticker = this.parseTicker(getValue(data, 0), market);
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        object ticker = this.parseTicker(first, market);
         ((IDictionary<string,object>)ticker)["bid"] = this.safeNumber(response, "best_bid");
         ((IDictionary<string,object>)ticker)["ask"] = this.safeNumber(response, "best_ask");
         return ticker;
@@ -2632,7 +2633,7 @@ public partial class coinbase : Exchange
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4002,7 +4003,7 @@ public partial class coinbase : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("CANCELLED", symbol, since, limit, parameters);
@@ -4378,12 +4379,13 @@ public partial class coinbase : Exchange
      * @method
      * @name coinbase#withdraw
      * @description make a withdrawal
-     * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+     * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} [tag] an optional tag for the withdrawal
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
@@ -4601,6 +4603,19 @@ public partial class coinbase : Exchange
         //        }
         //    }
         //
+        // {
+        //     "id":"3f2434234943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "address":"0x123123126F5921XXXXX",
+        //     "currency":"USDC",
+        //     "name":"",
+        //     "network":"ethereum",
+        //     "created_at":"2022-03-17T09:20:17.002Z",
+        //     "updated_at":"2022-03-17T09:20:17.002Z",
+        //     "resource":"addresses",
+        //     "resource_path":"v2/accounts/b1091c6e-9ef2-5e4d-b352-665d0cf8f742/addresses/32fd0943-8c1c-50ef-a5a1-342213bbf45d",
+        //     "destination_tag":""
+        // }
+        //
         object address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
         object networkId = this.safeString(depositAddress, "network");
@@ -4611,6 +4626,9 @@ public partial class coinbase : Exchange
         {
             object splitAddressLabel = ((string)addressLabel).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             currencyId = this.safeString(splitAddressLabel, 0);
+        } else
+        {
+            currencyId = this.safeString(depositAddress, "currency");
         }
         object addressInfo = this.safeDict(depositAddress, "address_info");
         return new Dictionary<string, object>() {
@@ -5661,5 +5679,25 @@ public partial class coinbase : Exchange
             throw new ExchangeError ((string)add(add(this.id, " failed due to a malformed response "), this.json(response))) ;
         }
         return null;
+    }
+
+    /**
+     * @method
+     * @name coinbase#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies (when available)
+     * @see https://coinbase-migration.mintlify.app/coinbase-app/transfer-apis/onchain-addresses
+     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountId] account ID to fetch deposit addresses for
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by currency code
+     */
+    public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = this.prepareAccountRequest(null, parameters);
+        object response = await this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters));
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseDepositAddresses(data, codes, false, new Dictionary<string, object>() {});
     }
 }

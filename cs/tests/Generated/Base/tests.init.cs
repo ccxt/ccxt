@@ -16,6 +16,7 @@ public partial class BaseTest
             testCryptography();
             testDatetime();
             testDecimalToPrecision();
+            testCapitalize();
             testNumberToString();
             testPrecise();
             testSafeMethods();
@@ -30,6 +31,7 @@ public partial class BaseTest
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
             testArraysConcat();
+            testEthMethods();
             await testSleep();
         }
 }

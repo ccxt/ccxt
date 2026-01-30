@@ -46,6 +46,8 @@ import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
+import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
@@ -866,12 +868,16 @@ export default class Exchange {
     }
 
     isBinaryMessage (msg) {
-        return msg instanceof Uint8Array;
+        return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
 
     decodeProtoMsg (data) {
         if (!protobufMexc) {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof ArrayBuffer) {
+            // browser case
+            data = new Uint8Array (data);
         }
         if (data instanceof Uint8Array) {
             const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode (data);
@@ -1012,6 +1018,10 @@ export default class Exchange {
             }
             throw e;
         }
+    }
+
+    jsonStringifyWithNull (obj) {
+        return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
     parseJson (jsonString) {
@@ -1574,6 +1584,12 @@ export default class Exchange {
         obj[property] = defaultValue;
     }
 
+    exceptionMessage (exc, includeStack: boolean = true) {
+        const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
+        const length = Math.min (100000, message.length);
+        return message.slice (0, length);
+    }
+
     axolotl (payload, hexKey, ed25519) {
         return axolotl (payload, hexKey, ed25519);
     }
@@ -1596,6 +1612,24 @@ export default class Exchange {
 
     ethEncodeStructuredData (domain, messageTypes, messageData) {
         return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
+    }
+
+    ethGetAddressFromPrivateKey (privateKey: string): string {
+        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
+        // Removes the "0x" prefix if present
+        const cleanPrivateKey = this.remove0xPrefix (privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
+        // secp256k1.getPublicKey returns compressed key, we need uncompressed
+        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
+        // Hash the public key with Keccak256
+        const publicKeyHash = keccak_256 (publicKeyUncompressed);
+        // Take the last 20 bytes (40 hex chars)
+        const addressBytes = publicKeyHash.slice (-20);
+        // Convert to hex and add 0x prefix
+        const addressHex = '0x' + this.binaryToBase16 (addressBytes);
+        return addressHex;
     }
 
     retrieveStarkAccount (signature, accountClassHash, accountProxyClassHash) {
@@ -2307,7 +2341,11 @@ export default class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN (dictionary, [ key ], defaultValue);
+        const value = this.safeValue (dictionary, key, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
     }
 
     safeDictN (dictionaryOrList, keys: IndexType[], defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
@@ -2334,7 +2372,14 @@ export default class Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN (dictionary, [ key ], defaultValue);
+        const value = this.safeValue (dictionary, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if ((typeof value === 'object') && !Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
     }
 
     safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
@@ -2381,7 +2426,14 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN (dictionaryOrList, [ key ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray (value)) {
+            return value;
+        }
+        return defaultValue;
     }
 
     handleDeltas (orderbook, deltas) {
@@ -6571,6 +6623,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchClosedOrders() is not supported yet');
     }
 
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchCanceledOrders() is not supported yet');
+    }
+
     async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
     }
@@ -7090,6 +7146,10 @@ export default class Exchange {
         }
         const query = this.extend (params, { 'stopPrice': triggerPrice });
         return await this.createOrderWs (symbol, 'market', side, amount, undefined, query);
+    }
+
+    async createSubAccount (name: string, params = {}): Promise<{}> {
+        throw new NotSupported (this.id + ' createSubAccount() is not supported yet');
     }
 
     safeCurrencyCode (currencyId: Str, currency: Currency = undefined): Str {
@@ -7903,7 +7963,8 @@ export default class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray (result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy (uniqueResults, key);
+        return this.filterBySinceLimit (sortedRes, since, limit, key);
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
@@ -8413,6 +8474,10 @@ export default class Exchange {
         }
     }
 
+    async loadMarketsAndSignIn () {
+        await Promise.all ([ this.loadMarkets (), this.signIn () ]);
+    }
+
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
@@ -8674,6 +8739,33 @@ export default class Exchange {
                 }
             }
         }
+    }
+
+    timeframeFromMilliseconds (ms: number): string {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
     }
 }
 

@@ -264,11 +264,15 @@ func (this *Binance) WatchOrderBookForSymbols(symbols []string, options ...ccxt.
  * @method
  * @name binance#unWatchOrderBookForSymbols
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#partial-book-depth-streams
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#diff-depth-stream
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+ * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Partial-Book-Depth-Streams
+ * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Binance) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
 
