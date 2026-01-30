@@ -1325,7 +1325,6 @@ class Exchange(object):
         # 1. Use direct hashlib methods for common algorithms instead of hashlib.new()
         # 2. Reduce conditional branches with early returns
         # 3. Avoid intermediate variable assignment when not needed
-        
         if algorithm == 'keccak':
             binary = bytes(keccak.SHA3(request))
         elif algorithm == 'md5':
@@ -1341,7 +1340,6 @@ class Exchange(object):
         else:
             # Fallback for less common algorithms
             binary = hashlib.new(algorithm, request).digest()
-        
         # Early return for binary digest (most common after hex)
         if digest == 'hex':
             return Exchange.binary_to_base16(binary)
