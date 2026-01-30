@@ -1360,6 +1360,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'datetime': None,
             'previousClose': self.safe_number(ticker, 'prevDayPx'),
             'close': self.safe_number(ticker, 'midPx'),
+            'last': self.safe_number(ticker, 'price'),
             'bid': self.safe_number(bidAsk, 0),
             'ask': self.safe_number(bidAsk, 1),
             'quoteVolume': self.safe_number(ticker, 'dayNtlVlm'),

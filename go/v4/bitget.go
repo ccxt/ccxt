@@ -3443,7 +3443,6 @@ func (this *BitgetCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 	var marketId interface{} = this.SafeString(ticker, "symbol")
 	var close interface{} = this.SafeString2(ticker, "lastPr", "lastPrice")
 	var timestamp interface{} = this.SafeIntegerOmitZero(ticker, "ts") // exchange bitget provided 0
-	var change interface{} = this.SafeString(ticker, "change24h")
 	var category interface{} = this.SafeString(ticker, "category")
 	var markPrice interface{} = this.SafeString(ticker, "markPrice")
 	var marketType interface{} = nil
@@ -3454,7 +3453,8 @@ func (this *BitgetCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 	}
 	var percentage interface{} = this.SafeString(ticker, "price24hPcnt")
 	if IsTrue(IsEqual(percentage, nil)) {
-		percentage = Precise.StringMul(change, "100")
+		var change24h interface{} = this.SafeString(ticker, "change24h")
+		percentage = Precise.StringMul(change24h, "100")
 	}
 	return this.SafeTicker(map[string]interface{}{
 		"symbol":        this.SafeSymbol(marketId, market, nil, marketType),
@@ -3471,7 +3471,7 @@ func (this *BitgetCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 		"close":         close,
 		"last":          close,
 		"previousClose": nil,
-		"change":        change,
+		"change":        nil,
 		"percentage":    percentage,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "baseVolume", "volume24h"),

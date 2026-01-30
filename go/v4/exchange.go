@@ -479,6 +479,7 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
+		ch <- true
 		return true
 	}()
 	return ch

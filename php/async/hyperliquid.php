@@ -1437,6 +1437,7 @@ class hyperliquid extends Exchange {
             'datetime' => null,
             'previousClose' => $this->safe_number($ticker, 'prevDayPx'),
             'close' => $this->safe_number($ticker, 'midPx'),
+            'last' => $this->safe_number($ticker, 'price'),
             'bid' => $this->safe_number($bidAsk, 0),
             'ask' => $this->safe_number($bidAsk, 1),
             'quoteVolume' => $this->safe_number($ticker, 'dayNtlVlm'),

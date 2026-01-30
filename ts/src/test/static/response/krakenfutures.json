@@ -94,6 +94,266 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "fetchClosed trigger roders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "37b9b346-8104-48d0-848e-79f8c3ca28ff",
+                            "timestamp": "1769618129000",
+                            "event": {
+                                "OrderTriggerActivated": {
+                                    "order": {
+                                        "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618122503",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3004.1",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618122503"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "uid": "60fcb133-7106-46e2-ab0a-4e4a499a7c17",
+                            "timestamp": "1769618122503",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618122503",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3004.1",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618122503"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "c60e5c52-6bf9-4303-b684-c29d76fb2846",
+                            "timestamp": "1769618102000",
+                            "event": {
+                                "OrderTriggerActivated": {
+                                    "order": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618096759",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3003.4",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618096759"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "uid": "b699b473-2449-4791-96fc-a1cd26d94f2a",
+                            "timestamp": "1769618096759",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618096759",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3003.4",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618096759"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "bb42e4b9-88ed-4627-8ae0-a32c4890fd95",
+                            "timestamp": "1769618085164",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f221bc-4567-4142-b373-9eca216c6660",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618085164",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3002.5",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Below"
+                                        },
+                                        "lastUpdateTimestamp": "1769618085164"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        }
+                    ],
+                    "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                    "len": "5"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                            "accountId": "198024",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0.001",
+                            "timestamp": "1769618096759",
+                            "limitPrice": "3003.1",
+                            "orderType": "Limit",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "triggerOptions": {
+                                "triggerPrice": "3003.4",
+                                "triggerSignal": "MarkPrice",
+                                "triggerSide": "Above"
+                            },
+                            "lastUpdateTimestamp": "1769618096759",
+                            "status": "closed"
+                        },
+                        "id": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                        "clientOrderId": null,
+                        "timestamp": 1769618096759,
+                        "datetime": "2026-01-28T16:34:56.759Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618096759,
+                        "symbol": "ETH/USD:USD",
+                        "type": "limit",
+                        "timeInForce": "gtc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 3003.1,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                            "accountId": "198024",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0.001",
+                            "timestamp": "1769618122503",
+                            "limitPrice": "",
+                            "orderType": "IoC",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "triggerOptions": {
+                                "triggerPrice": "3004.1",
+                                "triggerSignal": "MarkPrice",
+                                "triggerSide": "Above"
+                            },
+                            "lastUpdateTimestamp": "1769618122503",
+                            "status": "closed"
+                        },
+                        "id": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                        "clientOrderId": null,
+                        "timestamp": 1769618122503,
+                        "datetime": "2026-01-28T16:35:22.503Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618122503,
+                        "symbol": "ETH/USD:USD",
+                        "type": "market",
+                        "timeInForce": "ioc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
+            {
                 "description": "swap closed order",
                 "method": "fetchClosedOrders",
                 "input": [
@@ -363,6 +623,356 @@
             }
         ],
         "fetchCanceledOrders": [
+            {
+                "description": "canceled trigger orders",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "b42ba5f2-1911-4196-a236-ade727197c11",
+                            "timestamp": "1769618289619",
+                            "event": {
+                                "OrderTriggerCancelled": {
+                                    "order": {
+                                        "uid": "a0f221bc-4567-4142-b373-9eca216c6660",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618085164",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3002.5",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Below"
+                                        },
+                                        "lastUpdateTimestamp": "1769618085164"
+                                    },
+                                    "reason": "cancelled_by_user",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "ac464836-1bfe-4fb4-8762-0f3810d169bc",
+                            "timestamp": "1769618289619",
+                            "event": {
+                                "OrderTriggerCancelled": {
+                                    "order": {
+                                        "uid": "a0f222e8-addb-4cf8-a46b-51925a53e4d0",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Sell",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618282039",
+                                        "limitPrice": "2900",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "2900",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Below"
+                                        },
+                                        "lastUpdateTimestamp": "1769618282039"
+                                    },
+                                    "reason": "cancelled_by_user",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "0a5d353c-8791-4039-92aa-a580dd0509ae",
+                            "timestamp": "1769618282039",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f222e8-addb-4cf8-a46b-51925a53e4d0",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Sell",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618282039",
+                                        "limitPrice": "2900",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "2900",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Below"
+                                        },
+                                        "lastUpdateTimestamp": "1769618282039"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "37b9b346-8104-48d0-848e-79f8c3ca28ff",
+                            "timestamp": "1769618129000",
+                            "event": {
+                                "OrderTriggerActivated": {
+                                    "order": {
+                                        "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618122503",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3004.1",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618122503"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "uid": "60fcb133-7106-46e2-ab0a-4e4a499a7c17",
+                            "timestamp": "1769618122503",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f221f5-3f04-4075-a8b9-8ad2faf2d7fa",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618122503",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3004.1",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618122503"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "c60e5c52-6bf9-4303-b684-c29d76fb2846",
+                            "timestamp": "1769618102000",
+                            "event": {
+                                "OrderTriggerActivated": {
+                                    "order": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618096759",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3003.4",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618096759"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "uid": "b699b473-2449-4791-96fc-a1cd26d94f2a",
+                            "timestamp": "1769618096759",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f221cd-f686-4bf8-aae7-dab68c69bffb",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618096759",
+                                        "limitPrice": "3003.1",
+                                        "orderType": "Limit",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3003.4",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Above"
+                                        },
+                                        "lastUpdateTimestamp": "1769618096759"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        },
+                        {
+                            "uid": "bb42e4b9-88ed-4627-8ae0-a32c4890fd95",
+                            "timestamp": "1769618085164",
+                            "event": {
+                                "OrderTriggerPlaced": {
+                                    "order": {
+                                        "uid": "a0f221bc-4567-4142-b373-9eca216c6660",
+                                        "accountId": "198024",
+                                        "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                                        "tradeable": "PF_ETHUSD",
+                                        "direction": "Buy",
+                                        "quantity": "0.001",
+                                        "timestamp": "1769618085164",
+                                        "limitPrice": "",
+                                        "orderType": "IoC",
+                                        "clientId": "",
+                                        "reduceOnly": false,
+                                        "triggerOptions": {
+                                            "triggerPrice": "3002.5",
+                                            "triggerSignal": "MarkPrice",
+                                            "triggerSide": "Below"
+                                        },
+                                        "lastUpdateTimestamp": "1769618085164"
+                                    },
+                                    "reason": "new_user_order",
+                                    "algoId": "",
+                                    "origin": "Pro UI"
+                                }
+                            }
+                        }
+                    ],
+                    "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                    "len": "8"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uid": "a0f221bc-4567-4142-b373-9eca216c6660",
+                            "accountId": "198024",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Buy",
+                            "quantity": "0.001",
+                            "timestamp": "1769618085164",
+                            "limitPrice": "",
+                            "orderType": "IoC",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "triggerOptions": {
+                                "triggerPrice": "3002.5",
+                                "triggerSignal": "MarkPrice",
+                                "triggerSide": "Below"
+                            },
+                            "lastUpdateTimestamp": "1769618085164",
+                            "status": "canceled"
+                        },
+                        "id": "a0f221bc-4567-4142-b373-9eca216c6660",
+                        "clientOrderId": null,
+                        "timestamp": 1769618085164,
+                        "datetime": "2026-01-28T16:34:45.164Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618085164,
+                        "symbol": "ETH/USD:USD",
+                        "type": "market",
+                        "timeInForce": "ioc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": null,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": null,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "canceled",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "uid": "a0f222e8-addb-4cf8-a46b-51925a53e4d0",
+                            "accountId": "198024",
+                            "accountUid": "406142dd-7c5c-4a8b-acbc-5f16eca30009",
+                            "tradeable": "PF_ETHUSD",
+                            "direction": "Sell",
+                            "quantity": "0.001",
+                            "timestamp": "1769618282039",
+                            "limitPrice": "2900",
+                            "orderType": "Limit",
+                            "clientId": "",
+                            "reduceOnly": false,
+                            "triggerOptions": {
+                                "triggerPrice": "2900",
+                                "triggerSignal": "MarkPrice",
+                                "triggerSide": "Below"
+                            },
+                            "lastUpdateTimestamp": "1769618282039",
+                            "status": "canceled"
+                        },
+                        "id": "a0f222e8-addb-4cf8-a46b-51925a53e4d0",
+                        "clientOrderId": null,
+                        "timestamp": 1769618282039,
+                        "datetime": "2026-01-28T16:38:02.039Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769618282039,
+                        "symbol": "ETH/USD:USD",
+                        "type": "limit",
+                        "timeInForce": "gtc",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 2900,
+                        "triggerPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "canceled",
+                        "fee": null,
+                        "fees": [],
+                        "trades": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            },
             {
                 "description": "fetch canceled orders",
                 "disabled": true,
