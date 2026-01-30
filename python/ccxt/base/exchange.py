@@ -1286,35 +1286,41 @@ class Exchange(object):
         else:
             return Exchange.parse8601(timestamp)
 
+    _PARSE8601_ISO8601_PATTERN = re.compile(
+        r'([0-9]{4})-?([0-9]{2})-?([0-9]{2})(?:T|[\s])?'
+        r'([0-9]{2}):?([0-9]{2}):?([0-9]{2})'
+        r'(\.[0-9]{1,3})?'
+        r'(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?',
+        re.IGNORECASE
+    )
+
     @staticmethod
     def parse8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        yyyy = '([0-9]{4})-?'
-        mm = '([0-9]{2})-?'
-        dd = '([0-9]{2})(?:T|[\\s])?'
-        h = '([0-9]{2}):?'
-        m = '([0-9]{2}):?'
-        s = '([0-9]{2})'
-        ms = '(\\.[0-9]{1,3})?'
-        tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
-        regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
+            return None
         try:
-            match = re.search(regex, timestamp, re.IGNORECASE)
+            match = Exchange._PARSE8601_ISO8601_PATTERN.search(timestamp)
             if match is None:
                 return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-            ms = ms or '.000'
-            ms = (ms + '00')[0:4]
-            msint = int(ms[1:])
-            sign = sign or ''
-            sign = int(sign + '1') * -1
-            hours = int(hours or 0) * sign
-            minutes = int(minutes or 0) * sign
-            offset = datetime.timedelta(hours=hours, minutes=minutes)
-            string = yyyy + mm + dd + h + m + s + ms + 'Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            dt = dt + offset
+            # Parse milliseconds
+            if ms:
+                ms = ms[1:]  # Remove leading dot
+                ms = ms + '0' * (3 - len(ms))  # Pad to 3 digits
+                msint = int(ms)
+            else:
+                msint = 0
+            # Parse timezone offset
+            if sign:
+                offset_sign = -1 if sign == '+' else 1
+                offset_hours = int(hours) * offset_sign
+                offset_minutes = int(minutes) * offset_sign
+            else:
+                offset_hours = 0
+                offset_minutes = 0
+            # Build datetime directly
+            dt = datetime.datetime(int(yyyy), int(mm), int(dd), int(h), int(m), int(s))
+            dt = dt + datetime.timedelta(hours=offset_hours, minutes=offset_minutes)
             return calendar.timegm(dt.utctimetuple()) * 1000 + msint
         except (TypeError, OverflowError, OSError, ValueError):
             return None
