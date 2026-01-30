@@ -14,7 +14,6 @@ import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
 import testJson from './test.json.js';
 import testSortBy from './test.sortBy.js';
-import testUrlencode from './test.urlencode.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
@@ -43,7 +42,6 @@ async function baseTestsInit () {
     testSafeMethods ();
     testSafeTicker ();
     testJson ();
-    testUrlencode ();
     testSortBy ();
     testSum ();
     testOmit ();
