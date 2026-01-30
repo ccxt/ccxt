@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kucoin
@@ -625,7 +625,7 @@ class kucoin extends kucoin$1["default"] {
                     '400370': errors.InvalidOrder,
                     '400400': errors.BadRequest,
                     '400401': errors.AuthenticationError,
-                    '400500': errors.InvalidOrder,
+                    '400500': errors.RestrictedLocation,
                     '400600': errors.BadSymbol,
                     '400760': errors.InvalidOrder,
                     '401000': errors.BadRequest,

@@ -40,9 +40,9 @@ async function testSetMarketsFromExchange (exchange: Exchange) {
     exchange2.setMarketsFromExchange (exchange1);
 
     // Verify shared markets work
-    assert (testSharedMethods.deepEqual (exchange1.symbols, exchange2.symbols), 'Symbols should be available after market sharing');
-    assert (testSharedMethods.deepEqual (exchange1.currencies, exchange2.currencies), 'currencies dont match');
-    assert (testSharedMethods.deepEqual (exchange1.codes, exchange2.codes), 'codes dont match');
+    assert (testSharedMethods.deepEqual (exchange, exchange1.symbols, exchange2.symbols), 'Symbols should be available after market sharing');
+    assert (testSharedMethods.deepEqual (exchange, exchange1.currencies, exchange2.currencies), 'currencies dont match');
+    assert (testSharedMethods.deepEqual (exchange, exchange1.codes, exchange2.codes), 'codes dont match');
     // TODO: add rest of assertions
 
     // Test 2: loadMarkets on shared markets should not make API call and be very fast

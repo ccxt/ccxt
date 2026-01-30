@@ -10,7 +10,7 @@ var sha3 = require('./static_dependencies/noble-hashes/sha3.js');
 var secp256k1 = require('./static_dependencies/noble-curves/secp256k1.js');
 var crypto = require('./base/functions/crypto.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class hyperliquid
@@ -1399,6 +1399,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             'datetime': undefined,
             'previousClose': this.safeNumber(ticker, 'prevDayPx'),
             'close': this.safeNumber(ticker, 'midPx'),
+            'last': this.safeNumber(ticker, 'price'),
             'bid': this.safeNumber(bidAsk, 0),
             'ask': this.safeNumber(bidAsk, 1),
             'quoteVolume': this.safeNumber(ticker, 'dayNtlVlm'),

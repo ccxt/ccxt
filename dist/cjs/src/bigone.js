@@ -9,7 +9,7 @@ var rsa = require('./base/functions/rsa.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var Precise = require('./base/Precise.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bigone
@@ -1460,7 +1460,7 @@ class bigone extends bigone$1["default"] {
     parseOrder(order, market = undefined) {
         //
         //    {
-        //        "id": "42154072251",
+        //        "id": "42154072252",
         //        "asset_pair_name": "SOL-USDT",
         //        "price": "20",
         //        "amount": "0.5",

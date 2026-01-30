@@ -3119,6 +3119,12 @@ public partial class binance : ccxt.binance
             }
         }
         object type = this.getMarketType("fetchPositionsWs", market, parameters);
+        if (isTrue(isTrue(isEqual(symbols, null)) && isTrue((isEqual(type, "spot")))))
+        {
+            // when symbols aren't provide
+            // we shouldn't rely on the defaultType
+            type = "future";
+        }
         if (isTrue(isTrue(!isEqual(type, "future")) && isTrue(!isEqual(type, "delivery"))))
         {
             throw new BadRequest ((string)add(this.id, " fetchPositionsWs only supports swap markets")) ;

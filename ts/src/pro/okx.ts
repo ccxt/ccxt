@@ -2107,6 +2107,12 @@ export default class okx extends okxRest {
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, params);
+        const market = this.market (symbol);
+        const instIdCode = this.safeInteger (market, 'instIdCode');
+        if (instIdCode !== undefined) {
+            delete args['instId'];
+            args['instIdCode'] = instIdCode;
+        }
         const ordType = this.safeString (args, 'ordType');
         if ((ordType === 'trigger') || (ordType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
             throw new BadRequest (this.id + ' createOrderWs() does not support algo trading. this.options["createOrderWs"]["op"] must be either order or batch-order');
@@ -2179,6 +2185,12 @@ export default class okx extends okxRest {
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const market = this.market (symbol);
+        const instIdCode = this.safeInteger (market, 'instIdCode');
+        if (instIdCode !== undefined) {
+            delete args['instId'];
+            args['instIdCode'] = instIdCode;
+        }
         const request: Dict = {
             'id': messageHash,
             'op': op,
@@ -2208,8 +2220,10 @@ export default class okx extends okxRest {
         const messageHash = this.requestId ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
+        const market = this.market (symbol);
+        const instIdCode = this.safeInteger (market, 'instIdCode');
         const arg: Dict = {
-            'instId': this.marketId (symbol),
+            'instIdCode': instIdCode,
         };
         if (clientOrderId !== undefined) {
             arg['clOrdId'] = clientOrderId;
@@ -2247,11 +2261,15 @@ export default class okx extends okxRest {
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
         const args = [];
+        const market = this.market (symbol);
+        const instIdCode = this.safeInteger (market, 'instIdCode');
+        const instParams = {
+            'instIdCode': instIdCode,
+        };
         for (let i = 0; i < idsLength; i++) {
-            const arg: Dict = {
-                'instId': this.marketId (symbol),
+            const arg: Dict = this.extend (instParams, {
                 'ordId': ids[i],
-            };
+            });
             args.push (arg);
         }
         const request: Dict = {

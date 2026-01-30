@@ -321,11 +321,12 @@ func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 				// Recursively merge
 				outObj.(map[string]interface{})[k] = this.DeepExtend(v1, v2)
 			} else {
-				if v2 != nil {
-					outObj.(map[string]interface{})[k] = v2
-				} else {
-					outObj.(map[string]interface{})[k] = v1
-				}
+				// if v2 != nil {
+				// 	outObj.(map[string]interface{})[k] = v2
+				// } else {
+				// 	outObj.(map[string]interface{})[k] = v1
+				// }
+				outObj.(map[string]interface{})[k] = v2 // always take v2
 			}
 		}
 	}

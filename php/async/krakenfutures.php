@@ -1551,6 +1551,7 @@ class krakenfutures extends Exchange {
              * @param {int} [$since] Timestamp (ms) of earliest $order->
              * @param {int} [$limit] How many orders to return.
              * @param {array} [$params] Exchange specific parameters
+             * @param {bool} [$params->trigger] set to true if you wish to fetch only trigger orders
              * @return An array of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
@@ -1565,13 +1566,20 @@ class krakenfutures extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = Async\await($this->historyGetOrders ($this->extend($request, $params)));
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+            $response = null;
+            if ($isTrigger) {
+                $params = $this->omit($params, array( 'trigger', 'stop' ));
+                $response = Async\await($this->historyGetTriggers ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->historyGetOrders ($this->extend($request, $params)));
+            }
             $allOrders = $this->safe_list($response, 'elements', array());
             $closedOrders = array();
             for ($i = 0; $i < count($allOrders); $i++) {
                 $order = $allOrders[$i];
                 $event = $this->safe_dict($order, 'event', array());
-                $orderPlaced = $this->safe_dict($event, 'OrderPlaced');
+                $orderPlaced = $this->safe_dict_2($event, 'OrderPlaced', 'OrderTriggerActivated');
                 if ($orderPlaced !== null) {
                     $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
                     $filled = $this->safe_string($innerOrder, 'filled');
@@ -1596,6 +1604,7 @@ class krakenfutures extends Exchange {
              * @param {int} [$since] Timestamp (ms) of earliest $order->
              * @param {int} [$limit] How many orders to return.
              * @param {array} [$params] Exchange specific parameters
+             * @param {bool} [$params->trigger] set to true if you wish to fetch only trigger orders
              * @return An array of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
@@ -1610,17 +1619,25 @@ class krakenfutures extends Exchange {
             if ($since !== null) {
                 $request['from'] = $since;
             }
-            $response = Async\await($this->historyGetOrders ($this->extend($request, $params)));
+            $response = null;
+            $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+            if ($isTrigger) {
+                $params = $this->omit($params, array( 'trigger', 'stop' ));
+                $response = Async\await($this->historyGetTriggers ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->historyGetOrders ($this->extend($request, $params)));
+            }
             $allOrders = $this->safe_list($response, 'elements', array());
             $canceledAndRejected = array();
             for ($i = 0; $i < count($allOrders); $i++) {
                 $order = $allOrders[$i];
                 $event = $this->safe_dict($order, 'event', array());
-                $orderPlaced = $this->safe_dict($event, 'OrderPlaced');
+                $isCancelledTriggerOrder = (is_array($event) && array_key_exists('OrderTriggerCancelled', $event));
+                $orderPlaced = $this->safe_dict_2($event, 'OrderPlaced', 'OrderTriggerCancelled');
                 if ($orderPlaced !== null) {
                     $innerOrder = $this->safe_dict($orderPlaced, 'order', array());
                     $filled = $this->safe_string($innerOrder, 'filled');
-                    if ($filled === '0') {
+                    if ($filled === '0' || $isCancelledTriggerOrder) {
                         $innerOrder['status'] = 'canceled'; // status not available in the $response
                         $canceledAndRejected[] = $innerOrder;
                     }
@@ -3010,7 +3027,11 @@ class krakenfutures extends Exchange {
             $postData = 'json=' . $this->json($params);
             $body = $postData;
         } elseif ($params) {
-            $postData = $this->urlencode($params);
+            if (is_array($params) && array_key_exists('orderIds', $params)) {
+                $postData = $this->urlencode_with_array_repeat($params);
+            } else {
+                $postData = $this->urlencode($params);
+            }
             $query .= '?' . $postData;
         }
         $url = $this->urls['api'][$api] . $query;

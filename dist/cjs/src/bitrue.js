@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitrue
@@ -2464,7 +2464,7 @@ class bitrue extends bitrue$1["default"] {
         //         "code": "0",
         //         "msg": "Success",
         //         "data": {
-        //             "orderId": 1690615847831143159
+        //             "orderId": 1690615847831143154
         //         }
         //     }
         //

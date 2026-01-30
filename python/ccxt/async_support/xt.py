@@ -1867,8 +1867,8 @@ class xt(Exchange, ImplicitAPI):
             'change': self.safe_number(ticker, 'cv'),
             'percentage': self.parse_number(percentage),
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_number_2(ticker, 'a', 'v'),
+            'baseVolume': self.safe_number(ticker, 'a'),
+            'quoteVolume': self.safe_number(ticker, 'v'),
             'info': ticker,
         }, market)
 
@@ -3558,7 +3558,7 @@ class xt(Exchange, ImplicitAPI):
         #             "hasNext": False,
         #             "items": [
         #                 {
-        #                     "id": "207260567109387524",
+        #                     "id": "207260567109387525",
         #                     "coin": "usdt",
         #                     "symbol": "btc_usdt",
         #                     "type": "FEE",
