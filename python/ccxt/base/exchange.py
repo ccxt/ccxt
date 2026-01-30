@@ -1117,6 +1117,7 @@ class Exchange(object):
 
     _URLENCODE_WITH_ARRAY_REPEAT_REGEX = re.compile(r'%5B\d*%5D')
 
+    @staticmethod
     def urlencode_with_array_repeat(params={}):
         return Exchange._URLENCODE_WITH_ARRAY_REPEAT_REGEX.sub('', Exchange.urlencode(params, True))
 
