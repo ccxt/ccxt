@@ -2253,7 +2253,7 @@ public partial class Exchange
 
     public virtual object safeBalance(object balance)
     {
-        object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
+        object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total", "debt"});
         object codes = new List<object>(((IDictionary<string,object>)balances).Keys);
         ((IDictionary<string,object>)balance)["free"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)balance)["used"] = new Dictionary<string, object>() {};
