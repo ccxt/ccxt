@@ -3015,7 +3015,7 @@ export default class coinbase extends Exchange {
         if (reduceOnly) {
             params = this.omit (params, 'reduceOnly');
             params['amount'] = amount;
-            await this.closePosition (symbol, side, params);
+            return await this.closePosition (symbol, side, params);
         }
         const triggerPrice = this.safeNumberN (params, [ 'stopPrice', 'stop_price', 'triggerPrice' ]);
         const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
