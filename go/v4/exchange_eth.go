@@ -270,14 +270,6 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 }
 
 func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 interface{}, messageTypes2 interface{}, messageData2 interface{}) []uint8 {
-	// domain {"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"}
-	// agent: {"Agent":[{"name":"source","type":"string"},{"name":"connectionId","type":"bytes32"}]}
-	// phantom: {"source":"a","connectionId":{"0":81,"1":132,"2":60,"3":100,"4":202,"5":146,"6":114,"7":128,"8":99,"9":200,"10":106,"11":37,"12":220,"13":61,"14":150,"15":236,"16":173,"17":119,"18":83,"19":11,"20":205,"21":91,"22":222,"23":149,"24":201,"25":182,"26":71,"27":103,"28":74,"29":0,"30":223,"31":202}}
-
-	if this.Id != "hyperliquid" {
-		return []uint8{}
-	}
-
 	domain := domain2.(map[string]interface{})
 	messageTypes := messageTypes2.(map[string]interface{})
 	messageData := messageData2.(map[string]interface{})
@@ -286,7 +278,6 @@ func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 interface{}, me
 	if err != nil {
 		panic(fmt.Sprintf("Error building typed data: %v", err))
 	}
-
 	digest, err := ComputeTypedDataDigest(td)
 	if err != nil {
 		panic(fmt.Sprintf("Error computing digest: %v", err))
@@ -294,8 +285,7 @@ func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 interface{}, me
 
 	hexData := hexutil.Encode(digest[:])
 	hexData = strings.TrimPrefix(hexData, "0x")
-	encodedHex := "1901" + hexData
-	return this.Base16ToBinary(encodedHex)
+	return this.Base16ToBinary(hexData)
 }
 
 func (this *Exchange) EthAbiEncode(types interface{}, args interface{}) interface{} {
@@ -622,7 +612,7 @@ func (this *Exchange) EthGetAddressFromPrivateKey(privateKey interface{}) string
 // The inputs mirror the MetaMask/ethers.js shape: domain, types, primaryType, and message.
 // This avoids having to define Go structs for each payload.
 func BuildTypedDataFromJS(primaryType string, domain map[string]interface{}, rawTypes map[string]interface{}, rawMessage map[string]interface{}) (apitypes.TypedData, error) {
-	typedTypes, inferredPrimary, err := toTypedDataTypes(rawTypes)
+	typedTypes, inferredPrimary, err := toTypedDataTypes(rawTypes, domain)
 	if err != nil {
 		return apitypes.TypedData{}, err
 	}
@@ -661,17 +651,29 @@ func ComputeTypedDataDigest(td apitypes.TypedData) ([32]byte, error) {
 	if err != nil {
 		return [32]byte{}, err
 	}
-	rawData := []byte(fmt.Sprintf("\x19\x01%s%s", string(domainSeparator), string(typedDataHash)))
+	prefix := []byte{0x19, 0x01}
+	rawData := append(append(prefix, domainSeparator...), typedDataHash...)
 	return crypto.Keccak256Hash(rawData), nil
 }
 
-func toTypedDataTypes(rawTypes map[string]interface{}) (map[string][]apitypes.Type, string, error) {
+func toTypedDataTypes(rawTypes map[string]interface{}, domain map[string]interface{}) (map[string][]apitypes.Type, string, error) {
 	typed := make(map[string][]apitypes.Type, len(rawTypes))
 	inferred := ""
-	for typeName, fieldsAny := range rawTypes {
-		if inferred == "" {
-			inferred = typeName
+	// the first key in the map is the primary type, but the order is not guaranteed
+	// so we need to check for the primary type explicitly
+	if _, ok := rawTypes["OrderWithBuilderFee"]; ok {
+		inferred = "OrderWithBuilderFee"
+	} else if _, ok := rawTypes["Order"]; ok {
+		inferred = "Order"
+	} else {
+		for typeName := range rawTypes {
+			if inferred == "" {
+				inferred = typeName
+			}
 		}
+	}
+
+	for typeName, fieldsAny := range rawTypes {
 		fields, ok := fieldsAny.([]interface{})
 		if !ok {
 			return nil, "", fmt.Errorf("types[%s] must be array", typeName)
@@ -688,6 +690,25 @@ func toTypedDataTypes(rawTypes map[string]interface{}) (map[string][]apitypes.Ty
 		}
 		typed[typeName] = typedFields
 	}
+
+	// Add EIP712Domain type based on what's actually in the domain
+	if _, exists := typed["EIP712Domain"]; !exists {
+		domainFields := []apitypes.Type{}
+		if _, ok := domain["name"]; ok {
+			domainFields = append(domainFields, apitypes.Type{Name: "name", Type: "string"})
+		}
+		if _, ok := domain["version"]; ok {
+			domainFields = append(domainFields, apitypes.Type{Name: "version", Type: "string"})
+		}
+		if _, ok := domain["chainId"]; ok {
+			domainFields = append(domainFields, apitypes.Type{Name: "chainId", Type: "uint256"})
+		}
+		if _, ok := domain["verifyingContract"]; ok {
+			domainFields = append(domainFields, apitypes.Type{Name: "verifyingContract", Type: "address"})
+		}
+		typed["EIP712Domain"] = domainFields
+	}
+
 	return typed, inferred, nil
 }
 
@@ -732,25 +753,99 @@ func normalizeStruct(types map[string][]apitypes.Type, typeName string, value in
 	if !ok {
 		return nil, fmt.Errorf("type %s not found in types", typeName)
 	}
-	out := make(apitypes.TypedDataMessage, len(fields))
+	out := make(apitypes.TypedDataMessage)
+
+	// Include all fields from type definition - ALL fields must be present
 	for _, f := range fields {
-		raw := obj[f.Name]
+		raw, exists := obj[f.Name]
+
+		// If field doesn't exist or is nil, provide default zero value
+		if !exists || raw == nil {
+			defaultVal := getDefaultValueForType(f.Type)
+			out[f.Name] = defaultVal
+			continue
+		}
+
 		conv, err := normalizeValue(types, f.Type, raw)
 		if err != nil {
-			return nil, fmt.Errorf("field %s: %w", f.Name, err)
+			return nil, fmt.Errorf("field %s (type %s, value %v): %w", f.Name, f.Type, raw, err)
 		}
 		out[f.Name] = conv
 	}
 	return out, nil
 }
 
+func getDefaultValueForType(typeName string) interface{} {
+	// Handle arrays
+	if strings.HasSuffix(typeName, "[]") {
+		return []interface{}{}
+	}
+
+	// Handle integers
+	if strings.HasPrefix(typeName, "uint") || strings.HasPrefix(typeName, "int") {
+		return big.NewInt(0)
+	}
+
+	// Handle address
+	if typeName == "address" {
+		return common.HexToAddress("0x0000000000000000000000000000000000000000")
+	}
+
+	// Handle bool
+	if typeName == "bool" {
+		return false
+	}
+
+	// Handle bytes
+	if strings.HasPrefix(typeName, "bytes") {
+		if typeName == "bytes" {
+			return []byte{}
+		}
+		// Fixed size bytes (bytes32, etc)
+		return []byte{}
+	}
+
+	// Handle string
+	if typeName == "string" {
+		return ""
+	}
+
+	// For custom types/structs, return empty map
+	return make(map[string]interface{})
+}
+
 func normalizeValue(types map[string][]apitypes.Type, typeName string, value interface{}) (interface{}, error) {
 	if strings.HasSuffix(typeName, "[]") {
 		base := strings.TrimSuffix(typeName, "[]")
+
+		// Handle empty arrays or nil
+		if value == nil {
+			if _, isStruct := types[base]; isStruct {
+				return []apitypes.TypedDataMessage{}, nil
+			}
+			return []interface{}{}, nil
+		}
+
 		arr, ok := value.([]interface{})
 		if !ok {
 			return nil, fmt.Errorf("expected array for %s", typeName)
 		}
+
+		// Check if the base type is a struct
+		if _, isStruct := types[base]; isStruct {
+			// For array of structs, return as []apitypes.TypedDataMessage
+			out := make([]apitypes.TypedDataMessage, len(arr))
+			for i, v := range arr {
+				structVal, err := normalizeStruct(types, base, v)
+				if err != nil {
+					return nil, fmt.Errorf("index %d: %w", i, err)
+				}
+				out[i] = structVal
+			}
+			return out, nil
+		}
+
+		// For array of primitives
 		out := make([]interface{}, len(arr))
 		for i, v := range arr {
 			conv, err := normalizeValue(types, base, v)
@@ -768,10 +863,20 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value int
 
 	switch {
 	case strings.HasPrefix(typeName, "uint") || strings.HasPrefix(typeName, "int"):
-		return toBigInt(value)
+		bi, err := toBigInt(value)
+		if err != nil {
+			return nil, err
+		}
+		// For smaller integer types (not 256-bit), validate they fit in range
+		// and return the big.Int (the library will validate the range)
+		return bi, nil
 	case typeName == "address":
 		if s, ok := value.(string); ok {
-			return common.HexToAddress(s), nil
+			addr := common.HexToAddress(s)
+			return addr.Bytes(), nil
+		}
+		if addr, ok := value.(common.Address); ok {
+			return addr.Bytes(), nil
 		}
 		return value, nil
 	case strings.HasPrefix(typeName, "bytes") && typeName != "bytes":
@@ -780,6 +885,10 @@ func normalizeValue(types map[string][]apitypes.Type, typeName string, value int
 			if err != nil {
 				return nil, fmt.Errorf("decode %s: %w", typeName, err)
 			}
+			return b, nil
+		}
+		// Handle byte slices that are already decoded
+		if b, ok := value.([]byte); ok {
 			return b, nil
 		}
 		return value, nil

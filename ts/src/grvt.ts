@@ -386,7 +386,7 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}) {
-        await this.sleep (10); // temporary workaround for allowing promise-all to prioritize loadMarkets
+        // await this.sleep (10); // temporary workaround for allowing promise-all to prioritize loadMarkets
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
         // expires in 24 hours as CS suggested
@@ -1706,8 +1706,10 @@ export default class grvt extends Exchange {
         const orderLeg = {
             'instrument': market['id'],
             'size': this.amountToPrecision (symbol, amount),
-            'limit_price': this.numberToString (price),
         };
+        if (price !== undefined) {
+            orderLeg['limit_price'] = this.priceToPrecision (symbol, price);
+        }
         if (side === 'sell') {
             orderLeg['is_buying_asset'] = false;
         } else if (side === 'buy') {
@@ -1715,7 +1717,7 @@ export default class grvt extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
-        let request = {
+        const orderRequest = {
             'sub_account_id': this.getSubAccountId (params),
             'time_in_force': 'GOOD_TILL_TIME',
             'legs': [ orderLeg ],
@@ -1742,15 +1744,15 @@ export default class grvt extends Exchange {
         let eipType = 'EIP712_ORDER_TYPE';
         if (this.safeBool (this.options, 'builderFee', true)) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
-            request['builder'] = this.safeString (this.options, 'builder');
-            request['builder_fee'] = this.safeString (this.options, 'builderRate');
+            orderRequest['builder'] = this.safeString (this.options, 'builder');
+            orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
         // @ts-ignore
-        request = this.createSignedRequest (request, eipType);
-        const fullRequest = {
-            'order': request,
+        const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
+        const request = {
+            'order': signedOrderRequest,
         };
-        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (fullRequest, params));
+        const response = await this.privateTradingPostFullV1CreateOrder (this.extend (request, params));
         //
         //    {
         //        "result": {
@@ -1834,19 +1836,22 @@ export default class grvt extends Exchange {
             const sizeDec = this.safeString (sizeParts, 1, '');
             const sizeDecLength = sizeDec.length;
             const sizeDecLengthStr = sizeDecLength.toString ();
-            const size_int = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
-            const price = leg['limit_price'];
-            const limitParts = price.split ('.');
-            const limitDec = this.safeString (limitParts, 1, '');
-            const limitDecLength = limitDec.length;
-            const limitDecLengthStr = limitDecLength.toString ();
-            const price_int = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, this.convertToBigIntCustom (limitDecLengthStr))));
-            legs.push ({
+            const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
+            const legOrder = {
                 'assetID': market['info']['instrument_hash'],
-                'contractSize': this.parseToInt (size_int),
-                'limitPrice': this.parseToInt (price_int),
+                'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
-            });
+            };
+            if ('limit_price' in leg) {
+                const price = leg['limit_price'];
+                const limitParts = price.split ('.');
+                const limitDec = this.safeString (limitParts, 1, '');
+                const limitDecLength = limitDec.length;
+                const limitDecLengthStr = limitDecLength.toString ();
+                const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, this.convertToBigIntCustom (limitDecLengthStr))));
+                legOrder['limitPrice'] = this.parseToInt (priceInteger);
+            }
+            legs.push (legOrder);
         }
         const returnValue = {
             'subAccountID': order['sub_account_id'],
@@ -1858,7 +1863,7 @@ export default class grvt extends Exchange {
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
-        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
             returnValue['builder'] = order['builder'];
             returnValue['builderFee'] = this.parseToInt (parseFloat (order['builder_fee']) * this.feeAmountMultiplier ());
         }
@@ -2915,6 +2920,15 @@ export default class grvt extends Exchange {
             'nonce': this.nonce (),
             'chain_id': '325',
         };
+    }
+
+    handleUntilOptionString (key: string, request, params, multiplier = 1) {
+        const until = this.safeInteger2 (params, 'until', 'till');
+        if (until !== undefined) {
+            request[key] = this.numberToString (this.parseToInt (until * multiplier));
+            params = this.omit (params, [ 'until', 'till' ]);
+        }
+        return [ request, params ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
