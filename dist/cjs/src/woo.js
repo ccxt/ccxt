@@ -2150,7 +2150,7 @@ class woo extends woo$1["default"] {
             request['limit'] = Math.min(limit, 1000);
         }
         if (since !== undefined) {
-            request['after'] = since;
+            request['after'] = since - 1; // #27793
         }
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
