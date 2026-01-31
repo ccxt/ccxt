@@ -1724,13 +1724,12 @@ export default class bybit extends bybitRest {
                 const market = this.safeMarket (marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-                let liquidations = this.safeValue (this.liquidations, symbol);
-                if (liquidations === undefined) {
+                let cache = this.liquidations;
+                if (cache === undefined) {
                     const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                    liquidations = new ArrayCache (limit);
+                    cache = this.liquidations = new ArrayCacheBySymbolBySide (limit);
                 }
-                liquidations.append (liquidation);
-                this.liquidations[symbol] = liquidations;
+                cache.append (liquidation);
                 client.resolve ([ liquidation ], 'liquidations');
                 client.resolve ([ liquidation ], 'liquidations::' + symbol);
             }
@@ -1740,13 +1739,12 @@ export default class bybit extends bybitRest {
             const market = this.safeMarket (marketId, undefined, '', 'contract');
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-            let liquidations = this.safeValue (this.liquidations, symbol);
-            if (liquidations === undefined) {
+            let cache = this.liquidations;
+            if (cache === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache (limit);
+                cache = this.liquidations = new ArrayCacheBySymbolBySide (limit);
             }
-            liquidations.append (liquidation);
-            this.liquidations[symbol] = liquidations;
+            cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);
         }
