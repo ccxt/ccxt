@@ -3,6 +3,9 @@ package io.github.ccxt;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.lang.reflect.Proxy;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -229,10 +232,10 @@ public class Exchange {
             defaultConfig = new HashMap<String, Object>();
         }
         System.setProperty("java.net.preferIPv4Stack", "true");
-        this.initHttpClient();
         this.initializeProperties(defaultConfig);
         this.afterConstruct();
         this.transformApiNew(this.api, new ArrayList<>());
+        this.initHttpClient();
     }
 
     // add to derived files constructor that calls base constructor with userConfig
@@ -1457,25 +1460,25 @@ public class Exchange {
     }
 
     private void initHttpClient() {
-        HttpClient builder = HttpClient.newHttpClient();
+        var builder = HttpClient.newBuilder();
 
-//        if (this.httpProxy != null && this.httpProxy.toString().length() > 0) {
-//            String proxyString = this.httpProxy.toString();
-//            java.net.URI proxyUri = java.net.URI.create(proxyString);
-//            String host = proxyUri.getHost();
-//            int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 80;
-//            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
-//        } else if (this.httpsProxy != null && this.httpsProxy.toString().length() > 0) {
-//            String proxyString = this.httpsProxy.toString();
-//            java.net.URI proxyUri = java.net.URI.create(proxyString);
-//            String host = proxyUri.getHost();
-//            int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 443;
-//            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress(host, port)));
-//        } else {
-//            builder.proxy(java.net.ProxySelector.of(new java.net.InetSocketAddress("", 0)));
-//        }
+        var httpsProxySet = (this.httpsProxy != null && this.httpsProxy != "");
+        var httpProxySet = (this.httpProxy != null && this.httpProxy != "");
+        if (!httpsProxySet && !httpProxySet) {
+            this.httpClient = builder.build();
+            return;
+        }
 
-        this.httpClient = builder;
+        var proxyUrl = (httpsProxySet) ? httpsProxy : httpProxy;
+
+        String proxyString = proxyUrl.toString();
+        java.net.URI proxyUri = java.net.URI.create(proxyString);
+        String host = proxyUri.getHost();
+        int port = (proxyUri.getPort() != -1) ? proxyUri.getPort() : 80;
+        var proxy = new java.net.InetSocketAddress(host, port);
+        builder.proxy(ProxySelector.of(proxy));
+
+        this.httpClient = builder.build();
     }
 
     public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
