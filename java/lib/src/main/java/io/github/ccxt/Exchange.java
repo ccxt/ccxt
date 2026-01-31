@@ -2047,6 +2047,19 @@ public class Exchange {
         }
     }
 
+    public String exceptionMessage(Exception exc, boolean includeStack) {
+        String message = "[" + exc.getClass().getSimpleName() + "] " + (!includeStack ? exc.getMessage() : getStackTrace(exc));
+        int length = Math.min(10000, message.length());
+        return message.substring(0, length);
+    }
+
+    private String getStackTrace(Exception exc) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        exc.printStackTrace(pw);
+        return sw.toString();
+    }
+
     // ------------------------------------------------------------------------
     // ########################################################################
     // ########################################################################
@@ -2476,7 +2489,12 @@ public Object describe()
         * @returns {bool | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        return this.safeBoolN(dictionary, new java.util.ArrayList<Object>(java.util.Arrays.asList(key)), defaultValue);
+        Object value = this.safeValue(dictionary, key, defaultValue);
+        if (Helpers.isTrue((value instanceof Boolean)))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public Object safeDictN(Object dictionaryOrList, Object keys, Object... optionalArgs)
@@ -2509,7 +2527,16 @@ public Object describe()
         * @returns {object | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        return this.safeDictN(dictionary, new java.util.ArrayList<Object>(java.util.Arrays.asList(key)), defaultValue);
+        Object value = this.safeValue(dictionary, key, defaultValue);
+        if (Helpers.isTrue(Helpers.isEqual(value, null)))
+        {
+            return defaultValue;
+        }
+        if (Helpers.isTrue(Helpers.isTrue(((value instanceof java.util.Map))) && !Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray())))))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public Object safeDict2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
@@ -2566,7 +2593,16 @@ public Object describe()
         * @returns {Array | undefined}
         */
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        return this.safeListN(dictionaryOrList, new java.util.ArrayList<Object>(java.util.Arrays.asList(key)), defaultValue);
+        Object value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (Helpers.isTrue(Helpers.isEqual(value, null)))
+        {
+            return defaultValue;
+        }
+        if (Helpers.isTrue(((value instanceof java.util.List) || (value.getClass().isArray()))))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public void handleDeltas(Object orderbook, Object deltas)
@@ -11177,7 +11213,8 @@ public Object describe()
                 uniqueResults = this.removeRepeatedElementsFromArray(result);
             }
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
-            return this.filterBySinceLimit(uniqueResults, since, limit, key);
+            Object sortedRes = this.sortBy(uniqueResults, key);
+            return this.filterBySinceLimit(sortedRes, since, limit, key);
         });
 
     }
@@ -12211,5 +12248,39 @@ public Object describe()
                 }
             }
         }
+    }
+
+    public Object timeframeFromMilliseconds(Object ms)
+    {
+        if (Helpers.isTrue(Helpers.isLessThanOrEqual(ms, 0)))
+        {
+            return "";
+        }
+        Object second = 1000;
+        Object minute = Helpers.multiply(60, second);
+        Object hour = Helpers.multiply(60, minute);
+        Object day = Helpers.multiply(24, hour);
+        Object week = Helpers.multiply(7, day);
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.mod(ms, week), 0)))
+        {
+            return Helpers.add((Helpers.divide(ms, week)), "w");
+        }
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.mod(ms, day), 0)))
+        {
+            return Helpers.add((Helpers.divide(ms, day)), "d");
+        }
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.mod(ms, hour), 0)))
+        {
+            return Helpers.add((Helpers.divide(ms, hour)), "h");
+        }
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.mod(ms, minute), 0)))
+        {
+            return Helpers.add((Helpers.divide(ms, minute)), "m");
+        }
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.mod(ms, second), 0)))
+        {
+            return Helpers.add((Helpers.divide(ms, second)), "s");
+        }
+        return "";
     }
 }
