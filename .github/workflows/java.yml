@@ -142,6 +142,10 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: List Java/ contents
+        run: ls java/
+      - name: Build project again (rm later)
+        run: npm run buildJava
       - name: Live tests
         if: env.important_modified == 'true'
         run: npm run live-tests-java
