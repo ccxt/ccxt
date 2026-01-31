@@ -1727,7 +1727,7 @@ export default class bybit extends bybitRest {
                 let cache = this.liquidations;
                 if (cache === undefined) {
                     const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                    cache = this.liquidations = new ArrayCacheBySymbolBySide (limit);
+                    cache = new ArrayCacheBySymbolBySide (limit);
                 }
                 cache.append (liquidation);
                 client.resolve ([ liquidation ], 'liquidations');
@@ -1742,7 +1742,7 @@ export default class bybit extends bybitRest {
             let cache = this.liquidations;
             if (cache === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                cache = this.liquidations = new ArrayCacheBySymbolBySide (limit);
+                cache = new ArrayCacheBySymbolBySide (limit);
             }
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
