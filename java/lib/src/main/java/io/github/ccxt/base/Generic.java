@@ -163,7 +163,8 @@ public class Generic {
                     if (arg1 instanceof Map && arg2 instanceof Map) {
                         out.put(k, deepExtend(arg1, arg2));
                     } else {
-                        out.put(k, arg2 != null ? arg2 : arg1);
+//                        out.put(k, arg2 != null ? arg2 : arg1);
+                        out.put(k, arg2);
                     }
                 }
             } else {
