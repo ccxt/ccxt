@@ -946,8 +946,8 @@ class NewTranspiler {
                 const transpiled = transpiledFiles[i];
                 const exchangeName = exchanges[i].replace('.ts','');
                 const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
-                this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
-                break;
+                // this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
+                // break;
             }
         } else {
             //
