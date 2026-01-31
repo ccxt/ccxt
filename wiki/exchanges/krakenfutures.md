@@ -402,6 +402,7 @@ Gets all closed orders, including trigger orders, for an account from the exchan
 | since | <code>int</code> | No | Timestamp (ms) of earliest order. |
 | limit | <code>int</code> | No | How many orders to return. |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.trigger | <code>bool</code> | No | set to true if you wish to fetch only trigger orders |
 
 
 ```javascript
@@ -425,6 +426,7 @@ Gets all canceled orders, including trigger orders, for an account from the exch
 | since | <code>int</code> | No | Timestamp (ms) of earliest order. |
 | limit | <code>int</code> | No | How many orders to return. |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.trigger | <code>bool</code> | No | set to true if you wish to fetch only trigger orders |
 
 
 ```javascript

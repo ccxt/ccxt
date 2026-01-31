@@ -16,6 +16,7 @@ public partial class BaseTest
             testCryptography();
             testDatetime();
             testDecimalToPrecision();
+            testCapitalize();
             testNumberToString();
             testPrecise();
             testSafeMethods();

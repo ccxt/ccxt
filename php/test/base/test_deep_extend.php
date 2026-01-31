@@ -13,6 +13,77 @@ function test_deep_extend() {
     $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
-    assert($exchange->parse_to_numeric('1') === 1);
-    return true;  // dummy for now
+    $obj1 = array(
+        'a' => 1,
+        'b' => [1, 2, 3],
+        'c' => [array(
+    'test1' => 1,
+    'test2' => 1,
+)],
+        'd' => null,
+        'e' => 'not_undefined',
+        'sub' => array(
+            'a' => 1,
+            'b' => [1, 2],
+            'c' => [array(
+    'test1' => 1,
+    'test2' => 2,
+)],
+            'd' => null,
+            'e' => 'not_undefined',
+            'other1' => 'x',
+        ),
+        'other1' => 'x',
+    );
+    $obj2 = array(
+        'a' => 2,
+        'b' => [3, 4],
+        'c' => [array(
+    'test1' => 2,
+    'test3' => 3,
+)],
+        'd' => 'not_undefined',
+        'e' => null,
+        'sub' => array(
+            'a' => 2,
+            'b' => [3, 4],
+            'c' => [array(
+    'test1' => 2,
+    'test3' => 3,
+)],
+            'd' => 'not_undefined',
+            'e' => null,
+            'other2' => 'y',
+        ),
+        'other2' => 'y',
+    );
+    // deepExtend
+    $deep_extended = $exchange->deep_extend($obj1, $obj2);
+    $compare_to = array(
+        'a' => 2,
+        'b' => [3, 4],
+        'c' => [array(
+    'test1' => 2,
+    'test3' => 3,
+)],
+        'd' => 'not_undefined',
+        'e' => null,
+        'sub' => array(
+            'a' => 2,
+            'b' => [3, 4],
+            'c' => [array(
+    'test1' => 2,
+    'test3' => 3,
+)],
+            'd' => 'not_undefined',
+            'e' => null,
+            'other1' => 'x',
+            'other2' => 'y',
+        ),
+        'other1' => 'x',
+        'other2' => 'y',
+    );
+    // todo: results are different across langs.
+    // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
+    assert_deep_equal($exchange, null, 'testDeepExtend', $deep_extended, $compare_to);
 }

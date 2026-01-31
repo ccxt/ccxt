@@ -718,14 +718,14 @@ public partial class testMainClass : BaseTest
             object ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
-        public object deepEqual(object a, object b)
+        public object deepEqual(Exchange exchange, object a, object b)
         {
             return isEqual(json(a), json(b));
         }
         public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
-            assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
+            assert(deepEqual(exchange, a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
 
     }

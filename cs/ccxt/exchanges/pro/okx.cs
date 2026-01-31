@@ -2308,6 +2308,13 @@ public partial class okx : ccxt.okx
         op = ((IList<object>)opparametersVariable)[0];
         parameters = ((IList<object>)opparametersVariable)[1];
         object args = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
+        if (isTrue(!isEqual(instIdCode, null)))
+        {
+            ((IDictionary<string,object>)args).Remove((string)"instId");
+            ((IDictionary<string,object>)args)["instIdCode"] = instIdCode;
+        }
         object ordType = this.safeString(args, "ordType");
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(ordType, "trigger"))) || isTrue((isEqual(ordType, "conditional")))) || isTrue((isEqual(type, "oco")))) || isTrue((isEqual(type, "move_order_stop")))) || isTrue((isEqual(type, "iceberg")))) || isTrue((isEqual(type, "twap")))))
         {
@@ -2388,6 +2395,13 @@ public partial class okx : ccxt.okx
         op = ((IList<object>)opparametersVariable)[0];
         parameters = ((IList<object>)opparametersVariable)[1];
         object args = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
+        if (isTrue(!isEqual(instIdCode, null)))
+        {
+            ((IDictionary<string,object>)args).Remove((string)"instId");
+            ((IDictionary<string,object>)args)["instIdCode"] = instIdCode;
+        }
         object request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", op },
@@ -2420,8 +2434,10 @@ public partial class okx : ccxt.okx
         object messageHash = this.requestId();
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
         object arg = new Dictionary<string, object>() {
-            { "instId", this.marketId(symbol) },
+            { "instIdCode", instIdCode },
         };
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2465,12 +2481,16 @@ public partial class okx : ccxt.okx
         object url = this.getUrl("private", "private");
         object messageHash = this.requestId();
         object args = new List<object>() {};
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
+        object instParams = new Dictionary<string, object>() {
+            { "instIdCode", instIdCode },
+        };
         for (object i = 0; isLessThan(i, idsLength); postFixIncrement(ref i))
         {
-            object arg = new Dictionary<string, object>() {
-                { "instId", this.marketId(symbol) },
+            object arg = this.extend(instParams, new Dictionary<string, object>() {
                 { "ordId", getValue(ids, i) },
-            };
+            });
             ((IList<object>)args).Add(arg);
         }
         object request = new Dictionary<string, object>() {

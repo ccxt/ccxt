@@ -2060,7 +2060,7 @@ class woo(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = min(limit, 1000)
         if since is not None:
-            request['after'] = since
+            request['after'] = since - 1  # #27793
         until = self.safe_integer(params, 'until')
         params = self.omit(params, 'until')
         if until is not None:
