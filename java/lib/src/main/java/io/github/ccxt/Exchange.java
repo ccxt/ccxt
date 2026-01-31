@@ -1,5 +1,7 @@
 package io.github.ccxt;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2051,6 +2053,10 @@ public class Exchange {
         String message = "[" + exc.getClass().getSimpleName() + "] " + (!includeStack ? exc.getMessage() : getStackTrace(exc));
         int length = Math.min(10000, message.length());
         return message.substring(0, length);
+    }
+
+    public String exceptionMessage(Exception exc) {
+            return exceptionMessage(exc, true);
     }
 
     private String getStackTrace(Exception exc) {

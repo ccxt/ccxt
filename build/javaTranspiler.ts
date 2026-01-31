@@ -1419,6 +1419,7 @@ class NewTranspiler {
                 [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 [/void function/g, 'void'],
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn($2, new object[] {$3})'],
+                [/exchange.jsonStringifyWithNull/g, 'exchange.json']
             ];
 
             if (filename.includes('fetch') || filename.includes('load') || filename.includes('create')) {
