@@ -16,7 +16,7 @@ import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
-import testUrlencodeToBase64 from './test.urlencodeToBase64.js';
+import testUrlencodeBase64 from './test.urlencodeToBase64.js';
 import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
@@ -43,7 +43,7 @@ async function baseTestsInit () {
     testJson ();
     testSortBy ();
     testSum ();
-    testUrlencodeToBase64 ();
+    testUrlencodeBase64 ();
     testOmit ();
     testGroupBy ();
     testFilterBy ();
