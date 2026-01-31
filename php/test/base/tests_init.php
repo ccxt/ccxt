@@ -11,6 +11,7 @@ use React\Async;
 use React\Promise;
 use \ccxt\Precise;
 include_once __DIR__ . '/test_decimal_to_precision.php';
+include_once __DIR__ . '/test_binary_to_base64.php';
 include_once __DIR__ . '/test_number_to_string.php';
 include_once __DIR__ . '/test_precise.php';
 include_once __DIR__ . '/test_datetime.php';
@@ -42,6 +43,7 @@ function base_tests_init() {
         test_extend();
         test_deep_extend();
         test_cryptography();
+        test_binary_to_base64();
         test_datetime();
         test_decimal_to_precision();
         test_capitalize();
