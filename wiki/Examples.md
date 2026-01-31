@@ -2,9 +2,7 @@
 
 ![preview](https://user-images.githubusercontent.com/1294454/31798504-ca2af4cc-b53c-11e7-946c-620d744f6d16.gif)
 
-- [Examples](#examples)
-- [Citations](#ccxt-citations-in-papers-and-theses)
-- [Articles and Tutorials](#see-also)
+# [Examples](#examples) · [Citations](#ccxt-citations-in-papers-and-theses) · [Tutorials](#see-also)
 
 ## Examples
 
