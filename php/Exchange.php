@@ -1067,13 +1067,6 @@ class Exchange {
         return $time;
     }
 
-    public static function rfc2616($timestamp) {
-        if (!$timestamp) {
-            $timestamp = static::milliseconds();
-        }
-        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));
-    }
-
     public static function dmy($timestamp, $infix = '-') {
         return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
