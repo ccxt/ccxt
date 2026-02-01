@@ -1,0 +1,38 @@
+// AUTO_TRANSPILE_ENABLED
+
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+
+function testUrlencodeBase64 () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    // Test 1: Simple string
+    assert (exchange.urlencodeBase64 ('hello') === 'aGVsbG8');
+    // Test 2: String with space
+    assert (exchange.urlencodeBase64 ('hello world') === 'aGVsbG8gd29ybGQ');
+    // Test 3: Short string
+    assert (exchange.urlencodeBase64 ('test') === 'dGVzdA');
+    // Test 4: Empty string
+    assert (exchange.urlencodeBase64 ('') === '');
+    // Test 5: Single character
+    assert (exchange.urlencodeBase64 ('a') === 'YQ');
+    // Test 6: Two characters
+    assert (exchange.urlencodeBase64 ('ab') === 'YWI');
+    // Test 7: Three characters (no padding needed)
+    assert (exchange.urlencodeBase64 ('abc') === 'YWJj');
+    // Test 8: Four characters
+    assert (exchange.urlencodeBase64 ('abcd') === 'YWJjZA');
+    // Test 9: JSON-like string
+    assert (exchange.urlencodeBase64 ('{"user":"test"}') === 'eyJ1c2VyIjoidGVzdCJ9');
+    // Test 10: String with special characters (urlsafe base64)
+    assert (exchange.urlencodeBase64 ('subjects?_d') === 'c3ViamVjdHM_X2Q');
+    // Test 11: Longer string
+    assert (exchange.urlencodeBase64 ('The quick brown fox') === 'VGhlIHF1aWNrIGJyb3duIGZveA');
+    // Test 12: Numbers as string
+    assert (exchange.urlencodeBase64 ('123456789') === 'MTIzNDU2Nzg5');
+}
+
+export default testUrlencodeBase64;
