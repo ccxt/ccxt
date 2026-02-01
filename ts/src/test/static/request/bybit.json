@@ -444,7 +444,7 @@
                   "ETH/USDT:USDT",
                   "market",
                   "sell",
-                  null,
+                  0.0,
                   null,
                   {
                     "stopLossPrice": 3999,
@@ -461,7 +461,7 @@
                   "ETH/USDT:USDT",
                   "market",
                   "sell",
-                  null,
+                  0.0,
                   null,
                   {
                     "takeProfitPrice": 4000,
