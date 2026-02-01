@@ -4171,11 +4171,11 @@ export default class bybit extends Exchange {
                         }
                     }
                 }
-                if (tpslModeSl !== tpslModeTp) {
+                if (isTakeProfitOrder && isStopLossOrder && tpslModeSl !== tpslModeTp) {
                     throw new InvalidOrder (this.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination');
                 }
-                request['tpslMode'] = tpslModeSl; // same as tpslModeTp
-                params = this.omit (params, [ 'stopLossLimitPrice', 'takeProfitLimitPrice' ]);
+                request['tpslMode'] = tpslModeSl || tpslModeTp; // same as tpslModeTp
+                params = this.omit (params, [ 'stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint' ]);
             }
         } else {
             request['side'] = this.capitalize (side);
