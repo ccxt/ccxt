@@ -25,6 +25,7 @@ public partial class BaseTest
             testJson();
             testSortBy();
             testSum();
+            testUrlencodeBase64();
             testOmit();
             testGroupBy();
             testFilterBy();
