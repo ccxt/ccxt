@@ -1186,15 +1186,12 @@ class Exchange(object):
 
     @staticmethod
     def aggregate(bidasks):
-        ordered = Exchange.ordered({})
-        for [price, volume, *_] in bidasks:
+        ordered = {}
+        for price, volume, *_ in bidasks:
             if volume > 0:
-                ordered[price] = (ordered[price] if price in ordered else 0) + volume
-        result = []
-        items = list(ordered.items())
-        for price, volume in items:
-            result.append([price, volume])
-        return result
+                ordered[price] = ordered.get(price, 0) + volume
+        return [[price, volume] for price, volume in ordered.items()]
+
 
     @staticmethod
     def seconds():
