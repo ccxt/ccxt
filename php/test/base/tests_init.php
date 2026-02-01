@@ -22,6 +22,7 @@ include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
 include_once __DIR__ . '/test_json.php';
+include_once __DIR__ . '/test_extract_params.php';
 include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
@@ -62,6 +63,7 @@ function base_tests_init() {
         test_handle_methods();
         test_remove_repeated_elements_from_array();
         test_parse_precision();
+        test_extract_params();
         test_arrays_concat();
         test_eth_methods();
         Async\await(test_sleep());
