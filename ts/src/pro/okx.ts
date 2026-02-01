@@ -780,8 +780,7 @@ export default class okx extends okxRest {
             const symbol = this.safeString (liquidation, 'symbol');
             let cache = this.liquidations;
             if (cache === undefined) {
-                const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                cache = new ArrayCacheBySymbolBySide (limit);
+                cache = new ArrayCacheBySymbolBySide ();
             }
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
@@ -879,8 +878,7 @@ export default class okx extends okxRest {
             const symbol = this.safeString (liquidation, 'symbol');
             let cache = this.liquidations;
             if (cache === undefined) {
-                const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
-                cache = new ArrayCacheBySymbolBySide (limit);
+                cache = new ArrayCacheBySymbolBySide ();
             }
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'myLiquidations');

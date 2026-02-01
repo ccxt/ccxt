@@ -1559,8 +1559,7 @@ export default class gate extends gateRest {
         const newLiquidations = [];
         let cache = this.liquidations;
         if (cache === undefined) {
-            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-            cache = new ArrayCacheBySymbolBySide (limit);
+            cache = new ArrayCacheBySymbolBySide ();
         }
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
