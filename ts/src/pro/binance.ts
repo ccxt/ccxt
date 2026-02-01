@@ -4086,28 +4086,30 @@ export default class binance extends binanceRest {
     handlePositions (client, message) {
         //
         //     {
-        //         e: 'ACCOUNT_UPDATE',
-        //         T: 1667881353112,
-        //         E: 1667881353115,
-        //         a: {
-        //             B: [{
-        //                 a: 'USDT',
-        //                 wb: '1127.95750089',
-        //                 cw: '1040.82091149',
+        //         e: 'ACCOUNT_UPDATE',               // Event Type
+        //         T: 1667881353112,                  // Transaction
+        //         E: 1667881353115,                  // Event Time
+        //         i: 'SfsR,                          // Account Alias
+        //         a: {                               // Update Data
+        //             B: [{                          // Balances
+        //                 a: 'USDT',                 // Asset
+        //                 wb: '1127.95750089',       // Wallet Balance
+        //                 cw: '1040.82091149',       // Cross Wallet Balance
         //                 bc: '0'
         //             }],
-        //             P: [{
-        //                 s: 'BTCUSDT',
-        //                 pa: '-0.089',
-        //                 ep: '19700.03933',
-        //                 cr: '-1260.24809979',
-        //                 up: '1.53058860',
-        //                 mt: 'isolated',
-        //                 iw: '87.13658940',
-        //                 ps: 'BOTH',
+        //             P: [{                           // Position data
+        //                 bep: '0.00723638',          // Break-Even Price since  see https://binance-docs.github.io/apidocs/futures/en/#change-log from 2023-08-29
+        //                 s: 'BTCUSDT',               // Symbol
+        //                 pa: '-0.089',               // Position Amount
+        //                 ep: '19700.03933',          // Entry Price
+        //                 cr: '-1260.24809979',       // (Pre-fee) Accumulated Realized
+        //                 up: '1.53058860',           // Unrealized PnL
+        //                 mt: 'isolated',             // Margin Type
+        //                 iw: '87.13658940',          // Isolated Wallet (if isolated position)
+        //                 ps: 'BOTH',                 // Position Side
         //                 ma: 'USDT'
         //             }],
-        //             m: 'ORDER'
+        //             m: 'ORDER'                     // Event reason type
         //         }
         //     }
         //
@@ -4627,7 +4629,7 @@ export default class binance extends binanceRest {
             'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
-            'ACCOUNT_UPDATE': this.handleAcountUpdate,
+            'ACCOUNT_UPDATE': this.handlePositions,
             'executionReport': this.handleOrderUpdate,
             'ORDER_TRADE_UPDATE': this.handleOrderUpdate,
             'ALGO_UPDATE': this.handleOrderUpdate,
