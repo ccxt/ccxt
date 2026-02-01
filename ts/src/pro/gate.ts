@@ -1557,10 +1557,10 @@ export default class gate extends gateRest {
         //
         const rawLiquidations = this.safeList (message, 'result', []);
         const newLiquidations = [];
-        let cache = this.liquidations;
-        if (cache === undefined) {
-            cache = new ArrayCacheBySymbolBySide ();
+        if (this.liquidations === undefined) {
+            this.liquidations = new ArrayCacheBySymbolBySide ();
         }
+        const cache = this.liquidations;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);

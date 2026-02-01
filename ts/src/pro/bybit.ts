@@ -1724,10 +1724,10 @@ export default class bybit extends bybitRest {
                 const market = this.safeMarket (marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-                let cache = this.liquidations;
-                if (cache === undefined) {
-                    cache = new ArrayCacheBySymbolBySide ();
+                if (this.liquidations === undefined) {
+                    this.liquidations = new ArrayCacheBySymbolBySide ();
                 }
+                const cache = this.liquidations;
                 cache.append (liquidation);
                 client.resolve ([ liquidation ], 'liquidations');
                 client.resolve ([ liquidation ], 'liquidations::' + symbol);
@@ -1738,10 +1738,10 @@ export default class bybit extends bybitRest {
             const market = this.safeMarket (marketId, undefined, '', 'contract');
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-            let cache = this.liquidations;
-            if (cache === undefined) {
-                cache = new ArrayCacheBySymbolBySide ();
+            if (this.liquidations === undefined) {
+                this.liquidations = new ArrayCacheBySymbolBySide ();
             }
+            const cache = this.liquidations;
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);

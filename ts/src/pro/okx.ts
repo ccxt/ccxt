@@ -778,10 +778,10 @@ export default class okx extends okxRest {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
             const symbol = this.safeString (liquidation, 'symbol');
-            let cache = this.liquidations;
-            if (cache === undefined) {
-                cache = new ArrayCacheBySymbolBySide ();
+            if (this.liquidations === undefined) {
+                this.liquidations = new ArrayCacheBySymbolBySide ();
             }
+            const cache = this.liquidations;
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);
@@ -876,10 +876,10 @@ export default class okx extends okxRest {
             }
             const liquidation = this.parseWsMyLiquidation (rawLiquidation);
             const symbol = this.safeString (liquidation, 'symbol');
-            let cache = this.liquidations;
-            if (cache === undefined) {
-                cache = new ArrayCacheBySymbolBySide ();
+            if (this.liquidations === undefined) {
+                this.liquidations = new ArrayCacheBySymbolBySide ();
             }
+            const cache = this.liquidations;
             cache.append (liquidation);
             client.resolve ([ liquidation ], 'myLiquidations');
             client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
