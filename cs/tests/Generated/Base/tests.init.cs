@@ -32,6 +32,7 @@ public partial class BaseTest
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
+            testExtractParams();
             testArraysConcat();
             testEthMethods();
             await testSleep();
