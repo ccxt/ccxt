@@ -453,12 +453,12 @@ export default class Exchange {
         price?: MinMax,
     } = undefined;
 
-    liquidations: any = undefeined;
+    liquidations: any = undefined;
     markets: Dictionary<any> = undefined;
     markets_by_id: Dictionary<any> = undefined;
     marketsByAltname: Dictionary<any> = undefined;
     marketsLoading: Promise<Dictionary<any>> = undefined;
-    myLiquidations:: any = undefined
+    myLiquidations: any = undefined;
     myTrades: ArrayCache;
     name: Str = undefined;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
@@ -2153,7 +2153,6 @@ export default class Exchange {
                 'cancelOrders': undefined,
                 'cancelOrdersWithClientOrderId': undefined,
                 'cancelOrdersWs': undefined,
-                'cancelOrderWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
                 'CORS': undefined,
