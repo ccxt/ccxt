@@ -1695,13 +1695,11 @@ class bybit extends bybit$1["default"] {
                 const market = this.safeMarket(marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-                let liquidations = this.safeValue(this.liquidations, symbol);
-                if (liquidations === undefined) {
-                    const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                    liquidations = new Cache.ArrayCache(limit);
+                if (this.liquidations === undefined) {
+                    this.liquidations = new Cache.ArrayCacheBySymbolBySide();
                 }
-                liquidations.append(liquidation);
-                this.liquidations[symbol] = liquidations;
+                const cache = this.liquidations;
+                cache.append(liquidation);
                 client.resolve([liquidation], 'liquidations');
                 client.resolve([liquidation], 'liquidations::' + symbol);
             }
@@ -1712,13 +1710,11 @@ class bybit extends bybit$1["default"] {
             const market = this.safeMarket(marketId, undefined, '', 'contract');
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new Cache.ArrayCache(limit);
+            if (this.liquidations === undefined) {
+                this.liquidations = new Cache.ArrayCacheBySymbolBySide();
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'liquidations');
             client.resolve([liquidation], 'liquidations::' + symbol);
         }
@@ -2480,7 +2476,7 @@ class bybit extends bybit$1["default"] {
         //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        client.lastPong = this.safeInteger(message, 'pong');
+        client.lastPong = this.safeInteger(message, 'pong', this.milliseconds());
         return message;
     }
     handleAuthenticate(client, message) {

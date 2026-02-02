@@ -55,6 +55,7 @@
 * [setLeverage](#setleverage)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchTransfers](#fetchtransfers)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTickers](#watchtickers)
@@ -1075,12 +1076,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**
-
-- https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
-- https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
-- https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
-
+**See**: https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1089,6 +1085,9 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferType | <code>string</code> | No | INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL) |
+| params.fromUserId | <code>string</code> | No | required if transferType is SUB_TO_PARENT |
+| params.toUserId | <code>string</code> | No | required if transferType is PARENT_TO_SUB |
 
 
 ```javascript
@@ -1102,7 +1101,7 @@ kucoin.transfer (code, amount, fromAccount, toAccount[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -1383,6 +1382,31 @@ fetches historical funding rate prices
 
 ```javascript
 kucoin.fetchFundingRateHistory (symbol[, since, limit, params])
+```
+
+
+<a name="fetchTransfers" id="fetchtransfers"></a>
+
+### fetchTransfers{docsify-ignore}
+fetch a history of internal transfers made on an account
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
+
+**See**: https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
+| limit | <code>int</code> | No | the maximum number of transfer structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
+
+
+```javascript
+kucoin.fetchTransfers ([code, since, limit, params])
 ```
 
 

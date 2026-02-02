@@ -61,6 +61,9 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     public function private_get_assignmentprogram_history($params = array()) {
         return $this->request('assignmentprogram/history', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_orders_status($params = array()) {
+        return $this->request('orders/status', 'private', 'GET', $params, null, null, array());
+    }
     public function private_post_sendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());
     }
@@ -174,6 +177,9 @@ abstract class krakenfutures extends \ccxt\async\Exchange {
     }
     public function privateGetAssignmentprogramHistory($params = array()) {
         return $this->request('assignmentprogram/history', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersStatus($params = array()) {
+        return $this->request('orders/status', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostSendorder($params = array()) {
         return $this->request('sendorder', 'private', 'POST', $params, null, null, array());

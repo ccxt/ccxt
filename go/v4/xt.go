@@ -2014,8 +2014,8 @@ func (this *XtCore) ParseTicker(ticker interface{}, optionalArgs ...interface{})
 		"change":        this.SafeNumber(ticker, "cv"),
 		"percentage":    this.ParseNumber(percentage),
 		"average":       nil,
-		"baseVolume":    nil,
-		"quoteVolume":   this.SafeNumber2(ticker, "a", "v"),
+		"baseVolume":    this.SafeNumber(ticker, "a"),
+		"quoteVolume":   this.SafeNumber(ticker, "v"),
 		"info":          ticker,
 	}, market)
 }
@@ -4237,7 +4237,7 @@ func (this *XtCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} 
 		//             "hasNext": false,
 		//             "items": [
 		//                 {
-		//                     "id": "207260567109387524",
+		//                     "id": "207260567109387525",
 		//                     "coin": "usdt",
 		//                     "symbol": "btc_usdt",
 		//                     "type": "FEE",
@@ -4777,7 +4777,7 @@ func (this *XtCore) SetLeverage(leverage interface{}, optionalArgs ...interface{
  * @param {float} amount amount of margin to add
  * @param {object} params extra parameters specific to the xt api endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4805,7 +4805,7 @@ func (this *XtCore) AddMargin(symbol interface{}, amount interface{}, optionalAr
  * @param {float} amount the amount of margin to remove
  * @param {object} params extra parameters specific to the xt api endpoint
  * @param {string} params.positionSide 'LONG' or 'SHORT'
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *XtCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

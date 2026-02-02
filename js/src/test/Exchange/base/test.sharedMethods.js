@@ -589,12 +589,12 @@ function assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 
     const ts = exchange.safeString(entry, key);
     assert(Precise.stringMod(ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
-function deepEqual(a, b) {
-    return JSON.stringify(a) === JSON.stringify(b);
+function deepEqual(exchange, a, b) {
+    return exchange.jsonStringifyWithNull(a) === exchange.jsonStringifyWithNull(b);
 }
 function assertDeepEqual(exchange, skippedProperties, method, a, b) {
     const logText = logTemplate(exchange, method, {});
-    assert(deepEqual(a, b), 'two dicts do not match: ' + JSON.stringify(a) + ' != ' + JSON.stringify(b) + logText);
+    assert(deepEqual(exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull(a) + ' != ' + exchange.jsonStringifyWithNull(b) + logText);
 }
 export default {
     deepEqual,

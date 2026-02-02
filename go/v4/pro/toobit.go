@@ -1401,7 +1401,7 @@ func  (this *ToobitCore) Authenticate(optionalArgs ...interface{}) <- chan inter
                                         }
                                         ret_ = func(this *ToobitCore) interface{} {
                                             // catch block:
-                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(e)))
+                                                            err := ccxt.AuthenticationError(ccxt.Add(ccxt.Add(this.Id, " "), this.ExceptionMessage(e)))
                                     client.(ccxt.ClientInterface).Reject(err, messageHash)
                                     if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
                                         ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1483,7 +1483,7 @@ func  (this *ToobitCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan
                 
                     }
             // whether or not to schedule another listenKey keepAlive request
-            var listenKeyRefreshRate interface{} = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
+            var listenKeyRefreshRate interface{} = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
             this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
                 return nil
             }()

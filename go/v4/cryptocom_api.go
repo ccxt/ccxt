@@ -47,6 +47,10 @@ func (this *CryptocomCore) V1PublicGetPublicGetInsurance(args ...interface{}) <-
 	return this.callEndpointAsync("v1PublicGetPublicGetInsurance", args...)
 }
 
+func (this *CryptocomCore) V1PublicGetPublicGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetAnnouncements", args...)
+}
+
 func (this *CryptocomCore) V1PublicGetPublicGetRiskParameters(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PublicGetPublicGetRiskParameters", args...)
 }
@@ -237,6 +241,14 @@ func (this *CryptocomCore) V1PrivatePostPrivateStakingGetOpenConvert(args ...int
 
 func (this *CryptocomCore) V1PrivatePostPrivateStakingGetConvertHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetConvertHistory", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateCreateIsolatedMarginTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCreateIsolatedMarginTransfer", args...)
+}
+
+func (this *CryptocomCore) V1PrivatePostPrivateChangeIsolatedMarginLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateChangeIsolatedMarginLeverage", args...)
 }
 
 func (this *CryptocomCore) V2PublicGetPublicAuth(args ...interface{}) <-chan interface{} {

@@ -2402,7 +2402,7 @@ class bitget extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'minOrderAmount'),
                         'max' => null,
                     ),
                 ),
@@ -3270,7 +3270,6 @@ class bitget extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $close = $this->safe_string_2($ticker, 'lastPr', 'lastPrice');
         $timestamp = $this->safe_integer_omit_zero($ticker, 'ts'); // exchange bitget provided 0
-        $change = $this->safe_string($ticker, 'change24h');
         $category = $this->safe_string($ticker, 'category');
         $markPrice = $this->safe_string($ticker, 'markPrice');
         if (($markPrice !== null) && ($category !== 'SPOT')) {
@@ -3280,7 +3279,8 @@ class bitget extends Exchange {
         }
         $percentage = $this->safe_string($ticker, 'price24hPcnt');
         if ($percentage === null) {
-            $percentage = Precise::string_mul($change, '100');
+            $change24h = $this->safe_string($ticker, 'change24h');
+            $percentage = Precise::string_mul($change24h, '100');
         }
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market, null, $marketType),
@@ -3297,7 +3297,7 @@ class bitget extends Exchange {
             'close' => $close,
             'last' => $close,
             'previousClose' => null,
-            'change' => $change,
+            'change' => null,
             'percentage' => $percentage,
             'average' => null,
             'baseVolume' => $this->safe_string_2($ticker, 'baseVolume', 'volume24h'),
@@ -5741,7 +5741,9 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
             $request['productType'] = $productType;
             if (!$isTakeProfitOrder && !$isStopLossOrder) {
-                $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+                if ($amount !== null) {
+                    $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+                }
                 if (($price !== null) && !$isTrailingPercentOrder) {
                     $request['newPrice'] = $this->price_to_precision($symbol, $price);
                 }
@@ -7323,7 +7325,7 @@ class bitget extends Exchange {
          * @param {string} [$params->symbol] *contract only* unified $market $symbol
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $symbol = $this->safe_string($params, 'symbol');
@@ -8836,7 +8838,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         if ($amount > 0) {
             throw new BadRequest($this->id . ' reduceMargin() $amount parameter must be a negative value');
@@ -8857,7 +8859,7 @@ class bitget extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $holdSide = $this->safe_string($params, 'holdSide');
         if ($holdSide === null) {

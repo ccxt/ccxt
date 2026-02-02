@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -74,6 +74,7 @@ export default class bingx extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
@@ -84,6 +85,7 @@ export default class bingx extends Exchange {
                 'fetchLiquidations': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': true,
                 'fetchMarkPrice': true,
@@ -264,7 +266,7 @@ export default class bingx extends Exchange {
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
                                 'trade/closePosition': 2,
-                                'trade/getVst': 5,
+                                'trade/getVst': 5, // deprecated
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
@@ -308,6 +310,7 @@ export default class bingx extends Exchange {
                                 'quote/bookTicker': 1,
                             },
                             'post': {
+                                'trade/getVst': 5,
                                 'trade/order': 2,
                                 'trade/batchOrders': 2,
                                 'trade/closeAllPositions': 2,
@@ -1813,6 +1816,91 @@ export default class bingx extends Exchange {
             'fundingRate': this.safeNumber (contract, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchFundingHistory
+     * @description fetches historical funding received
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+     * @param {string} symbol unified symbol of the market to fetch the funding history for
+     * @param {int} [since] timestamp in ms of the earliest funding to fetch
+     * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding to fetch
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchFundingHistory', symbol, since, limit, '24h', params) as FundingHistory[];
+        }
+        const request: Dict = {
+            'incomeType': 'FUNDING_FEE',
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger2 (params, 'until', 'endTime');
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until' ]);
+            request['endTime'] = until;
+        }
+        const response = await this.swapV2PrivateGetUserIncome (this.extend (request, params));
+        //         {
+        //             "code": 0,
+        //             "msg": "",
+        //             "data": [
+        //                 {
+        //                 "symbol": "LDO-USDT",
+        //                 "incomeType": "FUNDING_FEE",
+        //                 "income": "-0.0292",
+        //                 "asset": "USDT",
+        //                 "info": "Funding Fee",
+        //                 "time": 1702713615000,
+        //                 "tranId": "170***6*2_3*9_20***97",
+        //                 "tradeId": "170***6*2_3*9_20***97"
+        //                 }
+        //             ]
+        //         }
+        const data = this.safeList (response, 'data', []);
+        return this.parseIncomes (data, market, since, limit) as FundingHistory[];
+    }
+
+    parseIncome (income, market: Market = undefined) {
+        // {
+        //     "symbol": "LDO-USDT",
+        //     "incomeType": "FUNDING_FEE",
+        //     "income": "-0.0292",
+        //     "asset": "USDT",
+        //     "info": "Funding Fee",
+        //     "time": 1702713615000,
+        //     "tranId": "170***6*2_3*9_20***97",
+        //     "tradeId": "170***6*2_3*9_20***97"
+        // }
+        const marketId = this.safeString (income, 'symbol');
+        const currencyId = this.safeString (income, 'asset');
+        const timestamp = this.safeInteger (income, 'time');
+        return {
+            'info': income,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
+            'code': this.safeCurrencyCode (currencyId),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': this.safeString (income, 'tranId'),
+            'amount': this.safeNumber (income, 'income'),
+            'type': 'funding',
         };
     }
 
@@ -5428,7 +5516,7 @@ export default class bingx extends Exchange {
             '3': 'rejected',
             '4': 'pending',
             '5': 'rejected',
-            '6': 'pending',
+            '6': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -5495,7 +5583,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the bingx api endpoint
-     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         const type = this.safeInteger (params, 'type'); // 1 increase margin 2 decrease margin
@@ -6650,6 +6738,80 @@ export default class bingx extends Exchange {
             }
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name bingx#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+     * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.swapV1PrivateGetMaintMarginRatio (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1767789967284,
+        //         "data": [
+        //             {
+        //                 "tier": "Tier 1",
+        //                 "symbol": "ETH-USDT",
+        //                 "minPositionVal": "0",
+        //                 "maxPositionVal": "900000",
+        //                 "maintMarginRatio": "0.003300",
+        //                 "maintAmount": "0.000000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+        //
+        //     [
+        //         {
+        //             "tier": "Tier 1",
+        //             "symbol": "ETH-USDT",
+        //             "minPositionVal": "0",
+        //             "maxPositionVal": "900000",
+        //             "maintMarginRatio": "0.003300",
+        //             "maintAmount": "0.000000"
+        //         }
+        //     ]
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = this.safeDict (info, i);
+            const tierString = this.safeString (tier, 'tier');
+            const tierParts = tierString.split (' ');
+            const marketId = this.safeString (tier, 'symbol');
+            market = this.safeMarket (marketId, market, undefined, 'swap');
+            tiers.push ({
+                'tier': this.safeNumber (tierParts, 1),
+                'symbol': this.safeSymbol (marketId, market),
+                'currency': this.safeString (market, 'settle'),
+                'minNotional': this.safeNumber (tier, 'minPositionVal'),
+                'maxNotional': this.safeNumber (tier, 'maxPositionVal'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintMarginRatio'),
+                'maxLeverage': undefined,
+                'info': tier,
+            });
+        }
+        return tiers as LeverageTier[];
     }
 
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

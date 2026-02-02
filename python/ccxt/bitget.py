@@ -2393,7 +2393,7 @@ class bitget(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minOrderAmount'),
                         'max': None,
                     },
                 },
@@ -3221,7 +3221,6 @@ class bitget(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         close = self.safe_string_2(ticker, 'lastPr', 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'ts')  # exchange bitget provided 0
-        change = self.safe_string(ticker, 'change24h')
         category = self.safe_string(ticker, 'category')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType: str
@@ -3231,7 +3230,8 @@ class bitget(Exchange, ImplicitAPI):
             marketType = 'spot'
         percentage = self.safe_string(ticker, 'price24hPcnt')
         if percentage is None:
-            percentage = Precise.string_mul(change, '100')
+            change24h = self.safe_string(ticker, 'change24h')
+            percentage = Precise.string_mul(change24h, '100')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, marketType),
             'timestamp': timestamp,
@@ -3247,7 +3247,7 @@ class bitget(Exchange, ImplicitAPI):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'baseVolume', 'volume24h'),
@@ -5524,7 +5524,8 @@ class bitget(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
             request['productType'] = productType
             if not isTakeProfitOrder and not isStopLossOrder:
-                request['newSize'] = self.amount_to_precision(symbol, amount)
+                if amount is not None:
+                    request['newSize'] = self.amount_to_precision(symbol, amount)
                 if (price is not None) and not isTrailingPercentOrder:
                     request['newPrice'] = self.price_to_precision(symbol, price)
             if isTrailingPercentOrder:
@@ -6998,7 +6999,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.symbol]: *contract only* unified market symbol
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         symbol = self.safe_string(params, 'symbol')
@@ -8434,7 +8435,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         if amount > 0:
             raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
@@ -8452,7 +8453,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         holdSide = self.safe_string(params, 'holdSide')
         if holdSide is None:

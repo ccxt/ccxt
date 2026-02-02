@@ -494,6 +494,85 @@ func (this *Krakenfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 
 /**
  * @method
+ * @name krakenfutures#fetchOrders
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+ * @description Gets all orders for an account from the exchange api
+ * @param {string} symbol Unified market symbol
+ * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+ * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+ * @param {object} [params] Exchange specific parameters
+ * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Krakenfutures) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
+
+	opts := FetchOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
+ * @name krakenfutures#fetchOrder
+ * @description fetches information on an order made by the user
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+ * @param {string} id the order id
+ * @param {string} symbol unified market symbol that the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Krakenfutures) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
+
+	opts := FetchOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
  * @name krakenfutures#fetchClosedOrders
  * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
  * @description Gets all closed orders, including trigger orders, for an account from the exchange api
@@ -501,6 +580,7 @@ func (this *Krakenfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
  * @param {int} [since] Timestamp (ms) of earliest order.
  * @param {int} [limit] How many orders to return.
  * @param {object} [params] Exchange specific parameters
+ * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -546,6 +626,7 @@ func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions
  * @param {int} [since] Timestamp (ms) of earliest order.
  * @param {int} [limit] How many orders to return.
  * @param {object} [params] Exchange specific parameters
+ * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Krakenfutures) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
@@ -1184,17 +1265,11 @@ func (this *Krakenfutures) FetchOption(symbol string, options ...FetchOptionOpti
 func (this *Krakenfutures) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 	return this.exchangeTyped.FetchOptionChain(code, options...)
 }
-func (this *Krakenfutures) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
-	return this.exchangeTyped.FetchOrder(id, options...)
-}
 func (this *Krakenfutures) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)
 }
 func (this *Krakenfutures) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {
 	return this.exchangeTyped.FetchOrderBooks(options...)
-}
-func (this *Krakenfutures) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
-	return this.exchangeTyped.FetchOrders(options...)
 }
 func (this *Krakenfutures) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)

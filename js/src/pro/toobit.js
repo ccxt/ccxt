@@ -1112,7 +1112,7 @@ export default class toobit extends toobitRest {
                     this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
                 }
                 catch (e) {
-                    const err = new AuthenticationError(this.id + ' ' + this.json(e));
+                    const err = new AuthenticationError(this.id + ' ' + this.exceptionMessage(e));
                     client.reject(err, messageHash);
                     if (messageHash in client.subscriptions) {
                         delete client.subscriptions[messageHash];
@@ -1147,7 +1147,7 @@ export default class toobit extends toobitRest {
             return;
         }
         // whether or not to schedule another listenKey keepAlive request
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 1200000);
+        const listenKeyRefreshRate = this.safeInteger(this.options['ws'], 'listenKeyRefreshRate', 1200000);
         this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
     }
     getUserStreamUrl() {

@@ -1681,9 +1681,12 @@ public partial class bybit : ccxt.bybit
             }
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position"});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position"});
+        }
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)
@@ -2739,7 +2742,7 @@ public partial class bybit : ccxt.bybit
         //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 

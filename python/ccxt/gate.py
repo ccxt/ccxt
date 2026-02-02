@@ -67,6 +67,7 @@ class gate(Exchange, ImplicitAPI):
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
                         'loan': 'https://api.gateio.ws/api/v4',
+                        'otc': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -491,6 +492,7 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/account_book': 1,
                             '{settle}/positions': 1,
                             '{settle}/positions/{contract}': 1,
+                            '{settle}/get_leverage/{contract}': 1,
                             '{settle}/dual_comp/positions/{contract}': 1,
                             '{settle}/orders': 1,
                             '{settle}/orders_timerange': 1,
@@ -508,10 +510,12 @@ class gate(Exchange, ImplicitAPI):
                         'post': {
                             '{settle}/positions/{contract}/margin': 1,
                             '{settle}/positions/{contract}/leverage': 1,
+                            '{settle}/positions/{contract}/set_leverage': 1,
                             '{settle}/positions/{contract}/risk_limit': 1,
                             '{settle}/positions/cross_mode': 1,
                             '{settle}/dual_comp/positions/cross_mode': 1,
                             '{settle}/dual_mode': 1,
+                            '{settle}/set_position_mode': 1,
                             '{settle}/dual_comp/positions/{contract}/margin': 1,
                             '{settle}/dual_comp/positions/{contract}/leverage': 1,
                             '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
@@ -598,6 +602,7 @@ class gate(Exchange, ImplicitAPI):
                             'uni/rate': 20 / 15,
                             'staking/eth2/rate_records': 20 / 15,
                             'dual/orders': 20 / 15,
+                            'dual/balance': 20 / 15,
                             'structured/orders': 20 / 15,
                             'staking/coins': 20 / 15,
                             'staking/order_list': 20 / 15,
@@ -678,6 +683,21 @@ class gate(Exchange, ImplicitAPI):
                             'broker/transaction_history': 20 / 15,
                             'user/info': 20 / 15,
                             'user/sub_relation': 20 / 15,
+                        },
+                    },
+                    'otc': {
+                        'get': {
+                            'get_user_def_bank': 1,
+                            'order/list': 1,
+                            'stable_coin/order/list': 1,
+                            'order/detail': 1,
+                        },
+                        'post': {
+                            'quote': 1,
+                            'order/create': 1,
+                            'stable_coin/order/create': 1,
+                            'order/paid': 1,
+                            'order/cancel': 1,
                         },
                     },
                 },
@@ -4721,6 +4741,24 @@ class gate(Exchange, ImplicitAPI):
         #
         #  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         #
+        # cancel trigger order returns timestamps in ms
+        #   id: '2007047737421336576',
+        #   id_string: '2007047737421336576',
+        #   trigger_time: '0',
+        #   trade_id: '0',
+        #   trade_id_string: '',
+        #   status: 'finished',
+        #   finish_as: 'cancelled',
+        #   reason: '',
+        #   create_time: '1767352444402496'
+        #   finish_time: '1767352509535790',
+        #   is_stop_order: False,
+        #   stop_trigger: {rule: '0', trigger_price: '', order_price: ''},
+        #   me_order_id: '0',
+        #   me_order_id_string: '',
+        #   order_type: '',
+        #   in_dual_mode: False,
+        #   parent_id: '0',
         succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
@@ -4759,12 +4797,26 @@ class gate(Exchange, ImplicitAPI):
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
         rawStatus = self.safe_string_n(order, ['finish_as', 'status', 'open'])
-        timestamp = self.safe_integer(order, 'create_time_ms')
-        if timestamp is None:
-            timestamp = self.safe_timestamp_2(order, 'create_time', 'ctime')
-        lastTradeTimestamp = self.safe_integer(order, 'update_time_ms')
-        if lastTradeTimestamp is None:
-            lastTradeTimestamp = self.safe_timestamp_2(order, 'update_time', 'finish_time')
+        timestampStr = self.safe_string(order, 'create_time_ms')
+        if timestampStr is None:
+            timestampStr = self.safe_string_2(order, 'create_time', 'ctime')
+            if timestampStr is not None:
+                if len(timestampStr) == 10 or timestampStr.find('.') >= 0:
+                    # ts in seconds, multiply to ms
+                    timestampStr = Precise.string_mul(timestampStr, '1000')
+                elif len(timestampStr) == 16:
+                    # ts in microseconds, divide to ms
+                    timestampStr = Precise.string_div(timestampStr, '1000')
+        lastTradeTimestampStr = self.safe_string(order, 'update_time_ms')
+        if lastTradeTimestampStr is None:
+            lastTradeTimestampStr = self.safe_string_2(order, 'update_time', 'finish_time')
+            if lastTradeTimestampStr is not None:
+                if len(lastTradeTimestampStr) == 10 or lastTradeTimestampStr.find('.') >= 0:
+                    # ts in seconds, multiply to ms
+                    lastTradeTimestampStr = Precise.string_mul(lastTradeTimestampStr, '1000')
+                elif len(lastTradeTimestampStr) == 16:
+                    # ts in microseconds, divide to ms
+                    lastTradeTimestampStr = Precise.string_div(lastTradeTimestampStr, '1000')
         marketType = 'contract'
         if ('currency_pair' in order) or ('market' in order):
             marketType = 'spot'
@@ -4804,6 +4856,12 @@ class gate(Exchange, ImplicitAPI):
                 price = None  # arrives
                 cost = amount
                 amount = Precise.string_div(amount, averageString)
+        timestamp = None
+        lastTradeTimestamp = None
+        if timestampStr is not None:
+            timestamp = self.parse_to_int(timestampStr)
+        if lastTradeTimestampStr is not None:
+            lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
@@ -6470,6 +6528,7 @@ class gate(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             queryString = ''
+            rawQueryString = ''
             requiresURLEncoding = False
             if ((type == 'futures') or (type == 'delivery')) and method == 'POST':
                 pathParts = path.split('/')
@@ -6477,6 +6536,8 @@ class gate(Exchange, ImplicitAPI):
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
                 if query:
+                    # https://github.com/ccxt/ccxt/issues/27663
+                    rawQueryString = self.rawencode(query)
                     queryString = self.urlencode(query)
                     # https://github.com/ccxt/ccxt/issues/25570
                     if queryString.find('currencies=') >= 0 and queryString.find('%2C') >= 0:
@@ -6497,7 +6558,7 @@ class gate(Exchange, ImplicitAPI):
             timestamp = self.parse_to_int(nonce / 1000)
             timestampString = str(timestamp)
             signaturePath = '/api/' + self.version + entirePath
-            payloadArray = [method.upper(), signaturePath, queryString, bodySignature, timestampString]
+            payloadArray = [method.upper(), signaturePath, rawQueryString, bodySignature, timestampString]
             # eslint-disable-next-line quotes
             payload = "\n".join(payloadArray)
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha512)
@@ -6577,7 +6638,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, -amount, params)
 
@@ -6591,7 +6652,7 @@ class gate(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, params)
 
@@ -6866,7 +6927,7 @@ class gate(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end time in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         paginate = False

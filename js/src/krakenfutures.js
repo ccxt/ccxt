@@ -37,7 +37,7 @@ export default class krakenfutures extends Exchange {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
-                'createMarketOrder': false,
+                'createMarketOrder': true,
                 'createOrder': true,
                 'createPostOnlyOrder': true,
                 'createReduceOnlyOrder': true,
@@ -74,9 +74,9 @@ export default class krakenfutures extends Exchange {
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTickers': true,
@@ -134,6 +134,7 @@ export default class krakenfutures extends Exchange {
                         'pnlpreferences',
                         'assignmentprogram/current',
                         'assignmentprogram/history',
+                        'orders/status',
                     ],
                     'post': [
                         'sendorder',
@@ -329,7 +330,7 @@ export default class krakenfutures extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 5000,
+                        'limit': 2000,
                     },
                 },
                 'spot': undefined,
@@ -728,27 +729,27 @@ export default class krakenfutures extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 5000);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 2000);
         }
         const request = {
             'symbol': market['id'],
             'price_type': this.safeString(params, 'price', 'trade'),
-            'interval': this.timeframes[timeframe],
+            'interval': this.safeString(this.timeframes, timeframe, timeframe),
         };
         params = this.omit(params, 'price');
         if (since !== undefined) {
             const duration = this.parseTimeframe(timeframe);
             request['from'] = this.parseToInt(since / 1000);
             if (limit === undefined) {
-                limit = 5000;
+                limit = 2000;
             }
-            limit = Math.min(limit, 5000);
+            limit = Math.min(limit, 2000);
             const toTimestamp = this.sum(request['from'], limit * duration - 1);
             const currentTimestamp = this.seconds();
             request['to'] = Math.min(toTimestamp, currentTimestamp);
         }
         else if (limit !== undefined) {
-            limit = Math.min(limit, 5000);
+            limit = Math.min(limit, 2000);
             const duration = this.parseTimeframe(timeframe);
             request['to'] = this.seconds();
             request['from'] = this.parseToInt(request['to'] - (duration * limit));
@@ -1461,6 +1462,49 @@ export default class krakenfutures extends Exchange {
     }
     /**
      * @method
+     * @name krakenfutures#fetchOrders
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @description Gets all orders for an account from the exchange api
+     * @param {string} symbol Unified market symbol
+     * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+     * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+     * @param {object} [params] Exchange specific parameters
+     * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const response = await this.privateGetOrdersStatus(params);
+        const orders = this.safeList(response, 'orders', []);
+        return this.parseOrders(orders, market, since, limit);
+    }
+    /**
+     * @method
+     * @name krakenfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} id the order id
+     * @param {string} symbol unified market symbol that the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {
+            'orderIds': [id],
+        };
+        const orders = await this.fetchOrders(undefined, undefined, undefined, this.extend(request, params));
+        const order = this.safeDict(orders, 0);
+        if (order === undefined) {
+            throw new OrderNotFound(this.id + ' fetchOrder could not find order id ' + id);
+        }
+        return order;
+    }
+    /**
+     * @method
      * @name krakenfutures#fetchClosedOrders
      * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
@@ -1468,6 +1512,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1483,13 +1528,21 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.historyGetOrders(this.extend(request, params));
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        let response = undefined;
+        if (isTrigger) {
+            params = this.omit(params, ['trigger', 'stop']);
+            response = await this.historyGetTriggers(this.extend(request, params));
+        }
+        else {
+            response = await this.historyGetOrders(this.extend(request, params));
+        }
         const allOrders = this.safeList(response, 'elements', []);
         const closedOrders = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict(order, 'event', {});
-            const orderPlaced = this.safeDict(event, 'OrderPlaced');
+            const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerActivated');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict(orderPlaced, 'order', {});
                 const filled = this.safeString(innerOrder, 'filled');
@@ -1510,6 +1563,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1525,17 +1579,26 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.historyGetOrders(this.extend(request, params));
+        let response = undefined;
+        const isTrigger = this.safeBool2(params, 'trigger', 'stop', false);
+        if (isTrigger) {
+            params = this.omit(params, ['trigger', 'stop']);
+            response = await this.historyGetTriggers(this.extend(request, params));
+        }
+        else {
+            response = await this.historyGetOrders(this.extend(request, params));
+        }
         const allOrders = this.safeList(response, 'elements', []);
         const canceledAndRejected = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict(order, 'event', {});
-            const orderPlaced = this.safeDict(event, 'OrderPlaced');
+            const isCancelledTriggerOrder = ('OrderTriggerCancelled' in event);
+            const orderPlaced = this.safeDict2(event, 'OrderPlaced', 'OrderTriggerCancelled');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict(orderPlaced, 'order', {});
                 const filled = this.safeString(innerOrder, 'filled');
-                if (filled === '0') {
+                if (filled === '0' || isCancelledTriggerOrder) {
                     innerOrder['status'] = 'canceled'; // status not available in the response
                     canceledAndRejected.push(innerOrder);
                 }
@@ -2630,7 +2693,7 @@ export default class krakenfutures extends Exchange {
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString(tier, 'initialMargin');
-            const minNotional = this.safeNumber(tier, 'numNonContractUnits');
+            const minNotional = this.safeNumber2(tier, 'numNonContractUnits', 'contracts');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];
@@ -2893,7 +2956,12 @@ export default class krakenfutures extends Exchange {
             body = postData;
         }
         else if (Object.keys(params).length) {
-            postData = this.urlencode(params);
+            if ('orderIds' in params) {
+                postData = this.urlencodeWithArrayRepeat(params);
+            }
+            else {
+                postData = this.urlencode(params);
+            }
             query += '?' + postData;
         }
         const url = this.urls['api'][api] + query;

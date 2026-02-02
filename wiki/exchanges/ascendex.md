@@ -611,7 +611,7 @@ ascendex.fetchFundingRates (symbols[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -632,7 +632,7 @@ ascendex.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>ascendex</code>](#ascendex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |

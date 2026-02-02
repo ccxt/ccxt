@@ -1227,7 +1227,7 @@ export default class bingx extends bingxRest {
             }
         }
         catch (e) {
-            const error = new NetworkError(this.id + ' pong failed with error ' + this.json(e));
+            const error = new NetworkError(this.id + ' pong failed with error ' + this.exceptionMessage(e));
             client.reset(error);
         }
     }

@@ -70,7 +70,7 @@ public partial class cryptomus : Exchange
                 { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", true },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
@@ -771,7 +771,7 @@ public partial class cryptomus : Exchange
         }
         //
         //     {
-        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return this.parseOrder(response, market);
