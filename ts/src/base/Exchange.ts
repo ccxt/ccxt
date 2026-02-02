@@ -277,7 +277,7 @@ export default class Exchange {
     token: string;  // reserved for HTTP auth in some cases
 
     balance: any = {};
-    liquidations: Dictionary<Liquidation> = {};
+    liquidations: any = undefined;
     orderbooks: Dictionary<Ob> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
@@ -287,7 +287,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: Dictionary<Liquidation> = {};
+    myLiquidations: any = undefined;
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -581,12 +581,12 @@ export default class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags

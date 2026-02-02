@@ -194,10 +194,10 @@ class Exchange {
         'base'=> null,
         'quote'=> null,
     );
-    public $liquidations = array();
+    public $liquidations = null;
     public $orders = null;
     public $triggerOrders = null;
-    public $myLiquidations = array();
+    public $myLiquidations = null;
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
