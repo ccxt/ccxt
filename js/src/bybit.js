@@ -350,7 +350,7 @@ export default class bybit extends Exchange {
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1,
+                        'v5/account/transaction-log': 1.66,
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
@@ -2903,7 +2903,7 @@ export default class bybit extends Exchange {
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, params, 200);
         }
         if (limit === undefined) {
             limit = 200;
@@ -2916,6 +2916,7 @@ export default class bybit extends Exchange {
             'limit': limit, // Limit for data size per page. [1, 200]. Default: 200
         };
         const market = this.market(symbol);
+        const fundingTimeFrameMins = this.safeInteger(market['info'], 'fundingInterval');
         symbol = market['symbol'];
         request['symbol'] = market['id'];
         let type = undefined;
@@ -2936,8 +2937,11 @@ export default class bybit extends Exchange {
         else {
             if (since !== undefined) {
                 // end time is required when since is not empty
-                const fundingInterval = 60 * 60 * 8 * 1000;
-                request['endTime'] = since + limit * fundingInterval;
+                let fundingInterval = 60 * 60 * 8 * 1000;
+                if (fundingTimeFrameMins !== undefined) {
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000;
+                }
+                request['endTime'] = this.sum(since, limit * fundingInterval);
             }
         }
         const response = await this.publicGetV5MarketFundingHistory(this.extend(request, params));
@@ -4183,11 +4187,16 @@ export default class bybit extends Exchange {
                         }
                     }
                 }
-                if (tpslModeSl !== tpslModeTp) {
+                if (isTakeProfitOrder && isStopLossOrder && tpslModeSl !== tpslModeTp) {
                     throw new InvalidOrder(this.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination');
                 }
-                request['tpslMode'] = tpslModeSl; // same as tpslModeTp
-                params = this.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice']);
+                if (tpslModeSl !== undefined) {
+                    request['tpslMode'] = tpslModeSl;
+                }
+                else {
+                    request['tpslMode'] = tpslModeTp;
+                }
+                params = this.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint']);
             }
         }
         else {

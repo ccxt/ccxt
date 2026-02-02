@@ -16,6 +16,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa E402
 from ccxt.base.decimal_to_precision import number_to_string  # noqa E402
 from ccxt.base.precise import Precise  # noqa E402
 from ccxt.test.base.test_decimal_to_precision import test_decimal_to_precision  # noqa E402
+from ccxt.test.base.test_binary_to_base64 import test_binary_to_base64  # noqa E402
 from ccxt.test.base.test_number_to_string import test_number_to_string  # noqa E402
 from ccxt.test.base.test_precise import test_precise  # noqa E402
 from ccxt.test.base.test_datetime import test_datetime  # noqa E402
@@ -46,6 +47,7 @@ async def base_tests_init():
     test_extend()
     test_deep_extend()
     test_cryptography()
+    test_binary_to_base64()
     test_datetime()
     test_decimal_to_precision()
     test_capitalize()

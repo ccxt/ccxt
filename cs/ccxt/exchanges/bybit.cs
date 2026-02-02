@@ -315,7 +315,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin-greeks", 1 },
                         { "v5/account/fee-rate", 10 },
                         { "v5/account/info", 5 },
-                        { "v5/account/transaction-log", 1 },
+                        { "v5/account/transaction-log", 1.66 },
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
@@ -4338,12 +4338,18 @@ public partial class bybit : Exchange
                         }
                     }
                 }
-                if (isTrue(!isEqual(tpslModeSl, tpslModeTp)))
+                if (isTrue(isTrue(isTrue(isTakeProfitOrder) && isTrue(isStopLossOrder)) && isTrue(!isEqual(tpslModeSl, tpslModeTp))))
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
                 }
-                ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl; // same as tpslModeTp
-                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice"});
+                if (isTrue(!isEqual(tpslModeSl, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl;
+                } else
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = tpslModeTp;
+                }
+                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"});
             }
         } else
         {

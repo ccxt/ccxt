@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.34'
+__version__ = '4.5.35'
 
 # -----------------------------------------------------------------------------
 
@@ -397,6 +397,8 @@ class Exchange(object):
     # no lower case l or upper case I, O
     base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
+    extract_params_regex = re.compile(r'{([\w-]+)}')
+
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
@@ -420,8 +422,8 @@ class Exchange(object):
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
-        self.liquidations = dict() if self.liquidations is None else self.liquidations
-        self.myLiquidations = dict() if self.myLiquidations is None else self.myLiquidations
+        self.liquidations = None if self.liquidations is None else self.liquidations
+        self.myLiquidations = None if self.myLiquidations is None else self.myLiquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -1003,22 +1005,41 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def deep_extend(*args):
+    def deep_extend(*args, _all_dicts=False):
+        # extra argument is just for internal use, no need to use that in implementations
         result = None
+        result_is_dict = False
+
         for arg in args:
-            if isinstance(arg, dict):
-                if not isinstance(result, dict):
+            # if _all_dicts or (arg is not None and arg.__class__ is dict):
+            if _all_dicts or isinstance(arg, dict):
+                # This is a dict (even if empty) so set the return type.
+                if result is None or not result_is_dict:
                     result = {}
-                for key in arg:
-                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+                    result_is_dict = True
+
+                # Skip actual merging if dict is empty.
+                if not arg:
+                    continue
+
+                for key, value in arg.items():
+                    current = result.get(key)
+                    # if current is not None and current.__class__ is dict and value.__class__ is dict:
+                    if isinstance(current, dict) and isinstance(value, dict):
+                        result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
+                    else:
+                        result[key] = value
             else:
+                # arg is None or other non-dict.
                 result = arg
+                result_is_dict = False
+
         return result
 
     @staticmethod
     def filter_by(array, key, value=None):
         array = Exchange.to_array(array)
-        return list(filter(lambda x: x[key] == value, array))
+        return [x for x in array if x.get(key) == value]
 
     @staticmethod
     def filterBy(array, key, value=None):
@@ -1026,13 +1047,11 @@ class Exchange(object):
 
     @staticmethod
     def group_by(array, key):
-        result = {}
-        array = Exchange.to_array(array)
-        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
-        for entry in array:
-            if entry[key] not in result:
-                result[entry[key]] = []
-            result[entry[key]].append(entry)
+        result = collections.defaultdict(list)
+        for entry in Exchange.to_array(array):
+            value = entry.get(key)
+            if value is not None:
+                result[value].append(entry)
         return result
 
     @staticmethod
@@ -1078,7 +1097,7 @@ class Exchange(object):
 
     @staticmethod
     def extract_params(string):
-        return re.findall(r'{([\w-]+)}', string)
+        return Exchange.extract_params_regex.findall(string)
 
     @staticmethod
     def implode_params(string, params):
@@ -1096,9 +1115,11 @@ class Exchange(object):
                 newParams[key] = 'true' if value else 'false'
         return _urlencode.urlencode(newParams, doseq, quote_via=_urlencode.quote)
 
+    _URLENCODE_WITH_ARRAY_REPEAT_REGEX = re.compile(r'%5B\d*%5D')
+
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
+        return Exchange._URLENCODE_WITH_ARRAY_REPEAT_REGEX.sub('', Exchange.urlencode(params, True))
 
     @staticmethod
     def urlencode_nested(params):
@@ -1169,27 +1190,12 @@ class Exchange(object):
 
     @staticmethod
     def aggregate(bidasks):
-        ordered = Exchange.ordered({})
-        for [price, volume, *_] in bidasks:
+        ordered = {}
+        for price, volume, *_ in bidasks:
             if volume > 0:
-                ordered[price] = (ordered[price] if price in ordered else 0) + volume
-        result = []
-        items = list(ordered.items())
-        for price, volume in items:
-            result.append([price, volume])
-        return result
+                ordered[price] = ordered.get(price, 0) + volume
+        return [[price, volume] for price, volume in ordered.items()]
 
-    @staticmethod
-    def sec():
-        return Exchange.seconds()
-
-    @staticmethod
-    def msec():
-        return Exchange.milliseconds()
-
-    @staticmethod
-    def usec():
-        return Exchange.microseconds()
 
     @staticmethod
     def seconds():
@@ -1206,26 +1212,14 @@ class Exchange(object):
     @staticmethod
     def iso8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        if not isinstance(timestamp, int):
             return None
-        if int(timestamp) < 0:
+        if not isinstance(timestamp, int) or timestamp < 0:
             return None
-
         try:
             utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
-            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
+            return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{timestamp % 1000:03d}Z"
         except (TypeError, OverflowError, OSError):
             return None
-
-    @staticmethod
-    def rfc2616(self, timestamp=None):
-        if timestamp is None:
-            ts = datetime.datetime.now()
-        else:
-            ts = timestamp
-        stamp = mktime(ts.timetuple())
-        return format_date_time(stamp)
 
     @staticmethod
     def dmy(timestamp, infix='-'):
@@ -1267,35 +1261,41 @@ class Exchange(object):
         else:
             return Exchange.parse8601(timestamp)
 
+    _PARSE8601_ISO8601_PATTERN = re.compile(
+        r'([0-9]{4})-?([0-9]{2})-?([0-9]{2})(?:T|[\s])?'
+        r'([0-9]{2}):?([0-9]{2}):?([0-9]{2})'
+        r'(\.[0-9]{1,3})?'
+        r'(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?',
+        re.IGNORECASE
+    )
+
     @staticmethod
     def parse8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        yyyy = '([0-9]{4})-?'
-        mm = '([0-9]{2})-?'
-        dd = '([0-9]{2})(?:T|[\\s])?'
-        h = '([0-9]{2}):?'
-        m = '([0-9]{2}):?'
-        s = '([0-9]{2})'
-        ms = '(\\.[0-9]{1,3})?'
-        tz = '(?:(\\+|\\-)([0-9]{2})\\:?([0-9]{2})|Z)?'
-        regex = r'' + yyyy + mm + dd + h + m + s + ms + tz
+            return None
         try:
-            match = re.search(regex, timestamp, re.IGNORECASE)
+            match = Exchange._PARSE8601_ISO8601_PATTERN.search(timestamp)
             if match is None:
                 return None
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
-            ms = ms or '.000'
-            ms = (ms + '00')[0:4]
-            msint = int(ms[1:])
-            sign = sign or ''
-            sign = int(sign + '1') * -1
-            hours = int(hours or 0) * sign
-            minutes = int(minutes or 0) * sign
-            offset = datetime.timedelta(hours=hours, minutes=minutes)
-            string = yyyy + mm + dd + h + m + s + ms + 'Z'
-            dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-            dt = dt + offset
+            # Parse milliseconds
+            if ms:
+                ms = ms[1:]  # Remove leading dot
+                ms = ms + '0' * (3 - len(ms))  # Pad to 3 digits
+                msint = int(ms)
+            else:
+                msint = 0
+            # Parse timezone offset
+            if sign:
+                offset_sign = -1 if sign == '+' else 1
+                offset_hours = int(hours) * offset_sign
+                offset_minutes = int(minutes) * offset_sign
+            else:
+                offset_hours = 0
+                offset_minutes = 0
+            # Build datetime directly
+            dt = datetime.datetime(int(yyyy), int(mm), int(dd), int(h), int(m), int(s))
+            dt = dt + datetime.timedelta(hours=offset_hours, minutes=offset_minutes)
             return calendar.timegm(dt.utctimetuple()) * 1000 + msint
         except (TypeError, OverflowError, OSError, ValueError):
             return None

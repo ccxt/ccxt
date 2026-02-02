@@ -256,6 +256,12 @@ public partial class hyperliquid
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.channel</term>
+    /// <description>
+    /// string : 'webData2' or 'allMids', default is 'webData2'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
@@ -274,6 +280,12 @@ public partial class hyperliquid
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.channel</term>
+    /// <description>
+    /// string : 'webData2' or 'allMids', default is 'webData2'
     /// </description>
     /// </item>
     /// <item>

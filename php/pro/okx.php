@@ -812,13 +812,11 @@ class okx extends \ccxt\async\okx {
             $rawLiquidation = $rawLiquidations[$i];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
             $symbol = $this->safe_string($liquidation, 'symbol');
-            $liquidations = $this->safe_value($this->liquidations, $symbol);
-            if ($liquidations === null) {
-                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $liquidations = new ArrayCache ($limit);
+            if ($this->liquidations === null) {
+                $this->liquidations = new ArrayCacheBySymbolBySide ();
             }
-            $liquidations->append ($liquidation);
-            $this->liquidations[$symbol] = $liquidations;
+            $cache = $this->liquidations;
+            $cache->append ($liquidation);
             $client->resolve (array( $liquidation ), 'liquidations');
             $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
         }
@@ -914,13 +912,11 @@ class okx extends \ccxt\async\okx {
             }
             $liquidation = $this->parse_ws_my_liquidation($rawLiquidation);
             $symbol = $this->safe_string($liquidation, 'symbol');
-            $liquidations = $this->safe_value($this->liquidations, $symbol);
-            if ($liquidations === null) {
-                $limit = $this->safe_integer($this->options, 'myLiquidationsLimit', 1000);
-                $liquidations = new ArrayCache ($limit);
+            if ($this->liquidations === null) {
+                $this->liquidations = new ArrayCacheBySymbolBySide ();
             }
-            $liquidations->append ($liquidation);
-            $this->liquidations[$symbol] = $liquidations;
+            $cache = $this->liquidations;
+            $cache->append ($liquidation);
             $client->resolve (array( $liquidation ), 'myLiquidations');
             $client->resolve (array( $liquidation ), 'myLiquidations::' . $symbol);
         }

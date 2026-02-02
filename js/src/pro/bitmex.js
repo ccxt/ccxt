@@ -442,17 +442,14 @@ export default class bitmex extends bitmexRest {
         //
         const rawLiquidations = this.safeValue(message, 'data', []);
         const newLiquidations = [];
+        if (this.liquidations === undefined) {
+            this.liquidations = new ArrayCacheBySymbolBySide();
+        }
+        const cache = this.liquidations;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseLiquidation(rawLiquidation);
-            const symbol = liquidation['symbol'];
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache(limit);
-            }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            cache.append(liquidation);
             newLiquidations.push(liquidation);
         }
         client.resolve(newLiquidations, 'liquidations');
