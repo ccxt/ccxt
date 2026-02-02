@@ -214,6 +214,8 @@ export default class drift extends Exchange {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
+                'maker': this.safeNumber (fees, 'maker'),
+                'taker': this.safeNumber (fees, 'taker'),
                 'precision': {
                     'amount': precision,
                     'price': precision,
@@ -231,10 +233,6 @@ export default class drift extends Exchange {
                         'min': undefined,
                         'max': undefined,
                     },
-                },
-                'fees': {
-                    'maker': this.safeNumber (fees, 'maker'),
-                    'taker': this.safeNumber (fees, 'taker'),
                 },
                 'created': undefined,
                 'info': market,
