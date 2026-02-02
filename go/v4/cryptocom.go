@@ -169,6 +169,7 @@ func (this *CryptocomCore) Describe() interface{} {
 						"public/get-valuations":               1,
 						"public/get-expired-settlement-price": Divide(10, 3),
 						"public/get-insurance":                1,
+						"public/get-announcements":            1,
 						"public/get-risk-parameters":          1,
 					},
 					"post": map[string]interface{}{
@@ -223,6 +224,8 @@ func (this *CryptocomCore) Describe() interface{} {
 						"private/staking/convert":                 2,
 						"private/staking/get-open-convert":        2,
 						"private/staking/get-convert-history":     2,
+						"private/create-isolated-margin-transfer": Divide(10, 3),
+						"private/change-isolated-margin-leverage": Divide(10, 3),
 					},
 				},
 			},
@@ -449,6 +452,7 @@ func (this *CryptocomCore) Describe() interface{} {
 				"219":     InvalidOrder,
 				"306":     InsufficientFunds,
 				"314":     InvalidOrder,
+				"315":     InvalidOrder,
 				"325":     InvalidOrder,
 				"415":     InvalidOrder,
 				"10001":   ExchangeError,
@@ -882,7 +886,7 @@ func (this *CryptocomCore) FetchMarkets(optionalArgs ...interface{}) <-chan inte
  * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CryptocomCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -894,8 +898,8 @@ func (this *CryptocomCore) FetchTickers(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8698 := (<-this.LoadMarkets())
-		PanicOnError(retRes8698)
+		retRes8738 := (<-this.LoadMarkets())
+		PanicOnError(retRes8738)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -956,7 +960,7 @@ func (this *CryptocomCore) FetchTickers(optionalArgs ...interface{}) <-chan inte
  * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CryptocomCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -966,8 +970,8 @@ func (this *CryptocomCore) FetchTicker(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9268 := (<-this.LoadMarkets())
-		PanicOnError(retRes9268)
+		retRes9308 := (<-this.LoadMarkets())
+		PanicOnError(retRes9308)
 		symbol = this.Symbol(symbol)
 
 		tickers := (<-this.FetchTickers([]interface{}{symbol}, params))
@@ -991,7 +995,7 @@ func (this *CryptocomCore) FetchTicker(symbol interface{}, optionalArgs ...inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1007,17 +1011,17 @@ func (this *CryptocomCore) FetchOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes9468 := (<-this.LoadMarkets())
-		PanicOnError(retRes9468)
+		retRes9508 := (<-this.LoadMarkets())
+		PanicOnError(retRes9508)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes95019 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
-			PanicOnError(retRes95019)
-			ch <- retRes95019
+			retRes95419 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params))
+			PanicOnError(retRes95419)
+			ch <- retRes95419
 			return nil
 		}
 		var market interface{} = nil
@@ -1100,7 +1104,7 @@ func (this *CryptocomCore) FetchOrders(optionalArgs ...interface{}) <-chan inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *CryptocomCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1114,17 +1118,17 @@ func (this *CryptocomCore) FetchTrades(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes10288 := (<-this.LoadMarkets())
-		PanicOnError(retRes10288)
+		retRes10328 := (<-this.LoadMarkets())
+		PanicOnError(retRes10328)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes103219 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes103219)
-			ch <- retRes103219
+			retRes103619 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes103619)
+			ch <- retRes103619
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -1203,17 +1207,17 @@ func (this *CryptocomCore) FetchOHLCV(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10908 := (<-this.LoadMarkets())
-		PanicOnError(retRes10908)
+		retRes10948 := (<-this.LoadMarkets())
+		PanicOnError(retRes10948)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes109419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
-			PanicOnError(retRes109419)
-			ch <- retRes109419
+			retRes109819 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 300))
+			PanicOnError(retRes109819)
+			ch <- retRes109819
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -1283,7 +1287,7 @@ func (this *CryptocomCore) FetchOHLCV(symbol interface{}, optionalArgs ...interf
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the number of order book entries to return, max 50
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *CryptocomCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1295,8 +1299,8 @@ func (this *CryptocomCore) FetchOrderBook(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11598 := (<-this.LoadMarkets())
-		PanicOnError(retRes11598)
+		retRes11638 := (<-this.LoadMarkets())
+		PanicOnError(retRes11638)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instrument_name": GetValue(market, "id"),
@@ -1361,7 +1365,7 @@ func (this *CryptocomCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *CryptocomCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1371,8 +1375,8 @@ func (this *CryptocomCore) FetchBalance(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes12198 := (<-this.LoadMarkets())
-		PanicOnError(retRes12198)
+		retRes12238 := (<-this.LoadMarkets())
+		PanicOnError(retRes12238)
 
 		response := (<-this.V1PrivatePostPrivateUserBalance(params))
 		PanicOnError(response)
@@ -1435,7 +1439,7 @@ func (this *CryptocomCore) FetchBalance(optionalArgs ...interface{}) <-chan inte
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1447,8 +1451,8 @@ func (this *CryptocomCore) FetchOrder(id interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12788 := (<-this.LoadMarkets())
-		PanicOnError(retRes12788)
+		retRes12828 := (<-this.LoadMarkets())
+		PanicOnError(retRes12828)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1622,7 +1626,7 @@ func (this *CryptocomCore) CreateOrderRequest(symbol interface{}, typeVar interf
  * @param {float} [params.triggerPrice] price to trigger a trigger order
  * @param {float} [params.stopLossPrice] price to trigger a stop-loss trigger order
  * @param {float} [params.takeProfitPrice] price to trigger a take-profit trigger order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1634,8 +1638,8 @@ func (this *CryptocomCore) CreateOrder(symbol interface{}, typeVar interface{}, 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14418 := (<-this.LoadMarkets())
-		PanicOnError(retRes14418)
+		retRes14458 := (<-this.LoadMarkets())
+		PanicOnError(retRes14458)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 
@@ -1669,7 +1673,7 @@ func (this *CryptocomCore) CreateOrder(symbol interface{}, typeVar interface{}, 
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order-list-oco
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1679,8 +1683,8 @@ func (this *CryptocomCore) CreateOrders(orders interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14718 := (<-this.LoadMarkets())
-		PanicOnError(retRes14718)
+		retRes14758 := (<-this.LoadMarkets())
+		PanicOnError(retRes14758)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var rawOrder interface{} = GetValue(orders, i)
@@ -1892,7 +1896,7 @@ func (this *CryptocomCore) CreateAdvancedOrderRequest(symbol interface{}, typeVa
  * @param {float} price (mandatory) the price for the order, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1906,8 +1910,8 @@ func (this *CryptocomCore) EditOrder(id interface{}, symbol interface{}, typeVar
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes16708 := (<-this.LoadMarkets())
-		PanicOnError(retRes16708)
+		retRes16748 := (<-this.LoadMarkets())
+		PanicOnError(retRes16748)
 		var request interface{} = this.EditOrderRequest(id, symbol, amount, price, params)
 
 		response := (<-this.V1PrivatePostPrivateAmendOrder(request))
@@ -1952,7 +1956,7 @@ func (this *CryptocomCore) EditOrderRequest(id interface{}, symbol interface{}, 
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders
  * @param {string} symbol unified market symbol of the orders to cancel
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1964,8 +1968,8 @@ func (this *CryptocomCore) CancelAllOrders(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17088 := (<-this.LoadMarkets())
-		PanicOnError(retRes17088)
+		retRes17128 := (<-this.LoadMarkets())
+		PanicOnError(retRes17128)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1993,7 +1997,7 @@ func (this *CryptocomCore) CancelAllOrders(optionalArgs ...interface{}) <-chan i
  * @param {string} id the order id of the order to cancel
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2005,8 +2009,8 @@ func (this *CryptocomCore) CancelOrder(id interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17308 := (<-this.LoadMarkets())
-		PanicOnError(retRes17308)
+		retRes17348 := (<-this.LoadMarkets())
+		PanicOnError(retRes17348)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2046,7 +2050,7 @@ func (this *CryptocomCore) CancelOrder(id interface{}, optionalArgs ...interface
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2061,8 +2065,8 @@ func (this *CryptocomCore) CancelOrders(ids interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes17698 := (<-this.LoadMarkets())
-		PanicOnError(retRes17698)
+		retRes17738 := (<-this.LoadMarkets())
+		PanicOnError(retRes17738)
 		var market interface{} = this.Market(symbol)
 		var orderRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
@@ -2096,7 +2100,7 @@ func (this *CryptocomCore) CancelOrders(ids interface{}, optionalArgs ...interfa
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
  * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2106,8 +2110,8 @@ func (this *CryptocomCore) CancelOrdersForSymbols(orders interface{}, optionalAr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17998 := (<-this.LoadMarkets())
-		PanicOnError(retRes17998)
+		retRes18038 := (<-this.LoadMarkets())
+		PanicOnError(retRes18038)
 		var orderRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var order interface{} = GetValue(orders, i)
@@ -2145,7 +2149,7 @@ func (this *CryptocomCore) CancelOrdersForSymbols(orders interface{}, optionalAr
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CryptocomCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2161,8 +2165,8 @@ func (this *CryptocomCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes18338 := (<-this.LoadMarkets())
-		PanicOnError(retRes18338)
+		retRes18378 := (<-this.LoadMarkets())
+		PanicOnError(retRes18378)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2230,7 +2234,7 @@ func (this *CryptocomCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan i
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *CryptocomCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2246,17 +2250,17 @@ func (this *CryptocomCore) FetchMyTrades(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes18978 := (<-this.LoadMarkets())
-		PanicOnError(retRes18978)
+		retRes19018 := (<-this.LoadMarkets())
+		PanicOnError(retRes19018)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes190119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
-			PanicOnError(retRes190119)
-			ch <- retRes190119
+			retRes190519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+			PanicOnError(retRes190519)
+			ch <- retRes190519
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -2343,7 +2347,7 @@ func (this *CryptocomCore) ParseAddress(addressString interface{}) interface{} {
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CryptocomCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2358,8 +2362,8 @@ func (this *CryptocomCore) Withdraw(code interface{}, amount interface{}, addres
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes19838 := (<-this.LoadMarkets())
-		PanicOnError(retRes19838)
+		retRes19878 := (<-this.LoadMarkets())
+		PanicOnError(retRes19878)
 		var currency interface{} = this.SafeCurrency(code) // for instance, USDC is not inferred from markets but it's still available
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2412,7 +2416,7 @@ func (this *CryptocomCore) Withdraw(code interface{}, amount interface{}, addres
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *CryptocomCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2422,8 +2426,8 @@ func (this *CryptocomCore) FetchDepositAddressesByNetwork(code interface{}, opti
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20308 := (<-this.LoadMarkets())
-		PanicOnError(retRes20308)
+		retRes20348 := (<-this.LoadMarkets())
+		PanicOnError(retRes20348)
 		var currency interface{} = this.SafeCurrency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2491,7 +2495,7 @@ func (this *CryptocomCore) FetchDepositAddressesByNetwork(code interface{}, opti
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *CryptocomCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2530,7 +2534,7 @@ func (this *CryptocomCore) FetchDepositAddress(code interface{}, optionalArgs ..
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CryptocomCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2546,8 +2550,8 @@ func (this *CryptocomCore) FetchDeposits(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21168 := (<-this.LoadMarkets())
-		PanicOnError(retRes21168)
+		retRes21208 := (<-this.LoadMarkets())
+		PanicOnError(retRes21208)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2611,7 +2615,7 @@ func (this *CryptocomCore) FetchDeposits(optionalArgs ...interface{}) <-chan int
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CryptocomCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2627,8 +2631,8 @@ func (this *CryptocomCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21768 := (<-this.LoadMarkets())
-		PanicOnError(retRes21768)
+		retRes21808 := (<-this.LoadMarkets())
+		PanicOnError(retRes21808)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3148,7 +3152,7 @@ func (this *CryptocomCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *CryptocomCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3160,8 +3164,8 @@ func (this *CryptocomCore) FetchDepositWithdrawFees(optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26838 := (<-this.LoadMarkets())
-		PanicOnError(retRes26838)
+		retRes26878 := (<-this.LoadMarkets())
+		PanicOnError(retRes26878)
 
 		response := (<-this.V1PrivatePostPrivateGetCurrencyNetworks(params))
 		PanicOnError(response)
@@ -3185,7 +3189,7 @@ func (this *CryptocomCore) FetchDepositWithdrawFees(optionalArgs ...interface{})
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *CryptocomCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3201,8 +3205,8 @@ func (this *CryptocomCore) FetchLedger(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes27038 := (<-this.LoadMarkets())
-		PanicOnError(retRes27038)
+		retRes27078 := (<-this.LoadMarkets())
+		PanicOnError(retRes27078)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -3349,7 +3353,7 @@ func (this *CryptocomCore) ParseLedgerEntryType(typeVar interface{}) interface{}
  * @description fetch all the accounts associated with a profile
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *CryptocomCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3359,8 +3363,8 @@ func (this *CryptocomCore) FetchAccounts(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28468 := (<-this.LoadMarkets())
-		PanicOnError(retRes28468)
+		retRes28508 := (<-this.LoadMarkets())
+		PanicOnError(retRes28508)
 
 		response := (<-this.V1PrivatePostPrivateGetAccounts(params))
 		PanicOnError(response)
@@ -3450,7 +3454,7 @@ func (this *CryptocomCore) ParseAccount(account interface{}) interface{} {
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
  * @param {int} [params.type] 'future', 'option'
- * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
 func (this *CryptocomCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3466,8 +3470,8 @@ func (this *CryptocomCore) FetchSettlementHistory(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes29338 := (<-this.LoadMarkets())
-		PanicOnError(retRes29338)
+		retRes29378 := (<-this.LoadMarkets())
+		PanicOnError(retRes29378)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3558,7 +3562,7 @@ func (this *CryptocomCore) ParseSettlements(settlements interface{}, market inte
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *CryptocomCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3568,8 +3572,8 @@ func (this *CryptocomCore) FetchFundingRate(symbol interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes30208 := (<-this.LoadMarkets())
-		PanicOnError(retRes30208)
+		retRes30248 := (<-this.LoadMarkets())
+		PanicOnError(retRes30248)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -3655,7 +3659,7 @@ func (this *CryptocomCore) ParseFundingRate(contract interface{}, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3674,17 +3678,17 @@ func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes31048 := (<-this.LoadMarkets())
-		PanicOnError(retRes31048)
+		retRes31088 := (<-this.LoadMarkets())
+		PanicOnError(retRes31088)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes310819 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes310819)
-			ch <- retRes310819
+			retRes311219 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes311219)
+			ch <- retRes311219
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -3756,7 +3760,7 @@ func (this *CryptocomCore) FetchFundingRateHistory(optionalArgs ...interface{}) 
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *CryptocomCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3766,8 +3770,8 @@ func (this *CryptocomCore) FetchPosition(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes31758 := (<-this.LoadMarkets())
-		PanicOnError(retRes31758)
+		retRes31798 := (<-this.LoadMarkets())
+		PanicOnError(retRes31798)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instrument_name": GetValue(market, "id"),
@@ -3814,7 +3818,7 @@ func (this *CryptocomCore) FetchPosition(symbol interface{}, optionalArgs ...int
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *CryptocomCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3826,8 +3830,8 @@ func (this *CryptocomCore) FetchPositions(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes32188 := (<-this.LoadMarkets())
-		PanicOnError(retRes32188)
+		retRes32228 := (<-this.LoadMarkets())
+		PanicOnError(retRes32228)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
@@ -3983,7 +3987,7 @@ func (this *CryptocomCore) ParamsToString(object interface{}, level interface{})
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {string} [params.type] LIMIT or MARKET
  * @param {number} [params.price] for limit orders only
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *CryptocomCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3995,8 +3999,8 @@ func (this *CryptocomCore) ClosePosition(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes33718 := (<-this.LoadMarkets())
-		PanicOnError(retRes33718)
+		retRes33758 := (<-this.LoadMarkets())
+		PanicOnError(retRes33758)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instrument_name": GetValue(market, "id"),
@@ -4040,7 +4044,7 @@ func (this *CryptocomCore) ClosePosition(symbol interface{}, optionalArgs ...int
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *CryptocomCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4050,8 +4054,8 @@ func (this *CryptocomCore) FetchTradingFee(symbol interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes34118 := (<-this.LoadMarkets())
-		PanicOnError(retRes34118)
+		retRes34158 := (<-this.LoadMarkets())
+		PanicOnError(retRes34158)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"instrument_name": GetValue(market, "id"),
@@ -4089,7 +4093,7 @@ func (this *CryptocomCore) FetchTradingFee(symbol interface{}, optionalArgs ...i
  * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
  * @description fetch the trading fees for multiple markets
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *CryptocomCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4099,8 +4103,8 @@ func (this *CryptocomCore) FetchTradingFees(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes34458 := (<-this.LoadMarkets())
-		PanicOnError(retRes34458)
+		retRes34498 := (<-this.LoadMarkets())
+		PanicOnError(retRes34498)
 
 		response := (<-this.V1PrivatePostPrivateGetFeeRate(params))
 		PanicOnError(response)

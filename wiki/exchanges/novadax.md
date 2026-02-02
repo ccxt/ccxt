@@ -74,7 +74,7 @@ novadax.fetchMarkets ([params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-latest-ticker-for-specific-pair  
 
@@ -95,7 +95,7 @@ novadax.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-latest-tickers-for-all-trading-pairs  
 
@@ -116,7 +116,7 @@ novadax.fetchTickers (symbols[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://doc.novadax.com/en-US/#get-market-depth  
 
@@ -138,7 +138,7 @@ novadax.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://doc.novadax.com/en-US/#get-recent-trades  
 
@@ -185,7 +185,7 @@ novadax.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-account-balance  
 
@@ -205,7 +205,7 @@ novadax.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.novadax.com/en-US/#order-introduction  
 
@@ -231,7 +231,7 @@ novadax.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.novadax.com/en-US/#cancel-an-order  
 
@@ -253,7 +253,7 @@ novadax.cancelOrder (id, symbol[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-order-details  
 
@@ -275,7 +275,7 @@ novadax.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-order-history  
 
@@ -298,7 +298,7 @@ novadax.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-order-history  
 
@@ -321,7 +321,7 @@ novadax.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-order-history  
 
@@ -344,7 +344,7 @@ novadax.fetchClosedOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-order-match-details  
 
@@ -368,7 +368,7 @@ novadax.fetchOrderTrades (id, symbol[, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-sub-account-transfer  
 
@@ -392,7 +392,7 @@ novadax.transfer (code, amount, fromAccount, toAccount[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://doc.novadax.com/en-US/#send-cryptocurrencies  
 
@@ -416,7 +416,7 @@ novadax.withdraw (code, amount, address, tag[, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://doc.novadax.com/en-US/#get-sub-account-list  
 
@@ -436,7 +436,7 @@ novadax.fetchAccounts ([params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws  
 
@@ -459,7 +459,7 @@ novadax.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws  
 
@@ -482,7 +482,7 @@ novadax.fetchWithdrawals (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://doc.novadax.com/en-US/#wallet-records-of-deposits-and-withdraws  
 
@@ -505,7 +505,7 @@ novadax.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>novadax</code>](#novadax)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://doc.novadax.com/en-US/#get-order-history  
 

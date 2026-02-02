@@ -98,7 +98,7 @@ oxfun.fetchCurrencies ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-tickers  
 
@@ -119,7 +119,7 @@ oxfun.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-tickers  
 
@@ -165,7 +165,7 @@ oxfun.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.ox.fun/?json#get-v3-depth  
 
@@ -187,7 +187,7 @@ oxfun.fetchOrderBook (symbol[, limit, params])
 fetch the current funding rates for multiple markets
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-funding-estimates  
 
@@ -208,7 +208,7 @@ oxfun.fetchFundingRates (symbols[, params])
 fetch the current funding rates for a symbol
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - an array of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-funding-estimates  
 
@@ -229,7 +229,7 @@ oxfun.fetchFundingRate (symbol[, params])
 Fetches the history of funding rates
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.ox.fun/?json#get-v3-funding-rates  
 
@@ -253,7 +253,7 @@ oxfun.fetchFundingRateHistory (symbol[, since, limit, params])
 fetches the history of funding payments
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.ox.fun/?json#get-v3-funding  
 
@@ -277,7 +277,7 @@ oxfun.fetchFundingHistory (symbol[, since, limit, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes, if a market has a leverage tier of 0, then the leverage tiers cannot be obtained for this market
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**: https://docs.ox.fun/?json#get-v3-leverage-tiers  
 
@@ -298,7 +298,7 @@ oxfun.fetchLeverageTiers ([symbols, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.ox.fun/?json#get-v3-exchange-trades  
 
@@ -346,7 +346,7 @@ oxfun.fetchMyTrades (symbol[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-balances  
 
@@ -368,7 +368,7 @@ oxfun.fetchBalance ([params])
 fetch subaccounts associated with a profile
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://docs.ox.fun/?json#get-v3-account-names  
 
@@ -388,7 +388,7 @@ oxfun.fetchAccounts ([params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.ox.fun/?json#post-v3-transfer  
 
@@ -412,7 +412,7 @@ oxfun.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-transfer  
 
@@ -436,7 +436,7 @@ oxfun.fetchTransfers (code[, since, limit, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-deposit-addresses  
 
@@ -458,7 +458,7 @@ oxfun.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-deposit  
 
@@ -482,7 +482,7 @@ oxfun.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-withdrawal  
 
@@ -506,7 +506,7 @@ oxfun.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.ox.fun/?json#post-v3-withdrawal  
 
@@ -534,7 +534,7 @@ oxfun.withdraw (code, amount, address, tag[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-positions  
 
@@ -556,7 +556,7 @@ oxfun.fetchPositions (symbols[, params])
 create a trade order
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#post-v3-orders-place  
 
@@ -592,7 +592,7 @@ oxfun.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#post-v3-orders-place  
 
@@ -616,7 +616,7 @@ oxfun.createOrders (orders[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://open.big.one/docs/spot_orders.html#create-order  
 
@@ -638,7 +638,7 @@ oxfun.createMarketBuyOrderWithCost (symbol, cost[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-orders-status  
 
@@ -661,7 +661,7 @@ oxfun.fetchOrder (id[, symbol, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#get-v3-orders-working  
 
@@ -686,7 +686,7 @@ oxfun.fetchOpenOrders (symbol[, since, limit, params])
 cancels an open order
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#delete-v3-orders-cancel  
 
@@ -733,7 +733,7 @@ oxfun.cancelAllOrders (symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#delete-v3-orders-cancel  
 
@@ -758,7 +758,7 @@ oxfun.cancelOrders (ids[, symbol, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://docs.ox.fun/?json#trade  
 
@@ -782,7 +782,7 @@ oxfun.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.ox.fun/?json#trade  
 
@@ -855,7 +855,7 @@ oxfun.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -881,7 +881,7 @@ oxfun.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -908,7 +908,7 @@ oxfun.watchOrderBookForSymbols (symbols[, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.ox.fun/?json#ticker  
 
@@ -930,7 +930,7 @@ oxfun.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.ox.fun/?json#ticker  
 
@@ -952,7 +952,7 @@ oxfun.watchTickers ([symbols, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://docs.ox.fun/?json#best-bid-ask  
 
@@ -973,7 +973,7 @@ oxfun.watchBidsAsks (symbols[, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.ox.fun/?json#balance-channel  
 
@@ -1018,7 +1018,7 @@ oxfun.watchPositions (symbols, since, limit, params[])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#order-channel  
 
@@ -1042,7 +1042,7 @@ oxfun.watchOrders (symbol[, since, limit, params])
 create a trade order
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#order-commands  
 
@@ -1077,7 +1077,7 @@ oxfun.createOrderWs (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#modify-order  
 
@@ -1105,7 +1105,7 @@ oxfun.editOrderWs (id, symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.ox.fun/?json#cancel-order  
 
@@ -1127,7 +1127,7 @@ oxfun.cancelOrderWs (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>oxfun</code>](#oxfun)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order  
 

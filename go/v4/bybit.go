@@ -94,6 +94,7 @@ func (this *BybitCore) Describe() interface{} {
 			"fetchLongShortRatio":                  false,
 			"fetchLongShortRatioHistory":           true,
 			"fetchMarginAdjustmentHistory":         false,
+			"fetchMarginMode":                      true,
 			"fetchMarketLeverageTiers":             true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       true,
@@ -321,7 +322,7 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/asset/coin-greeks":                                     1,
 					"v5/account/fee-rate":                                      10,
 					"v5/account/info":                                          5,
-					"v5/account/transaction-log":                               1,
+					"v5/account/transaction-log":                               1.66,
 					"v5/account/contract-transaction-log":                      1,
 					"v5/account/smp-group":                                     1,
 					"v5/account/mmp-state":                                     5,
@@ -350,6 +351,13 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/asset/withdraw/query-record":                           10,
 					"v5/asset/withdraw/withdrawable-amount":                    5,
 					"v5/asset/withdraw/vasp/list":                              5,
+					"v5/asset/convert/small-balance-list":                      5,
+					"v5/asset/convert/small-balance-history":                   5,
+					"v5/fiat/query-coin-list":                                  5,
+					"v5/fiat/reference-price":                                  5,
+					"v5/fiat/trade-query":                                      5,
+					"v5/fiat/query-trade-history":                              5,
+					"v5/fiat/balance-query":                                    5,
 					"v5/user/query-sub-members":                                5,
 					"v5/user/query-api":                                        5,
 					"v5/user/sub-apikeys":                                      5,
@@ -365,6 +373,7 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/spot-margin-trade/position-tiers":                      5,
 					"v5/spot-margin-trade/coinstate":                           5,
 					"v5/spot-margin-trade/repayment-available-amount":          5,
+					"v5/spot-margin-trade/get-auto-repay-mode":                 5,
 					"v5/spot-cross-margin-trade/loan-info":                     1,
 					"v5/spot-cross-margin-trade/account":                       1,
 					"v5/spot-cross-margin-trade/orders":                        1,
@@ -497,6 +506,10 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/asset/deposit/deposit-to-account":                   5,
 					"v5/asset/withdraw/create":                              50,
 					"v5/asset/withdraw/cancel":                              50,
+					"v5/asset/covert/get-quote":                             10,
+					"v5/asset/covert/small-balance-execute":                 10,
+					"v5/fiat/quote-apply":                                   10,
+					"v5/fiat/trade-execute":                                 10,
 					"v5/user/create-sub-member":                             10,
 					"v5/user/create-sub-api":                                10,
 					"v5/user/frozen-sub-member":                             10,
@@ -508,6 +521,7 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/spot-lever-token/redeem":                            2.5,
 					"v5/spot-margin-trade/switch-mode":                      5,
 					"v5/spot-margin-trade/set-leverage":                     5,
+					"v5/spot-margin-trade/set-auto-repay-mode":              5,
 					"v5/spot-cross-margin-trade/loan":                       2.5,
 					"v5/spot-cross-margin-trade/repay":                      2.5,
 					"v5/spot-cross-margin-trade/switch":                     2.5,
@@ -515,6 +529,7 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/crypto-loan/repay":                                  5,
 					"v5/crypto-loan/adjust-ltv":                             5,
 					"v5/crypto-loan-common/adjust-ltv":                      50,
+					"v5/crypto-loan-common/max-loan":                        10,
 					"v5/crypto-loan-flexible/borrow":                        50,
 					"v5/crypto-loan-flexible/repay":                         50,
 					"v5/crypto-loan-flexible/repay-collateral":              50,
@@ -526,6 +541,7 @@ func (this *BybitCore) Describe() interface{} {
 					"v5/crypto-loan-fixed/fully-repay":                      50,
 					"v5/crypto-loan-fixed/repay-collateral":                 50,
 					"v5/ins-loan/association-uid":                           5,
+					"v5/ins-loan/repay-loan":                                5,
 					"v5/lending/purchase":                                   5,
 					"v5/lending/redeem":                                     5,
 					"v5/lending/redeem-cancel":                              5,
@@ -824,6 +840,7 @@ func (this *BybitCore) Describe() interface{} {
 				"170203":  InvalidOrder,
 				"170204":  InvalidOrder,
 				"170206":  InvalidOrder,
+				"170209":  RestrictedLocation,
 				"170210":  InvalidOrder,
 				"170213":  OrderNotFound,
 				"170217":  InvalidOrder,
@@ -838,6 +855,8 @@ func (this *BybitCore) Describe() interface{} {
 				"170229":  InvalidOrder,
 				"170234":  ExchangeError,
 				"170241":  ManualInteractionNeeded,
+				"170371":  InvalidOrder,
+				"170372":  InvalidOrder,
 				"175000":  InvalidOrder,
 				"175001":  InvalidOrder,
 				"175002":  InvalidOrder,
@@ -1003,7 +1022,8 @@ func (this *BybitCore) Describe() interface{} {
 			"usePrivateInstrumentsInfo": false,
 			"enableDemoTrading":         false,
 			"fetchMarkets": map[string]interface{}{
-				"types": []interface{}{"spot", "linear", "inverse", "option"},
+				"types":   []interface{}{"spot", "linear", "inverse", "option"},
+				"options": []interface{}{"BTC", "ETH", "SOL", "XRP", "MNT", "DOGE"},
 			},
 			"enableUnifiedMargin":               nil,
 			"enableUnifiedAccount":              nil,
@@ -1420,9 +1440,9 @@ func (this *BybitCore) UpgradeUnifiedTradeAccount(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes147415 := (<-this.PrivatePostV5AccountUpgradeToUta(params))
-		PanicOnError(retRes147415)
-		ch <- retRes147415
+		retRes149415 := (<-this.PrivatePostV5AccountUpgradeToUta(params))
+		PanicOnError(retRes149415)
+		ch <- retRes149415
 		return nil
 
 	}()
@@ -1764,8 +1784,8 @@ func (this *BybitCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes176712 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes176712)
+			retRes178712 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes178712)
 		}
 		var promisesUnresolved interface{} = []interface{}{}
 		var types interface{} = nil
@@ -1790,15 +1810,13 @@ func (this *BybitCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 					"category": "inverse",
 				}))
 			} else if IsTrue(IsEqual(marketType, "option")) {
-				AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{}{
-					"baseCoin": "BTC",
-				}))
-				AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{}{
-					"baseCoin": "ETH",
-				}))
-				AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{}{
-					"baseCoin": "SOL",
-				}))
+				var optionsCurrencies interface{} = this.SafeList(fetchMarketsOptions, "options", []interface{}{"BTC", "ETH", "SOL"})
+				for j := 0; IsLessThan(j, GetArrayLength(optionsCurrencies)); j++ {
+					var currency interface{} = GetValue(optionsCurrencies, j)
+					AppendToArray(&promisesUnresolved, this.FetchOptionMarkets(map[string]interface{}{
+						"baseCoin": currency,
+					}))
+				}
 			} else {
 				panic(ExchangeError(Add(Add(Add(this.Id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")))
 			}
@@ -1806,18 +1824,24 @@ func (this *BybitCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfac
 
 		promises := (<-promiseAll(promisesUnresolved))
 		PanicOnError(promises)
-		var spotMarkets interface{} = this.SafeList(promises, 0, []interface{}{})
-		var linearMarkets interface{} = this.SafeList(promises, 1, []interface{}{})
-		var inverseMarkets interface{} = this.SafeList(promises, 2, []interface{}{})
-		var btcOptionMarkets interface{} = this.SafeList(promises, 3, []interface{}{})
-		var ethOptionMarkets interface{} = this.SafeList(promises, 4, []interface{}{})
-		var solOptionMarkets interface{} = this.SafeList(promises, 5, []interface{}{})
-		var futureMarkets interface{} = this.ArrayConcat(linearMarkets, inverseMarkets)
-		var optionMarkets interface{} = this.ArrayConcat(btcOptionMarkets, ethOptionMarkets)
-		optionMarkets = this.ArrayConcat(optionMarkets, solOptionMarkets)
-		var derivativeMarkets interface{} = this.ArrayConcat(futureMarkets, optionMarkets)
+		var result interface{} = []interface{}{}
+		for i := 0; IsLessThan(i, GetArrayLength(promises)); i++ {
+			var parsedMarket interface{} = GetValue(promises, i)
+			result = this.ArrayConcat(result, parsedMarket)
+		}
 
-		ch <- this.ArrayConcat(spotMarkets, derivativeMarkets)
+		// const spotMarkets = this.safeList (promises, 0, []);
+		// const linearMarkets = this.safeList (promises, 1, []);
+		// const inverseMarkets = this.safeList (promises, 2, []);
+		// const btcOptionMarkets = this.safeList (promises, 3, []);
+		// const ethOptionMarkets = this.safeList (promises, 4, []);
+		// const solOptionMarkets = this.safeList (promises, 5, []);
+		// const futureMarkets = this.arrayConcat (linearMarkets, inverseMarkets);
+		// let optionMarkets = this.arrayConcat (btcOptionMarkets, ethOptionMarkets);
+		// optionMarkets = this.arrayConcat (optionMarkets, solOptionMarkets);
+		// const derivativeMarkets = this.arrayConcat (futureMarkets, optionMarkets);
+		// return this.arrayConcat (spotMarkets, derivativeMarkets);
+		ch <- result
 		return nil
 
 	}()
@@ -2456,7 +2480,7 @@ func (this *BybitCore) ParseTicker(ticker interface{}, optionalArgs ...interface
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BybitCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2469,8 +2493,8 @@ func (this *BybitCore) FetchTicker(symbol interface{}, optionalArgs ...interface
 			panic(ArgumentsRequired(Add(this.Id, " fetchTicker() requires a symbol argument")))
 		}
 
-		retRes24038 := (<-this.LoadMarkets())
-		PanicOnError(retRes24038)
+		retRes24318 := (<-this.LoadMarkets())
+		PanicOnError(retRes24318)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2541,7 +2565,7 @@ func (this *BybitCore) FetchTicker(symbol interface{}, optionalArgs ...interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
- * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BybitCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2553,8 +2577,8 @@ func (this *BybitCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24708 := (<-this.LoadMarkets())
-		PanicOnError(retRes24708)
+		retRes24988 := (<-this.LoadMarkets())
+		PanicOnError(retRes24988)
 		var code interface{} = this.SafeStringN(params, []interface{}{"code", "currency", "baseCoin"})
 		var market interface{} = nil
 		var parsedSymbols interface{} = nil
@@ -2664,7 +2688,7 @@ func (this *BybitCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BybitCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2676,9 +2700,9 @@ func (this *BybitCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes257815 := (<-this.FetchTickers(symbols, params))
-		PanicOnError(retRes257815)
-		ch <- retRes257815
+		retRes260615 := (<-this.FetchTickers(symbols, params))
+		PanicOnError(retRes260615)
+		ch <- retRes260615
 		return nil
 
 	}()
@@ -2736,17 +2760,17 @@ func (this *BybitCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a symbol argument")))
 		}
 
-		retRes26258 := (<-this.LoadMarkets())
-		PanicOnError(retRes26258)
+		retRes26538 := (<-this.LoadMarkets())
+		PanicOnError(retRes26538)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes262919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes262919)
-			ch <- retRes262919
+			retRes265719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes265719)
+			ch <- retRes265719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2922,7 +2946,7 @@ func (this *BybitCore) ParseFundingRate(ticker interface{}, optionalArgs ...inte
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BybitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2934,8 +2958,8 @@ func (this *BybitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes27898 := (<-this.LoadMarkets())
-		PanicOnError(retRes27898)
+		retRes28178 := (<-this.LoadMarkets())
+		PanicOnError(retRes28178)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -3019,11 +3043,11 @@ func (this *BybitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan int
  * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BybitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3042,17 +3066,17 @@ func (this *BybitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes28728 := (<-this.LoadMarkets())
-		PanicOnError(retRes28728)
+		retRes29008 := (<-this.LoadMarkets())
+		PanicOnError(retRes29008)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes287619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 200))
-			PanicOnError(retRes287619)
-			ch <- retRes287619
+			retRes290419 := (<-this.FetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, params, 200))
+			PanicOnError(retRes290419)
+			ch <- retRes290419
 			return nil
 		}
 		if IsTrue(IsEqual(limit, nil)) {
@@ -3062,6 +3086,7 @@ func (this *BybitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 			"limit": limit,
 		}
 		var market interface{} = this.Market(symbol)
+		var fundingTimeFrameMins interface{} = this.SafeInteger(GetValue(market, "info"), "fundingInterval")
 		symbol = GetValue(market, "symbol")
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 		var typeVar interface{} = nil
@@ -3084,7 +3109,10 @@ func (this *BybitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 			if IsTrue(!IsEqual(since, nil)) {
 				// end time is required when since is not empty
 				var fundingInterval interface{} = Multiply(Multiply(Multiply(60, 60), 8), 1000)
-				AddElementToObject(request, "endTime", Add(since, Multiply(limit, fundingInterval)))
+				if IsTrue(!IsEqual(fundingTimeFrameMins, nil)) {
+					fundingInterval = Multiply(Multiply(fundingTimeFrameMins, 60), 1000)
+				}
+				AddElementToObject(request, "endTime", this.Sum(since, Multiply(limit, fundingInterval)))
 			}
 		}
 
@@ -3380,7 +3408,7 @@ func (this *BybitCore) ParseTrade(trade interface{}, optionalArgs ...interface{}
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BybitCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3397,8 +3425,8 @@ func (this *BybitCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 			panic(ArgumentsRequired(Add(this.Id, " fetchTrades() requires a symbol argument")))
 		}
 
-		retRes32038 := (<-this.LoadMarkets())
-		PanicOnError(retRes32038)
+		retRes32358 := (<-this.LoadMarkets())
+		PanicOnError(retRes32358)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3456,7 +3484,7 @@ func (this *BybitCore) FetchTrades(symbol interface{}, optionalArgs ...interface
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BybitCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3471,8 +3499,8 @@ func (this *BybitCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrderBook() requires a symbol argument")))
 		}
 
-		retRes32608 := (<-this.LoadMarkets())
-		PanicOnError(retRes32608)
+		retRes32928 := (<-this.LoadMarkets())
+		PanicOnError(retRes32928)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3709,7 +3737,7 @@ func (this *BybitCore) ParseBalance(response interface{}) interface{} {
  * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BybitCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3719,8 +3747,8 @@ func (this *BybitCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes34948 := (<-this.LoadMarkets())
-		PanicOnError(retRes34948)
+		retRes35268 := (<-this.LoadMarkets())
+		PanicOnError(retRes35268)
 		var request interface{} = map[string]interface{}{}
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
@@ -4157,7 +4185,7 @@ func (this *BybitCore) ParseOrder(order interface{}, optionalArgs ...interface{}
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4167,8 +4195,8 @@ func (this *BybitCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes39198 := (<-this.LoadMarkets())
-		PanicOnError(retRes39198)
+		retRes39518 := (<-this.LoadMarkets())
+		PanicOnError(retRes39518)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
@@ -4177,9 +4205,9 @@ func (this *BybitCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
 			"cost": cost,
 		}
 
-		retRes392715 := (<-this.CreateOrder(symbol, "market", "buy", OpNeg(1), nil, this.Extend(req, params)))
-		PanicOnError(retRes392715)
-		ch <- retRes392715
+		retRes395915 := (<-this.CreateOrder(symbol, "market", "buy", OpNeg(1), nil, this.Extend(req, params)))
+		PanicOnError(retRes395915)
+		ch <- retRes395915
 		return nil
 
 	}()
@@ -4194,7 +4222,7 @@ func (this *BybitCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4204,8 +4232,8 @@ func (this *BybitCore) CreateMarketSellOrderWithCost(symbol interface{}, cost in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes39418 := (<-this.LoadMarkets())
-		PanicOnError(retRes39418)
+		retRes39738 := (<-this.LoadMarkets())
+		PanicOnError(retRes39738)
 
 		types := (<-this.IsUnifiedEnabled())
 		PanicOnError(types)
@@ -4221,9 +4249,9 @@ func (this *BybitCore) CreateMarketSellOrderWithCost(symbol interface{}, cost in
 			"cost": cost,
 		}
 
-		retRes395415 := (<-this.CreateOrder(symbol, "market", "sell", OpNeg(1), nil, this.Extend(req, params)))
-		PanicOnError(retRes395415)
-		ch <- retRes395415
+		retRes398615 := (<-this.CreateOrder(symbol, "market", "sell", OpNeg(1), nil, this.Extend(req, params)))
+		PanicOnError(retRes398615)
+		ch <- retRes398615
 		return nil
 
 	}()
@@ -4263,7 +4291,7 @@ func (this *BybitCore) CreateMarketSellOrderWithCost(symbol interface{}, cost in
  * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
  * @param {boolean} [params.tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4275,8 +4303,8 @@ func (this *BybitCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes39938 := (<-this.LoadMarkets())
-		PanicOnError(retRes39938)
+		retRes40258 := (<-this.LoadMarkets())
+		PanicOnError(retRes40258)
 		var market interface{} = this.Market(symbol)
 
 		parts := (<-this.IsUnifiedEnabled())
@@ -4607,7 +4635,7 @@ func (this *BybitCore) CreateOrderRequest(symbol interface{}, typeVar interface{
  * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4617,8 +4645,8 @@ func (this *BybitCore) CreateOrders(orders interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes43238 := (<-this.LoadMarkets())
-		PanicOnError(retRes43238)
+		retRes43558 := (<-this.LoadMarkets())
+		PanicOnError(retRes43558)
 
 		accounts := (<-this.IsUnifiedEnabled())
 		PanicOnError(accounts)
@@ -4802,7 +4830,7 @@ func (this *BybitCore) EditOrderRequest(id interface{}, symbol interface{}, type
  * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
  * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
  * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4816,8 +4844,8 @@ func (this *BybitCore) EditOrder(id interface{}, symbol interface{}, typeVar int
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes45028 := (<-this.LoadMarkets())
-		PanicOnError(retRes45028)
+		retRes45348 := (<-this.LoadMarkets())
+		PanicOnError(retRes45348)
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a symbol argument")))
 		}
@@ -4858,7 +4886,7 @@ func (this *BybitCore) EditOrder(id interface{}, symbol interface{}, typeVar int
  * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) EditOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4868,8 +4896,8 @@ func (this *BybitCore) EditOrders(orders interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes45398 := (<-this.LoadMarkets())
-		PanicOnError(retRes45398)
+		retRes45718 := (<-this.LoadMarkets())
+		PanicOnError(retRes45718)
 		var ordersRequests interface{} = []interface{}{}
 		var orderSymbols interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -4994,7 +5022,7 @@ func (this *BybitCore) CancelOrderRequest(id interface{}, optionalArgs ...interf
  * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
  * @param {boolean} [params.stop] alias for trigger
  * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5009,8 +5037,8 @@ func (this *BybitCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes46608 := (<-this.LoadMarkets())
-		PanicOnError(retRes46608)
+		retRes46928 := (<-this.LoadMarkets())
+		PanicOnError(retRes46928)
 		var market interface{} = this.Market(symbol)
 		var requestExtended interface{} = this.CancelOrderRequest(id, symbol, params)
 
@@ -5046,7 +5074,7 @@ func (this *BybitCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5061,8 +5089,8 @@ func (this *BybitCore) CancelOrders(ids interface{}, optionalArgs ...interface{}
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 		}
 
-		retRes46958 := (<-this.LoadMarkets())
-		PanicOnError(retRes46958)
+		retRes47278 := (<-this.LoadMarkets())
+		PanicOnError(retRes47278)
 		var market interface{} = this.Market(symbol)
 
 		types := (<-this.IsUnifiedEnabled())
@@ -5163,8 +5191,8 @@ func (this *BybitCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes47788 := (<-this.LoadMarkets())
-		PanicOnError(retRes47788)
+		retRes48108 := (<-this.LoadMarkets())
+		PanicOnError(retRes48108)
 		var request interface{} = map[string]interface{}{
 			"timeWindow": this.ParseToInt(Divide(timeout, 1000)),
 		}
@@ -5203,7 +5231,7 @@ func (this *BybitCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs ..
  * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
  * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5213,8 +5241,8 @@ func (this *BybitCore) CancelOrdersForSymbols(orders interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes48118 := (<-this.LoadMarkets())
-		PanicOnError(retRes48118)
+		retRes48438 := (<-this.LoadMarkets())
+		PanicOnError(retRes48438)
 
 		types := (<-this.IsUnifiedEnabled())
 		PanicOnError(types)
@@ -5316,7 +5344,7 @@ func (this *BybitCore) CancelOrdersForSymbols(orders interface{}, optionalArgs .
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5328,8 +5356,8 @@ func (this *BybitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes49058 := (<-this.LoadMarkets())
-		PanicOnError(retRes49058)
+		retRes49378 := (<-this.LoadMarkets())
+		PanicOnError(retRes49378)
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 		enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -5416,7 +5444,7 @@ func (this *BybitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchOrderClassic(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5431,8 +5459,8 @@ func (this *BybitCore) FetchOrderClassic(id interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes49838 := (<-this.LoadMarkets())
-		PanicOnError(retRes49838)
+		retRes50158 := (<-this.LoadMarkets())
+		PanicOnError(retRes50158)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " fetchOrder() is not supported for spot markets")))
@@ -5469,7 +5497,7 @@ func (this *BybitCore) FetchOrderClassic(id interface{}, optionalArgs ...interfa
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.acknowledged] to suppress the warning, set to true
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5481,17 +5509,17 @@ func (this *BybitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes50168 := (<-this.LoadMarkets())
-		PanicOnError(retRes50168)
+		retRes50488 := (<-this.LoadMarkets())
+		PanicOnError(retRes50488)
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 		enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
 		var isUnifiedAccount interface{} = (IsTrue(enableUnifiedMargin) || IsTrue(enableUnifiedAccount))
 		if !IsTrue(isUnifiedAccount) {
 
-			retRes502019 := (<-this.FetchOrderClassic(id, symbol, params))
-			PanicOnError(retRes502019)
-			ch <- retRes502019
+			retRes505219 := (<-this.FetchOrderClassic(id, symbol, params))
+			PanicOnError(retRes505219)
+			ch <- retRes505219
 			return nil
 		}
 		var acknowledge interface{} = false
@@ -5616,16 +5644,16 @@ func (this *BybitCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
 		 * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
 		 * @param {int} [params.until] the latest time in ms to fetch entries for
 		 * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-		 * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+		 * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
 		 */
 		var enableUnifiedAccount interface{} = this.SafeBool(res, 1)
 		if IsTrue(enableUnifiedAccount) {
 			panic(NotSupported(Add(this.Id, " fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders")))
 		}
 
-		retRes512415 := (<-this.FetchOrdersClassic(symbol, since, limit, params))
-		PanicOnError(retRes512415)
-		ch <- retRes512415
+		retRes515615 := (<-this.FetchOrdersClassic(symbol, since, limit, params))
+		PanicOnError(retRes515615)
+		ch <- retRes515615
 		return nil
 
 	}()
@@ -5648,7 +5676,7 @@ func (this *BybitCore) FetchOrders(optionalArgs ...interface{}) <-chan interface
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchOrdersClassic(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5664,17 +5692,17 @@ func (this *BybitCore) FetchOrdersClassic(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes51468 := (<-this.LoadMarkets())
-		PanicOnError(retRes51468)
+		retRes51788 := (<-this.LoadMarkets())
+		PanicOnError(retRes51788)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes515019 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes515019)
-			ch <- retRes515019
+			retRes518219 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes518219)
+			ch <- retRes518219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -5783,7 +5811,7 @@ func (this *BybitCore) FetchOrdersClassic(optionalArgs ...interface{}) <-chan in
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchClosedOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5795,8 +5823,8 @@ func (this *BybitCore) FetchClosedOrder(id interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes52528 := (<-this.LoadMarkets())
-		PanicOnError(retRes52528)
+		retRes52848 := (<-this.LoadMarkets())
+		PanicOnError(retRes52848)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -5835,7 +5863,7 @@ func (this *BybitCore) FetchClosedOrder(id interface{}, optionalArgs ...interfac
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5847,8 +5875,8 @@ func (this *BybitCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes52878 := (<-this.LoadMarkets())
-		PanicOnError(retRes52878)
+		retRes53198 := (<-this.LoadMarkets())
+		PanicOnError(retRes53198)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -5888,7 +5916,7 @@ func (this *BybitCore) FetchOpenOrder(id interface{}, optionalArgs ...interface{
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5904,17 +5932,17 @@ func (this *BybitCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes53238 := (<-this.LoadMarkets())
-		PanicOnError(retRes53238)
+		retRes53558 := (<-this.LoadMarkets())
+		PanicOnError(retRes53558)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledAndClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes532719 := (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes532719)
-			ch <- retRes532719
+			retRes535919 := (<-this.FetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes535919)
+			ch <- retRes535919
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6037,7 +6065,7 @@ func (this *BybitCore) FetchCanceledAndClosedOrders(optionalArgs ...interface{})
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6053,15 +6081,15 @@ func (this *BybitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes54438 := (<-this.LoadMarkets())
-		PanicOnError(retRes54438)
+		retRes54758 := (<-this.LoadMarkets())
+		PanicOnError(retRes54758)
 		var request interface{} = map[string]interface{}{
 			"orderStatus": "Filled",
 		}
 
-		retRes544715 := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes544715)
-		ch <- retRes544715
+		retRes547915 := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes547915)
+		ch <- retRes547915
 		return nil
 
 	}()
@@ -6084,7 +6112,7 @@ func (this *BybitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6100,15 +6128,15 @@ func (this *BybitCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes54698 := (<-this.LoadMarkets())
-		PanicOnError(retRes54698)
+		retRes55018 := (<-this.LoadMarkets())
+		PanicOnError(retRes55018)
 		var request interface{} = map[string]interface{}{
 			"orderStatus": "Cancelled",
 		}
 
-		retRes547315 := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes547315)
-		ch <- retRes547315
+		retRes550515 := (<-this.FetchCanceledAndClosedOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes550515)
+		ch <- retRes550515
 		return nil
 
 	}()
@@ -6132,7 +6160,7 @@ func (this *BybitCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan i
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BybitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6148,17 +6176,17 @@ func (this *BybitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes54968 := (<-this.LoadMarkets())
-		PanicOnError(retRes54968)
+		retRes55288 := (<-this.LoadMarkets())
+		PanicOnError(retRes55288)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes550019 := (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes550019)
-			ch <- retRes550019
+			retRes553219 := (<-this.FetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes553219)
+			ch <- retRes553219
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6274,7 +6302,7 @@ func (this *BybitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BybitCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6298,9 +6326,9 @@ func (this *BybitCore) FetchOrderTrades(id interface{}, optionalArgs ...interfac
 		}
 		params = this.Omit(params, []interface{}{"clientOrderId", "orderLinkId"})
 
-		retRes561715 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes561715)
-		ch <- retRes561715
+		retRes564915 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes564915)
+		ch <- retRes564915
 		return nil
 
 	}()
@@ -6319,7 +6347,7 @@ func (this *BybitCore) FetchOrderTrades(id interface{}, optionalArgs ...interfac
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BybitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6335,17 +6363,17 @@ func (this *BybitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes56358 := (<-this.LoadMarkets())
-		PanicOnError(retRes56358)
+		retRes56678 := (<-this.LoadMarkets())
+		PanicOnError(retRes56678)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes563919 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
-			PanicOnError(retRes563919)
-			ch <- retRes563919
+			retRes567119 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
+			PanicOnError(retRes567119)
+			ch <- retRes567119
 			return nil
 		}
 		var request interface{} = map[string]interface{}{
@@ -6452,7 +6480,7 @@ func (this *BybitCore) ParseDepositAddress(depositAddress interface{}, optionalA
  * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *BybitCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6462,8 +6490,8 @@ func (this *BybitCore) FetchDepositAddressesByNetwork(code interface{}, optional
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57368 := (<-this.LoadMarkets())
-		PanicOnError(retRes57368)
+		retRes57688 := (<-this.LoadMarkets())
+		PanicOnError(retRes57688)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin": GetValue(currency, "id"),
@@ -6519,7 +6547,7 @@ func (this *BybitCore) FetchDepositAddressesByNetwork(code interface{}, optional
  * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BybitCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6529,8 +6557,8 @@ func (this *BybitCore) FetchDepositAddress(code interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57868 := (<-this.LoadMarkets())
-		PanicOnError(retRes57868)
+		retRes58188 := (<-this.LoadMarkets())
+		PanicOnError(retRes58188)
 		var currency interface{} = this.Currency(code)
 		networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
@@ -6560,7 +6588,7 @@ func (this *BybitCore) FetchDepositAddress(code interface{}, optionalArgs ...int
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.cursor] used for pagination
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BybitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6576,17 +6604,17 @@ func (this *BybitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes58108 := (<-this.LoadMarkets())
-		PanicOnError(retRes58108)
+		retRes58428 := (<-this.LoadMarkets())
+		PanicOnError(retRes58428)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes581419 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes581419)
-			ch <- retRes581419
+			retRes584619 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes584619)
+			ch <- retRes584619
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6654,7 +6682,7 @@ func (this *BybitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfa
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BybitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6670,17 +6698,17 @@ func (this *BybitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes58798 := (<-this.LoadMarkets())
-		PanicOnError(retRes58798)
+		retRes59118 := (<-this.LoadMarkets())
+		PanicOnError(retRes59118)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes588319 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes588319)
-			ch <- retRes588319
+			retRes591519 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes591519)
+			ch <- retRes591519
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -6861,7 +6889,7 @@ func (this *BybitCore) ParseTransaction(transaction interface{}, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BybitCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6877,17 +6905,17 @@ func (this *BybitCore) FetchLedger(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes60638 := (<-this.LoadMarkets())
-		PanicOnError(retRes60638)
+		retRes60958 := (<-this.LoadMarkets())
+		PanicOnError(retRes60958)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes606719 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes606719)
-			ch <- retRes606719
+			retRes609919 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes609919)
+			ch <- retRes609919
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -7160,7 +7188,7 @@ func (this *BybitCore) ParseLedgerEntryType(typeVar interface{}) interface{} {
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BybitCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7186,8 +7214,8 @@ func (this *BybitCore) Withdraw(code interface{}, amount interface{}, address in
 			accountType = Ternary(IsTrue(isUta), "UTA", "SPOT")
 		}
 
-		retRes63548 := (<-this.LoadMarkets())
-		PanicOnError(retRes63548)
+		retRes63868 := (<-this.LoadMarkets())
+		PanicOnError(retRes63868)
 		this.CheckAddress(address)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
@@ -7237,7 +7265,7 @@ func (this *BybitCore) Withdraw(code interface{}, amount interface{}, address in
  * @see https://bybit-exchange.github.io/docs/v5/position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BybitCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7250,8 +7278,8 @@ func (this *BybitCore) FetchPosition(symbol interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
 		}
 
-		retRes64018 := (<-this.LoadMarkets())
-		PanicOnError(retRes64018)
+		retRes64338 := (<-this.LoadMarkets())
+		PanicOnError(retRes64338)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -7332,7 +7360,7 @@ func (this *BybitCore) FetchPosition(symbol interface{}, optionalArgs ...interfa
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BybitCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7344,17 +7372,17 @@ func (this *BybitCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes64768 := (<-this.LoadMarkets())
-		PanicOnError(retRes64768)
+		retRes65088 := (<-this.LoadMarkets())
+		PanicOnError(retRes65088)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes648019 := (<-this.FetchPaginatedCallCursor("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))
-			PanicOnError(retRes648019)
-			ch <- retRes648019
+			retRes651219 := (<-this.FetchPaginatedCallCursor("fetchPositions", symbols, nil, nil, params, "nextPageCursor", "cursor", nil, 200))
+			PanicOnError(retRes651219)
+			ch <- retRes651219
 			return nil
 		}
 		var symbol interface{} = nil
@@ -7600,7 +7628,14 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 	market = this.SafeMarket(contract, market, nil, "contract")
 	var size interface{} = Precise.StringAbs(this.SafeString2(position, "size", "qty"))
 	var side interface{} = this.SafeString(position, "side")
-	if IsTrue(!IsEqual(side, nil)) {
+	var positionIdx interface{} = this.SafeString(position, "positionIdx")
+	var hedged interface{} = nil
+	if IsTrue(!IsEqual(positionIdx, nil)) {
+		hedged = (!IsEqual(positionIdx, "0"))
+	}
+	if IsTrue(IsTrue((!IsEqual(hedged, nil))) && IsTrue(hedged)) {
+		side = Ternary(IsTrue((IsEqual(positionIdx, "1"))), "long", "short")
+	} else if IsTrue(!IsEqual(side, nil)) {
 		if IsTrue(IsEqual(side, "Buy")) {
 			side = Ternary(IsTrue(isHistory), "short", "long")
 		} else if IsTrue(IsEqual(side, "Sell")) {
@@ -7609,7 +7644,14 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 			side = nil
 		}
 	}
-	var notional interface{} = this.SafeString2(position, "positionValue", "cumExitValue")
+	var notional interface{} = nil
+	var contractSize interface{} = this.SafeString(market, "contractSize")
+	var markPrice interface{} = this.SafeString(position, "markPrice")
+	if IsTrue(GetValue(market, "inverse")) {
+		notional = Precise.StringDiv(Precise.StringMul(size, contractSize), markPrice)
+	} else {
+		notional = this.SafeString2(position, "positionValue", "cumExitValue")
+	}
 	var unrealisedPnl interface{} = this.OmitZero(this.SafeString(position, "unrealisedPnl"))
 	var initialMarginString interface{} = this.SafeString2(position, "positionIM", "cumEntryValue")
 	var maintenanceMarginString interface{} = this.SafeString(position, "positionMM")
@@ -7618,17 +7660,8 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 	if IsTrue(IsEqual(lastUpdateTimestamp, nil)) {
 		lastUpdateTimestamp = this.SafeIntegerN(position, []interface{}{"updatedTime", "updatedAt", "updatedTime"})
 	}
-	var tradeMode interface{} = this.SafeInteger(position, "tradeMode", 0)
-	var marginMode interface{} = nil
-	if IsTrue(IsTrue((!IsTrue(GetValue(this.Options, "enableUnifiedAccount")))) || IsTrue((IsTrue(GetValue(this.Options, "enableUnifiedAccount")) && IsTrue(GetValue(market, "inverse"))))) {
-		// tradeMode would work for classic and UTA(inverse)
-		if !IsTrue(isHistory) {
-			marginMode = Ternary(IsTrue((IsEqual(tradeMode, 1))), "isolated", "cross")
-		}
-	}
 	var collateralString interface{} = this.SafeString(position, "positionBalance")
 	var entryPrice interface{} = this.OmitZero(this.SafeStringN(position, []interface{}{"entryPrice", "avgPrice", "avgEntryPrice"}))
-	var markPrice interface{} = this.SafeString(position, "markPrice")
 	var liquidationPrice interface{} = this.OmitZero(this.SafeString(position, "liqPrice"))
 	var leverage interface{} = this.SafeString(position, "leverage")
 	if IsTrue(!IsEqual(liquidationPrice, nil)) {
@@ -7667,8 +7700,6 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 	}
 	var maintenanceMarginPercentage interface{} = Precise.StringDiv(maintenanceMarginString, notional)
 	var marginRatio interface{} = Precise.StringDiv(maintenanceMarginString, collateralString, 4)
-	var positionIdx interface{} = this.SafeString(position, "positionIdx")
-	var hedged interface{} = IsTrue((!IsEqual(positionIdx, nil))) && IsTrue((!IsEqual(positionIdx, "0")))
 	return this.SafePosition(map[string]interface{}{
 		"info":                        position,
 		"id":                          nil,
@@ -7692,7 +7723,7 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 		"markPrice":                   this.ParseNumber(markPrice),
 		"lastPrice":                   this.SafeNumber(position, "avgExitPrice"),
 		"collateral":                  this.ParseNumber(collateralString),
-		"marginMode":                  marginMode,
+		"marginMode":                  nil,
 		"side":                        side,
 		"percentage":                  nil,
 		"stopLossPrice":               this.SafeNumber2(position, "stop_loss", "stopLoss"),
@@ -7708,7 +7739,7 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
  * @see https://bybit-exchange.github.io/docs/v5/position
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *BybitCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7718,8 +7749,8 @@ func (this *BybitCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes68268 := (<-this.LoadMarkets())
-		PanicOnError(retRes68268)
+		retRes68618 := (<-this.LoadMarkets())
+		PanicOnError(retRes68618)
 		var market interface{} = this.Market(symbol)
 
 		position := (<-this.FetchPosition(symbol, params))
@@ -7767,8 +7798,8 @@ func (this *BybitCore) SetMarginMode(marginMode interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes68578 := (<-this.LoadMarkets())
-		PanicOnError(retRes68578)
+		retRes68928 := (<-this.LoadMarkets())
+		PanicOnError(retRes68928)
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
 		enableUnifiedAccount := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 1)
@@ -7890,8 +7921,8 @@ func (this *BybitCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes69558 := (<-this.LoadMarkets())
-		PanicOnError(retRes69558)
+		retRes69908 := (<-this.LoadMarkets())
+		PanicOnError(retRes69908)
 		var market interface{} = this.Market(symbol)
 		// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
 		// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -7943,8 +7974,8 @@ func (this *BybitCore) SetPositionMode(hedged interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes69918 := (<-this.LoadMarkets())
-		PanicOnError(retRes69918)
+		retRes70268 := (<-this.LoadMarkets())
+		PanicOnError(retRes70268)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -8006,8 +8037,8 @@ func (this *BybitCore) FetchDerivativesOpenInterestHistory(symbol interface{}, o
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes70328 := (<-this.LoadMarkets())
-		PanicOnError(retRes70328)
+		retRes70678 := (<-this.LoadMarkets())
+		PanicOnError(retRes70678)
 		var market interface{} = this.Market(symbol)
 		var subType interface{} = Ternary(IsTrue(GetValue(market, "linear")), "linear", "inverse")
 		var category interface{} = this.SafeString(params, "category", subType)
@@ -8079,7 +8110,7 @@ func (this *BybitCore) FetchDerivativesOpenInterestHistory(symbol interface{}, o
  * @param {object} [params] exchange specific parameters
  * @param {string} [params.interval] 5m, 15m, 30m, 1h, 4h, 1d
  * @param {string} [params.category] "linear" or "inverse"
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *BybitCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8089,8 +8120,8 @@ func (this *BybitCore) FetchOpenInterest(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes71008 := (<-this.LoadMarkets())
-		PanicOnError(retRes71008)
+		retRes71358 := (<-this.LoadMarkets())
+		PanicOnError(retRes71358)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -8176,16 +8207,16 @@ func (this *BybitCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs
 			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot use the 1m timeframe")))
 		}
 
-		retRes71668 := (<-this.LoadMarkets())
-		PanicOnError(retRes71668)
+		retRes72018 := (<-this.LoadMarkets())
+		PanicOnError(retRes72018)
 		var paginate interface{} = this.SafeBool(params, "paginate")
 		if IsTrue(paginate) {
 			params = this.Omit(params, "paginate")
 			AddElementToObject(params, "timeframe", timeframe)
 
-			retRes717119 := (<-this.FetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 200))
-			PanicOnError(retRes717119)
-			ch <- retRes717119
+			retRes720619 := (<-this.FetchPaginatedCallCursor("fetchOpenInterestHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 200))
+			PanicOnError(retRes720619)
+			ch <- retRes720619
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -8199,9 +8230,9 @@ func (this *BybitCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs
 			AddElementToObject(request, "limit", limit)
 		}
 
-		retRes718315 := (<-this.FetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params))
-		PanicOnError(retRes718315)
-		ch <- retRes718315
+		retRes721815 := (<-this.FetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, params))
+		PanicOnError(retRes721815)
+		ch <- retRes721815
 		return nil
 
 	}()
@@ -8238,7 +8269,7 @@ func (this *BybitCore) ParseOpenInterest(interest interface{}, optionalArgs ...i
  * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *BybitCore) FetchCrossBorrowRate(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8248,8 +8279,8 @@ func (this *BybitCore) FetchCrossBorrowRate(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes72188 := (<-this.LoadMarkets())
-		PanicOnError(retRes72188)
+		retRes72538 := (<-this.LoadMarkets())
+		PanicOnError(retRes72538)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin": GetValue(currency, "id"),
@@ -8325,7 +8356,7 @@ func (this *BybitCore) ParseBorrowRate(info interface{}, optionalArgs ...interfa
  * @param {number} [since] the earliest time in ms to fetch borrrow interest for
  * @param {number} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *BybitCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8343,8 +8374,8 @@ func (this *BybitCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes72898 := (<-this.LoadMarkets())
-		PanicOnError(retRes72898)
+		retRes73248 := (<-this.LoadMarkets())
+		PanicOnError(retRes73248)
 		var request interface{} = map[string]interface{}{}
 
 		response := (<-this.PrivateGetV5SpotCrossMarginTradeAccount(this.Extend(request, params)))
@@ -8392,10 +8423,10 @@ func (this *BybitCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan i
  * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *BybitCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8409,8 +8440,8 @@ func (this *BybitCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes73368 := (<-this.LoadMarkets())
-		PanicOnError(retRes73368)
+		retRes73718 := (<-this.LoadMarkets())
+		PanicOnError(retRes73718)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -8492,7 +8523,7 @@ func (this *BybitCore) ParseBorrowInterest(info interface{}, optionalArgs ...int
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.transferId] UUID, which is unique across the platform
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BybitCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8502,8 +8533,8 @@ func (this *BybitCore) Transfer(code interface{}, amount interface{}, fromAccoun
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes74138 := (<-this.LoadMarkets())
-		PanicOnError(retRes74138)
+		retRes74488 := (<-this.LoadMarkets())
+		PanicOnError(retRes74488)
 		var transferId interface{} = this.SafeString(params, "transferId", this.Uuid())
 		var accountTypes interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountTypes, fromAccount, fromAccount)
@@ -8561,7 +8592,7 @@ func (this *BybitCore) Transfer(code interface{}, amount interface{}, fromAccoun
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BybitCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8577,17 +8608,17 @@ func (this *BybitCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes74678 := (<-this.LoadMarkets())
-		PanicOnError(retRes74678)
+		retRes75028 := (<-this.LoadMarkets())
+		PanicOnError(retRes75028)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes747119 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
-			PanicOnError(retRes747119)
-			ch <- retRes747119
+			retRes750619 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "nextPageCursor", "cursor", nil, 50))
+			PanicOnError(retRes750619)
+			ch <- retRes750619
 			return nil
 		}
 		var currency interface{} = nil
@@ -8647,7 +8678,7 @@ func (this *BybitCore) FetchTransfers(optionalArgs ...interface{}) <-chan interf
  * @param {string} code unified currency code of the currency to borrow
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *BybitCore) BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8657,8 +8688,8 @@ func (this *BybitCore) BorrowCrossMargin(code interface{}, amount interface{}, o
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75248 := (<-this.LoadMarkets())
-		PanicOnError(retRes75248)
+		retRes75598 := (<-this.LoadMarkets())
+		PanicOnError(retRes75598)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin":   GetValue(currency, "id"),
@@ -8696,7 +8727,7 @@ func (this *BybitCore) BorrowCrossMargin(code interface{}, amount interface{}, o
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *BybitCore) RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8706,8 +8737,8 @@ func (this *BybitCore) RepayCrossMargin(code interface{}, amount interface{}, op
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75588 := (<-this.LoadMarkets())
-		PanicOnError(retRes75588)
+		retRes75938 := (<-this.LoadMarkets())
+		PanicOnError(retRes75938)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin":   GetValue(currency, "id"),
@@ -8823,8 +8854,8 @@ func (this *BybitCore) FetchDerivativesMarketLeverageTiers(symbol interface{}, o
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes76608 := (<-this.LoadMarkets())
-		PanicOnError(retRes76608)
+		retRes76958 := (<-this.LoadMarkets())
+		PanicOnError(retRes76958)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -8877,7 +8908,7 @@ func (this *BybitCore) FetchDerivativesMarketLeverageTiers(symbol interface{}, o
  * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *BybitCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8887,8 +8918,8 @@ func (this *BybitCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes77098 := (<-this.LoadMarkets())
-		PanicOnError(retRes77098)
+		retRes77448 := (<-this.LoadMarkets())
+		PanicOnError(retRes77448)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		market = this.Market(symbol)
@@ -8897,9 +8928,9 @@ func (this *BybitCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs
 		}
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 
-		retRes771715 := (<-this.FetchDerivativesMarketLeverageTiers(symbol, params))
-		PanicOnError(retRes771715)
-		ch <- retRes771715
+		retRes775215 := (<-this.FetchDerivativesMarketLeverageTiers(symbol, params))
+		PanicOnError(retRes775215)
+		ch <- retRes775215
 		return nil
 
 	}()
@@ -8935,7 +8966,7 @@ func (this *BybitCore) ParseTradingFee(fee interface{}, optionalArgs ...interfac
  * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BybitCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8945,8 +8976,8 @@ func (this *BybitCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes77518 := (<-this.LoadMarkets())
-		PanicOnError(retRes77518)
+		retRes77868 := (<-this.LoadMarkets())
+		PanicOnError(retRes77868)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -8994,7 +9025,7 @@ func (this *BybitCore) FetchTradingFee(symbol interface{}, optionalArgs ...inter
  * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *BybitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9004,8 +9035,8 @@ func (this *BybitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes77938 := (<-this.LoadMarkets())
-		PanicOnError(retRes77938)
+		retRes78288 := (<-this.LoadMarkets())
+		PanicOnError(retRes78288)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleOptionAndParams(params, "fetchTradingFees", "type", "future")
 		typeVar = GetValue(typeVarparamsVariable, 0)
@@ -9117,7 +9148,7 @@ func (this *BybitCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...
  * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
  * @param {string[]} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BybitCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9130,8 +9161,8 @@ func (this *BybitCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-c
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes78938 := (<-this.LoadMarkets())
-		PanicOnError(retRes78938)
+		retRes79288 := (<-this.LoadMarkets())
+		PanicOnError(retRes79288)
 
 		response := (<-this.PrivateGetV5AssetCoinQueryInfo(params))
 		PanicOnError(response)
@@ -9202,8 +9233,8 @@ func (this *BybitCore) FetchSettlementHistory(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes79448 := (<-this.LoadMarkets())
-		PanicOnError(retRes79448)
+		retRes79798 := (<-this.LoadMarkets())
+		PanicOnError(retRes79798)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -9282,8 +9313,8 @@ func (this *BybitCore) FetchMySettlementHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes80018 := (<-this.LoadMarkets())
-		PanicOnError(retRes80018)
+		retRes80368 := (<-this.LoadMarkets())
+		PanicOnError(retRes80368)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -9414,7 +9445,7 @@ func (this *BybitCore) ParseSettlements(settlements interface{}, market interfac
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
- * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+ * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
 func (this *BybitCore) FetchVolatilityHistory(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9424,8 +9455,8 @@ func (this *BybitCore) FetchVolatilityHistory(code interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes81288 := (<-this.LoadMarkets())
-		PanicOnError(retRes81288)
+		retRes81638 := (<-this.LoadMarkets())
+		PanicOnError(retRes81638)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"category": "option",
@@ -9485,7 +9516,7 @@ func (this *BybitCore) ParseVolatilityHistory(volatility interface{}) interface{
  * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *BybitCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9495,8 +9526,8 @@ func (this *BybitCore) FetchGreeks(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes81858 := (<-this.LoadMarkets())
-		PanicOnError(retRes81858)
+		retRes82208 := (<-this.LoadMarkets())
+		PanicOnError(retRes82208)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -9568,7 +9599,7 @@ func (this *BybitCore) FetchGreeks(symbol interface{}, optionalArgs ...interface
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *BybitCore) FetchAllGreeks(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9580,8 +9611,8 @@ func (this *BybitCore) FetchAllGreeks(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes82538 := (<-this.LoadMarkets())
-		PanicOnError(retRes82538)
+		retRes82888 := (<-this.LoadMarkets())
+		PanicOnError(retRes82888)
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var baseCoin interface{} = this.SafeString(params, "baseCoin", "BTC")
 		var request interface{} = map[string]interface{}{
@@ -9717,7 +9748,7 @@ func (this *BybitCore) ParseGreeks(greeks interface{}, optionalArgs ...interface
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *BybitCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9733,17 +9764,17 @@ func (this *BybitCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes83848 := (<-this.LoadMarkets())
-		PanicOnError(retRes83848)
+		retRes84198 := (<-this.LoadMarkets())
+		PanicOnError(retRes84198)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyLiquidations", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes838819 := (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
-			PanicOnError(retRes838819)
-			ch <- retRes838819
+			retRes842319 := (<-this.FetchPaginatedCallCursor("fetchMyLiquidations", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
+			PanicOnError(retRes842319)
+			ch <- retRes842319
 			return nil
 		}
 		var request interface{} = map[string]interface{}{
@@ -9879,8 +9910,8 @@ func (this *BybitCore) GetLeverageTiersPaginated(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes85038 := (<-this.LoadMarkets())
-		PanicOnError(retRes85038)
+		retRes85388 := (<-this.LoadMarkets())
+		PanicOnError(retRes85388)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -9891,9 +9922,9 @@ func (this *BybitCore) GetLeverageTiersPaginated(optionalArgs ...interface{}) <-
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes851119 := (<-this.FetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))
-			PanicOnError(retRes851119)
-			ch <- retRes851119
+			retRes854619 := (<-this.FetchPaginatedCallCursor("getLeverageTiersPaginated", symbol, nil, nil, params, "nextPageCursor", "cursor", nil, 100))
+			PanicOnError(retRes854619)
+			ch <- retRes854619
 			return nil
 		}
 		var subType interface{} = nil
@@ -9933,7 +9964,7 @@ func (this *BybitCore) GetLeverageTiersPaginated(optionalArgs ...interface{}) <-
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *BybitCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9945,8 +9976,8 @@ func (this *BybitCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes85448 := (<-this.LoadMarkets())
-		PanicOnError(retRes85448)
+		retRes85798 := (<-this.LoadMarkets())
+		PanicOnError(retRes85798)
 		var market interface{} = nil
 		var symbol interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -10055,7 +10086,7 @@ func (this *BybitCore) ParseMarketLeverageTiers(info interface{}, optionalArgs .
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *BybitCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10071,17 +10102,17 @@ func (this *BybitCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes86428 := (<-this.LoadMarkets())
-		PanicOnError(retRes86428)
+		retRes86778 := (<-this.LoadMarkets())
+		PanicOnError(retRes86778)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes864619 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
-			PanicOnError(retRes864619)
-			ch <- retRes864619
+			retRes868119 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "nextPageCursor", "cursor", nil, 100))
+			PanicOnError(retRes868119)
+			ch <- retRes868119
 			return nil
 		}
 		var request interface{} = map[string]interface{}{
@@ -10185,7 +10216,7 @@ func (this *BybitCore) ParseIncome(income interface{}, optionalArgs ...interface
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *BybitCore) FetchOption(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10195,8 +10226,8 @@ func (this *BybitCore) FetchOption(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes87408 := (<-this.LoadMarkets())
-		PanicOnError(retRes87408)
+		retRes87758 := (<-this.LoadMarkets())
+		PanicOnError(retRes87758)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"category": "option",
@@ -10263,7 +10294,7 @@ func (this *BybitCore) FetchOption(symbol interface{}, optionalArgs ...interface
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *BybitCore) FetchOptionChain(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10273,8 +10304,8 @@ func (this *BybitCore) FetchOptionChain(code interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes88038 := (<-this.LoadMarkets())
-		PanicOnError(retRes88038)
+		retRes88388 := (<-this.LoadMarkets())
+		PanicOnError(retRes88388)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"category": "option",
@@ -10400,7 +10431,7 @@ func (this *BybitCore) ParseOption(chain interface{}, optionalArgs ...interface{
  * @param {object} params extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
  * @param {string} [params.subType] 'linear' or 'inverse'
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BybitCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10416,8 +10447,8 @@ func (this *BybitCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes89228 := (<-this.LoadMarkets())
-		PanicOnError(retRes89228)
+		retRes89578 := (<-this.LoadMarkets())
+		PanicOnError(retRes89578)
 		var market interface{} = nil
 		var subType interface{} = nil
 		var symbolsLength interface{} = 0
@@ -10511,8 +10542,8 @@ func (this *BybitCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes90008 := (<-this.LoadMarkets())
-		PanicOnError(retRes90008)
+		retRes90358 := (<-this.LoadMarkets())
+		PanicOnError(retRes90358)
 		var accountType interface{} = nil
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
@@ -10618,7 +10649,7 @@ func (this *BybitCore) FetchConvertCurrencies(optionalArgs ...interface{}) <-cha
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *BybitCore) FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10630,8 +10661,8 @@ func (this *BybitCore) FetchConvertQuote(fromCode interface{}, toCode interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes90988 := (<-this.LoadMarkets())
-		PanicOnError(retRes90988)
+		retRes91338 := (<-this.LoadMarkets())
+		PanicOnError(retRes91338)
 		var accountType interface{} = nil
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
@@ -10694,7 +10725,7 @@ func (this *BybitCore) FetchConvertQuote(fromCode interface{}, toCode interface{
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} amount how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *BybitCore) CreateConvertTrade(id interface{}, fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10706,8 +10737,8 @@ func (this *BybitCore) CreateConvertTrade(id interface{}, fromCode interface{}, 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes91538 := (<-this.LoadMarkets())
-		PanicOnError(retRes91538)
+		retRes91888 := (<-this.LoadMarkets())
+		PanicOnError(retRes91888)
 		var request interface{} = map[string]interface{}{
 			"quoteTxId": id,
 		}
@@ -10744,7 +10775,7 @@ func (this *BybitCore) CreateConvertTrade(id interface{}, fromCode interface{}, 
  * @param {string} [code] the unified currency code of the conversion trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *BybitCore) FetchConvertTrade(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10756,8 +10787,8 @@ func (this *BybitCore) FetchConvertTrade(id interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes91868 := (<-this.LoadMarkets())
-		PanicOnError(retRes91868)
+		retRes92218 := (<-this.LoadMarkets())
+		PanicOnError(retRes92218)
 		var accountType interface{} = nil
 		enableUnifiedMarginenableUnifiedAccountVariable := (<-this.IsUnifiedEnabled())
 		enableUnifiedMargin := GetValue(enableUnifiedMarginenableUnifiedAccountVariable, 0)
@@ -10829,7 +10860,7 @@ func (this *BybitCore) FetchConvertTrade(id interface{}, optionalArgs ...interfa
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
- * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *BybitCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10845,8 +10876,8 @@ func (this *BybitCore) FetchConvertTradeHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes92508 := (<-this.LoadMarkets())
-		PanicOnError(retRes92508)
+		retRes92858 := (<-this.LoadMarkets())
+		PanicOnError(retRes92858)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -10965,7 +10996,7 @@ func (this *BybitCore) ParseConversion(conversion interface{}, optionalArgs ...i
  * @param {int} [since] the earliest time in ms to fetch ratios for
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
 func (this *BybitCore) FetchLongShortRatioHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -10983,8 +11014,8 @@ func (this *BybitCore) FetchLongShortRatioHistory(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes93628 := (<-this.LoadMarkets())
-		PanicOnError(retRes93628)
+		retRes93978 := (<-this.LoadMarkets())
+		PanicOnError(retRes93978)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.GetBybitType("fetchLongShortRatioHistory", market, params)
@@ -11057,6 +11088,72 @@ func (this *BybitCore) ParseLongShortRatio(info interface{}, optionalArgs ...int
 		"timeframe":      nil,
 		"longShortRatio": this.ParseToNumeric(Precise.StringDiv(longString, shortString)),
 	}
+}
+
+/**
+ * @method
+ * @name bybit#fetchMarginMode
+ * @description fetches the margin mode of the trading pair
+ * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+ * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+func (this *BybitCore) FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		retRes94728 := (<-this.LoadMarkets())
+		PanicOnError(retRes94728)
+		var market interface{} = this.Market(symbol)
+
+		response := (<-this.PrivateGetV5AccountInfo(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "retCode": 0,
+		//         "retMsg": "OK",
+		//         "result": {
+		//             "marginMode": "REGULAR_MARGIN",
+		//             "updatedTime": "1723481446000",
+		//             "unifiedMarginStatus": 5,
+		//             "dcpStatus": "OFF",
+		//             "timeWindow": 0,
+		//             "smpGroup": 0,
+		//             "isMasterTrader": false,
+		//             "spotHedgingStatus": "OFF"
+		//         }
+		//     }
+		//
+		var result interface{} = this.SafeDict(response, "result", map[string]interface{}{})
+
+		ch <- this.ParseMarginMode(result, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BybitCore) ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{} {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marginType interface{} = this.SafeString(marginMode, "marginMode")
+	return map[string]interface{}{
+		"info":       marginMode,
+		"symbol":     this.SafeSymbol(nil, market),
+		"marginMode": this.ParseMarginModeType(marginType),
+	}
+}
+func (this *BybitCore) ParseMarginModeType(marginMode interface{}) interface{} {
+	var marginModes interface{} = map[string]interface{}{
+		"ISOLATED_MARGIN":  "isolated",
+		"REGULAR_MARGIN":   "cross",
+		"PORTFOLIO_MARGIN": "portfolio",
+	}
+	return this.SafeString(marginModes, marginMode, marginMode)
 }
 func (this *BybitCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
 	api := GetArg(optionalArgs, 0, "public")

@@ -919,7 +919,7 @@ class bullish extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return (not used by bullish)
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -965,7 +965,7 @@ class bullish extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $maxLimit = 100;
@@ -1018,7 +1018,7 @@ class bullish extends Exchange {
              * @param {string} [$params->orderId] the order id to fetch trades for
              * @param {string} [$params->clientOrderId] the client order id to fetch trades for
              * @param {string} [$params->tradingAccountId] the trading account id to fetch trades for
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -1084,7 +1084,7 @@ class bullish extends Exchange {
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->clientOrderId] the client order $id to fetch trades for
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
@@ -1193,7 +1193,7 @@ class bullish extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1425,7 +1425,7 @@ class bullish extends Exchange {
              * @param {int} [$since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange $response
              * @param {int} [$limit] the maximum amount of funding rate structures to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -1498,7 +1498,7 @@ class bullish extends Exchange {
              * @param {string} [$params->clientOrderId] the client id of the order to fetch for
              * @param {string} [$params->status] filter by order status, 'OPEN', 'CANCELLED', 'CLOSED', 'REJECTED'
              * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -1527,7 +1527,7 @@ class bullish extends Exchange {
                 //     array(
                 //         {
                 //             "clientOrderId" => "187",
-                //             "orderId" => "297735387747975680",
+                //             "orderId" => "297735387747975681",
                 //             "symbol" => "BTCUSDC",
                 //             "price" => "1.00000000",
                 //             "averageFillPrice" => "1.00000000",
@@ -1624,7 +1624,7 @@ class bullish extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'OPEN',
@@ -1645,7 +1645,7 @@ class bullish extends Exchange {
              * @param {int} [$limit] the max number of canceled orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'CANCELLED',
@@ -1667,7 +1667,7 @@ class bullish extends Exchange {
              * @param {int} [$limit] the max number of closed orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'CLOSED',
@@ -1689,7 +1689,7 @@ class bullish extends Exchange {
              * @param {int} [$limit] the max number of closed orders to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->tradingAccountId] the trading account id (mandatory parameter)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'CLOSED',
@@ -1710,7 +1710,7 @@ class bullish extends Exchange {
              * @param {string} [$symbol] unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -1773,7 +1773,7 @@ class bullish extends Exchange {
              * @param {bool} [$params->allowBorrow] if true, the order will be allowed to borrow assets to fulfill the order (default is false)
              * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
              * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -1837,7 +1837,7 @@ class bullish extends Exchange {
              * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
              * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately (default is false)
              * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -1882,7 +1882,7 @@ class bullish extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->commandType the command type, default is 'V3CancelOrder' (mandatory parameter)
              * @param {string} [$params->traidingAccountId] the trading account $id (mandatory parameter)
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -1919,7 +1919,7 @@ class bullish extends Exchange {
              * @param {string} [$symbol] alpaca cancelAllOrders cannot setting $symbol, it will cancel all open $orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->traidingAccountId the trading account id (mandatory parameter)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -2081,7 +2081,7 @@ class bullish extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $request = array();
@@ -2152,7 +2152,7 @@ class bullish extends Exchange {
              * @param {string} $params->timestamp the timestamp of the withdrawal $request (mandatory)
              * @param {string} $params->nonce the nonce of the withdrawal $request (mandatory)
              * @param {string} $params->network network for withdraw (mandatory)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             // todo check this method properly
@@ -2311,7 +2311,7 @@ class bullish extends Exchange {
              * @see https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#tag--trading-accounts
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $response = Async\await($this->privateGetV1AccountsTradingAccounts ($params));
@@ -2417,7 +2417,7 @@ class bullish extends Exchange {
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->network] $network for deposit address
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $currency = $this->currency($code);
@@ -2489,7 +2489,7 @@ class bullish extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->tradingAccountId the trading account id (mandatory parameter)
              * @param {string} [$params->code] unified currency $code, default is null
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -2560,7 +2560,7 @@ class bullish extends Exchange {
              * @param {string[]|null} $symbols list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} $params->tradingAccountId the trading account id
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -2672,7 +2672,7 @@ class bullish extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} $params->until the latest time in ms to fetch transfers for (default time $now)
              * @param {string} $params->tradingAccountId the trading account id
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));
@@ -2734,7 +2734,7 @@ class bullish extends Exchange {
              * @param {string} $fromAccount account ID to $transfer from
              * @param {string} $toAccount account ID to $transfer to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$transfer-structure $transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             // todo check this method properly
@@ -2826,11 +2826,11 @@ class bullish extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {int} [$since] timestamp for the earliest borrow rate
-             * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~ to retrieve
+             * @param {int} [$limit] the maximum number of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~ to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} $params->until the latest time in ms to fetch entries for
              * @param {string} $params->tradingAccountId the trading account id
-             * @return {array[]} an array of ~@link https://docs.ccxt.com/#/?id=borrow-rate-structure borrow rate structures~
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
              */
             Async\await(Promise\all(array( $this->load_markets(), $this->handle_token() )));
             $tradingAccountId = Async\await($this->load_account($params));

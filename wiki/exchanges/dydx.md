@@ -82,7 +82,7 @@ dydx.fetchMarkets ([params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://developer.woox.io/api-reference/endpoint/public_data/marketTrades  
 
@@ -130,7 +130,7 @@ dydx.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-historical-funding  
 
@@ -138,7 +138,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 
@@ -154,7 +154,7 @@ dydx.fetchFundingRateHistory (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-order  
 
@@ -176,7 +176,7 @@ dydx.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#list-orders  
 
@@ -201,7 +201,7 @@ dydx.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#list-orders  
 
@@ -226,7 +226,7 @@ dydx.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#list-orders  
 
@@ -251,7 +251,7 @@ dydx.fetchClosedOrders (symbol[, since, limit, params])
 fetch data on an open position
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#list-positions  
 
@@ -274,7 +274,7 @@ dydx.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#list-positions  
 
@@ -297,7 +297,7 @@ dydx.fetchPositions ([symbols, params])
 create a trade order
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.dydx.xyz/interaction/trading#place-an-order  
 
@@ -331,7 +331,7 @@ dydx.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://docs.dydx.xyz/interaction/trading/#cancel-an-order  
 
@@ -359,7 +359,7 @@ dydx.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -382,7 +382,7 @@ dydx.cancelOrders (ids[, symbol, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-perpetual-market-orderbook  
 
@@ -404,7 +404,7 @@ dydx.fetchOrderBook (symbol[, limit, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-transfers  
 
@@ -429,7 +429,7 @@ dydx.fetchLedger ([code, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -453,7 +453,7 @@ dydx.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-transfers  
 
@@ -478,7 +478,7 @@ dydx.fetchTransfers (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -501,7 +501,7 @@ dydx.withdraw (code, amount, address, tag[, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-transfers  
 
@@ -526,7 +526,7 @@ dydx.fetchWithdrawals (code[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-transfers  
 
@@ -551,7 +551,7 @@ dydx.fetchDeposits (code[, since, limit, params])
 fetch history of deposits and withdrawals
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a list of [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-transfers  
 
@@ -576,7 +576,7 @@ dydx.fetchDepositsWithdrawals ([code, since, limit, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-subaccounts  
 
@@ -597,7 +597,7 @@ dydx.fetchAccounts ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://docs.dydx.xyz/indexer-client/http#get-subaccount  
 
@@ -640,7 +640,7 @@ dydx.watchTrades (symbol[, since, limit, params])
 unsubscribes from the trades channel
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://docs.dydx.xyz/indexer-client/websockets#trades  
 
@@ -661,7 +661,7 @@ dydx.unWatchTrades (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.dydx.xyz/indexer-client/websockets#orders  
 
@@ -683,7 +683,7 @@ dydx.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>dydx</code>](#dydx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://docs.dydx.xyz/indexer-client/websockets#orders  
 

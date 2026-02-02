@@ -10,67 +10,66 @@ function testDeepExtend () {
         'id': 'sampleexchange',
     });
 
-    assert (exchange.parseToNumeric ('1') === 1);
-    return true; // dummy for now
+    const obj1 = {
+        "a": 1,
+        "b": [ 1, 2, 3 ],
+        "c": [ { "test1": 1, "test2": 1 } ],
+        "d": undefined,
+        "e": "not_undefined",
+        "sub": {
+            "a": 1,
+            "b": [ 1, 2 ],
+            "c": [ { "test1": 1, "test2": 2 } ],
+            "d": undefined,
+            "e": "not_undefined",
+            "other1": "x",
+        },
+        "other1": "x",
+    };
 
-    // const obj1 = {
-    //     "a": 1,
-    //     "b": [ 1, 2 ],
-    //     "c": [ { "test1": 1, "test2": 1 } ],
-    //     "d": undefined,
-    //     "e": "not_undefined",
-    //     "sub": {
-    //         "a": 1,
-    //         "b": [ 1, 2 ],
-    //         "c": [ { "test1": 1, "test2": 2 } ],
-    //         "d": undefined,
-    //         "e": "not_undefined",
-    //         "other1": "x",
-    //     },
-    //     "other1": "x",
-    // };
-
-    // const obj2 = {
-    //     "a": 2,
-    //     "b": [ 3, 4 ],
-    //     "c": [ { "test1": 2, "test3": 3 } ],
-    //     "d": "not_undefined",
-    //     "e": undefined,
-    //     "sub": {
-    //         "a": 2,
-    //         "b": [ 3, 4 ],
-    //         "c": [ { "test1": 2, "test3": 3 } ],
-    //         "d": "not_undefined",
-    //         "e": undefined,
-    //         "other2": "y",
-    //     },
-    //     "other2": "y",
-    // };
+    const obj2 = {
+        "a": 2,
+        "b": [ 3, 4 ],
+        "c": [ { "test1": 2, "test3": 3 } ],
+        "d": "not_undefined",
+        "e": undefined,
+        "sub": {
+            "a": 2,
+            "b": [ 3, 4 ],
+            "c": [ { "test1": 2, "test3": 3 } ],
+            "d": "not_undefined",
+            "e": undefined,
+            "other2": "y",
+        },
+        "other2": "y",
+    };
 
     // deepExtend
-    // const deepExtended = exchange.deepExtend (obj1, obj2);
-    // const compareTo = {
-    //     "a": 2,
-    //     "b": [ 3, 4 ],
-    //     "c": [ {
-    //         "test1": 2,
-    //         "test3": 3,
-    //     } ],
-    //     "d": "not_undefined",
-    //     "sub": {
-    //         "a": 2,
-    //         "b": [ 3, 4 ],
-    //         "c": [ { "test1": 2, "test3": 3 } ],
-    //         "d": "not_undefined",
-    //         "other1": "x",
-    //         "other2": "y",
-    //     },
-    //     "other1": "x",
-    //     "other2": "y",
-    // };
+    const deepExtended = exchange.deepExtend (obj1, obj2);
+    const compareTo = {
+        "a": 2,
+        "b": [ 3, 4 ],
+        "c": [ {
+            "test1": 2,
+            "test3": 3,
+        } ],
+        "d": "not_undefined",
+        "e": undefined,
+        "sub": {
+            "a": 2,
+            "b": [ 3, 4 ],
+            "c": [ { "test1": 2, "test3": 3 } ],
+            "d": "not_undefined",
+            "e": undefined,
+            "other1": "x",
+            "other2": "y",
+        },
+        "other1": "x",
+        "other2": "y",
+    };
     // todo: results are different across langs.
     // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
-    // testSharedMethods.assertDeepEqual (exchange, undefined, 'testDeepExtend', deepExtended, compareTo);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testDeepExtend', deepExtended, compareTo);
 }
 
 export default testDeepExtend;

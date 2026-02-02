@@ -509,9 +509,9 @@ class dydx extends Exchange {
         $marketId = $this->safe_string($market, 'ticker');
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
-        $base = $this->safe_currency_code($baseName);
+        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
+        $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
-        $baseId = $this->safe_string($market, 'baseId');
         $settleId = 'USDC';
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
@@ -542,11 +542,11 @@ class dydx extends Exchange {
             'option' => false,
             'active' => $active,
             'contract' => $contract,
+            'contractSize' => $this->parse_number('1'), // trades seem in absolute size
             'linear' => true,
             'inverse' => false,
             'taker' => null,
             'maker' => null,
-            'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -674,7 +674,7 @@ class dydx extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -801,10 +801,10 @@ class dydx extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
              * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] $timestamp in ms of the latest funding rate
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -965,7 +965,7 @@ class dydx extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             Async\await($this->load_markets());
             $request = array(
@@ -989,7 +989,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $userAddress = null;
             $subAccountNumber = null;
@@ -1053,7 +1053,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'OPEN', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
@@ -1075,7 +1075,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'FILLED', // ['OPEN', 'FILLED', 'CANCELED', 'BEST_EFFORT_CANCELED', 'UNTRIGGERED', 'BEST_EFFORT_OPENED']
@@ -1152,7 +1152,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             return $this->safe_dict($positions, 0, array());
@@ -1170,7 +1170,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             $userAddress = null;
             $subAccountNumber = null;
@@ -1499,7 +1499,7 @@ class dydx extends Exchange {
              * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
              * @param {float} [$params->goodTillBlock] expired block number for the order, required for market order and non limit GTT order, default value is latestBlockHeight + 20
              * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $credentials = $this->retrieve_credentials();
@@ -1555,7 +1555,7 @@ class dydx extends Exchange {
              * @param {float} [$params->goodTillBlock] expired block number for the order, required for $market order and non limit GTT order ($orderFlags = 0), default value is $latestBlockHeight + 20
              * @param {float} [$params->goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional (orderFlagss > 0), default value is 30 days
              * @param {int} [$params->subAccountId] sub $account $id, default is 0
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
             $params = $this->omit($params, array( 'trigger', 'stop' ));
@@ -1653,7 +1653,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string[]} [$params->clientOrderIds] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
              * @param {int} [$params->subAccountId] sub $account id, default is 0
-             * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1724,7 +1724,7 @@ class dydx extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1830,7 +1830,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -1903,7 +1903,7 @@ class dydx extends Exchange {
              * @param {string} $toAccount $account to transfer to *subaccount, address*
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address for order
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
             if ($code !== 'USDC') {
                 throw new NotSupported($this->id . ' transfer() only support USDC');
@@ -2044,7 +2044,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2122,7 +2122,7 @@ class dydx extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             if ($code !== 'USDC') {
                 throw new NotSupported($this->id . ' withdraw() only support USDC');
@@ -2190,7 +2190,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2216,7 +2216,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2242,7 +2242,7 @@ class dydx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
              * @param {string} [$params->subAccountNumber] sub account number
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             Async\await($this->load_markets());
             $currency = null;
@@ -2306,7 +2306,7 @@ class dydx extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->address] wallet address that made trades
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$account-structure $account structures~ indexed by the $account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handle_public_address('fetchAccounts', $params);
@@ -2383,7 +2383,7 @@ class dydx extends Exchange {
              * @see https://docs.dydx.xyz/indexer-client/http#get-subaccount
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $userAddress = null;

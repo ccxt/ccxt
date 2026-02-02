@@ -50,7 +50,7 @@ func (this *Blockchaincom) FetchMarkets(params ...interface{}) ([]MarketInterfac
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Blockchaincom) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -84,7 +84,7 @@ func (this *Blockchaincom) FetchOrderBook(symbol string, options ...FetchOrderBo
  * @param {string} symbol unified market symbol
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order book structure]{@link https://docs.ccxt.com/#/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Blockchaincom) FetchL3OrderBook(symbol string, options ...FetchL3OrderBookOptions) (OrderBook, error) {
 
@@ -140,7 +140,7 @@ func (this *Blockchaincom) FetchL2OrderBook(symbol string, options ...FetchL2Ord
  * @see https://api.blockchain.com/v3/#gettickerbysymbol
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Blockchaincom) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -168,7 +168,7 @@ func (this *Blockchaincom) FetchTicker(symbol string, options ...FetchTickerOpti
  * @see https://api.blockchain.com/v3/#gettickers
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Blockchaincom) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -205,7 +205,7 @@ func (this *Blockchaincom) FetchTickers(options ...FetchTickersOptions) (Tickers
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -239,7 +239,7 @@ func (this *Blockchaincom) CreateOrder(symbol string, typeVar string, side strin
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -272,7 +272,7 @@ func (this *Blockchaincom) CancelOrder(id string, options ...CancelOrderOptions)
  * @see https://api.blockchain.com/v3/#deleteallorders
  * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -304,7 +304,7 @@ func (this *Blockchaincom) CancelAllOrders(options ...CancelAllOrdersOptions) ([
  * @description fetch the trading fees for multiple markets
  * @see https://api.blockchain.com/v3/#getfees
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Blockchaincom) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -323,7 +323,7 @@ func (this *Blockchaincom) FetchTradingFees(params ...interface{}) (TradingFees,
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -368,7 +368,7 @@ func (this *Blockchaincom) FetchCanceledOrders(options ...FetchCanceledOrdersOpt
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -413,7 +413,7 @@ func (this *Blockchaincom) FetchClosedOrders(options ...FetchClosedOrdersOptions
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -491,7 +491,7 @@ func (this *Blockchaincom) FetchOrdersByState(state interface{}, options ...Fetc
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Blockchaincom) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -534,7 +534,7 @@ func (this *Blockchaincom) FetchMyTrades(options ...FetchMyTradesOptions) ([]Tra
  * @see https://api.blockchain.com/v3/#getdepositaddress
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Blockchaincom) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -565,7 +565,7 @@ func (this *Blockchaincom) FetchDepositAddress(code string, options ...FetchDepo
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -600,7 +600,7 @@ func (this *Blockchaincom) Withdraw(code string, amount float64, address string,
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -644,7 +644,7 @@ func (this *Blockchaincom) FetchWithdrawals(options ...FetchWithdrawalsOptions) 
  * @param {string} id withdrawal id
  * @param {string} code not used by blockchaincom.fetchWithdrawal
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {
 
@@ -679,7 +679,7 @@ func (this *Blockchaincom) FetchWithdrawal(id string, options ...FetchWithdrawal
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -723,7 +723,7 @@ func (this *Blockchaincom) FetchDeposits(options ...FetchDepositsOptions) ([]Tra
  * @param {string} id deposit id
  * @param {string} code not used by blockchaincom fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Blockchaincom) FetchDeposit(id string, options ...FetchDepositOptions) (Transaction, error) {
 
@@ -755,7 +755,7 @@ func (this *Blockchaincom) FetchDeposit(id string, options ...FetchDepositOption
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://api.blockchain.com/v3/#getaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Blockchaincom) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -773,7 +773,7 @@ func (this *Blockchaincom) FetchBalance(params ...interface{}) (Balances, error)
  * @param {string} id the order id
  * @param {string} symbol not used by blockchaincom fetchOrder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Blockchaincom) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 

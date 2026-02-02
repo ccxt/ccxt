@@ -99,7 +99,7 @@ func (this *Bitget) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @param {string} [params.code] required for cross spot margin
  * @param {string} [params.productType] *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Bitget) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
@@ -132,7 +132,7 @@ func (this *Bitget) FetchMarketLeverageTiers(symbol string, options ...FetchMark
  * @param {int} [params.until] end time in milliseconds
  * @param {string} [params.idLessThan] return records with id less than the provided value
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitget) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -179,7 +179,7 @@ func (this *Bitget) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.chain] the blockchain network the withdrawal is taking place on
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitget) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -217,7 +217,7 @@ func (this *Bitget) Withdraw(code string, amount float64, address string, option
  * @param {int} [params.until] end time in milliseconds
  * @param {string} [params.idLessThan] return records with id less than the provided value
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitget) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -260,7 +260,7 @@ func (this *Bitget) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @see https://www.bitget.com/api-doc/spot/account/Get-Deposit-Address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Bitget) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -292,7 +292,7 @@ func (this *Bitget) FetchDepositAddress(code string, options ...FetchDepositAddr
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitget) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -328,7 +328,7 @@ func (this *Bitget) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitget) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -356,7 +356,7 @@ func (this *Bitget) FetchTicker(symbol string, options ...FetchTickerOptions) (T
  * @see https://www.bitget.com/api-doc/contract/market/Get-Symbol-Price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitget) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {
 
@@ -389,7 +389,7 @@ func (this *Bitget) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptio
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitget) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -431,7 +431,7 @@ func (this *Bitget) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {int} [params.until] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitget) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -470,7 +470,7 @@ func (this *Bitget) FetchTrades(symbol string, options ...FetchTradesOptions) ([
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitget) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -501,7 +501,7 @@ func (this *Bitget) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.margin] set to true for spot margin
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Bitget) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -583,7 +583,7 @@ func (this *Bitget) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitget) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -603,7 +603,7 @@ func (this *Bitget) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -667,7 +667,7 @@ func (this *Bitget) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
  * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.posSide] *uta only* hedged two-way position side, long or short
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -705,7 +705,7 @@ func (this *Bitget) CreateOrder(symbol string, typeVar string, side string, amou
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the api endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -759,7 +759,7 @@ func (this *Bitget) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
  * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
  * @param {string} [params.newTriggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -811,7 +811,7 @@ func (this *Bitget) EditOrder(id string, symbol string, typeVar string, side str
  * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -853,7 +853,7 @@ func (this *Bitget) CancelOrder(id string, options ...CancelOrderOptions) (Order
  * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
  * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -893,7 +893,7 @@ func (this *Bitget) CancelOrders(ids []string, options ...CancelOrdersOptions) (
  * @param {string} [params.marginMode] 'isolated' or 'cross' for spot margin trading
  * @param {boolean} [params.trigger] *contract only* set to true for canceling trigger orders
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -931,7 +931,7 @@ func (this *Bitget) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -979,7 +979,7 @@ func (this *Bitget) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -1036,7 +1036,7 @@ func (this *Bitget) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -1093,7 +1093,7 @@ func (this *Bitget) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -1152,7 +1152,7 @@ func (this *Bitget) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) (
  * @param {string} [params.isPlan] *swap only* 'plan' for stop orders and 'profit_loss' for tp/sl orders, default is 'plan'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitget) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -1202,7 +1202,7 @@ func (this *Bitget) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClos
  * @param {string} [params.symbol] *contract only* unified market symbol
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Bitget) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1254,7 +1254,7 @@ func (this *Bitget) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bitget) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -1299,7 +1299,7 @@ func (this *Bitget) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitget) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1335,7 +1335,7 @@ func (this *Bitget) FetchPosition(symbol string, options ...FetchPositionOptions
  * @param {boolean} [params.useHistoryEndpoint] default false, when true  will use the historic endpoint to fetch positions
  * @param {string} [params.method] either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitget) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1373,7 +1373,7 @@ func (this *Bitget) FetchPositions(options ...FetchPositionsOptions) ([]Position
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Bitget) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1420,7 +1420,7 @@ func (this *Bitget) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bitget) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1451,7 +1451,7 @@ func (this *Bitget) FetchFundingRate(symbol string, options ...FetchFundingRateO
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
  * @param {string} [params.method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
- * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Bitget) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -1485,7 +1485,7 @@ func (this *Bitget) FetchFundingRates(options ...FetchFundingRatesOptions) (Fund
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bitget) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 
@@ -1522,7 +1522,7 @@ func (this *Bitget) FetchFundingIntervals(options ...FetchFundingIntervalsOption
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch funding history for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Bitget) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1565,7 +1565,7 @@ func (this *Bitget) FetchFundingHistory(options ...FetchFundingHistoryOptions) (
  * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Bitget) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1704,7 +1704,7 @@ func (this *Bitget) SetPositionMode(hedged bool, options ...SetPositionModeOptio
  * @param {string} symbol unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Bitget) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -1735,7 +1735,7 @@ func (this *Bitget) FetchOpenInterest(symbol string, options ...FetchOpenInteres
  * @param {int} [limit] the maximum number of transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitget) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -1783,7 +1783,7 @@ func (this *Bitget) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.symbol] unified CCXT market symbol, required when transferring to or from an account type that is a leveraged position-by-position account
  * @param {string} [params.clientOid] custom id
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitget) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1811,7 +1811,7 @@ func (this *Bitget) Transfer(code string, amount float64, fromAccount string, to
  * @see https://www.bitget.com/api-doc/spot/market/Get-Coin-List
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitget) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 
@@ -1850,7 +1850,7 @@ func (this *Bitget) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
  * @param {int} [params.until] timestamp in ms of the latest liquidation
  * @param {string} [params.marginMode] 'cross' or 'isolated' default value is 'cross'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Bitget) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1893,7 +1893,7 @@ func (this *Bitget) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) (
  * @see https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Margin-Interest-Rate-And-Max-Borrowable-Amount
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+ * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
 func (this *Bitget) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 
@@ -1956,7 +1956,7 @@ func (this *Bitget) FetchCrossBorrowRate(code string, options ...FetchCrossBorro
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *Bitget) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -2004,7 +2004,7 @@ func (this *Bitget) FetchBorrowInterest(options ...FetchBorrowInterestOptions) (
  * @see https://www.bitget.com/api-doc/contract/account/Get-Single-Account
  * @param {string} symbol unified symbol of the market to fetch the margin mode for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *Bitget) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
 
@@ -2038,7 +2038,7 @@ func (this *Bitget) FetchMarginMode(symbol string, options ...FetchMarginModeOpt
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, max range for params["until"] - since is 3 months
  * @param {string} [params.productType] USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitget) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
 
@@ -2083,7 +2083,7 @@ func (this *Bitget) FetchPositionsHistory(options ...FetchPositionsHistoryOption
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bitget) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
 
@@ -2121,7 +2121,7 @@ func (this *Bitget) FetchConvertQuote(fromCode string, toCode string, options ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.price the price of the conversion, obtained from fetchConvertQuote()
  * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bitget) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
@@ -2156,7 +2156,7 @@ func (this *Bitget) CreateConvertTrade(id string, fromCode string, toCode string
  * @param {int} [since] the earliest time in ms to fetch conversions for
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bitget) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
 
@@ -2217,7 +2217,7 @@ func (this *Bitget) FetchConvertCurrencies(params ...interface{}) (Currencies, e
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bitget) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 
@@ -2249,7 +2249,7 @@ func (this *Bitget) FetchFundingInterval(symbol string, options ...FetchFundingI
  * @param {int} [since] the earliest time in ms to fetch ratios for
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
 func (this *Bitget) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
 

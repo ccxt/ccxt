@@ -102,7 +102,7 @@ func (this *Bybit) FetchOptionMarkets(params interface{}) ([]MarketInterface, er
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bybit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -132,7 +132,7 @@ func (this *Bybit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
- * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bybit) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -167,7 +167,7 @@ func (this *Bybit) FetchTickers(options ...FetchTickersOptions) (Tickers, error)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] *contract only* 'linear', 'inverse'
  * @param {string} [params.baseCoin] *option only* base coin, default is 'BTC'
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bybit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 
@@ -251,7 +251,7 @@ func (this *Bybit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OH
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string[]} symbols unified symbols of the markets to fetch the funding rates for, all market funding rates are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bybit) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -284,11 +284,11 @@ func (this *Bybit) FetchFundingRates(options ...FetchFundingRatesOptions) (Fundi
  * @see https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Bybit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -335,7 +335,7 @@ func (this *Bybit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bybit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -374,7 +374,7 @@ func (this *Bybit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bybit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -409,7 +409,7 @@ func (this *Bybit) FetchOrderBook(symbol string, options ...FetchOrderBookOption
  * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bybit) FetchBalance(params ...interface{}) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
@@ -427,7 +427,7 @@ func (this *Bybit) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -499,7 +499,7 @@ func (this *Bybit) CreateMarketSellOrderWithCost(symbol string, cost float64, op
  * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
  * @param {boolean} [params.tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -532,7 +532,7 @@ func (this *Bybit) CreateOrder(symbol string, typeVar string, side string, amoun
  * @see https://bybit-exchange.github.io/docs/v5/order/batch-place
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -578,7 +578,7 @@ func (this *Bybit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOp
  * @param {string} [params.triggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for triggerPrice
  * @param {string} [params.slTriggerBy] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for stopLoss
  * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -616,7 +616,7 @@ func (this *Bybit) EditOrder(id string, symbol string, typeVar string, side stri
  * @see https://bybit-exchange.github.io/docs/v5/order/batch-amend
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 
@@ -648,7 +648,7 @@ func (this *Bybit) EditOrders(orders []OrderRequest, options ...EditOrdersOption
  * @param {boolean} [params.trigger] *spot only* whether the order is a trigger order
  * @param {boolean} [params.stop] alias for trigger
  * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -683,7 +683,7 @@ func (this *Bybit) CancelOrder(id string, options ...CancelOrderOptions) (Order,
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -745,7 +745,7 @@ func (this *Bybit) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrder
  * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
  * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {
 
@@ -779,7 +779,7 @@ func (this *Bybit) CancelOrdersForSymbols(orders []CancellationRequest, options 
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -813,7 +813,7 @@ func (this *Bybit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, 
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchOrderClassic(id string, options ...FetchOrderClassicOptions) (Order, error) {
 
@@ -848,7 +848,7 @@ func (this *Bybit) FetchOrderClassic(id string, options ...FetchOrderClassicOpti
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {object} [params.acknowledged] to suppress the warning, set to true
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -890,7 +890,7 @@ func (this *Bybit) FetchOrder(id string, options ...FetchOrderOptions) (Order, e
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -942,7 +942,7 @@ func (this *Bybit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchOrdersClassic(options ...FetchOrdersClassicOptions) ([]Order, error) {
 
@@ -991,7 +991,7 @@ func (this *Bybit) FetchOrdersClassic(options ...FetchOrdersClassicOptions) ([]O
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchClosedOrder(id string, options ...FetchClosedOrderOptions) (Order, error) {
 
@@ -1032,7 +1032,7 @@ func (this *Bybit) FetchClosedOrder(id string, options ...FetchClosedOrderOption
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Order, error) {
 
@@ -1074,7 +1074,7 @@ func (this *Bybit) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 
@@ -1126,7 +1126,7 @@ func (this *Bybit) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClose
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -1178,7 +1178,7 @@ func (this *Bybit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Ord
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -1231,7 +1231,7 @@ func (this *Bybit) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
  * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bybit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -1277,7 +1277,7 @@ func (this *Bybit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, 
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bybit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -1325,7 +1325,7 @@ func (this *Bybit) FetchOrderTrades(id string, options ...FetchOrderTradesOption
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bybit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -1368,7 +1368,7 @@ func (this *Bybit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, erro
  * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *Bybit) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 
@@ -1396,7 +1396,7 @@ func (this *Bybit) FetchDepositAddressesByNetwork(code string, options ...FetchD
  * @see https://bybit-exchange.github.io/docs/v5/asset/master-deposit-addr
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Bybit) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -1430,7 +1430,7 @@ func (this *Bybit) FetchDepositAddress(code string, options ...FetchDepositAddre
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.cursor] used for pagination
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bybit) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1477,7 +1477,7 @@ func (this *Bybit) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bybit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1525,7 +1525,7 @@ func (this *Bybit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Bybit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1572,7 +1572,7 @@ func (this *Bybit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, er
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bybit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1605,7 +1605,7 @@ func (this *Bybit) Withdraw(code string, amount float64, address string, options
  * @see https://bybit-exchange.github.io/docs/v5/position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bybit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1638,7 +1638,7 @@ func (this *Bybit) FetchPosition(symbol string, options ...FetchPositionOptions)
  * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
  * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bybit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1671,7 +1671,7 @@ func (this *Bybit) FetchPositions(options ...FetchPositionsOptions) ([]Position,
  * @see https://bybit-exchange.github.io/docs/v5/position
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Bybit) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1840,7 +1840,7 @@ func (this *Bybit) FetchDerivativesOpenInterestHistory(symbol string, options ..
  * @param {object} [params] exchange specific parameters
  * @param {string} [params.interval] 5m, 15m, 30m, 1h, 4h, 1d
  * @param {string} [params.category] "linear" or "inverse"
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Bybit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -1915,7 +1915,7 @@ func (this *Bybit) FetchOpenInterestHistory(symbol string, options ...FetchOpenI
  * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *Bybit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 
@@ -1946,7 +1946,7 @@ func (this *Bybit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrow
  * @param {number} [since] the earliest time in ms to fetch borrrow interest for
  * @param {number} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *Bybit) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -1994,10 +1994,10 @@ func (this *Bybit) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([
  * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/historical-interest
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *Bybit) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) (map[string]interface{}, error) {
 
@@ -2039,7 +2039,7 @@ func (this *Bybit) FetchBorrowRateHistory(code string, options ...FetchBorrowRat
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.transferId] UUID, which is unique across the platform
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bybit) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -2071,7 +2071,7 @@ func (this *Bybit) Transfer(code string, amount float64, fromAccount string, toA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bybit) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -2132,7 +2132,7 @@ func (this *Bybit) FetchDerivativesMarketLeverageTiers(symbol string, options ..
  * @see https://bybit-exchange.github.io/docs/v5/market/risk-limit
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *Bybit) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
 
@@ -2160,7 +2160,7 @@ func (this *Bybit) FetchMarketLeverageTiers(symbol string, options ...FetchMarke
  * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bybit) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -2188,7 +2188,7 @@ func (this *Bybit) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
  * @see https://bybit-exchange.github.io/docs/v5/account/fee-rate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Bybit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
@@ -2205,7 +2205,7 @@ func (this *Bybit) FetchTradingFees(params ...interface{}) (TradingFees, error) 
  * @see https://bybit-exchange.github.io/docs/v5/asset/coin-info
  * @param {string[]} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bybit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 
@@ -2333,7 +2333,7 @@ func (this *Bybit) FetchMySettlementHistory(options ...FetchMySettlementHistoryO
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
- * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+ * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
 func (this *Bybit) FetchVolatilityHistory(code string, options ...FetchVolatilityHistoryOptions) ([]map[string]interface{}, error) {
 
@@ -2361,7 +2361,7 @@ func (this *Bybit) FetchVolatilityHistory(code string, options ...FetchVolatilit
  * @see https://bybit-exchange.github.io/docs/api-explorer/v5/market/tickers
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Bybit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 
@@ -2390,7 +2390,7 @@ func (this *Bybit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Gr
  * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Bybit) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
 
@@ -2428,7 +2428,7 @@ func (this *Bybit) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, e
  * @param {string} [params.type] market type, ['swap', 'option', 'spot']
  * @param {string} [params.subType] market subType, ['linear', 'inverse']
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Bybit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -2473,7 +2473,7 @@ func (this *Bybit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] market subType, ['linear', 'inverse'], default is 'linear'
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Bybit) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -2509,7 +2509,7 @@ func (this *Bybit) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Lev
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Bybit) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -2552,7 +2552,7 @@ func (this *Bybit) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Bybit) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 
@@ -2580,7 +2580,7 @@ func (this *Bybit) FetchOption(symbol string, options ...FetchOptionOptions) (Op
  * @see https://bybit-exchange.github.io/docs/v5/market/tickers
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Bybit) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 
@@ -2612,7 +2612,7 @@ func (this *Bybit) FetchOptionChain(code string, options ...FetchOptionChainOpti
  * @param {object} params extra parameters specific to the exchange api endpoint
  * @param {int} [params.until] timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
  * @param {string} [params.subType] 'linear' or 'inverse'
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bybit) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
 
@@ -2675,7 +2675,7 @@ func (this *Bybit) FetchConvertCurrencies(params ...interface{}) (Currencies, er
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bybit) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
 
@@ -2711,7 +2711,7 @@ func (this *Bybit) FetchConvertQuote(fromCode string, toCode string, options ...
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} amount how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bybit) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
@@ -2746,7 +2746,7 @@ func (this *Bybit) CreateConvertTrade(id string, fromCode string, toCode string,
  * @param {string} [code] the unified currency code of the conversion trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bybit) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
 
@@ -2782,7 +2782,7 @@ func (this *Bybit) FetchConvertTrade(id string, options ...FetchConvertTradeOpti
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
- * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Bybit) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
 
@@ -2828,7 +2828,7 @@ func (this *Bybit) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryO
  * @param {int} [since] the earliest time in ms to fetch ratios for
  * @param {int} [limit] the maximum number of long short ratio structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}
+ * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
 func (this *Bybit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {
 
@@ -2867,6 +2867,34 @@ func (this *Bybit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHist
 		return nil, CreateReturnError(res)
 	}
 	return NewLongShortRatioArray(res), nil
+}
+
+/**
+ * @method
+ * @name bybit#fetchMarginMode
+ * @description fetches the margin mode of the trading pair
+ * @see https://bybit-exchange.github.io/docs/v5/account/account-info
+ * @param {string} [symbol] unified symbol of the market to fetch the margin mode for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+func (this *Bybit) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
+
+	opts := FetchMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchMarginMode(symbol, params)
+	if IsError(res) {
+		return MarginMode{}, CreateReturnError(res)
+	}
+	return NewMarginMode(res), nil
 }
 
 // missing typed methods from base
@@ -3005,9 +3033,6 @@ func (this *Bybit) FetchLongShortRatio(symbol string, options ...FetchLongShortR
 }
 func (this *Bybit) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {
 	return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)
-}
-func (this *Bybit) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {
-	return this.exchangeTyped.FetchMarginMode(symbol, options...)
 }
 func (this *Bybit) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {
 	return this.exchangeTyped.FetchMarginModes(options...)

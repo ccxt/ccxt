@@ -101,6 +101,14 @@ class Transpiler {
         return uncameled;
     }
 
+    getPreTranspilationRegexes () {
+        // here are regexes for common language functions, which might have uniform behavior across all other langs, except JS. so, we apply JS-specific modification, during pre-transpilation process
+        // by this way (to edit JS only behavior), we avoid the necessity of language-specific placeholder methods across different langs' base classes
+        return [
+            [ /exchange.jsonStringifyWithNull/g, 'JSON.stringify' ],
+        ];
+    }
+
     getCommonRegexes (): any[] {
 
         return [
@@ -119,6 +127,7 @@ class Transpiler {
             [ /\.safeList2/g, '.safe_list_2'],
             [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
             [ /\.safeNumberOmitZero/g, '.safe_number_omit_zero'],
+            [ /\.exceptionMessage/g, '.exception_message'],
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
@@ -2431,6 +2440,8 @@ class Transpiler {
             [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
         ]));
 
+        allFiles = allFiles.map( file => this.regexAll(file, this.getPreTranspilationRegexes()));
+
         const flatResult = await this.webworkerTranspile (allFiles, fileConfig, parserConfig);
 
         const exchangeCamelCaseProps = (str: string) => {
@@ -3102,6 +3113,7 @@ if (isMainEntry(metaFileUrl)) {
     const force = process.argv.includes ('--force')
     const addJsHeaders = process.argv.includes ('--js-headers')
     const multiprocess = process.argv.includes ('--multiprocess') || process.argv.includes ('--multi')
+    const baseClassOnly = process.argv.includes ('--baseClass')
 
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true
 
@@ -3117,7 +3129,10 @@ if (isMainEntry(metaFileUrl)) {
     if (!child && !multiprocess) {
         log.bright.green ({ force })
     }
-    if (test) {
+
+    if (baseClassOnly) {
+        transpiler.transpileBaseMethods ()
+    } else if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
         transpiler.transpileErrorHierarchy ()

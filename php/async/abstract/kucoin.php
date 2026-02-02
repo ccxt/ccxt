@@ -79,6 +79,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function private_get_user_info($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
+    public function private_get_user_api_key($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -312,6 +315,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function private_get_affiliate_inviter_statistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_earn_redeem_preview($params = array()) {
+        return $this->request('earn/redeem-preview', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -874,6 +880,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     public function privateGetUserInfo($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
+    public function privateGetUserApiKey($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 7.5));
     }
@@ -1107,6 +1116,9 @@ abstract class kucoin extends \ccxt\async\Exchange {
     }
     public function privateGetAffiliateInviterStatistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetEarnRedeemPreview($params = array()) {
+        return $this->request('earn/redeem-preview', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));

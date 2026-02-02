@@ -14,6 +14,7 @@
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
+* [fetchFundingHistory](#fetchfundinghistory)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
@@ -58,6 +59,7 @@
 * [editOrder](#editorder)
 * [fetchMarginMode](#fetchmarginmode)
 * [fetchTradingFee](#fetchtradingfee)
+* [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTrades](#watchtrades)
@@ -174,7 +176,7 @@ bingx.fetchOHLCV (symbol, timeframe[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -201,7 +203,7 @@ bingx.fetchTrades (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -228,7 +230,7 @@ bingx.fetchOrderBook (symbol[, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**
 
@@ -253,7 +255,7 @@ bingx.fetchFundingRate (symbol[, params])
 fetch the current funding rate for multiple symbols
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate  
 
@@ -274,7 +276,7 @@ bingx.fetchFundingRates ([symbols, params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History  
 
@@ -282,7 +284,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -293,13 +295,37 @@ bingx.fetchFundingRateHistory (symbol[, since, limit, params])
 ```
 
 
+<a name="fetchFundingHistory" id="fetchfundinghistory"></a>
+
+### fetchFundingHistory{docsify-ignore}
+fetches historical funding received
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure)
+
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding history for |
+| since | <code>int</code> | No | timestamp in ms of the earliest funding to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding history structures](https://docs.ccxt.com/?id=funding-history-structure) to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding to fetch |
+
+
+```javascript
+bingx.fetchFundingHistory (symbol[, since, limit, params])
+```
+
+
 <a name="fetchOpenInterest" id="fetchopeninterest"></a>
 
 ### fetchOpenInterest{docsify-ignore}
 retrieves the open interest of a trading pair
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**
 
@@ -324,7 +350,7 @@ bingx.fetchOpenInterest (symbol[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -350,7 +376,7 @@ bingx.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -376,7 +402,7 @@ bingx.fetchTickers (symbols[, params])
 fetches mark prices for the market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate  
 
@@ -397,7 +423,7 @@ bingx.fetchMarkPrice (symbol[, params])
 fetches mark prices for multiple markets
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate  
 
@@ -418,7 +444,7 @@ bingx.fetchMarkPrices ([symbols, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -446,7 +472,7 @@ bingx.fetchBalance ([params])
 fetches historical positions
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History  
 
@@ -470,7 +496,7 @@ bingx.fetchPositionHistory (symbol[, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -497,7 +523,7 @@ bingx.fetchPositions (symbols[, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -522,7 +548,7 @@ bingx.fetchPosition (symbol[, params])
 create a market order by providing the symbol, side and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -544,7 +570,7 @@ bingx.createMarketOrderWithCost (symbol, side, cost[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -565,7 +591,7 @@ bingx.createMarketBuyOrderWithCost (symbol, cost[, params])
 create a market sell order by providing the symbol and cost
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -586,7 +612,7 @@ bingx.createMarketSellOrderWithCost (symbol, cost[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -634,7 +660,7 @@ bingx.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -660,7 +686,7 @@ bingx.createOrders (orders[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -689,7 +715,7 @@ bingx.cancelOrder (id, symbol[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -715,7 +741,7 @@ bingx.cancelAllOrders ([symbol, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -768,7 +794,7 @@ bingx.cancelAllOrdersAfter (timeout[, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -797,7 +823,7 @@ bingx.fetchOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -826,7 +852,7 @@ bingx.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -856,7 +882,7 @@ bingx.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -887,7 +913,7 @@ bingx.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on multiple canceled orders made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -918,7 +944,7 @@ bingx.fetchCanceledOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -951,7 +977,7 @@ bingx.fetchCanceledAndClosedOrders ([symbol, since, limit, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New  
 
@@ -975,7 +1001,7 @@ bingx.transfer (code, amount, fromAccount, toAccount[, params])
 fetch a history of internal transfers made on an account
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new  
 
@@ -1001,7 +1027,7 @@ bingx.fetchTransfers ([code, since, limit, params])
 fetch the deposit addresses for a currency associated with this account
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/#/?id=address-structure), indexed by the network
+**Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/?id=address-structure), indexed by the network
 
 **See**: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address  
 
@@ -1022,7 +1048,7 @@ bingx.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address  
 
@@ -1044,7 +1070,7 @@ bingx.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)  
 
@@ -1067,7 +1093,7 @@ bingx.fetchDeposits ([code, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)  
 
@@ -1116,7 +1142,7 @@ bingx.setMarginMode (marginMode, symbol[, params])
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin  
 
@@ -1138,7 +1164,7 @@ bingx.setMargin (symbol, amount[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**
 
@@ -1190,7 +1216,7 @@ bingx.setLeverage (leverage, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1222,7 +1248,7 @@ bingx.fetchMyTrades ([symbol, since, limit, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information  
 
@@ -1243,7 +1269,7 @@ bingx.fetchDepositWithdrawFees (codes[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw  
 
@@ -1268,7 +1294,7 @@ bingx.withdraw (code, amount, address[, tag, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**
 
@@ -1296,7 +1322,7 @@ bingx.fetchMyLiquidations ([symbol, since, limit, params])
 closes open positions for a market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1366,7 +1392,7 @@ bingx.setPositionMode (hedged, symbol[, params])
 cancels an order and places a new order
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1410,7 +1436,7 @@ bingx.editOrder (id, symbol, type, side, amount[, price, params])
 fetches the margin mode of the trading pair
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/#/?id=margin-mode-structure)
+**Returns**: <code>object</code> - a [margin mode structure](https://docs.ccxt.com/?id=margin-mode-structure)
 
 **See**
 
@@ -1435,7 +1461,7 @@ bingx.fetchMarginMode (symbol[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**
 
@@ -1455,13 +1481,34 @@ bingx.fetchTradingFee (symbol[, params])
 ```
 
 
+<a name="fetchMarketLeverageTiers" id="fetchmarketleveragetiers"></a>
+
+### fetchMarketLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, for different trade sizes for a single market
+
+**Kind**: instance method of [<code>bingx</code>](#bingx)  
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
+
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bingx.fetchMarketLeverageTiers (symbol[, params])
+```
+
+
 <a name="watchTicker" id="watchticker"></a>
 
 ### watchTicker{docsify-ignore}
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1487,7 +1534,7 @@ bingx.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -1513,7 +1560,7 @@ bingx.unWatchTicker (symbol[, params])
 watches information on multiple trades made in a market
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1541,7 +1588,7 @@ bingx.watchTrades (symbol[, since, limit, params])
 unsubscribes from the trades channel
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -1568,7 +1615,7 @@ bingx.unWatchTrades (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1595,7 +1642,7 @@ bingx.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -1677,7 +1724,7 @@ bingx.unWatchOHLCV (symbol, timeframe[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1705,7 +1752,7 @@ bingx.watchOrders ([symbol, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -1733,7 +1780,7 @@ bingx.watchMyTrades ([symbol, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 

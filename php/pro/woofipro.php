@@ -101,13 +101,13 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return.
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $name = 'orderbook';
@@ -164,12 +164,12 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $name = 'ticker';
@@ -256,12 +256,12 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-$tickers
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-$tickers
              *
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -315,12 +315,12 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
              *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -386,7 +386,7 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -467,13 +467,13 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches information on multiple $trades made in a $market
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
              *
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -686,15 +686,15 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] true if $trigger order
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
@@ -724,15 +724,15 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watches information on multiple trades made by the user
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
              *
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] true if $trigger order
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
@@ -1011,7 +1011,7 @@ class woofipro extends \ccxt\async\woofipro {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
@@ -1078,9 +1078,11 @@ class woofipro extends \ccxt\async\woofipro {
                 }
             }
             // don't remove the $future from the .futures $cache
-            $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, 'positions');
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, 'positions');
+            }
         }) ();
     }
 
@@ -1215,10 +1217,10 @@ class woofipro extends \ccxt\async\woofipro {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+             * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
             $topic = 'balance';
