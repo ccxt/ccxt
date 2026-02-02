@@ -1115,9 +1115,11 @@ class Exchange(object):
                 newParams[key] = 'true' if value else 'false'
         return _urlencode.urlencode(newParams, doseq, quote_via=_urlencode.quote)
 
+    _URLENCODE_WITH_ARRAY_REPEAT_REGEX = re.compile(r'%5B\d*%5D')
+
     @staticmethod
     def urlencode_with_array_repeat(params={}):
-        return re.sub(r'%5B\d*%5D', '', Exchange.urlencode(params, True))
+        return Exchange._URLENCODE_WITH_ARRAY_REPEAT_REGEX.sub('', Exchange.urlencode(params, True))
 
     @staticmethod
     def urlencode_nested(params):
