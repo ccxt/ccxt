@@ -23,25 +23,16 @@ function testAggregate () {
         [ 789.10, 123.0 ],
     ];
 
-    try {
-        testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (bids, 0)), [
-            [ 123.0, 456.0 ],
-            [ 789.0, 123.0 ],
-            [ 789.1, 369.0 ],
-        ]);
-        testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (asks, 0)), [
-            [ 123.0, 456.0 ],
-            [ 789.0, 123.0 ],
-            [ 789.10, 123.0 ],
-        ]);
-    } catch (e) {
-        // skip c# , todo
-        if ((e.toString ()).includes ('BaseTest.assert') || (e.toString ()).includes ('at System.')) {
-            return;
-        } else {
-            throw e;
-        }
-    }
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (bids, 0)), [
+        [ 123.0, 456.0 ],
+        [ 789.0, 123.0 ],
+        [ 789.1, 369.0 ],
+    ]);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate (exchange.sortBy (asks, 0)), [
+        [ 123.0, 456.0 ],
+        [ 789.0, 123.0 ],
+        [ 789.10, 123.0 ],
+    ]);
 
     testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate ([]), []);
 
