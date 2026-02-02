@@ -9,11 +9,21 @@
     "methods": {
         "fetchTicker": [
             {
-                "description": "fetchTime",
-                "method": "fetchTime",
+                "description": "fetchTicker",
+                "method": "fetchTicker",
                 "url": "https://data.api.drift.trade/stats/markets",
                 "input": [
                     "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://data.api.drift.trade/stats/markets",
+                "input": [
+                    ["BTC/USDC:USDC"]
                 ]
             }
         ]

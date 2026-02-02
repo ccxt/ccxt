@@ -357,7 +357,7 @@ export default class drift extends Exchange {
                 'markPrice': this.safeNumber (stats, 'markPrice'),
                 'info': this.deepExtend (dlobl2, stats),
             },
-            market,
+            market
         );
     }
 
@@ -385,31 +385,27 @@ export default class drift extends Exchange {
         params = {}
     ): Promise<Tickers> {
         await this.loadMarkets ();
-        const targetSymbols = symbols === undefined ? this.symbols : this.marketSymbols (symbols);
-        const ids = [];
-        for (let i = 0; i < targetSymbols.length; i++) {
-            const m = this.market (targetSymbols[i]);
-            ids.push (m['id']);
-        }
-        const depthParam = this.safeString (params, 'depth');
+        const marketIds = this.marketIds (symbols);
+        const depthParam = this.safeString (params, 'depth', '1'); // default is 1
         let depth = '';
-        if (depthParam === undefined) {
-            depth = ids.map (() => '1').join (',');
+        if (depthParam.indexOf (',') >= 0) {
+            depth = depthParam;
         } else {
-            if (depthParam.indexOf (',') >= 0) {
-                depth = depthParam;
-            } else {
-                // replicate single depth for each market
-                depth = ids.map (() => depthParam).join (',');
-            }
+            depth = marketIds.map (() => depthParam).join (',');
         }
+        params = this.omit (params, 'depth');
         const request: Dict = {
-            'marketName': ids.join (','),
+            'marketName': marketIds.join (','),
             'depth': depth,
         };
-        const response = await this.dlobGetBatchL2 (this.extend (request, this.omit (params, 'depth')));
-        const statsResponse = await this.publicGetStatsMarkets ();
-        const statsArray = this.safeValue (statsResponse, 'markets', []);
+        const promises = [
+            this.dlobGetBatchL2 (this.extend (request, params)),
+            this.publicGetStatsMarkets (),
+        ];
+        // const response = await this.dlobGetBatchL2 (this.extend (request, this.omit (params, 'depth')));
+        // const statsResponse = await this.publicGetStatsMarkets ();
+        const responses = await Promise.all (promises);
+        const statsArray = this.safeValue (responses[1], 'markets', []);
         const statsById: Dict = {};
         for (let i = 0; i < statsArray.length; i++) {
             const s = statsArray[i];
@@ -419,7 +415,7 @@ export default class drift extends Exchange {
             }
         }
         const result: Dict = {};
-        const books = this.safeValue (response, 'l2s', response);
+        const books = this.safeValue (responses[0], 'l2s', responses[0]);
         const booksArray = Array.isArray (books)
             ? books
             : Object.keys (books).map ((key) => {
@@ -435,14 +431,30 @@ export default class drift extends Exchange {
             const marketId = this.safeString2 (book, 'marketName', 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
+            // const bids = this.safeValue (book, 'bids', []);
+            // const asks = this.safeValue (book, 'asks', []);
+            // const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [ undefined, undefined ];
+            // const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [ undefined, undefined ];
+            // const bidPrice = bestBid[0];
+            // const bidVolume = bestBid.length > 1 ? bestBid[1] : undefined;
+            // const askPrice = bestAsk[0];
+            // const askVolume = bestAsk.length > 1 ? bestAsk[1] : undefined;
             const bids = this.safeValue (book, 'bids', []);
             const asks = this.safeValue (book, 'asks', []);
-            const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [ undefined, undefined ];
-            const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [ undefined, undefined ];
-            const bidPrice = bestBid[0];
-            const bidVolume = bestBid.length > 1 ? bestBid[1] : undefined;
-            const askPrice = bestAsk[0];
-            const askVolume = bestAsk.length > 1 ? bestAsk[1] : undefined;
+            const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [];
+            const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [];
+            let bidPrice = undefined;
+            let bidVolume = undefined;
+            if (bestBid.length > 1) {
+                bidPrice = bestBid[0];
+                bidVolume = bestBid[1];
+            }
+            let askPrice = undefined;
+            let askVolume = undefined;
+            if (bestAsk.length > 1) {
+                askPrice = bestAsk[0]
+                askVolume = bestAsk[1];
+            }
             const marketStats = this.safeValue (statsById, marketId, {});
             const last = this.safeNumber (marketStats, 'price');
             const priceHighObj = this.safeValue (marketStats, 'priceHigh');
@@ -467,10 +479,8 @@ export default class drift extends Exchange {
                     'percentage': this.safeNumber (marketStats, 'price24hChangePct'),
                     'baseVolume': this.safeNumber (marketStats, 'baseVolume'),
                     'quoteVolume': this.safeNumber (marketStats, 'quoteVolume'),
-                    'info': {
-                        'l2': book,
-                        'stats': marketStats,
-                    },
+                    'markPrice': this.safeNumber (marketStats, 'markPrice'),
+                    'info': this.deepExtend (book, marketStats),
                 },
                 market
             );
