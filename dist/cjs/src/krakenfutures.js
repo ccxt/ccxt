@@ -2692,7 +2692,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString(tier, 'initialMargin');
-            const minNotional = this.safeNumber(tier, 'numNonContractUnits');
+            const minNotional = this.safeNumber2(tier, 'numNonContractUnits', 'contracts');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];

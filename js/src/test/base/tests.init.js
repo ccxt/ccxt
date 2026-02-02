@@ -6,6 +6,7 @@
 
 // AUTO_TRANSPILE_ENABLED
 import testDecimalToPrecision from './test.decimalToPrecision.js';
+import testBinaryToBase64 from './test.binaryToBase64.js';
 import testNumberToString from './test.numberToString.js';
 import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
@@ -16,10 +17,12 @@ import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
 import testJson from './test.json.js';
+import testExtractParams from './test.extractParams.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
+import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testFilterBy from './test.filterBy.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
@@ -35,6 +38,7 @@ async function baseTestsInit() {
     testExtend();
     testDeepExtend();
     testCryptography();
+    testBinaryToBase64();
     testDatetime();
     testDecimalToPrecision();
     testCapitalize();
@@ -45,12 +49,14 @@ async function baseTestsInit() {
     testJson();
     testSortBy();
     testSum();
+    testUrlencodeBase64();
     testOmit();
     testGroupBy();
     testFilterBy();
     testHandleMethods();
     testRemoveRepeatedElementsFromArray();
     testParsePrecision();
+    testExtractParams();
     testArraysConcat();
     testEthMethods();
     await testSleep();

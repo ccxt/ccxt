@@ -362,13 +362,11 @@ class binance extends \ccxt\async\binance {
         $market = $this->safe_market($marketId, null, '', 'contract');
         $symbol = $market['symbol'];
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-        $liquidations = $this->safe_value($this->liquidations, $symbol);
-        if ($liquidations === null) {
-            $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-            $liquidations = new ArrayCache ($limit);
+        if ($this->liquidations === null) {
+            $this->liquidations = new ArrayCacheBySymbolBySide ();
         }
-        $liquidations->append ($liquidation);
-        $this->liquidations[$symbol] = $liquidations;
+        $cache = $this->liquidations;
+        $cache->append ($liquidation);
         $client->resolve (array( $liquidation ), 'liquidations');
         $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
     }
@@ -578,13 +576,12 @@ class binance extends \ccxt\async\binance {
         $market = $this->safe_market($marketId, null, null, 'swap');
         $symbol = $this->safe_symbol($marketId, $market);
         $liquidation = $this->parse_ws_liquidation($message, $market);
-        $myLiquidations = $this->safe_value($this->myLiquidations, $symbol);
-        if ($myLiquidations === null) {
-            $limit = $this->safe_integer($this->options, 'myLiquidationsLimit', 1000);
-            $myLiquidations = new ArrayCache ($limit);
+        $cache = $this->myLiquidations;
+        if ($cache === null) {
+            $cache = new ArrayCacheBySymbolBySide ();
         }
-        $myLiquidations->append ($liquidation);
-        $this->myLiquidations[$symbol] = $myLiquidations;
+        $cache->append ($liquidation);
+        $this->myLiquidations = $cache;
         $client->resolve (array( $liquidation ), 'myLiquidations');
         $client->resolve (array( $liquidation ), 'myLiquidations::' . $symbol);
     }

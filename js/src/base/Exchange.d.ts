@@ -77,7 +77,7 @@ export default class Exchange {
     walletAddress: string;
     token: string;
     balance: any;
-    liquidations: Dictionary<Liquidation>;
+    liquidations: any;
     orderbooks: Dictionary<Ob>;
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
@@ -87,7 +87,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction>;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: Dictionary<Liquidation>;
+    myLiquidations: any;
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -203,8 +203,8 @@ export default class Exchange {
     newUpdates: boolean;
     streaming: Dictionary<any>;
     sleep: (ms: any) => Promise<unknown>;
-    deepExtend: (...xs: any) => any;
-    deepExtendSafe: (...xs: any) => any;
+    deepExtend: (...args: any) => any;
+    deepExtendSafe: (...args: any) => any;
     isNode: boolean;
     keys: {
         (o: object): string[];
