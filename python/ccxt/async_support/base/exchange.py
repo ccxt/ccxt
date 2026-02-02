@@ -2048,7 +2048,8 @@ class Exchange(BaseExchange):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None

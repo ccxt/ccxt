@@ -7496,7 +7496,8 @@ public partial class Exchange
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
         object key = ((bool) isTrue((isEqual(method, "fetchOHLCV")))) ? 0 : "timestamp";
-        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+        object sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
 
     public async virtual Task<object> safeDeterministicCall(object method, object symbol = null, object since = null, object limit = null, object timeframe = null, object parameters = null)
@@ -8374,6 +8375,40 @@ public partial class Exchange
                 }
             }
         }
+    }
+
+    public virtual object timeframeFromMilliseconds(object ms)
+    {
+        if (isTrue(isLessThanOrEqual(ms, 0)))
+        {
+            return "";
+        }
+        object second = 1000;
+        object minute = multiply(60, second);
+        object hour = multiply(60, minute);
+        object day = multiply(24, hour);
+        object week = multiply(7, day);
+        if (isTrue(isEqual(mod(ms, week), 0)))
+        {
+            return add((divide(ms, week)), "w");
+        }
+        if (isTrue(isEqual(mod(ms, day), 0)))
+        {
+            return add((divide(ms, day)), "d");
+        }
+        if (isTrue(isEqual(mod(ms, hour), 0)))
+        {
+            return add((divide(ms, hour)), "h");
+        }
+        if (isTrue(isEqual(mod(ms, minute), 0)))
+        {
+            return add((divide(ms, minute)), "m");
+        }
+        if (isTrue(isEqual(mod(ms, second), 0)))
+        {
+            return add((divide(ms, second)), "s");
+        }
+        return "";
     }
 }
 

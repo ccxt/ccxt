@@ -1473,6 +1473,7 @@ public partial class hyperliquid : Exchange
             { "datetime", null },
             { "previousClose", this.safeNumber(ticker, "prevDayPx") },
             { "close", this.safeNumber(ticker, "midPx") },
+            { "last", this.safeNumber(ticker, "price") },
             { "bid", this.safeNumber(bidAsk, 0) },
             { "ask", this.safeNumber(bidAsk, 1) },
             { "quoteVolume", this.safeNumber(ticker, "dayNtlVlm") },
