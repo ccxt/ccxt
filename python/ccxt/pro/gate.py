@@ -1434,17 +1434,16 @@ class gate(ccxt.async_support.gate):
         #
         rawLiquidations = self.safe_list(message, 'result', [])
         newLiquidations = []
+        if self.liquidations is None:
+            self.liquidations = ArrayCacheBySymbolBySide()
+        cache = self.liquidations
         for i in range(0, len(rawLiquidations)):
             rawLiquidation = rawLiquidations[i]
             liquidation = self.parse_ws_liquidation(rawLiquidation)
+            cache.append(liquidation)
             symbol = self.safe_string(liquidation, 'symbol')
-            liquidations = self.safe_value(self.liquidations, symbol)
-            if liquidations is None:
-                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-                liquidations = ArrayCache(limit)
-            liquidations.append(liquidation)
-            self.liquidations[symbol] = liquidations
-            client.resolve(liquidations, 'myLiquidations::' + symbol)
+            symbolLiquidations = self.safe_value(cache, symbol, [])
+            client.resolve(symbolLiquidations, 'myLiquidations::' + symbol)
         client.resolve(newLiquidations, 'myLiquidations')
 
     def parse_ws_liquidation(self, liquidation, market=None):
