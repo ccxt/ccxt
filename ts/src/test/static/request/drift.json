@@ -1,0 +1,21 @@
+{
+    "exchange": "drift",
+    "accountId": "ididididid",
+    "secret": "secretsecretsecretsecretsecretsecretsecrets",
+    "skipKeys": [
+        "signature"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://data.api.drift.trade/stats/markets",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ]
+    }
+}

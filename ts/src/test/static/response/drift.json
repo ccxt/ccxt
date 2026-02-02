@@ -1,0 +1,9 @@
+{
+    "exchange": "drift",
+    "accountId": "ididididid",
+    "secret": "secretsecretsecretsecretsecretsecretsecrets",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+    }
+}

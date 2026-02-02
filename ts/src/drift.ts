@@ -290,29 +290,48 @@ export default class drift extends Exchange {
         return result;
     }
 
+    /**
+     * @method
+     * @name drift#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const marketType = market['swap'] ? 'perp' : 'spot';
         const request: Dict = {
             'marketName': market['id'],
+            'marketType': marketType,
             'depth': 1,
         };
-        // top of book from dlob
-        const response = await this.dlobGetL2 (this.extend (request, params));
-        // 24h stats
-        const statsResponse = await this.publicGetStatsMarkets ();
-        const marketsStats = this.safeValue (statsResponse, 'markets', []);
+        const promises = [
+            this.dlobGetL2 (this.extend (request, params)), // top of book from dlob
+            this.publicGetStatsMarkets (), // 24h stats
+        ];
+        const responses = await Promise.all (promises);
+        const dlobl2 = responses[0];
+        const timestamp = this.safeInteger (dlobl2, 'ts');
+        const bids = this.safeValue (dlobl2, 'bids', []);
+        const asks = this.safeValue (dlobl2, 'asks', []);
+        const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [];
+        const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [];
+        let bidPrice = undefined;
+        let bidVolume = undefined;
+        if (bestBid.length > 1) {
+            bidPrice = bestBid[0];
+            bidVolume = bestBid[1];
+        }
+        let askPrice = undefined;
+        let askVolume = undefined;
+        if (bestAsk.length > 1) {
+            askPrice = bestAsk[0]
+            askVolume = bestAsk[1];
+        }
+        const marketsStats = this.safeValue (responses[1], 'markets', []);
         const stats = this.findMarketStat (marketsStats, market['id']);
-        const timestamp = this.safeInteger (response, 'ts');
-        const bids = this.safeValue (response, 'bids', []);
-        const asks = this.safeValue (response, 'asks', []);
-        const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [ undefined, undefined ];
-        const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [ undefined, undefined ];
-        const bidPrice = bestBid[0];
-        const bidVolume = bestBid.length > 1 ? bestBid[1] : undefined;
-        const askPrice = bestAsk[0];
-        const askVolume = bestAsk.length > 1 ? bestAsk[1] : undefined;
-        const marketSymbol = this.safeSymbol (market['id'], market);
         const last = this.safeNumber (stats, 'price');
         const priceHighObj = this.safeValue (stats, 'priceHigh');
         const priceLowObj = this.safeValue (stats, 'priceLow');
@@ -320,7 +339,7 @@ export default class drift extends Exchange {
         const priceLow = this.safeNumber (priceLowObj, 'fill');
         return this.safeTicker (
             {
-                'symbol': marketSymbol,
+                'symbol': market['symbol'],
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'high': priceHigh,
@@ -335,12 +354,10 @@ export default class drift extends Exchange {
                 'percentage': this.safeNumber (stats, 'price24hChangePct'),
                 'baseVolume': this.safeNumber (stats, 'baseVolume'),
                 'quoteVolume': this.safeNumber (stats, 'quoteVolume'),
-                'info': {
-                    'l2': response,
-                    'stats': stats,
-                },
+                'markPrice': this.safeNumber (stats, 'markPrice'),
+                'info': this.deepExtend (dlobl2, stats),
             },
-            market
+            market,
         );
     }
 
@@ -1475,7 +1492,7 @@ export default class drift extends Exchange {
     ) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public') {
+        if (api === 'public' || api === 'dlob') {
             if (method !== 'GET' && Object.keys (query).length) {
                 body = this.json (query);
             } else if (Object.keys (query).length) {
