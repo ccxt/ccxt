@@ -6,6 +6,7 @@ import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 function testKeysort () {
 
+    assert ('GO_SKIP_START');
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
     });
@@ -95,6 +96,7 @@ function testKeysort () {
     };
     const result7 = exchange.keysort (unsortedDict7);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testKeysort', Object.keys (result7), Object.keys (expectedSorted7));
+    assert ('GO_SKIP_END');
 }
 
 export default testKeysort;
