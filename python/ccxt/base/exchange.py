@@ -1208,15 +1208,12 @@ class Exchange(object):
     @staticmethod
     def iso8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        if not isinstance(timestamp, int):
             return None
-        if int(timestamp) < 0:
+        if not isinstance(timestamp, int) or timestamp < 0:
             return None
-
         try:
             utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
-            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
+            return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{timestamp % 1000:03d}Z"
         except (TypeError, OverflowError, OSError):
             return None
 
