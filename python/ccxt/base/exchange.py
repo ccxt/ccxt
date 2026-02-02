@@ -397,6 +397,8 @@ class Exchange(object):
     # no lower case l or upper case I, O
     base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 
+    extract_params_regex = re.compile(r'{([\w-]+)}')
+
     commonCurrencies = {
         'XBT': 'BTC',
         'BCC': 'BCH',
@@ -1095,7 +1097,7 @@ class Exchange(object):
 
     @staticmethod
     def extract_params(string):
-        return re.findall(r'{([\w-]+)}', string)
+        return Exchange.extract_params_regex.findall(string)
 
     @staticmethod
     def implode_params(string, params):
