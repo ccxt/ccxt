@@ -89,6 +89,11 @@ export default class grvt extends Exchange {
                     'privateTrading': 'https://trades.grvt.io/',
                     'publicMarket': 'https://market-data.grvt.io/',
                 },
+                'test': {
+                    'privateEdge': 'https://edge.testnet.grvt.io/',
+                    'privateTrading': 'https://trades.testnet.grvt.io/',
+                    'publicMarket': 'https://market-data.testnet.grvt.io/',
+                },
                 'www': 'https://grvt.io',
                 'referral': '----------------------------------------------------',
                 'doc': [
@@ -131,6 +136,7 @@ export default class grvt extends Exchange {
                         'full/v1/fill_history': rlOrders,
                         'full/v1/positions': rlOrders,
                         'full/v1/funding_payment_history': rlOthers,
+                        'full/v1/get_sub_accounts': rlOthers,
                         'full/v1/account_summary': rlOthers,
                         'full/v1/account_history': rlOthers,
                         'full/v1/aggregated_account_summary': rlOthers,
@@ -1538,7 +1544,7 @@ export default class grvt extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
         await this.loadMarketsAndSignIn ();
-        await this.loadAggregatedAccountSummary ();
+        await this.loadAccountInfos ();
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         if (this.inArray (fromAccount, [ 'trading', 'funding' ]) && this.inArray (toAccount, [ 'trading', 'funding' ])) {
@@ -1624,14 +1630,49 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadAggregatedAccountSummary () {
+    async loadAccountInfos () {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return;
         }
-        const response = await this.privateTradingPostFullV1AggregatedAccountSummary ();
-        const result = this.safeDict (response, 'result', {});
-        const mainAccountId = this.safeString (result, 'main_account_id');
+        const promise1 = this.privateTradingPostFullV1AggregatedAccountSummary ();
+        //
+        //     {
+        //         "result": {
+        //             "main_account_id": "0xc73c0c2538fd9b833d20933ccc88fdaa74fcb0d0",
+        //             "total_equity": "3945034.23",
+        //             "spot_balances": [{
+        //                 "currency": "USDT",
+        //                 "balance": "123456.78",
+        //                 "index_price": "1.0000102"
+        //             }],
+        //             "vault_investments": [{
+        //                 "vault_id": 123456789,
+        //                 "num_lp_tokens": 1000000,
+        //                 "share_price": 1000000,
+        //                 "usd_notional_invested": 1000000
+        //             }],
+        //             "total_sub_account_balance": "3945034.23",
+        //             "total_sub_account_equity": "3945034.23",
+        //             "total_vault_investments_balance": "3945034.23",
+        //             "total_sub_account_available_balance": "3945034.23",
+        //             "total_usd_notional_invested": "3945034.23"
+        //         }
+        //     }
+        //
+        const promise2 = this.privateTradingPostFullV1GetSubAccounts ();
+        //
+        //     {
+        //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
+        //     }
+        //
+        const responses = await Promise.all ([ promise1, promise2 ]);
+        const result1 = this.safeDict (responses[0], 'result', {});
+        const mainAccountId = this.safeString (result1, 'main_account_id');
         this.options['userMainAccountId'] = mainAccountId;
+        // todo: subAccountID
+        const result2 = this.safeDict (responses[1], 'result', {});
+        const subAccountId = this.safeString (result2, 'sub_account_id');
+        this.options['accountId'] = subAccountId;
     }
 
     /**
@@ -1650,7 +1691,7 @@ export default class grvt extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         await this.loadMarketsAndSignIn ();
-        await this.loadAggregatedAccountSummary ();
+        await this.loadAccountInfos ();
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const currency = this.currency (code);
         let request: Dict = {
@@ -1701,7 +1742,7 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        // await this.initializeClient (); // todo: after clarifying about another endpoint
+        await this.initializeClient ();
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -2821,7 +2862,7 @@ export default class grvt extends Exchange {
         if (approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAggregatedAccountSummary () ]);
+        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAccountInfos () ]);
         //
         // {
         //     "results": [{
