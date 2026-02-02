@@ -144,8 +144,6 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
-from time import mktime
-from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
 from ccxt.base.types import Int
