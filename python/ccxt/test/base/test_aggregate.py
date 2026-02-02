@@ -21,15 +21,8 @@ def test_aggregate():
     })
     bids = [[789.1, 123], [789.1, 123], [123, 456], [789, 123], [789.1, 123]]
     asks = [[123, 456], [789, 123], [789.1, 123]]
-    try:
-        test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(bids, 0)), [[123, 456], [789, 123], [789.1, 369]])
-        test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(asks, 0)), [[123, 456], [789, 123], [789.1, 123]])
-    except Exception as e:
-        # skip c# , todo
-        if 'BaseTest.assert' in (str(e)) or 'at System.' in (str(e)):
-            return
-        else:
-            raise e
+    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(bids, 0)), [[123, 456], [789, 123], [789.1, 369]])
+    test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate(exchange.sort_by(asks, 0)), [[123, 456], [789, 123], [789.1, 123]])
     test_shared_methods.assert_deep_equal(exchange, None, 'aggregate', exchange.aggregate([]), [])
     # Test 1: Simple aggregation - same price combined
     result1 = exchange.aggregate([[100, 1], [101, 2], [100, 0.5]])
