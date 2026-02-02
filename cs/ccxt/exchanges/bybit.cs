@@ -315,7 +315,7 @@ public partial class bybit : Exchange
                         { "v5/asset/coin-greeks", 1 },
                         { "v5/account/fee-rate", 10 },
                         { "v5/account/info", 5 },
-                        { "v5/account/transaction-log", 1 },
+                        { "v5/account/transaction-log", 1.66 },
                         { "v5/account/contract-transaction-log", 1 },
                         { "v5/account/smp-group", 1 },
                         { "v5/account/mmp-state", 5 },
@@ -2969,7 +2969,7 @@ public partial class bybit : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 200);
+            return await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, parameters, 200);
         }
         if (isTrue(isEqual(limit, null)))
         {
@@ -2979,6 +2979,7 @@ public partial class bybit : Exchange
             { "limit", limit },
         };
         object market = this.market(symbol);
+        object fundingTimeFrameMins = this.safeInteger(getValue(market, "info"), "fundingInterval");
         symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         object type = null;
@@ -3006,7 +3007,11 @@ public partial class bybit : Exchange
             {
                 // end time is required when since is not empty
                 object fundingInterval = multiply(multiply(multiply(60, 60), 8), 1000);
-                ((IDictionary<string,object>)request)["endTime"] = add(since, multiply(limit, fundingInterval));
+                if (isTrue(!isEqual(fundingTimeFrameMins, null)))
+                {
+                    fundingInterval = multiply(multiply(fundingTimeFrameMins, 60), 1000);
+                }
+                ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(limit, fundingInterval));
             }
         }
         object response = await this.publicGetV5MarketFundingHistory(this.extend(request, parameters));
@@ -4333,12 +4338,18 @@ public partial class bybit : Exchange
                         }
                     }
                 }
-                if (isTrue(!isEqual(tpslModeSl, tpslModeTp)))
+                if (isTrue(isTrue(isTrue(isTakeProfitOrder) && isTrue(isStopLossOrder)) && isTrue(!isEqual(tpslModeSl, tpslModeTp))))
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination")) ;
                 }
-                ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl; // same as tpslModeTp
-                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice"});
+                if (isTrue(!isEqual(tpslModeSl, null)))
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = tpslModeSl;
+                } else
+                {
+                    ((IDictionary<string,object>)request)["tpslMode"] = tpslModeTp;
+                }
+                parameters = this.omit(parameters, new List<object>() {"stopLossLimitPrice", "takeProfitLimitPrice", "tradingStopEndpoint"});
             }
         } else
         {

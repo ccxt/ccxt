@@ -1682,5 +1682,109 @@
         "tierBased": true,
         "percentage": true,
         "feeSide": "get"
+    },
+    "ZRX/USDT:USDT": {
+        "id": "ZRXUSDT",
+        "lowercaseId": null,
+        "symbol": "ZRX/USDT:USDT",
+        "base": "ZRX",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ZRX",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1,
+            "price": 0.00001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 25
+            },
+            "amount": {
+                "min": 1,
+                "max": 1600000
+            },
+            "price": {
+                "min": 0.00001,
+                "max": 199.99998
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": 1648453878000,
+        "info": {
+            "symbol": "ZRXUSDT",
+            "contractType": "LinearPerpetual",
+            "status": "Trading",
+            "baseCoin": "ZRX",
+            "quoteCoin": "USDT",
+            "launchTime": "1648453878000",
+            "deliveryTime": "0",
+            "deliveryFeeRate": "",
+            "priceScale": "5",
+            "leverageFilter": {
+                "minLeverage": "1",
+                "maxLeverage": "25.00",
+                "leverageStep": "0.01"
+            },
+            "priceFilter": {
+                "minPrice": "0.00001",
+                "maxPrice": "199.99998",
+                "tickSize": "0.00001"
+            },
+            "lotSizeFilter": {
+                "maxOrderQty": "1600000",
+                "minOrderQty": "1",
+                "qtyStep": "1",
+                "postOnlyMaxOrderQty": "1600000",
+                "maxMktOrderQty": "320000",
+                "minNotionalValue": "5"
+            },
+            "unifiedMarginTrade": true,
+            "fundingInterval": "60",
+            "settleCoin": "USDT",
+            "copyTrading": "both",
+            "upperFundingRate": "0.02",
+            "lowerFundingRate": "-0.02",
+            "isPreListing": false,
+            "preListingInfo": null,
+            "riskParameters": {
+                "priceLimitRatioX": "0.1",
+                "priceLimitRatioY": "0.2"
+            },
+            "displayName": "",
+            "symbolType": "",
+            "forbidUplWithdrawal": false
+        },
+        "tierBased": true,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

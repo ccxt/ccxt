@@ -9255,8 +9255,9 @@ func (this *Exchange) FetchPaginatedCallDynamic(method interface{}, optionalArgs
 			uniqueResults = this.RemoveRepeatedElementsFromArray(result)
 		}
 		var key interface{} = Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
+		var sortedRes interface{} = this.SortBy(uniqueResults, key)
 
-		ch <- this.FilterBySinceLimit(uniqueResults, since, limit, key)
+		ch <- this.FilterBySinceLimit(sortedRes, since, limit, key)
 		return nil
 
 	}()
@@ -9307,15 +9308,15 @@ func (this *Exchange) SafeDeterministicCall(method interface{}, optionalArgs ...
 					// try block:
 					if IsTrue(IsTrue(timeframe) && IsTrue(!IsEqual(method, "fetchFundingRateHistory"))) {
 
-						retRes797527 := (<-this.CallDynamically(method, symbol, timeframe, since, limit, params))
-						PanicOnError(retRes797527)
-						ch <- retRes797527
+						retRes797627 := (<-this.CallDynamically(method, symbol, timeframe, since, limit, params))
+						PanicOnError(retRes797627)
+						ch <- retRes797627
 						return nil
 					} else {
 
-						retRes797727 := (<-this.CallDynamically(method, symbol, since, limit, params))
-						PanicOnError(retRes797727)
-						ch <- retRes797727
+						retRes797827 := (<-this.CallDynamically(method, symbol, since, limit, params))
+						PanicOnError(retRes797827)
+						ch <- retRes797827
 						return nil
 					}
 
@@ -10012,8 +10013,8 @@ func (this *Exchange) LoadMarketsAndSignIn() <-chan interface{} {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes84768 := (<-promiseAll([]interface{}{this.LoadMarkets(), this.SignIn()}))
-		PanicOnError(retRes84768)
+		retRes84778 := (<-promiseAll([]interface{}{this.LoadMarkets(), this.SignIn()}))
+		PanicOnError(retRes84778)
 		return nil
 	}()
 	return ch
@@ -10308,4 +10309,30 @@ func (this *Exchange) CleanCache(subscription interface{}) {
 			}
 		}
 	}
+}
+func (this *Exchange) TimeframeFromMilliseconds(ms interface{}) interface{} {
+	if IsTrue(IsLessThanOrEqual(ms, 0)) {
+		return ""
+	}
+	var second interface{} = 1000
+	var minute interface{} = Multiply(60, second)
+	var hour interface{} = Multiply(60, minute)
+	var day interface{} = Multiply(24, hour)
+	var week interface{} = Multiply(7, day)
+	if IsTrue(IsEqual(Mod(ms, week), 0)) {
+		return Add((Divide(ms, week)), "w")
+	}
+	if IsTrue(IsEqual(Mod(ms, day), 0)) {
+		return Add((Divide(ms, day)), "d")
+	}
+	if IsTrue(IsEqual(Mod(ms, hour), 0)) {
+		return Add((Divide(ms, hour)), "h")
+	}
+	if IsTrue(IsEqual(Mod(ms, minute), 0)) {
+		return Add((Divide(ms, minute)), "m")
+	}
+	if IsTrue(IsEqual(Mod(ms, second), 0)) {
+		return Add((Divide(ms, second)), "s")
+	}
+	return ""
 }

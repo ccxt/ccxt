@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.34'
+__version__ = '4.5.35'
 
 # -----------------------------------------------------------------------------
 
@@ -420,8 +420,8 @@ class Exchange(object):
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
-        self.liquidations = dict() if self.liquidations is None else self.liquidations
-        self.myLiquidations = dict() if self.myLiquidations is None else self.myLiquidations
+        self.liquidations = None if self.liquidations is None else self.liquidations
+        self.myLiquidations = None if self.myLiquidations is None else self.myLiquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -1003,22 +1003,41 @@ class Exchange(object):
         return {}
 
     @staticmethod
-    def deep_extend(*args):
+    def deep_extend(*args, _all_dicts=False):
+        # extra argument is just for internal use, no need to use that in implementations
         result = None
+        result_is_dict = False
+
         for arg in args:
-            if isinstance(arg, dict):
-                if not isinstance(result, dict):
+            # if _all_dicts or (arg is not None and arg.__class__ is dict):
+            if _all_dicts or isinstance(arg, dict):
+                # This is a dict (even if empty) so set the return type.
+                if result is None or not result_is_dict:
                     result = {}
-                for key in arg:
-                    result[key] = Exchange.deep_extend(result[key] if key in result else None, arg[key])
+                    result_is_dict = True
+
+                # Skip actual merging if dict is empty.
+                if not arg:
+                    continue
+
+                for key, value in arg.items():
+                    current = result.get(key)
+                    # if current is not None and current.__class__ is dict and value.__class__ is dict:
+                    if isinstance(current, dict) and isinstance(value, dict):
+                        result[key] = Exchange.deep_extend(current, value, _all_dicts=True)
+                    else:
+                        result[key] = value
             else:
+                # arg is None or other non-dict.
                 result = arg
+                result_is_dict = False
+
         return result
 
     @staticmethod
     def filter_by(array, key, value=None):
         array = Exchange.to_array(array)
-        return list(filter(lambda x: x[key] == value, array))
+        return [x for x in array if x.get(key) == value]
 
     @staticmethod
     def filterBy(array, key, value=None):
@@ -1026,13 +1045,11 @@ class Exchange(object):
 
     @staticmethod
     def group_by(array, key):
-        result = {}
-        array = Exchange.to_array(array)
-        array = [entry for entry in array if (key in entry) and (entry[key] is not None)]
-        for entry in array:
-            if entry[key] not in result:
-                result[entry[key]] = []
-            result[entry[key]].append(entry)
+        result = collections.defaultdict(list)
+        for entry in Exchange.to_array(array):
+            value = entry.get(key)
+            if value is not None:
+                result[value].append(entry)
         return result
 
     @staticmethod
@@ -1169,27 +1186,12 @@ class Exchange(object):
 
     @staticmethod
     def aggregate(bidasks):
-        ordered = Exchange.ordered({})
-        for [price, volume, *_] in bidasks:
+        ordered = {}
+        for price, volume, *_ in bidasks:
             if volume > 0:
-                ordered[price] = (ordered[price] if price in ordered else 0) + volume
-        result = []
-        items = list(ordered.items())
-        for price, volume in items:
-            result.append([price, volume])
-        return result
+                ordered[price] = ordered.get(price, 0) + volume
+        return [[price, volume] for price, volume in ordered.items()]
 
-    @staticmethod
-    def sec():
-        return Exchange.seconds()
-
-    @staticmethod
-    def msec():
-        return Exchange.milliseconds()
-
-    @staticmethod
-    def usec():
-        return Exchange.microseconds()
 
     @staticmethod
     def seconds():
@@ -1206,26 +1208,14 @@ class Exchange(object):
     @staticmethod
     def iso8601(timestamp=None):
         if timestamp is None:
-            return timestamp
-        if not isinstance(timestamp, int):
             return None
-        if int(timestamp) < 0:
+        if not isinstance(timestamp, int) or timestamp < 0:
             return None
-
         try:
             utc = datetime.datetime.fromtimestamp(timestamp // 1000, datetime.timezone.utc)
-            return utc.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-6] + "{:03d}".format(int(timestamp) % 1000) + 'Z'
+            return f"{utc.year:04d}-{utc.month:02d}-{utc.day:02d}T{utc.hour:02d}:{utc.minute:02d}:{utc.second:02d}.{timestamp % 1000:03d}Z"
         except (TypeError, OverflowError, OSError):
             return None
-
-    @staticmethod
-    def rfc2616(self, timestamp=None):
-        if timestamp is None:
-            ts = datetime.datetime.now()
-        else:
-            ts = timestamp
-        stamp = mktime(ts.timetuple())
-        return format_date_time(stamp)
 
     @staticmethod
     def dmy(timestamp, infix='-'):
@@ -7060,7 +7050,8 @@ class Exchange(object):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None
@@ -7680,3 +7671,23 @@ class Exchange(object):
                     bidsaskSymbol = bidsaskSymbols[i]
                     if bidsaskSymbol in self.bidsasks:
                         del self.bidsasks[bidsaskSymbol]
+
+    def timeframe_from_milliseconds(self, ms: float):
+        if ms <= 0:
+            return ''
+        second = 1000
+        minute = 60 * second
+        hour = 60 * minute
+        day = 24 * hour
+        week = 7 * day
+        if ms % week == 0:
+            return(ms / week) + 'w'
+        if ms % day == 0:
+            return(ms / day) + 'd'
+        if ms % hour == 0:
+            return(ms / hour) + 'h'
+        if ms % minute == 0:
+            return(ms / minute) + 'm'
+        if ms % second == 0:
+            return(ms / second) + 's'
+        return ''

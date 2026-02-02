@@ -7,6 +7,19 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "contract with a funding interval different from 8h",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.bybit.com/v5/market/funding/history?limit=3&symbol=ZRXUSDT&category=linear&startTime=1769529863000&endTime=1769540663000",
+                "input": [
+                    "ZRX/USDT:USDT",
+                    1769529863000,
+                    3
+                ],
+                "output": null
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
@@ -424,46 +437,43 @@
                 "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"orderType\":\"Limit\",\"price\":\"99000\",\"category\":\"linear\",\"qty\":\"0.001\",\"triggerDirection\":1,\"triggerPrice\":\"98000\",\"reduceOnly\":true}"
             },
             {
-                "disabled": true,
-                "description": "[disabled, bcz endpoint changed] Swap market sell with stopLossPrice(Type2) and tpslMode full",
+                "description": "protective oco order - market without amount, tradingStopEndpoint is true, only stopLossPrice is set",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
                 "input": [
                   "ETH/USDT:USDT",
                   "market",
                   "sell",
-                  1,
+                  0.0,
                   null,
                   {
                     "stopLossPrice": 3999,
-                    "tpslMode": "Full"
+                    "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"stopLoss\":\"3999\",\"tpslMode\":\"Full\", \"slOrderType\":\"Market\",\"category\":\"linear\"}"
             },
             {
-                "disabled": true,
-                "description": "[disabled, bcz endpoint changed] Swap market sell with takeProfitPrice(Type2) and tpslMode full",
+                "description": "protective oco order - market without amount, tradingStopEndpoint is true, only takeProfitPrice is set",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
                 "input": [
                   "ETH/USDT:USDT",
                   "market",
                   "sell",
-                  1,
+                  0.0,
                   null,
                   {
                     "takeProfitPrice": 4000,
-                    "tpslMode": "Full"
+                    "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"category\":\"linear\"}"
+                "output": "{\"symbol\":\"ETHUSDT\",\"takeProfit\":\"4000\",\"tpslMode\":\"Full\",\"tpOrderType\":\"Market\",\"category\":\"linear\"}"
             },
             {
-                "disabled": true,
-                "description": "[disabled, bcz endpoint changed] Swap market sell with stopLossPrice(Type2) and tpslMode partial",
+                "description": "protective oco order - market with amount, tradingStopEndpoint is true, only stopLossPrice is set",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
                 "input": [
                   "LTC/USDT:USDT",
                   "market",
@@ -472,16 +482,15 @@
                   null,
                   {
                     "stopLossPrice": 3.9,
-                    "tpslMode": "Partial"
+                    "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slSize\":\"1\",\"category\":\"linear\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"stopLoss\":\"3.9\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Market\",\"slSize\":\"1\",\"category\":\"linear\"}"
             },
             {
-                "disabled": true,
-                "description": "[disabled, bcz endpoint changed] Swap market sell with takeProfitPrice(Type2) and tpslMode partial",
+                "description": "protective oco order - market with amount, tradingStopEndpoint is true, only takeProfitPrice is set",
                 "method": "createOrder",
-                "url": "https://api-testnet.bybit.com/v5/position/trading-stop",
+                "url": "https://api.bybit.com/v5/position/trading-stop",
                 "input": [
                   "LTC/USDT:USDT",
                   "market",
@@ -490,10 +499,10 @@
                   null,
                   {
                     "takeProfitPrice": 2.2,
-                    "tpslMode": "Partial"
+                    "tradingStopEndpoint": true
                   }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpSize\":\"1\",\"category\":\"linear\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"takeProfit\":\"2.2\",\"tpslMode\":\"Partial\",\"tpOrderType\":\"Market\",\"tpSize\":\"1\",\"category\":\"linear\"}"
             },
             {
                 "description": "Opening position with sl + tp attached (type 3)",

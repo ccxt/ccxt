@@ -503,7 +503,7 @@
                     10,
                     "0x93536de4c50a8a90874162504f26978fa946c23a"
                 ],
-                "output": "{\"type\":\"send\",\"to\":\"0x93536de4c50a8a90874162504f26978fa946c23a\",\"amount\":10,\"currency\":\"USDC\"}"
+                "output": "{\"type\":\"send\",\"to\":\"0x93536de4c50a8a90874162504f26978fa946c23a\",\"amount\":\"10\",\"currency\":\"USDC\"}"
             }
         ],
         "fetchBidsAsks": [

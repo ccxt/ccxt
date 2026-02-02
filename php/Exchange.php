@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.34';
+$version = '4.5.35';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.34';
+    const VERSION = '4.5.35';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -194,10 +194,10 @@ class Exchange {
         'base'=> null,
         'quote'=> null,
     );
-    public $liquidations = array();
+    public $liquidations = null;
     public $orders = null;
     public $triggerOrders = null;
-    public $myLiquidations = array();
+    public $myLiquidations = null;
     public $myTrades = null;
     public $trades = array();
     public $transactions = array();
@@ -863,6 +863,7 @@ class Exchange {
         if (preg_match_all('/{([\w-]+)}/u', $string, $matches)) {
             return $matches[1];
         }
+        return [];
     }
 
 
@@ -1065,13 +1066,6 @@ class Exchange {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
-    }
-
-    public static function rfc2616($timestamp) {
-        if (!$timestamp) {
-            $timestamp = static::milliseconds();
-        }
-        return gmdate('D, d M Y H:i:s T', (int) round($timestamp / 1000));
     }
 
     public static function dmy($timestamp, $infix = '-') {
@@ -8386,7 +8380,8 @@ class Exchange {
             $uniqueResults = $this->remove_repeated_elements_from_array($result);
         }
         $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+        $sortedRes = $this->sort_by($uniqueResults, $key);
+        return $this->filter_by_since_limit($sortedRes, $since, $limit, $key);
     }
 
     public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array ()) {
@@ -9136,5 +9131,32 @@ class Exchange {
                 }
             }
         }
+    }
+
+    public function timeframe_from_milliseconds(float $ms) {
+        if ($ms <= 0) {
+            return '';
+        }
+        $second = 1000;
+        $minute = 60 * $second;
+        $hour = 60 * $minute;
+        $day = 24 * $hour;
+        $week = 7 * $day;
+        if (fmod($ms, $week) === 0) {
+            return ($ms / $week) . 'w';
+        }
+        if (fmod($ms, $day) === 0) {
+            return ($ms / $day) . 'd';
+        }
+        if (fmod($ms, $hour) === 0) {
+            return ($ms / $hour) . 'h';
+        }
+        if (fmod($ms, $minute) === 0) {
+            return ($ms / $minute) . 'm';
+        }
+        if (fmod($ms, $second) === 0) {
+            return ($ms / $second) . 's';
+        }
+        return '';
     }
 }

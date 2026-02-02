@@ -2112,7 +2112,7 @@ public partial class woo : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["after"] = since;
+            ((IDictionary<string,object>)request)["after"] = subtract(since, 1); // #27793
         }
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");

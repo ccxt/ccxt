@@ -15,6 +15,7 @@ func BaseTestsInit() <-chan interface{} {
 		TestCryptography()
 		TestDatetime()
 		TestDecimalToPrecision()
+		TestCapitalize()
 		TestNumberToString()
 		TestPrecise()
 		TestSafeMethods()
@@ -31,8 +32,8 @@ func BaseTestsInit() <-chan interface{} {
 		TestArraysConcat()
 		TestEthMethods()
 
-		retRes504 := (<-TestSleep())
-		PanicOnError(retRes504)
+		retRes524 := (<-TestSleep())
+		PanicOnError(retRes524)
 		return nil
 	}()
 	return ch

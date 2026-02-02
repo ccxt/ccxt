@@ -993,5 +993,6 @@ export default class Exchange {
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
+    timeframeFromMilliseconds(ms: number): string;
 }
 export { Exchange, };
