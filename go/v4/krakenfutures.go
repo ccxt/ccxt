@@ -3089,7 +3089,7 @@ func (this *KrakenfuturesCore) ParseMarketLeverageTiers(info interface{}, option
 	for i := 0; IsLessThan(i, GetArrayLength(marginLevels)); i++ {
 		var tier interface{} = GetValue(marginLevels, i)
 		var initialMargin interface{} = this.SafeString(tier, "initialMargin")
-		var minNotional interface{} = this.SafeNumber(tier, "numNonContractUnits")
+		var minNotional interface{} = this.SafeNumber2(tier, "numNonContractUnits", "contracts")
 		if IsTrue(!IsEqual(i, 0)) {
 			var tiersLength interface{} = GetArrayLength(tiers)
 			var previousTier interface{} = GetValue(tiers, Subtract(tiersLength, 1))
