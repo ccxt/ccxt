@@ -2416,7 +2416,10 @@ export default class Exchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
-        if ((value !== undefined) && Array.isArray (value)) {
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray (value)) {
             return value;
         }
         return defaultValue;
