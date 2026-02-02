@@ -33,6 +33,11 @@ function testUrlencodeBase64 () {
     assert (exchange.urlencodeBase64 ('The quick brown fox') === 'VGhlIHF1aWNrIGJyb3duIGZveA');
     // Test 12: Numbers as string
     assert (exchange.urlencodeBase64 ('123456789') === 'MTIzNDU2Nzg5');
+    //
+    // add binary tests
+    //
+    const binaryData = exchange.base16ToBinary ('191919191919');
+    assert (exchange.urlencodeBase64 (binaryData) === 'GRkZGRkZ');
 }
 
 export default testUrlencodeBase64;

@@ -1337,7 +1337,8 @@ class Exchange(object):
 
     @staticmethod
     def urlencode_base64(s):
-        return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
+        payload64 = Exchange.string_to_base64 (s) if isinstance(s, str) else Exchange.binary_to_base64 (s)
+        return Exchange.decode(base64.urlsafe_b64encode(payload64)).replace('=', '')
 
     @staticmethod
     def binary_to_base64(s):
