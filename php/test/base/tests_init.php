@@ -27,8 +27,9 @@ include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
 include_once __DIR__ . '/test_group_by.php';
-include_once __DIR__ . '/test_urlencode_base64.php';
+include_once __DIR__ . '/test_index_by.php';
 include_once __DIR__ . '/test_filter_by.php';
+include_once __DIR__ . '/test_urlencode_base64.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
@@ -59,6 +60,7 @@ function base_tests_init() {
         test_urlencode_base64();
         test_omit();
         test_group_by();
+        test_index_by();
         test_filter_by();
         test_handle_methods();
         test_remove_repeated_elements_from_array();
