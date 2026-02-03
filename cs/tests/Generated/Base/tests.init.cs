@@ -14,6 +14,7 @@ public partial class BaseTest
             testExtend();
             testDeepExtend();
             testCryptography();
+            testBinaryToBase64();
             testDatetime();
             testDecimalToPrecision();
             testCapitalize();
@@ -24,12 +25,15 @@ public partial class BaseTest
             testJson();
             testSortBy();
             testSum();
+            testUrlencodeBase64();
             testOmit();
             testGroupBy();
+            testIndexBy();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
+            testExtractParams();
             testArraysConcat();
             testEthMethods();
             await testSleep();

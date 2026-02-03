@@ -115,7 +115,6 @@ const parseDate = (x) => {
     }
     return parse8601(x);
 };
-const rfc2616 = (timestamp = undefined) => new Date(timestamp).toUTCString();
 const mdy = (timestamp, infix = '-') => {
     infix = infix || '';
     const date = new Date(timestamp);
@@ -168,4 +167,4 @@ const timeout = async (ms, promise) => {
         clear(); // fixes https://github.com/ccxt/ccxt/issues/749
     }
 };
-export { now, microseconds, milliseconds, seconds, iso8601, parse8601, rfc2616, uuidv1, parseDate, mdy, ymd, yymmdd, yyyymmdd, ymdhms, setTimeout_safe, sleep, TimedOut, timeout, };
+export { now, microseconds, milliseconds, seconds, iso8601, parse8601, uuidv1, parseDate, mdy, ymd, yymmdd, yyyymmdd, ymdhms, setTimeout_safe, sleep, TimedOut, timeout, };

@@ -1519,23 +1519,26 @@ export default class aster extends asterRest {
         //     }
         //
         const messageHash = 'positions';
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const data = this.safeDict (message, 'a', {});
+        const rawPositions = this.safeList (data, 'P', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition (rawPosition);
+            const timestamp = this.safeInteger (message, 'E');
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601 (timestamp);
+            newPositions.push (position);
+            cache.append (position);
+        }
         const messageHashes = this.findMessageHashes (client, messageHash);
         if (!this.isEmpty (messageHashes)) {
-            if (this.positions === undefined) {
-                this.positions = new ArrayCacheBySymbolBySide ();
-            }
-            const cache = this.positions;
-            const data = this.safeDict (message, 'a', {});
-            const rawPositions = this.safeList (data, 'P', []);
-            const newPositions = [];
-            for (let i = 0; i < rawPositions.length; i++) {
-                const rawPosition = rawPositions[i];
-                const position = this.parseWsPosition (rawPosition);
-                const timestamp = this.safeInteger (message, 'E');
-                position['timestamp'] = timestamp;
-                position['datetime'] = this.iso8601 (timestamp);
-                newPositions.push (position);
-                cache.append (position);
+            for (let i = 0; i < newPositions.length; i++) {
+                const position = newPositions[i];
                 const symbol = position['symbol'];
                 const symbolMessageHash = messageHash + '::' + symbol;
                 client.resolve (position, symbolMessageHash);
@@ -1828,18 +1831,18 @@ export default class aster extends asterRest {
         //     }
         //
         const messageHash = 'orders';
+        const market = this.getMarketFromOrder (client, message);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const cache = this.orders;
+        const parsed = this.parseWsOrder (message, market);
+        const symbol = market['symbol'];
+        cache.append (parsed);
         const messageHashes = this.findMessageHashes (client, messageHash);
         if (!this.isEmpty (messageHashes)) {
-            const market = this.getMarketFromOrder (client, message);
-            if (this.orders === undefined) {
-                const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-                this.orders = new ArrayCacheBySymbolById (limit);
-            }
-            const cache = this.orders;
-            const parsed = this.parseWsOrder (message, market);
-            const symbol = market['symbol'];
             const symbolMessageHash = messageHash + '::' + symbol;
-            cache.append (parsed);
             client.resolve (cache, symbolMessageHash);
             client.resolve (cache, messageHash);
         }
