@@ -1968,6 +1968,11 @@ public class Exchange {
         return Crypto.binaryToHex(buff);
     }
 
+    public Object binaryToBase64(Object buff2) {
+        byte[] buff = (byte[])buff2;
+        return Crypto.BinaryToBase64(buff);
+    }
+
     public Object toFixed(Object number, Object decimals) {
         double num = ((Number) number).doubleValue();
         int dec = ((Number) decimals).intValue();
