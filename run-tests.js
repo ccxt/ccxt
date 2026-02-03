@@ -228,14 +228,18 @@ const sequentialMap = async (input, fn) => {
     return result
 }
 
+// const getJavaArgs = (args) => {
+//     let res = "--args=\"";
+//     for (const arg of args) {
+//         res += `${arg.trim()} `;
+//     }
+//     res += `"`;
+//     return [res];
+// }
+
 const getJavaArgs = (args) => {
-    let res = "--args=\"";
-    for (const arg of args) {
-        res += `${arg.trim()} `;
-    }
-    res += `"`;
-    return [res];
-}
+    return `--args=${args.map(a => a.trim()).join(' ')}`;
+};
 
 //  ------------------------------------------------------------------------ //
 
