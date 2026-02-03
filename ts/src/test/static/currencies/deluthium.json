@@ -1,0 +1,309 @@
+{
+    "WBNB": {
+        "id": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "code": "WBNB",
+        "name": "Wrapped BNB",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 18,
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 10000
+            },
+            "withdraw": {
+                "min": 0.001,
+                "max": 10000
+            }
+        },
+        "networks": {
+            "BSC": {
+                "id": "56",
+                "network": "BSC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 10000
+                    }
+                },
+                "info": {
+                    "chain_id": 56,
+                    "token_address": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+                }
+            }
+        },
+        "info": {
+            "token_symbol": "WBNB",
+            "token_address": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+            "token_decimals": 18,
+            "chain_id": 56,
+            "is_native": false
+        }
+    },
+    "USDT": {
+        "id": "0x55d398326f99059fF775485246999027B3197955",
+        "code": "USDT",
+        "name": "Tether USD",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 18,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "withdraw": {
+                "min": 10,
+                "max": 10000000
+            }
+        },
+        "networks": {
+            "BSC": {
+                "id": "56",
+                "network": "BSC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 18,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 10000000
+                    }
+                },
+                "info": {
+                    "chain_id": 56,
+                    "token_address": "0x55d398326f99059fF775485246999027B3197955"
+                }
+            }
+        },
+        "info": {
+            "token_symbol": "USDT",
+            "token_address": "0x55d398326f99059fF775485246999027B3197955",
+            "token_decimals": 18,
+            "chain_id": 56,
+            "is_native": false
+        }
+    },
+    "BNB": {
+        "id": "0x0000000000000000000000000000000000000000",
+        "code": "BNB",
+        "name": "BNB",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 18,
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 10000
+            },
+            "withdraw": {
+                "min": 0.01,
+                "max": 10000
+            }
+        },
+        "networks": {
+            "BSC": {
+                "id": "56",
+                "network": "BSC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.01,
+                        "max": 10000
+                    }
+                },
+                "info": {
+                    "chain_id": 56,
+                    "token_address": "0x0000000000000000000000000000000000000000"
+                }
+            }
+        },
+        "info": {
+            "token_symbol": "BNB",
+            "token_address": "0x0000000000000000000000000000000000000000",
+            "token_decimals": 18,
+            "chain_id": 56,
+            "is_native": true
+        }
+    },
+    "WETH": {
+        "id": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        "code": "WETH",
+        "name": "Wrapped Ether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 18,
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "withdraw": {
+                "min": 0.001,
+                "max": 1000
+            }
+        },
+        "networks": {
+            "ETH": {
+                "id": "1",
+                "network": "ETH",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 1000
+                    }
+                },
+                "info": {
+                    "chain_id": 1,
+                    "token_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+                }
+            },
+            "BASE": {
+                "id": "8453",
+                "network": "BASE",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.001,
+                        "max": 1000
+                    }
+                },
+                "info": {
+                    "chain_id": 8453,
+                    "token_address": "0x4200000000000000000000000000000000000006"
+                }
+            }
+        },
+        "info": {
+            "token_symbol": "WETH",
+            "token_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            "token_decimals": 18,
+            "chain_id": 1,
+            "is_native": false
+        }
+    },
+    "USDC": {
+        "id": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "code": "USDC",
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 6,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "withdraw": {
+                "min": 10,
+                "max": 10000000
+            }
+        },
+        "networks": {
+            "ETH": {
+                "id": "1",
+                "network": "ETH",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 6,
+                "limits": {
+                    "withdraw": {
+                        "min": 10,
+                        "max": 10000000
+                    }
+                },
+                "info": {
+                    "chain_id": 1,
+                    "token_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+                }
+            }
+        },
+        "info": {
+            "token_symbol": "USDC",
+            "token_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "token_decimals": 6,
+            "chain_id": 1,
+            "is_native": false
+        }
+    },
+    "BTCB": {
+        "id": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+        "code": "BTCB",
+        "name": "Bitcoin BEP2",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "precision": 18,
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 100
+            },
+            "withdraw": {
+                "min": 0.0001,
+                "max": 100
+            }
+        },
+        "networks": {
+            "BSC": {
+                "id": "56",
+                "network": "BSC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": null,
+                "precision": 18,
+                "limits": {
+                    "withdraw": {
+                        "min": 0.0001,
+                        "max": 100
+                    }
+                },
+                "info": {
+                    "chain_id": 56,
+                    "token_address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c"
+                }
+            }
+        },
+        "info": {
+            "token_symbol": "BTCB",
+            "token_address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+            "token_decimals": 18,
+            "chain_id": 56,
+            "is_native": false
+        }
+    }
+}

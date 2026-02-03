@@ -102,6 +102,7 @@ import cryptomus from  './src/cryptomus.js'
 import deepcoin from  './src/deepcoin.js'
 import defx from  './src/defx.js'
 import delta from  './src/delta.js'
+import deluthium from  './src/deluthium.js'
 import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
@@ -296,6 +297,7 @@ const exchanges = {
     'deepcoin':               deepcoin,
     'defx':                   defx,
     'delta':                  delta,
+    'deluthium':              deluthium,
     'deribit':                deribit,
     'derive':                 derive,
     'digifinex':              digifinex,
@@ -632,6 +634,7 @@ export {
     deepcoin,
     defx,
     delta,
+    deluthium,
     deribit,
     derive,
     digifinex,

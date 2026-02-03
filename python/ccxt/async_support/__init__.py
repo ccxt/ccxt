@@ -120,6 +120,7 @@ from ccxt.async_support.cryptomus import cryptomus                              
 from ccxt.async_support.deepcoin import deepcoin                                # noqa: F401
 from ccxt.async_support.defx import defx                                        # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
+from ccxt.async_support.deluthium import deluthium                              # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
@@ -233,6 +234,7 @@ exchanges = [
     'deepcoin',
     'defx',
     'delta',
+    'deluthium',
     'deribit',
     'derive',
     'digifinex',
