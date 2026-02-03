@@ -1751,20 +1751,19 @@ public partial class gate : ccxt.gate
         //
         object rawLiquidations = this.safeList(message, "result", new List<object>() {});
         object newLiquidations = new List<object>() {};
+        if (isTrue(isEqual(this.liquidations, null)))
+        {
+            this.liquidations = new ArrayCacheBySymbolBySide();
+        }
+        object cache = this.liquidations;
         for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseWsLiquidation(rawLiquidation);
+            callDynamically(cache, "append", new object[] {liquidation});
             object symbol = this.safeString(liquidation, "symbol");
-            object liquidations = this.safeValue(this.liquidations, symbol);
-            if (isTrue(isEqual(liquidations, null)))
-            {
-                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-                liquidations = new ArrayCache(limit);
-            }
-            callDynamically(liquidations, "append", new object[] {liquidation});
-            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {liquidations, add("myLiquidations::", symbol)});
+            object symbolLiquidations = this.safeValue(cache, symbol, new List<object>() {});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {symbolLiquidations, add("myLiquidations::", symbol)});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "myLiquidations"});
     }
