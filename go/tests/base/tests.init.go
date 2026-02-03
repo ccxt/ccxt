@@ -27,6 +27,7 @@ func BaseTestsInit() <-chan interface{} {
 		TestUrlencodeBase64()
 		TestOmit()
 		TestGroupBy()
+		TestIndexBy()
 		TestFilterBy()
 		TestHandleMethods()
 		TestRemoveRepeatedElementsFromArray()
@@ -35,8 +36,8 @@ func BaseTestsInit() <-chan interface{} {
 		TestArraysConcat()
 		TestEthMethods()
 
-		retRes584 := (<-TestSleep())
-		PanicOnError(retRes584)
+		retRes604 := (<-TestSleep())
+		PanicOnError(retRes604)
 		return nil
 	}()
 	return ch

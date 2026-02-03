@@ -18,6 +18,7 @@ var FunctionsMap = map[string]interface{}{
 	"filterBy":                        TestFilterBy,
 	"groupBy":                         TestGroupBy,
 	"handleMethods":                   TestHandleMethods,
+	"indexBy":                         TestIndexBy,
 	"json":                            TestJson,
 	"numberToString":                  TestNumberToString,
 	"omit":                            TestOmit,
