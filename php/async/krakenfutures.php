@@ -2751,7 +2751,7 @@ class krakenfutures extends Exchange {
         for ($i = 0; $i < count($marginLevels); $i++) {
             $tier = $marginLevels[$i];
             $initialMargin = $this->safe_string($tier, 'initialMargin');
-            $minNotional = $this->safe_number($tier, 'numNonContractUnits');
+            $minNotional = $this->safe_number_2($tier, 'numNonContractUnits', 'contracts');
             if ($i !== 0) {
                 $tiersLength = count($tiers);
                 $previousTier = $tiers[$tiersLength - 1];

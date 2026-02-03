@@ -144,8 +144,6 @@ import time
 import uuid
 import zlib
 from decimal import Decimal
-from time import mktime
-from wsgiref.handlers import format_date_time
 import urllib.parse as _urlencode
 from typing import Any, List
 from ccxt.base.types import Int
@@ -1339,7 +1337,11 @@ class Exchange(object):
 
     @staticmethod
     def urlencode_base64(s):
-        return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
+        payload = s
+        if isinstance(s, str):
+            payload64 = Exchange.string_to_base64(s)
+            payload = Exchange.base64_to_binary(payload64)
+        return Exchange.decode(base64.urlsafe_b64encode(payload)).replace('=', '')
 
     @staticmethod
     def binary_to_base64(s):

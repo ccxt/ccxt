@@ -4013,10 +4013,13 @@ class bybit(Exchange, ImplicitAPI):
                             tpslModeTp = 'Partial'
                         else:
                             tpslModeTp = 'Full'
-                if tpslModeSl != tpslModeTp:
+                if isTakeProfitOrder and isStopLossOrder and tpslModeSl != tpslModeTp:
                     raise InvalidOrder(self.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination')
-                request['tpslMode'] = tpslModeSl  # same
-                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice'])
+                if tpslModeSl is not None:
+                    request['tpslMode'] = tpslModeSl
+                else:
+                    request['tpslMode'] = tpslModeTp
+                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint'])
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)

@@ -2839,7 +2839,7 @@ public partial class krakenfutures : Exchange
         {
             object tier = getValue(marginLevels, i);
             object initialMargin = this.safeString(tier, "initialMargin");
-            object minNotional = this.safeNumber(tier, "numNonContractUnits");
+            object minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (isTrue(!isEqual(i, 0)))
             {
                 object tiersLength = getArrayLength(tiers);

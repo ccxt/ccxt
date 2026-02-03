@@ -36,5 +36,10 @@ public partial class BaseTest
             Assert(isEqual(exchange.urlencodeBase64("The quick brown fox"), "VGhlIHF1aWNrIGJyb3duIGZveA"));
             // Test 12: Numbers as string
             Assert(isEqual(exchange.urlencodeBase64("123456789"), "MTIzNDU2Nzg5"));
+            //
+            // add binary tests
+            //
+            object binaryData = exchange.base16ToBinary("191919191919");
+            Assert(isEqual(exchange.urlencodeBase64(binaryData), "GRkZGRkZ"));
         }
 }
