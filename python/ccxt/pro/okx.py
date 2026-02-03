@@ -734,12 +734,10 @@ class okx(ccxt.async_support.okx):
             rawLiquidation = rawLiquidations[i]
             liquidation = self.parse_ws_liquidation(rawLiquidation)
             symbol = self.safe_string(liquidation, 'symbol')
-            liquidations = self.safe_value(self.liquidations, symbol)
-            if liquidations is None:
-                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-                liquidations = ArrayCache(limit)
-            liquidations.append(liquidation)
-            self.liquidations[symbol] = liquidations
+            if self.liquidations is None:
+                self.liquidations = ArrayCacheBySymbolBySide()
+            cache = self.liquidations
+            cache.append(liquidation)
             client.resolve([liquidation], 'liquidations')
             client.resolve([liquidation], 'liquidations::' + symbol)
 
@@ -826,12 +824,10 @@ class okx(ccxt.async_support.okx):
                 return
             liquidation = self.parse_ws_my_liquidation(rawLiquidation)
             symbol = self.safe_string(liquidation, 'symbol')
-            liquidations = self.safe_value(self.liquidations, symbol)
-            if liquidations is None:
-                limit = self.safe_integer(self.options, 'myLiquidationsLimit', 1000)
-                liquidations = ArrayCache(limit)
-            liquidations.append(liquidation)
-            self.liquidations[symbol] = liquidations
+            if self.liquidations is None:
+                self.liquidations = ArrayCacheBySymbolBySide()
+            cache = self.liquidations
+            cache.append(liquidation)
             client.resolve([liquidation], 'myLiquidations')
             client.resolve([liquidation], 'myLiquidations::' + symbol)
 

@@ -778,13 +778,11 @@ export default class okx extends okxRest {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation (rawLiquidation);
             const symbol = this.safeString (liquidation, 'symbol');
-            let liquidations = this.safeValue (this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache (limit);
+            if (this.liquidations === undefined) {
+                this.liquidations = new ArrayCacheBySymbolBySide ();
             }
-            liquidations.append (liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append (liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);
         }
@@ -878,13 +876,11 @@ export default class okx extends okxRest {
             }
             const liquidation = this.parseWsMyLiquidation (rawLiquidation);
             const symbol = this.safeString (liquidation, 'symbol');
-            let liquidations = this.safeValue (this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
-                liquidations = new ArrayCache (limit);
+            if (this.liquidations === undefined) {
+                this.liquidations = new ArrayCacheBySymbolBySide ();
             }
-            liquidations.append (liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append (liquidation);
             client.resolve ([ liquidation ], 'myLiquidations');
             client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
         }

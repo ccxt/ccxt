@@ -119,7 +119,6 @@ const parseDate = (x) => {
     }
     return parse8601(x);
 };
-const rfc2616 = (timestamp = undefined) => new Date(timestamp).toUTCString();
 const mdy = (timestamp, infix = '-') => {
     infix = infix || '';
     const date = new Date(timestamp);
@@ -181,7 +180,6 @@ exports.milliseconds = milliseconds;
 exports.now = now;
 exports.parse8601 = parse8601;
 exports.parseDate = parseDate;
-exports.rfc2616 = rfc2616;
 exports.seconds = seconds;
 exports.setTimeout_safe = setTimeout_safe;
 exports.sleep = sleep;
