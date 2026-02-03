@@ -973,9 +973,9 @@ class Exchange(object):
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
         # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
-        if len(string) > 1:
-            return "%s%s" % (string[0].upper(), string[1:])
-        return string.upper()
+        if string:
+            return string[0].upper() + string[1:]
+        return string
 
     @staticmethod
     def strip(string):
@@ -1193,11 +1193,11 @@ class Exchange(object):
 
     @staticmethod
     def milliseconds():
-        return int(time.time() * 1000)
+        return time.time_ns() // 1_000_000
 
     @staticmethod
     def microseconds():
-        return int(time.time() * 1000000)
+        return time.time_ns() // 1_000
 
     @staticmethod
     def iso8601(timestamp=None):
