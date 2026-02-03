@@ -191,9 +191,12 @@ public partial class BaseTest
     public async Task testLanguageSpecific()
     {
         MultithreadTest().Wait();
-        
+
         // Run throttler performance test
         var baseTest = new BaseTest();
         await baseTest.testThrottlerPerformance();
+
+        // Run cancellation tests
+        await baseTest.testCancellation();
     }
 }

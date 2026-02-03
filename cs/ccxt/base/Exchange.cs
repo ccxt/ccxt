@@ -35,6 +35,8 @@ public partial class Exchange
         }
     }
 
+    public CancellationToken CancellationToken { get;set; } = CancellationToken.None;
+
     private void initHttpClient()
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate };
@@ -230,8 +232,12 @@ public partial class Exchange
             if (method == "GET")
             {
                 request.Method = HttpMethod.Get;
-                response = await httpClient.SendAsync(request);
+                response = await httpClient.SendAsync(request, CancellationToken);
+#if NET5_0_OR_GREATER
+                result = await response.Content.ReadAsStringAsync(CancellationToken);
+#else
                 result = await response.Content.ReadAsStringAsync();
+#endif
             }
             else
             {
@@ -253,25 +259,25 @@ public partial class Exchange
                 {
                     // response = await this.httpClient.PostAsync(url, stringContent);
                     request.Method = HttpMethod.Post;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, CancellationToken);
                 }
                 else if (method == "PUT")
                 {
                     request.Method = HttpMethod.Put;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, CancellationToken);
                     // response = await this.httpClient.PutAsync(url, stringContent);
                 }
                 else if (method == "DELETE")
                 {
                     request.Method = HttpMethod.Delete;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, CancellationToken);
                     // response = await this.httpClient.DeleteAsync(url);
                 }
                 else if (method == "PUT")
                 {
                     // response = await this.httpClient.PutAsync(url, stringContent);
                     request.Method = HttpMethod.Put;
-                    response = await this.httpClient.SendAsync(request);
+                    response = await this.httpClient.SendAsync(request, CancellationToken);
                 }
                 else if (method == "PATCH")
                 {
@@ -284,20 +290,32 @@ public partial class Exchange
                     // };
                     request.Method = new HttpMethod("PATCH");
                     // response = await httpClient.SendAsync(patchRequest);
-                    response = await httpClient.SendAsync(request);
+                    response = await httpClient.SendAsync(request, CancellationToken);
                 }
 
                 var responseEncoding = response.Content.Headers.ContentEncoding;
                 if (responseEncoding.Contains("gzip"))
                 {
+#if NET5_0_OR_GREATER
+                    using var stream = await response.Content.ReadAsStreamAsync(CancellationToken);
+#else
                     using var stream = await response.Content.ReadAsStreamAsync();
+#endif
                     using var decompressedStream = new GZipStream(stream, CompressionMode.Decompress);
                     using var streamReader = new StreamReader(decompressedStream);
+#if NET7_0_OR_GREATER
+                    result = await streamReader.ReadToEndAsync(CancellationToken);
+#else
                     result = await streamReader.ReadToEndAsync();
+#endif
                 }
                 else
                 {
+#if NET5_0_OR_GREATER
+                    result = await response.Content.ReadAsStringAsync(CancellationToken);
+#else
                     result = await response.Content.ReadAsStringAsync();
+#endif
                 }
             }
 
