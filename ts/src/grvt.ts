@@ -1634,7 +1634,8 @@ export default class grvt extends Exchange {
         if (this.safeString (this.options, 'userMainAccountId') !== undefined) {
             return;
         }
-        const promise1 = this.privateTradingPostFullV1AggregatedAccountSummary ();
+        const promises = [];
+        promises.push (this.privateTradingPostFullV1AggregatedAccountSummary ());
         //
         //     {
         //         "result": {
@@ -1659,20 +1660,31 @@ export default class grvt extends Exchange {
         //         }
         //     }
         //
-        const promise2 = this.privateTradingPostFullV1GetSubAccounts ();
+        const undefinedAccount = this.safeString (this.options, 'accountId') === undefined;
+        if (undefinedAccount) {
+            promises.push (this.privateTradingPostFullV1GetSubAccounts ());
+        }
         //
         //     {
         //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
         //     }
         //
-        const responses = await Promise.all ([ promise1, promise2 ]);
+        const responses = await Promise.all (promises);
         const result1 = this.safeDict (responses[0], 'result', {});
         const mainAccountId = this.safeString (result1, 'main_account_id');
         this.options['userMainAccountId'] = mainAccountId;
-        // todo: subAccountID
-        const result2 = this.safeDict (responses[1], 'result', {});
-        const subAccountId = this.safeString (result2, 'sub_account_id');
-        this.options['accountId'] = subAccountId;
+        if (undefinedAccount) {
+            const subAccountIds = this.safeList (responses[1], 'sub_account_ids', []);
+            const length = subAccountIds.length;
+            if (length < 1) {
+                throw new ArgumentsRequired (this.id + ' loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website');
+            }
+            if (length > 1) {
+                throw new ArgumentsRequired (this.id + ' loadAccountInfos(): multiple sub accounts found, please set the exchange.options["accountId"] to your preferred sub_account_id from this list: ' + this.json (subAccountIds));
+            }
+            const subAccountId = this.safeString (subAccountIds, 0);
+            this.options['accountId'] = subAccountId;
+        }
     }
 
     /**
