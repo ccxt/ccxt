@@ -1186,6 +1186,7 @@ class Exchange(object):
                 ordered[price] = ordered.get(price, 0) + volume
         return [[price, volume] for price, volume in ordered.items()]
 
+
     @staticmethod
     def seconds():
         return int(time.time())
