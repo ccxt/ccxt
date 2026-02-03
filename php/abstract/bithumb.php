@@ -91,45 +91,6 @@ abstract class bithumb extends \ccxt\Exchange {
     public function private_post_trade_stop_limit($params = array()) {
         return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array());
     }
-    public function v2public_get_market_all($params = array()) {
-        return $this->request('market/all', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2public_get_ticker($params = array()) {
-        return $this->request('ticker', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2public_get_orderbook($params = array()) {
-        return $this->request('orderbook', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2public_get_trades_ticks($params = array()) {
-        return $this->request('trades/ticks', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2public_get_candles_minutes_unit($params = array()) {
-        return $this->request('candles/minutes/{unit}', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2public_get_candles_interval($params = array()) {
-        return $this->request('candles/{interval}', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2public_get_candlestick_market_interval($params = array()) {
-        return $this->request('candlestick/{market}/{interval}', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2private_get_accounts($params = array()) {
-        return $this->request('accounts', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2private_get_orders_chance($params = array()) {
-        return $this->request('orders/chance', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2private_get_order($params = array()) {
-        return $this->request('order', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2private_get_orders($params = array()) {
-        return $this->request('orders', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2private_post_orders($params = array()) {
-        return $this->request('orders', 'v2private', 'POST', $params, null, null, array());
-    }
-    public function v2private_delete_order($params = array()) {
-        return $this->request('order', 'v2private', 'DELETE', $params, null, null, array());
-    }
     public function publicGetTickerALLQuoteId($params = array()) {
         return $this->request('ticker/ALL_{quoteId}', 'public', 'GET', $params, null, null, array());
     }
@@ -213,44 +174,5 @@ abstract class bithumb extends \ccxt\Exchange {
     }
     public function privatePostTradeStopLimit($params = array()) {
         return $this->request('trade/stop_limit', 'private', 'POST', $params, null, null, array());
-    }
-    public function v2publicGetMarketAll($params = array()) {
-        return $this->request('market/all', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2publicGetTicker($params = array()) {
-        return $this->request('ticker', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2publicGetOrderbook($params = array()) {
-        return $this->request('orderbook', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2publicGetTradesTicks($params = array()) {
-        return $this->request('trades/ticks', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2publicGetCandlesMinutesUnit($params = array()) {
-        return $this->request('candles/minutes/{unit}', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2publicGetCandlesInterval($params = array()) {
-        return $this->request('candles/{interval}', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2publicGetCandlestickMarketInterval($params = array()) {
-        return $this->request('candlestick/{market}/{interval}', 'v2public', 'GET', $params, null, null, array());
-    }
-    public function v2privateGetAccounts($params = array()) {
-        return $this->request('accounts', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2privateGetOrdersChance($params = array()) {
-        return $this->request('orders/chance', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2privateGetOrder($params = array()) {
-        return $this->request('order', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2privateGetOrders($params = array()) {
-        return $this->request('orders', 'v2private', 'GET', $params, null, null, array());
-    }
-    public function v2privatePostOrders($params = array()) {
-        return $this->request('orders', 'v2private', 'POST', $params, null, null, array());
-    }
-    public function v2privateDeleteOrder($params = array()) {
-        return $this->request('order', 'v2private', 'DELETE', $params, null, null, array());
     }
 }
