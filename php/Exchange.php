@@ -849,7 +849,7 @@ class Exchange {
 
     public static function keysort($array) {
         $result = $array;
-        ksort($result);
+        ksort($result, SORT_STRING);
         return $result;
     }
 
