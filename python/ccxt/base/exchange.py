@@ -1333,7 +1333,7 @@ class Exchange(object):
         if isinstance(s, str):
             payload64 = Exchange.string_to_base64(s)
             payload = Exchange.base64_to_binary(payload64)
-        return Exchange.decode(base64.urlsafe_b64encode(payload)).replace('=', '')
+        return base64.urlsafe_b64encode(payload).decode().rstrip('=')
 
     @staticmethod
     def binary_to_base64(s):
