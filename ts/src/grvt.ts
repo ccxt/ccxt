@@ -2966,6 +2966,7 @@ export default class grvt extends Exchange {
 
     defaultSignature () {
         const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
+        const chainId = this.isSandboxModeEnabled ? '326' : '325';
         return {
             'signer': '',
             'r': '',
@@ -2973,7 +2974,7 @@ export default class grvt extends Exchange {
             'v': 0,
             'expiration': expiration.toString (),
             'nonce': this.nonce (),
-            'chain_id': '325',
+            'chain_id': chainId,
         };
     }
 
