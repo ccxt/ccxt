@@ -38,6 +38,7 @@ import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
 import java.util.Random;
 import java.lang.reflect.Constructor;
+import java.nio.charset.StandardCharsets;
 
 
 
@@ -602,8 +603,9 @@ public class Exchange {
         System.out.println(s);
     }
 
-    public Object encode (Object s) {
-        return s; // stub
+    public Object encode(Object s) {
+        if (s == null) return new byte[0];
+        return s.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     public String urlencode(Object obj, boolean... sortParams) {
