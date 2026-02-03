@@ -1193,11 +1193,11 @@ class Exchange(object):
 
     @staticmethod
     def milliseconds():
-        return int(time.time() * 1000)
+        return time.time_ns() // 1_000_000
 
     @staticmethod
     def microseconds():
-        return int(time.time() * 1000000)
+        return time.time_ns() // 1_000
 
     @staticmethod
     def iso8601(timestamp=None):
