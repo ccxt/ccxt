@@ -28,6 +28,7 @@ public partial class BaseTest
             testUrlencodeBase64();
             testOmit();
             testGroupBy();
+            testIndexBy();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
