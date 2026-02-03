@@ -1754,7 +1754,7 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        await this.initializeClient ();
+        // await this.initializeClient ();
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -2923,10 +2923,11 @@ export default class grvt extends Exchange {
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
         //     GrvtEnv.PROD.value: 325,
+        const chainId = this.isSandboxModeEnabled ? 326 : 325;
         return {
             'name': 'GRVT Exchange',
             'version': '0',
-            'chainId': 325,
+            'chainId': chainId,
         };
     }
 
