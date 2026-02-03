@@ -973,9 +973,9 @@ class Exchange(object):
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
         # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
-        if len(string) > 1:
-            return "%s%s" % (string[0].upper(), string[1:])
-        return string.upper()
+        if string:
+            return string[0].upper() + string[1:]
+        return string
 
     @staticmethod
     def strip(string):
