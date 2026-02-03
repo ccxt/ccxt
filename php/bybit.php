@@ -4165,11 +4165,15 @@ class bybit extends Exchange {
                         }
                     }
                 }
-                if ($tpslModeSl !== $tpslModeTp) {
+                if ($isTakeProfitOrder && $isStopLossOrder && $tpslModeSl !== $tpslModeTp) {
                     throw new InvalidOrder($this->id . ' createOrder() requires both $stopLoss and $takeProfit to be full or partial when using combination');
                 }
-                $request['tpslMode'] = $tpslModeSl; // same
-                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
+                if ($tpslModeSl !== null) {
+                    $request['tpslMode'] = $tpslModeSl;
+                } else {
+                    $request['tpslMode'] = $tpslModeTp;
+                }
+                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint' ));
             }
         } else {
             $request['side'] = $this->capitalize($side);

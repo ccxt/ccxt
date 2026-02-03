@@ -14,21 +14,8 @@ public partial class BaseTest
             });
             object bids = new List<object>() {new List<object>() {789.1, 123}, new List<object>() {789.1, 123}, new List<object>() {123, 456}, new List<object>() {789, 123}, new List<object>() {789.1, 123}};
             object asks = new List<object>() {new List<object>() {123, 456}, new List<object>() {789, 123}, new List<object>() {789.1, 123}};
-            try
-            {
-                AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(bids, 0)), new List<object>() {new List<object>() {123, 456}, new List<object>() {789, 123}, new List<object>() {789.1, 369}});
-                AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(asks, 0)), new List<object>() {new List<object>() {123, 456}, new List<object>() {789, 123}, new List<object>() {789.1, 123}});
-            } catch(Exception e)
-            {
-                // skip c# , todo
-                if (isTrue(isTrue((((object)e).ToString()).Contains("BaseTest.Assert")) || isTrue((((object)e).ToString()).Contains("at System."))))
-                {
-                    return;
-                } else
-                {
-                    throw e;
-                }
-            }
+            AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(bids, 0)), new List<object>() {new List<object>() {123, 456}, new List<object>() {789, 123}, new List<object>() {789.1, 369}});
+            AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(asks, 0)), new List<object>() {new List<object>() {123, 456}, new List<object>() {789, 123}, new List<object>() {789.1, 123}});
             AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(new List<object>() {}), new List<object>() {});
             // Test 1: Simple aggregation - same price combined
             object result1 = exchange.aggregate(new List<object>() {new List<object>() {100, 1}, new List<object>() {101, 2}, new List<object>() {100, 0.5}});

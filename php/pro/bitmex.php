@@ -455,17 +455,14 @@ class bitmex extends \ccxt\async\bitmex {
         //
         $rawLiquidations = $this->safe_value($message, 'data', array());
         $newLiquidations = array();
+        if ($this->liquidations === null) {
+            $this->liquidations = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->liquidations;
         for ($i = 0; $i < count($rawLiquidations); $i++) {
             $rawLiquidation = $rawLiquidations[$i];
             $liquidation = $this->parse_liquidation($rawLiquidation);
-            $symbol = $liquidation['symbol'];
-            $liquidations = $this->safe_value($this->liquidations, $symbol);
-            if ($liquidations === null) {
-                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $liquidations = new ArrayCache ($limit);
-            }
-            $liquidations->append ($liquidation);
-            $this->liquidations[$symbol] = $liquidations;
+            $cache->append ($liquidation);
             $newLiquidations[] = $liquidation;
         }
         $client->resolve ($newLiquidations, 'liquidations');
