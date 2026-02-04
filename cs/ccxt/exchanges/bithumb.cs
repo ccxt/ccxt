@@ -108,6 +108,9 @@ public partial class bithumb : Exchange
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}/public" },
                     { "private", "https://api.{hostname}" },
+                    { "v2public", "https://api.bithumb.com/v1" },
+                    { "v2private", "https://api.bithumb.com/v1" },
+                    { "v2order", "https://api.bithumb.com/v2" },
                 } },
                 { "www", "https://www.bithumb.com" },
                 { "doc", "https://apidocs.bithumb.com" },
@@ -119,6 +122,14 @@ public partial class bithumb : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "post", new List<object>() {"info/account", "info/balance", "info/wallet_address", "info/ticker", "info/orders", "info/user_transactions", "info/order_detail", "trade/place", "trade/cancel", "trade/btc_withdrawal", "trade/krw_deposit", "trade/krw_withdrawal", "trade/market_buy", "trade/market_sell", "trade/stop_limit"} },
+                } },
+                { "v2public", new Dictionary<string, object>() {
+                    { "get", new List<object>() {"market/all", "ticker", "orderbook", "trades/ticks", "candles/minutes/{unit}", "candles/{interval}", "candlestick/{market}/{interval}"} },
+                } },
+                { "v2private", new Dictionary<string, object>() {
+                    { "get", new List<object>() {"accounts", "orders/chance", "order", "orders"} },
+                    { "post", new List<object>() {"orders"} },
+                    { "delete", new List<object>() {"order"} },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -203,11 +214,15 @@ public partial class bithumb : Exchange
                 { "3m", "3m" },
                 { "5m", "5m" },
                 { "10m", "10m" },
+                { "15m", "15m" },
                 { "30m", "30m" },
                 { "1h", "1h" },
+                { "4h", "4h" },
                 { "6h", "6h" },
                 { "12h", "12h" },
                 { "1d", "24h" },
+                { "1w", "1w" },
+                { "1M", "1M" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "quoteCurrencies", new Dictionary<string, object>() {
@@ -270,92 +285,78 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        object response = await this.v2publicGetMarketAll(parameters);
+        //
+        //    [
+        //        {
+        //            "market": "KRW-BTC",
+        //            "korean_name": "비트코인",
+        //            "english_name": "Bitcoin",
+        //            "market_warning": "NONE"
+        //        },
+        //        ...
+        //    ]
+        //
         object result = new List<object>() {};
-        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
-        object promises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object request = new Dictionary<string, object>() {
-                { "quoteId", getValue(quotes, i) },
-            };
-            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
-        }
-        object results = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
-        {
-            object quote = getValue(quotes, i);
-            object quoteId = quote;
-            object response = getValue(results, i);
-            object data = this.safeDict(response, "data");
-            object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
-            object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
-            {
-                object currencyId = getValue(currencyIds, j);
-                if (isTrue(isEqual(currencyId, "date")))
-                {
-                    continue;
-                }
-                object market = getValue(data, currencyId);
-                object bs = this.safeCurrencyCode(currencyId);
-                object active = true;
-                if (isTrue(((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
-                {
-                    object numElements = getArrayLength(market);
-                    if (isTrue(isEqual(numElements, 0)))
-                    {
-                        active = false;
-                    }
-                }
-                object entry = this.deepExtend(new Dictionary<string, object>() {
-                    { "id", currencyId },
-                    { "symbol", add(add(bs, "/"), quote) },
-                    { "base", bs },
-                    { "quote", quote },
-                    { "settle", null },
-                    { "baseId", currencyId },
-                    { "quoteId", quoteId },
-                    { "settleId", null },
-                    { "type", "spot" },
-                    { "spot", true },
-                    { "margin", false },
-                    { "swap", false },
-                    { "future", false },
-                    { "option", false },
-                    { "active", active },
-                    { "contract", false },
-                    { "linear", null },
-                    { "inverse", null },
-                    { "contractSize", null },
-                    { "expiry", null },
-                    { "expiryDateTime", null },
-                    { "strike", null },
-                    { "optionType", null },
-                    { "precision", new Dictionary<string, object>() {
-                        { "amount", parseInt("4") },
-                        { "price", parseInt("4") },
+            object entry = getValue(response, i);
+            object marketId = this.safeString(entry, "market");
+            var quoteIdbaseIdVariable = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            var quoteId = ((IList<object>) quoteIdbaseIdVariable)[0];
+            var baseId = ((IList<object>) quoteIdbaseIdVariable)[1];
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object symbol = add(add(bs, "/"), quote);
+            ((IList<object>)result).Add(new Dictionary<string, object>() {
+                { "id", marketId },
+                { "symbol", symbol },
+                { "base", bs },
+                { "quote", quote },
+                { "settle", null },
+                { "baseId", baseId },
+                { "quoteId", quoteId },
+                { "settleId", null },
+                { "type", "spot" },
+                { "spot", true },
+                { "margin", false },
+                { "swap", false },
+                { "future", false },
+                { "option", false },
+                { "active", true },
+                { "contract", false },
+                { "linear", null },
+                { "inverse", null },
+                { "contractSize", null },
+                { "expiry", null },
+                { "expiryDateTime", null },
+                { "strike", null },
+                { "optionType", null },
+                { "precision", new Dictionary<string, object>() {
+                    { "amount", parseInt("4") },
+                    { "price", parseInt("4") },
+                } },
+                { "limits", new Dictionary<string, object>() {
+                    { "leverage", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
                     } },
-                    { "limits", new Dictionary<string, object>() {
-                        { "leverage", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "price", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "cost", new Dictionary<string, object>() {} },
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
                     } },
-                    { "created", null },
-                    { "info", market },
-                }, extension);
-                ((IList<object>)result).Add(entry);
-            }
+                    { "price", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "cost", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
+                { "created", null },
+                { "info", entry },
+            });
         }
         return result;
     }
@@ -365,17 +366,15 @@ public partial class bithumb : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeDict(response, "data");
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        object balances = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
-            object code = getValue(codes, i);
+            object entry = getValue(balances, i);
+            object currencyId = this.safeString(entry, "currency");
+            object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            object currency = this.currency(code);
-            object lowerCurrencyId = this.safeStringLower(currency, "id");
-            ((IDictionary<string,object>)account)["total"] = this.safeString(balances, add("total_", lowerCurrencyId));
-            ((IDictionary<string,object>)account)["used"] = this.safeString(balances, add("in_use_", lowerCurrencyId));
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balances, add("available_", lowerCurrencyId));
+            ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "balance");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
@@ -393,10 +392,7 @@ public partial class bithumb : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object request = new Dictionary<string, object>() {
-            { "currency", "ALL" },
-        };
-        object response = await this.privatePostInfoBalance(this.extend(request, parameters));
+        object response = await this.v2privateGetAccounts(parameters);
         return this.parseBalance(response);
     }
 
@@ -416,82 +412,115 @@ public partial class bithumb : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
+            { "markets", add(add(getValue(market, "quote"), "-"), getValue(market, "base")) },
         };
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["count"] = limit; // default 30, max 30
-        }
-        object response = await this.publicGetOrderbookBaseIdQuoteId(this.extend(request, parameters));
+        object response = await this.v2publicGetOrderbook(this.extend(request, parameters));
         //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "timestamp":"1587621553942",
-        //             "payment_currency":"KRW",
-        //             "order_currency":"BTC",
-        //             "bids":[
-        //                 {"price":"8652000","quantity":"0.0043"},
-        //                 {"price":"8651000","quantity":"0.0049"},
-        //                 {"price":"8650000","quantity":"8.4791"},
-        //             ],
-        //             "asks":[
-        //                 {"price":"8654000","quantity":"0.119"},
-        //                 {"price":"8655000","quantity":"0.254"},
-        //                 {"price":"8658000","quantity":"0.119"},
-        //             ]
-        //         }
-        //     }
+        //    [
+        //        {
+        //            "market": "KRW-BTC",
+        //            "timestamp": 1698125744837,
+        //            "total_ask_size": 12.345,
+        //            "total_bid_size": 23.456,
+        //            "orderbook_units": [
+        //                {
+        //                    "ask_price": 45831000,
+        //                    "bid_price": 45830000,
+        //                    "ask_size": 0.123,
+        //                    "bid_size": 0.234
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
-        return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
+        object orderbookUnits = this.safeList(data, "orderbook_units", new List<object>() {});
+        object bids = new List<object>() {};
+        object asks = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(orderbookUnits)); postFixIncrement(ref i))
+        {
+            object entry = getValue(orderbookUnits, i);
+            object askPrice = this.safeNumber(entry, "ask_price");
+            object askSize = this.safeNumber(entry, "ask_size");
+            object bidPrice = this.safeNumber(entry, "bid_price");
+            object bidSize = this.safeNumber(entry, "bid_size");
+            if (isTrue(isTrue(!isEqual(askPrice, null)) && isTrue(!isEqual(askSize, null))))
+            {
+                if (isTrue(isGreaterThan(askSize, 0)))
+                {
+                    ((IList<object>)asks).Add(new List<object>() {askPrice, askSize});
+                }
+            }
+            if (isTrue(isTrue(!isEqual(bidPrice, null)) && isTrue(!isEqual(bidSize, null))))
+            {
+                if (isTrue(isGreaterThan(bidSize, 0)))
+                {
+                    ((IList<object>)bids).Add(new List<object>() {bidPrice, bidSize});
+                }
+            }
+        }
+        return ((object)new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "bids", this.sortBy(bids, 0, true) },
+            { "asks", this.sortBy(asks, 0) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "nonce", null },
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
-        //
-        // fetchTicker, fetchTickers
-        //
-        //     {
-        //         "opening_price":"227100",
-        //         "closing_price":"228400",
-        //         "min_price":"222300",
-        //         "max_price":"230000",
-        //         "units_traded":"82618.56075337",
-        //         "acc_trade_value":"18767376138.6031",
-        //         "prev_closing_price":"227100",
-        //         "units_traded_24H":"151871.13484676",
-        //         "acc_trade_value_24H":"34247610416.8974",
-        //         "fluctate_24H":"8700",
-        //         "fluctate_rate_24H":"3.96",
-        //         "date":"1587710327264", // fetchTickers inject this
-        //     }
-        //
-        object timestamp = this.safeInteger(ticker, "date");
-        object symbol = this.safeSymbol(null, market);
+        object timestamp = this.safeInteger(ticker, "timestamp");
+        if (isTrue(isEqual(timestamp, null)))
+        {
+            timestamp = this.safeInteger(ticker, "trade_timestamp");
+        }
+        object marketId = this.safeString(ticker, "market");
+        object symbol = this.safeSymbol(marketId, market);
         object open = this.safeString(ticker, "opening_price");
-        object close = this.safeString(ticker, "closing_price");
-        object baseVolume = this.safeString(ticker, "units_traded_24H");
-        object quoteVolume = this.safeString(ticker, "acc_trade_value_24H");
+        object close = this.safeString(ticker, "trade_price");
+        object high = this.safeString(ticker, "high_price");
+        object low = this.safeString(ticker, "low_price");
+        // workaround for Bithumb data inconsistency
+        if (isTrue(!isEqual(close, null)))
+        {
+            if (isTrue(!isEqual(high, null)))
+            {
+                if (isTrue(Precise.stringLt(high, close)))
+                {
+                    high = close;
+                }
+            }
+            if (isTrue(!isEqual(low, null)))
+            {
+                if (isTrue(Precise.stringGt(low, close)))
+                {
+                    low = close;
+                }
+            }
+        }
+        object baseVolume = this.safeString(ticker, "acc_trade_volume_24h");
+        object quoteVolume = this.safeString(ticker, "acc_trade_price_24h");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "high", this.safeString(ticker, "max_price") },
-            { "low", this.safeString(ticker, "min_price") },
-            { "bid", this.safeString(ticker, "buy_price") },
+            { "high", high },
+            { "low", low },
+            { "bid", null },
             { "bidVolume", null },
-            { "ask", this.safeString(ticker, "sell_price") },
+            { "ask", null },
             { "askVolume", null },
             { "vwap", null },
             { "open", open },
             { "close", close },
             { "last", close },
-            { "previousClose", null },
-            { "change", null },
-            { "percentage", null },
+            { "previousClose", this.safeString(ticker, "prev_closing_price") },
+            { "change", this.safeString(ticker, "change_price") },
+            { "percentage", this.safeString(ticker, "change_rate") },
             { "average", null },
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
@@ -512,59 +541,62 @@ public partial class bithumb : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object result = new Dictionary<string, object>() {};
-        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
-        object promises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        symbols = this.marketSymbols(symbols);
+        object marketIds = new List<object>() {};
+        if (isTrue(isEqual(symbols, null)))
         {
-            object request = new Dictionary<string, object>() {
-                { "quoteId", getValue(quotes, i) },
-            };
-            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
+            marketIds = new List<object>(((IDictionary<string,object>)this.markets_by_id).Keys);
+        } else
+        {
+            marketIds = this.marketIds(symbols);
+        }
+        object promises = new List<object>() {};
+        object chunkSize = 20; // safe chunk size
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); i = add(i, chunkSize))
+        {
+            object chunk = slice(marketIds, i, add(i, chunkSize));
+            object markets = new List<object>() {};
+            for (object j = 0; isLessThan(j, getArrayLength(chunk)); postFixIncrement(ref j))
+            {
+                object marketId = getValue(chunk, j);
+                object market = this.safeMarket(marketId);
+                ((IList<object>)markets).Add(add(add(getValue(market, "quote"), "-"), getValue(market, "base")));
+            }
+            object marketsString = String.Join(",", ((IList<object>)markets).ToArray());
+            ((IList<object>)promises).Add(this.v2publicGetTicker(this.extend(parameters, new Dictionary<string, object>() {
+                { "markets", marketsString },
+            })));
         }
         object responses = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(responses)); postFixIncrement(ref i))
         {
-            object quote = getValue(quotes, i);
             object response = getValue(responses, i);
             //
             //     {
             //         "status":"0000",
             //         "data":{
-            //             "BTC":{
-            //                 "opening_price":"9045000",
-            //                 "closing_price":"9132000",
-            //                 "min_price":"8938000",
-            //                 "max_price":"9168000",
-            //                 "units_traded":"4619.79967497",
-            //                 "acc_trade_value":"42021363832.5187",
-            //                 "prev_closing_price":"9041000",
-            //                 "units_traded_24H":"8793.5045804",
-            //                 "acc_trade_value_24H":"78933458515.4962",
-            //                 "fluctate_24H":"530000",
-            //                 "fluctate_rate_24H":"6.16"
-            //             },
-            //             "date":"1587710878669"
+            //             "opening_price":"227100",
+            //             "closing_price":"228400",
+            //             "min_price":"222300",
+            //             "max_price":"230000",
+            //             "units_traded":"82618.56075337",
+            //             "acc_trade_value":"18767376138.6031",
+            //             "prev_closing_price":"227100",
+            //             "units_traded_24H":"151871.13484676",
+            //             "acc_trade_value_24H":"34247610416.8974",
+            //             "fluctate_24H":"8700",
+            //             "fluctate_rate_24H":"3.96",
+            //             "date":"1587710327264", // fetchTickers inject this
             //         }
             //     }
             //
-            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object timestamp = this.safeInteger(data, "date");
-            object tickers = this.omit(data, "date");
-            object currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+            for (object j = 0; isLessThan(j, getArrayLength(response)); postFixIncrement(ref j))
             {
-                object currencyId = getValue(currencyIds, j);
-                object ticker = getValue(data, currencyId);
-                object bs = this.safeCurrencyCode(currencyId);
-                object symbol = add(add(bs, "/"), quote);
-                object market = this.safeMarket(symbol);
-                ((IDictionary<string,object>)ticker)["date"] = timestamp;
-                ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
+                ((IList<object>)result).Add(getValue(response, j));
             }
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return this.parseTickers(result, symbols);
     }
 
     /**
@@ -582,46 +614,48 @@ public partial class bithumb : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
+            { "markets", add(add(getValue(market, "quote"), "-"), getValue(market, "base")) },
         };
-        object response = await this.publicGetTickerBaseIdQuoteId(this.extend(request, parameters));
+        object response = await this.v2publicGetTicker(this.extend(request, parameters));
         //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "opening_price":"227100",
-        //             "closing_price":"228400",
-        //             "min_price":"222300",
-        //             "max_price":"230000",
-        //             "units_traded":"82618.56075337",
-        //             "acc_trade_value":"18767376138.6031",
-        //             "prev_closing_price":"227100",
-        //             "units_traded_24H":"151871.13484676",
-        //             "acc_trade_value_24H":"34247610416.8974",
-        //             "fluctate_24H":"8700",
-        //             "fluctate_rate_24H":"3.96",
-        //             "date":"1587710327264"
+        //     [
+        //         {
+        //             "market": "KRW-BTC",
+        //             "trade_date": "20231024",
+        //             "trade_time": "063556",
+        //             "trade_date_kts": "20231024",
+        //             "trade_time_kts": "153556",
+        //             "trade_timestamp": 1698129356000,
+        //             "opening_price": 45831000,
+        //             "high_price": 45840000,
+        //             "low_price": 45821000,
+        //             "trade_price": 45831000,
+        //             "prev_closing_price": 45831000,
+        //             "change": "EVEN",
+        //             "change_price": 0,
+        //             "change_rate": 0,
+        //             "signed_change_price": 0,
+        //             "signed_change_rate": 0,
+        //             "trade_volume": 0.001,
+        //             "acc_trade_price": 435133614.99125,
+        //             "acc_trade_price_24h": 435133614.99125,
+        //             "acc_trade_volume": 9.4943,
+        //             "acc_trade_volume_24h": 9.4943,
+        //             "highest_52_week_price": 45840000,
+        //             "highest_52_week_date": "2023-10-24",
+        //             "lowest_52_week_price": 45821000,
+        //             "lowest_52_week_date": "2023-10-24",
+        //             "timestamp": 1698129356431
         //         }
-        //     }
+        //     ]
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
     {
-        //
-        //     [
-        //         1576823400000, // 기준 시간
-        //         "8284000", // 시가
-        //         "8286000", // 종가
-        //         "8289000", // 고가
-        //         "8276000", // 저가
-        //         "15.41503692" // 거래량
-        //     ]
-        //
-        return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 5)};
+        return new List<object> {this.parse8601(this.safeString(ohlcv, "candle_date_time_utc")), this.safeNumber(ohlcv, "opening_price"), this.safeNumber(ohlcv, "high_price"), this.safeNumber(ohlcv, "low_price"), this.safeNumber(ohlcv, "trade_price"), this.safeNumber(ohlcv, "candle_acc_trade_volume")};
     }
 
     /**
@@ -643,120 +677,80 @@ public partial class bithumb : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
-            { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "market", add(add(getValue(market, "quote"), "-"), getValue(market, "base")) },
         };
-        object response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["count"] = limit;
+        }
+        object response = null;
+        if (isTrue(isTrue(isTrue(isEqual(timeframe, "1d")) || isTrue(isEqual(timeframe, "1w"))) || isTrue(isEqual(timeframe, "1M"))))
+        {
+            object v2intervals = new Dictionary<string, object>() {
+                { "1d", "days" },
+                { "1w", "weeks" },
+                { "1M", "months" },
+            };
+            ((IDictionary<string,object>)request)["interval"] = this.safeString(v2intervals, timeframe, timeframe);
+            response = await this.v2publicGetCandlesInterval(this.extend(request, parameters));
+        } else
+        {
+            object v2units = new Dictionary<string, object>() {
+                { "1m", "1" },
+                { "3m", "3" },
+                { "5m", "5" },
+                { "10m", "10" },
+                { "15m", "15" },
+                { "30m", "30" },
+                { "1h", "60" },
+                { "4h", "240" },
+            };
+            ((IDictionary<string,object>)request)["unit"] = this.safeString(v2units, timeframe, timeframe);
+            response = await this.v2publicGetCandlesMinutesUnit(this.extend(request, parameters));
+        }
         //
-        //     {
-        //         "status": "0000",
-        //         "data": {
-        //             [
-        //                 1576823400000, // 기준 시간
-        //                 "8284000", // 시가
-        //                 "8286000", // 종가
-        //                 "8289000", // 고가
-        //                 "8276000", // 저가
-        //                 "15.41503692" // 거래량
-        //             ],
-        //             [
-        //                 1576824000000, // 기준 시간
-        //                 "8284000", // 시가
-        //                 "8281000", // 종가
-        //                 "8289000", // 고가
-        //                 "8275000", // 저가
-        //                 "6.19584467" // 거래량
-        //             ],
-        //         }
-        //     }
+        //    [
+        //        {
+        //            "market": "KRW-BTC",
+        //            "candle_date_time_utc": "2023-10-24T06:35:00",
+        //            "candle_date_time_kts": "2023-10-24T15:35:00",
+        //            "opening_price": 45831000,
+        //            "high_price": 45831000,
+        //            "low_price": 45831000,
+        //            "trade_price": 45831000,
+        //            "timestamp": 1698125700000,
+        //            "candle_acc_trade_price": 435133614.99125,
+        //            "candle_acc_trade_volume": 9.4943,
+        //            "unit": 1
+        //        },
+        //        ...
+        //    ]
         //
-        object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOHLCVs(data, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
     {
-        //
-        // fetchTrades (public)
-        //
-        //     {
-        //         "transaction_date":"2020-04-23 22:21:46",
-        //         "type":"ask",
-        //         "units_traded":"0.0125",
-        //         "price":"8667000",
-        //         "total":"108337"
-        //     }
-        //
-        // fetchOrder (private)
-        //
-        //     {
-        //         "transaction_date": "1572497603902030",
-        //         "price": "8601000",
-        //         "units": "0.005",
-        //         "fee_currency": "KRW",
-        //         "fee": "107.51",
-        //         "total": "43005"
-        //     }
-        //
-        // a workaround for their bug in date format, hours are not 0-padded
-        object timestamp = null;
-        object transactionDatetime = this.safeString(trade, "transaction_date");
-        if (isTrue(!isEqual(transactionDatetime, null)))
-        {
-            object parts = ((string)transactionDatetime).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object numParts = getArrayLength(parts);
-            if (isTrue(isGreaterThan(numParts, 1)))
-            {
-                object transactionDate = getValue(parts, 0);
-                object transactionTime = getValue(parts, 1);
-                if (isTrue(isLessThan(((string)transactionTime).Length, 8)))
-                {
-                    transactionTime = add("0", transactionTime);
-                }
-                timestamp = this.parse8601(add(add(transactionDate, " "), transactionTime));
-            } else
-            {
-                timestamp = this.safeIntegerProduct(trade, "transaction_date", 0.001);
-            }
-        }
-        if (isTrue(!isEqual(timestamp, null)))
-        {
-            timestamp = subtract(timestamp, multiply(9, 3600000)); // they report UTC + 9 hours, server in Korean timezone
-        }
-        object type = null;
-        object side = this.safeString(trade, "type");
-        side = ((bool) isTrue((isEqual(side, "ask")))) ? "sell" : "buy";
-        object id = this.safeString(trade, "cont_no");
-        market = this.safeMarket(null, market);
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.fixCommaNumber(this.safeString2(trade, "units_traded", "units"));
-        object costString = this.safeString(trade, "total");
-        object fee = null;
-        object feeCostString = this.safeString(trade, "fee");
-        if (isTrue(!isEqual(feeCostString, null)))
-        {
-            object feeCurrencyId = this.safeString(trade, "fee_currency");
-            object feeCurrencyCode = this.commonCurrencyCode(feeCurrencyId);
-            fee = new Dictionary<string, object>() {
-                { "cost", feeCostString },
-                { "currency", feeCurrencyCode },
-            };
-        }
+        object timestamp = this.safeInteger(trade, "timestamp");
+        object side = ((bool) isTrue(isEqual(this.safeStringLower(trade, "ask_bid"), "ask"))) ? "sell" : "buy";
+        object price = this.safeString(trade, "trade_price");
+        object amount = this.safeString(trade, "trade_volume");
+        object id = this.safeString(trade, "sequential_id");
+        object symbol = this.safeSymbol(null, market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", symbol },
             { "order", null },
-            { "type", type },
+            { "type", null },
             { "side", side },
             { "takerOrMaker", null },
-            { "price", priceString },
-            { "amount", amountString },
-            { "cost", costString },
-            { "fee", fee },
+            { "price", price },
+            { "amount", amount },
+            { "cost", null },
+            { "fee", null },
         }, market);
     }
 
@@ -777,30 +771,14 @@ public partial class bithumb : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "baseId", getValue(market, "baseId") },
-            { "quoteId", getValue(market, "quoteId") },
+            { "market", add(add(getValue(market, "quote"), "-"), getValue(market, "base")) },
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["count"] = limit; // default 20, max 100
+            ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object response = await this.publicGetTransactionHistoryBaseIdQuoteId(this.extend(request, parameters));
-        //
-        //     {
-        //         "status":"0000",
-        //         "data":[
-        //             {
-        //                 "transaction_date":"2020-04-23 22:21:46",
-        //                 "type":"ask",
-        //                 "units_traded":"0.0125",
-        //                 "price":"8667000",
-        //                 "total":"108337"
-        //             },
-        //         ]
-        //     }
-        //
-        object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseTrades(data, market, since, limit);
+        object response = await this.v2publicGetTradesTicks(this.extend(request, parameters));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -824,206 +802,87 @@ public partial class bithumb : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "order_currency", getValue(market, "id") },
-            { "payment_currency", getValue(market, "quote") },
-            { "units", amount },
+            { "market", add(add(getValue(market, "quote"), "-"), getValue(market, "base")) },
+            { "side", ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask" },
+            { "volume", this.amountToPrecision(symbol, amount) },
+            { "ord_type", ((bool) isTrue((isEqual(type, "limit")))) ? "limit" : "price" },
         };
-        object method = "privatePostTradePlace";
         if (isTrue(isEqual(type, "limit")))
         {
-            ((IDictionary<string,object>)request)["price"] = price;
-            ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
-        } else
-        {
-            method = add("privatePostTradeMarket", this.capitalize(side));
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
-        object id = this.safeString(response, "order_id");
-        if (isTrue(isEqual(id, null)))
-        {
-            throw new InvalidOrder ((string)add(this.id, " createOrder() did not return an order id")) ;
-        }
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-            { "symbol", symbol },
-            { "type", type },
-            { "side", side },
-            { "id", id },
-        }, market);
+        object response = await this.v2privatePostOrders(this.extend(request, parameters));
+        return this.parseOrder(response, market);
     }
 
     /**
      * @method
-     * @name bithumb#fetchOrder
-     * @description fetches information on an order made by the user
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
+     * @name bithumb#cancelOrder
+     * @description cancels an open order
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
-        }
-        await this.loadMarkets();
-        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "order_id", id },
-            { "count", 1 },
-            { "order_currency", getValue(market, "base") },
-            { "payment_currency", getValue(market, "quote") },
+            { "uuid", id },
         };
-        object response = await this.privatePostInfoOrderDetail(this.extend(request, parameters));
-        //
-        //     {
-        //         "status": "0000",
-        //         "data": {
-        //             "order_date": "1603161798539254",
-        //             "type": "ask",
-        //             "order_status": "Cancel",
-        //             "order_currency": "BTC",
-        //             "payment_currency": "KRW",
-        //             "watch_price": "0",
-        //             "order_price": "13344000",
-        //             "order_qty": "0.0125",
-        //             "cancel_date": "1603161803809993",
-        //             "cancel_type": "사용자취소",
-        //             "contract": [
-        //                 {
-        //                     "transaction_date": "1603161799976383",
-        //                     "price": "13344000",
-        //                     "units": "0.0015",
-        //                     "fee_currency": "KRW",
-        //                     "fee": "0",
-        //                     "total": "20016"
-        //                 }
-        //             ],
-        //         }
-        //     }
-        //
-        object data = this.safeDict(response, "data");
-        return this.parseOrder(this.extend(data, new Dictionary<string, object>() {
-            { "order_id", id },
-        }), market);
-    }
-
-    public virtual object parseOrderStatus(object status)
-    {
-        object statuses = new Dictionary<string, object>() {
-            { "Pending", "open" },
-            { "Completed", "closed" },
-            { "Cancel", "canceled" },
-        };
-        return this.safeString(statuses, status, status);
+        object response = await this.v2privateDeleteOrder(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
     public override object parseOrder(object order, object market = null)
     {
-        //
-        //
-        // fetchOrder
-        //
-        //     {
-        //         "transaction_date": "1572497603668315",
-        //         "type": "bid",
-        //         "order_status": "Completed", // Completed, Cancel ...
-        //         "order_currency": "BTC",
-        //         "payment_currency": "KRW",
-        //         "watch_price": "0", // present in Cancel order
-        //         "order_price": "8601000",
-        //         "order_qty": "0.007",
-        //         "cancel_date": "", // filled in Cancel order
-        //         "cancel_type": "", // filled in Cancel order, i.e. 사용자취소
-        //         "contract": [
-        //             {
-        //                 "transaction_date": "1572497603902030",
-        //                 "price": "8601000",
-        //                 "units": "0.005",
-        //                 "fee_currency": "KRW",
-        //                 "fee": "107.51",
-        //                 "total": "43005"
-        //             },
-        //         ]
-        //     }
-        //
-        // fetchOpenOrders
-        //
-        //     {
-        //         "order_currency": "BTC",
-        //         "payment_currency": "KRW",
-        //         "order_id": "C0101000007408440032",
-        //         "order_date": "1571728739360570",
-        //         "type": "bid",
-        //         "units": "5.0",
-        //         "units_remaining": "5.0",
-        //         "price": "501000",
-        //     }
-        //
-        object timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
-        object sideProperty = this.safeString2(order, "type", "side");
-        object side = ((bool) isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
-        object status = this.parseOrderStatus(this.safeString(order, "order_status"));
-        object price = this.safeString2(order, "order_price", "price");
-        object type = "limit";
-        if (isTrue(Precise.stringEquals(price, "0")))
-        {
-            type = "market";
-        }
-        object amount = this.fixCommaNumber(this.safeString2(order, "order_qty", "units"));
-        object remaining = this.fixCommaNumber(this.safeString(order, "units_remaining"));
-        if (isTrue(isEqual(remaining, null)))
-        {
-            if (isTrue(isEqual(status, "closed")))
-            {
-                remaining = "0";
-            } else if (isTrue(!isEqual(status, "canceled")))
-            {
-                remaining = amount;
-            }
-        }
-        object symbol = null;
-        object baseId = this.safeString(order, "order_currency");
-        object quoteId = this.safeString(order, "payment_currency");
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        if (isTrue(isTrue((!isEqual(bs, null))) && isTrue((!isEqual(quote, null)))))
-        {
-            symbol = add(add(bs, "/"), quote);
-        }
-        if (isTrue(isEqual(symbol, null)))
-        {
-            market = this.safeMarket(null, market);
-            symbol = getValue(market, "symbol");
-        }
-        object id = this.safeString(order, "order_id");
-        object rawTrades = this.safeList(order, "contract", new List<object>() {});
+        object timestamp = this.parse8601(this.safeString(order, "created_at"));
+        object status = this.parseOrderStatus(this.safeString(order, "state"));
+        object symbol = this.safeSymbol(this.safeString(order, "market"), market);
+        object side = ((bool) isTrue(isEqual(this.safeStringLower(order, "side"), "bid"))) ? "buy" : "sell";
+        object type = this.safeStringLower(order, "ord_type");
+        object price = this.safeString(order, "price");
+        object amount = this.safeString(order, "volume");
+        object remaining = this.safeString(order, "remaining_volume");
+        object filled = this.safeString(order, "executed_volume");
+        object id = this.safeString(order, "uuid");
         return this.safeOrder(new Dictionary<string, object>() {
-            { "info", order },
             { "id", id },
             { "clientOrderId", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "lastTradeTimestamp", null },
+            { "status", status },
             { "symbol", symbol },
             { "type", type },
             { "timeInForce", null },
             { "postOnly", null },
             { "side", side },
             { "price", price },
+            { "stopPrice", null },
             { "triggerPrice", null },
             { "amount", amount },
-            { "cost", null },
-            { "average", null },
-            { "filled", null },
+            { "filled", filled },
             { "remaining", remaining },
-            { "status", status },
-            { "fee", null },
-            { "trades", rawTrades },
+            { "cost", null },
+            { "trades", null },
+            { "fee", new Dictionary<string, object>() {
+                { "currency", null },
+                { "cost", this.safeString(order, "paid_fee") },
+            } },
+            { "info", order },
         }, market);
+    }
+
+    public virtual object parseOrderStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "wait", "open" },
+            { "done", "closed" },
+            { "cancel", "canceled" },
+        };
+        return this.safeString(statuses, status, status);
     }
 
     /**
@@ -1040,26 +899,18 @@ public partial class bithumb : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
-        }
         await this.loadMarkets();
-        object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
         {
-            limit = 100;
+            object market = this.market(symbol);
+            ((IDictionary<string,object>)request)["market"] = add(add(getValue(market, "quote"), "-"), getValue(market, "base"));
         }
-        object request = new Dictionary<string, object>() {
-            { "count", limit },
-            { "order_currency", getValue(market, "base") },
-            { "payment_currency", getValue(market, "quote") },
-        };
-        if (isTrue(!isEqual(since, null)))
+        if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["after"] = since;
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.privatePostInfoOrders(this.extend(request, parameters));
+        object response = await this.v2privateGetOrders(this.extend(request, parameters));
         //
         //     {
         //         "status": "0000",
@@ -1077,60 +928,142 @@ public partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(response, null, since, limit);
     }
 
     /**
      * @method
-     * @name bithumb#cancelOrder
-     * @description cancels an open order
-     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
+     * @name bithumb#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbol, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
-        }
-        object side_in_params = (inOp(parameters, "side"));
-        if (!isTrue(side_in_params))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
-        }
-        object market = this.market(symbol);
-        object side = ((bool) isTrue((isEqual(getValue(parameters, "side"), "buy")))) ? "bid" : "ask";
-        parameters = this.omit(parameters, new List<object>() {"side", "currency"});
-        // https://github.com/ccxt/ccxt/issues/6771
+        await this.loadMarkets();
         object request = new Dictionary<string, object>() {
-            { "order_id", id },
-            { "type", side },
-            { "order_currency", getValue(market, "base") },
-            { "payment_currency", getValue(market, "quote") },
+            { "uuid", id },
         };
-        object response = await this.privatePostTradeCancel(this.extend(request, parameters));
-        //
-        //    {
-        //       'status': 'string',
-        //    }
-        //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-        });
+        object response = await this.v2privateGetOrder(this.extend(request, parameters));
+        return this.parseOrder(response);
     }
 
-    public async override Task<object> cancelUnifiedOrder(object order, object parameters = null)
+    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
+        if (isTrue(isEqual(response, null)))
+        {
+            return null;  // fallback to default error handler
+        }
+        if (isTrue(inOp(response, "status")))
+        {
+            //
+            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+            //
+            object status = this.safeString(response, "status");
+            object message = this.safeString(response, "message");
+            if (isTrue(!isEqual(status, null)))
+            {
+                if (isTrue(isEqual(status, "0000")))
+                {
+                    return null;  // no error
+                }
+                if (isTrue(isEqual(message, "거래 진행중인 내역이 존재하지 않습니다.")))
+                {
+                    // https://github.com/ccxt/ccxt/issues/9017
+                    return null;  // no error
+                }
+                object feedback = add(add(this.id, " "), message);
+                this.throwExactlyMatchedException(this.exceptions, status, feedback);
+                this.throwExactlyMatchedException(this.exceptions, message, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            }
+        }
+        return null;
+    }
+
+    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
+    {
+        api ??= "public";
+        method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
-            { "side", getValue(order, "side") },
+        object endpoint = this.implodeParams(path, parameters);
+        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), endpoint);
+        object query = this.omit(parameters, this.extractParams(path));
+        if (isTrue(isTrue(isEqual(api, "v2public")) || isTrue(isEqual(api, "v2private"))))
+        {
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            {
+                url = add(url, add("?", this.urlencode(query)));
+            }
+            if (isTrue(isEqual(api, "v2private")))
+            {
+                this.checkRequiredCredentials();
+                object nonce = this.uuid();
+                object timestamp = this.milliseconds();
+                object payload = new Dictionary<string, object>() {
+                    { "access_key", this.apiKey },
+                    { "nonce", nonce },
+                    { "timestamp", timestamp },
+                };
+                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                {
+                    if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
+                    {
+                        object queryString = this.urlencode(query);
+                        ((IDictionary<string,object>)payload)["query_hash"] = this.hash(this.encode(queryString), sha512);
+                        ((IDictionary<string,object>)payload)["query_hash_alg"] = "SHA512";
+                    } else
+                    {
+                        body = this.json(query);
+                        ((IDictionary<string,object>)payload)["query_hash"] = this.hash(this.encode(body), sha512);
+                        ((IDictionary<string,object>)payload)["query_hash_alg"] = "SHA512";
+                    }
+                }
+                object token = jwt(payload, this.encode(this.secret), sha256);
+                headers = new Dictionary<string, object>() {
+                    { "Authorization", add("Bearer ", token) },
+                };
+                if (isTrue(isEqual(method, "POST")))
+                {
+                    ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
+                }
+            }
+        } else
+        {
+            if (isTrue(isEqual(api, "public")))
+            {
+                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                {
+                    url = add(url, add("?", this.urlencode(query)));
+                }
+            } else
+            {
+                this.checkRequiredCredentials();
+                body = this.urlencode(this.extend(new Dictionary<string, object>() {
+                    { "endpoint", add("/", endpoint) },
+                }, query));
+                object nonce = ((object)this.milliseconds()).ToString();
+                object auth = add(add(add(add(add("/", endpoint), ";"), body), ";"), nonce);
+                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "hex");
+                object signature64 = this.stringToBase64(signature);
+                headers = new Dictionary<string, object>() {
+                    { "Api-Key", this.apiKey },
+                    { "Api-Sign", signature64 },
+                    { "Api-Nonce", nonce },
+                    { "Content-Type", "application/x-www-form-urlencoded" },
+                };
+            }
+        }
+        return new Dictionary<string, object>() {
+            { "url", url },
+            { "method", method },
+            { "body", body },
+            { "headers", headers },
         };
-        return await this.cancelOrder(getValue(order, "id"), getValue(order, "symbol"), this.extend(request, parameters));
     }
 
     /**
@@ -1175,129 +1108,5 @@ public partial class bithumb : Exchange
         // { "status" : "0000"}
         //
         return this.parseTransaction(response, currency);
-    }
-
-    public override object parseTransaction(object transaction, object currency = null)
-    {
-        //
-        // withdraw
-        //
-        //     { "status" : "0000"}
-        //
-        currency = this.safeCurrency(null, currency);
-        return new Dictionary<string, object>() {
-            { "id", null },
-            { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
-            { "network", null },
-            { "addressFrom", null },
-            { "address", null },
-            { "addressTo", null },
-            { "amount", null },
-            { "type", null },
-            { "currency", getValue(currency, "code") },
-            { "status", null },
-            { "updated", null },
-            { "tagFrom", null },
-            { "tag", null },
-            { "tagTo", null },
-            { "comment", null },
-            { "internal", null },
-            { "fee", null },
-            { "info", transaction },
-        };
-    }
-
-    public virtual object fixCommaNumber(object numberStr)
-    {
-        // some endpoints need this https://github.com/ccxt/ccxt/issues/11031
-        if (isTrue(isEqual(numberStr, null)))
-        {
-            return null;
-        }
-        object finalNumberStr = numberStr;
-        while (isGreaterThan(getIndexOf(finalNumberStr, ","), -1))
-        {
-            finalNumberStr = ((string)finalNumberStr).Replace((string)",", (string)"");
-        }
-        return finalNumberStr;
-    }
-
-    public override object nonce()
-    {
-        return this.milliseconds();
-    }
-
-    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
-    {
-        api ??= "public";
-        method ??= "GET";
-        parameters ??= new Dictionary<string, object>();
-        object endpoint = add("/", this.implodeParams(path, parameters));
-        object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), endpoint);
-        object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(isEqual(api, "public")))
-        {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
-            {
-                url = add(url, add("?", this.urlencode(query)));
-            }
-        } else
-        {
-            this.checkRequiredCredentials();
-            body = this.urlencode(this.extend(new Dictionary<string, object>() {
-                { "endpoint", endpoint },
-            }, query));
-            object nonce = ((object)this.nonce()).ToString();
-            object auth = add(add(add(add(endpoint, " "), body), " "), nonce); // eslint-disable-line quotes
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
-            object signature64 = this.stringToBase64(signature);
-            headers = new Dictionary<string, object>() {
-                { "Accept", "application/json" },
-                { "Content-Type", "application/x-www-form-urlencoded" },
-                { "Api-Key", this.apiKey },
-                { "Api-Sign", signature64 },
-                { "Api-Nonce", nonce },
-            };
-        }
-        return new Dictionary<string, object>() {
-            { "url", url },
-            { "method", method },
-            { "body", body },
-            { "headers", headers },
-        };
-    }
-
-    public override object handleErrors(object httpCode, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
-    {
-        if (isTrue(isEqual(response, null)))
-        {
-            return null;  // fallback to default error handler
-        }
-        if (isTrue(inOp(response, "status")))
-        {
-            //
-            //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
-            //
-            object status = this.safeString(response, "status");
-            object message = this.safeString(response, "message");
-            if (isTrue(!isEqual(status, null)))
-            {
-                if (isTrue(isEqual(status, "0000")))
-                {
-                    return null;  // no error
-                } else if (isTrue(isEqual(message, "거래 진행중인 내역이 존재하지 않습니다.")))
-                {
-                    // https://github.com/ccxt/ccxt/issues/9017
-                    return null;  // no error
-                }
-                object feedback = add(add(this.id, " "), message);
-                this.throwExactlyMatchedException(this.exceptions, status, feedback);
-                this.throwExactlyMatchedException(this.exceptions, message, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-        }
-        return null;
     }
 }

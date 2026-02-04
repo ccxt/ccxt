@@ -272,11 +272,15 @@ export default class bithumb extends Exchange {
                 '3m': '3m',
                 '5m': '5m',
                 '10m': '10m',
+                '15m': '15m',
                 '30m': '30m',
                 '1h': '1h',
+                '4h': '4h',
                 '6h': '6h',
                 '12h': '12h',
                 '1d': '24h',
+                '1w': '1w',
+                '1M': '1M',
             },
             'options': {
                 'quoteCurrencies': {
@@ -616,28 +620,41 @@ export default class bithumb extends Exchange {
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'markets': market['quote'] + '-' + market['base'],
         };
         const response = await this.v2publicGetTicker (this.extend (request, params));
         //
-        //     {
-        //         "status":"0000",
-        //         "data":{
-        //             "opening_price":"227100",
-        //             "closing_price":"228400",
-        //             "min_price":"222300",
-        //             "max_price":"230000",
-        //             "units_traded":"82618.56075337",
-        //             "acc_trade_value":"18767376138.6031",
-        //             "prev_closing_price":"227100",
-        //             "units_traded_24H":"151871.13484676",
-        //             "acc_trade_value_24H":"34247610416.8974",
-        //             "fluctate_24H":"8700",
-        //             "fluctate_rate_24H":"3.96",
-        //             "date":"1587710327264",
+        //     [
+        //         {
+        //             "market": "KRW-BTC",
+        //             "trade_date": "20231024",
+        //             "trade_time": "063556",
+        //             "trade_date_kts": "20231024",
+        //             "trade_time_kts": "153556",
+        //             "trade_timestamp": 1698129356000,
+        //             "opening_price": 45831000,
+        //             "high_price": 45840000,
+        //             "low_price": 45821000,
+        //             "trade_price": 45831000,
+        //             "prev_closing_price": 45831000,
+        //             "change": "EVEN",
+        //             "change_price": 0,
+        //             "change_rate": 0,
+        //             "signed_change_price": 0,
+        //             "signed_change_rate": 0,
+        //             "trade_volume": 0.001,
+        //             "acc_trade_price": 435133614.99125,
+        //             "acc_trade_price_24h": 435133614.99125,
+        //             "acc_trade_volume": 9.4943,
+        //             "acc_trade_volume_24h": 9.4943,
+        //             "highest_52_week_price": 45840000,
+        //             "highest_52_week_date": "2023-10-24",
+        //             "lowest_52_week_price": 45821000,
+        //             "lowest_52_week_date": "2023-10-24",
+        //             "timestamp": 1698129356431
         //         }
-        //     }
+        //     ]
         //
         const data = this.safeDict (response, 0, {});
         return this.parseTicker (data, market);
@@ -669,22 +686,33 @@ export default class bithumb extends Exchange {
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'market': market['quote'] + '-' + market['base'],
         };
-        if (timeframe === '1d' || timeframe === '1w' || timeframe === '1M') {
-            request['interval'] = interval;
-        } else {
-            request['unit'] = interval;
-        }
         if (limit !== undefined) {
             request['count'] = limit;
         }
         let response = undefined;
         if (timeframe === '1d' || timeframe === '1w' || timeframe === '1M') {
+            const v2intervals: Dict = {
+                '1d': 'days',
+                '1w': 'weeks',
+                '1M': 'months',
+            };
+            request['interval'] = this.safeString (v2intervals, timeframe, timeframe);
             response = await this.v2publicGetCandlesInterval (this.extend (request, params));
         } else {
+            const v2units: Dict = {
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '10m': '10',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+            };
+            request['unit'] = this.safeString (v2units, timeframe, timeframe);
             response = await this.v2publicGetCandlesMinutesUnit (this.extend (request, params));
         }
         //
