@@ -8,13 +8,6 @@ import readline from 'readline';
 import { platform } from 'process';
 import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.js';
 
-// @ts-ignore
-let dirname = new URL ('.', import.meta.url).pathname;
-if (platform === 'win32' && dirname[0] === '/') {
-    dirname = dirname.substring (1);
-}
-const rootDir = dirname + '/../../';
-
 ansi.nice;
 const log = ololog.configure ({ 'locate': false }).unlimited;
 let add_static_result;
@@ -22,6 +15,17 @@ let add_static_result;
 try {
     add_static_result = (await import ('../../utils/update-static-tests-data')).add_static_result;
 } catch (e) {
+    try {
+        // @ts-ignore
+        let dirname = new URL ('.', import.meta.url).pathname;
+        if (platform === 'win32' && dirname[0] === '/') {
+            dirname = dirname.substring (1);
+        }
+        const rootDir = dirname + '../../';
+        add_static_result = (await import (rootDir + 'utils/update-static-tests-data')).add_static_result;
+    } catch (e2) {
+        // noop
+    }
     // noop
 }
 let ccxt;
@@ -466,19 +470,12 @@ async function loadSettingsAndCreateExchange (
     // set up keys and settings, if any
     const keysGlobal = path.resolve ('keys.json');
     const keysLocal = path.resolve ('keys.local.json');
-    const keysGlobalAbs = path.resolve (rootDir + 'keys.json');
-    const keysLocalAbs = path.resolve (rootDir + 'keys.local.json');
 
     if (fs.existsSync (keysGlobal)) {
         allSettings = JSON.parse (fs.readFileSync (keysGlobal).toString ());
-    } else if (fs.existsSync (keysGlobalAbs)) {
-        allSettings = JSON.parse (fs.readFileSync (keysGlobalAbs).toString ());
     }
     if (fs.existsSync (keysLocal)) {
         const localSettings = JSON.parse (fs.readFileSync (keysLocal).toString ());
-        allSettings = { ...allSettings, ...localSettings };
-    } else if (fs.existsSync (keysLocalAbs)) {
-        const localSettings = JSON.parse (fs.readFileSync (keysLocalAbs).toString ());
         allSettings = { ...allSettings, ...localSettings };
     }
     // log ((`( Note, CCXT CLI is being loaded without api keys, because ${keysLocal} does not exist.  You can see the sample at https://github.com/ccxt/ccxt/blob/master/keys.json )` as any).yellow);
