@@ -36,6 +36,16 @@
                     "BTC/USDC:USDC"
                 ]
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://data.api.drift.trade/market/BTC-PERP/trades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }

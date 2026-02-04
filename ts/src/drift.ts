@@ -564,37 +564,36 @@ export default class drift extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchTrades (
         symbol: string,
-        // since: Int = undefined, todo potentially implement
-        limit: Int = 20,
+        since: Int = undefined,
+        limit: Int = undefined,
         params = {}
     ): Promise<Trade[]> {
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const maxTrades = Math.min (limit, 100);
-        let nextPage = undefined;
-        let allTrades: any[] = [];
-        let fetchMore = true;
-        while (fetchMore) {
-            const request: Dict = {
-                'symbol': market['id'],
-            };
-            if (nextPage !== undefined) {
-                request['page'] = nextPage;
-            }
-            const response = await this.publicGetMarketSymbolTrades (
-                this.extend (request, params)
-            );
-            const trades = this.safeValue (response, 'records', response);
-            allTrades = allTrades.concat (trades);
-            nextPage = this.safeString (response, 'nextPage');
-            fetchMore = !((nextPage === undefined) || (trades.length === 0) || (allTrades.length >= maxTrades));
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTrades', symbol, since, limit, params, 'nextPage', 'page', undefined, 50) as Trade[];
         }
-        allTrades = allTrades.slice (0, maxTrades);
-        return this.parseTrades (allTrades, market, limit);
+        const market = this.market (symbol);
+        if (limit !== undefined) {
+            limit = Math.min (limit, 100);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetMarketSymbolTrades (this.extend (request, params));
+        const trades = this.safeValue (response, 'records');
+        const meta = this.safeDict (response, 'meta');
+        const nextPage = this.safeString (meta, 'nextPage');
+        if ((trades.length > 0) && (nextPage !== undefined)) {
+            trades[0]['nextPage'] = nextPage;
+        }
+        return this.parseTrades (trades, market, limit);
     }
 
     /**
