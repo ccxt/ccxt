@@ -431,14 +431,6 @@ export default class drift extends Exchange {
             const marketId = this.safeString2 (book, 'marketName', 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            // const bids = this.safeValue (book, 'bids', []);
-            // const asks = this.safeValue (book, 'asks', []);
-            // const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [ undefined, undefined ];
-            // const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [ undefined, undefined ];
-            // const bidPrice = bestBid[0];
-            // const bidVolume = bestBid.length > 1 ? bestBid[1] : undefined;
-            // const askPrice = bestAsk[0];
-            // const askVolume = bestAsk.length > 1 ? bestAsk[1] : undefined;
             const bids = this.safeValue (book, 'bids', []);
             const asks = this.safeValue (book, 'asks', []);
             const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [];
@@ -530,7 +522,7 @@ export default class drift extends Exchange {
      */
     async fetchOrderBook (
         symbol: string,
-        limit: Int = 20,
+        limit: Int = undefined,
         params = {}
     ): Promise<OrderBook> {
         await this.loadMarkets ();

@@ -26,6 +26,16 @@
                     ["BTC/USDC:USDC"]
                 ]
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://dlob.drift.trade/l2?marketName=BTC-PERP",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }
