@@ -1548,10 +1548,12 @@ export default class grvt extends Exchange {
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         if (this.inArray (fromAccount, [ 'trading', 'funding' ]) && this.inArray (toAccount, [ 'trading', 'funding' ])) {
-            const tradingAccountId = this.safeString (this.options, 'tradingAccountId');
-            const fundingAccountId = this.safeString (this.options, 'fundingAccountId');
+            let tradingAccountId: Str = undefined;
+            [ tradingAccountId, params ] = this.handleOptionAndParams (params, 'transfer', 'tradingAccountId');
+            let fundingAccountId: Str = undefined;
+            [ fundingAccountId, params ] = this.handleOptionAndParams (params, 'transfer', 'fundingAccountId');
             if (tradingAccountId === undefined || fundingAccountId === undefined) {
-                throw new ArgumentsRequired (this.id + ' transfer(): you should set .options["tradingAccountId"] and exchange.options["fundingAccountId"] to the corresponding account IDs or directly pass accountIds as fromAccount and toAccount arguments (use "0" as funding account id)');
+                throw new ArgumentsRequired (this.id + ' transfer(): you should set (in the options or params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
             fromAccount = (fromAccount === 'trading') ? tradingAccountId : fundingAccountId;
             toAccount = (toAccount === 'trading') ? tradingAccountId : fundingAccountId;
@@ -1568,7 +1570,17 @@ export default class grvt extends Exchange {
             'transfer_metadata': null,
         };
         request = this.createSignedRequest (request, 'EIP712_TRANSFER_TYPE', currency);
-        const response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
+        let response: Dict = undefined;
+        try {
+            response = await this.privateTradingPostFullV1Transfer (this.extend (request, params));
+        } catch (error) {
+            const msg = this.exceptionMessage (error);
+            const isFromFundingAccount = fromAccount === 'funding';
+            if (isFromFundingAccount && msg.indexOf ('You are not authorized')) {
+                throw new PermissionDenied (this.id + ' transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: ' + msg);
+            }
+            throw error;
+        }
         //
         // {
         //     "result": {
