@@ -118,7 +118,7 @@ class Exchange {
         this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orderbooks = {};
         this.tickers = {};
         this.fundingRates = {};
@@ -126,7 +126,7 @@ class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
@@ -336,12 +336,12 @@ class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags

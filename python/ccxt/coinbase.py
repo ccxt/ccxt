@@ -2891,6 +2891,7 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [params.retail_portfolio_id]: portfolio uid
         :param boolean [params.is_max]: Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
         :param str [params.tradable_balance]: amount of tradable balance
+        :param float [params.reduceOnly]: set to True for closing a position or use closePosition
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -2901,6 +2902,11 @@ class coinbase(Exchange, ImplicitAPI):
             'product_id': market['id'],
             'side': side.upper(),
         }
+        reduceOnly = self.safe_bool(params, 'reduceOnly')
+        if reduceOnly:
+            params = self.omit(params, 'reduceOnly')
+            params['amount'] = amount
+            return self.close_position(symbol, side, params)
         triggerPrice = self.safe_number_n(params, ['stopPrice', 'stop_price', 'triggerPrice'])
         stopLossPrice = self.safe_number(params, 'stopLossPrice')
         takeProfitPrice = self.safe_number(params, 'takeProfitPrice')
@@ -3926,12 +3932,19 @@ class coinbase(Exchange, ImplicitAPI):
         :param str [tag]: an optional tag for the withdrawal
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+        :param dict [params.travel_rule_data]: some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
+        request: dict = {
+            'type': 'send',
+            'to': address,
+            'amount': self.number_to_string(amount),
+            'currency': currency['id'],
+        }
         accountId = self.safe_string_2(params, 'account_id', 'accountId')
         params = self.omit(params, ['account_id', 'accountId'])
         if accountId is None:
@@ -3940,13 +3953,9 @@ class coinbase(Exchange, ImplicitAPI):
             accountId = self.find_account_id(code, params)
             if accountId is None:
                 raise ExchangeError(self.id + ' withdraw() could not find account id for ' + code)
-        request: dict = {
-            'account_id': accountId,
-            'type': 'send',
-            'to': address,
-            'amount': amount,
-            'currency': currency['id'],
-        }
+            request['account_id'] = accountId
+        else:
+            request['account_id'] = accountId
         if tag is not None:
             request['destination_tag'] = tag
         response = self.v2PrivatePostAccountsAccountIdTransactions(self.extend(request, params))

@@ -637,6 +637,12 @@ public partial class coinbase
     /// string : amount of tradable balance
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// float : set to true for closing a position or use closePosition
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -1131,6 +1137,12 @@ public partial class coinbase
     /// <term>params.network</term>
     /// <description>
     /// string : the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.travel_rule_data</term>
+    /// <description>
+    /// object : some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
     /// </description>
     /// </item>
     /// </list>

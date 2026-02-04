@@ -349,7 +349,7 @@ export default class bybit extends Exchange {
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1,
+                        'v5/account/transaction-log': 1.66, // 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
@@ -4171,11 +4171,15 @@ export default class bybit extends Exchange {
                         }
                     }
                 }
-                if (tpslModeSl !== tpslModeTp) {
+                if (isTakeProfitOrder && isStopLossOrder && tpslModeSl !== tpslModeTp) {
                     throw new InvalidOrder (this.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using as OCO combination');
                 }
-                request['tpslMode'] = tpslModeSl; // same as tpslModeTp
-                params = this.omit (params, [ 'stopLossLimitPrice', 'takeProfitLimitPrice' ]);
+                if (tpslModeSl !== undefined) {
+                    request['tpslMode'] = tpslModeSl;
+                } else {
+                    request['tpslMode'] = tpslModeTp;
+                }
+                params = this.omit (params, [ 'stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint' ]);
             }
         } else {
             request['side'] = this.capitalize (side);

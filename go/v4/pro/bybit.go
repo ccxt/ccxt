@@ -2203,13 +2203,11 @@ func  (this *BybitCore) HandleLiquidation(client interface{}, message interface{
             var market interface{} = this.SafeMarket(marketId, nil, "", "contract")
             var symbol interface{} = ccxt.GetValue(market, "symbol")
             var liquidation interface{} = this.ParseWsLiquidation(rawLiquidation, market)
-            var liquidations interface{} = this.SafeValue(this.Liquidations, symbol)
-            if ccxt.IsTrue(ccxt.IsEqual(liquidations, nil)) {
-                var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
-                liquidations = ccxt.NewArrayCache(limit)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
+                this.Liquidations = ccxt.NewArrayCacheBySymbolBySide()
             }
-            liquidations.(ccxt.Appender).Append(liquidation)
-            ccxt.AddElementToObject(this.Liquidations, symbol, liquidations)
+            var cache interface{} = this.Liquidations
+            cache.(ccxt.Appender).Append(liquidation)
             client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, "liquidations")
             client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, ccxt.Add("liquidations::", symbol))
         }
@@ -2219,13 +2217,11 @@ func  (this *BybitCore) HandleLiquidation(client interface{}, message interface{
         var market interface{} = this.SafeMarket(marketId, nil, "", "contract")
         var symbol interface{} = ccxt.GetValue(market, "symbol")
         var liquidation interface{} = this.ParseWsLiquidation(rawLiquidation, market)
-        var liquidations interface{} = this.SafeValue(this.Liquidations, symbol)
-        if ccxt.IsTrue(ccxt.IsEqual(liquidations, nil)) {
-            var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
-            liquidations = ccxt.NewArrayCache(limit)
+        if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
+            this.Liquidations = ccxt.NewArrayCacheBySymbolBySide()
         }
-        liquidations.(ccxt.Appender).Append(liquidation)
-        ccxt.AddElementToObject(this.Liquidations, symbol, liquidations)
+        var cache interface{} = this.Liquidations
+        cache.(ccxt.Appender).Append(liquidation)
         client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, "liquidations")
         client.(ccxt.ClientInterface).Resolve([]interface{}{liquidation}, ccxt.Add("liquidations::", symbol))
     }
@@ -2291,8 +2287,8 @@ func  (this *BybitCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes18018 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes18018)
+            retRes17978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes17978)
             var method interface{} = "watchOrders"
             var messageHash interface{} = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -2303,8 +2299,8 @@ func  (this *BybitCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             url:= (<-this.GetUrlByMarketType(symbol, true, method, params))
             ccxt.PanicOnError(url)
         
-            retRes18098 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes18098)
+            retRes18058 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes18058)
             var topicsByMarket interface{} = map[string]interface{} {
                 "spot": []interface{}{"order", "stopOrder"},
                 "unified": []interface{}{"order"},
@@ -2344,8 +2340,8 @@ func  (this *BybitCore) UnWatchOrders(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes18348 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes18348)
+            retRes18308 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes18308)
             var method interface{} = "watchOrders"
             var messageHash interface{} = "unsubscribe:orders"
             var subHash interface{} = "orders"
@@ -2356,8 +2352,8 @@ func  (this *BybitCore) UnWatchOrders(optionalArgs ...interface{}) <- chan inter
             url:= (<-this.GetUrlByMarketType(symbol, true, method, params))
             ccxt.PanicOnError(url)
         
-            retRes18428 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes18428)
+            retRes18388 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes18388)
             var topicsByMarket interface{} = map[string]interface{} {
                 "spot": []interface{}{"order", "stopOrder"},
                 "unified": []interface{}{"order"},
@@ -2365,9 +2361,9 @@ func  (this *BybitCore) UnWatchOrders(optionalArgs ...interface{}) <- chan inter
             }
             var topics interface{} = this.SafeValue(topicsByMarket, this.GetPrivateType(url))
         
-                retRes184915 :=  (<-this.UnWatchTopics(url, "orders", []interface{}{}, []interface{}{messageHash}, []interface{}{subHash}, topics, params))
-                ccxt.PanicOnError(retRes184915)
-                ch <- retRes184915
+                retRes184515 :=  (<-this.UnWatchTopics(url, "orders", []interface{}{}, []interface{}{messageHash}, []interface{}{subHash}, topics, params))
+                ccxt.PanicOnError(retRes184515)
+                ch <- retRes184515
                 return nil
         
             }()
@@ -2531,8 +2527,8 @@ func  (this *BybitCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes20058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes20058)
+            retRes20018 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes20018)
             var method interface{} = "watchBalance"
             var messageHash interface{} = "balances"
             var typeVar interface{} = nil
@@ -2552,8 +2548,8 @@ func  (this *BybitCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             url:= (<-this.GetUrlByMarketType(nil, true, method, params))
             ccxt.PanicOnError(url)
         
-            retRes20168 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes20168)
+            retRes20128 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes20128)
             var topicByMarket interface{} = map[string]interface{} {
                 "spot": "outboundAccountInfo",
                 "unified": "wallet",
@@ -2588,9 +2584,9 @@ func  (this *BybitCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             }
             var topics interface{} = []interface{}{this.SafeValue(topicByMarket, this.GetPrivateType(url))}
         
-                retRes205015 :=  (<-this.WatchTopics(url, []interface{}{messageHash}, topics, params))
-                ccxt.PanicOnError(retRes205015)
-                ch <- retRes205015
+                retRes204615 :=  (<-this.WatchTopics(url, []interface{}{messageHash}, topics, params))
+                ccxt.PanicOnError(retRes204615)
+                ch <- retRes204615
                 return nil
         
             }()
@@ -2846,9 +2842,9 @@ func  (this *BybitCore) WatchTopics(url interface{}, messageHashes interface{}, 
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes229615 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes229615)
-                ch <- retRes229615
+                retRes229215 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes229215)
+                ch <- retRes229215
                 return nil
         
             }()
@@ -2878,9 +2874,9 @@ func  (this *BybitCore) UnWatchTopics(url interface{}, topic interface{}, symbol
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes231415 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtension)))
-                ccxt.PanicOnError(retRes231415)
-                ch <- retRes231415
+                retRes231015 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtension)))
+                ccxt.PanicOnError(retRes231015)
+                ch <- retRes231015
                 return nil
         
             }()
@@ -2912,9 +2908,9 @@ func  (this *BybitCore) Authenticate(url interface{}, optionalArgs ...interface{
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes233815 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes233815)
-                ch <- retRes233815
+                retRes233415 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes233415)
+                ch <- retRes233415
                 return nil
         
             }()

@@ -890,30 +890,19 @@ func  (this *BydfiCore) HandleOrder(client interface{}, message interface{})  {
     var marketId interface{} = this.SafeString(rawOrder, "s")
     var market interface{} = this.SafeMarket(marketId)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var match interface{} = false
     var messageHash interface{} = "orders"
     var symbolMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-    var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
-        var hash interface{} = ccxt.GetValue(messageHashes, i)
-        if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(hash, symbolMessageHash)) || ccxt.IsTrue(ccxt.IsEqual(hash, messageHash))) {
-            match = true
-            break
-        }
+    if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
+        var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
+        this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
-    if ccxt.IsTrue(match) {
-        if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-            var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
-            this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
-        }
-        var orders interface{} = this.Orders
-        var order interface{} = this.ParseWsOrder(rawOrder, market)
-        var lastUpdateTimestamp interface{} = this.SafeInteger(message, "T")
-        ccxt.AddElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp)
-        orders.(ccxt.Appender).Append(order)
-        client.(ccxt.ClientInterface).Resolve(orders, messageHash)
-        client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
-    }
+    var orders interface{} = this.Orders
+    var order interface{} = this.ParseWsOrder(rawOrder, market)
+    var lastUpdateTimestamp interface{} = this.SafeInteger(message, "T")
+    ccxt.AddElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp)
+    orders.(ccxt.Appender).Append(order)
+    client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+    client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
 }
 func  (this *BydfiCore) ParseWsOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
     //
@@ -1006,8 +995,8 @@ func  (this *BydfiCore) WatchPositions(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7428 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7428)
+            retRes7318 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7318)
             symbols = this.MarketSymbols(symbols, nil, true)
             var messageHashes interface{} = []interface{}{}
             var messageHash interface{} = "positions"
@@ -1083,29 +1072,17 @@ func  (this *BydfiCore) HandlePositions(client interface{}, message interface{})
     var symbol interface{} = ccxt.GetValue(market, "symbol")
     var messageHash interface{} = "positions"
     var symbolMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-    var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
-    var match interface{} = false
-    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
-        var hash interface{} = ccxt.GetValue(messageHashes, i)
-        if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(hash, symbolMessageHash)) || ccxt.IsTrue(ccxt.IsEqual(hash, messageHash))) {
-            match = true
-            break
-        }
+    if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
+        this.Positions = ccxt.NewArrayCacheBySymbolBySide()
     }
-    if ccxt.IsTrue(match) {
-        if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
-            this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-        }
-        var cache interface{} = this.Positions
-        var parsedPosition interface{} = this.ParseWsPosition(rawPosition, market)
-        var timestamp interface{} = this.SafeInteger(message, "T")
-        ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
-        ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
-        cache.(ccxt.Appender).Append(parsedPosition)
-        var symbolSpecificMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(parsedPosition, "symbol"))
-        client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, messageHash)
-        client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, symbolSpecificMessageHash)
-    }
+    var cache interface{} = this.Positions
+    var parsedPosition interface{} = this.ParseWsPosition(rawPosition, market)
+    var timestamp interface{} = this.SafeInteger(message, "T")
+    ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
+    ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
+    cache.(ccxt.Appender).Append(parsedPosition)
+    client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, messageHash)
+    client.(ccxt.ClientInterface).Resolve([]interface{}{parsedPosition}, symbolMessageHash)
 }
 func  (this *BydfiCore) ParseWsPosition(position interface{}, optionalArgs ...interface{}) interface{}  {
     //
@@ -1186,8 +1163,8 @@ func  (this *BydfiCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes9078 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9078)
+            retRes8848 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8848)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var client interface{} = this.Client(url)
             this.FetchBalanceSnapshot(client)
@@ -1196,14 +1173,14 @@ func  (this *BydfiCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             var awaitBalanceSnapshot interface{} = this.SafeBool(options, "awaitBalanceSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes91512 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
-                ccxt.PanicOnError(retRes91512)
+                retRes89212 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
+                ccxt.PanicOnError(retRes89212)
             }
             var messageHash interface{} = "balance"
         
-                retRes91815 :=  (<-this.WatchPrivate([]interface{}{messageHash}, params))
-                ccxt.PanicOnError(retRes91815)
-                ch <- retRes91815
+                retRes89515 :=  (<-this.WatchPrivate([]interface{}{messageHash}, params))
+                ccxt.PanicOnError(retRes89515)
+                ch <- retRes89515
                 return nil
         
             }()
