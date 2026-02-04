@@ -7,446 +7,446 @@
 
 package ccxt
 
-func (this *FmfwioCore) PublicGetPublicCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCurrency", args...)
+func (this *FmfwioCore) PublicGetPublicCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCurrency", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicCurrencyCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
+func (this *FmfwioCore) PublicGetPublicCurrencyCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicSymbolSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicSymbolSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTicker", args...)
+func (this *FmfwioCore) PublicGetPublicTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTicker", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicTickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceRate", args...)
+func (this *FmfwioCore) PublicGetPublicPriceRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceRate", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
+func (this *FmfwioCore) PublicGetPublicPriceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
+func (this *FmfwioCore) PublicGetPublicPriceTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicPriceTickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicPriceTickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTrades", args...)
+func (this *FmfwioCore) PublicGetPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTrades", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicTradesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicTradesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicOrderbook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOrderbook", args...)
+func (this *FmfwioCore) PublicGetPublicOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOrderbook", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicOrderbookSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicOrderbookSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCandles", args...)
+func (this *FmfwioCore) PublicGetPublicCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCandles", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicCandlesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicCandlesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicConvertedCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
+func (this *FmfwioCore) PublicGetPublicConvertedCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicConvertedCandlesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicConvertedCandlesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesInfoSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesInfoSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesHistoryFunding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesHistoryFunding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesHistoryFundingSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesHistoryFundingSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPriceSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesIndexPriceSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPriceSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesMarkPriceSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndex (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndex(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
 }
 
-func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterestSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
+func (this *FmfwioCore) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotBalance", args...)
+func (this *FmfwioCore) PrivateGetSpotBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotBalance", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotBalanceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
+func (this *FmfwioCore) PrivateGetSpotBalanceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotOrder", args...)
+func (this *FmfwioCore) PrivateGetSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateGetSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotFee", args...)
+func (this *FmfwioCore) PrivateGetSpotFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotFee", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotFeeSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
+func (this *FmfwioCore) PrivateGetSpotFeeSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
+func (this *FmfwioCore) PrivateGetSpotHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSpotHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
+func (this *FmfwioCore) PrivateGetSpotHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccount", args...)
+func (this *FmfwioCore) PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivateGetMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginAccountCrossCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
+func (this *FmfwioCore) PrivateGetMarginAccountCrossCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginOrder", args...)
+func (this *FmfwioCore) PrivateGetMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateGetMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginConfig", args...)
+func (this *FmfwioCore) PrivateGetMarginConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginConfig", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
 }
 
-func (this *FmfwioCore) PrivateGetMarginHistoryClearing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
+func (this *FmfwioCore) PrivateGetMarginHistoryClearing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesBalance", args...)
+func (this *FmfwioCore) PrivateGetFuturesBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesBalance", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesBalanceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
+func (this *FmfwioCore) PrivateGetFuturesBalanceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesAccount", args...)
+func (this *FmfwioCore) PrivateGetFuturesAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesAccount", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivateGetFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrder", args...)
+func (this *FmfwioCore) PrivateGetFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateGetFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesConfig (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesConfig", args...)
+func (this *FmfwioCore) PrivateGetFuturesConfig(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesConfig", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesFee (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesFee", args...)
+func (this *FmfwioCore) PrivateGetFuturesFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesFee", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesFeeSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
+func (this *FmfwioCore) PrivateGetFuturesFeeSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
 }
 
-func (this *FmfwioCore) PrivateGetFuturesHistoryClearing (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
+func (this *FmfwioCore) PrivateGetFuturesHistoryClearing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletBalance", args...)
+func (this *FmfwioCore) PrivateGetWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletBalance", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletBalanceCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
+func (this *FmfwioCore) PrivateGetWalletBalanceCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentDeposit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentDeposit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddressRecentWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoAddressCheckMine (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoAddressCheckMine(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletTransactions", args...)
+func (this *FmfwioCore) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletTransactionsTxId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
+func (this *FmfwioCore) PrivateGetWalletTransactionsTxId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletCryptoFeeEstimate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
+func (this *FmfwioCore) PrivateGetWalletCryptoFeeEstimate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletAirdrops (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletAirdrops", args...)
+func (this *FmfwioCore) PrivateGetWalletAirdrops(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletAirdrops", args...)
 }
 
-func (this *FmfwioCore) PrivateGetWalletAmountLocks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
+func (this *FmfwioCore) PrivateGetWalletAmountLocks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccount", args...)
+func (this *FmfwioCore) PrivateGetSubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccount", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccountAcl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountAcl", args...)
+func (this *FmfwioCore) PrivateGetSubAccountAcl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountAcl", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccountBalanceSubAccID (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
+func (this *FmfwioCore) PrivateGetSubAccountBalanceSubAccID(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
 }
 
-func (this *FmfwioCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
+func (this *FmfwioCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotOrder", args...)
+func (this *FmfwioCore) PrivatePostSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotOrder", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSpotOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSpotOrderList", args...)
+func (this *FmfwioCore) PrivatePostSpotOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSpotOrderList", args...)
 }
 
-func (this *FmfwioCore) PrivatePostMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrder", args...)
+func (this *FmfwioCore) PrivatePostMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *FmfwioCore) PrivatePostMarginOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginOrderList", args...)
+func (this *FmfwioCore) PrivatePostMarginOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginOrderList", args...)
 }
 
-func (this *FmfwioCore) PrivatePostFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesOrder", args...)
+func (this *FmfwioCore) PrivatePostFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFuturesOrder", args...)
 }
 
-func (this *FmfwioCore) PrivatePostFuturesOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostFuturesOrderList", args...)
+func (this *FmfwioCore) PrivatePostFuturesOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostFuturesOrderList", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletConvert", args...)
+func (this *FmfwioCore) PrivatePostWalletConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletConvert", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletTransfer", args...)
+func (this *FmfwioCore) PrivatePostWalletTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletInternalWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
+func (this *FmfwioCore) PrivatePostWalletInternalWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoCheckOffchainAvailable (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoCheckOffchainAvailable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletCryptoFeesEstimate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
+func (this *FmfwioCore) PrivatePostWalletCryptoFeesEstimate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
 }
 
-func (this *FmfwioCore) PrivatePostWalletAirdropsIdClaim (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
+func (this *FmfwioCore) PrivatePostWalletAirdropsIdClaim(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountFreeze (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
+func (this *FmfwioCore) PrivatePostSubAccountFreeze(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountActivate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountActivate", args...)
+func (this *FmfwioCore) PrivatePostSubAccountActivate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountActivate", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
+func (this *FmfwioCore) PrivatePostSubAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
 }
 
-func (this *FmfwioCore) PrivatePostSubAccountAcl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostSubAccountAcl", args...)
+func (this *FmfwioCore) PrivatePostSubAccountAcl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubAccountAcl", args...)
 }
 
-func (this *FmfwioCore) PrivatePatchSpotOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivatePatchSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivatePatchMarginOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivatePatchMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivatePatchFuturesOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivatePatchFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteSpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteSpotOrder", args...)
+func (this *FmfwioCore) PrivateDeleteSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSpotOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteSpotOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateDeleteSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginPosition", args...)
+func (this *FmfwioCore) PrivateDeleteMarginPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginPosition", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginPositionIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivateDeleteMarginPositionIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginOrder", args...)
+func (this *FmfwioCore) PrivateDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteMarginOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateDeleteMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesPositionMarginModeSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesPositionMarginModeSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteFuturesOrderClientOrderId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
+func (this *FmfwioCore) PrivateDeleteFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
 }
 
-func (this *FmfwioCore) PrivateDeleteWalletCryptoWithdrawId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
+func (this *FmfwioCore) PrivateDeleteWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
 }
 
-func (this *FmfwioCore) PrivatePutMarginAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivatePutMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivatePutFuturesAccountIsolatedSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
+func (this *FmfwioCore) PrivatePutFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *FmfwioCore) PrivatePutWalletCryptoWithdrawId (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
+func (this *FmfwioCore) PrivatePutWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
 }
