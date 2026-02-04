@@ -81,7 +81,7 @@ class Precise:
         integer_result = self.integer * other.integer
         return Precise(integer_result, self.decimals + other.decimals)
 
-    def div(self, other, precision=18):
+    def div(self, other, precision=26):
         distance = precision - self.decimals + other.decimals
         if distance == 0:
             numerator = self.integer
@@ -200,7 +200,7 @@ class Precise:
         return str(Precise(string1).mul(Precise(string2)))
 
     @staticmethod
-    def string_div(string1, string2, precision=18):
+    def string_div(string1, string2, precision=26):
         if string1 is None or string2 is None:
             return None
         string2_precise = Precise(string2)
