@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/zonda.js';
-import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest } from './base/errors.js';
+import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied, BadRequest, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
@@ -551,28 +551,26 @@ export default class zonda extends Exchange {
         const marketId = this.safeString (order, 'market');
         const symbol = this.safeSymbol (marketId, market, '-');
         const timestamp = this.safeInteger (order, 'time');
-        const amount = this.safeString (order, 'startAmount');
-        const remaining = this.safeString (order, 'currentAmount');
-        const postOnly = this.safeValue (order, 'postOnly');
+        const status = this.safeString (order, 'status');
         return this.safeOrder ({
+            'info': order,
             'id': this.safeString (order, 'id'),
             'clientOrderId': undefined,
-            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'status': undefined,
+            'status': status === 'Ok' ? 'cancelled' : undefined,
             'symbol': symbol,
             'type': this.safeString (order, 'mode'),
             'timeInForce': undefined,
-            'postOnly': postOnly,
+            'postOnly': this.safeValue (order, 'postOnly'),
             'side': this.safeStringLower (order, 'offerType'),
             'price': this.safeString (order, 'rate'),
             'triggerPrice': undefined,
-            'amount': amount,
+            'amount': this.safeString (order, 'startAmount'),
             'cost': undefined,
             'filled': undefined,
-            'remaining': remaining,
+            'remaining': this.safeString (order, 'currentAmount'),
             'average': undefined,
             'fee': undefined,
             'trades': undefined,
@@ -1598,11 +1596,11 @@ export default class zonda extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const side = this.safeString (params, 'side');
         if (side === undefined) {
-            throw new ExchangeError (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `side` parameter ("buy" or "sell")');
         }
         const price = this.safeValue (params, 'price');
         if (price === undefined) {
-            throw new ExchangeError (this.id + ' cancelOrder() requires a `price` parameter (float or string)');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a `price` parameter (float or string)');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
