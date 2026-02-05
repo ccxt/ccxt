@@ -3285,7 +3285,6 @@ class bitget extends bitget$1["default"] {
         const marketId = this.safeString(ticker, 'symbol');
         const close = this.safeString2(ticker, 'lastPr', 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'ts'); // exchange bitget provided 0
-        const change = this.safeString(ticker, 'change24h');
         const category = this.safeString(ticker, 'category');
         const markPrice = this.safeString(ticker, 'markPrice');
         let marketType;
@@ -3297,7 +3296,8 @@ class bitget extends bitget$1["default"] {
         }
         let percentage = this.safeString(ticker, 'price24hPcnt');
         if (percentage === undefined) {
-            percentage = Precise["default"].stringMul(change, '100');
+            const change24h = this.safeString(ticker, 'change24h');
+            percentage = Precise["default"].stringMul(change24h, '100');
         }
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, undefined, marketType),
@@ -3314,7 +3314,7 @@ class bitget extends bitget$1["default"] {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'baseVolume', 'volume24h'),
@@ -7456,7 +7456,7 @@ class bitget extends bitget$1["default"] {
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -8978,7 +8978,7 @@ class bitget extends bitget$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         if (amount > 0) {
@@ -8998,7 +8998,7 @@ class bitget extends bitget$1["default"] {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         const holdSide = this.safeString(params, 'holdSide');

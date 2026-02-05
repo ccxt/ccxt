@@ -1471,7 +1471,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.positionId] PositionId of the order to add margin.
      * @param {string} [params.timestamp] Tiemstamp.
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         await this.loadMarkets();
@@ -1515,7 +1515,7 @@ export default class zebpay extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint.
      * @param {string} [params.positionId] PositionId of the order to add margin.
      * @param {string} [params.timestamp] Tiemstamp.
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         await this.loadMarkets();

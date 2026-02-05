@@ -976,7 +976,7 @@ hyperliquid.setLeverage (leverage, symbol[, params])
 add margin
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -1000,7 +1000,7 @@ hyperliquid.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#update-isolated-margin  
 
@@ -1100,7 +1100,7 @@ hyperliquid.fetchTradingFee (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 
 | Param | Type | Required | Description |
@@ -1462,6 +1462,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 
 
 ```javascript
@@ -1483,6 +1484,7 @@ watches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 | params.dex | <code>string</code> | No | for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market |
 
 
@@ -1505,6 +1507,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | 'webData2' or 'allMids', default is 'webData2' |
 
 
 ```javascript

@@ -113,6 +113,7 @@ type ICoreExchange interface {
 	SafeString(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	Describe() interface{}
 	SetSandboxMode(enable interface{})
+	FeatureValue(symbol interface{}, optionalArgs ...interface{}) interface{}
 	Market(symbol interface{}) interface{}
 	Nonce() interface{}
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}

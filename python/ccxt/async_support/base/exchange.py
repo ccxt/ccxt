@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.33'
+__version__ = '4.5.36'
 
 # -----------------------------------------------------------------------------
 
@@ -416,6 +416,7 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
+        self.open()  # ensure self.asyncio_loop is set
         self.clients = self.clients or {}
         if url not in self.clients:
             on_message = self.handle_message
@@ -2067,7 +2068,8 @@ class Exchange(BaseExchange):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None

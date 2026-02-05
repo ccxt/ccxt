@@ -152,8 +152,8 @@ export default class mexc extends Exchange {
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
-                        'public': 'https://contract.mexc.com/api/v1/contract',
-                        'private': 'https://contract.mexc.com/api/v1/private',
+                        'public': 'https://api.mexc.com/api/v1/contract',
+                        'private': 'https://api.mexc.com/api/v1/private',
                     },
                     'broker': {
                         'private': 'https://api.mexc.com/api/v3/broker',
@@ -4248,7 +4248,7 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'SUB', params);
@@ -4262,7 +4262,7 @@ export default class mexc extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         return await this.modifyMarginHelper (symbol, amount, 'ADD', params);

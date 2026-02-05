@@ -11,8 +11,12 @@ import (
 // Utility functions for safe extraction from maps
 func SafeFloatTyped(m interface{}, key interface{}) *float64 {
 	res := SafeFloat(m, key, math.NaN())
+
 	if res != nil {
 		resFloat := res.(float64)
+		if math.IsNaN(resFloat) {
+			return nil
+		}
 		return &resFloat
 	}
 	return nil

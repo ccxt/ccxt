@@ -170,6 +170,20 @@ The list above is updated frequently, new crypto markets, exchanges, bug fixes, 
 
 The library is under [MIT license](https://github.com/ccxt/ccxt/blob/master/LICENSE.txt), that means it's absolutely free for any developer to build commercial and opensource software on top of it, but use it at your own risk with no warranties, as is.
 
+### Builder Code Exchanges
+
+
+
+<!--- init builder codes list --->
+|logo                                                                                                                               |id           |name                                         |ver                                                                                                                               |type                                                                                                   |certified                                                                                                                    |pro                                                                           |
+|-----------------------------------------------------------------------------------------------------------------------------------|-------------|---------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------:|-------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| [![hyperliquid](https://github.com/ccxt/ccxt/assets/43336371/b371bc6c-4a8c-489f-87f4-20a913dd8d4b)](https://app.hyperliquid.xyz/) | hyperliquid | [Hyperliquid](https://app.hyperliquid.xyz/) | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api) | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+<!--- end list -->
+
+
+CCXT participates in builder programs with the exchanges listed above, which means that in order to support the CCXT project users pay a small fee (1 bps) on top of the exchanges' fees when using the exchanges' API through CCXT. This is optional and can be disabled by setting `exchange.options['builderFee'] = False`. For all other exchanges no additional fee is charged and in some cases you receive discounts or special conditions by using CCXT.
+
+
 ---
 
 ## Install
@@ -225,13 +239,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.33/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.5.33/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.36/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.36/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.33/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.36/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
@@ -374,7 +388,7 @@ exchange.methodName ()  // camelcase pseudocode
 exchange.method_name () // underscore pseudocode
 ```
 
-Read the [Manual](https://github.com/ccxt/ccxt/wiki/) for more details.
+Read the [Manual](https://github.com/ccxt/ccxt/wiki/) and see [examples](https://github.com/ccxt/ccxt/tree/master/examples) for more details.
 
 ### JavaScript
 
@@ -636,7 +650,7 @@ exchange = ccxt.binance({
 
 Read the documentation for more information and details: [docs](https://github.com/ccxt/ccxt/tree/master/cli/README.md)
 
-CCXT also provides a command-line interface (CLI) that enables direct interaction with any supported exchange from the terminal. You can quickly check balances, place orders, or fetch trade data—without the need to write or execute custom code. This is especially useful for simple or time-sensitive tasks that don’t warrant the overhead of building a full application.
+CCXT also provides a command-line interface (CLI) that enables direct interaction with any supported exchange from the terminal. You can quickly check balances, place orders, or fetch trade data - all of that without the need to write or execute custom code and without the overhead of building an entire application from scratch. This is especially useful for simple or time-sensitive tasks (shell scripting, testing and debugging among other things).
 
 ### Installation
 

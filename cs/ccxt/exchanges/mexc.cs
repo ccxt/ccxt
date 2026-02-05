@@ -143,8 +143,8 @@ public partial class mexc : Exchange
                         { "private", "https://www.mexc.com/open/api/v2" },
                     } },
                     { "contract", new Dictionary<string, object>() {
-                        { "public", "https://contract.mexc.com/api/v1/contract" },
-                        { "private", "https://contract.mexc.com/api/v1/private" },
+                        { "public", "https://api.mexc.com/api/v1/contract" },
+                        { "private", "https://api.mexc.com/api/v1/private" },
                     } },
                     { "broker", new Dictionary<string, object>() {
                         { "private", "https://api.mexc.com/api/v3/broker" },
@@ -4145,7 +4145,7 @@ public partial class mexc : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -4161,7 +4161,7 @@ public partial class mexc : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {

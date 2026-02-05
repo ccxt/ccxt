@@ -1777,7 +1777,7 @@ public partial class whitebit : Exchange
         //         "time":1737380046
         //     }
         //
-        return this.safeInteger(response, "time");
+        return this.safeIntegerProduct(response, "time", 1000);
     }
 
     /**
@@ -3066,7 +3066,7 @@ public partial class whitebit : Exchange
             { "status", this.parseTransactionStatus(status) },
             { "updated", null },
             { "tagFrom", null },
-            { "tag", null },
+            { "tag", this.safeString(transaction, "memo") },
             { "tagTo", null },
             { "comment", this.safeString(transaction, "description") },
             { "internal", null },

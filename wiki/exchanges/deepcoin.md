@@ -290,7 +290,7 @@ deepcoin.fetchDepositAddress (code[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>deepcoin</code>](#deepcoin)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [ledger structures](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://www.deepcoin.com/docs/DeepCoinAccount/getAccountBills  
 

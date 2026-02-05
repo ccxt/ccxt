@@ -357,13 +357,11 @@ export default class binance extends binanceRest {
         const market = this.safeMarket (marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-        let liquidations = this.safeValue (this.liquidations, symbol);
-        if (liquidations === undefined) {
-            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-            liquidations = new ArrayCache (limit);
+        if (this.liquidations === undefined) {
+            this.liquidations = new ArrayCacheBySymbolBySide ();
         }
-        liquidations.append (liquidation);
-        this.liquidations[symbol] = liquidations;
+        const cache = this.liquidations;
+        cache.append (liquidation);
         client.resolve ([ liquidation ], 'liquidations');
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
@@ -571,13 +569,12 @@ export default class binance extends binanceRest {
         const market = this.safeMarket (marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
-        let myLiquidations = this.safeValue (this.myLiquidations, symbol);
-        if (myLiquidations === undefined) {
-            const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
-            myLiquidations = new ArrayCache (limit);
+        let cache = this.myLiquidations;
+        if (cache === undefined) {
+            cache = new ArrayCacheBySymbolBySide ();
         }
-        myLiquidations.append (liquidation);
-        this.myLiquidations[symbol] = myLiquidations;
+        cache.append (liquidation);
+        this.myLiquidations = cache;
         client.resolve ([ liquidation ], 'myLiquidations');
         client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
     }
@@ -2772,7 +2769,12 @@ export default class binance extends binanceRest {
                 payload['symbol'] = market['id'];
             }
         }
-        const type = this.getMarketType ('fetchPositionsWs', market, params);
+        let type = this.getMarketType ('fetchPositionsWs', market, params);
+        if (symbols === undefined && (type === 'spot')) {
+            // when symbols aren't provide
+            // we shouldn't rely on the defaultType
+            type = 'future';
+        }
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }

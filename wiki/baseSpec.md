@@ -5,7 +5,7 @@
 add margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -2699,6 +2699,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [aster](/exchanges/aster.md#fetchfundinghistory)
 * [backpack](/exchanges/backpack.md#fetchfundinghistory)
 * [binance](/exchanges/binance.md#fetchfundinghistory)
+* [bingx](/exchanges/bingx.md#fetchfundinghistory)
 * [bitget](/exchanges/bitget.md#fetchfundinghistory)
 * [bitmart](/exchanges/bitmart.md#fetchfundinghistory)
 * [bybit](/exchanges/bybit.md#fetchfundinghistory)
@@ -3146,7 +3147,7 @@ fetch the history of changes, actions done by the user or operations that altere
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 
 | Param | Type | Required | Description |
@@ -3359,6 +3360,7 @@ fetches the margin mode of a specific symbol
 * [bingx](/exchanges/bingx.md#fetchmarginmode)
 * [bitget](/exchanges/bitget.md#fetchmarginmode)
 * [blofin](/exchanges/blofin.md#fetchmarginmode)
+* [bybit](/exchanges/bybit.md#fetchmarginmode)
 * [bydfi](/exchanges/bydfi.md#fetchmarginmode)
 * [coincatch](/exchanges/coincatch.md#fetchmarginmode)
 * [delta](/exchanges/delta.md#fetchmarginmode)
@@ -6229,7 +6231,7 @@ redeem gift code
 remove margin from a position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -6422,7 +6424,7 @@ set the level of leverage for a market
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -7094,6 +7096,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 ##### Supported exchanges
 * [arkham](/exchanges/arkham.md#watchbalance)
 * [ascendex](/exchanges/ascendex.md#watchbalance)
+* [aster](/exchanges/aster.md#watchbalance)
 * [binance](/exchanges/binance.md#watchbalance)
 * [bingx](/exchanges/bingx.md#watchbalance)
 * [bitfinex](/exchanges/bitfinex.md#watchbalance)
@@ -7370,6 +7373,7 @@ watches information on multiple trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchmytrades)
 * [apex](/exchanges/apex.md#watchmytrades)
+* [aster](/exchanges/aster.md#watchmytrades)
 * [binance](/exchanges/binance.md#watchmytrades)
 * [bingx](/exchanges/bingx.md#watchmytrades)
 * [bitfinex](/exchanges/bitfinex.md#watchmytrades)
@@ -7666,6 +7670,7 @@ watches information on multiple orders made by the user
 * [apex](/exchanges/apex.md#watchorders)
 * [arkham](/exchanges/arkham.md#watchorders)
 * [ascendex](/exchanges/ascendex.md#watchorders)
+* [aster](/exchanges/aster.md#watchorders)
 * [backpack](/exchanges/backpack.md#watchorders)
 * [binance](/exchanges/binance.md#watchorders)
 * [bingx](/exchanges/bingx.md#watchorders)
@@ -7776,6 +7781,7 @@ watch all open positions
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#watchpositions)
 * [arkham](/exchanges/arkham.md#watchpositions)
+* [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
 * [binance](/exchanges/binance.md#watchpositions)
 * [bitget](/exchanges/bitget.md#watchpositions)

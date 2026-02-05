@@ -625,7 +625,7 @@ class kucoin extends kucoin$1["default"] {
                     '400370': errors.InvalidOrder,
                     '400400': errors.BadRequest,
                     '400401': errors.AuthenticationError,
-                    '400500': errors.InvalidOrder,
+                    '400500': errors.RestrictedLocation,
                     '400600': errors.BadSymbol,
                     '400760': errors.InvalidOrder,
                     '401000': errors.BadRequest,
@@ -4910,7 +4910,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

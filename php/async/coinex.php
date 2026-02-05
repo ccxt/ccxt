@@ -424,6 +424,8 @@ class coinex extends Exchange {
                             'futures/stop-order' => 20,
                             'futures/batch-order' => 1,
                             'futures/batch-stop-order' => 1,
+                            'futures/cancel-position-stop-loss' => 20,
+                            'futures/cancel-position-take-profit' => 20,
                             'futures/modify-order' => 20,
                             'futures/modify-stop-order' => 20,
                             'futures/batch-modify-order' => 20,
@@ -4713,7 +4715,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();
@@ -4729,7 +4731,7 @@ class coinex extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();

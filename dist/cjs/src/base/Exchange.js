@@ -118,7 +118,7 @@ class Exchange {
         this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orderbooks = {};
         this.tickers = {};
         this.fundingRates = {};
@@ -126,7 +126,7 @@ class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
@@ -336,12 +336,12 @@ class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -771,6 +771,9 @@ class Exchange {
             }
             throw e;
         }
+    }
+    jsonStringifyWithNull(obj) {
+        return JSON.stringify(obj, (_, v) => (v === undefined ? null : v));
     }
     parseJson(jsonString) {
         try {
@@ -1982,7 +1985,11 @@ class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, [key], defaultValue);
+        const value = this.safeValue(dictionary, key, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
     }
     safeDictN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -2007,7 +2014,14 @@ class Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, [key], defaultValue);
+        const value = this.safeValue(dictionary, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if ((typeof value === 'object') && !Array.isArray(value)) {
+            return value;
+        }
+        return defaultValue;
     }
     safeDict2(dictionary, key1, key2, defaultValue = undefined) {
         /**
@@ -2050,7 +2064,14 @@ class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, [key], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray(value)) {
+            return value;
+        }
+        return defaultValue;
     }
     handleDeltas(orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
@@ -7259,7 +7280,8 @@ class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
@@ -8023,6 +8045,32 @@ class Exchange {
                 }
             }
         }
+    }
+    timeframeFromMilliseconds(ms) {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
     }
 }
 

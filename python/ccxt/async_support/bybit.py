@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -19,6 +19,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NoChange
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import ManualInteractionNeeded
+from ccxt.base.errors import RestrictedLocation
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -113,6 +114,7 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchLongShortRatio': False,
                 'fetchLongShortRatioHistory': True,
                 'fetchMarginAdjustmentHistory': False,
+                'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -364,7 +366,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1,
+                        'v5/account/transaction-log': 1.66,  # 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
@@ -394,6 +396,13 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/asset/withdraw/withdrawable-amount': 5,
                         'v5/asset/withdraw/vasp/list': 5,
+                        'v5/asset/convert/small-balance-list': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-history': 5,  # 10/s => cost = 50 / 10 = 5
+                        'v5/fiat/query-coin-list': 5,
+                        'v5/fiat/reference-price': 5,
+                        'v5/fiat/trade-query': 5,
+                        'v5/fiat/query-trade-history': 5,
+                        'v5/fiat/balance-query': 5,
                         # user
                         'v5/user/query-sub-members': 5,  # 10/s => cost = 50 / 10 = 5
                         'v5/user/query-api': 5,  # 10/s => cost = 50 / 10 = 5
@@ -413,6 +422,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-margin-trade/position-tiers': 5,
                         'v5/spot-margin-trade/coinstate': 5,
                         'v5/spot-margin-trade/repayment-available-amount': 5,
+                        'v5/spot-margin-trade/get-auto-repay-mode': 5,
                         'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
                         'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
@@ -552,6 +562,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
+                        'v5/account/set-limit-px-action': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -561,6 +572,10 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/deposit/deposit-to-account': 5,
                         'v5/asset/withdraw/create': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/asset/withdraw/cancel': 50,  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/covert/get-quote': 10,  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/covert/small-balance-execute': 10,  # 5/s => cost = 50 / 5 = 10
+                        'v5/fiat/quote-apply': 10,
+                        'v5/fiat/trade-execute': 10,
                         # user
                         'v5/user/create-sub-member': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/user/create-sub-api': 10,  # 5/s => cost = 50 / 5 = 10
@@ -575,6 +590,7 @@ class bybit(Exchange, ImplicitAPI):
                         # spot margin trade
                         'v5/spot-margin-trade/switch-mode': 5,
                         'v5/spot-margin-trade/set-leverage': 5,
+                        'v5/spot-margin-trade/set-auto-repay-mode': 5,
                         'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
                         'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
@@ -584,6 +600,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/crypto-loan/adjust-ltv': 5,
                         # crypto loan(new)
                         'v5/crypto-loan-common/adjust-ltv': 50,  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': 10,  # 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-flexible/borrow': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay': 50,  # 1/s => cost = 50 / 1 = 50
                         'v5/crypto-loan-flexible/repay-collateral': 50,  # 1/s => cost = 50 / 1 = 50
@@ -596,6 +613,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/crypto-loan-fixed/repay-collateral': 50,  # 1/s => cost = 50 / 1 = 50
                         # institutional lending
                         'v5/ins-loan/association-uid': 5,
+                        'v5/ins-loan/repay-loan': 5,
                         # c2c lending
                         'v5/lending/purchase': 5,
                         'v5/lending/redeem': 5,
@@ -903,6 +921,7 @@ class bybit(Exchange, ImplicitAPI):
                     '170203': InvalidOrder,  # Please enter the TP/SL price.
                     '170204': InvalidOrder,  # trigger price cannot be higher than 110% price.
                     '170206': InvalidOrder,  # trigger price cannot be lower than 90% of qty.
+                    '170209': RestrictedLocation,  # {"retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea(Cambodia],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":{},"retExtInfo":{},"time":1769526868171}
                     '170210': InvalidOrder,  # New order rejected.
                     '170213': OrderNotFound,  # Order does not exist.
                     '170217': InvalidOrder,  # Only LIMIT-MAKER order is supported for the current pair.
@@ -1087,6 +1106,7 @@ class bybit(Exchange, ImplicitAPI):
                 'enableDemoTrading': False,
                 'fetchMarkets': {
                     'types': ['spot', 'linear', 'inverse', 'option'],
+                    'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
@@ -1770,23 +1790,29 @@ class bybit(Exchange, ImplicitAPI):
             elif marketType == 'inverse':
                 promisesUnresolved.append(self.fetch_future_markets({'category': 'inverse'}))
             elif marketType == 'option':
-                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'BTC'}))
-                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'ETH'}))
-                promisesUnresolved.append(self.fetch_option_markets({'baseCoin': 'SOL'}))
+                optionsCurrencies = self.safe_list(fetchMarketsOptions, 'options', ['BTC', 'ETH', 'SOL'])
+                for j in range(0, len(optionsCurrencies)):
+                    currency = optionsCurrencies[j]
+                    promisesUnresolved.append(self.fetch_option_markets({'baseCoin': currency}))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = await asyncio.gather(*promisesUnresolved)
-        spotMarkets = self.safe_list(promises, 0, [])
-        linearMarkets = self.safe_list(promises, 1, [])
-        inverseMarkets = self.safe_list(promises, 2, [])
-        btcOptionMarkets = self.safe_list(promises, 3, [])
-        ethOptionMarkets = self.safe_list(promises, 4, [])
-        solOptionMarkets = self.safe_list(promises, 5, [])
-        futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
-        optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
-        optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
-        derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
-        return self.array_concat(spotMarkets, derivativeMarkets)
+        result = []
+        for i in range(0, len(promises)):
+            parsedMarket = promises[i]
+            result = self.array_concat(result, parsedMarket)
+        # spotMarkets = self.safe_list(promises, 0, [])
+        # linearMarkets = self.safe_list(promises, 1, [])
+        # inverseMarkets = self.safe_list(promises, 2, [])
+        # btcOptionMarkets = self.safe_list(promises, 3, [])
+        # ethOptionMarkets = self.safe_list(promises, 4, [])
+        # solOptionMarkets = self.safe_list(promises, 5, [])
+        # futureMarkets = self.array_concat(linearMarkets, inverseMarkets)
+        # optionMarkets = self.array_concat(btcOptionMarkets, ethOptionMarkets)
+        # optionMarkets = self.array_concat(optionMarkets, solOptionMarkets)
+        # derivativeMarkets = self.array_concat(futureMarkets, optionMarkets)
+        # return self.array_concat(spotMarkets, derivativeMarkets)
+        return result
 
     async def fetch_spot_markets(self, params) -> List[Market]:
         request: dict = {
@@ -2798,7 +2824,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, 200)
         if limit is None:
             limit = 200
         request: dict = {
@@ -2809,6 +2835,7 @@ class bybit(Exchange, ImplicitAPI):
             'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
+        fundingTimeFrameMins = self.safe_integer(market['info'], 'fundingInterval')
         symbol = market['symbol']
         request['symbol'] = market['id']
         type = None
@@ -2827,7 +2854,9 @@ class bybit(Exchange, ImplicitAPI):
             if since is not None:
                 # end time is required when since is not empty
                 fundingInterval = 60 * 60 * 8 * 1000
-                request['endTime'] = since + limit * fundingInterval
+                if fundingTimeFrameMins is not None:
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000
+                request['endTime'] = self.sum(since, limit * fundingInterval)
         response = await self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {
@@ -3985,10 +4014,13 @@ class bybit(Exchange, ImplicitAPI):
                             tpslModeTp = 'Partial'
                         else:
                             tpslModeTp = 'Full'
-                if tpslModeSl != tpslModeTp:
+                if isTakeProfitOrder and isStopLossOrder and tpslModeSl != tpslModeTp:
                     raise InvalidOrder(self.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination')
-                request['tpslMode'] = tpslModeSl  # same
-                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice'])
+                if tpslModeSl is not None:
+                    request['tpslMode'] = tpslModeSl
+                else:
+                    request['tpslMode'] = tpslModeTp
+                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint'])
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
@@ -5758,7 +5790,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -6394,7 +6426,13 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 side = 'long' if isHistory else 'short'
             else:
                 side = None
-        notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
+        notional = None
+        contractSize = self.safe_string(market, 'contractSize')
+        markPrice = self.safe_string(position, 'markPrice')
+        if market['inverse']:
+            notional = Precise.string_div(Precise.string_mul(size, contractSize), markPrice)
+        else:
+            notional = self.safe_string_2(position, 'positionValue', 'cumExitValue')
         unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string_2(position, 'positionIM', 'cumEntryValue')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
@@ -6402,15 +6440,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         lastUpdateTimestamp = self.parse8601(self.safe_string(position, 'updated_at'))
         if lastUpdateTimestamp is None:
             lastUpdateTimestamp = self.safe_integer_n(position, ['updatedTime', 'updatedAt', 'updatedTime'])
-        tradeMode = self.safe_integer(position, 'tradeMode', 0)
-        marginMode = None
-        if (not self.options['enableUnifiedAccount']) or (self.options['enableUnifiedAccount'] and market['inverse']):
-            # tradeMode would work for classic and UTA(inverse)
-            if not isHistory:     # cannot tell marginMode for fetchPositionsHistory, and closedSize will only be defined for fetchPositionsHistory response
-                marginMode = 'isolated' if (tradeMode == 1) else 'cross'
         collateralString = self.safe_string(position, 'positionBalance')
         entryPrice = self.omit_zero(self.safe_string_n(position, ['entryPrice', 'avgPrice', 'avgEntryPrice']))
-        markPrice = self.safe_string(position, 'markPrice')
         liquidationPrice = self.omit_zero(self.safe_string(position, 'liqPrice'))
         leverage = self.safe_string(position, 'leverage')
         if liquidationPrice is not None:
@@ -6467,7 +6498,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'markPrice': self.parse_number(markPrice),
             'lastPrice': self.safe_number(position, 'avgExitPrice'),
             'collateral': self.parse_number(collateralString),
-            'marginMode': marginMode,
+            'marginMode': None,  # tradeMode was deprecated
             'side': side,
             'percentage': None,
             'stopLossPrice': self.safe_number_2(position, 'stop_loss', 'stopLoss'),
@@ -8948,6 +8979,54 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'timeframe': None,
             'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
+
+    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the margin mode of the trading pair
+
+        https://bybit-exchange.github.io/docs/v5/account/account-info
+
+        :param str [symbol]: unified symbol of the market to fetch the margin mode for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        response = await self.privateGetV5AccountInfo(params)
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "marginMode": "REGULAR_MARGIN",
+        #             "updatedTime": "1723481446000",
+        #             "unifiedMarginStatus": 5,
+        #             "dcpStatus": "OFF",
+        #             "timeWindow": 0,
+        #             "smpGroup": 0,
+        #             "isMasterTrader": False,
+        #             "spotHedgingStatus": "OFF"
+        #         }
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_margin_mode(result, market)
+
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+        marginType = self.safe_string(marginMode, 'marginMode')
+        return {
+            'info': marginMode,
+            'symbol': self.safe_symbol(None, market),
+            'marginMode': self.parse_margin_mode_type(marginType),
+        }
+
+    def parse_margin_mode_type(self, marginMode: Str) -> Str:
+        marginModes: dict = {
+            'ISOLATED_MARGIN': 'isolated',
+            'REGULAR_MARGIN': 'cross',
+            'PORTFOLIO_MARGIN': 'portfolio',
+        }
+        return self.safe_string(marginModes, marginMode, marginMode)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path

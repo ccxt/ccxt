@@ -53,6 +53,7 @@ export default class gate extends Exchange {
                         'earn': 'https://api.gateio.ws/api/v4',
                         'account': 'https://api.gateio.ws/api/v4',
                         'loan': 'https://api.gateio.ws/api/v4',
+                        'otc': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -477,6 +478,7 @@ export default class gate extends Exchange {
                             '{settle}/account_book': 1,
                             '{settle}/positions': 1,
                             '{settle}/positions/{contract}': 1,
+                            '{settle}/get_leverage/{contract}': 1,
                             '{settle}/dual_comp/positions/{contract}': 1,
                             '{settle}/orders': 1,
                             '{settle}/orders_timerange': 1,
@@ -494,10 +496,12 @@ export default class gate extends Exchange {
                         'post': {
                             '{settle}/positions/{contract}/margin': 1,
                             '{settle}/positions/{contract}/leverage': 1,
+                            '{settle}/positions/{contract}/set_leverage': 1,
                             '{settle}/positions/{contract}/risk_limit': 1,
                             '{settle}/positions/cross_mode': 1,
                             '{settle}/dual_comp/positions/cross_mode': 1,
                             '{settle}/dual_mode': 1,
+                            '{settle}/set_position_mode': 1,
                             '{settle}/dual_comp/positions/{contract}/margin': 1,
                             '{settle}/dual_comp/positions/{contract}/leverage': 1,
                             '{settle}/dual_comp/positions/{contract}/risk_limit': 1,
@@ -584,6 +588,7 @@ export default class gate extends Exchange {
                             'uni/rate': 20 / 15,
                             'staking/eth2/rate_records': 20 / 15,
                             'dual/orders': 20 / 15,
+                            'dual/balance': 20 / 15,
                             'structured/orders': 20 / 15,
                             'staking/coins': 20 / 15,
                             'staking/order_list': 20 / 15,
@@ -664,6 +669,21 @@ export default class gate extends Exchange {
                             'broker/transaction_history': 20 / 15,
                             'user/info': 20 / 15,
                             'user/sub_relation': 20 / 15,
+                        },
+                    },
+                    'otc': {
+                        'get': {
+                            'get_user_def_bank': 1,
+                            'order/list': 1,
+                            'stable_coin/order/list': 1,
+                            'order/detail': 1,
+                        },
+                        'post': {
+                            'quote': 1,
+                            'order/create': 1,
+                            'stable_coin/order/create': 1,
+                            'order/paid': 1,
+                            'order/cancel': 1,
                         },
                     },
                 },
@@ -7036,7 +7056,7 @@ export default class gate extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, -amount, params);
@@ -7050,7 +7070,7 @@ export default class gate extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, params);
@@ -7338,7 +7358,7 @@ export default class gate extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

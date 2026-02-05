@@ -703,7 +703,7 @@ public partial class phemex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}.</returns>
+    /// <returns> <term>object</term> A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}.</returns>
     public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);

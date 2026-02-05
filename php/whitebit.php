@@ -1808,7 +1808,7 @@ class whitebit extends Exchange {
         //         "time":1737380046
         //     }
         //
-        return $this->safe_integer($response, 'time');
+        return $this->safe_integer_product($response, 'time', 1000);
     }
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
@@ -2952,7 +2952,7 @@ class whitebit extends Exchange {
             'status' => $this->parse_transaction_status($status),
             'updated' => null,
             'tagFrom' => null,
-            'tag' => null,
+            'tag' => $this->safe_string($transaction, 'memo'),
             'tagTo' => null,
             'comment' => $this->safe_string($transaction, 'description'),
             'internal' => null,

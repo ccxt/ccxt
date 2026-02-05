@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.33';
+$version = '4.5.36';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.33';
+    const VERSION = '4.5.36';
 
     public $browser;
     public $marketsLoading = null;
@@ -744,10 +744,14 @@ class Exchange extends \ccxt\Exchange {
     public function safe_bool($dictionary, int|string $key, ?bool $defaultValue = null) {
         /**
          * @ignore
-         * safely extract boolean value from $dictionary or list
+         * safely extract boolean $value from $dictionary or list
          * @return array(bool | null)
          */
-        return $this->safe_bool_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if (is_bool($value)) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_n($dictionaryOrList, array $keys, ?array $defaultValue = null) {
@@ -772,7 +776,14 @@ class Exchange extends \ccxt\Exchange {
          * safely extract a $dictionary from $dictionary or list
          * @return array(object | null)
          */
-        return $this->safe_dict_n($dictionary, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionary, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array') && (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function safe_dict_2($dictionary, int|string $key1, string $key2, ?array $defaultValue = null) {
@@ -815,7 +826,14 @@ class Exchange extends \ccxt\Exchange {
          * safely extract an Array from dictionary or list
          * @return array(Array | null)
          */
-        return $this->safe_list_n($dictionaryOrList, array( $key ), $defaultValue);
+        $value = $this->safe_value($dictionaryOrList, $key, $defaultValue);
+        if ($value === null) {
+            return $defaultValue;
+        }
+        if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
+            return $value;
+        }
+        return $defaultValue;
     }
 
     public function handle_deltas($orderbook, $deltas) {
@@ -6433,7 +6451,8 @@ class Exchange extends \ccxt\Exchange {
                 $uniqueResults = $this->remove_repeated_elements_from_array($result);
             }
             $key = ($method === 'fetchOHLCV') ? 0 : 'timestamp';
-            return $this->filter_by_since_limit($uniqueResults, $since, $limit, $key);
+            $sortedRes = $this->sort_by($uniqueResults, $key);
+            return $this->filter_by_since_limit($sortedRes, $since, $limit, $key);
         }) ();
     }
 
@@ -7196,5 +7215,32 @@ class Exchange extends \ccxt\Exchange {
                 }
             }
         }
+    }
+
+    public function timeframe_from_milliseconds(float $ms) {
+        if ($ms <= 0) {
+            return '';
+        }
+        $second = 1000;
+        $minute = 60 * $second;
+        $hour = 60 * $minute;
+        $day = 24 * $hour;
+        $week = 7 * $day;
+        if (fmod($ms, $week) === 0) {
+            return ($ms / $week) . 'w';
+        }
+        if (fmod($ms, $day) === 0) {
+            return ($ms / $day) . 'd';
+        }
+        if (fmod($ms, $hour) === 0) {
+            return ($ms / $hour) . 'h';
+        }
+        if (fmod($ms, $minute) === 0) {
+            return ($ms / $minute) . 'm';
+        }
+        if (fmod($ms, $second) === 0) {
+            return ($ms / $second) . 's';
+        }
+        return '';
     }
 }
