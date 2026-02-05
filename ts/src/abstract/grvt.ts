@@ -32,6 +32,7 @@ interface Exchange {
     privateTradingPostFullV1FillHistory (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1Positions (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1FundingPaymentHistory (params?: {}): Promise<implicitReturnType>;
+    privateTradingPostFullV1GetSubAccounts (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1AccountSummary (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1AccountHistory (params?: {}): Promise<implicitReturnType>;
     privateTradingPostFullV1AggregatedAccountSummary (params?: {}): Promise<implicitReturnType>;
