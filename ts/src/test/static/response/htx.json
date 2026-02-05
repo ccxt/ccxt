@@ -1295,6 +1295,107 @@
                   }
                 }
             }
+        ],
+        "fetchBalance": [
+            {
+              "description": "fetch balance multi asset mode",
+              "method": "fetchBalance",
+              "input": [
+                {
+                  "multiAssetMode": true
+                }
+              ],
+              "httpResponse": {
+                "code": "200",
+                "message": "Success",
+                "data": {
+                  "state": "normal",
+                  "equity": "174.216697577770536136",
+                  "details": [
+                    {
+                      "currency": "USDT",
+                      "equity": "174.216697577770536136",
+                      "available": "174.216697577770536136",
+                      "profit_unreal": "0",
+                      "initial_margin": "0",
+                      "maintenance_margin": "0",
+                      "maintenance_margin_rate": "0",
+                      "initial_margin_rate": "0",
+                      "available_margin": "174.216697577770536136",
+                      "voucher": "0",
+                      "voucher_value": "0",
+                      "withdraw_available": "174.216697577770536136",
+                      "created_time": "1770293270932",
+                      "updated_time": "1770293270932",
+                      "isolated_equity": "0",
+                      "isolated_profit_unreal": "0"
+                    }
+                  ],
+                  "initial_margin": "0",
+                  "maintenance_margin": "0",
+                  "maintenance_margin_rate": "0",
+                  "profit_unreal": "0",
+                  "available_margin": "174.216697577770536136",
+                  "voucher_value": "0",
+                  "created_time": "1770293268881",
+                  "updated_time": "1770293270932"
+                },
+                "ts": "1770293556917"
+              },
+              "parsedResponse": {
+                "info": {
+                  "code": "200",
+                  "message": "Success",
+                  "data": {
+                    "state": "normal",
+                    "equity": "174.216697577770536136",
+                    "details": [
+                      {
+                        "currency": "USDT",
+                        "equity": "174.216697577770536136",
+                        "available": "174.216697577770536136",
+                        "profit_unreal": "0",
+                        "initial_margin": "0",
+                        "maintenance_margin": "0",
+                        "maintenance_margin_rate": "0",
+                        "initial_margin_rate": "0",
+                        "available_margin": "174.216697577770536136",
+                        "voucher": "0",
+                        "voucher_value": "0",
+                        "withdraw_available": "174.216697577770536136",
+                        "created_time": "1770293270932",
+                        "updated_time": "1770293270932",
+                        "isolated_equity": "0",
+                        "isolated_profit_unreal": "0"
+                      }
+                    ],
+                    "initial_margin": "0",
+                    "maintenance_margin": "0",
+                    "maintenance_margin_rate": "0",
+                    "profit_unreal": "0",
+                    "available_margin": "174.216697577770536136",
+                    "voucher_value": "0",
+                    "created_time": "1770293268881",
+                    "updated_time": "1770293270932"
+                  },
+                  "ts": "1770293556917"
+                },
+                "USDT": {
+                  "free": 174.21669757777053,
+                  "used": null,
+                  "total": null
+                },
+                "free": {
+                  "USDT": 174.21669757777053
+                },
+                "used": {
+                  "USDT": null
+                },
+                "total": {
+                  "USDT": null
+                }
+              }
+            }
         ]
     }
 }
