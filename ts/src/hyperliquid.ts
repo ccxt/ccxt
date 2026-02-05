@@ -1742,7 +1742,7 @@ export default class hyperliquid extends Exchange {
 
     buildUserAbstractionSig (message) {
         const messageTypes: Dict = {
-            'HyperliquidTransaction:UserDexAbstraction': [
+            'HyperliquidTransaction:UserSetAbstraction': [
                 { 'name': 'hyperliquidChain', 'type': 'string' },
                 { 'name': 'user', 'type': 'address' },
                 { 'name': 'abstraction', 'type': 'string' },
