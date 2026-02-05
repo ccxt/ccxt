@@ -1833,7 +1833,7 @@ export default class grvt extends Exchange {
                 }
             }
             // trigger by
-            const triggerPriceType = this.safeString (params, 'triggerPriceType', 'LAST');
+            const triggerPriceType = this.safeStringUpper (params, 'triggerPriceType', 'LAST');
             orderRequest['metadata']['trigger'] = {
                 'trigger_type': selectedType,
                 'tpsl': {
