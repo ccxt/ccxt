@@ -235,6 +235,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'watchTradesForSymbols': true,
     'withdrawWs': true,
     "parseLastPrice": false,
+    'fetchPositionsADLRank': true,
+    'parseADLRank': false
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
 }

@@ -5707,6 +5707,109 @@
                     }
                 }
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "BTCUSDT%2C1767085496112%2C0",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "leverage": "",
+                                "autoAddMargin": "0",
+                                "avgPrice": "177489.6",
+                                "liqPrice": "",
+                                "riskLimitValue": "",
+                                "takeProfit": "",
+                                "positionValue": "1774.896",
+                                "isReduceOnly": false,
+                                "positionIMByMp": "",
+                                "tpslMode": "Full",
+                                "riskId": "0",
+                                "trailingStop": "0",
+                                "unrealisedPnl": "4.7843",
+                                "markPrice": "177968.03",
+                                "adlRankIndicator": "2",
+                                "cumRealisedPnl": "-9782.391468",
+                                "positionMM": "",
+                                "createdTime": "1699928551230",
+                                "positionIdx": "0",
+                                "positionIM": "",
+                                "positionMMByMp": "",
+                                "seq": "9558506126",
+                                "updatedTime": "1767085496112",
+                                "side": "Buy",
+                                "bustPrice": "",
+                                "positionBalance": "",
+                                "leverageSysUpdatedTime": "",
+                                "curRealisedPnl": "-0.9761928",
+                                "size": "0.01",
+                                "positionStatus": "Normal",
+                                "mmrSysUpdatedTime": "",
+                                "stopLoss": "",
+                                "tradeMode": "0",
+                                "sessionAvgPrice": ""
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1767086280636"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "leverage": "",
+                        "autoAddMargin": "0",
+                        "avgPrice": "177489.6",
+                        "liqPrice": "",
+                        "riskLimitValue": "",
+                        "takeProfit": "",
+                        "positionValue": "1774.896",
+                        "isReduceOnly": false,
+                        "positionIMByMp": "",
+                        "tpslMode": "Full",
+                        "riskId": "0",
+                        "trailingStop": "0",
+                        "unrealisedPnl": "4.7843",
+                        "markPrice": "177968.03",
+                        "adlRankIndicator": "2",
+                        "cumRealisedPnl": "-9782.391468",
+                        "positionMM": "",
+                        "createdTime": "1699928551230",
+                        "positionIdx": "0",
+                        "positionIM": "",
+                        "positionMMByMp": "",
+                        "seq": "9558506126",
+                        "updatedTime": "1767085496112",
+                        "side": "Buy",
+                        "bustPrice": "",
+                        "positionBalance": "",
+                        "leverageSysUpdatedTime": "",
+                        "curRealisedPnl": "-0.9761928",
+                        "size": "0.01",
+                        "positionStatus": "Normal",
+                        "mmrSysUpdatedTime": "",
+                        "stopLoss": "",
+                        "tradeMode": "0",
+                        "sessionAvgPrice": ""
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 2,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": 1767085496112,
+                    "datetime": "2025-12-30T09:04:56.112Z"
+                }
+            }
         ]
     }
 }

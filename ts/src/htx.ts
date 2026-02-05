@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, BorrowInterest, OpenInterests, Position, ADL } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -107,6 +107,8 @@ export default class htx extends Exchange {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
@@ -9523,5 +9525,263 @@ export default class htx extends Exchange {
             //
         }
         return response;
+    }
+
+    /**
+     * @method
+     * @name htx#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                const first = this.safeString (symbols, 0);
+                market = this.market (first);
+            }
+        }
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchPositionsADLRank', params, 'cross');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionsADLRank', market, params, 'linear');
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositionsADLRank', market, params);
+        if (marketType === 'spot') {
+            marketType = 'future';
+        }
+        let response = undefined;
+        if (subType === 'linear') {
+            if (marginMode === 'isolated') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo (params);
+            } else if (marginMode === 'cross') {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo (params);
+            } else {
+                throw new NotSupported (this.id + ' fetchPositionsADLRank() not support this market type');
+            }
+            //
+            //         {
+            //             "status": "ok",
+            //         "data": [
+            //             {
+            //                 "symbol": "BTC",
+            //                 "contract_code": "BTC-USDT",
+            //                 "volume": 1.000000000000000000,
+            //                 "available": 1.000000000000000000,
+            //                 "frozen": 0E-18,
+            //                 "cost_open": 96039.700000000000000000,
+            //                 "cost_hold": 96039.700000000000000000,
+            //                 "profit_unreal": 0.000600000000000000,
+            //                 "profit_rate": 0.000006247416432995,
+            //                 "lever_rate": 1,
+            //                 "position_margin": 96.040300000000000000,
+            //                 "direction": "buy",
+            //                 "profit": 0.000600000000000000,
+            //                 "last_price": 96040.3,
+            //                 "margin_asset": "USDT",
+            //                 "margin_mode": "cross",
+            //                 "margin_account": "USDT",
+            //                 "contract_type": "swap",
+            //                 "pair": "BTC-USDT",
+            //                 "business_type": "swap",
+            //                 "trade_partition":"USDT",
+            //                 "position_mode": "single_side",
+            //                 "store_time": "2023-10-08 20:05:06",
+            //                 "liquidation_price": null,
+            //                 "market_closing_slippage": null,
+            //                 "risk_rate": 249.274066168760049797,
+            //                 "new_risk_rate": 0.003995619743220614,
+            //                 "risk_rate_percent": 0.003995619743220614,
+            //                 "withdraw_available": null,
+            //                 "open_adl": 1,
+            //                 "adl_risk_percent": 3,
+            //                 "tp_trigger_price": null,
+            //                 "sl_trigger_price": null,
+            //                 "tp_order_id": null,
+            //                 "sl_order_id": null,
+            //                 "tp_trigger_type": null,
+            //                 "sl_trigger_type": null,
+            //                 "adjust_value": null
+            //             }
+            //         ],
+            //         "ts": 1768489640285
+            //     }
+            //
+        } else {
+            if (marketType === 'future') {
+                response = await this.contractPrivatePostApiV1ContractPositionInfo (params);
+                //
+                //     {
+                //         "status": "ok",
+                //         "data": [
+                //             {
+                //                 "symbol": "BTC",
+                //                 "contract_code": "BTC-USDT-260123",
+                //                 "volume": 1.000000000000000000,
+                //                 "available": 1.000000000000000000,
+                //                 "frozen": 0E-18,
+                //                 "cost_open": 96203.100000000000000000,
+                //                 "cost_hold": 96203.100000000000000000,
+                //                 "profit_unreal": -0.199400000000000000,
+                //                 "profit_rate": -0.002072698281032524,
+                //                 "lever_rate": 1,
+                //                 "position_margin": 96.003700000000000000,
+                //                 "direction": "buy",
+                //                 "profit": -0.199400000000000000,
+                //                 "last_price": 96003.7,
+                //                 "margin_asset": "USDT",
+                //                 "margin_mode": "cross",
+                //                 "margin_account": "USDT",
+                //                 "contract_type": "next_week",
+                //                 "pair": "BTC-USDT",
+                //                 "business_type": "futures",
+                //                 "trade_partition": "USDT",
+                //                 "position_mode": "single_side",
+                //                 "store_time": "2026-01-15 23:45:21",
+                //                 "liquidation_price": null,
+                //                 "market_closing_slippage": null,
+                //                 "risk_rate": 249.265098252125343196,
+                //                 "new_risk_rate": 0.003995762920935011,
+                //                 "risk_rate_percent": 0.003995762920935011,
+                //                 "withdraw_available": null,
+                //                 "open_adl": 1,
+                //                 "adl_risk_percent": 2,
+                //                 "tp_trigger_price": null,
+                //                 "sl_trigger_price": null,
+                //                 "tp_order_id": null,
+                //                 "sl_order_id": null,
+                //                 "tp_trigger_type": null,
+                //                 "sl_trigger_type": null,
+                //                 "adjust_value": null
+                //             }
+                //         ],
+                //         "ts": 1768491964551
+                //     }
+                //
+            } else if (marketType === 'swap') {
+                response = await this.contractPrivatePostSwapApiV1SwapPositionInfo (params);
+                //
+                //     {
+                //         "status": "ok"
+                //         "data": [
+                //             {
+                //                 "symbol": "THETA"
+                //                 "contract_code": "THETA-USD"
+                //                 "volume": 20
+                //                 "available": 20
+                //                 "frozen": 0
+                //                 "cost_open": 0.6048347107438017
+                //                 "cost_hold": 0.65931
+                //                 "profit_unreal": -10.5257562398811
+                //                 "profit_rate": 1.0158596753357925
+                //                 "lever_rate": 20
+                //                 "position_margin": 15.693659761456372
+                //                 "direction": "buy"
+                //                 "profit": 16.795657677889032
+                //                 "last_price": 0.6372
+                //                 "adl_risk_percent": "3"
+                //                 "liq_px": "112"
+                //                 "new_risk_rate": ""
+                //                 "trade_partition": ""
+                //             }
+                //         ]
+                //         "ts": 1603868312729
+                //     }
+                //
+            } else {
+                throw new NotSupported (this.id + ' fetchPositionsADLRank() not support this market type');
+            }
+        }
+        const data = this.safeList (response, 'data', []);
+        return this.parseADLRanks (data, symbols);
+    }
+
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        //
+        // fetchPositionADLRank linear swap and future
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "volume": 1.000000000000000000,
+        //         "available": 1.000000000000000000,
+        //         "frozen": 0E-18,
+        //         "cost_open": 96039.700000000000000000,
+        //         "cost_hold": 96039.700000000000000000,
+        //         "profit_unreal": 0.000600000000000000,
+        //         "profit_rate": 0.000006247416432995,
+        //         "lever_rate": 1,
+        //         "position_margin": 96.040300000000000000,
+        //         "direction": "buy",
+        //         "profit": 0.000600000000000000,
+        //         "last_price": 96040.3,
+        //         "margin_asset": "USDT",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "contract_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "business_type": "swap",
+        //         "trade_partition":"USDT",
+        //         "position_mode": "single_side",
+        //         "store_time": "2023-10-08 20:05:06",
+        //         "liquidation_price": null,
+        //         "market_closing_slippage": null,
+        //         "risk_rate": 249.274066168760049797,
+        //         "new_risk_rate": 0.003995619743220614,
+        //         "risk_rate_percent": 0.003995619743220614,
+        //         "withdraw_available": null,
+        //         "open_adl": 1,
+        //         "adl_risk_percent": 3,
+        //         "tp_trigger_price": null,
+        //         "sl_trigger_price": null,
+        //         "tp_order_id": null,
+        //         "sl_order_id": null,
+        //         "tp_trigger_type": null,
+        //         "sl_trigger_type": null,
+        //         "adjust_value": null
+        //     }
+        //
+        // fetchPositionADLRank inverse
+        //
+        //     {
+        //         "symbol": "THETA"
+        //         "contract_code": "THETA-USD"
+        //         "volume": 20
+        //         "available": 20
+        //         "frozen": 0
+        //         "cost_open": 0.6048347107438017
+        //         "cost_hold": 0.65931
+        //         "profit_unreal": -10.5257562398811
+        //         "profit_rate": 1.0158596753357925
+        //         "lever_rate": 20
+        //         "position_margin": 15.693659761456372
+        //         "direction": "buy"
+        //         "profit": 16.795657677889032
+        //         "last_price": 0.6372
+        //         "adl_risk_percent": "3"
+        //         "liq_px": "112"
+        //         "new_risk_rate": ""
+        //         "trade_partition": ""
+        //     }
+        //
+        const marketId = this.safeString (info, 'contract_code');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger (info, 'adl_risk_percent'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        } as ADL;
     }
 }
