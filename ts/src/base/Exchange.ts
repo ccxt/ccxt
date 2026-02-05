@@ -434,7 +434,6 @@ export default class Exchange {
     deepExtend = deepExtend;
     deepExtendSafe = deepExtend;
     isNode = isNode;
-    keys = keysFunc;
     values = valuesFunc;
     extend = extend;
     clone = clone;
