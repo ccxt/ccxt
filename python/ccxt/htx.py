@@ -3413,6 +3413,7 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_balance(self, params={}) -> Balances:
         """
+        query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -3421,34 +3422,37 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
 
-        query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
+        :param str [params.subType]: linear or future
+        :param bool [params.uta]: provide self parameter if you have a recent account with unified cross+isolated margin account
+        :param bool [params.multiAssetMode]: set to True if you are using multi-asset mode for USDT-margined contracts
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
-        params = self.omit(params, ['isUnifiedAccount', 'unified'])
+        subType = None
+        isUnifiedAccount = None
+        isMultiAssetMode = None
+        subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear')
+        isUnifiedAccount, params = self.handle_option_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
+        isMultiAssetMode, params = self.handle_option_and_params(params, 'fetchBalance', 'multiAssetMode', False)
         request: dict = {}
         spot = (type == 'spot')
         future = (type == 'future')
-        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-        subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
-        subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        params = self.omit(params, ['defaultSubType', 'subType'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
         response = None
-        if spot or margin:
+        if isMultiAssetMode:
+            response = self.contractPrivateGetV5AccountBalance(self.extend(request, params))
+        elif spot or margin:
             if margin:
                 if isolated:
                     response = self.spotPrivateGetV1MarginAccountsBalance(self.extend(request, params))
@@ -3628,11 +3632,59 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1640915104870
         #     }
         #
-        # TODO add balance parsing for linear swap
+        # multi asset mode
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "state": "normal",
+        #             "equity": "174.216697577770536136",
+        #             "details": [
+        #                 {
+        #                     "currency": "USDT",
+        #                     "equity": "174.216697577770536136",
+        #                     "available": "174.216697577770536136",
+        #                     "profit_unreal": "0",
+        #                     "initial_margin": "0",
+        #                     "maintenance_margin": "0",
+        #                     "maintenance_margin_rate": "0",
+        #                     "initial_margin_rate": "0",
+        #                     "available_margin": "174.216697577770536136",
+        #                     "voucher": "0",
+        #                     "voucher_value": "0",
+        #                     "withdraw_available": "174.216697577770536136",
+        #                     "created_time": 1770293270932,
+        #                     "updated_time": 1770293270932,
+        #                     "isolated_equity": "0",
+        #                     "isolated_profit_unreal": "0"
+        #                 }
+        #             ],
+        #             "initial_margin": "0",
+        #             "maintenance_margin": "0",
+        #             "maintenance_margin_rate": "0",
+        #             "profit_unreal": "0",
+        #             "available_margin": "174.216697577770536136",
+        #             "voucher_value": "0",
+        #             "created_time": 1770293268881,
+        #             "updated_time": 1770293270932
+        #         },
+        #         "ts": 1770293281344
+        #     }
         #
         result: dict = {'info': response}
         data = self.safe_value(response, 'data')
-        if spot or margin:
+        if isMultiAssetMode:
+            details = self.safe_list(data, 'details', [])
+            for i in range(0, len(details)):
+                balance = details[i]
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'withdraw_available')
+                result[code] = account
+            result = self.safe_balance(result)
+        elif spot or margin:
             if isolated:
                 for i in range(0, len(data)):
                     entry = data[i]
