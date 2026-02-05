@@ -4,7 +4,7 @@
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int, Bool } from './base/types.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
@@ -287,6 +287,7 @@ export default class grvt extends Exchange {
                     '7101': OperationRejected, // "Transfer account not found"
                     '7102': OperationRejected, // "Transfer sub-account not found"
                     '7103': OperationRejected, // "Charged trading fee below the config minimum"
+                    '7201': OperationRejected, // "Attempted to create a limit order at a price outside of asset's price protection band."
                     '7450': OperationRejected, // "Add margin failed"
                     '7451': OperationRejected, // "Add margin to empty position"
                     '7452': OperationRejected, // "Add margin to non isolated position"
@@ -1845,11 +1846,13 @@ export default class grvt extends Exchange {
             params = this.omit (params, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
         }
         let eipType = 'EIP712_ORDER_TYPE';
-        if (this.safeBool (this.options, 'builderFee', true)) {
+        const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true));
+        if (builderFee) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
             orderRequest['builder'] = this.safeString (this.options, 'builder');
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
+        params = this.omit (params, [ 'builderFee' ]);
         // @ts-ignore
         const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
         const request = {
@@ -2893,6 +2896,7 @@ export default class grvt extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarketsAndSignIn ();
         const request = {
             'sub_account_id': this.getSubAccountId (params),
         };
@@ -2916,8 +2920,8 @@ export default class grvt extends Exchange {
     }
 
     async initializeClient (params = {}) {
-        const buildFee = this.safeBool (this.options, 'builderFee', true);
-        if (!buildFee) {
+        const builderFee: Bool = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
+        if (!builderFee) {
             return false; // skip if builder fee is not enabled
         }
         const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
