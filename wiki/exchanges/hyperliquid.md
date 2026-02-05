@@ -19,6 +19,9 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
+* [setUserAbstraction](#setuserabstraction)
+* [enableUserDexAbstraction](#enableuserdexabstraction)
+* [setAgentAbstraction](#setagentabstraction)
 * [createOrder](#createorder)
 * [createOrders](#createorders)
 * [createOrdersRequest](#createordersrequest)
@@ -393,6 +396,69 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 hyperliquid.fetchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="setUserAbstraction" id="setuserabstraction"></a>
+
+### setUserAbstraction{docsify-ignore}
+set user abstraction mode
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: dictionary response from the exchange
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["disabled", "unifiedAccount", "portfolioMargin"], |
+| params | <code>object</code> | No |  |
+| params.type | <code>string</code> | No | 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction' |
+
+
+```javascript
+hyperliquid.setUserAbstraction (abstraction[, params])
+```
+
+
+<a name="enableUserDexAbstraction" id="enableuserdexabstraction"></a>
+
+### enableUserDexAbstraction{docsify-ignore}
+If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| enabled |  | Yes |  |
+| params |  | Yes |  |
+| params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
+
+
+```javascript
+hyperliquid.enableUserDexAbstraction (enabled, params[])
+```
+
+
+<a name="setAgentAbstraction" id="setagentabstraction"></a>
+
+### setAgentAbstraction{docsify-ignore}
+set agent abstraction mode
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin" |
+| params | <code>object</code> | No |  |
+
+
+```javascript
+hyperliquid.setAgentAbstraction (abstraction[, params])
 ```
 
 

@@ -1708,6 +1708,17 @@ class hyperliquid extends hyperliquid$1["default"] {
         };
         return this.signUserSignedAction(messageTypes, message);
     }
+    buildUserAbstractionSig(message) {
+        const messageTypes = {
+            'HyperliquidTransaction:UserSetAbstraction': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'user', 'type': 'address' },
+                { 'name': 'abstraction', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
     buildApproveBuilderFeeSig(message) {
         const messageTypes = {
             'HyperliquidTransaction:ApproveBuilderFee': [
@@ -1808,25 +1819,37 @@ class hyperliquid extends hyperliquid$1["default"] {
         }
         return true;
     }
-    async enableUserDexAbstraction(enabled, params = {}) {
+    /**
+     * @method
+     * @name hyperliquid#setUserAbstraction
+     * @description set user abstraction mode
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+     * @param {string} abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+     * @param {object} [params]
+     * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    async setUserAbstraction(abstraction, params = {}) {
         let userAddress = undefined;
-        [userAddress, params] = this.handlePublicAddress('enableUserDexAbstraction', params);
+        [userAddress, params] = this.handlePublicAddress('setUserAbstraction', params);
         const nonce = this.milliseconds();
         const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const type = this.safeString(params, 'type', 'userSetAbstraction');
+        params = this.omit(params, 'type');
         const payload = {
             'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
             'user': userAddress,
-            'enabled': enabled,
+            'abstraction': abstraction,
             'nonce': nonce,
         };
-        const sig = this.buildUserDexAbstractionSig(payload);
+        const sig = this.buildUserAbstractionSig(payload);
         const action = {
             'hyperliquidChain': payload['hyperliquidChain'],
             'signatureChainId': '0x66eee',
-            'enabled': payload['enabled'],
+            'abstraction': payload['abstraction'],
             'user': payload['user'],
             'nonce': nonce,
-            'type': 'userDexAbstraction',
+            'type': type,
         };
         const request = {
             'action': action,
@@ -1843,6 +1866,76 @@ class hyperliquid extends hyperliquid$1["default"] {
         // }
         //
         return await this.privatePostExchange(request);
+    }
+    /**
+     * @method
+     * @name hyperliquid#enableUserDexAbstraction
+     * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+     * @param enabled
+     * @param params
+     * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    async enableUserDexAbstraction(enabled, params = {}) {
+        let userAddress = undefined;
+        [userAddress, params] = this.handlePublicAddress('enableUserDexAbstraction', params);
+        const nonce = this.milliseconds();
+        const isSandboxMode = this.safeBool(this.options, 'sandboxMode', false);
+        const type = this.safeString(params, 'type', 'userDexAbstraction');
+        params = this.omit(params, 'type');
+        const payload = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'user': userAddress,
+            'enabled': enabled,
+            'nonce': nonce,
+        };
+        const sig = this.buildUserDexAbstractionSig(payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'enabled': payload['enabled'],
+            'user': payload['user'],
+            'nonce': nonce,
+            'type': type,
+        };
+        const request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
+        return await this.privatePostExchange(request);
+    }
+    /**
+     * @method
+     * @name hyperliquid#setAgentAbstraction
+     * @description set agent abstraction mode
+     * @param {string} abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+     * @param {object} [params]
+     * @returns dictionary response from the exchange
+     */
+    async setAgentAbstraction(abstraction, params = {}) {
+        const nonce = this.milliseconds();
+        const request = {
+            'nonce': nonce,
+        };
+        const action = {
+            'type': 'agentSetAbstraction',
+            'abstraction': abstraction,
+        };
+        const signature = this.signL1Action(action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange(this.extend(request, params));
+        return response;
     }
     /**
      * @method
