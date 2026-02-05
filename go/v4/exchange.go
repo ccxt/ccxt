@@ -3,6 +3,7 @@ package ccxt
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	j "encoding/json"
 	"errors"
 	"fmt"
@@ -18,7 +19,10 @@ import (
 	"sync"
 	"time"
 
+	pb "github.com/ccxt/ccxt/go/v4/protoc"
 	"golang.org/x/net/proxy"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type Exchange struct {
@@ -2052,7 +2056,14 @@ func (this *Exchange) IsBinaryMessage(message interface{}) bool {
 }
 
 func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
-	return nil
+	var msg pb.PushDataV3ApiWrapper
+	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
+		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
+	}
+	jsonBytes, _ := protojson.Marshal(&msg)
+	var v interface{}
+	_ = json.Unmarshal(jsonBytes, &v)
+	return v
 }
 
 func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
