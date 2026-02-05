@@ -1752,7 +1752,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "time":1737380046
         #     }
         #
-        return self.safe_integer(response, 'time')
+        return self.safe_integer_product(response, 'time', 1000)
 
     def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
