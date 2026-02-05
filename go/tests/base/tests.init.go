@@ -32,12 +32,13 @@ func BaseTestsInit() <-chan interface{} {
 		TestHandleMethods()
 		TestRemoveRepeatedElementsFromArray()
 		TestParsePrecision()
+		TestPrecisionFromString()
 		TestExtractParams()
 		TestArraysConcat()
 		TestEthMethods()
 
-		retRes604 := (<-TestSleep())
-		PanicOnError(retRes604)
+		retRes624 := (<-TestSleep())
+		PanicOnError(retRes624)
 		return nil
 	}()
 	return ch

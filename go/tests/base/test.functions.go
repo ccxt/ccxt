@@ -24,6 +24,7 @@ var FunctionsMap = map[string]interface{}{
 	"omit":                            TestOmit,
 	"parsePrecision":                  TestParsePrecision,
 	"precise":                         TestPrecise,
+	"precisionFromString":             TestPrecisionFromString,
 	"removeRepeatedElementsFromArray": TestRemoveRepeatedElementsFromArray,
 	"safeMethods":                     TestSafeMethods,
 	"safeTicker":                      TestSafeTicker,
