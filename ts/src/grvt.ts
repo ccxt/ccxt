@@ -1073,7 +1073,7 @@ export default class grvt extends Exchange {
         let subAccountId = undefined;
         [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'accountId');
         if (subAccountId === undefined) {
-            throw new ArgumentsRequired (this.id + ' you should set params["accountId"] = "YOUR_TRADING_ACCOUNT_ID", which can be found in the API-KEYS page');
+            throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
         return subAccountId.toString ();
     }
@@ -1766,7 +1766,7 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        // await this.initializeClient ();
+        await this.initializeClient (params);
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -1790,15 +1790,6 @@ export default class grvt extends Exchange {
             'metadata': {
                 'client_order_id': this.nonce ().toString (),
                 // 'create_time': (this.milliseconds() * str(1000000)),
-                // 'trigger': None or {
-                //     'trigger_type': 'TAKE_PROFIT',
-                //     'tpsl': {
-                //         'trigger_by': 'LAST',
-                //          'trigger_price': '80000.0',
-                //          'close_position': false,
-                //     },
-                // },
-                // 'broker': 'BROKER_CODE', // None
             },
             'is_market': false,
             'post_only': false,
@@ -1806,6 +1797,53 @@ export default class grvt extends Exchange {
             // 'order_id': null,
             // 'state': null,
         };
+        // Trigger & SL & TP
+        let triggerPrice: Str = undefined;
+        let stopLossPrice: Str = undefined;
+        let takeProfitPrice: Str = undefined;
+        [ triggerPrice, stopLossPrice, takeProfitPrice, params ] = this.handleTriggerPricesAndParams (symbol, params);
+        if (triggerPrice !== undefined || stopLossPrice !== undefined || takeProfitPrice !== undefined) {
+            // trigger price
+            let selectedPrice: Str = undefined;
+            if (triggerPrice !== undefined) {
+                selectedPrice = triggerPrice;
+            } else if (stopLossPrice !== undefined) {
+                selectedPrice = stopLossPrice;
+            } else if (takeProfitPrice !== undefined) {
+                selectedPrice = takeProfitPrice;
+            }
+            // trigger type
+            let selectedType: Str = undefined;
+            const isBuy = (side === 'buy');
+            if (stopLossPrice !== undefined) {
+                selectedType = isBuy ? 'STOP_LOSS' : 'TAKE_PROFIT';
+            } else if (takeProfitPrice !== undefined) {
+                selectedType = isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
+            } else {
+                const triggerDirection = this.safeString (params, 'triggerDirection');
+                if (triggerDirection === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createOrder() requires a triggerDirection parameter when triggerPrice is specified, must be "ascending" or "descending"');
+                }
+                if (triggerDirection !== undefined) {
+                    if (triggerDirection === 'ascending') {
+                        selectedType = isBuy ? 'STOP_LOSS' : 'TAKE_PROFIT';
+                    } else if (triggerDirection === 'descending') {
+                        selectedType = isBuy ? 'TAKE_PROFIT' : 'STOP_LOSS';
+                    }
+                }
+            }
+            // trigger by
+            const triggerPriceType = this.safeString (params, 'triggerPriceType', 'LAST');
+            orderRequest['metadata']['trigger'] = {
+                'trigger_type': selectedType,
+                'tpsl': {
+                    'trigger_by': triggerPriceType,
+                    'trigger_price': selectedPrice,
+                    'close_position': this.safeBool (params, 'closePosition', false),
+                },
+            };
+            params = this.omit (params, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
+        }
         let eipType = 'EIP712_ORDER_TYPE';
         if (this.safeBool (this.options, 'builderFee', true)) {
             eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
