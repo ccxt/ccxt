@@ -1798,7 +1798,7 @@ class whitebit extends whitebit$1["default"] {
         //         "time":1737380046
         //     }
         //
-        return this.safeInteger(response, 'time');
+        return this.safeIntegerProduct(response, 'time', 1000);
     }
     /**
      * @method
