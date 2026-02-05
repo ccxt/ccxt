@@ -859,6 +859,7 @@ export default class bitmart extends Exchange {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 0.0,  // for sure < 2000.0, 1000.0 might be fine, currently receives odd errors when assigning to 1000.0
         });
     }
 
