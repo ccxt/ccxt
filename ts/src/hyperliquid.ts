@@ -1953,6 +1953,30 @@ export default class hyperliquid extends Exchange {
 
     /**
      * @method
+     * @name hyperliquid#setAgentAbstraction
+     * @description set agent abstraction mode
+     * @param {string} abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+     * @param {object} [params]
+     * @returns dictionary response from the exchange
+     */
+    async setAgentAbstraction (abstraction: string, params = {}) {
+        const nonce = this.milliseconds ();
+        const request: Dict = {
+            'nonce': nonce,
+        };
+        const action: Dict = {
+            'type': 'agentSetAbstraction',
+            'abstraction': abstraction,
+        };
+        const signature = this.signL1Action (action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response;
+    }
+
+    /**
+     * @method
      * @name hyperliquid#createOrder
      * @description create a trade order
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
