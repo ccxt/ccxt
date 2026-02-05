@@ -1605,6 +1605,18 @@
                 ],
                 "output": "{\"contract_code\":\"ADA-USDT\",\"direction\":\"buy\"}"
               }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance multi asset mode",
+                "method": "fetchBalance",
+                "url": "https://api.hbdm.vn/v5/account/balance?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-02-05T12%3A12%3A36&Signature=b6wRf3vfL74%2BqrNQHfBFK%2FwY0Dn1DfxtKVsA5vIyf6c%3D",
+                "input": [
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
+            }
         ]
     }
 }
