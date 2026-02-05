@@ -1622,12 +1622,10 @@ class bybit(ccxt.async_support.bybit):
                 market = self.safe_market(marketId, None, '', 'contract')
                 symbol = market['symbol']
                 liquidation = self.parse_ws_liquidation(rawLiquidation, market)
-                liquidations = self.safe_value(self.liquidations, symbol)
-                if liquidations is None:
-                    limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-                    liquidations = ArrayCache(limit)
-                liquidations.append(liquidation)
-                self.liquidations[symbol] = liquidations
+                if self.liquidations is None:
+                    self.liquidations = ArrayCacheBySymbolBySide()
+                cache = self.liquidations
+                cache.append(liquidation)
                 client.resolve([liquidation], 'liquidations')
                 client.resolve([liquidation], 'liquidations::' + symbol)
         else:
@@ -1636,12 +1634,10 @@ class bybit(ccxt.async_support.bybit):
             market = self.safe_market(marketId, None, '', 'contract')
             symbol = market['symbol']
             liquidation = self.parse_ws_liquidation(rawLiquidation, market)
-            liquidations = self.safe_value(self.liquidations, symbol)
-            if liquidations is None:
-                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-                liquidations = ArrayCache(limit)
-            liquidations.append(liquidation)
-            self.liquidations[symbol] = liquidations
+            if self.liquidations is None:
+                self.liquidations = ArrayCacheBySymbolBySide()
+            cache = self.liquidations
+            cache.append(liquidation)
             client.resolve([liquidation], 'liquidations')
             client.resolve([liquidation], 'liquidations::' + symbol)
 

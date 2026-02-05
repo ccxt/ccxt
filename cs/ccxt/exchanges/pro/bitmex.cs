@@ -460,19 +460,16 @@ public partial class bitmex : ccxt.bitmex
         //
         object rawLiquidations = this.safeValue(message, "data", new List<object>() {});
         object newLiquidations = new List<object>() {};
+        if (isTrue(isEqual(this.liquidations, null)))
+        {
+            this.liquidations = new ArrayCacheBySymbolBySide();
+        }
+        object cache = this.liquidations;
         for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseLiquidation(rawLiquidation);
-            object symbol = getValue(liquidation, "symbol");
-            object liquidations = this.safeValue(this.liquidations, symbol);
-            if (isTrue(isEqual(liquidations, null)))
-            {
-                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-                liquidations = new ArrayCache(limit);
-            }
-            callDynamically(liquidations, "append", new object[] {liquidation});
-            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            callDynamically(cache, "append", new object[] {liquidation});
             ((IList<object>)newLiquidations).Add(liquidation);
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "liquidations"});

@@ -1853,6 +1853,26 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
+    public virtual object buildUserAbstractionSig(object message)
+    {
+        object messageTypes = new Dictionary<string, object>() {
+            { "HyperliquidTransaction:UserSetAbstraction", new List<object>() {new Dictionary<string, object>() {
+    { "name", "hyperliquidChain" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "user" },
+    { "type", "address" },
+}, new Dictionary<string, object>() {
+    { "name", "abstraction" },
+    { "type", "string" },
+}, new Dictionary<string, object>() {
+    { "name", "nonce" },
+    { "type", "uint64" },
+}} },
+        };
+        return this.signUserSignedAction(messageTypes, message);
+    }
+
     public virtual object buildApproveBuilderFeeSig(object message)
     {
         object messageTypes = new Dictionary<string, object>() {
@@ -1976,29 +1996,41 @@ public partial class hyperliquid : Exchange
         return true;
     }
 
-    public async virtual Task<object> enableUserDexAbstraction(object enabled, object parameters = null)
+    /**
+     * @method
+     * @name hyperliquid#setUserAbstraction
+     * @description set user abstraction mode
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+     * @param {string} abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+     * @param {object} [params]
+     * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    public async virtual Task<object> setUserAbstraction(object abstraction, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
-        var userAddressparametersVariable = this.handlePublicAddress("enableUserDexAbstraction", parameters);
+        var userAddressparametersVariable = this.handlePublicAddress("setUserAbstraction", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         object nonce = this.milliseconds();
         object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object type = this.safeString(parameters, "type", "userSetAbstraction");
+        parameters = this.omit(parameters, "type");
         object payload = new Dictionary<string, object>() {
             { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
             { "user", userAddress },
-            { "enabled", enabled },
+            { "abstraction", abstraction },
             { "nonce", nonce },
         };
-        object sig = this.buildUserDexAbstractionSig(payload);
+        object sig = this.buildUserAbstractionSig(payload);
         object action = new Dictionary<string, object>() {
             { "hyperliquidChain", getValue(payload, "hyperliquidChain") },
             { "signatureChainId", "0x66eee" },
-            { "enabled", getValue(payload, "enabled") },
+            { "abstraction", getValue(payload, "abstraction") },
             { "user", getValue(payload, "user") },
             { "nonce", nonce },
-            { "type", "userDexAbstraction" },
+            { "type", type },
         };
         object request = new Dictionary<string, object>() {
             { "action", action },
@@ -2015,6 +2047,84 @@ public partial class hyperliquid : Exchange
         // }
         //
         return await this.privatePostExchange(request);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#enableUserDexAbstraction
+     * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+     * @param enabled
+     * @param params
+     * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    public async virtual Task<object> enableUserDexAbstraction(object enabled, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("enableUserDexAbstraction", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object nonce = this.milliseconds();
+        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object type = this.safeString(parameters, "type", "userDexAbstraction");
+        parameters = this.omit(parameters, "type");
+        object payload = new Dictionary<string, object>() {
+            { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
+            { "user", userAddress },
+            { "enabled", enabled },
+            { "nonce", nonce },
+        };
+        object sig = this.buildUserDexAbstractionSig(payload);
+        object action = new Dictionary<string, object>() {
+            { "hyperliquidChain", getValue(payload, "hyperliquidChain") },
+            { "signatureChainId", "0x66eee" },
+            { "enabled", getValue(payload, "enabled") },
+            { "user", getValue(payload, "user") },
+            { "nonce", nonce },
+            { "type", type },
+        };
+        object request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", sig },
+            { "vaultAddress", null },
+        };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
+        return await this.privatePostExchange(request);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#setAgentAbstraction
+     * @description set agent abstraction mode
+     * @param {string} abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+     * @param {object} [params]
+     * @returns dictionary response from the exchange
+     */
+    public async virtual Task<object> setAgentAbstraction(object abstraction, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object nonce = this.milliseconds();
+        object request = new Dictionary<string, object>() {
+            { "nonce", nonce },
+        };
+        object action = new Dictionary<string, object>() {
+            { "type", "agentSetAbstraction" },
+            { "abstraction", abstraction },
+        };
+        object signature = this.signL1Action(action, nonce);
+        ((IDictionary<string,object>)request)["action"] = action;
+        ((IDictionary<string,object>)request)["signature"] = signature;
+        object response = await this.privatePostExchange(this.extend(request, parameters));
+        return response;
     }
 
     /**

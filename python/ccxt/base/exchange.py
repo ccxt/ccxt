@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.35'
+__version__ = '4.5.36'
 
 # -----------------------------------------------------------------------------
 
@@ -973,9 +973,9 @@ class Exchange(object):
         # the native pythonic .capitalize() method lowercases all other characters
         # which is an unwanted behaviour, therefore we use this custom implementation
         # check it yourself: print('foobar'.capitalize(), 'fooBar'.capitalize())
-        if len(string) > 1:
-            return "%s%s" % (string[0].upper(), string[1:])
-        return string.upper()
+        if string:
+            return string[0].upper() + string[1:]
+        return string
 
     @staticmethod
     def strip(string):
@@ -1171,14 +1171,6 @@ class Exchange(object):
         return list(set(array))
 
     @staticmethod
-    def pluck(array, key):
-        return [
-            element[key]
-            for element in array
-            if (key in element) and (element[key] is not None)
-        ]
-
-    @staticmethod
     def sum(*args):
         return sum([arg for arg in args if isinstance(arg, (float, int))])
 
@@ -1201,11 +1193,11 @@ class Exchange(object):
 
     @staticmethod
     def milliseconds():
-        return int(time.time() * 1000)
+        return time.time_ns() // 1_000_000
 
     @staticmethod
     def microseconds():
-        return int(time.time() * 1000000)
+        return time.time_ns() // 1_000
 
     @staticmethod
     def iso8601(timestamp=None):
@@ -1246,18 +1238,18 @@ class Exchange(object):
     @staticmethod
     def parse_date(timestamp=None):
         if timestamp is None:
-            return timestamp
+            return None
         if not isinstance(timestamp, str):
             return None
         if 'GMT' in timestamp:
             try:
-                string = ''.join([str(value).zfill(2) for value in parsedate(timestamp)[:6]]) + '.000Z'
-                dt = datetime.datetime.strptime(string, "%Y%m%d%H%M%S.%fZ")
-                return calendar.timegm(dt.utctimetuple()) * 1000
+                parsed = parsedate(timestamp)
+                if parsed is None:
+                    return None
+                return calendar.timegm(parsed[:6]) * 1000
             except (TypeError, OverflowError, OSError):
                 return None
-        else:
-            return Exchange.parse8601(timestamp)
+        return Exchange.parse8601(timestamp)
 
     _PARSE8601_ISO8601_PATTERN = re.compile(
         r'([0-9]{4})-?([0-9]{2})-?([0-9]{2})(?:T|[\s])?'
@@ -1337,7 +1329,11 @@ class Exchange(object):
 
     @staticmethod
     def urlencode_base64(s):
-        return Exchange.decode(base64.urlsafe_b64encode(s)).replace('=', '')
+        payload = s
+        if isinstance(s, str):
+            payload64 = Exchange.string_to_base64(s)
+            payload = Exchange.base64_to_binary(payload64)
+        return base64.urlsafe_b64encode(payload).decode().rstrip('=')
 
     @staticmethod
     def binary_to_base64(s):

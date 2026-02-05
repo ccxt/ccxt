@@ -1977,23 +1977,26 @@ func  (this *AsterCore) HandlePositions(client interface{}, message interface{})
     //     }
     //
     var messageHash interface{} = "positions"
+    if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
+        this.Positions = ccxt.NewArrayCacheBySymbolBySide()
+    }
+    var cache interface{} = this.Positions
+    var data interface{} = this.SafeDict(message, "a", map[string]interface{} {})
+    var rawPositions interface{} = this.SafeList(data, "P", []interface{}{})
+    var newPositions interface{} = []interface{}{}
+    for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
+        var rawPosition interface{} = ccxt.GetValue(rawPositions, i)
+        var position interface{} = this.ParseWsPosition(rawPosition)
+        var timestamp interface{} = this.SafeInteger(message, "E")
+        ccxt.AddElementToObject(position, "timestamp", timestamp)
+        ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
+        ccxt.AppendToArray(&newPositions, position)
+        cache.(ccxt.Appender).Append(position)
+    }
     var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
     if !ccxt.IsTrue(this.IsEmpty(messageHashes)) {
-        if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
-            this.Positions = ccxt.NewArrayCacheBySymbolBySide()
-        }
-        var cache interface{} = this.Positions
-        var data interface{} = this.SafeDict(message, "a", map[string]interface{} {})
-        var rawPositions interface{} = this.SafeList(data, "P", []interface{}{})
-        var newPositions interface{} = []interface{}{}
-        for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
-            var rawPosition interface{} = ccxt.GetValue(rawPositions, i)
-            var position interface{} = this.ParseWsPosition(rawPosition)
-            var timestamp interface{} = this.SafeInteger(message, "E")
-            ccxt.AddElementToObject(position, "timestamp", timestamp)
-            ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
-            ccxt.AppendToArray(&newPositions, position)
-            cache.(ccxt.Appender).Append(position)
+        for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(newPositions)); i++ {
+            var position interface{} = ccxt.GetValue(newPositions, i)
             var symbol interface{} = ccxt.GetValue(position, "symbol")
             var symbolMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
             client.(ccxt.ClientInterface).Resolve(position, symbolMessageHash)
@@ -2084,8 +2087,8 @@ func  (this *AsterCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16158 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16158)
+            retRes16188 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16188)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2097,8 +2100,8 @@ func  (this *AsterCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes16248 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes16248)
+            retRes16278 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes16278)
             if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
             }
@@ -2145,8 +2148,8 @@ func  (this *AsterCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes16528 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16528)
+            retRes16558 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16558)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2158,8 +2161,8 @@ func  (this *AsterCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inter
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
         
-            retRes16618 := (<-this.Authenticate(typeVar, params))
-            ccxt.PanicOnError(retRes16618)
+            retRes16648 := (<-this.Authenticate(typeVar, params))
+            ccxt.PanicOnError(retRes16648)
             if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", symbol))
             }
@@ -2223,8 +2226,8 @@ func  (this *AsterCore) HandleMyTrade(client interface{}, message interface{})  
                             }
                         }
                         if ccxt.IsTrue(insertNewFeeCurrency) {
-                            retRes171832 := ccxt.GetValue(order, "fees")
-                            ccxt.AppendToArray(&retRes171832, tradeFee)
+                            retRes172132 := ccxt.GetValue(order, "fees")
+                            ccxt.AppendToArray(&retRes172132, tradeFee)
                         }
                     } else if ccxt.IsTrue(!ccxt.IsEqual(fee, nil)) {
                         if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(fee, "currency"), ccxt.GetValue(tradeFee, "currency"))) {
@@ -2333,18 +2336,18 @@ func  (this *AsterCore) HandleOrder(client interface{}, message interface{})  {
     //     }
     //
     var messageHash interface{} = "orders"
+    var market interface{} = this.GetMarketFromOrder(client, message)
+    if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
+        var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
+        this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
+    }
+    var cache interface{} = this.Orders
+    var parsed interface{} = this.ParseWsOrder(message, market)
+    var symbol interface{} = ccxt.GetValue(market, "symbol")
+    cache.(ccxt.Appender).Append(parsed)
     var messageHashes interface{} = this.FindMessageHashes(client.(*ccxt.Client), messageHash)
     if !ccxt.IsTrue(this.IsEmpty(messageHashes)) {
-        var market interface{} = this.GetMarketFromOrder(client, message)
-        if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-            var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
-            this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
-        }
-        var cache interface{} = this.Orders
-        var parsed interface{} = this.ParseWsOrder(message, market)
-        var symbol interface{} = ccxt.GetValue(market, "symbol")
         var symbolMessageHash interface{} = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-        cache.(ccxt.Appender).Append(parsed)
         client.(ccxt.ClientInterface).Resolve(cache, symbolMessageHash)
         client.(ccxt.ClientInterface).Resolve(cache, messageHash)
     }

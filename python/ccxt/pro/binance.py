@@ -345,12 +345,10 @@ class binance(ccxt.async_support.binance):
         market = self.safe_market(marketId, None, '', 'contract')
         symbol = market['symbol']
         liquidation = self.parse_ws_liquidation(rawLiquidation, market)
-        liquidations = self.safe_value(self.liquidations, symbol)
-        if liquidations is None:
-            limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-            liquidations = ArrayCache(limit)
-        liquidations.append(liquidation)
-        self.liquidations[symbol] = liquidations
+        if self.liquidations is None:
+            self.liquidations = ArrayCacheBySymbolBySide()
+        cache = self.liquidations
+        cache.append(liquidation)
         client.resolve([liquidation], 'liquidations')
         client.resolve([liquidation], 'liquidations::' + symbol)
 
@@ -549,12 +547,11 @@ class binance(ccxt.async_support.binance):
         market = self.safe_market(marketId, None, None, 'swap')
         symbol = self.safe_symbol(marketId, market)
         liquidation = self.parse_ws_liquidation(message, market)
-        myLiquidations = self.safe_value(self.myLiquidations, symbol)
-        if myLiquidations is None:
-            limit = self.safe_integer(self.options, 'myLiquidationsLimit', 1000)
-            myLiquidations = ArrayCache(limit)
-        myLiquidations.append(liquidation)
-        self.myLiquidations[symbol] = myLiquidations
+        cache = self.myLiquidations
+        if cache is None:
+            cache = ArrayCacheBySymbolBySide()
+        cache.append(liquidation)
+        self.myLiquidations = cache
         client.resolve([liquidation], 'myLiquidations')
         client.resolve([liquidation], 'myLiquidations::' + symbol)
 

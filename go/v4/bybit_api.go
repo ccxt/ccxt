@@ -1243,6 +1243,10 @@ func (this *BybitCore) PrivatePostV5AccountNoConvertRepay(args ...interface{}) <
 	return this.callEndpointAsync("privatePostV5AccountNoConvertRepay", args...)
 }
 
+func (this *BybitCore) PrivatePostV5AccountSetLimitPxAction(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV5AccountSetLimitPxAction", args...)
+}
+
 func (this *BybitCore) PrivatePostV5AssetExchangeQuoteApply(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostV5AssetExchangeQuoteApply", args...)
 }

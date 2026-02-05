@@ -1990,7 +1990,7 @@ func (this *WhitebitCore) FetchTime(optionalArgs ...interface{}) <-chan interfac
 		//         "time":1737380046
 		//     }
 		//
-		ch <- this.SafeInteger(response, "time")
+		ch <- this.SafeIntegerProduct(response, "time", 1000)
 		return nil
 
 	}()
