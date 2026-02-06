@@ -70,7 +70,17 @@ class Exchange extends \ccxt\Exchange {
 
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->default_connector = $this->create_connector();
+        $connector_initial_options = $this->safe_dict ($this->options, 'connector_initial_options', array());
+        // allow PHP users to provide custom connector options, eg:
+        //
+        //  'connector_initial_options' => [
+        //     'tls' => [
+        //         'verify_peer' => false,
+        //         'verify_peer_name' => false,
+        //     ],
+        //  ]
+        //
+        $this->default_connector = $this->create_connector($connector_initial_options);
         $this->set_request_browser($this->default_connector);
     }
 
