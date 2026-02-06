@@ -1125,19 +1125,20 @@ export default class drift extends Exchange {
         const remaining = Precise.stringSub (amount, filled);
         const status = this.parseOrderStatus (this.safeString2 (order, 'lastActionStatus', 'status'));
         const cost = this.safeString2 (order, 'cost', 'quoteAssetAmountFilled');
-        const average = (Precise.stringGt (filled, '0') && cost !== undefined)
-            ? Precise.stringDiv (cost, filled)
-            : undefined;
         const triggerPrice = this.safeInteger (order, 'triggerPrice');
+        const triggerDirection = this.safeValue (order, 'triggerCondition');
         const immediateOrCancel = this.safeBool (order, 'immediateOrCancel');
         const timeInForce = immediateOrCancel ? 'IOC' : 'GTC';
         const feeCost = this.safeNumber (order, 'cumulativeFee');
         const feeCurrencyId = market ? market['quote'] : 'USDC';
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
-        const fee = feeCost === undefined ? undefined : {
-            'cost': feeCost,
-            'currency': feeCurrency,
-        };
+        let fee = undefined;
+        if (feeCost === undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
         return this.safeOrder (
             {
                 'info': order,
@@ -1150,11 +1151,11 @@ export default class drift extends Exchange {
                 'reduceOnly': this.safeValue (order, 'reduceOnly', false),
                 'side': side,
                 'price': this.safeString (order, 'price'),
-                'triggerPrice': (triggerPrice !== undefined && triggerPrice !== 0) ? triggerPrice : undefined,
-                'triggerDirection': (triggerPrice !== undefined && triggerPrice !== 0) ? this.safeValue (order, 'triggerCondition') : undefined,
+                'triggerPrice': triggerPrice,
+                'triggerDirection': triggerDirection,
                 'amount': amount,
                 'cost': cost,
-                'average': average,
+                'average': undefined,
                 'filled': filled,
                 'remaining': remaining,
                 'status': status,
