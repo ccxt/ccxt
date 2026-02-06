@@ -10331,9 +10331,9 @@ export default class binance extends Exchange {
         //     markPrice: "2.39560000",
         //     unRealizedProfit: "0.23650000",
         //     liquidationPrice: "0",
-        //     isolatedMargin: "0",
+        //     isolatedMargin: "0", // zero in case of cross-margin
         //     notional: "11.97800000",
-        //     isolatedWallet: "0",
+        //     isolatedWallet: "0", // zero in case of cross-margin
         //     updateTime: "1722062678998",
         //     initialMargin: "2.39560000",         // not in v2
         //     maintMargin: "0.07186800",           // not in v2
@@ -10343,13 +10343,13 @@ export default class binance extends Exchange {
         //     bidNotional: "0",                    // not in v2
         //     askNotional: "0",                    // not in v2
         //     marginAsset: "USDT",                 // not in v2
-        //     // the below fields are only in v2
-        //     leverage: "5",
-        //     maxNotionalValue: "6000000",
-        //     marginType: "cross",
-        //     isAutoAddMargin: "false",
-        //     isolated: false,
-        //     adlQuantile: "2",
+        //     leverage: "5",                       // only in v2
+        //     maxQty: "1000",                      // only in v2
+        //     maxNotionalValue: "6000000",         // only in v2
+        //     marginType: "cross",                 // only in v2
+        //     isAutoAddMargin: "false",            // only in v2
+        //     isolated: false,                     // only in v2
+        //     adlQuantile: "2",                    // only in v2
         //
         // coinm
         //
@@ -10451,7 +10451,8 @@ export default class binance extends Exchange {
             const quotePrecisionValue = this.safeString2 (precision, 'quote', 'price');
             const precisionIsUndefined = (basePrecisionValue === undefined) && (quotePrecisionValue === undefined);
             if (!precisionIsUndefined) {
-                if (linear) {
+                // for linear swap, collateral is not being calculated with below approach
+                if (linear && !this.safeBool (market, 'swap')) {
                     // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
                     let onePlusMaintenanceMarginPercentageString = undefined;
                     let entryPriceSignString = entryPriceString;
@@ -10467,7 +10468,7 @@ export default class binance extends Exchange {
                     if (quotePrecision !== undefined) {
                         collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
                     }
-                } else {
+                } else if (!linear) {
                     // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
                     let onePlusMaintenanceMarginPercentageString = undefined;
                     let entryPriceSignString = entryPriceString;
@@ -10488,7 +10489,6 @@ export default class binance extends Exchange {
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
@@ -10521,7 +10521,7 @@ export default class binance extends Exchange {
         }
         let marginRatio = undefined;
         let percentage = undefined;
-        if (!Precise.stringEquals (collateralString, '0')) {
+        if (collateralString !== undefined && !Precise.stringEquals (collateralString, '0')) {
             marginRatio = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (maintenanceMarginString, collateralString), '5e-5'), '1', 4));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMarginString, 4), '100'));
         }
@@ -11113,9 +11113,9 @@ export default class binance extends Exchange {
                 //     markPrice: "2.39560000",
                 //     unRealizedProfit: "0.23650000",
                 //     liquidationPrice: "0",
-                //     isolatedMargin: "0",
+                //     isolatedMargin: "0", // zero in case of cross-margin
                 //     notional: "11.97800000",
-                //     isolatedWallet: "0",
+                //     isolatedWallet: "0", // zero in case of cross-margin
                 //     updateTime: "1722062678998",
                 //     initialMargin: "2.39560000",         // added in v3
                 //     maintMargin: "0.07186800",           // added in v3

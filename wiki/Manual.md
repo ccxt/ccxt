@@ -6390,12 +6390,14 @@ Returns
 
 ## Margin
 
-*margin and contract only*
+*applies to margin and contract markets only*
 
-Note: through the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
-- `collateral (current margin balance) = initial margin + realized & unrealized profit`.
+Note: across the manual we use term "collateral" which means current margin balance, but do not confuse it with "initial margin" or "maintenance margin":
+- `collateral (current margin balance) = initial margin + position profit (realized & unrealized) + cross-margin balance (only when it's not an isolated mode, but a cross-margin mode)`
 
-For example, when you had opened an isolated position with **50$** initial margin and the position has unrealized profit of **-15$**, then your position's **collateral** will be **35$**. However, if we take that Maintenance Margin requirement (to keep the position open) by exchange hints **$25** for that position, then your collateral should not drop below it, otherwise the position will be liquidated.
+For example, when you had opened an isolated position with **50$** initial margin (with eg. `4x` leverage, so position's notional size is **200$**) and the position got an unrealized profit of **-29$**, then your position's **collateral** will be **21$**. However, an exchange would show **Maintenance Margin** requirement eg. 20$ (to keep the position open) for that position, so your collateral should not drop below it, otherwise the position will be liquidated (users might place a stop-loss near liquidation level).
+
+### addMargin, reduceMargin, setMargin
 
 To increase, reduce or set your margin balance (collateral) in an open leveraged position, use `addMargin`, `reduceMargin` and `setMargin` respectively. This is kind of like adjusting the amount of leverage you're using with a position that's already open.
 
@@ -6828,7 +6830,7 @@ Returns
 
 #### Liquidation Price
 
-It is the price at which the `initialMargin + unrealized = collateral = maintenanceMargin`. The price has gone in the opposite direction of your position to the point where the is only maintenanceMargin collateral left and if it goes any further the position will have negative collateral.
+When the price goes in the opposite direction of your position, then your [`collateral`](#margin) reduces. **Liquidation price** (in many cases, exchanges use `mark price` for reference, however depends on specific exchange) is the price  where `collateral` amount would reach `maintenanceMargin` amount. At that moment, your position will be liquidated (users can use stop-loss orders accordingly to avoid liquidation).
 
 ```javascript
 // if long
