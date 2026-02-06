@@ -199,8 +199,7 @@ export default class btse extends Exchange {
                 'www': 'https://www.btse.com',
                 'doc': 'https://support.btse.com/en/support/solutions/articles/43000044751-btse-api',
                 'referral': '', // todo check
-            },
-            'fees': {
+                'fees': 'https://support.btse.com/en/support/solutions/articles/43000064283',
             },
             'api': {
                 'public': {
@@ -383,6 +382,26 @@ export default class btse extends Exchange {
                 '1d': '1d',
             },
             'precisionMode': TICK_SIZE,
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0002'),
+                },
+                'spot': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0002'),
+                },
+                'contract': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.00055'),
+                },
+            },
             'exceptions': {
                 'exact': {
                 },
@@ -596,6 +615,10 @@ export default class btse extends Exchange {
                 isSwap = true;
             }
         }
+        let fees = this.fees['contract'];
+        if (isSpot) {
+            fees = this.fees['spot'];
+        }
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -615,8 +638,8 @@ export default class btse extends Exchange {
             'contract': isSwap || isFuture,
             'linear': isSpot ? undefined : true,
             'inverse': isSpot ? undefined : false,
-            'taker': undefined, // todo check
-            'maker': undefined, // todo check
+            'taker': fees['taker'],
+            'maker': fees['maker'],
             'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
