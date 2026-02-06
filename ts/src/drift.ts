@@ -402,8 +402,6 @@ export default class drift extends Exchange {
             this.dlobGetBatchL2 (this.extend (request, params)),
             this.publicGetStatsMarkets (),
         ];
-        // const response = await this.dlobGetBatchL2 (this.extend (request, this.omit (params, 'depth')));
-        // const statsResponse = await this.publicGetStatsMarkets ();
         const responses = await Promise.all (promises);
         const statsArray = this.safeValue (responses[1], 'markets', []);
         const statsById: Dict = {};
@@ -534,6 +532,54 @@ export default class drift extends Exchange {
             request['depth'] = Math.min (limit, 100);
         }
         const response = await this.dlobGetL2 (this.extend (request, params));
+        //
+        // {
+        //     "bids": [
+        //         {
+        //             "price": "1896967924",
+        //             "size": "207000000",
+        //             "sources": {
+        //                 "dlob": "207000000"
+        //             }
+        //         }
+        //     ],
+        //     "asks": [
+        //         {
+        //             "price": "1900240000",
+        //             "size": "2631000000",
+        //             "sources": {
+        //                 "vamm": "2631000000"
+        //             }
+        //         }
+        //     ],
+        //     "marketName": "ETH-PERP",
+        //     "marketType": "perp",
+        //     "marketIndex": 2,
+        //     "ts": 1770340556873,
+        //     "slot": 398339101,
+        //     "markPrice": "1898603962",
+        //     "bestBidPrice": "1896967924",
+        //     "bestAskPrice": "1900240000",
+        //     "spreadPct": "172341",
+        //     "spreadQuote": "3272076",
+        //     "oracle": 1900078085,
+        //     "oracleData": {
+        //         "price": "1900078085",
+        //         "slot": "398339102",
+        //         "confidence": "89869",
+        //         "hasSufficientNumberOfDataPoints": true,
+        //         "twap": "1900078085",
+        //         "twapConfidence": "1900078085"
+        //     },
+        //     "mmOracleData": {
+        //         "price": "1900304417",
+        //         "slot": "398339102",
+        //         "confidence": "316201",
+        //         "hasSufficientNumberOfDataPoints": true
+        //     },
+        //     "marketSlot": 398339102
+        // }
+        //
         const timestamp = this.safeInteger (response, 'ts');
         const bids = this.safeValue (response, 'bids', []);
         const asks = this.safeValue (response, 'asks', []);
@@ -587,6 +633,57 @@ export default class drift extends Exchange {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketSymbolTrades (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "records": [
+        //         {
+        //             "ts": 1770340611,
+        //             "txSig": "4VYnTYbXYvxRd7s55b8xNVSQBRP5AzoxQEqd8dfdZ47LVKYTTdnjRGX9eQdDLSWsGnqmx6KCtYVi6pLzt6Jx6uhL",
+        //             "txSigIndex": 2,
+        //             "slot": 398339247,
+        //             "fillerReward": "0.000000",
+        //             "baseAssetAmountFilled": "15.000000000",
+        //             "quoteAssetAmountFilled": "28327.650000",
+        //             "takerFee": "19.829356",
+        //             "makerRebate": "-0.991467",
+        //             "referrerReward": "0.000000",
+        //             "quoteAssetAmountSurplus": "0.000000",
+        //             "takerOrderBaseAssetAmount": "15.000000000",
+        //             "takerOrderCumulativeBaseAssetAmountFilled": "15.000000000",
+        //             "takerOrderCumulativeQuoteAssetAmountFilled": "28327.650000",
+        //             "makerOrderBaseAssetAmount": "15.000000000",
+        //             "makerOrderCumulativeBaseAssetAmountFilled": "15.000000000",
+        //             "makerOrderCumulativeQuoteAssetAmountFilled": "28327.650000",
+        //             "oraclePrice": "1889.139752",
+        //             "makerFee": "-0.991467",
+        //             "action": "fill",
+        //             "actionExplanation": "orderFilledWithMatchJit",
+        //             "marketIndex": 2,
+        //             "marketType": "perp",
+        //             "filler": "6McRjTd6iKrUSvzQewoMhrnEkcgZfrZPsXcTexihb9p6",
+        //             "fillRecordId": "5987735",
+        //             "taker": "AMJ56PZC1KwUw8HvCenf6dPieuJKM4XEamHE7Mw8aoy2",
+        //             "takerOrderId": "493",
+        //             "takerOrderDirection": "short",
+        //             "maker": "6McRjTd6iKrUSvzQewoMhrnEkcgZfrZPsXcTexihb9p6",
+        //             "makerOrderId": "46304664",
+        //             "makerOrderDirection": "long",
+        //             "spotFulfillmentMethodFee": "0.000000",
+        //             "marketFilter": "perp",
+        //             "symbol": "ETH-PERP",
+        //             "bitFlags": 1,
+        //             "takerExistingQuoteEntryAmount": "27211.200000",
+        //             "takerExistingBaseAssetAmount": "",
+        //             "makerExistingQuoteEntryAmount": "",
+        //             "makerExistingBaseAssetAmount": ""
+        //         }
+        //     ],
+        //     "meta": {
+        //         "nextPage": "eyJwayI6Ik1BUktFVCNFVEgtUEVSUCIsInNrIjoiVFJBREUjVFMjMTc3MDM0MDI4NSNTTE9UIzM5ODMzODQwNSNTSUcjM2VHVzREcEJOc1djVFFjRHpQbVdmejVwTXBxOURMTFNEUkZhOXc5bWU5Q1ZlaEduWXVKTHVQeG95ek5nSnpVNWJIZGZha2NrMm90cUhDQXNXVHN6cEVQUCNJTkRFWCMwMDAwOCJ9"
+        //     }
+        // }
+        //
         const trades = this.safeValue (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
@@ -633,6 +730,58 @@ export default class drift extends Exchange {
             limit = Math.min (limit, 100);
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "records": [
+        //         {
+        //             "ts": 1770000777,
+        //             "txSig": "",
+        //             "txSigIndex": 0,
+        //             "slot": 398000661,
+        //             "fillerReward": "0.000330",
+        //             "baseAssetAmountFilled": "0.005000000",
+        //             "quoteAssetAmountFilled": "9.440000",
+        //             "takerFee": "0.003304",
+        //             "makerRebate": "-0.000236",
+        //             "referrerReward": "0.000000",
+        //             "quoteAssetAmountSurplus": "0.000000",
+        //             "takerOrderBaseAssetAmount": "0.005000000",
+        //             "takerOrderCumulativeBaseAssetAmountFilled": "0.005000000",
+        //             "takerOrderCumulativeQuoteAssetAmountFilled": "9.440000",
+        //             "makerOrderBaseAssetAmount": "0.140000000",
+        //             "makerOrderCumulativeBaseAssetAmountFilled": "0.046000000",
+        //             "makerOrderCumulativeQuoteAssetAmountFilled": "86.848000",
+        //             "oraclePrice": "1887.217373",
+        //             "makerFee": "-0.000236",
+        //             "action": "fill",
+        //             "actionExplanation": "orderFilledWithMatch",
+        //             "marketIndex": 2,
+        //             "marketType": "perp",
+        //             "filler": "",
+        //             "fillRecordId": "5986044",
+        //             "taker": "",
+        //             "takerOrderId": "2",
+        //             "takerOrderDirection": "short",
+        //             "maker": "",
+        //             "makerOrderId": "1793",
+        //             "makerOrderDirection": "long",
+        //             "spotFulfillmentMethodFee": "0.000000",
+        //             "marketFilter": "perp",
+        //             "user": "",
+        //             "symbol": "ETH-PERP",
+        //             "bitFlags": 0,
+        //             "takerExistingQuoteEntryAmount": "",
+        //             "takerExistingBaseAssetAmount": "",
+        //             "makerExistingQuoteEntryAmount": "9.400000",
+        //             "makerExistingBaseAssetAmount": ""
+        //         }
+        //     ],
+        //     "meta": {
+        //         "nextPage": null
+        //     }
+        // }
+        //
         const trades = this.safeValue (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
@@ -736,6 +885,26 @@ export default class drift extends Exchange {
         const response = await this.publicGetMarketSymbolCandlesResolution (
             this.extend (request, params)
         );
+        //
+        // {
+        //     "success": true,
+        //     "records": [
+        //         {
+        //             "ts": 1769904000,
+        //             "fillOpen": 2448.341584,
+        //             "fillHigh": 2472.25,
+        //             "fillClose": 1891.22,
+        //             "fillLow": 1743.59,
+        //             "oracleOpen": 2448.478142,
+        //             "oracleHigh": 2473.10011,
+        //             "oracleClose": 1892.258333,
+        //             "oracleLow": 1746.921599,
+        //             "quoteVolume": 166995196.877037,
+        //             "baseVolume": 75911.612
+        //         }
+        //     ]
+        // }
+        //
         const candles = this.safeValue (response, 'records', response);
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
