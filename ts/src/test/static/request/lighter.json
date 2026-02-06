@@ -1,0 +1,189 @@
+{
+    "exchange": "lighter",
+    "skipKeys": [],
+    "outputType": "urlencoded",
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/assetDetails",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=0&limit=5",
+                "input": [
+                    "ETH/USDC:USDC",
+                    5
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails?market_id=0",
+                "input": [
+                    "ETH/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/candlesticks?market_id=0&count_back=0&resolution=5m&start_timestamp=1763060345862&end_timestamp=1763090345862",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "5m",
+                    1763060345862,
+                    100
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/funding-rates",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchBalance - by l1_address",
+                "method": "fetchBalance",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchPosition - by l1_address",
+                "method": "fetchPosition",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    null,
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchPositions - by l1_address",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    null,
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchAccounts - by l1_address",
+                "method": "fetchAccounts",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ]
+    }
+}

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -12,6 +14,11 @@ import (
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
+
+	"github.com/elliottech/lighter-go/client"
+	"github.com/elliottech/lighter-go/client/http"
+	"github.com/elliottech/lighter-go/types"
+	// "github.com/elliottech/lighter-go/types/txtypes"
 )
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -535,6 +542,430 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 	}
 	return nil
 }
+
+func SafeInt(v interface{}) int64 {
+	switch val := v.(type) {
+	case int64:
+		return val
+	case float64:
+		return int64(val)
+	case int:
+		return int64(val)
+	case uint32:
+		return int64(val)
+	case uint8:
+		return int64(val)
+	case string:
+		i, err := strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			f, errFloat := strconv.ParseFloat(val, 64)
+			if errFloat != nil {
+				panic(fmt.Sprintf("SafeInt: cannot parse string '%s'", val))
+			}
+			return int64(f)
+		}
+		return i
+	default:
+		panic(fmt.Sprintf("SafeInt: unsupported type %T, value: %v", v, v))
+	}
+}
+
+// it's necessary to load lighter library in python
+// we create client with the given api credential in this function
+func (this *Exchange) LoadLighterLibrary(path interface{}, chainId interface{}, privateKey interface{}, apiKeyIndex interface{}, accountIndex interface{}) interface{} {
+	return this.loadLighterLibrary(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+}
+
+func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
+	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
+
+	httpClient := http.NewClient(url)
+
+	txClient, err := client.CreateClient(httpClient, privateKey, chainId, apiKeyIndex, accountIndex)
+	if err != nil {
+		panic(err)
+	}
+	return txClient
+}
+
+func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+	ordersRaw, ok := request["orders"]
+	if !ok {
+		panic("Missing 'orders' in request")
+	}
+
+	orders, ok := ordersRaw.([]interface{})
+	if !ok {
+		panic(fmt.Sprintf("'orders' must be an array, got %T", ordersRaw))
+	}
+
+	length := len(orders)
+	ordersArr := make([]*types.CreateOrderTxReq, length)
+
+	for i, item := range orders {
+		orderMap, ok := item.(map[string]interface{})
+		if !ok {
+			panic(fmt.Sprintf("Order %d is not a map[string]interface{}", i))
+		}
+
+		orderExpiry := int64(SafeInt(orderMap["order_expiry"]))
+		if orderExpiry == -1 {
+			orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
+		}
+
+		ordersArr[i] = &types.CreateOrderTxReq{
+			MarketIndex:      int16(SafeInt(orderMap["market_index"])),
+			ClientOrderIndex: int64(SafeInt(orderMap["client_order_index"])),
+			BaseAmount:       int64(SafeInt(orderMap["base_amount"])),
+			Price:            uint32(SafeInt(orderMap["avg_execution_price"])),
+			IsAsk:            uint8(SafeInt(orderMap["is_ask"])),
+			Type:             uint8(SafeInt(orderMap["order_type"])),
+			TimeInForce:      uint8(SafeInt(orderMap["time_in_force"])),
+			ReduceOnly:       uint8(SafeInt(orderMap["reduce_only"])),
+			TriggerPrice:     uint32(SafeInt(orderMap["trigger_price"])),
+			OrderExpiry:      orderExpiry,
+		}
+	}
+
+	tx := &types.CreateGroupedOrdersTxReq{
+		GroupingType: uint8(SafeInt(request["grouping_type"])),
+		Orders:       ordersArr,
+	}
+
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateGroupedOrdersTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
+
+	return res
+}
+
+func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	orderExpiry := int64(SafeInt(request["order_expiry"]))
+	if orderExpiry == -1 {
+		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
+	}
+
+	tx := &types.CreateOrderTxReq{
+		MarketIndex:      int16(SafeInt(request["market_index"])),
+		ClientOrderIndex: int64(SafeInt(request["client_order_index"])),
+		BaseAmount:       int64(SafeInt(request["base_amount"])),
+		Price:            uint32(SafeInt(request["avg_execution_price"])),
+		IsAsk:            uint8(SafeInt(request["is_ask"])),
+		Type:             uint8(SafeInt(request["order_type"])),
+		TimeInForce:      uint8(SafeInt(request["time_in_force"])),
+		ReduceOnly:       uint8(SafeInt(request["reduce_only"])),
+		TriggerPrice:     uint32(SafeInt(request["trigger_price"])),
+		OrderExpiry:      orderExpiry,
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
+
+	return res
+}
+
+func (this *Exchange) LighterSignCancelOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCancelOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.CancelOrderTxReq{
+		MarketIndex: int16(SafeInt(request["market_index"])),
+		Index:       int64(SafeInt(request["order_index"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCancelOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignWithdraw(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignWithdraw(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.WithdrawTxReq{
+		AssetIndex: int16(SafeInt(request["asset_index"])),
+		RouteType:  uint8(SafeInt(request["route_type"])),
+		Amount:     uint64(SafeInt(request["amount"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetWithdrawTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignCreateSubAccount(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateSubAccount(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]interface{}) interface{} {
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateSubAccountTransaction(ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignCancelAllOrders(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCancelAllOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.CancelAllOrdersTxReq{
+		TimeInForce: uint8(SafeInt(request["time_in_force"])),
+		Time:        int64(SafeInt(request["time"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCancelAllOrdersTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignModifyOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignModifyOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.ModifyOrderTxReq{
+		MarketIndex:  int16(SafeInt(request["market_index"])),
+		Index:        int64(SafeInt(request["index"])),
+		BaseAmount:   int64(SafeInt(request["base_amount"])),
+		Price:        uint32(SafeInt(request["price"])),
+		TriggerPrice: uint32(SafeInt(request["trigger_price"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetModifyOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignTransfer(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignTransfer(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]interface{}) interface{} {
+	var memoArr [32]byte
+	bs := []byte(request["memo"].(string))
+	if len(bs) != 32 {
+		panic(fmt.Errorf("memo expected to be 32 bytes long"))
+	}
+	for i := 0; i < 32; i++ {
+		memoArr[i] = bs[i]
+	}
+	tx := &types.TransferTxReq{
+		ToAccountIndex: int64(SafeInt(request["to_account_index"])),
+		AssetIndex:     int16(SafeInt(request["asset_index"])),
+		FromRouteType:  uint8(SafeInt(request["from_route_type"])),
+		ToRouteType:    uint8(SafeInt(request["to_route_type"])),
+		Amount:         int64(SafeInt(request["amount"])),
+		USDCFee:        int64(SafeInt(request["usdc_fee"])),
+		Memo:           memoArr,
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetTransferTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignUpdateLeverage(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignUpdateLeverage(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.UpdateLeverageTxReq{
+		MarketIndex:           int16(SafeInt(request["market_index"])),
+		InitialMarginFraction: uint16(SafeInt(request["initial_margin_fraction"])),
+		MarginMode:            uint8(SafeInt(request["margin_mode"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetUpdateLeverageTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interface{}) interface{} {
+	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
+	deadline := time.Unix(int64(SafeInt(request["deadline"])), 0)
+
+	auth, err := signer.GetAuthToken(deadline)
+	if err != nil {
+		panic(err)
+	}
+
+	return auth
+}
+
+func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignUpdateMargin(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.UpdateMarginTxReq{
+		MarketIndex: int16(SafeInt(request["market_index"])),
+		USDCAmount:  int64(SafeInt(request["usdc_amount"])),
+		Direction:   uint8(SafeInt(request["direction"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetUpdateMarginTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
 func (this *Exchange) EthGetAddressFromPrivateKey(privateKey interface{}) string {
 	// Convert interface{} to string
 	privateKeyStr, ok := privateKey.(string)

@@ -37,6 +37,7 @@ use StarkNet\Crypto\Curve;
 use StarkNet\Crypto\Key;
 use StarkNet\Hash;
 use StarkNet\TypedData;
+use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
@@ -422,6 +423,7 @@ class Exchange {
         'kucoinfutures',
         'latoken',
         'lbank',
+        'lighter',
         'luno',
         'mercado',
         'mexc',
@@ -1433,6 +1435,172 @@ class Exchange {
         return $this->json($signature);
     }
 
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+        $lighterSigner = Signer::getInstance($path);
+
+        $url = $this->implode_hostname($this->urls['api']['public']);
+        $lighterSigner->createClient(
+            $url,
+            $privateKey,
+            $chainId,
+            $apiKeyIndex,
+            $accountIndex
+        );
+        return $lighterSigner;
+    }
+
+    public function lighter_sign_create_grouped_orders($signer, $request) {
+        $orders = $request['orders'];
+        $orders_arr = array();
+        foreach ($orders as $order) {
+            $orders_arr[] = array(
+                'marketIndex' => $order['market_index'],
+                'clientOrderIndex' => $order['client_order_index'],
+                'baseAmount' => $order['base_amount'],
+                'price' => $order['avg_execution_price'],
+                'isAsk' => $order['is_ask'],
+                'type' => $order['order_type'],
+                'timeInForce' => $order['time_in_force'],
+                'reduceOnly' => $order['reduce_only'],
+                'triggerPrice' => $order['trigger_price'],
+                'orderExpiry' => $order['order_expiry'],
+            );
+        }
+        $result = $signer->signCreateGroupedOrders(
+            $request['grouping_type'],
+            $orders_arr,
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_create_order($signer, $request) {
+        $result = $signer->signCreateOrder(
+            $request['market_index'],
+            $request['client_order_index'],
+            $request['base_amount'],
+            $request['avg_execution_price'],
+            $request['is_ask'],
+            $request['order_type'],
+            $request['time_in_force'],
+            $request['reduce_only'],
+            $request['trigger_price'],
+            $request['order_expiry'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_cancel_order($signer, $request) {
+        $result = $signer->signCancelOrder(
+            $request['market_index'],
+            $request['order_index'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_withdraw($signer, $request) {
+        $result = $signer->signWithdraw(
+            $request['asset_index'],
+            $request['route_type'],
+            $request['amount'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_create_sub_account($signer, $request) {
+        $result = $signer->signCreateSubAccount(
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_cancel_all_orders($signer, $request) {
+        $result = $signer->signCancelAllOrders(
+            $request['time_in_force'],
+            $request['time'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_modify_order($signer, $request) {
+        $result = $signer->signModifyOrder(
+            $request['market_index'],
+            $request['index'],
+            $request['base_amount'],
+            $request['price'],
+            $request['trigger_price'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_transfer($signer, $request) {
+        $result = $signer->signTransfer(
+            $request['to_account_index'],
+            $request['asset_index'],
+            $request['from_route_type'],
+            $request['to_route_type'],
+            $request['amount'],
+            $request['usdc_fee'],
+            $request['memo'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_sign_update_leverage($signer, $request) {
+        $result = $signer->signUpdateLeverage(
+            $request['market_index'],
+            $request['initial_margin_fraction'],
+            $request['margin_mode'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
+    public function lighter_create_auth_token($signer, $request) {
+        $result = $signer->createAuthToken(
+            $request['deadline'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return $result;
+    }
+
+    public function lighter_sign_update_margin($signer, $request) {
+        $result = $signer->signUpdateMargin(
+            $request['market_index'],
+            $request['usdc_amount'],
+            $request['direction'],
+            $request['nonce'],
+            $request['api_key_index'],
+            $request['account_index']
+        );
+        return [ $result['txType'], $result['txInfo'] ];
+    }
+
     public function packb($data) {
         return MessagePack::pack($data);
     }
@@ -1540,7 +1708,14 @@ class Exchange {
             $tmp = $headers;
             $headers = array();
             foreach ($tmp as $key => $value) {
-                $headers[] = $key . ': ' . $value;
+                // handle multipart/form-data
+                if (strtolower($key) == 'content-type') {
+                    if ($value != 'multipart/form-data') {
+                        $headers[] = $key . ': ' . $value;
+                    }
+                } else {
+                    $headers[] = $key . ': ' . $value;
+                }
             }
         }
 

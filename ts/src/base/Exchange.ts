@@ -1930,6 +1930,66 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
+    // eslint-disable-next-line no-unused-vars
+    loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex): any {
+        throw new NotSupported (this.id + ' loadLighterLibrary not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignCreateGroupedOrders not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateOrder (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignCreateOrder not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCancelOrder (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignCancelOrder not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignWithdraw (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignWithdraw not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignCreateSubAccount not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCancelAllOrders (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignCancelAllOrders not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignModifyOrder (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignModifyOrder not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignTransfer (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignTransfer not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignUpdateLeverage (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignUpdateLeverage not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterCreateAuthToken (signer, request): string {
+        throw new NotSupported (this.id + ' lighterCreateAuthToken not supported yet');
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    lighterSignUpdateMargin (signer, request): any[] {
+        throw new NotSupported (this.id + ' lighterSignUpdateMargin not supported yet');
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
