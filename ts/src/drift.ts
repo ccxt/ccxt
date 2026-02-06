@@ -1198,12 +1198,28 @@ export default class drift extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         const request: Dict = {
             'accountId': this.accountId,
         };
         const response = await this.publicGetUserAccountId (this.extend (request, params));
+        //
+        // {
+        //     "account": {
+        //         "balance": "30.160985",
+        //         "totalCollateral": "30.143451",
+        //         "freeCollateral": "28.884414",
+        //         "health": "99",
+        //         "initialMargin": "1.259037",
+        //         "maintenanceMargin": "0.212363",
+        //         "leverage": "0.339"
+        //     },
+        //     "positions": [],
+        //     "balances": [],
+        //     "orders": []
+        // }
+        //
         return this.parseBalance (response);
     }
 

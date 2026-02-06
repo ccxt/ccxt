@@ -109,6 +109,14 @@
                     "BTC/USDC:USDC"
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://data.api.drift.trade/user/12345",
+                "input": []
+            }
         ]
     }
 }
