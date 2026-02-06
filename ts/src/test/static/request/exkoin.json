@@ -1,0 +1,83 @@
+{
+    "exchange": "exkoin",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades",
+                "method": "fetchMyTrades",
+                "url": "https://api.exkoin.com/v1/private/trades?symbol=LTC%2FUSDT",
+                "input": [
+                    "LTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.exkoin.com/v1/private/order?order_id=TFRDL1VTRFQxNzUwNjY4NTIw468",
+                "input": [
+                    "TFRDL1VTRFQxNzUwNjY4NTIw468",
+                    "LTC/USDT"
+                ],
+                "output": null
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.exkoin.com/v1/private/orders/cancel",
+                "input": [
+                    "TFRDL1VTRFQxNzUwNjY4NTIw468",
+                    "LTC/USDT"
+                ],
+                "output": "{\"order_id\":\"TFRDL1VTRFQxNzUwNjY4NTIw468\",\"symbol\":\"LTC/USDT\"}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "market buy order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.exkoin.com/v1/private/orders",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    10,
+                    {
+                        "clientOrderId": "myorder1"
+                    }
+                ],
+                "output": "{\"symbol\":\"LTC/USDT\",\"type\":\"market\",\"side\":\"buy\",\"cost\":\"1\",\"client_order_id\":\"myorder1\"}"
+            },
+            {
+                "description": "create limit buy order",
+                "method": "createOrder",
+                "url": "https://api.exkoin.com/v1/private/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    60
+                ],
+                "output": "{\"symbol\":\"LTC/USDT\",\"type\":\"limit\",\"side\":\"buy\",\"quantity\":\"0.1\",\"price\":\"60\"}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.exkoin.com/v1/private/balances",
+                "input": [],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
