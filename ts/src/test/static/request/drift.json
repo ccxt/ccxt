@@ -125,6 +125,14 @@
                 "url": "https://data.api.drift.trade/user/12345",
                 "input": []
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://data.api.drift.trade/user/12345/fundingPayments",
+                "input": []
+            }
         ]
     }
 }

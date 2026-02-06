@@ -1323,42 +1323,87 @@ export default class drift extends Exchange {
      * @name drift#fetchFundingHistory
      * @description fetches the history of funding payments for swap positions
      * @param symbol
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of funding payments to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
     async fetchFundingHistory (
-        symbol: Str = undefined, // todo funding by market
-        // since: Int = undefined, // todo funding
-        limit: Int = 20,
+        symbol: Str = undefined,
+        since: Int = undefined,
+        limit: Int = undefined,
         params = {}
     ): Promise<FundingHistory[]> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const maxEntries = Math.min (limit, 100);
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'nextPage', 'page', undefined, 50) as FundingHistory[];
+        }
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if (limit !== undefined) {
+            limit = Math.min (limit, 100);
+        }
         const request: Dict = {
             'accountId': this.accountId,
         };
-        let nextPage = undefined;
-        let allPayments: any[] = [];
-        let fetchMore = true;
-        while (fetchMore) {
-            const pageRequest = this.extend ({}, request);
-            if (nextPage !== undefined) {
-                pageRequest['page'] = nextPage;
-            }
-            const response = await (this as any).publicGetUserAccountIdFundingPayments (this.extend (pageRequest, params));
-            const records = this.safeList (response, 'records', []);
-            allPayments = allPayments.concat (records);
-            const meta = this.safeDict (response, 'meta', {});
-            nextPage = this.safeString (response, 'nextPage') ?? this.safeString (meta, 'nextPage');
-            fetchMore = !((nextPage === undefined) || (records.length === 0) || (allPayments.length >= maxEntries));
+        // let nextPage = undefined;
+        // let allPayments: any[] = [];
+        // let fetchMore = true;
+        // while (fetchMore) {
+        //     const pageRequest = this.extend ({}, request);
+        //     if (nextPage !== undefined) {
+        //         pageRequest['page'] = nextPage;
+        //     }
+        //     const response = await (this as any).publicGetUserAccountIdFundingPayments (this.extend (pageRequest, params));
+        //     const records = this.safeList (response, 'records', []);
+        //     allPayments = allPayments.concat (records);
+        //     const meta = this.safeDict (response, 'meta', {});
+        //     nextPage = this.safeString (response, 'nextPage') ?? this.safeString (meta, 'nextPage');
+        //     fetchMore = !((nextPage === undefined) || (records.length === 0) || (allPayments.length >= maxEntries));
+        // }
+        // allPayments = allPayments.slice (0, maxEntries);
+        // return this.parseFundingHistories (allPayments);
+        const response = await this.publicGetUserAccountIdFundingPayments (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "records": [
+        //         {
+        //             "ts": 1770364868,
+        //             "txSig": "",
+        //             "txSigIndex": 11,
+        //             "slot": 398401341,
+        //             "userAuthority": "",
+        //             "user": "",
+        //             "marketIndex": 2,
+        //             "fundingPayment": "-0.000210",
+        //             "baseAssetAmount": "-0.005000000",
+        //             "userLastCumulativeFunding": "1180.879259069",
+        //             "ammCumulativeFundingLong": "1180.889121710",
+        //             "ammCumulativeFundingShort": "1180.837256569"
+        //         }
+        //     ],
+        //     "meta": {
+        //         "nextPage": "eyJzayxxxxIn0="
+        //     }
+        // }
+        //
+        const payments = this.safeValue (response, 'records');
+        const meta = this.safeDict (response, 'meta');
+        const nextPage = this.safeString (meta, 'nextPage');
+        if ((payments.length > 0) && (nextPage !== undefined)) {
+            payments[0]['nextPage'] = nextPage;
         }
-        allPayments = allPayments.slice (0, maxEntries);
-        return this.parseFundingHistories (allPayments);
+        return this.parseIncomes (payments, market, since, limit);
     }
 
-    parseFundingHistory (payment: Dict, market: Market = undefined): FundingHistory {
+    parseIncome (payment: Dict, market: Market = undefined): FundingHistory {
         const timestamp = this.safeTimestamp (payment, 'ts');
         const marketIndex = this.safeInteger (payment, 'marketIndex');
         let marketId = undefined;
@@ -1390,21 +1435,6 @@ export default class drift extends Exchange {
             'id': id,
             'amount': this.safeNumber (payment, 'fundingPayment'),
         };
-    }
-
-    parseFundingHistories (
-        payments: any[],
-        market: Market = undefined,
-        since: Int = undefined,
-        limit: Int = undefined
-    ): FundingHistory[] {
-        const result = [];
-        for (let i = 0; i < payments.length; i++) {
-            result.push (this.parseFundingHistory (payments[i], market));
-        }
-        const sorted = this.sortBy (result, 'timestamp');
-        const symbol = market !== undefined ? market['symbol'] : undefined;
-        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingHistory[];
     }
 
     /**
