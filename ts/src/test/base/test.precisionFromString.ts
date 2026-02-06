@@ -1,0 +1,73 @@
+// AUTO_TRANSPILE_ENABLED
+
+import assert from 'assert';
+import ccxt from '../../../ccxt.js';
+
+function testPrecisionFromString () {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+    });
+
+    // Test 1: Scientific notation negative exponent
+    assert (exchange.precisionFromString ('1e-4') === 4);
+
+    // Test 2: Scientific notation uppercase E
+    assert (exchange.precisionFromString ('1E-4') === 4);
+
+    // Test 3: Scientific notation larger negative exponent
+    assert (exchange.precisionFromString ('1e-8') === 8);
+
+    // Test 4: Scientific notation with decimal
+    assert (exchange.precisionFromString ('2.5e-6') === 6);
+
+    // Test 5: Scientific notation positive exponent
+    assert (exchange.precisionFromString ('1e4') === -4);
+
+    // Test 6: Scientific notation explicit positive
+    assert (exchange.precisionFromString ('1e+4') === -4);
+
+    // Test 7: Decimal string 4 places
+    assert (exchange.precisionFromString ('0.0001') === 4);
+
+    // Test 8: Decimal string 5 places
+    assert (exchange.precisionFromString ('0.00001') === 5);
+
+    // Test 9: Decimal string 1 place
+    assert (exchange.precisionFromString ('0.1') === 1);
+
+    // Test 10: Decimal string 2 places
+    assert (exchange.precisionFromString ('0.01') === 2);
+
+    // Test 11: Decimal string 8 places
+    assert (exchange.precisionFromString ('0.00000001') === 8);
+
+    // Test 12: Trailing zeros should be stripped
+    assert (exchange.precisionFromString ('0.0100') === 2);
+
+    // Test 13: Trailing zeros stripped
+    assert (exchange.precisionFromString ('0.00100') === 3);
+
+    // Test 14: All trailing zeros after decimal
+    assert (exchange.precisionFromString ('1.0000') === 0);
+
+    // Test 15: Integer string (no decimal)
+    assert (exchange.precisionFromString ('1') === 0);
+
+    // Test 16: Integer string larger
+    assert (exchange.precisionFromString ('10') === 0);
+
+    // Test 17: Integer string even larger
+    assert (exchange.precisionFromString ('100') === 0);
+
+    // Test 18: Zero with decimal
+    assert (exchange.precisionFromString ('0.0') === 0);
+
+    // Test 19: One with decimal
+    assert (exchange.precisionFromString ('1.0') === 0);
+
+    // Test 20: Mixed precision
+    assert (exchange.precisionFromString ('0.12345') === 5);
+}
+
+export default testPrecisionFromString;

@@ -371,14 +371,12 @@ public partial class binance : ccxt.binance
         object market = this.safeMarket(marketId, null, "", "contract");
         object symbol = getValue(market, "symbol");
         object liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        object liquidations = this.safeValue(this.liquidations, symbol);
-        if (isTrue(isEqual(liquidations, null)))
+        if (isTrue(isEqual(this.liquidations, null)))
         {
-            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-            liquidations = new ArrayCache(limit);
+            this.liquidations = new ArrayCacheBySymbolBySide();
         }
-        callDynamically(liquidations, "append", new object[] {liquidation});
-        ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+        object cache = this.liquidations;
+        callDynamically(cache, "append", new object[] {liquidation});
         callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
         callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
     }
@@ -602,14 +600,13 @@ public partial class binance : ccxt.binance
         object market = this.safeMarket(marketId, null, null, "swap");
         object symbol = this.safeSymbol(marketId, market);
         object liquidation = this.parseWsLiquidation(message, market);
-        object myLiquidations = this.safeValue(this.myLiquidations, symbol);
-        if (isTrue(isEqual(myLiquidations, null)))
+        object cache = this.myLiquidations;
+        if (isTrue(isEqual(cache, null)))
         {
-            object limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
-            myLiquidations = new ArrayCache(limit);
+            cache = new ArrayCacheBySymbolBySide();
         }
-        callDynamically(myLiquidations, "append", new object[] {liquidation});
-        ((IDictionary<string,object>)this.myLiquidations)[(string)symbol] = myLiquidations;
+        callDynamically(cache, "append", new object[] {liquidation});
+        this.myLiquidations = cache;
         callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "myLiquidations"});
         callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("myLiquidations::", symbol)});
     }

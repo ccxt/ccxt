@@ -1659,6 +1659,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         return self.sign_user_signed_action(messageTypes, message)
 
+    def build_user_abstraction_sig(self, message):
+        messageTypes: dict = {
+            'HyperliquidTransaction:UserSetAbstraction': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
+                {'name': 'user', 'type': 'address'},
+                {'name': 'abstraction', 'type': 'string'},
+                {'name': 'nonce', 'type': 'uint64'},
+            ],
+        }
+        return self.sign_user_signed_action(messageTypes, message)
+
     def build_approve_builder_fee_sig(self, message):
         messageTypes: dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
@@ -1750,25 +1761,37 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
 
-    async def enable_user_dex_abstraction(self, enabled: bool, params={}):
+    async def set_user_abstraction(self, abstraction: str, params={}):
+        """
+        set user abstraction mode
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+
+        :param str abstraction: one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+        :param dict [params]:
+        :param str [params.type]: 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+        :returns: dictionary response from the exchange
+        """
         userAddress = None
-        userAddress, params = self.handle_public_address('enableUserDexAbstraction', params)
+        userAddress, params = self.handle_public_address('setUserAbstraction', params)
         nonce = self.milliseconds()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        type = self.safe_string(params, 'type', 'userSetAbstraction')
+        params = self.omit(params, 'type')
         payload: dict = {
             'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
             'user': userAddress,
-            'enabled': enabled,
+            'abstraction': abstraction,
             'nonce': nonce,
         }
-        sig = self.build_user_dex_abstraction_sig(payload)
+        sig = self.build_user_abstraction_sig(payload)
         action = {
             'hyperliquidChain': payload['hyperliquidChain'],
             'signatureChainId': '0x66eee',
-            'enabled': payload['enabled'],
+            'abstraction': payload['abstraction'],
             'user': payload['user'],
             'nonce': nonce,
-            'type': 'userDexAbstraction',
+            'type': type,
         }
         request: dict = {
             'action': action,
@@ -1785,6 +1808,72 @@ class hyperliquid(Exchange, ImplicitAPI):
         # }
         #
         return await self.privatePostExchange(request)
+
+    async def enable_user_dex_abstraction(self, enabled: bool, params={}):
+        """
+        If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+ @param enabled
+ @param params
+        :param str [params.type]: 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+        :returns: dictionary response from the exchange
+        """
+        userAddress = None
+        userAddress, params = self.handle_public_address('enableUserDexAbstraction', params)
+        nonce = self.milliseconds()
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        type = self.safe_string(params, 'type', 'userDexAbstraction')
+        params = self.omit(params, 'type')
+        payload: dict = {
+            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'user': userAddress,
+            'enabled': enabled,
+            'nonce': nonce,
+        }
+        sig = self.build_user_dex_abstraction_sig(payload)
+        action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'enabled': payload['enabled'],
+            'user': payload['user'],
+            'nonce': nonce,
+            'type': type,
+        }
+        request: dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': None,
+        }
+        #
+        # {
+        #     "status": "ok",
+        #     "response": {
+        #         "type": "default"
+        #     }
+        # }
+        #
+        return await self.privatePostExchange(request)
+
+    async def set_agent_abstraction(self, abstraction: str, params={}):
+        """
+        set agent abstraction mode
+        :param str abstraction: one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+        :param dict [params]:
+        :returns: dictionary response from the exchange
+        """
+        nonce = self.milliseconds()
+        request: dict = {
+            'nonce': nonce,
+        }
+        action: dict = {
+            'type': 'agentSetAbstraction',
+            'abstraction': abstraction,
+        }
+        signature = self.sign_l1_action(action, nonce)
+        request['action'] = action
+        request['signature'] = signature
+        response = await self.privatePostExchange(self.extend(request, params))
+        return response
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """

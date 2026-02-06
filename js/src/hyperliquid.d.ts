@@ -216,6 +216,11 @@ export default class hyperliquid extends Exchange {
         s: string;
         v: any;
     };
+    buildUserAbstractionSig(message: any): {
+        r: string;
+        s: string;
+        v: any;
+    };
     buildApproveBuilderFeeSig(message: any): {
         r: string;
         s: string;
@@ -225,7 +230,36 @@ export default class hyperliquid extends Exchange {
     approveBuilderFee(builder: string, maxFeeRate: string): Promise<any>;
     initializeClient(): Promise<boolean>;
     handleBuilderFeeApproval(): Promise<boolean>;
+    /**
+     * @method
+     * @name hyperliquid#setUserAbstraction
+     * @description set user abstraction mode
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+     * @param {string} abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+     * @param {object} [params]
+     * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    setUserAbstraction(abstraction: string, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name hyperliquid#enableUserDexAbstraction
+     * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+     * @param enabled
+     * @param params
+     * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+     * @returns dictionary response from the exchange
+     */
     enableUserDexAbstraction(enabled: boolean, params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name hyperliquid#setAgentAbstraction
+     * @description set agent abstraction mode
+     * @param {string} abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+     * @param {object} [params]
+     * @returns dictionary response from the exchange
+     */
+    setAgentAbstraction(abstraction: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name hyperliquid#createOrder

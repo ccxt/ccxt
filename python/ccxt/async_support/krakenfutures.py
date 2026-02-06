@@ -2575,7 +2575,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         for i in range(0, len(marginLevels)):
             tier = marginLevels[i]
             initialMargin = self.safe_string(tier, 'initialMargin')
-            minNotional = self.safe_number(tier, 'numNonContractUnits')
+            minNotional = self.safe_number_2(tier, 'numNonContractUnits', 'contracts')
             if i != 0:
                 tiersLength = len(tiers)
                 previousTier = tiers[tiersLength - 1]

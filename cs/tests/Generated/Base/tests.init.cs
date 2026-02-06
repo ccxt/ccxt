@@ -28,10 +28,12 @@ public partial class BaseTest
             testUrlencodeBase64();
             testOmit();
             testGroupBy();
+            testIndexBy();
             testFilterBy();
             testHandleMethods();
             testRemoveRepeatedElementsFromArray();
             testParsePrecision();
+            testPrecisionFromString();
             testExtractParams();
             testArraysConcat();
             testEthMethods();

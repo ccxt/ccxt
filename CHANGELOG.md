@@ -1,3 +1,54 @@
+<a id="v4.5.36"></a>
+# [v4.5.36](https://github.com/ccxt/ccxt/releases/tag/v4.5.36) - 2026-02-03
+
+## What's Changed
+* woo fetchOHLCV fix by [@ndubel](https://github.com/ndubel) in [#27793](https://github.com/ccxt/ccxt/pull/27793)
+* docs: minor fixes to fetchMarkets return type and to rateLimit exchange property descriptions by [@bryanstevensacosta](https://github.com/bryanstevensacosta) in [#27576](https://github.com/ccxt/ccxt/pull/27576)
+* test(woo): fix static tests ohlcv by [@ttodua](https://github.com/ttodua) in [#27802](https://github.com/ccxt/ccxt/pull/27802)
+* feat(bybit): update rl for transaction-log by [@sc0Vu](https://github.com/sc0Vu) in [#27807](https://github.com/ccxt/ccxt/pull/27807)
+* chore: remove unused funcs by [@ttodua](https://github.com/ttodua) in [#27806](https://github.com/ccxt/ccxt/pull/27806)
+* feat(coinbase): createOrder reduceOnly, withdraw edit parameters by [@Dan-krm](https://github.com/Dan-krm) in [#27816](https://github.com/ccxt/ccxt/pull/27816)
+* chore(deps): bump protobuf from 5.29.5 to 6.33.5 by [@dependabot](https://github.com/dependabot)[bot] in [#27820](https://github.com/ccxt/ccxt/pull/27820)
+* perf: python filter_by (90%) by [@ttodua](https://github.com/ttodua) in [#27777](https://github.com/ccxt/ccxt/pull/27777)
+* perf: python group_by (80%) by [@ttodua](https://github.com/ttodua) in [#27778](https://github.com/ccxt/ccxt/pull/27778)
+* test: add aggregate by [@ttodua](https://github.com/ttodua) in [#27800](https://github.com/ccxt/ccxt/pull/27800)
+* fix(aster): Messages dropped in Aster private WS methods by [@colin-nl](https://github.com/colin-nl) in [#27821](https://github.com/ccxt/ccxt/pull/27821)
+* test: add binaryToBase64 test by [@ttodua](https://github.com/ttodua) in [#27817](https://github.com/ccxt/ccxt/pull/27817)
+* perf: python aggregate (25%) by [@ttodua](https://github.com/ttodua) in [#27801](https://github.com/ccxt/ccxt/pull/27801)
+* test: add urlencodeToBase64 test by [@ttodua](https://github.com/ttodua) in [#27819](https://github.com/ccxt/ccxt/pull/27819)
+* refactor: remove unused rfc2616 by [@ttodua](https://github.com/ttodua) in [#27811](https://github.com/ccxt/ccxt/pull/27811)
+* test: add extractParams test by [@ttodua](https://github.com/ttodua) in [#27794](https://github.com/ccxt/ccxt/pull/27794)
+* perf(js): deepExtend optimization (2x) by [@ttodua](https://github.com/ttodua) in [#27737](https://github.com/ccxt/ccxt/pull/27737)
+* fix(binance,bybit, okx,gate,bitmex): fix watchLiquidations and watchmyLiquidations with newUpdates = false by [@pcriadoperez](https://github.com/pcriadoperez) in [#27825](https://github.com/ccxt/ccxt/pull/27825)
+* perf: python iso8601 (80%) by [@ttodua](https://github.com/ttodua) in [#27810](https://github.com/ccxt/ccxt/pull/27810)
+* fix(bybit): oco order only tp or sl by [@hoangbn](https://github.com/hoangbn) in [#27822](https://github.com/ccxt/ccxt/pull/27822)
+* feat(ai): add installable ai skills by [@pcriadoperez](https://github.com/pcriadoperez) in [#27824](https://github.com/ccxt/ccxt/pull/27824)
+* perf: python extractParams (80%) by [@ttodua](https://github.com/ttodua) in [#27795](https://github.com/ccxt/ccxt/pull/27795)
+* perf: python parse8601 (190%) by [@ttodua](https://github.com/ttodua) in [#27813](https://github.com/ccxt/ccxt/pull/27813)
+* perf: python urlencode_with_array_repeat by [@ttodua](https://github.com/ttodua) in [#27796](https://github.com/ccxt/ccxt/pull/27796)
+* fix(bydfi): findMessageHashes removed from `handle...` methods by [@yzh-pelle](https://github.com/yzh-pelle) in [#27826](https://github.com/ccxt/ccxt/pull/27826)
+* chore: remove aggregate from old test by [@ttodua](https://github.com/ttodua) in [#27827](https://github.com/ccxt/ccxt/pull/27827)
+* chore: python remove unused funcs by [@ttodua](https://github.com/ttodua) in [#27828](https://github.com/ccxt/ccxt/pull/27828)
+* fix(krakenfutures): parseLeverageTiers for inverse/futures contracts by [@carlosmiei](https://github.com/carlosmiei) in [#27831](https://github.com/ccxt/ccxt/pull/27831)
+* test: fix urlencodeBase64 by [@ttodua](https://github.com/ttodua) in [#27830](https://github.com/ccxt/ccxt/pull/27830)
+* test: aggregate fix by [@ttodua](https://github.com/ttodua) in [#27829](https://github.com/ccxt/ccxt/pull/27829)
+* feat(coinex): add futures/ cancel position tp/sl endpoints by [@carlosmiei](https://github.com/carlosmiei) in [#27833](https://github.com/ccxt/ccxt/pull/27833)
+* refactor(python): remove unused pluck by [@ttodua](https://github.com/ttodua) in [#27797](https://github.com/ccxt/ccxt/pull/27797)
+* perf: python parse_date (90%) by [@ttodua](https://github.com/ttodua) in [#27812](https://github.com/ccxt/ccxt/pull/27812)
+* test: add indexBy tests by [@ttodua](https://github.com/ttodua) in [#27791](https://github.com/ccxt/ccxt/pull/27791)
+* perf: python capitalize (30%) by [@ttodua](https://github.com/ttodua) in [#27780](https://github.com/ccxt/ccxt/pull/27780)
+* perf: python milliseconds & microseconds (10%) by [@ttodua](https://github.com/ttodua) in [#27809](https://github.com/ccxt/ccxt/pull/27809)
+* perf: python urlencodeBase64 (50%) by [@ttodua](https://github.com/ttodua) in [#27818](https://github.com/ccxt/ccxt/pull/27818)
+
+## New Contributors
+* [@bryanstevensacosta](https://github.com/bryanstevensacosta) made their first contribution in [#27576](https://github.com/ccxt/ccxt/pull/27576)
+* [@colin-nl](https://github.com/colin-nl) made their first contribution in [#27821](https://github.com/ccxt/ccxt/pull/27821)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.35...v4.5.36
+
+[Changes][v4.5.36]
+
+
 <a id="v4.5.35"></a>
 # [v4.5.35](https://github.com/ccxt/ccxt/releases/tag/v4.5.35) - 2026-01-29
 
@@ -12311,6 +12362,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.36]: https://github.com/ccxt/ccxt/compare/v4.5.35...v4.5.36
 [v4.5.35]: https://github.com/ccxt/ccxt/compare/v4.5.34...v4.5.35
 [v4.5.34]: https://github.com/ccxt/ccxt/compare/v4.5.33...v4.5.34
 [v4.5.33]: https://github.com/ccxt/ccxt/compare/v4.5.32...v4.5.33

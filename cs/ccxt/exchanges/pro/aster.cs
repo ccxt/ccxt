@@ -1679,26 +1679,30 @@ public partial class aster : ccxt.aster
         //     }
         //
         object messageHash = "positions";
+        if (isTrue(isEqual(this.positions, null)))
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        object cache = this.positions;
+        object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        object rawPositions = this.safeList(data, "P", new List<object>() {});
+        object newPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        {
+            object rawPosition = getValue(rawPositions, i);
+            object position = this.parseWsPosition(rawPosition);
+            object timestamp = this.safeInteger(message, "E");
+            ((IDictionary<string,object>)position)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
+            ((IList<object>)newPositions).Add(position);
+            callDynamically(cache, "append", new object[] {position});
+        }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            if (isTrue(isEqual(this.positions, null)))
+            for (object i = 0; isLessThan(i, getArrayLength(newPositions)); postFixIncrement(ref i))
             {
-                this.positions = new ArrayCacheBySymbolBySide();
-            }
-            object cache = this.positions;
-            object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
-            object rawPositions = this.safeList(data, "P", new List<object>() {});
-            object newPositions = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
-            {
-                object rawPosition = getValue(rawPositions, i);
-                object position = this.parseWsPosition(rawPosition);
-                object timestamp = this.safeInteger(message, "E");
-                ((IDictionary<string,object>)position)["timestamp"] = timestamp;
-                ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
-                ((IList<object>)newPositions).Add(position);
-                callDynamically(cache, "append", new object[] {position});
+                object position = getValue(newPositions, i);
                 object symbol = getValue(position, "symbol");
                 object symbolMessageHash = add(add(messageHash, "::"), symbol);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {position, symbolMessageHash});
@@ -2028,20 +2032,20 @@ public partial class aster : ccxt.aster
         //     }
         //
         object messageHash = "orders";
+        object market = this.getMarketFromOrder(client as WebSocketClient, message);
+        if (isTrue(isEqual(this.orders, null)))
+        {
+            object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        object cache = this.orders;
+        object parsed = this.parseWsOrder(message, market);
+        object symbol = getValue(market, "symbol");
+        callDynamically(cache, "append", new object[] {parsed});
         object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            object market = this.getMarketFromOrder(client as WebSocketClient, message);
-            if (isTrue(isEqual(this.orders, null)))
-            {
-                object limit = this.safeInteger(this.options, "ordersLimit", 1000);
-                this.orders = new ArrayCacheBySymbolById(limit);
-            }
-            object cache = this.orders;
-            object parsed = this.parseWsOrder(message, market);
-            object symbol = getValue(market, "symbol");
             object symbolMessageHash = add(add(messageHash, "::"), symbol);
-            callDynamically(cache, "append", new object[] {parsed});
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, symbolMessageHash});
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, messageHash});
         }

@@ -1433,6 +1433,26 @@ enables or disables demo trading mode
 
 ---
 
+<a name="enableUserDexAbstraction" id="enableuserdexabstraction"></a>
+
+## enableUserDexAbstraction
+If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+
+**Kind**: instance   
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| enabled |  | Yes |  |
+| params |  | Yes |  |
+| params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#enableuserdexabstraction)
+
+---
+
 <a name="fetchAccount" id="fetchaccount"></a>
 
 ## fetchAccount
@@ -6360,6 +6380,25 @@ Instead of trading to increase the address based rate limits, this action allows
 
 ---
 
+<a name="setAgentAbstraction" id="setagentabstraction"></a>
+
+## setAgentAbstraction
+set agent abstraction mode
+
+**Kind**: instance   
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin" |
+| params | <code>object</code> | No |  |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#setagentabstraction)
+
+---
+
 <a name="setLeverage" id="setleverage"></a>
 
 ## setLeverage
@@ -6531,6 +6570,26 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#setsandboxmode)
+
+---
+
+<a name="setUserAbstraction" id="setuserabstraction"></a>
+
+## setUserAbstraction
+set user abstraction mode
+
+**Kind**: instance   
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["disabled", "unifiedAccount", "portfolioMargin"], |
+| params | <code>object</code> | No |  |
+| params.type | <code>string</code> | No | 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction' |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#setuserabstraction)
 
 ---
 
