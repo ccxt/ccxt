@@ -8052,7 +8052,11 @@ export default class Exchange {
             try {
                 if (cursorValue !== undefined) {
                     if (cursorIncrement !== undefined) {
-                        cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
+                        if (typeof cursorIncrement === 'string') {
+                            cursorValue = Precise.stringAdd (cursorValue.toString (), cursorIncrement);
+                        } else {
+                            cursorValue = this.parseToInt (cursorValue) + cursorIncrement;
+                        }
                     }
                     params[cursorSent] = cursorValue;
                 }
