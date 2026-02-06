@@ -147,6 +147,7 @@ from decimal import Decimal
 import urllib.parse as _urlencode
 from typing import Any, List
 from ccxt.base.types import Int
+import os
 
 # -----------------------------------------------------------------------------
 
@@ -470,6 +471,10 @@ class Exchange(object):
             self.session = Session()
             self.session.trust_env = self.requests_trust_env
         self.logger = self.logger if self.logger else logging.getLogger(__name__)
+        if self.trust_env:
+            self.http_proxy = os.environ.get('https_proxy', None)
+            self.https_proxy = os.environ.get('https_proxy', None)
+            self.socks_proxy = os.environ.get('socks_proxy', None)
 
     def __del__(self):
         if self.session:
