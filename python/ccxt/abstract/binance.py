@@ -1276,7 +1276,7 @@ class ImplicitAPI:
     papi_get_um_commissionrate = papiGetUmCommissionRate = Entry('um/commissionRate', 'papi', 'GET', {'cost': 20})
     papi_get_cm_commissionrate = papiGetCmCommissionRate = Entry('cm/commissionRate', 'papi', 'GET', {'cost': 20})
     papi_get_um_income = papiGetUmIncome = Entry('um/income', 'papi', 'GET', {'cost': 30})
-    papi_get_cm_income = papiGetCmIncome = Entry('cm/income ', 'papi', 'GET', {'cost': 30})
+    papi_get_cm_income = papiGetCmIncome = Entry('cm/income', 'papi', 'GET', {'cost': 30})
     papi_get_um_account = papiGetUmAccount = Entry('um/account', 'papi', 'GET', {'cost': 5})
     papi_get_cm_account = papiGetCmAccount = Entry('cm/account', 'papi', 'GET', {'cost': 5})
     papi_get_repay_futures_switch = papiGetRepayFuturesSwitch = Entry(
