@@ -1254,18 +1254,32 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
      */
-    async fetchPositions (
-        symbols: Strings = undefined,
-        params = {}
-    ): Promise<Position[]> {
-        await this.loadMarkets ();
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         const request: Dict = {
             'accountId': this.accountId,
         };
         const response = await this.publicGetUserAccountId (this.extend (request, params));
-        const positions = this.safeList (response, 'positions', []);
-        return this.parsePositions (positions, symbols);
+        const rawPositions = this.safeList (response, 'positions', []);
+        //
+        // {
+        //     "account": {
+        //         "balance": "30.160985",
+        //         "totalCollateral": "30.143451",
+        //         "freeCollateral": "28.884414",
+        //         "health": "99",
+        //         "initialMargin": "1.259037",
+        //         "maintenanceMargin": "0.212363",
+        //         "leverage": "0.339"
+        //     },
+        //     "positions": [],
+        //     "balances": [],
+        //     "orders": []
+        // }
+        //
+        const positions = this.parsePositions (rawPositions, symbols, params);
+        return this.filterByArrayPositions (positions, 'symbol', symbols, false);
     }
 
     /**
@@ -1566,10 +1580,11 @@ export default class drift extends Exchange {
     ): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const direction = (side === 'buy') ? 'long' : 'short'; 
         const request: Dict = {
             'accountId': this.accountId,
             'symbol': market['id'],
-            'direction': side === 'buy' ? 'long' : 'short',
+            'direction': direction,
             'amount': amount,
             'orderType': type,
         };
