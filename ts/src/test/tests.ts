@@ -93,6 +93,7 @@ class testMainClass {
             dump ('[TEST_FAILURE]'); // tell run-tests.js this is failure
             throw e;
         }
+        return true;
     }
 
     async initInner (exchangeId, symbolArgv, methodArgv) {
@@ -1069,7 +1070,7 @@ class testMainClass {
                 const newValue = newOutput[key];
                 this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
+        } else if ((storedOutput !== undefined) && Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
@@ -1367,6 +1368,10 @@ class testMainClass {
                 if (isDisabledGo && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
+                if (isDisabledJava && (this.lang === 'java')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
@@ -1439,6 +1444,10 @@ class testMainClass {
                 if (isDisabledGO && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
+                if (isDisabledJava && (this.lang === 'java')) {
+                    continue;
+                }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testResponseStatically (exchange, method, skipKeys, result);
                 // reset options
@@ -1488,6 +1497,11 @@ class testMainClass {
         const isDisabledGO = exchange.safeBool (exchangeData, 'disabledGO', false);
         if (isDisabledGO && (this.lang === 'GO')) {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
+            return true;
+        }
+        const isDisabledJava = exchange.safeBool (exchangeData, 'disabledJava', false);
+        if (isDisabledJava && (this.lang === 'java')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in java');
             return true;
         }
         return false;
@@ -2032,6 +2046,9 @@ class testMainClass {
     }
 
     async testWoofiPro () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the starknet lib
+        }
         const exchange = this.initOfflineExchange ('woofipro');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
@@ -2094,6 +2111,9 @@ class testMainClass {
     }
 
     async testParadex () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the required lib
+        }
         const exchange = this.initOfflineExchange ('paradex');
         exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
         exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
@@ -2185,6 +2205,9 @@ class testMainClass {
     }
 
     async testDerive () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the required lib
+        }
         const exchange = this.initOfflineExchange ('derive');
         const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
         assert (exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
@@ -2209,6 +2232,9 @@ class testMainClass {
     }
 
     async testModeTrade () {
+        if (this.lang === 'java') {
+            return false; // skip for java for now due to issues with the required lib
+        }
         const exchange = this.initOfflineExchange ('modetrade');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXTMODE';

@@ -61,6 +61,7 @@ async function baseTestsInit () {
     testArraysConcat ();
     testEthMethods ();
     await testSleep ();
+    return true;
 }
 
 export default baseTestsInit;

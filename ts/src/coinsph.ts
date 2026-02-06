@@ -1276,12 +1276,12 @@ export default class coinsph extends Exchange {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
-        const isBuyer = this.safeBool2 (trade, 'isBuyer', 'isBuyerMaker', undefined);
+        const isBuyer = this.safeBool2 (trade, 'isBuyer', 'isBuyerMaker');
         let side = undefined;
         if (isBuyer !== undefined) {
             side = (isBuyer === true) ? 'buy' : 'sell';
         }
-        const isMaker = this.safeString2 (trade, 'isMaker', undefined);
+        const isMaker = this.safeString (trade, 'isMaker');
         let takerOrMaker = undefined;
         if (isMaker !== undefined) {
             takerOrMaker = (isMaker === 'true') ? 'maker' : 'taker';
@@ -1676,7 +1676,7 @@ export default class coinsph extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'time', 'transactTime');
-        const trades = this.safeValue (order, 'fills', undefined);
+        const trades = this.safeValue (order, 'fills');
         let triggerPrice = this.safeString (order, 'stopPrice');
         if (Precise.stringEq (triggerPrice, '0')) {
             triggerPrice = undefined;
@@ -2234,7 +2234,7 @@ export default class coinsph extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        const responseCode = this.safeString (response, 'code', undefined);
+        const responseCode = this.safeString (response, 'code');
         if ((responseCode !== undefined) && (responseCode !== '200') && (responseCode !== '0')) {
             const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);

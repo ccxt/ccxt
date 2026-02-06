@@ -672,12 +672,12 @@ export default class whitebit extends Exchange {
                     'precision': undefined,
                     'limits': {
                         'deposit': {
-                            'min': this.safeNumber (depositLimits, 'min', undefined),
-                            'max': this.safeNumber (depositLimits, 'max', undefined),
+                            'min': this.safeNumber (depositLimits, 'min'),
+                            'max': this.safeNumber (depositLimits, 'max'),
                         },
                         'withdraw': {
-                            'min': this.safeNumber (withdrawLimits, 'min', undefined),
-                            'max': this.safeNumber (withdrawLimits, 'max', undefined),
+                            'min': this.safeNumber (withdrawLimits, 'min'),
+                            'max': this.safeNumber (withdrawLimits, 'max'),
                         },
                     },
                 };

@@ -1,0 +1,154 @@
+name: Java
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    steps:
+    - uses: actions/checkout@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        token: ${{ secrets.GH_TOKEN }}
+        fetch-depth: 2
+    - uses: actions/checkout@v4
+      if: github.ref != 'refs/heads/master'
+      with:
+        fetch-depth: 2
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '21'   # or '20' – but match what :lib is targeting
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Determine modified files
+      run: ./utils/init_actions.sh
+    - name: Pre-transpile (export exchanges and emit API)
+      run: npm run pre-transpile-java
+    - name: Transpile to Java
+      if: env.important_modified == 'true'
+      run: npm run transpileJava
+    - name: Transpile to Java (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run transpileJavaSingle -- $exchange
+        done
+        cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
+        for exchange in $cleaned_ws_files; do
+          npm run transpileJavaSingle -- --ws $exchange
+        done
+    - name: Build Project
+      run: npm run buildJava
+    - name: Run Base Tests
+      if: env.important_modified == 'true'
+      run: npm run test-base-rest-java
+    - name: Run Id Tests
+      if: env.important_modified == 'true'
+      run: npm run id-tests-java
+    - name: Request tests
+      if: env.important_modified == 'true'
+      run: npm run request-java
+    - name: Request tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run request-java -- $exchange
+        done
+    - name: Response tests
+      if: env.important_modified == 'true'
+      run: npm run response-java
+    - name: Response tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run response-java -- $exchange
+        done
+    - name: Upload shared_env.txt
+      uses: actions/upload-artifact@v4
+      with:
+          name: shared_env
+          path: shared_env.txt
+
+    - name: Upload Java Files
+      uses: actions/upload-artifact@v4
+      with:
+        name: java-files
+        path: java/
+    - name: Push Java changes to master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      if: github.ref == 'refs/heads/master'
+      run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add java/
+          git commit -m "[Automated changes] Java files" || echo "No changes to commit."
+          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git config --global pull.rebase false
+          git pull --rebase --autostash origin master
+          git push
+
+  live-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download shared_env
+        uses: actions/download-artifact@v4
+        with:
+          name: shared_env
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'   # or '20' – but match what :lib is targeting
+      - name: Download Java Files
+        uses: actions/download-artifact@v4
+        with:
+          name: java-files
+          path: java/
+      - name: Restore shared_env
+        run: ./utils/restore_shared_env.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - name: Install npm dependencies
+        run: npm ci --include=dev
+      - name: Export exchanges
+        run: npm run export-exchanges
+      - name: List Java/ contents
+        run: ls java/
+      - name: Build project again (rm later)
+        run: npm run buildJava
+      - name: Live tests
+        if: env.important_modified == 'true'
+        run: npm run live-tests-java
+      - name: Live tests (specific)
+        if: env.important_modified == 'false'
+        run: ./run-tests-simul.sh --java "${{ env.rest_files }}" "${{ env.ws_files }}"

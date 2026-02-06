@@ -848,7 +848,7 @@ export default class bitstamp extends Exchange {
         // }
         //
         const marketId = this.safeString (ticker, 'pair');
-        const symbol = this.safeSymbol (marketId, market, undefined);
+        const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const vwap = this.safeString (ticker, 'vwap');
         const baseVolume = this.safeString (ticker, 'volume');
@@ -1259,8 +1259,9 @@ export default class bitstamp extends Exchange {
     }
 
     parseBalance (response): Balances {
+        const finalResponse = response; // java req
         const result: Dict = {
-            'info': response,
+            'info': finalResponse,
             'timestamp': undefined,
             'datetime': undefined,
         };

@@ -10,6 +10,7 @@ const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
+const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
 const IDEN = '    ';
 
 
@@ -21,6 +22,7 @@ let storedContext: Dict = {};
 let storedPhpMethods: Dict = {};
 let storedPyMethods: Dict = {};
 let storedGoMethods: Dict = {};
+let storedJavaMethods: Dict = {};
 
 
 const [,, ...args] = process.argv
@@ -31,6 +33,7 @@ const langKeys = {
     '--python': false,
     '--csharp': false,
     '--go': false,
+    '--java': false,
 }
 
 
@@ -208,6 +211,28 @@ function createImplicitMethodsCSharp(){
     }
 }
 
+// -------------------------------------------------------------------------
+
+function createImplicitMethodsJava(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const methodNames = storedCamelCaseMethods[exchange];
+
+        const methods =  methodNames.map(method=> {
+            return [
+                `${IDEN}public java.util.concurrent.CompletableFuture<Object>  ${method} (Object... optionalArgs)`,
+                `${IDEN}{`,
+                `${IDEN}${IDEN}return this.callAsync ("${method}", optionalArgs);`,
+                `${IDEN}}`,
+                ``,
+            ].join('\n')
+        });
+        methods.push ('}')
+       storedJavaMethods[exchange] = storedJavaMethods[exchange].concat (methods)
+    }
+}
+
 //-------------------------------------------------------------------------
 
 function createImplicitMethodsGo(){
@@ -262,7 +287,7 @@ async function editFiles (path: string, methods: Dict, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
     await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
-    await unlinkFiles (path, extension)
+    // await unlinkFiles (path, extension)
 }
 
 async function unlinkFiles (path: string, extension: string) {
@@ -286,6 +311,12 @@ async function editAPIFilesGo(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
+}
+
+async function editAPIFilesJava(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    const files = exchanges.map(ex => JAVA_PATH + capitalize(ex) + 'Api.java');
+    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------
@@ -340,6 +371,25 @@ function createGoHeader(exchange: Exchange, parent: string){
     storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
 }
 
+// -------------------------------------------------------------------------
+
+function createJavaHeader(exchange: Exchange, parent: string){
+    const capParent = capitalize(parent);
+    const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
+    const namespace = `package io.github.ccxt.api;\n${parentImport};`;
+    const constructor = [
+        `${IDEN}public ${capitalize(exchange.id)}Api () {`,
+        `${IDEN}${IDEN}super();`,
+        `${IDEN}}`,
+        '',
+        `${IDEN}public ${capitalize(exchange.id)}Api (Object options) {`,
+        `${IDEN}${IDEN}super(options);`,
+        `${IDEN}}`,
+    ].join('\n');
+    const header = `public class ${capitalize(exchange.id)}Api extends ${capitalize(parent)}\n{\n`;
+    storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header, constructor, ''];
+}
+
 //-------------------------------------------------------------------------
 
 function populateImplicitMethods(exchanges: string[]) {
@@ -358,6 +408,7 @@ function populateImplicitMethods(exchanges: string[]) {
         createCSharpHeader(instance, parent);
         createPyHeader(instance, parent);
         createGoHeader(instance, parent);
+        createJavaHeader(instance, parent);
 
         storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
@@ -385,7 +436,11 @@ async function main() {
     readOptions();
     const shouldGenerateAll = args.length === 0;
 
-    const exchanges = ccxt.exchanges;
+    // const exchanges = ccxt.exchanges;
+
+    let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+    exchanges = exchanges.ids;
+    // const exchanges = ['gate', 'gateio'];
 
     log.bright.cyan ('Exporting TypeScript implicit api methods')
     populateImplicitMethods(exchanges); // common step for all languages
@@ -428,6 +483,12 @@ async function main() {
         createImplicitMethodsGo()
         await editAPIFilesGo()
         log.bright.cyan ('GO implicit api methods completed!')
+    }
+
+    if (shouldGenerateAll || langKeys['--java']) {
+        createImplicitMethodsJava()
+        await editAPIFilesJava()
+        log.bright.cyan ('Java implicit api methods completed!')
     }
 
     // await unlinkFiles (JS_PATH, '.js')

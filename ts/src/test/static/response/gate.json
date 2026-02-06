@@ -1753,6 +1753,7 @@
             {
                 "description": "spot closed orders",
                 "disabledGO": true,
+                "disabledJava": true,
                 "method": "fetchClosedOrders",
                 "input": [
                     "LTC/USDT",
@@ -2326,6 +2327,7 @@
         "fetchOpenOrders": [
             {
                 "description": "default",
+                "disabledJava": true,
                 "method": "fetchOpenOrders",
                 "input": [
                   "BTC/USDT"

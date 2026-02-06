@@ -885,10 +885,11 @@ export default class alp extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const finalAmount = this.amountToPrecision (symbol, amount);
         const request: Dict = {
             'pair': market['id'],
             'type': side,
-            'amount': amount,
+            'amount': finalAmount,
             'price': this.priceToPrecision (symbol, price),
         };
         const response = await this.privatePostOrder (this.extend (request, params));

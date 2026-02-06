@@ -5,6 +5,7 @@
     "disabledPHP": true,
     "disabledCS": true,
     "disabledGO": true,
+    "disabledJava": true,
     "options": {
         "seeds": "0xa216cd69766d182deb6f5aceb885035059ef717cf93b9c51b0e91d515a87e72535d56362b1f9455efe517431feb57b31f1de774eb91dd5b31e74c7a7303d087e1c"
     },

@@ -3982,7 +3982,7 @@ export default class coincatch extends Exchange {
         let response = undefined;
         let result = undefined;
         if (marketType === 'spot') {
-            response = await this.privatePostApiSpotV1TradeCancelBatchOrdersV2 (this.extend (request));
+            response = await this.privatePostApiSpotV1TradeCancelBatchOrdersV2 (this.extend (request, params));
             //
             //     {
             //         "code": "00000",
@@ -4852,8 +4852,9 @@ export default class coincatch extends Exchange {
         if (type === 'reduce') {
             amount = Precise.stringAbs (amount);
         }
+        const parsedAmount = this.parseNumber (amount);
         return this.extend (this.parseMarginModification (response, market), {
-            'amount': this.parseNumber (amount),
+            'amount': parsedAmount,
             'type': type,
         });
     }
