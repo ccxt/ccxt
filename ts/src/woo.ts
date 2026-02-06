@@ -186,7 +186,6 @@ export default class woo extends Exchange {
                             'client/order/{client_order_id}': 1,
                             'orders': 1,
                             'client/trade/{tid}': 1,
-                            'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/hist_trades': 1,
                             'staking/yield_history': 1,
@@ -2217,9 +2216,15 @@ export default class woo extends Exchange {
             market = this.market (symbol);
         }
         const request: Dict = {
-            'oid': id,
+            'orderId': id,
         };
-        const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.v3PrivateGetTradeTransactionHistory (this.extend (request, params));
         // {
         //     "success": true,
         //     "rows": [
@@ -2238,7 +2243,8 @@ export default class woo extends Exchange {
         //       }
         //     ]
         // }
-        const trades = this.safeList (response, 'rows', []);
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'rows', []);
         return this.parseTrades (trades, market, since, limit, params);
     }
 
