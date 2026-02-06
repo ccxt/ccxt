@@ -211,10 +211,10 @@ public partial class bithumb
         return new Order(res);
     }
     /// <summary>
-    /// fetches information on an order made by the user
+    /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -225,9 +225,9 @@ public partial class bithumb
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchOrder(id, symbol, parameters);
+        var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
     }
     /// <summary>
@@ -265,10 +265,10 @@ public partial class bithumb
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// cancels an open order
+    /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -279,14 +279,9 @@ public partial class bithumb
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
-    }
-    public async Task<Order> CancelUnifiedOrder(Order order, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelUnifiedOrder(order, parameters);
+        var res = await this.fetchOrder(id, symbol, parameters);
         return new Order(res);
     }
     /// <summary>
