@@ -2056,6 +2056,8 @@ ${caseStatements.join('\n')}
             'PAD_WITH_ZERO',
             'TRUNCATE',
             'ROUND',
+            'ROUND_UP',
+            'ROUND_DOWN',
             'toFixed',
             'throwDynamicException',
             'NewArrayCache',
