@@ -21,8 +21,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -33,43 +33,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "0.09122",
+            "baseVol": "73.22976",
+            "bidSz": "0.20024",
+            "buyOne": "108512.43",
+            "change": "-0.02192",
+            "changeUtc": "-0.01826",
+            "close": "108513.69",
+            "high24h": "111699.54",
+            "low24h": "107473.49",
+            "openUtc0": "110531.77",
+            "quoteVol": "8015314.06714",
+            "sellOne": "108513.72",
             "symbol": "BTCUSDT",
-            "high24h": "62577.22",
-            "low24h": "59177.26",
-            "close": "62231.2",
-            "quoteVol": "28789691.57151",
-            "baseVol": "474.23136",
-            "usdtVol": "28789691.5715015",
-            "ts": "1726738819719",
-            "buyOne": "62230.36",
-            "sellOne": "62231.64",
-            "bidSz": "0.0124",
-            "askSz": "0.0139",
-            "openUtc0": "61759.59",
-            "changeUtc": "0.00764",
-            "change": "0.04713"
+            "ts": "1761048683523",
+            "usdtVol": "8015314.0671334"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "LTC/USDT": {
@@ -94,8 +98,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -106,43 +110,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "14.8433",
+            "baseVol": "5985.8711",
+            "bidSz": "95.6929",
+            "buyOne": "93",
+            "change": "-0.01514",
+            "changeUtc": "-0.01074",
+            "close": "93.02",
+            "high24h": "95.74",
+            "low24h": "91.67",
+            "openUtc0": "94.03",
+            "quoteVol": "560156.0238",
+            "sellOne": "93.07",
             "symbol": "LTCUSDT",
-            "high24h": "65.47",
-            "low24h": "62.42",
-            "close": "65.22",
-            "quoteVol": "3153190.0797",
-            "baseVol": "49163.522",
-            "usdtVol": "3153190.079697",
-            "ts": "1726738820930",
-            "buyOne": "65.19",
-            "sellOne": "65.22",
-            "bidSz": "64.3835",
-            "askSz": "26.7278",
-            "openUtc0": "64.84",
-            "changeUtc": "0.00586",
-            "change": "0.04069"
+            "ts": "1761048683525",
+            "usdtVol": "560156.023787"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "ADA/USDT": {
@@ -167,8 +175,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -179,43 +187,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "768.36",
+            "baseVol": "733643.256",
+            "bidSz": "20480.58",
+            "buyOne": "0.6445",
+            "change": "-0.03286",
+            "changeUtc": "-0.02746",
+            "close": "0.6446",
+            "high24h": "0.6712",
+            "low24h": "0.6371",
+            "openUtc0": "0.6628",
+            "quoteVol": "480847.655",
+            "sellOne": "0.6452",
             "symbol": "ADAUSDT",
-            "high24h": "0.351704",
-            "low24h": "0.327136",
-            "close": "0.347268",
-            "quoteVol": "603367.427",
-            "baseVol": "1780828.44",
-            "usdtVol": "603367.426592077",
-            "ts": "1726738820323",
-            "buyOne": "0.346968",
-            "sellOne": "0.347332",
-            "bidSz": "14820.943",
-            "askSz": "6484.74",
-            "openUtc0": "0.343849",
-            "changeUtc": "0.00994",
-            "change": "0.0571"
+            "ts": "1761048683529",
+            "usdtVol": "480847.6542441"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "XRP/USDT": {
@@ -240,8 +252,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -252,43 +264,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "6735.45",
+            "baseVol": "895086.03",
+            "bidSz": "4143.15",
+            "buyOne": "2.4287",
+            "change": "-0.00833",
+            "changeUtc": "-0.02649",
+            "close": "2.4288",
+            "high24h": "2.5511",
+            "low24h": "2.4017",
+            "openUtc0": "2.4949",
+            "quoteVol": "2202371.48",
+            "sellOne": "2.429",
             "symbol": "XRPUSDT",
-            "high24h": "0.5898",
-            "low24h": "0.56226",
-            "close": "0.58248",
-            "quoteVol": "2314728.42",
-            "baseVol": "4005530.94",
-            "usdtVol": "2314728.410871",
-            "ts": "1726738821243",
-            "buyOne": "0.58244",
-            "sellOne": "0.58249",
-            "bidSz": "1795.29",
-            "askSz": "1544.68",
-            "openUtc0": "0.58534",
-            "changeUtc": "-0.00489",
-            "change": "0.03207"
+            "ts": "1761048683525",
+            "usdtVol": "2202371.470551"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "SOL/USDT": {
@@ -313,8 +329,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -325,43 +341,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "67.8315",
+            "baseVol": "14611.7591",
+            "bidSz": "74.7005",
+            "buyOne": "186.08",
+            "change": "-0.03078",
+            "changeUtc": "-0.01887",
+            "close": "186.11",
+            "high24h": "192.96",
+            "low24h": "182.72",
+            "openUtc0": "189.69",
+            "quoteVol": "2738331.2489",
+            "sellOne": "186.15",
             "symbol": "SOLUSDT",
-            "high24h": "139.161",
-            "low24h": "127.142",
-            "close": "138.919",
-            "quoteVol": "1792756.4348",
-            "baseVol": "13481.3487",
-            "usdtVol": "1792756.4347228",
-            "ts": "1726738820327",
-            "buyOne": "138.917",
-            "sellOne": "138.933",
-            "bidSz": "96.9045",
-            "askSz": "90.1568",
-            "openUtc0": "134.332",
-            "changeUtc": "0.03415",
-            "change": "0.08812"
+            "ts": "1761048683524",
+            "usdtVol": "2738331.248821"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "TRX/USDT": {
@@ -386,8 +406,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -398,43 +418,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "310800.3108",
+            "baseVol": "1515118.6764",
+            "bidSz": "16491.0757",
+            "buyOne": "0.3216",
+            "change": "-0.00341",
+            "changeUtc": "-0.00186",
+            "close": "0.3217",
+            "high24h": "0.3234",
+            "low24h": "0.3173",
+            "openUtc0": "0.3223",
+            "quoteVol": "486402.5423",
+            "sellOne": "0.3219",
             "symbol": "TRXUSDT",
-            "high24h": "0.150559",
-            "low24h": "0.148989",
-            "close": "0.150437",
-            "quoteVol": "1694384.5649",
-            "baseVol": "11323187.9363",
-            "usdtVol": "1694384.5648438775",
-            "ts": "1726738820929",
-            "buyOne": "0.150419",
-            "sellOne": "0.150442",
-            "bidSz": "3465",
-            "askSz": "9393.1437",
-            "openUtc0": "0.149551",
-            "changeUtc": "0.00592",
-            "change": "0.00679"
+            "ts": "1761048683524",
+            "usdtVol": "486402.54226138"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "ETH/USDT": {
@@ -459,8 +483,8 @@
         "linear": null,
         "inverse": null,
         "subType": null,
-        "taker": 0.0006,
-        "maker": 0.0002,
+        "taker": 0.001,
+        "maker": 0.001,
         "contractSize": null,
         "expiry": null,
         "expiryDatetime": null,
@@ -471,43 +495,47 @@
             "price": null
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
+            "askSz": "22.1389",
+            "baseVol": "3048.808",
+            "bidSz": "9.8883",
+            "buyOne": "3888.79",
+            "change": "-0.03585",
+            "changeUtc": "-0.02269",
+            "close": "3888.8",
+            "high24h": "4049.5",
+            "low24h": "3840.25",
+            "openUtc0": "3979.09",
+            "quoteVol": "12042307.8791",
+            "sellOne": "3888.82",
             "symbol": "ETHUSDT",
-            "high24h": "2442.09",
-            "low24h": "2277.59",
-            "close": "2433.04",
-            "quoteVol": "21971607.7254",
-            "baseVol": "9332.3904",
-            "usdtVol": "21971607.725367",
-            "ts": "1726738819718",
-            "buyOne": "2433.01",
-            "sellOne": "2433.04",
-            "bidSz": "0.984",
-            "askSz": "8.6026",
-            "openUtc0": "2374.55",
-            "changeUtc": "0.02463",
-            "change": "0.05962"
+            "ts": "1761048683529",
+            "usdtVol": "12042307.87904"
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "ETH/USDT:USDT": {
@@ -529,9 +557,9 @@
         "index": null,
         "active": true,
         "contract": true,
-        "linear": false,
-        "inverse": true,
-        "subType": "inverse",
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
         "taker": 0.0006,
         "maker": 0.0002,
         "contractSize": 0.01,
@@ -544,36 +572,43 @@
             "price": 0.01
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
-            "min": 0.01,
-            "max": null
+                "min": 0.01,
+                "max": null
             },
             "price": {
-            "min": null,
-            "max": null
-            },
-            "leverage": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             },
             "cost": {
-            "min": null,
-            "max": null
+                "min": null,
+                "max": null
             }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
         },
         "created": null,
         "info": {
             "symbol": "ETHUSDT_UMCBL",
+            "symbolDisplayName": "ETHUSDT",
             "makerFeeRate": "0.0002",
             "takerFeeRate": "0.0006",
             "feeRateUpRatio": "0.005",
             "openCostUpRatio": "0.01",
             "quoteCoin": "USDT",
+            "quoteCoinDisplayName": "USDT",
             "baseCoin": "ETH",
+            "baseCoinDisplayName": "ETH",
             "buyLimitPriceRatio": "0.01",
             "sellLimitPriceRatio": "0.01",
             "supportMarginCoins": [
-            "USDT"
+                "USDT"
             ],
             "minTradeNum": "0.01",
             "priceEndStep": "1",
@@ -590,8 +625,8 @@
             "maxPositionNum": null,
             "maxOrderNum": null
         },
-        "percentage": true,
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     },
     "BTC/USDT:USDT": {
@@ -611,11 +646,11 @@
         "future": false,
         "option": false,
         "index": null,
-        "active": false,
+        "active": true,
         "contract": true,
-        "linear": false,
-        "inverse": true,
-        "subType": "inverse",
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
         "taker": 0.0006,
         "maker": 0.0002,
         "contractSize": 0.0001,
@@ -628,15 +663,15 @@
             "price": 0.1
         },
         "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
             "amount": {
                 "min": 0.0001,
                 "max": null
             },
             "price": {
-                "min": null,
-                "max": null
-            },
-            "leverage": {
                 "min": null,
                 "max": null
             },
@@ -650,8 +685,39 @@
             "isolated": null
         },
         "created": null,
-        "percentage": true,
+        "info": {
+            "symbol": "BTCUSDT_UMCBL",
+            "symbolDisplayName": "BTCUSDT",
+            "makerFeeRate": "0.0002",
+            "takerFeeRate": "0.0006",
+            "feeRateUpRatio": "0.005",
+            "openCostUpRatio": "0.01",
+            "quoteCoin": "USDT",
+            "quoteCoinDisplayName": "USDT",
+            "baseCoin": "BTC",
+            "baseCoinDisplayName": "BTC",
+            "buyLimitPriceRatio": "0.01",
+            "sellLimitPriceRatio": "0.01",
+            "supportMarginCoins": [
+                "USDT"
+            ],
+            "minTradeNum": "0.0001",
+            "priceEndStep": "1",
+            "volumePlace": "4",
+            "pricePlace": "1",
+            "sizeMultiplier": "0.0001",
+            "symbolType": "perpetual",
+            "symbolStatus": "normal",
+            "offTime": "-1",
+            "limitOpenTime": "-1",
+            "maintainTime": "",
+            "symbolName": "BTCUSDT",
+            "minTradeUSDT": null,
+            "maxPositionNum": null,
+            "maxOrderNum": null
+        },
         "tierBased": false,
+        "percentage": true,
         "feeSide": "get"
     }
 }
