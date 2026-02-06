@@ -1,0 +1,145 @@
+[
+  {
+    "info": {
+      "timestamp": 1614640878000,
+      "asset": "USDT",
+      "amount": "25",
+      "type": "MAIN_UMFUTURE",
+      "status": "CONFIRMED",
+      "tranId": 43000126248
+    },
+    "id": "43000126248",
+    "timestamp": 1614640878000,
+    "datetime": "2021-03-02T02:07:58.000Z",
+    "currency": "USDT",
+    "amount": 25,
+    "fromAccount": "spot",
+    "toAccount": "future",
+    "status": "ok"
+  },
+  {
+    "info": {
+      "timestamp": 1620000000000,
+      "asset": "BTC",
+      "amount": "0.05",
+      "type": "UMFUTURE_MAIN",
+      "status": "CONFIRMED",
+      "tranId": 43000126249
+    },
+    "id": "43000126249",
+    "timestamp": 1620000000000,
+    "datetime": "2021-05-03T00:00:00.000Z",
+    "currency": "BTC",
+    "amount": 0.05,
+    "fromAccount": "future",
+    "toAccount": "spot",
+    "status": "ok"
+  },
+  {
+    "info": {
+      "timestamp": 1625000000000,
+      "asset": "ETH",
+      "amount": "1.5",
+      "type": "MAIN_MARGIN",
+      "status": "CONFIRMED",
+      "tranId": 43000126250
+    },
+    "id": "43000126250",
+    "timestamp": 1625000000000,
+    "datetime": "2021-06-30T05:20:00.000Z",
+    "currency": "ETH",
+    "amount": 1.5,
+    "fromAccount": "spot",
+    "toAccount": "margin",
+    "status": "ok"
+  },
+  {
+    "info": {
+      "timestamp": 1630000000000,
+      "asset": "BNB",
+      "amount": "10",
+      "type": "MARGIN_MAIN",
+      "status": "CONFIRMED",
+      "tranId": 43000126251
+    },
+    "id": "43000126251",
+    "timestamp": 1630000000000,
+    "datetime": "2021-08-26T17:46:40.000Z",
+    "currency": "BNB",
+    "amount": 10,
+    "fromAccount": "margin",
+    "toAccount": "spot",
+    "status": "ok"
+  },
+  {
+    "info": {
+      "timestamp": 1635000000000,
+      "asset": "USDC",
+      "amount": "500",
+      "type": "MAIN_FUNDING",
+      "status": "CONFIRMED",
+      "tranId": 43000126252
+    },
+    "id": "43000126252",
+    "timestamp": 1635000000000,
+    "datetime": "2021-10-23T18:13:20.000Z",
+    "currency": "USDC",
+    "amount": 500,
+    "fromAccount": "spot",
+    "toAccount": "funding",
+    "status": "ok"
+  },
+  {
+    "info": {
+      "orderType": "C2C",
+      "transactionId": "M_P_71505104267788288",
+      "transactionTime": 1610090460133,
+      "amount": "23.72469206",
+      "currency": "BNB",
+      "walletType": 1,
+      "walletTypes": [1, 2],
+      "fundsDetail": [
+        {
+          "currency": "USDT",
+          "amount": "1.2",
+          "walletAssetCost": [
+            { "1": "0.6" },
+            { "2": "0.6" }
+          ]
+        },
+        {
+          "currency": "ETH",
+          "amount": "0.0001",
+          "walletAssetCost": [
+            { "1": "0.00005" },
+            { "2": "0.00005" }
+          ]
+        }
+      ],
+      "payerInfo": {
+        "name": "Jack",
+        "type": "USER",
+        "binanceId": "12345678",
+        "accountId": "67736251"
+      },
+      "receiverInfo": {
+        "name": "Alan",
+        "type": "MERCHANT",
+        "email": "alan@binance.com",
+        "binanceId": "34355667",
+        "accountId": "21326891",
+        "countryCode": "1",
+        "phoneNumber": "8057651210",
+        "mobileCode": "US"
+      }
+    },
+    "id": "M_P_71505104267788288",
+    "timestamp": 1610090460133,
+    "datetime": "2021-01-08T08:01:00.133Z",
+    "currency": "BNB",
+    "amount": 23.72469206,
+    "fromAccount": null,
+    "toAccount": null,
+    "status": "ok"
+  }
+]

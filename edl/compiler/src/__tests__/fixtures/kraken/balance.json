@@ -1,0 +1,37 @@
+{
+  "raw": {
+    "error": [],
+    "result": {
+      "XXBT": "5.0000000000",
+      "ZUSD": "60000.0000",
+      "XETH": "10.5000000000",
+      "XXRP": "0.0000000000"
+    }
+  },
+  "expected": [
+    {
+      "currency": "BTC",
+      "free": 5.0,
+      "used": null,
+      "total": 5.0
+    },
+    {
+      "currency": "USD",
+      "free": 60000.0,
+      "used": null,
+      "total": 60000.0
+    },
+    {
+      "currency": "ETH",
+      "free": 10.5,
+      "used": null,
+      "total": 10.5
+    },
+    {
+      "currency": "XRP",
+      "free": 0.0,
+      "used": null,
+      "total": 0.0
+    }
+  ]
+}

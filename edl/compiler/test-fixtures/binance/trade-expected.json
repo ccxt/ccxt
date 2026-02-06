@@ -1,0 +1,28 @@
+{
+  "id": "28457",
+  "order": "100234",
+  "info": {
+    "id": "28457",
+    "orderId": "100234",
+    "price": "4.00000100",
+    "qty": "12.00000000",
+    "quoteQty": "48.000012",
+    "commission": "10.10000000",
+    "commissionAsset": "BNB",
+    "time": 1499865549590,
+    "isBuyer": true,
+    "isMaker": false,
+    "isBestMatch": true
+  },
+  "timestamp": 1499865549590,
+  "datetime": "2017-07-12T13:59:09.590Z",
+  "symbol": "ETH/BTC",
+  "type": null,
+  "side": "buy",
+  "takerOrMaker": "taker",
+  "price": 4.000001,
+  "amount": 12,
+  "cost": 48.000012,
+  "fee": 10.1,
+  "feeCurrency": "BNB"
+}

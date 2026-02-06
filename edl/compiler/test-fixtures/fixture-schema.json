@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EDL Test Fixture",
+  "description": "Schema for EDL compiler test fixtures that validate parser generation",
+  "type": "object",
+  "properties": {
+    "_meta": {
+      "type": "object",
+      "description": "Metadata about this test fixture",
+      "properties": {
+        "exchange": {
+          "type": "string",
+          "description": "Exchange name (e.g., 'binance', 'kraken')",
+          "examples": ["binance", "kraken", "coinbase"]
+        },
+        "dataType": {
+          "type": "string",
+          "description": "Type of data this fixture represents",
+          "enum": [
+            "ticker",
+            "trade",
+            "order",
+            "balance",
+            "fundingRate",
+            "deposit",
+            "withdrawal",
+            "depositAddress",
+            "transfer"
+          ]
+        },
+        "fixtureType": {
+          "type": "string",
+          "description": "Whether this is raw input or expected output",
+          "enum": ["input", "expected"]
+        },
+        "apiEndpoint": {
+          "type": "string",
+          "description": "The API endpoint this data comes from",
+          "examples": [
+            "/api/v3/ticker/24hr",
+            "/0/private/Balance",
+            "/sapi/v1/capital/deposit/hisrec"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of this fixture"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when this fixture was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when this fixture was last updated"
+        },
+        "parserMethod": {
+          "type": "string",
+          "description": "The CCXT parser method this fixture tests",
+          "examples": [
+            "parseTicker",
+            "parseTrade",
+            "parseOrder",
+            "parseBalance",
+            "parseFundingRate",
+            "parseDeposit",
+            "parseWithdrawal"
+          ]
+        },
+        "edgeCases": {
+          "type": "array",
+          "description": "List of edge cases covered by this fixture",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            ["null values", "zero balances", "partial fills"]
+          ]
+        },
+        "apiDocumentationUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the official API documentation for this endpoint"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about this fixture"
+        }
+      },
+      "required": ["exchange", "dataType", "fixtureType"]
+    }
+  },
+  "additionalProperties": true,
+  "examples": [
+    {
+      "_meta": {
+        "exchange": "binance",
+        "dataType": "ticker",
+        "fixtureType": "input",
+        "apiEndpoint": "/api/v3/ticker/24hr",
+        "description": "Raw Binance 24hr ticker response for BTC/USDT",
+        "createdAt": "2025-11-25T20:00:00Z",
+        "parserMethod": "parseTicker",
+        "edgeCases": ["high volume", "negative price change"],
+        "apiDocumentationUrl": "https://developers.binance.com/docs/binance-spot-api-docs/rest-api/public-api-endpoints#24hr-ticker-price-change-statistics"
+      },
+      "symbol": "BTCUSDT",
+      "priceChange": "-188.18000000",
+      "lastPrice": "118449.03000000"
+    }
+  ]
+}
