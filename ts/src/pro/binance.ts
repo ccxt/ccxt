@@ -2468,7 +2468,7 @@ export default class binance extends binanceRest {
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
             await this.ensureUserDataStreamWsSubscribeSignature ('spot');
-            return;
+            return null;
         }
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
@@ -2480,7 +2480,18 @@ export default class binance extends binanceRest {
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
-        if (time - lastAuthenticatedTime > delay) {
+        // create pending 'future'
+        let urlType = type;
+        if (isPortfolioMargin) {
+            urlType = 'papi';
+        }
+        const url = this.urls['api']['ws'][urlType];
+        const client = this.client (url);
+        const messageHash = 'authenticated:' + type;
+        const future = client.reusableFuture (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined && time - lastAuthenticatedTime > delay) {
+            client.subscriptions[messageHash] = true;
             let response = undefined;
             if (isPortfolioMargin) {
                 response = await this.papiPostListenKey (params);
@@ -2505,8 +2516,11 @@ export default class binance extends binanceRest {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             });
+            future.resolve (response);
+            client.subscriptions[messageHash] = undefined;
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
+        return await future;
     }
 
     async keepAliveListenKey (params = {}) {
