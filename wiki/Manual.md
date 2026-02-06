@@ -1240,7 +1240,7 @@ exchange.amountToPrecision (symbol, 123.4567890123456789) === 123.45678
 
 In most cases you are required to load the list of markets and trading symbols for a particular exchange prior to accessing other API methods. If you forget to load markets the ccxt library will do that automatically upon your first call to the unified API. It will send two HTTP requests, first for markets and then the second one for other data, sequentially. For that reason, your first call to a unified CCXT API method like fetchTicker, fetchBalance, etc will take more time, than the consequent calls, since it has to do more work loading the market information from the exchange API. See [Notes On Rate Limiter](#notes-on-rate-limiter) for more details.
 
-In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets by hand is recommended.
+In order to load markets manually beforehand call the `loadMarkets ()` / `load_markets ()` method on an exchange instance. It returns an associative array of markets indexed by trading symbol. If you want more control over the execution of your logic, preloading markets manually is recommended.
 
 <!-- tabs:start -->
 
@@ -1271,9 +1271,9 @@ var_dump($huobipro->id, $markets);
 
 <!-- tabs:end -->
 
-Apart from the market info, the `loadMarkets()` call will also load the currencies from the exchange and will cache the info in the `.markets` and the `.currencies` properties respectively.
+The `loadMarkets () / load_markets ()` fetches and stores the markets & currencies data within the exchange instance. You only need to call it once per exchange. All subsequent calls to `loadMarkets` will return that data (stored inside instance). 
 
-The user can also bypass the cache and call unified methods for fetching that information from the exchange endpoints directly, `fetchMarkets()` and `fetchCurrencies()`, though using these methods is not recommended for end-users. The recommended way to preload markets is by calling the `loadMarkets()` unified method. However, new exchange integrations are required to implement these methods if the underlying exchange has the corresponding API endpoints.
+To bypass the stored data and re-fetch the updated markets info, call it with force argument - `loadMarkets(true)`. You can also manually call `fetchMarkets()` and `fetchCurrencies()`, however end-users typically do not need to call those methods manually. The recommended way to preload markets is by calling the `loadMarkets` method.
 
 ### Sharing Markets Between Exchange Instances
 
@@ -1691,7 +1691,7 @@ A future market symbol consists of the underlying currency, the quoting currency
 
 ## Market Cache Force Reload
 
-The `loadMarkets () / load_markets ()` is also a dirty method with a side effect of saving the array of markets on the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return the locally saved (cached) array of markets.
+The `loadMarkets () / load_markets ()` fetches and stores the markets & currencies data within the exchange instance. You only need to call it once per exchange. All subsequent calls to the same method will return that data (stored inside instance) array of markets.
 
 When exchange markets are loaded, you can then access market information any time via the `markets` property. This property contains an associative array of markets indexed by symbol. If you need to force reload the list of markets after you have them loaded already, pass the reload = true flag to the same method again.
 <!-- tabs:start -->
@@ -1704,7 +1704,7 @@ When exchange markets are loaded, you can then access market information any tim
     console.log (kraken.id, kraken.markets)    // output a full list of all loaded markets
     console.log (Object.keys (kraken.markets)) // output a short list of market symbols
     console.log (kraken.markets['BTC/USD'])    // output single market details
-    await kraken.loadMarkets () // return a locally cached version, no reload
+    await kraken.loadMarkets () // this will not reload, but re-uses instance data
     let reloadedMarkets = await kraken.loadMarkets (true) // force HTTP reload = true
     console.log (reloadedMarkets['ETH/BTC'])
 }) ()
@@ -1716,7 +1716,7 @@ poloniex.load_markets() # request markets
 print(poloniex.id, poloniex.markets)   # output a full list of all loaded markets
 print(list(poloniex.markets.keys())) # output a short list of market symbols
 print(poloniex.markets['BTC/ETH'])     # output single market details
-poloniex.load_markets() # return a locally cached version, no reload
+poloniex.load_markets() # this will not reload, but re-uses instance data
 reloadedMarkets = poloniex.load_markets(True) # force HTTP reload = True
 print(reloadedMarkets['ETH/ZEC'])
 ```
@@ -1727,7 +1727,7 @@ $bitfinex.load_markets(); // request markets
 var_dump($bitfinex->id, $bitfinex->markets); // output a full list of all loaded markets
 var_dump(array_keys ($bitfinex->markets));   // output a short list of market symbols
 var_dump($bitfinex->markets['XRP/USD']);     // output single market details
-$bitfinex->load_markets(); // return a locally cached version, no reload
+$bitfinex->load_markets(); // this will not reload, but re-uses instance data
 $reloadedMarkets = $bitfinex->load_markets(true); // force HTTP reload = true
 var_dump($bitfinex->markets['XRP/BTC']);
 ```
