@@ -1003,6 +1003,11 @@
     },
     "deribit": {
         "skipMethods": {
+            "loadMarkets": {
+                "currencyIdAndCode": "missing codes",
+                "optionType": "for combo markets",
+                "strike": "not set for combo markets"
+            },
             "fetchCurrencies": {
                 "networks": "not provided",
                 "withdraw": "not provided",
@@ -1011,7 +1016,6 @@
                 "precision": "not provided",
                 "activeMajorCurrencies": "todo"
             },
-            "loadMarkets": "strike is set when option is not true",
             "fetchBalance": "does not add up",
             "fetchPositions": {
                 "percentage": "undefined",
