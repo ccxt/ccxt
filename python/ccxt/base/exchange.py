@@ -342,7 +342,8 @@ class Exchange(object):
     currencies = {}
     options = None  # Python does not allow to define properties in run-time with setattr
     isSandboxModeEnabled = False
-    accounts = None
+    accounts = []
+    accountsById = {}
     positions = None
 
     status = None

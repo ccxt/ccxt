@@ -219,8 +219,8 @@ export default class Exchange {
     socks_proxy: string;
     socksProxyCallback: any;
     socks_proxy_callback: any;
-    userAgent: { 'User-Agent': string } | false = undefined;
-    user_agent: { 'User-Agent': string } | false = undefined;
+    userAgent: Str = undefined;
+    user_agent: Str = undefined;
     wsProxy: string;
     ws_proxy: string;
     wssProxy: string;
@@ -314,7 +314,7 @@ export default class Exchange {
     enableLastJsonResponse: boolean = false;
     enableLastHttpResponse: boolean = true;
     enableLastResponseHeaders: boolean = true;
-    last_http_response: string = undefined;
+    last_http_response: any = undefined;
     last_json_response: any = undefined;
     last_response_headers: Dictionary<string> = undefined;
     last_request_headers: Dictionary<string> = undefined;
@@ -389,10 +389,10 @@ export default class Exchange {
     codes: Strings = undefined;
 
     reloadingMarkets: Bool = undefined;
-    marketsLoading: Promise<Dictionary<Market>> = undefined;
+    marketsLoading: Promise<Dictionary<any>> = undefined;
 
-    accounts: Account[] = undefined;
-    accountsById: Dictionary<Account> = undefined;
+    accounts: Account[] = [];
+    accountsById: Dictionary<Account> = {};
 
     commonCurrencies: Dictionary<string> = undefined;
 
@@ -5400,7 +5400,8 @@ export default class Exchange {
         if (reload) {
             this.accounts = await this.fetchAccounts (params);
         } else {
-            if (this.accounts) {
+            const accountsLength = this.accounts.length;
+            if (accountsLength > 0) {
                 return this.accounts;
             } else {
                 this.accounts = await this.fetchAccounts (params);
