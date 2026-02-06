@@ -29,6 +29,7 @@ import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
+import testKeysort from './test.keysort.js';
 import testCapitalize from './test.capitalize.js';
 
 async function baseTestsInit () {
@@ -60,6 +61,7 @@ async function baseTestsInit () {
     testExtractParams ();
     testArraysConcat ();
     testEthMethods ();
+    testKeysort ();
     await testSleep ();
 }
 
