@@ -3675,22 +3675,43 @@ export default class Exchange {
         };
         if (market !== undefined) {
             const result = this.extend (cleanStructure, market);
-            // set undefined swap/future/etc
             if (result['spot']) {
-                if (result['contract'] === undefined) {
-                    result['contract'] = false;
+                result['contract'] = false;
+            } else if (result['contract']) {
+                result['spot'] = false;
+            }
+            //
+            // "type"
+            //
+            const marketTypes = [ 'spot', 'swap', 'future', 'option', 'index' ];
+            // set booleans
+            for (let j = 0; j < marketTypes.length; j++) {
+                const type = marketTypes[j];
+                result[type] = (this.safeString (result, 'type') === type);
+            }
+            // set string
+            for (let j = 0; j < marketTypes.length; j++) {
+                const type = marketTypes[j];
+                if (result[type]) {
+                    result['type'] = type;
                 }
-                if (result['swap'] === undefined) {
-                    result['swap'] = false;
+            }
+            //
+            // "subType"
+            //
+            const subTypes = [ 'linear', 'inverse' ];
+            // set booleans
+            for (let j = 0; j < subTypes.length; j++) {
+                const subType = subTypes[j];
+                if (result[subType] === undefined && result['type'] !== 'spot') {
+                    result[subType] = (this.safeString (result, 'subType') === subType);
                 }
-                if (result['future'] === undefined) {
-                    result['future'] = false;
-                }
-                if (result['option'] === undefined) {
-                    result['option'] = false;
-                }
-                if (result['index'] === undefined) {
-                    result['index'] = false;
+            }
+            // set string
+            for (let j = 0; j < subTypes.length; j++) {
+                const subType = subTypes[j];
+                if (result[subType]) {
+                    result['subType'] = subType;
                 }
             }
             return result;
