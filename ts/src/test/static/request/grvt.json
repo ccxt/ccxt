@@ -1,0 +1,359 @@
+{
+    "exchange": "grvt",
+    "outputType": "json",
+    "options": {
+        "AuthAccountId": "kbAc342752835723",
+        "AuthCookieValue": "sample123",
+        "accountId": "2147050003876484",
+        "signInExpiration": 1990000000000,
+        "approvedBuilderFee": true
+    },
+    "apiKey": "sample123",
+    "secret": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "skipKeys": [ "r", "s", "v", "nonce", "expiration" ],
+    "methods": {
+        "createOrder": [
+            {
+                "disabled": true,
+                "description": "swap sell trigger & reduceOnly (disabled bcz of variable nonce)",
+                "method": "createOrder",
+                "url": "https://trades.grvt.io/full/v1/create_order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    73000,
+                    {
+                        "accountId": 2147050003876484,
+                        "builderFee": false,
+                        "triggerPrice": 77000,
+                        "triggerDirection": "descending",
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"73000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0xb4286c0777ef3a2ddcafdf81e060bc6ab9a0203ff02325272b746aece955e741\",\"s\":\"0x650d0c165f60165cf1b8faff57e4da9736e36e7e7ae53fe62dff19d731fc6db4\",\"v\":28,\"expiration\":\"1770274373539000000\",\"nonce\":1770274343,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274343\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"77000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484,\"reduceOnly\":true}"
+            },
+            {
+                "disabled": true,
+                "description": "swap buy trigger  (disabled bcz of variable nonce)",
+                "method": "createOrder",
+                "url": "https://trades.grvt.io/full/v1/create_order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    70000,
+                    {
+                        "accountId": 2147050003876484,
+                        "builderFee": false,
+                        "triggerPrice": 67000,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x1e1f4c3f8df25ea1db1266fa120dca76d01f2fac6302a5a2dd92e6df8c3b0b27\",\"s\":\"0x0f5a4ba9c1c12d799f5595744ad153e9e993c63df77c9fab642bca4fe24296e9\",\"v\":28,\"expiration\":\"1770274322039000000\",\"nonce\":1770274292,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274292\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"67000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484}"
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions with symbols",
+                "method": "fetchPositions",
+                "url": "https://trades.grvt.io/full/v1/positions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\",\"base\":[\"BTC\"],\"quote\":[\"USDT\"]}"
+            },
+            {
+                "description": "fetchPositions no args",
+                "method": "fetchPositions",
+                "url": "https://trades.grvt.io/full/v1/positions",
+                "input": [],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders symbol perp",
+                "method": "fetchOpenOrders",
+                "url": "https://trades.grvt.io/full/v1/open_orders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            },
+            {
+                "description": "fetchOpenOrders no args",
+                "method": "fetchOpenOrders",
+                "url": "https://trades.grvt.io/full/v1/open_orders",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders symbol perp",
+                "method": "cancelAllOrders",
+                "url": "https://trades.grvt.io/full/v1/cancel_all_orders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\",\"base\":[\"BTC\"],\"quote\":[\"USDT\"]}"
+            },
+            {
+                "description": "cancelAllOrders no args",
+                "method": "cancelAllOrders",
+                "url": "https://trades.grvt.io/full/v1/cancel_all_orders",
+                "input": [],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers with currency",
+                "method": "fetchTransfers",
+                "url": "https://trades.grvt.io/full/v1/transfer_history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"limit\":2}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals with currency",
+                "method": "fetchWithdrawals",
+                "url": "https://trades.grvt.io/full/v1/transfer_history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"currency\":[\"USDT\"],\"limit\":2}"
+            },
+            {
+                "description": "fetchWithdrawals no args",
+                "method": "fetchWithdrawals",
+                "url": "https://trades.grvt.io/full/v1/transfer_history",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": "{\"currency\":null,\"limit\":2}"
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits with currency",
+                "method": "fetchDeposits",
+                "url": "https://trades.grvt.io/full/v1/transfer_history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"currency\":[\"USDT\"],\"limit\":2}"
+            },
+            {
+                "description": "fetchDeposits no args",
+                "method": "fetchDeposits",
+                "url": "https://trades.grvt.io/full/v1/transfer_history",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": "{\"limit\":2}"
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades symbol perp",
+                "method": "fetchMyTrades",
+                "url": "https://trades.grvt.io/full/v1/fill_history",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\",\"base\":[\"BTC\"],\"quote\":[\"USDT\"],\"limit\":2}"
+            },
+            {
+                "description": "fetchMyTrades no args",
+                "method": "fetchMyTrades",
+                "url": "https://trades.grvt.io/full/v1/fill_history",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\",\"limit\":2}"
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "fetchLeverages symbol perp",
+                "method": "fetchLeverages",
+                "url": "https://trades.grvt.io/full/v1/get_all_initial_leverage",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            },
+            {
+                "description": "fetchLeverages no args",
+                "method": "fetchLeverages",
+                "url": "https://trades.grvt.io/full/v1/get_all_initial_leverage",
+                "input": [],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1d perp",
+                "method": "fetchOHLCV",
+                "url": "https://market-data.grvt.io/full/v1/kline",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1d",
+                    null,
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"interval\":\"CI_1_D\",\"type\":\"TRADE\",\"limit\":2}"
+            },
+            {
+                "description": "fetchOHLCV 1h perp",
+                "method": "fetchOHLCV",
+                "url": "https://market-data.grvt.io/full/v1/kline",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"interval\":\"CI_1_H\",\"type\":\"TRADE\",\"limit\":2}"
+            },
+            {
+                "description": "fetchOHLCV 1m perp",
+                "method": "fetchOHLCV",
+                "url": "https://market-data.grvt.io/full/v1/kline",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"interval\":\"CI_1_M\",\"type\":\"TRADE\",\"limit\":2}"
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory perp symbol",
+                "method": "fetchFundingRateHistory",
+                "url": "https://market-data.grvt.io/full/v1/funding",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"limit\":2}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance type perp",
+                "method": "fetchBalance",
+                "url": "https://trades.grvt.io/full/v1/account_summary",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": "{\"sub_account_id\":\"2147050003876484\",\"type\":\"swap\"}"
+            },
+            {
+                "description": "fetchBalance no args",
+                "method": "fetchBalance",
+                "url": "https://trades.grvt.io/full/v1/account_summary",
+                "input": [],
+                "output": "{\"sub_account_id\":\"2147050003876484\"}"
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades symbol perp",
+                "method": "fetchTrades",
+                "url": "https://market-data.grvt.io/full/v1/trade_history",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"limit\":2}"
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker symbol perp",
+                "method": "fetchTicker",
+                "url": "https://market-data.grvt.io/full/v1/ticker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook perp + limit",
+                "method": "fetchOrderBook",
+                "url": "https://market-data.grvt.io/full/v1/book",
+                "input": [
+                    "BTC/USDT:USDT",
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"depth\":10}"
+            },
+            {
+                "description": "fetchOrderBook perp",
+                "method": "fetchOrderBook",
+                "url": "https://market-data.grvt.io/full/v1/book",
+                "input": [
+                    "BTC/USDT:USDT",
+                    2
+                ],
+                "output": "{\"instrument\":\"BTC_USDT_Perp\",\"depth\":10}"
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets no args",
+                "method": "fetchMarkets",
+                "url": "https://market-data.grvt.io/full/v1/all_instruments",
+                "input": [],
+                "output": "{}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies no args",
+                "method": "fetchCurrencies",
+                "url": "https://market-data.grvt.io/full/v1/currency",
+                "input": [],
+                "output": "{}"
+            }
+        ]
+    }
+}

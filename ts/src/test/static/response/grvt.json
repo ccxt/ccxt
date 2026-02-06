@@ -1,0 +1,2868 @@
+{
+    "exchange": "grvt",
+    "outputType": "json",
+    "options": {
+        "AuthAccountId": "kbAc342752835723",
+        "AuthCookieValue": "sample123",
+        "accountId": "2147050003876484",
+        "signInExpiration": 1990000000000,
+        "approvedBuilderFee": true
+    },
+    "apiKey": "sample123",
+    "secret": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "skipKeys": [ "r", "s", "v", "nonce", "expiration" ],
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets no args",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "instrument": "AAVE_USDT_Perp",
+                            "instrument_hash": "0x032201",
+                            "base": "AAVE",
+                            "quote": "USDT",
+                            "kind": "PERPETUAL",
+                            "venues": [
+                                "ORDERBOOK",
+                                "RFQ"
+                            ],
+                            "settlement_period": "PERPETUAL",
+                            "base_decimals": 9,
+                            "quote_decimals": 6,
+                            "tick_size": "0.01",
+                            "min_size": "0.1",
+                            "create_time": "1768040726362818304",
+                            "max_position_size": "7729.0",
+                            "funding_interval_hours": 8,
+                            "adjusted_funding_rate_cap": "0.75",
+                            "adjusted_funding_rate_floor": "-0.75",
+                            "min_notional": "5.0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "AAVE_USDT_Perp",
+                        "symbol": "AAVE/USDT:USDT",
+                        "base": "AAVE",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "AAVE",
+                        "quoteId": "USDT",
+                        "settleId": "USDT",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "active": null,
+                        "contract": true,
+                        "linear": null,
+                        "inverse": null,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.1,
+                            "price": 0.01,
+                            "base": 1e-9,
+                            "quote": 0.000001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.1,
+                                "max": 7729
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 5,
+                                "max": null
+                            }
+                        },
+                        "created": 1768040726362,
+                        "info": {
+                            "instrument": "AAVE_USDT_Perp",
+                            "instrument_hash": "0x032201",
+                            "base": "AAVE",
+                            "quote": "USDT",
+                            "kind": "PERPETUAL",
+                            "venues": [
+                                "ORDERBOOK",
+                                "RFQ"
+                            ],
+                            "settlement_period": "PERPETUAL",
+                            "base_decimals": 9,
+                            "quote_decimals": 6,
+                            "tick_size": "0.01",
+                            "min_size": "0.1",
+                            "create_time": "1768040726362818304",
+                            "max_position_size": "7729.0",
+                            "funding_interval_hours": 8,
+                            "adjusted_funding_rate_cap": "0.75",
+                            "adjusted_funding_rate_floor": "-0.75",
+                            "min_notional": "5.0"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies no args",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "id": 51,
+                            "symbol": "LTC",
+                            "balance_decimals": 9,
+                            "quantity_multiplier": "1000000000"
+                        },
+                        {
+                            "id": 13,
+                            "symbol": "KPEPE",
+                            "balance_decimals": 3,
+                            "quantity_multiplier": "1000"
+                        },
+                        {
+                            "id": 56,
+                            "symbol": "MNT",
+                            "balance_decimals": 6,
+                            "quantity_multiplier": "1000000"
+                        },
+                        {
+                            "id": 2,
+                            "symbol": "USDC",
+                            "balance_decimals": 6,
+                            "quantity_multiplier": "1000000"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "LTC": {
+                        "info": {
+                            "id": 51,
+                            "symbol": "LTC",
+                            "balance_decimals": 9,
+                            "quantity_multiplier": "1000000000"
+                        },
+                        "id": "LTC",
+                        "numericId": 51,
+                        "code": "LTC",
+                        "precision": 1e-9,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "KPEPE": {
+                        "info": {
+                            "id": 13,
+                            "symbol": "KPEPE",
+                            "balance_decimals": 3,
+                            "quantity_multiplier": "1000"
+                        },
+                        "id": "KPEPE",
+                        "numericId": 13,
+                        "code": "KPEPE",
+                        "precision": 0.001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "MNT": {
+                        "info": {
+                            "id": 56,
+                            "symbol": "MNT",
+                            "balance_decimals": 6,
+                            "quantity_multiplier": "1000000"
+                        },
+                        "id": "MNT",
+                        "numericId": 56,
+                        "code": "MNT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDC": {
+                        "info": {
+                            "id": 2,
+                            "symbol": "USDC",
+                            "balance_decimals": 6,
+                            "quantity_multiplier": "1000000"
+                        },
+                        "id": "USDC",
+                        "numericId": 2,
+                        "code": "USDC",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": null,
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions with symbols",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "result": []
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchPositions no args",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "result": []
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders symbol perp",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": []
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchOpenOrders no args",
+                "method": "fetchOpenOrders",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": []
+                },
+                "parsedResponse": []
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders symbol perp",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "result": {
+                        "ack": true
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ack": true
+                        },
+                        "id": null,
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null
+                    }
+                ]
+            },
+            {
+                "description": "cancelAllOrders no args",
+                "method": "cancelAllOrders",
+                "input": [],
+                "httpResponse": {
+                    "result": {
+                        "ack": true
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ack": true
+                        },
+                        "id": null,
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers with currency",
+                "method": "fetchTransfers",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "tx_id": "75450597",
+                            "from_account_id": "0xa1bbc15f7bc79f6a1a619487cdcd1d43cc4474f3",
+                            "from_sub_account_id": "0",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "0.0153",
+                            "signature": {
+                                "signer": "0x3e5faf87a23813027f7386ab6bf528b212bfa6a3",
+                                "r": "0xb12e60234c64841c14711c88f4457b4287b604df0fe7b541fdeb254105d888e4",
+                                "s": "0x79119fb8199374d39316b3b135dcdd8dfb6b1809f68792af80bce4def983b4cb",
+                                "v": 28,
+                                "expiration": "1768290362427571295",
+                                "nonce": 1063791604,
+                                "chain_id": "325"
+                            },
+                            "event_time": "1767685562437206175",
+                            "transfer_type": "TRADING_DEPOSIT_YIELD_INCENTIVE",
+                            "transfer_metadata": "{\"epoch\":46}"
+                        },
+                        {
+                            "tx_id": "70097161",
+                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "from_sub_account_id": "2147050003876484",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "1.234",
+                            "signature": {
+                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
+                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
+                                "v": 27,
+                                "expiration": "1766170918875000000",
+                                "nonce": 1766170888,
+                                "chain_id": "0"
+                            },
+                            "event_time": "1766170891072131476",
+                            "transfer_type": "STANDARD",
+                            "transfer_metadata": ""
+                        }
+                    ],
+                    "next": "eyJ0eElEIjo3MDA5NzE2MX0"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "tx_id": "70097161",
+                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "from_sub_account_id": "2147050003876484",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "1.234",
+                            "signature": {
+                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
+                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
+                                "v": 27,
+                                "expiration": "1766170918875000000",
+                                "nonce": 1766170888,
+                                "chain_id": "0"
+                            },
+                            "event_time": "1766170891072131476",
+                            "transfer_type": "STANDARD",
+                            "transfer_metadata": ""
+                        },
+                        "id": "70097161",
+                        "timestamp": 1766170891072,
+                        "datetime": "2025-12-19T19:01:31.072Z",
+                        "currency": "USDT",
+                        "amount": null,
+                        "fromAccount": "2147050003876484",
+                        "toAccount": "0",
+                        "status": null
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals with currency",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "tx_id": "75450597",
+                            "from_account_id": "0xa1bbc15f7bc79f6a1a619487cdcd1d43cc4474f3",
+                            "from_sub_account_id": "0",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "0.0153",
+                            "signature": {
+                                "signer": "0x3e5faf87a23813027f7386ab6bf528b212bfa6a3",
+                                "r": "0xb12e60234c64841c14711c88f4457b4287b604df0fe7b541fdeb254105d888e4",
+                                "s": "0x79119fb8199374d39316b3b135dcdd8dfb6b1809f68792af80bce4def983b4cb",
+                                "v": 28,
+                                "expiration": "1768290362427571295",
+                                "nonce": 1063791604,
+                                "chain_id": "325"
+                            },
+                            "event_time": "1767685562437206175",
+                            "transfer_type": "TRADING_DEPOSIT_YIELD_INCENTIVE",
+                            "transfer_metadata": "{\"epoch\":46}"
+                        },
+                        {
+                            "tx_id": "70097161",
+                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "from_sub_account_id": "2147050003876484",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "1.234",
+                            "signature": {
+                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
+                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
+                                "v": 27,
+                                "expiration": "1766170918875000000",
+                                "nonce": 1766170888,
+                                "chain_id": "0"
+                            },
+                            "event_time": "1766170891072131476",
+                            "transfer_type": "STANDARD",
+                            "transfer_metadata": ""
+                        }
+                    ],
+                    "next": "eyJ0eElEIjo3MDA5NzE2MX0"
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchWithdrawals no args",
+                "method": "fetchWithdrawals",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "tx_id": "75450597",
+                            "from_account_id": "0xa1bbc15f7bc79f6a1a619487cdcd1d43cc4474f3",
+                            "from_sub_account_id": "0",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "0.0153",
+                            "signature": {
+                                "signer": "0x3e5faf87a23813027f7386ab6bf528b212bfa6a3",
+                                "r": "0xb12e60234c64841c14711c88f4457b4287b604df0fe7b541fdeb254105d888e4",
+                                "s": "0x79119fb8199374d39316b3b135dcdd8dfb6b1809f68792af80bce4def983b4cb",
+                                "v": 28,
+                                "expiration": "1768290362427571295",
+                                "nonce": 1063791604,
+                                "chain_id": "325"
+                            },
+                            "event_time": "1767685562437206175",
+                            "transfer_type": "TRADING_DEPOSIT_YIELD_INCENTIVE",
+                            "transfer_metadata": "{\"epoch\":46}"
+                        },
+                        {
+                            "tx_id": "70097161",
+                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "from_sub_account_id": "2147050003876484",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "1.234",
+                            "signature": {
+                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
+                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
+                                "v": 27,
+                                "expiration": "1766170918875000000",
+                                "nonce": 1766170888,
+                                "chain_id": "0"
+                            },
+                            "event_time": "1766170891072131476",
+                            "transfer_type": "STANDARD",
+                            "transfer_metadata": ""
+                        }
+                    ],
+                    "next": "eyJ0eElEIjo3MDA5NzE2MX0"
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits with currency",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "tx_id": "75450597",
+                            "from_account_id": "0xa1bbc15f7bc79f6a1a619487cdcd1d43cc4474f3",
+                            "from_sub_account_id": "0",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "0.0153",
+                            "signature": {
+                                "signer": "0x3e5faf87a23813027f7386ab6bf528b212bfa6a3",
+                                "r": "0xb12e60234c64841c14711c88f4457b4287b604df0fe7b541fdeb254105d888e4",
+                                "s": "0x79119fb8199374d39316b3b135dcdd8dfb6b1809f68792af80bce4def983b4cb",
+                                "v": 28,
+                                "expiration": "1768290362427571295",
+                                "nonce": 1063791604,
+                                "chain_id": "325"
+                            },
+                            "event_time": "1767685562437206175",
+                            "transfer_type": "TRADING_DEPOSIT_YIELD_INCENTIVE",
+                            "transfer_metadata": "{\"epoch\":46}"
+                        },
+                        {
+                            "tx_id": "70097161",
+                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "from_sub_account_id": "2147050003876484",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "1.234",
+                            "signature": {
+                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
+                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
+                                "v": 27,
+                                "expiration": "1766170918875000000",
+                                "nonce": 1766170888,
+                                "chain_id": "0"
+                            },
+                            "event_time": "1766170891072131476",
+                            "transfer_type": "STANDARD",
+                            "transfer_metadata": ""
+                        }
+                    ],
+                    "next": "eyJ0eElEIjo3MDA5NzE2MX0"
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "fetchDeposits no args",
+                "method": "fetchDeposits",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "tx_id": "75450597",
+                            "from_account_id": "0xa1bbc15f7bc79f6a1a619487cdcd1d43cc4474f3",
+                            "from_sub_account_id": "0",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "0.0153",
+                            "signature": {
+                                "signer": "0x3e5faf87a23813027f7386ab6bf528b212bfa6a3",
+                                "r": "0xb12e60234c64841c14711c88f4457b4287b604df0fe7b541fdeb254105d888e4",
+                                "s": "0x79119fb8199374d39316b3b135dcdd8dfb6b1809f68792af80bce4def983b4cb",
+                                "v": 28,
+                                "expiration": "1768290362427571295",
+                                "nonce": 1063791604,
+                                "chain_id": "325"
+                            },
+                            "event_time": "1767685562437206175",
+                            "transfer_type": "TRADING_DEPOSIT_YIELD_INCENTIVE",
+                            "transfer_metadata": "{\"epoch\":46}"
+                        },
+                        {
+                            "tx_id": "70097161",
+                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "from_sub_account_id": "2147050003876484",
+                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "to_sub_account_id": "0",
+                            "currency": "USDT",
+                            "num_tokens": "1.234",
+                            "signature": {
+                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
+                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
+                                "v": 27,
+                                "expiration": "1766170918875000000",
+                                "nonce": 1766170888,
+                                "chain_id": "0"
+                            },
+                            "event_time": "1766170891072131476",
+                            "transfer_type": "STANDARD",
+                            "transfer_metadata": ""
+                        }
+                    ],
+                    "next": "eyJ0eElEIjo3MDA5NzE2MX0"
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades symbol perp",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "event_time": "1767946595050179952",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": false,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "90695.9",
+                            "mark_price": "90693.600040852",
+                            "index_price": "90715.425475642",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "-0.7364",
+                            "fee": "0.081626",
+                            "fee_rate": "0.045",
+                            "trade_id": "76497116-1",
+                            "order_id": "0x01010105036980e2000000007bbb59cb",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "746239103",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        },
+                        {
+                            "event_time": "1767942501169853220",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": true,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "91064.1",
+                            "mark_price": "91064.000013673",
+                            "index_price": "91085.144796287",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "0.0",
+                            "fee": "0.081957",
+                            "fee_rate": "0.045",
+                            "trade_id": "76480388-1",
+                            "order_id": "0x0101010503f70c4b000000007bb56832",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "1487199707",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        }
+                    ],
+                    "next": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "event_time": "1767942501169853220",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": true,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "91064.1",
+                            "mark_price": "91064.000013673",
+                            "index_price": "91085.144796287",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "0.0",
+                            "fee": "0.081957",
+                            "fee_rate": "0.045",
+                            "trade_id": "76480388-1",
+                            "order_id": "0x0101010503f70c4b000000007bb56832",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "1487199707",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        },
+                        "id": "76480388-1",
+                        "timestamp": 1767942501169,
+                        "datetime": "2026-01-09T07:08:21.169Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 91064.1,
+                        "amount": 0.002,
+                        "cost": 182.1282,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.081957,
+                            "rate": 0.045
+                        },
+                        "order": "0x0101010503f70c4b000000007bb56832",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.081957,
+                                "rate": 0.045
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "event_time": "1767946595050179952",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": false,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "90695.9",
+                            "mark_price": "90693.600040852",
+                            "index_price": "90715.425475642",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "-0.7364",
+                            "fee": "0.081626",
+                            "fee_rate": "0.045",
+                            "trade_id": "76497116-1",
+                            "order_id": "0x01010105036980e2000000007bbb59cb",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "746239103",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        },
+                        "id": "76497116-1",
+                        "timestamp": 1767946595050,
+                        "datetime": "2026-01-09T08:16:35.050Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 90695.9,
+                        "amount": 0.002,
+                        "cost": 181.3918,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.081626,
+                            "rate": 0.045
+                        },
+                        "order": "0x01010105036980e2000000007bbb59cb",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.081626,
+                                "rate": 0.045
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades no args",
+                "method": "fetchMyTrades",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "event_time": "1767946595050179952",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": false,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "90695.9",
+                            "mark_price": "90693.600040852",
+                            "index_price": "90715.425475642",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "-0.7364",
+                            "fee": "0.081626",
+                            "fee_rate": "0.045",
+                            "trade_id": "76497116-1",
+                            "order_id": "0x01010105036980e2000000007bbb59cb",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "746239103",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        },
+                        {
+                            "event_time": "1767942501169853220",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": true,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "91064.1",
+                            "mark_price": "91064.000013673",
+                            "index_price": "91085.144796287",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "0.0",
+                            "fee": "0.081957",
+                            "fee_rate": "0.045",
+                            "trade_id": "76480388-1",
+                            "order_id": "0x0101010503f70c4b000000007bb56832",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "1487199707",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        }
+                    ],
+                    "next": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "event_time": "1767942501169853220",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": true,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "91064.1",
+                            "mark_price": "91064.000013673",
+                            "index_price": "91085.144796287",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "0.0",
+                            "fee": "0.081957",
+                            "fee_rate": "0.045",
+                            "trade_id": "76480388-1",
+                            "order_id": "0x0101010503f70c4b000000007bb56832",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "1487199707",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        },
+                        "id": "76480388-1",
+                        "timestamp": 1767942501169,
+                        "datetime": "2026-01-09T07:08:21.169Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 91064.1,
+                        "amount": 0.002,
+                        "cost": 182.1282,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.081957,
+                            "rate": 0.045
+                        },
+                        "order": "0x0101010503f70c4b000000007bb56832",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.081957,
+                                "rate": 0.045
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "event_time": "1767946595050179952",
+                            "sub_account_id": "2147050003876484",
+                            "instrument": "BTC_USDT_Perp",
+                            "is_buyer": false,
+                            "is_taker": true,
+                            "size": "0.002",
+                            "price": "90695.9",
+                            "mark_price": "90693.600040852",
+                            "index_price": "90715.425475642",
+                            "interest_rate": "0.0",
+                            "forward_price": "0.0",
+                            "realized_pnl": "-0.7364",
+                            "fee": "0.081626",
+                            "fee_rate": "0.045",
+                            "trade_id": "76497116-1",
+                            "order_id": "0x01010105036980e2000000007bbb59cb",
+                            "venue": "ORDERBOOK",
+                            "is_liquidation": false,
+                            "client_order_id": "746239103",
+                            "signer": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
+                            "broker": "UNSPECIFIED",
+                            "is_rpi": false,
+                            "builder": "0x00",
+                            "builder_fee_rate": "0.0",
+                            "builder_fee": "0"
+                        },
+                        "id": "76497116-1",
+                        "timestamp": 1767946595050,
+                        "datetime": "2026-01-09T08:16:35.050Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 90695.9,
+                        "amount": 0.002,
+                        "cost": 181.3918,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.081626,
+                            "rate": 0.045
+                        },
+                        "order": "0x01010105036980e2000000007bbb59cb",
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.081626,
+                                "rate": 0.045
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1d perp",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1d",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "open_time": "1768176000000000000",
+                            "close_time": "1768236540000000000",
+                            "open": "90977.6",
+                            "close": "91999.4",
+                            "high": "92460.2",
+                            "low": "90100.0",
+                            "volume_b": "5005.052",
+                            "volume_q": "456580719.0755",
+                            "trades": 54405,
+                            "instrument": "BTC_USDT_Perp"
+                        },
+                        {
+                            "open_time": "1768089600000000000",
+                            "close_time": "1768176000000000000",
+                            "open": "90464.0",
+                            "close": "90977.6",
+                            "high": "91245.9",
+                            "low": "90201.0",
+                            "volume_b": "3880.117",
+                            "volume_q": "352060918.7457",
+                            "trades": 35834,
+                            "instrument": "BTC_USDT_Perp"
+                        }
+                    ],
+                    "next": "eyJvcGVuVGltZSI6MTc2ODA4OTYwMDAwMDAwMDAwMH0"
+                },
+                "parsedResponse": [
+                    [
+                        1768089600000000,
+                        90464,
+                        91245.9,
+                        90201,
+                        90977.6,
+                        3880.117
+                    ],
+                    [
+                        1768176000000000,
+                        90977.6,
+                        92460.2,
+                        90100,
+                        91999.4,
+                        5005.052
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1h perp",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "open_time": "1768233600000000000",
+                            "close_time": "1768236780000000000",
+                            "open": "91633.1",
+                            "close": "92107.1",
+                            "high": "92274.9",
+                            "low": "91527.3",
+                            "volume_b": "370.644",
+                            "volume_q": "34056074.093",
+                            "trades": 3770,
+                            "instrument": "BTC_USDT_Perp"
+                        },
+                        {
+                            "open_time": "1768230000000000000",
+                            "close_time": "1768233600000000000",
+                            "open": "90871.9",
+                            "close": "91633.1",
+                            "high": "91636.8",
+                            "low": "90673.0",
+                            "volume_b": "497.2",
+                            "volume_q": "45340488.0895",
+                            "trades": 4816,
+                            "instrument": "BTC_USDT_Perp"
+                        }
+                    ],
+                    "next": "eyJvcGVuVGltZSI6MTc2ODIzMDAwMDAwMDAwMDAwMH0"
+                },
+                "parsedResponse": [
+                    [
+                        1768230000000000,
+                        90871.9,
+                        91636.8,
+                        90673,
+                        91633.1,
+                        497.2
+                    ],
+                    [
+                        1768233600000000,
+                        91633.1,
+                        92274.9,
+                        91527.3,
+                        92107.1,
+                        370.644
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOHLCV 1m perp",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "open_time": "1768236780000000000",
+                            "close_time": "1768236840000000000",
+                            "open": "92107.1",
+                            "close": "92108.1",
+                            "high": "92108.1",
+                            "low": "92080.6",
+                            "volume_b": "0.331",
+                            "volume_q": "30482.3724",
+                            "trades": 36,
+                            "instrument": "BTC_USDT_Perp"
+                        },
+                        {
+                            "open_time": "1768236720000000000",
+                            "close_time": "1768236780000000000",
+                            "open": "92057.3",
+                            "close": "92107.1",
+                            "high": "92109.6",
+                            "low": "92057.3",
+                            "volume_b": "4.918",
+                            "volume_q": "452973.9924",
+                            "trades": 33,
+                            "instrument": "BTC_USDT_Perp"
+                        }
+                    ],
+                    "next": "eyJvcGVuVGltZSI6MTc2ODIzNjcyMDAwMDAwMDAwMH0"
+                },
+                "parsedResponse": [
+                    [
+                        1768236720000000,
+                        92057.3,
+                        92109.6,
+                        92057.3,
+                        92107.1,
+                        4.918
+                    ],
+                    [
+                        1768236780000000,
+                        92107.1,
+                        92108.1,
+                        92080.6,
+                        92108.1,
+                        0.331
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory perp symbol",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "result": [
+                        {
+                            "instrument": "BTC_USDT_Perp",
+                            "funding_rate": "0.01",
+                            "funding_time": "1768233600000000000",
+                            "mark_price": "91600.337629404",
+                            "funding_rate_8_h_avg": "0.01",
+                            "funding_interval_hours": 8
+                        },
+                        {
+                            "instrument": "BTC_USDT_Perp",
+                            "funding_rate": "-0.0013",
+                            "funding_time": "1768204800000000000",
+                            "mark_price": "91387.78166062",
+                            "funding_rate_8_h_avg": "-0.0013",
+                            "funding_interval_hours": 8
+                        }
+                    ],
+                    "next": "eyJmdW5kaW5nVGltZSI6MTc2ODIwNDgwMDAwMDAwMDAwMH0"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instrument": "BTC_USDT_Perp",
+                            "funding_rate": "-0.0013",
+                            "funding_time": "1768204800000000000",
+                            "mark_price": "91387.78166062",
+                            "funding_rate_8_h_avg": "-0.0013",
+                            "funding_interval_hours": 8
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": -0.0013,
+                        "timestamp": 1768204800000,
+                        "datetime": "2026-01-12T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "instrument": "BTC_USDT_Perp",
+                            "funding_rate": "0.01",
+                            "funding_time": "1768233600000000000",
+                            "mark_price": "91600.337629404",
+                            "funding_rate_8_h_avg": "0.01",
+                            "funding_interval_hours": 8
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "fundingRate": 0.01,
+                        "timestamp": 1768233600000,
+                        "datetime": "2026-01-12T16:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "swap sell trigger & reduceOnly",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    73000,
+                    {
+                        "accountId": 2147050003876484,
+                        "builderFee": false,
+                        "triggerPrice": 77000,
+                        "triggerDirection": "descending",
+                        "reduceOnly": true
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "73000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xb4286c0777ef3a2ddcafdf81e060bc6ab9a0203ff02325272b746aece955e741",
+                            "s": "0x650d0c165f60165cf1b8faff57e4da9736e36e7e7ae53fe62dff19d731fc6db4",
+                            "v": 28,
+                            "expiration": "1770274373539000000",
+                            "nonce": 1770274343,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1770274343",
+                            "create_time": "1770274344616530956",
+                            "trigger": {
+                                "trigger_type": "TAKE_PROFIT",
+                                "tpsl": {
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "77000.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1770274344616530956",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "1770274343",
+                    "timestamp": 1770274344616,
+                    "datetime": "2026-02-05T06:52:24.616Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1770274344616,
+                    "status": "pending",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 73000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.002,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "73000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xb4286c0777ef3a2ddcafdf81e060bc6ab9a0203ff02325272b746aece955e741",
+                            "s": "0x650d0c165f60165cf1b8faff57e4da9736e36e7e7ae53fe62dff19d731fc6db4",
+                            "v": 28,
+                            "expiration": "1770274373539000000",
+                            "nonce": 1770274343,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1770274343",
+                            "create_time": "1770274344616530956",
+                            "trigger": {
+                                "trigger_type": "TAKE_PROFIT",
+                                "tpsl": {
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "77000.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1770274344616530956",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "swap buy trigger",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.002,
+                    70000,
+                    {
+                        "accountId": 2147050003876484,
+                        "builderFee": false,
+                        "triggerPrice": 67000,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0x1e1f4c3f8df25ea1db1266fa120dca76d01f2fac6302a5a2dd92e6df8c3b0b27",
+                            "s": "0x0f5a4ba9c1c12d799f5595744ad153e9e993c63df77c9fab642bca4fe24296e9",
+                            "v": 28,
+                            "expiration": "1770274322039000000",
+                            "nonce": 1770274292,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1770274292",
+                            "create_time": "1770274295302358403",
+                            "trigger": {
+                                "trigger_type": "TAKE_PROFIT",
+                                "tpsl": {
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "67000.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1770274295302358403",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "1770274292",
+                    "timestamp": 1770274295302,
+                    "datetime": "2026-02-05T06:51:35.302Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1770274295302,
+                    "status": "pending",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.002,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0x1e1f4c3f8df25ea1db1266fa120dca76d01f2fac6302a5a2dd92e6df8c3b0b27",
+                            "s": "0x0f5a4ba9c1c12d799f5595744ad153e9e993c63df77c9fab642bca4fe24296e9",
+                            "v": 28,
+                            "expiration": "1770274322039000000",
+                            "nonce": 1770274292,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1770274292",
+                            "create_time": "1770274295302358403",
+                            "trigger": {
+                                "trigger_type": "TAKE_PROFIT",
+                                "tpsl": {
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "67000.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1770274295302358403",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.002",
+                    70000,
+                    {
+                        "triggerPrice": 71000,
+                        "triggerDirection": "ascending"
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0x12dae3140cbf265574a470abd16c3c81789e970a4892afb8ff566f46389925d1",
+                            "s": "0x6bab79b75c4bd78e2ce8dd29f5bf2f3f04a0da31d541b0b097354fb28a2fe308",
+                            "v": 28,
+                            "expiration": "1768237207626000000",
+                            "nonce": 1768237177,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1768237177",
+                            "create_time": "1768237176812041950",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1768237176812041950",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "1768237177",
+                    "timestamp": 1768237176812,
+                    "datetime": "2026-01-12T16:59:36.812Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1768237176812,
+                    "status": "pending",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.002,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0x12dae3140cbf265574a470abd16c3c81789e970a4892afb8ff566f46389925d1",
+                            "s": "0x6bab79b75c4bd78e2ce8dd29f5bf2f3f04a0da31d541b0b097354fb28a2fe308",
+                            "v": 28,
+                            "expiration": "1768237207626000000",
+                            "nonce": 1768237177,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1768237177",
+                            "create_time": "1768237176812041950",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1768237176812041950",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.002",
+                    70000,
+                    {
+                        "triggerPrice": 69000,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xc97422bf7d4f05d3f896889f34bad0cdadbe2a1f7fc0d0a6d6ca9a5550446e79",
+                            "s": "0x754136470096983f3081c37ed4e7c0ed715b4deb8df915fa992c881a729b375d",
+                            "v": 27,
+                            "expiration": "1768236896003000000",
+                            "nonce": 1768236866,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1768236866",
+                            "create_time": "1768236865187481296",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1768236865187481296",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "1768236866",
+                    "timestamp": 1768236865187,
+                    "datetime": "2026-01-12T16:54:25.187Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1768236865187,
+                    "status": "pending",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.002,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.002",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xc97422bf7d4f05d3f896889f34bad0cdadbe2a1f7fc0d0a6d6ca9a5550446e79",
+                            "s": "0x754136470096983f3081c37ed4e7c0ed715b4deb8df915fa992c881a729b375d",
+                            "v": 27,
+                            "expiration": "1768236896003000000",
+                            "nonce": 1768236866,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "1768236866",
+                            "create_time": "1768236865187481296",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.002"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1768236865187481296",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit with triggerPrice",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.001",
+                    70000,
+                    {
+                        "triggerPrice": 71000
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.001",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xb64610e62a71557e013b62591d4844925829dd7ad74dded5f4516ff573ec3eee",
+                            "s": "0x777059929231198c80ac5c5ca4f8c91be1d51729eb649eb6c6ec9e55f2a10871",
+                            "v": "27",
+                            "expiration": "1766239839141000000",
+                            "nonce": "1766239809",
+                            "chain_id": "0"
+                        },
+                        "metadata": {
+                            "client_order_id": "1766239809",
+                            "create_time": "1766239808840440579",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.001"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1766239808840440579",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "1766239809",
+                    "timestamp": 1766239808840,
+                    "datetime": "2025-12-20T14:10:08.840Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1766239808840,
+                    "status": "pending",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.001,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.001",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xb64610e62a71557e013b62591d4844925829dd7ad74dded5f4516ff573ec3eee",
+                            "s": "0x777059929231198c80ac5c5ca4f8c91be1d51729eb649eb6c6ec9e55f2a10871",
+                            "v": "27",
+                            "expiration": "1766239839141000000",
+                            "nonce": "1766239809",
+                            "chain_id": "0"
+                        },
+                        "metadata": {
+                            "client_order_id": "1766239809",
+                            "create_time": "1766239808840440579",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.001"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1766239808840440579",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "createOrder perp buy limit",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    "0.001",
+                    70000
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.001",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xa28bdc8e86586d97bf75f3df56f77638d3b548814b8ab9cfa9e4a0e3f5be6b46",
+                            "s": "0x2c9b39910043f18561b8a83215f377216e19dbe1c0d9e38d492158933ffbd5f4",
+                            "v": "28",
+                            "expiration": "1766239837805000000",
+                            "nonce": "1766239807",
+                            "chain_id": "0"
+                        },
+                        "metadata": {
+                            "client_order_id": "1766239807",
+                            "create_time": "1766239807867134945",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.001"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1766239807867134945",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "1766239807",
+                    "timestamp": 1766239807867,
+                    "datetime": "2025-12-20T14:10:07.867Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1766239807867,
+                    "status": "pending",
+                    "symbol": "BTC/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 70000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.001,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2147050003876484",
+                        "is_market": false,
+                        "time_in_force": "GOOD_TILL_TIME",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "BTC_USDT_Perp",
+                                "size": "0.001",
+                                "limit_price": "70000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
+                            "r": "0xa28bdc8e86586d97bf75f3df56f77638d3b548814b8ab9cfa9e4a0e3f5be6b46",
+                            "s": "0x2c9b39910043f18561b8a83215f377216e19dbe1c0d9e38d492158933ffbd5f4",
+                            "v": "28",
+                            "expiration": "1766239837805000000",
+                            "nonce": "1766239807",
+                            "chain_id": "0"
+                        },
+                        "metadata": {
+                            "client_order_id": "1766239807",
+                            "create_time": "1766239807867134945",
+                            "trigger": {
+                                "trigger_type": "UNSPECIFIED",
+                                "tpsl": {
+                                    "trigger_by": "UNSPECIFIED",
+                                    "trigger_price": "0.0",
+                                    "close_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.001"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1766239807867134945",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x00",
+                        "builder_fee": "0.0"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance type perp",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "event_time": "1766239807073117267",
+                        "sub_account_id": "2147050003876484",
+                        "margin_type": "SIMPLE_CROSS_MARGIN",
+                        "settle_currency": "USDT",
+                        "unrealized_pnl": "0.0",
+                        "total_equity": "16.569711",
+                        "initial_margin": "4.402251",
+                        "maintenance_margin": "0.0",
+                        "available_balance": "12.16746",
+                        "spot_balances": [
+                            {
+                                "currency": "USDT",
+                                "balance": "16.569711",
+                                "index_price": "0.99991714"
+                            }
+                        ],
+                        "positions": [],
+                        "settle_index_price": "0.99991714",
+                        "derisk_margin": "0.0",
+                        "derisk_to_maintenance_margin_ratio": "1.0",
+                        "total_cross_equity": "16.569711",
+                        "cross_unrealized_pnl": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "event_time": "1766239807073117267",
+                        "sub_account_id": "2147050003876484",
+                        "margin_type": "SIMPLE_CROSS_MARGIN",
+                        "settle_currency": "USDT",
+                        "unrealized_pnl": "0.0",
+                        "total_equity": "16.569711",
+                        "initial_margin": "4.402251",
+                        "maintenance_margin": "0.0",
+                        "available_balance": "12.16746",
+                        "spot_balances": [
+                            {
+                                "currency": "USDT",
+                                "balance": "16.569711",
+                                "index_price": "0.99991714"
+                            }
+                        ],
+                        "positions": [],
+                        "settle_index_price": "0.99991714",
+                        "derisk_margin": "0.0",
+                        "derisk_to_maintenance_margin_ratio": "1.0",
+                        "total_cross_equity": "16.569711",
+                        "cross_unrealized_pnl": "0.0"
+                    },
+                    "timestamp": 1766239807073,
+                    "datetime": "2025-12-20T14:10:07.073Z",
+                    "USDT": {
+                        "free": 12.16746,
+                        "used": 4.402251,
+                        "total": 16.569711
+                    },
+                    "free": {
+                        "USDT": 12.16746
+                    },
+                    "used": {
+                        "USDT": 4.402251
+                    },
+                    "total": {
+                        "USDT": 16.569711
+                    }
+                }
+            },
+            {
+                "description": "fetchBalance no args",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "result": {
+                        "event_time": "1766239806300187877",
+                        "sub_account_id": "2147050003876484",
+                        "margin_type": "SIMPLE_CROSS_MARGIN",
+                        "settle_currency": "USDT",
+                        "unrealized_pnl": "0.0",
+                        "total_equity": "16.569711",
+                        "initial_margin": "4.402251",
+                        "maintenance_margin": "0.0",
+                        "available_balance": "12.16746",
+                        "spot_balances": [
+                            {
+                                "currency": "USDT",
+                                "balance": "16.569711",
+                                "index_price": "0.99991714"
+                            }
+                        ],
+                        "positions": [],
+                        "settle_index_price": "0.99991714",
+                        "derisk_margin": "0.0",
+                        "derisk_to_maintenance_margin_ratio": "1.0",
+                        "total_cross_equity": "16.569711",
+                        "cross_unrealized_pnl": "0.0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "event_time": "1766239806300187877",
+                        "sub_account_id": "2147050003876484",
+                        "margin_type": "SIMPLE_CROSS_MARGIN",
+                        "settle_currency": "USDT",
+                        "unrealized_pnl": "0.0",
+                        "total_equity": "16.569711",
+                        "initial_margin": "4.402251",
+                        "maintenance_margin": "0.0",
+                        "available_balance": "12.16746",
+                        "spot_balances": [
+                            {
+                                "currency": "USDT",
+                                "balance": "16.569711",
+                                "index_price": "0.99991714"
+                            }
+                        ],
+                        "positions": [],
+                        "settle_index_price": "0.99991714",
+                        "derisk_margin": "0.0",
+                        "derisk_to_maintenance_margin_ratio": "1.0",
+                        "total_cross_equity": "16.569711",
+                        "cross_unrealized_pnl": "0.0"
+                    },
+                    "timestamp": 1766239806300,
+                    "datetime": "2025-12-20T14:10:06.300Z",
+                    "USDT": {
+                        "free": 12.16746,
+                        "used": 4.402251,
+                        "total": 16.569711
+                    },
+                    "free": {
+                        "USDT": 12.16746
+                    },
+                    "used": {
+                        "USDT": 4.402251
+                    },
+                    "total": {
+                        "USDT": 16.569711
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook perp + limit",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT:USDT",
+                    2
+                ],
+                "httpResponse": {
+                    "result": {
+                        "event_time": "1766239804750000000",
+                        "instrument": "BTC_USDT_Perp",
+                        "bids": [
+                            {
+                                "price": "88051.6",
+                                "size": "0.012",
+                                "num_orders": "3"
+                            },
+                            {
+                                "price": "88051.5",
+                                "size": "0.011",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88051.0",
+                                "size": "0.025",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88047.1",
+                                "size": "0.009",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88047.0",
+                                "size": "0.001",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88046.9",
+                                "size": "0.02",
+                                "num_orders": "20"
+                            },
+                            {
+                                "price": "88046.7",
+                                "size": "5.224",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88046.2",
+                                "size": "0.153",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88044.0",
+                                "size": "0.272",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88043.3",
+                                "size": "0.567",
+                                "num_orders": "1"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "price": "88051.7",
+                                "size": "2.524",
+                                "num_orders": "35"
+                            },
+                            {
+                                "price": "88052.7",
+                                "size": "1.485",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88053.5",
+                                "size": "0.007",
+                                "num_orders": "4"
+                            },
+                            {
+                                "price": "88055.6",
+                                "size": "0.113",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88056.1",
+                                "size": "0.009",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88056.4",
+                                "size": "0.113",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88057.0",
+                                "size": "0.001",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88059.2",
+                                "size": "0.021",
+                                "num_orders": "2"
+                            },
+                            {
+                                "price": "88059.6",
+                                "size": "0.567",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88060.5",
+                                "size": "0.034",
+                                "num_orders": "1"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "bids": [
+                        [
+                            88051.6,
+                            0.012
+                        ],
+                        [
+                            88051.5,
+                            0.011
+                        ],
+                        [
+                            88051,
+                            0.025
+                        ],
+                        [
+                            88047.1,
+                            0.009
+                        ],
+                        [
+                            88047,
+                            0.001
+                        ],
+                        [
+                            88046.9,
+                            0.02
+                        ],
+                        [
+                            88046.7,
+                            5.224
+                        ],
+                        [
+                            88046.2,
+                            0.153
+                        ],
+                        [
+                            88044,
+                            0.272
+                        ],
+                        [
+                            88043.3,
+                            0.567
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            88051.7,
+                            2.524
+                        ],
+                        [
+                            88052.7,
+                            1.485
+                        ],
+                        [
+                            88053.5,
+                            0.007
+                        ],
+                        [
+                            88055.6,
+                            0.113
+                        ],
+                        [
+                            88056.1,
+                            0.009
+                        ],
+                        [
+                            88056.4,
+                            0.113
+                        ],
+                        [
+                            88057,
+                            0.001
+                        ],
+                        [
+                            88059.2,
+                            0.021
+                        ],
+                        [
+                            88059.6,
+                            0.567
+                        ],
+                        [
+                            88060.5,
+                            0.034
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            },
+            {
+                "description": "fetchOrderBook perp",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT:USDT",
+                    2
+                ],
+                "httpResponse": {
+                    "result": {
+                        "event_time": "1766239804250000000",
+                        "instrument": "BTC_USDT_Perp",
+                        "bids": [
+                            {
+                                "price": "88051.6",
+                                "size": "0.012",
+                                "num_orders": "3"
+                            },
+                            {
+                                "price": "88051.5",
+                                "size": "0.011",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88051.0",
+                                "size": "0.025",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88047.1",
+                                "size": "0.009",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88047.0",
+                                "size": "0.001",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88046.9",
+                                "size": "0.02",
+                                "num_orders": "20"
+                            },
+                            {
+                                "price": "88046.7",
+                                "size": "5.224",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88046.2",
+                                "size": "0.153",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88043.9",
+                                "size": "0.277",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88043.3",
+                                "size": "0.567",
+                                "num_orders": "1"
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "price": "88051.7",
+                                "size": "2.524",
+                                "num_orders": "35"
+                            },
+                            {
+                                "price": "88053.5",
+                                "size": "0.007",
+                                "num_orders": "4"
+                            },
+                            {
+                                "price": "88055.6",
+                                "size": "0.113",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88056.1",
+                                "size": "0.009",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88056.4",
+                                "size": "0.113",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88057.0",
+                                "size": "0.001",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88059.2",
+                                "size": "0.021",
+                                "num_orders": "2"
+                            },
+                            {
+                                "price": "88059.6",
+                                "size": "0.567",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88060.5",
+                                "size": "0.034",
+                                "num_orders": "1"
+                            },
+                            {
+                                "price": "88065.1",
+                                "size": "0.001",
+                                "num_orders": "1"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "bids": [
+                        [
+                            88051.6,
+                            0.012
+                        ],
+                        [
+                            88051.5,
+                            0.011
+                        ],
+                        [
+                            88051,
+                            0.025
+                        ],
+                        [
+                            88047.1,
+                            0.009
+                        ],
+                        [
+                            88047,
+                            0.001
+                        ],
+                        [
+                            88046.9,
+                            0.02
+                        ],
+                        [
+                            88046.7,
+                            5.224
+                        ],
+                        [
+                            88046.2,
+                            0.153
+                        ],
+                        [
+                            88043.9,
+                            0.277
+                        ],
+                        [
+                            88043.3,
+                            0.567
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            88051.7,
+                            2.524
+                        ],
+                        [
+                            88053.5,
+                            0.007
+                        ],
+                        [
+                            88055.6,
+                            0.113
+                        ],
+                        [
+                            88056.1,
+                            0.009
+                        ],
+                        [
+                            88056.4,
+                            0.113
+                        ],
+                        [
+                            88057,
+                            0.001
+                        ],
+                        [
+                            88059.2,
+                            0.021
+                        ],
+                        [
+                            88059.6,
+                            0.567
+                        ],
+                        [
+                            88060.5,
+                            0.034
+                        ],
+                        [
+                            88065.1,
+                            0.001
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
+        ]
+    }
+}
