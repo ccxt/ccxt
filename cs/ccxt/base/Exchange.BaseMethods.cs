@@ -5069,6 +5069,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrder() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createTwapOrder(object symbol, object side, object amount, object duration, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createTwapOrder() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();

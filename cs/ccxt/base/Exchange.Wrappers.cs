@@ -614,6 +614,11 @@ public partial class Exchange
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public async Task<Order> CreateTwapOrder(string symbol, string side, double amount, double duration, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createTwapOrder(symbol, side, amount, duration, parameters);
+        return new Order(res);
+    }
     public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
