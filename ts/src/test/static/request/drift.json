@@ -83,6 +83,22 @@
                     "BTC/USDC:USDC"
                 ]
             }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders with symbol",
+                "method": "fetchOrders",
+                "url": "https://data.api.drift.trade/user/12345/orders/perp/BTC-PERP",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://data.api.drift.trade/user/12345/orders/perp",
+                "input": []
+            }
         ]
     }
 }

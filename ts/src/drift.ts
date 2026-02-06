@@ -995,42 +995,89 @@ export default class drift extends Exchange {
      * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [limit] the maximum amount of orders to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async fetchOrders (
         symbol: Str = undefined,
+        since: Int = undefined,
         limit: Int = undefined,
         params = {}
     ): Promise<Order[]> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const market = symbol === undefined ? undefined : this.market (symbol);
-        const maxOrders = Math.min (limit, 100);
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchOrders', symbol, since, limit, params, 'nextPage', 'page', undefined, 50) as Order[];
+        }
         const request: Dict = {
             'accountId': this.accountId,
         };
-        if (market !== undefined) {
+        let market = undefined;
+        let method = 'publicGetUserAccountIdOrdersPerp';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            method = 'publicGetUserAccountIdOrdersPerpSymbol';
             request['symbol'] = market['id'];
         }
-        const method = market === undefined
-            ? 'publicGetUserAccountIdOrdersPerp'
-            : 'publicGetUserAccountIdOrdersPerpSymbol';
-        let nextPage = undefined;
-        let allOrders: any[] = [];
-        let fetchMore = true;
-        while (fetchMore) {
-            const pageRequest = this.extend ({}, request);
-            if (nextPage !== undefined) {
-                pageRequest['page'] = nextPage;
-            }
-            const response = await (this as any)[method] (this.extend (pageRequest, params));
-            const orders = this.safeValue (response, 'records', response);
-            allOrders = allOrders.concat (orders);
-            nextPage = this.safeString (response, 'nextPage');
-            fetchMore = !((nextPage === undefined) || (orders.length === 0) || (allOrders.length >= maxOrders));
+        if (limit !== undefined) {
+            limit = Math.min (limit, 100);
         }
-        allOrders = allOrders.slice (0, maxOrders);
-        return this.parseOrders (allOrders, market, undefined, limit);
+        const response = await (this as any)[method] (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "records": [
+        //         {
+        //             "ts": 1770001166,
+        //             "txSig": "",
+        //             "txSigIndex": 1,
+        //             "slot": 398990651,
+        //             "user": "",
+        //             "status": "open",
+        //             "orderType": "oracle",
+        //             "marketType": "perp",
+        //             "orderId": 5,
+        //             "userOrderId": 1,
+        //             "marketIndex": 0,
+        //             "price": "0.000000",
+        //             "baseAssetAmount": "0.010000000",
+        //             "quoteAssetAmount": "0.000000",
+        //             "baseAssetAmountFilled": "0.010000000",
+        //             "quoteAssetAmountFilled": "0.769870",
+        //             "direction": "long",
+        //             "reduceOnly": false,
+        //             "triggerPrice": "0.000000",
+        //             "triggerCondition": "above",
+        //             "existingPositionDirection": "long",
+        //             "postOnly": false,
+        //             "immediateOrCancel": false,
+        //             "oraclePriceOffset": "0.032413",
+        //             "auctionDuration": 40,
+        //             "auctionStartPrice": "-0.268200",
+        //             "auctionEndPrice": "0.032400",
+        //             "maxTs": 1770341196,
+        //             "marketFilter": "perp",
+        //             "symbol": "SOL-PERP",
+        //             "lastActionStatus": "filled",
+        //             "lastActionExplanation": "orderFilledWithMatch",
+        //             "lastUpdatedTs": 1770001166,
+        //             "cumulativeFee": "0.000270"
+        //         }
+        //     ],
+        //     "meta": {
+        //         "nextPage": null
+        //     }
+        // }
+        //
+        const orders = this.safeValue (response, 'records');
+        const meta = this.safeDict (response, 'meta');
+        const nextPage = this.safeString (meta, 'nextPage');
+        if ((orders.length > 0) && (nextPage !== undefined)) {
+            orders[0]['nextPage'] = nextPage;
+        }
+        return this.parseOrders (orders, market, since, limit);
     }
 
     /**
