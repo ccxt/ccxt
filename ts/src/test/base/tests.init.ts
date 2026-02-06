@@ -30,9 +30,11 @@ import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testCapitalize from './test.capitalize.js';
+import testConstants from './test.constants.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
+    testConstants ();
     testAfterConstructor ();
     testExtend ();
     testDeepExtend ();
