@@ -1744,21 +1744,11 @@ var_dump($bitfinex->markets['XRP/BTC']);
 
 ## API Methods / Endpoints
 
-Each exchange offers a set of API methods. Each method of the API is called an *endpoint*. Endpoints are HTTP URLs for querying various types of information. All endpoints return JSON in response to client requests.
-
-Usually, there is an endpoint for getting a list of markets from an exchange, an endpoint for retrieving an order book for a particular market, an endpoint for retrieving trade history, endpoints for placing and canceling orders, for money deposit and withdrawal, etc... Basically every kind of action you could perform within a particular exchange has a separate endpoint URL offered by the API.
-
-Because the set of methods differs from exchange to exchange, the ccxt library implements the following:
-- a public and private API for all possible URLs and methods
-- a unified API supporting a subset of common methods
-
-The endpoint URLs are predefined in the `api` property for each exchange. You don't have to override it, unless you are implementing a new exchange API (at least you should know what you're doing).
-
-Most of exchange-specific API methods are implicit, meaning that they aren't defined explicitly anywhere in code. The library implements a declarative approach for defining implicit (non-unified) exchanges' API methods.
+Each exchange API has multiple endpoints (HTTP urls) where users can make a query for various types of information. Usually, there are endpoints for getting a **list of markets**, **orderbook**, **trade history**, endpoints for **placing and canceling orders**, for money **deposit and withdrawal**, etc...
 
 ## Implicit API Methods
 
-Each method of the API usually has its own endpoint. The library defines all endpoints for each particular exchange in the `.api` property. Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
+Each method of the API usually has its own endpoint.  Unified CCXT methods (`fetchOrderBook, fetchOrders, etc...`) also uses implicit API methods to query related endpoint. Implicit API methods are different across exchanges, but CCXT defines all endpoints for each particular exchange in the `.api` property (You don't have to override it, unless you are implementing a new API). Upon exchange construction an implicit *magic* method (aka *partial function* or *closure*) will be created inside `defineRestApi()/define_rest_api()` on the exchange instance for each endpoint from the list of `.api` endpoints. This is performed for all exchanges universally. Each generated method will be accessible in both `camelCase` and `under_score` notations.
 
 The endpoints definition is a **full list of ALL API URLs** exposed by an exchange. This list gets converted to callable methods upon exchange instantiation. Each URL in the API endpoint list gets a corresponding callable method. This is done automatically for all exchanges, therefore the ccxt library supports **all possible URLs** offered by crypto exchanges.
 
@@ -1766,8 +1756,9 @@ Each implicit method gets a unique name which is constructed from the `.api` def
 
 An implicit method takes a dictionary of parameters, sends the request to the exchange and returns an exchange-specific JSON result from the API **as is, unparsed**. To pass a parameter, add it to the dictionary explicitly under a key equal to the parameter's name. For the examples above, this would look like `.privatePutOrderIdCancel ({ id: '41987a2b-...' })` and `.publicGetTickerPair ({ pair: 'BTC/USD' })`.
 
-The recommended way of working with exchanges is not using exchange-specific implicit methods but using the unified ccxt methods instead. The exchange-specific methods should be used as a fallback in cases when a corresponding unified method isn't available (yet).
+The recommended way of working with exchanges is using the unified ccxt methods (instead of exchange-specific implicit methods, because they should be used as a fallback in cases when a corresponding unified method isn't implemented yet).
 
+### View implicit methods list
 To get a list of all available methods with an exchange instance, including implicit methods and unified methods you can simply do the following:
 
 ```text
@@ -1775,6 +1766,7 @@ console.log (new ccxt.kraken ())   // JavaScript
 print(dir(ccxt.kraken()))           # Python
 var_dump (new \ccxt\kraken ()); // PHP
 ```
+or view an abstract file, eg. view [coinbase](https://github.com/ccxt/ccxt/blob/master/python/ccxt/abstract/coinbase.py).
 
 ## Public/Private API
 
