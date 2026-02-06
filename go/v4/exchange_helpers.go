@@ -1864,6 +1864,15 @@ func GetArg(v []interface{}, index int, def interface{}) interface{} {
 		}
 	}
 
+	if res, ok := val.([]string); ok {
+		// if len(res) == 0 {
+		// 	return def
+		// }
+		if res == nil {
+			return def
+		}
+	}
+
 	// do we need this??
 	// if IsNil(val) { // check  https://blog.devtrovert.com/p/go-secret-interface-nil-is-not-nil
 	// 	return def
