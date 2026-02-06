@@ -1,9 +1,9 @@
 {
     "BTC": {
         "info": {
-            "id": "5",
+            "id": 5,
             "symbol": "BTC",
-            "balance_decimals": "9",
+            "balance_decimals": 9,
             "quantity_multiplier": "1000000000"
         },
         "id": "BTC",
@@ -35,9 +35,9 @@
     },
     "USDT": {
         "info": {
-            "id": "3",
+            "id": 3,
             "symbol": "USDT",
-            "balance_decimals": "6",
+            "balance_decimals": 6,
             "quantity_multiplier": "1000000"
         },
         "id": "USDT",
@@ -69,9 +69,9 @@
     },
     "ADA": {
         "info": {
-            "id": "33",
+            "id": 33,
             "symbol": "ADA",
-            "balance_decimals": "6",
+            "balance_decimals": 6,
             "quantity_multiplier": "1000000"
         },
         "id": "ADA",
@@ -103,9 +103,9 @@
     },
     "ETH": {
         "info": {
-            "id": "4",
+            "id": 4,
             "symbol": "ETH",
-            "balance_decimals": "9",
+            "balance_decimals": 9,
             "quantity_multiplier": "1000000000"
         },
         "id": "ETH",

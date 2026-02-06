@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.001,
             "price": 0.1,
             "base": 1e-9,
             "quote": 0.000001
@@ -41,14 +41,14 @@
             },
             "amount": {
                 "min": 0.001,
-                "max": null
+                "max": 1000
             },
             "price": {
                 "min": null,
                 "max": null
             },
             "cost": {
-                "min": null,
+                "min": 100,
                 "max": null
             }
         },
@@ -56,7 +56,7 @@
             "cross": null,
             "isolated": null
         },
-        "created": 1764841891245,
+        "created": 1770020259016,
         "info": {
             "instrument": "BTC_USDT_Perp",
             "instrument_hash": "0x030501",
@@ -68,15 +68,16 @@
                 "RFQ"
             ],
             "settlement_period": "PERPETUAL",
-            "base_decimals": "9",
-            "quote_decimals": "6",
+            "base_decimals": 9,
+            "quote_decimals": 6,
             "tick_size": "0.1",
             "min_size": "0.001",
-            "create_time": "1764841891245136588",
+            "create_time": "1770020259016365490",
             "max_position_size": "1000.0",
-            "funding_interval_hours": "8",
+            "funding_interval_hours": 8,
             "adjusted_funding_rate_cap": "0.3",
-            "adjusted_funding_rate_floor": "-0.3"
+            "adjusted_funding_rate_floor": "-0.3",
+            "min_notional": "100.0"
         },
         "tierBased": null,
         "percentage": null
@@ -111,7 +112,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-100,
+            "amount": 100,
             "price": 0.0001,
             "base": 0.000001,
             "quote": 0.000001
@@ -123,14 +124,14 @@
             },
             "amount": {
                 "min": 100,
-                "max": null
+                "max": 3333004
             },
             "price": {
                 "min": null,
                 "max": null
             },
             "cost": {
-                "min": null,
+                "min": 5,
                 "max": null
             }
         },
@@ -138,7 +139,7 @@
             "cross": null,
             "isolated": null
         },
-        "created": 1764841891245,
+        "created": 1770020259016,
         "info": {
             "instrument": "ADA_USDT_Perp",
             "instrument_hash": "0x032101",
@@ -150,15 +151,16 @@
                 "RFQ"
             ],
             "settlement_period": "PERPETUAL",
-            "base_decimals": "6",
-            "quote_decimals": "6",
+            "base_decimals": 6,
+            "quote_decimals": 6,
             "tick_size": "0.0001",
             "min_size": "100.0",
-            "create_time": "1764841891245127268",
+            "create_time": "1770020259016357130",
             "max_position_size": "3333004.0",
-            "funding_interval_hours": "8",
+            "funding_interval_hours": 8,
             "adjusted_funding_rate_cap": "0.375",
-            "adjusted_funding_rate_floor": "-0.375"
+            "adjusted_funding_rate_floor": "-0.375",
+            "min_notional": "5.0"
         },
         "tierBased": null,
         "percentage": null
@@ -193,7 +195,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1,
+            "amount": 0.01,
             "price": 0.01,
             "base": 1e-9,
             "quote": 0.000001
@@ -205,14 +207,14 @@
             },
             "amount": {
                 "min": 0.01,
-                "max": null
+                "max": 30000
             },
             "price": {
                 "min": null,
                 "max": null
             },
             "cost": {
-                "min": null,
+                "min": 20,
                 "max": null
             }
         },
@@ -220,7 +222,7 @@
             "cross": null,
             "isolated": null
         },
-        "created": 1764841891245,
+        "created": 1770020259016,
         "info": {
             "instrument": "ETH_USDT_Perp",
             "instrument_hash": "0x030401",
@@ -232,15 +234,16 @@
                 "RFQ"
             ],
             "settlement_period": "PERPETUAL",
-            "base_decimals": "9",
-            "quote_decimals": "6",
+            "base_decimals": 9,
+            "quote_decimals": 6,
             "tick_size": "0.01",
             "min_size": "0.01",
-            "create_time": "1764841891245140448",
+            "create_time": "1770020259016370010",
             "max_position_size": "30000.0",
-            "funding_interval_hours": "8",
+            "funding_interval_hours": 8,
             "adjusted_funding_rate_cap": "0.3",
-            "adjusted_funding_rate_floor": "-0.3"
+            "adjusted_funding_rate_floor": "-0.3",
+            "min_notional": "20.0"
         },
         "tierBased": null,
         "percentage": null

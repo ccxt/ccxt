@@ -4,7 +4,7 @@
     "options": {
         "AuthAccountId": "kbAc342752835723",
         "AuthCookieValue": "sample123",
-        "subAccountId": "2147050003876484",
+        "accountId": "2147050003876484",
         "signInExpiration": 1990000000000,
         "approvedBuilderFee": true
     },
@@ -14,7 +14,8 @@
     "methods": {
         "createOrder": [
             {
-                "description": "swap sell trigger & reduceOnly",
+                "disabled": true,
+                "description": "swap sell trigger & reduceOnly (disabled bcz of variable nonce)",
                 "method": "createOrder",
                 "url": "https://trades.grvt.io/full/v1/create_order",
                 "input": [
@@ -31,10 +32,11 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"73000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xbf465e6083a43b170791ea29393f601381c560be\",\"r\":\"0xb4286c0777ef3a2ddcafdf81e060bc6ab9a0203ff02325272b746aece955e741\",\"s\":\"0x650d0c165f60165cf1b8faff57e4da9736e36e7e7ae53fe62dff19d731fc6db4\",\"v\":28,\"expiration\":\"1770274373539000000\",\"nonce\":1770274343,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274343\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"77000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484,\"reduceOnly\":true}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"73000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0xb4286c0777ef3a2ddcafdf81e060bc6ab9a0203ff02325272b746aece955e741\",\"s\":\"0x650d0c165f60165cf1b8faff57e4da9736e36e7e7ae53fe62dff19d731fc6db4\",\"v\":28,\"expiration\":\"1770274373539000000\",\"nonce\":1770274343,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274343\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"77000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484,\"reduceOnly\":true}"
             },
             {
-                "description": "swap buy trigger",
+                "disabled": true,
+                "description": "swap buy trigger  (disabled bcz of variable nonce)",
                 "method": "createOrder",
                 "url": "https://trades.grvt.io/full/v1/create_order",
                 "input": [
@@ -50,7 +52,7 @@
                         "triggerDirection": "descending"
                     }
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xbf465e6083a43b170791ea29393f601381c560be\",\"r\":\"0x1e1f4c3f8df25ea1db1266fa120dca76d01f2fac6302a5a2dd92e6df8c3b0b27\",\"s\":\"0x0f5a4ba9c1c12d799f5595744ad153e9e993c63df77c9fab642bca4fe24296e9\",\"v\":28,\"expiration\":\"1770274322039000000\",\"nonce\":1770274292,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274292\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"67000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x1e1f4c3f8df25ea1db1266fa120dca76d01f2fac6302a5a2dd92e6df8c3b0b27\",\"s\":\"0x0f5a4ba9c1c12d799f5595744ad153e9e993c63df77c9fab642bca4fe24296e9\",\"v\":28,\"expiration\":\"1770274322039000000\",\"nonce\":1770274292,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274292\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"67000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484}"
             }
         ],
         "fetchPositions": [
@@ -173,7 +175,7 @@
                     null,
                     2
                 ],
-                "output": "{\"currency\":null,\"limit\":2}"
+                "output": "{\"limit\":2}"
             }
         ],
         "fetchMyTrades": [
