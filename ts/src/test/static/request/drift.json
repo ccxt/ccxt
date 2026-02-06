@@ -72,6 +72,17 @@
                     "BTC/USDC:USDC"
                 ]
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://data.api.drift.trade/user/12345/orders/id/1",
+                "input": [
+                    1,
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }

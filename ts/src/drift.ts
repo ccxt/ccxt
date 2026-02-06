@@ -930,17 +930,59 @@ export default class drift extends Exchange {
      */
     async fetchOrder (
         id: string,
+        symbol: Str = undefined,
         params = {}
     ): Promise<Order> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         const request: Dict = {
             'accountId': this.accountId,
             'orderId': id,
         };
         const response = await this.publicGetUserAccountIdOrdersIdOrderId (this.extend (request, params));
-        const record = this.safeValue (response, 'record', response); // todo need to merge with latest action data
-        if (!record) { // todo return null instead of object
+        //
+        // {
+        //     "success": true,
+        //     "record": {
+        //         "ts": 1770009167,
+        //         "txSig": "",
+        //         "txSigIndex": 1,
+        //         "slot": 397477413,
+        //         "user": "=",
+        //         "status": "open",
+        //         "orderType": "oracle",
+        //         "marketType": "perp",
+        //         "orderId": 1,
+        //         "userOrderId": 0,
+        //         "marketIndex": 0,
+        //         "price": "0",
+        //         "baseAssetAmount": "0.01",
+        //         "quoteAssetAmount": "0",
+        //         "baseAssetAmountFilled": "0.01",
+        //         "quoteAssetAmountFilled": "0.993918",
+        //         "direction": "short",
+        //         "reduceOnly": false,
+        //         "triggerPrice": "0",
+        //         "triggerCondition": "above",
+        //         "existingPositionDirection": "long",
+        //         "postOnly": false,
+        //         "immediateOrCancel": false,
+        //         "oraclePriceOffset": "-0.189943",
+        //         "auctionDuration": 20,
+        //         "auctionStartPrice": "-0.0539",
+        //         "auctionEndPrice": "-0.1899",
+        //         "maxTs": 1770009197,
+        //         "marketFilter": "perp",
+        //         "symbol": "SOL-PERP",
+        //         "lastActionStatus": "filled",
+        //         "lastActionExplanation": "orderFilledWithMatch",
+        //         "lastUpdatedTs": 1770009171,
+        //         "cumulativeFee": "0.000348"
+        //     }
+        // }
+        //
+        const record = this.safeDict (response, 'record', {});
+        if (record['orderId'] === undefined) {
             throw new OrderNotFound (this.id + ' fetchOrder() returned empty response');
         }
         return this.parseOrder (record);
@@ -957,7 +999,7 @@ export default class drift extends Exchange {
      */
     async fetchOrders (
         symbol: Str = undefined,
-        limit: Int = 20,
+        limit: Int = undefined,
         params = {}
     ): Promise<Order[]> {
         await this.loadMarkets ();
