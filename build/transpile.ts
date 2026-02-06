@@ -236,7 +236,7 @@ class Transpiler {
             // [ /\.replaceAll\s*\(([^)]+)\)/g, '.replace($1)' ], // still not a part of the standard
             [ /replaceAll\s*/g, 'replace'],
             [ /assert\s*\((.+)\);/g, 'assert $1'],
-            [ /Promise\.all\s*\(([^\)]+)\)/g, 'asyncio.gather(*$1)' ],
+            [ /Promise\.all\s*\(([^\)]+)\)/g, 'self.promise_all($1)' ],
             [ /Precise\.stringAdd\s/g, 'Precise.string_add' ],
             [ /Precise\.stringMul\s/g, 'Precise.string_mul' ],
             [ /Precise\.stringDiv\s/g, 'Precise.string_div' ],
@@ -369,6 +369,7 @@ class Transpiler {
     getPython2Regexes () {
         return [
             [ /await\s+asyncio\.gather\(\*(.+)\)/g, '$1' ], // remove line entirely
+            [ /await\s+self\.promise_all\(\*(.+)\)/g, '$1' ], // remove line entirely
             [ /(\s)await(\s)/g, '$1' ]
         ]
     }
@@ -1221,6 +1222,7 @@ class Transpiler {
                         .replace ('async ', '')
                         .replace ('await ', ''))
                         .replace ('asyncio.gather\(\*', '(') // needed for async -> sync
+                        .replace ('self.promise_all\(\*', '(') // needed for async -> sync
                         .replace ('asyncio.run', '') // needed for async -> sync
             })
 
@@ -2457,6 +2459,7 @@ class Transpiler {
             if (sync) {
                 // str = str.replace (/asyncio\.gather\(\*(\[.+\])\)/g, '$1');
                 str = str.replace (/asyncio\.gather\(\*/g, '(');
+                str = str.replace (/self\.promise_all\(\*/g, '(');
             }
             return exchangeCamelCaseProps(str);
         }

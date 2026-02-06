@@ -665,6 +665,9 @@ class Exchange(object):
                 return response.content.decode('utf8')
             return response.content
 
+    def promise_all(self, promises):
+        return promises
+
     def parse_json(self, http_response):
         try:
             if Exchange.is_json_encoded_object(http_response):
