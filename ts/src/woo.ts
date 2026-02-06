@@ -201,7 +201,6 @@ export default class woo extends Exchange {
                             'token_interest': 60,
                             'token_interest/{token}': 60,
                             'interest/history': 60,
-                            'interest/repay': 60,
                             'funding_fee/history': 30,
                             'positions': 3.33, // 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
@@ -213,12 +212,10 @@ export default class woo extends Exchange {
                             'order/cancel_all_after': 1,
                             'asset/ltv': 30,
                             'asset/internal_withdraw': 30,
-                            'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/position_mode': 5,
                             'client/leverage': 120,
                             'client/futures_leverage': 30,
-                            'client/isolated_margin': 30,
                         },
                         'delete': {
                             'order': 1,
@@ -297,6 +294,7 @@ export default class woo extends Exchange {
                             'trade/order': 2, // 5/1s
                             'trade/algoOrder': 5, // 2/1s
                             'trade/cancelAllAfter': 1, // 10/1s
+                            'account/isolatedMargin/margin': 6,
                             'account/tradingMode': 120, // 5/60s
                             'account/listenKey': 20, // 5/10s
                             'asset/transfer': 30, // 20/60s
@@ -3074,7 +3072,7 @@ export default class woo extends Exchange {
             'token': currency['id'], // interest token that you want to repay
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await this.v1PrivatePostInterestRepay (this.extend (request, params));
+        const response = await this.v3PrivatePostSpotMarginInterestRepay (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -3743,13 +3741,19 @@ export default class woo extends Exchange {
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const positionSide = this.safeString (params, 'positionSide');
+        if (positionSide === undefined) {
+            throw new ArgumentsRequired (this.id + ' modifyMarginHelper() requires a positionSide parameter (LONG, SHORT, or BOTH)');
+        }
+        params = this.omit (params, 'positionSide');
         const request: Dict = {
             'symbol': market['id'],
-            'adjust_token': 'USDT', // todo check
-            'adjust_amount': amount,
+            'positionSide': positionSide,
+            'adjustToken': 'USDT',
+            'adjustAmount': this.parseToNumeric (amount),
             'action': type,
         };
-        return await this.v1PrivatePostClientIsolatedMargin (this.extend (request, params)) as MarginModification;
+        return await this.request ('account/isolatedMargin/margin', [ 'v3', 'private' ], 'POST', this.extend (request, params)) as MarginModification;
     }
 
     /**
