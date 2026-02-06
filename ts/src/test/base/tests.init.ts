@@ -1,5 +1,5 @@
 
-// AUTO_TRANSPILE_ENABLED
+
 
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
