@@ -62,6 +62,16 @@
                 "url": "https://data.api.drift.trade/user/12345/trades",
                 "input": []
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://data.api.drift.trade/market/BTC-PERP/candles/1",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }
