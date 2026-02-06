@@ -603,43 +603,43 @@ export default class drift extends Exchange {
      * @param {string} [symbol] unified market symbol to fetch trades for, required by some exchanges
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     async fetchMyTrades (
         symbol: string = undefined,
-        // since: Int = undefined  todo potentially implement
-        limit: Int = 20,
+        since: Int = undefined,
+        limit: Int = undefined,
         params = {}
     ): Promise<Trade[]> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const market = symbol === undefined ? undefined : this.market (symbol);
-        const maxTrades = Math.min (limit, 100);
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'nextPage', 'page', undefined, 50) as Trade[];
+        }
         const request: Dict = {
             'accountId': this.accountId,
         };
-        if (market !== undefined) {
+        let market = undefined;
+        let method = 'publicGetUserAccountIdTrades';
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            method = 'publicGetUserAccountIdTradesSymbol';
             request['symbol'] = market['id'];
         }
-        const method = market === undefined
-            ? 'publicGetUserAccountIdTrades'
-            : 'publicGetUserAccountIdTradesSymbol';
-        let nextPage = undefined;
-        let allTrades: any[] = [];
-        let fetchMore = true;
-        while (fetchMore) {
-            const pageRequest = this.extend ({}, request);
-            if (nextPage !== undefined) {
-                pageRequest['page'] = nextPage;
-            }
-            const response = await (this as any)[method] (this.extend (pageRequest, params));
-            const trades = this.safeValue (response, 'records', response);
-            allTrades = allTrades.concat (trades);
-            nextPage = this.safeString (response, 'nextPage');
-            fetchMore = !((nextPage === undefined) || (trades.length === 0) || (allTrades.length >= maxTrades));
+        if (limit !== undefined) {
+            limit = Math.min (limit, 100);
         }
-        allTrades = allTrades.slice (0, maxTrades);
-        return this.parseTrades (allTrades, market, limit);
+        const response = await this[method] (this.extend (request, params));
+        const trades = this.safeValue (response, 'records');
+        const meta = this.safeDict (response, 'meta');
+        const nextPage = this.safeString (meta, 'nextPage');
+        if ((trades.length > 0) && (nextPage !== undefined)) {
+            trades[0]['nextPage'] = nextPage;
+        }
+        return this.parseTrades (trades, market, limit);
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
