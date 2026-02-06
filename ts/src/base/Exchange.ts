@@ -6909,7 +6909,10 @@ export default class Exchange {
             return undefined;
         }
         const market = this.market (symbol);
-        return this.decimalToPrecision (cost, TRUNCATE, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const costPrecision = this.safeNumber (market['precision'], 'cost');
+        const pricePrecision = this.safeNumber (market['precision'], 'price');
+        const precision = (costPrecision !== undefined) ? costPrecision : pricePrecision;
+        return this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode, this.paddingMode);
     }
 
     priceToPrecision (symbol: string, price): string {
