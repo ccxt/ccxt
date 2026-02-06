@@ -4,7 +4,7 @@
     "options": {
         "AuthAccountId": "kbAc342752835723",
         "AuthCookieValue": "sample123",
-        "subAccountId": "2147050003876484",
+        "accountId": "2147050003876484",
         "signInExpiration": 1990000000000,
         "approvedBuilderFee": true
     },
