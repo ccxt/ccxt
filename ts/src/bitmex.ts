@@ -264,7 +264,10 @@ export default class bitmex extends Exchange {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
-                'fetchOHLCVOpenTimestamp': true,
+                'fetchOHLCV': {
+                    'useOpenTimestamp': true,
+                    'autocorrectOpenPrice': true,
+                },
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
@@ -1660,11 +1663,12 @@ export default class bitmex extends Exchange {
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeBool (this.options, 'fetchOHLCVOpenTimestamp', true);
+        let useOpenTimestamp = undefined;
+        [ useOpenTimestamp, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
-            if (fetchOHLCVOpenTimestamp) {
+            if (useOpenTimestamp) {
                 timestamp = this.sum (timestamp, duration);
             }
             const startTime = this.iso8601 (timestamp);
@@ -1681,12 +1685,37 @@ export default class bitmex extends Exchange {
         //     ]
         //
         const result = this.parseOHLCVs (response, market, timeframe, since, limit);
-        if (fetchOHLCVOpenTimestamp) {
+        if (useOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for (let i = 0; i < result.length; i++) {
                 result[i][0] = result[i][0] - duration;
+            }
+        }
+        return this.fixCandlesHL (result, 'fetchOHLCV');
+    }
+
+    fixCandlesHL (result: any[], methodName: string): OHLCV[] {
+        // see the bug https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
+        // so, when OPEN price is outside of H/L range because of that misbehavior, we have to set High or Low to that value, like all other exchanges (& TradingView charts) do
+        // for example, take 1 minute bars:
+        // - last trade happens at 15:40:45, at 0.2 price
+        // - next trade happens at 15:41:58, at 0.3 price
+        // so, the last 1m bar should have      :  O=0.2  H=0.3 L=0.2 C=0.3
+        // but bitmex might return wrong H(or L):  O=0.2  H=0.3 L=0.3 C=0.3
+        const autoCorrectPrices = this.handleOption (methodName, 'autocorrectOpenPrice', true);
+        if (autoCorrectPrices) {
+            for (let i = 0; i < result.length; i++) {
+                const open = result[i][1];
+                const high = result[i][2];
+                const low = result[i][3];
+                if (open > high) {
+                    result[i][1] = high;
+                }
+                if (open < low) {
+                    result[i][1] = low;
+                }
             }
         }
         return result;
