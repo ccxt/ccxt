@@ -1,0 +1,1055 @@
+{
+    "exchange": "pacifica",
+    "skipKeys": ["start_time", "end_time"],
+    "options": {},
+    "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
+    "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+    "isSandboxModeEnabled": true,
+    "methods": {
+        "cancelOrders": [
+            {
+                "description": "Cancel Orders with ids",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "241524077",
+                        "241567560"
+                    ],
+                    "BTC/USDC:USDC",
+                    {}
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "results": [
+                            {
+                                "success": false,
+                                "order_id": null,
+                                "error": "Failed to cancel order"
+                            },
+                            {
+                                "success": false,
+                                "order_id": null,
+                                "error": "Failed to cancel order"
+                            }
+                        ]
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "success": false,
+                            "order_id": null,
+                            "error": "Failed to cancel order"
+                        },
+                        "status": "closed",
+                        "symbol": "BTC/USDC:USDC",
+                        "fees": [],
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": 0,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "success": false,
+                            "order_id": null,
+                            "error": "Failed to cancel order"
+                        },
+                        "status": "closed",
+                        "symbol": "BTC/USDC:USDC",
+                        "fees": [],
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": 0,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel All Orders by symbol",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "cancelled_count": "1"
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "success": true,
+                            "data": {
+                                "cancelled_count": "1"
+                            },
+                            "error": null,
+                            "code": null
+                        },
+                        "fees": [],
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "status": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch positions state",
+                "method": "fetchPositions",
+                "input": [
+                    null
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "symbol": "BTC",
+                            "side": "ask",
+                            "amount": "0.007",
+                            "entry_price": "89114",
+                            "margin": "0",
+                            "funding": "0.009371",
+                            "isolated": false,
+                            "liquidation_price": "102443.420678",
+                            "created_at": "1769554008249",
+                            "updated_at": "1769554804949"
+                        }
+                    ],
+                    "error": null,
+                    "code": null,
+                    "last_order_id": "241187770"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC",
+                            "side": "ask",
+                            "amount": "0.007",
+                            "entry_price": "89114",
+                            "margin": "0",
+                            "funding": "0.009371",
+                            "isolated": false,
+                            "liquidation_price": "102443.420678",
+                            "created_at": "1769554008249",
+                            "updated_at": "1769554804949"
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1769554008249,
+                        "datetime": "2026-01-27T22:46:48.249Z",
+                        "isolated": false,
+                        "hedged": null,
+                        "side": "short",
+                        "contracts": 0.007,
+                        "contractSize": 1,
+                        "entryPrice": 89114,
+                        "markPrice": null,
+                        "notional": null,
+                        "leverage": null,
+                        "collateral": "0",
+                        "initialMargin": null,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": null,
+                        "liquidationPrice": null,
+                        "marginMode": "cross",
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Edit limit order amount and price",
+                "method": "editOrder",
+                "input": [
+                    241146145,
+                    "BTC/USDC:USDC",
+                    "null",
+                    "null",
+                    0.003,
+                    83900
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "order_id": "241175304"
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "id": "241175304",
+                    "info": {
+                        "success": true,
+                        "data": {
+                            "order_id": "241175304"
+                        },
+                        "error": null,
+                        "code": null
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "status": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch opened orders",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "order_id": "241146145",
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "price": "87768",
+                            "initial_amount": "0.002",
+                            "filled_amount": "0",
+                            "cancelled_amount": "0",
+                            "stop_price": null,
+                            "order_type": "limit",
+                            "stop_parent_order_id": null,
+                            "trigger_price_type": null,
+                            "reduce_only": false,
+                            "created_at": "1769554042649",
+                            "updated_at": "1769554042649"
+                        },
+                        {
+                            "order_id": "241144447",
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "price": "87768",
+                            "initial_amount": "0.002",
+                            "filled_amount": "0",
+                            "cancelled_amount": "0",
+                            "stop_price": null,
+                            "order_type": "limit",
+                            "stop_parent_order_id": null,
+                            "trigger_price_type": null,
+                            "reduce_only": false,
+                            "created_at": "1769554008249",
+                            "updated_at": "1769554008249"
+                        }
+                    ],
+                    "error": null,
+                    "code": null,
+                    "last_order_id": "241174315"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_id": "241144447",
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "price": "87768",
+                            "initial_amount": "0.002",
+                            "filled_amount": "0",
+                            "cancelled_amount": "0",
+                            "stop_price": null,
+                            "order_type": "limit",
+                            "stop_parent_order_id": null,
+                            "trigger_price_type": null,
+                            "reduce_only": false,
+                            "created_at": "1769554008249",
+                            "updated_at": "1769554008249"
+                        },
+                        "id": "241144447",
+                        "clientOrderId": null,
+                        "timestamp": 1769554008249,
+                        "datetime": "2026-01-27T22:46:48.249Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769554008249,
+                        "symbol": null,
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 87768,
+                        "triggerPrice": null,
+                        "amount": 0.002,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.002,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "order_id": "241146145",
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "price": "87768",
+                            "initial_amount": "0.002",
+                            "filled_amount": "0",
+                            "cancelled_amount": "0",
+                            "stop_price": null,
+                            "order_type": "limit",
+                            "stop_parent_order_id": null,
+                            "trigger_price_type": null,
+                            "reduce_only": false,
+                            "created_at": "1769554042649",
+                            "updated_at": "1769554042649"
+                        },
+                        "id": "241146145",
+                        "clientOrderId": null,
+                        "timestamp": 1769554042649,
+                        "datetime": "2026-01-27T22:47:22.649Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1769554042649,
+                        "symbol": null,
+                        "type": "limit",
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 87768,
+                        "triggerPrice": null,
+                        "amount": 0.002,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.002,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Stop (trigger) buy order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.004,
+                    null,
+                    {
+                        "triggerPrice": 90000,
+                        "stopLimitPrice": 87900
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "order_id": "241221627"
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "id": "241221627",
+                    "status": "open",
+                    "info": {
+                        "success": true,
+                        "data": {
+                            "order_id": "241221627"
+                        },
+                        "error": null,
+                        "code": null
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "Set position TP/SL (no price arg)",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    null,
+                    {
+                        "takeProfitPrice": 83000,
+                        "stopLossPrice": 90000
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": null,
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "id": null,
+                    "status": "open",
+                    "info": {
+                        "success": true,
+                        "data": null,
+                        "error": null,
+                        "code": null
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "Market sell order",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "market",
+                    "sell",
+                    0.003,
+                    null,
+                    {
+                        "slippage": 0.05
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "order_id": "241159097"
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "id": "241159097",
+                    "status": "open",
+                    "info": {
+                        "success": true,
+                        "data": {
+                            "order_id": "241159097"
+                        },
+                        "error": null,
+                        "code": null
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "Batch create limit orders",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "buy",
+                            "amount": 0.002,
+                            "price": 87768
+                        },
+                        {
+                            "symbol": "BTC/USDC:USDC",
+                            "side": "sell",
+                            "amount": 0.002,
+                            "price": 87800
+                        }
+                    ]
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "results": [
+                            {
+                                "success": true,
+                                "order_id": "241146145",
+                                "error": null
+                            },
+                            {
+                                "success": true,
+                                "order_id": "241146146",
+                                "error": null
+                            }
+                        ]
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "success": true,
+                            "order_id": "241146145",
+                            "error": null
+                        },
+                        "id": "241146145",
+                        "status": "open",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "success": true,
+                            "order_id": "241146146",
+                            "error": null
+                        },
+                        "id": "241146146",
+                        "status": "open",
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch account balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "balance": "100.717133",
+                        "fee_level": "0",
+                        "maker_fee": "0.00015",
+                        "taker_fee": "0.0004",
+                        "account_equity": "100.717133",
+                        "available_to_spend": "100.717133",
+                        "available_to_withdraw": "100.717133",
+                        "pending_balance": "0",
+                        "pending_interest": "0",
+                        "total_margin_used": "0",
+                        "cross_mmr": "0",
+                        "positions_count": "0",
+                        "orders_count": "0",
+                        "stop_orders_count": "0",
+                        "updated_at": "1769553883269"
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "balance": "100.717133",
+                        "fee_level": "0",
+                        "maker_fee": "0.00015",
+                        "taker_fee": "0.0004",
+                        "account_equity": "100.717133",
+                        "available_to_spend": "100.717133",
+                        "available_to_withdraw": "100.717133",
+                        "pending_balance": "0",
+                        "pending_interest": "0",
+                        "total_margin_used": "0",
+                        "cross_mmr": "0",
+                        "positions_count": "0",
+                        "orders_count": "0",
+                        "stop_orders_count": "0",
+                        "updated_at": "1769553883269"
+                    },
+                    "free": {},
+                    "used": {},
+                    "total": {},
+                    "timestamp": 1769553883269,
+                    "datetime": "2026-01-27T22:44:43.269Z"
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "s": "BTC",
+                        "l": [
+                            [
+                                {
+                                    "p": "89204",
+                                    "a": "0.0103",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89114",
+                                    "a": "0.01137",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89025",
+                                    "a": "0.00612",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88936",
+                                    "a": "0.01127",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88848",
+                                    "a": "0.01173",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88759",
+                                    "a": "0.00593",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88670",
+                                    "a": "0.01091",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88582",
+                                    "a": "0.01091",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88493",
+                                    "a": "0.01053",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "88404",
+                                    "a": "0.01244",
+                                    "n": "1"
+                                }
+                            ],
+                            [
+                                {
+                                    "p": "89383",
+                                    "a": "0.00617",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89472",
+                                    "a": "0.00589",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89562",
+                                    "a": "0.00634",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89652",
+                                    "a": "0.00535",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89741",
+                                    "a": "0.00312",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89831",
+                                    "a": "0.00303",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "89921",
+                                    "a": "0.00535",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "90011",
+                                    "a": "0.00587",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "90101",
+                                    "a": "0.0063",
+                                    "n": "1"
+                                },
+                                {
+                                    "p": "90191",
+                                    "a": "0.00545",
+                                    "n": "1"
+                                }
+                            ]
+                        ],
+                        "t": "1769553881390"
+                    },
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            89204,
+                            0.0103
+                        ],
+                        [
+                            89114,
+                            0.01137
+                        ],
+                        [
+                            89025,
+                            0.00612
+                        ],
+                        [
+                            88936,
+                            0.01127
+                        ],
+                        [
+                            88848,
+                            0.01173
+                        ],
+                        [
+                            88759,
+                            0.00593
+                        ],
+                        [
+                            88670,
+                            0.01091
+                        ],
+                        [
+                            88582,
+                            0.01091
+                        ],
+                        [
+                            88493,
+                            0.01053
+                        ],
+                        [
+                            88404,
+                            0.01244
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            89383,
+                            0.00617
+                        ],
+                        [
+                            89472,
+                            0.00589
+                        ],
+                        [
+                            89562,
+                            0.00634
+                        ],
+                        [
+                            89652,
+                            0.00535
+                        ],
+                        [
+                            89741,
+                            0.00312
+                        ],
+                        [
+                            89831,
+                            0.00303
+                        ],
+                        [
+                            89921,
+                            0.00535
+                        ],
+                        [
+                            90011,
+                            0.00587
+                        ],
+                        [
+                            90101,
+                            0.0063
+                        ],
+                        [
+                            90191,
+                            0.00545
+                        ]
+                    ],
+                    "timestamp": 1769553881390,
+                    "datetime": "2026-01-27T22:44:41.390Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch candles 1m",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1768867200000,
+                    2
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "t": "1768867200000",
+                            "T": "1768867260000",
+                            "s": "BTC",
+                            "i": "1m",
+                            "o": "92590",
+                            "c": "92569",
+                            "h": "92627",
+                            "l": "92560",
+                            "v": "9.32802",
+                            "n": "184"
+                        },
+                        {
+                            "t": "1768867260000",
+                            "T": "1768867320000",
+                            "s": "BTC",
+                            "i": "1m",
+                            "o": "92568",
+                            "c": "92584",
+                            "h": "92601",
+                            "l": "92556",
+                            "v": "12.6291",
+                            "n": "213"
+                        },
+                        {
+                            "t": "1768867320000",
+                            "T": "1768867380000",
+                            "s": "BTC",
+                            "i": "1m",
+                            "o": "92584",
+                            "c": "92596",
+                            "h": "92610",
+                            "l": "92584",
+                            "v": "10.25738",
+                            "n": "126"
+                        }
+                    ],
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": [
+                    [
+                        1768867200000,
+                        92590,
+                        92627,
+                        92560,
+                        92569,
+                        9.32802
+                    ],
+                    [
+                        1768867260000,
+                        92568,
+                        92601,
+                        92556,
+                        92584,
+                        12.6291
+                    ]
+                ]
+            }
+        ]
+  }
+}
