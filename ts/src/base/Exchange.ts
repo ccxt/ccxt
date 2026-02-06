@@ -3007,6 +3007,10 @@ export default class Exchange {
     }
 
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        if (this.has['fetchMarketLeverageTiers']) {
+            throw new NotSupported (this.id + ' does not yet support fetching leverage tiers for multiple symbols, but you can fetch for a single symbol using fetchMarketLeverageTiers(symbol)');
+        }
+
         throw new NotSupported (this.id + ' fetchLeverageTiers() is not supported yet');
     }
 

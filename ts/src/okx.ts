@@ -1714,7 +1714,28 @@ export default class okx extends Exchange {
         //         "state": "live",
         //         "stk": "194000",
         //         "tickSz": "0.0005",
-        //         "uly": "BTC-USD"
+        //         "uly": "BTC-USD",
+        //         "auctionEndTime": "",
+        //         "futureSettlement": false,
+        //         "instFamily": "",
+        //         "instIdCode": "189535",
+        //         "maxIcebergSz": "999999999999999.0000000000000000",
+        //         "maxLmtAmt": "20000000",
+        //         "maxLmtSz": "999999999999999",
+        //         "maxMktAmt": "71000",
+        //         "maxMktSz": "1000000",
+        //         "maxPlatOILmt": "",
+        //         "maxStopSz": "1000000",
+        //         "maxTriggerSz": "999999999999999.0000000000000000",
+        //         "maxTwapSz": "999999999999999.0000000000000000",
+        //         "openType": "fix_price",
+        //         "posLmtAmt": "",
+        //         "posLmtPct": "",
+        //         "preMktSwTime": "",
+        //         "ruleType": "normal",
+        //         "tradeQuoteCcyList": [
+        //             "SGD"
+        //         ],
         //     }
         //
         // for swap "preopen" markets, only `instId` and `instType` are present
