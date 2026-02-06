@@ -1087,17 +1087,32 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOpenOrders (
-        params = {}
-    ): Promise<Order[]> {
-        await this.loadMarkets ();
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
         const request: Dict = {
             'accountId': this.accountId,
         };
         const response = await this.publicGetUserAccountId (this.extend (request, params));
+        //
+        // {
+        //     "account": {
+        //         "balance": "30.160985",
+        //         "totalCollateral": "30.143451",
+        //         "freeCollateral": "28.884414",
+        //         "health": "99",
+        //         "initialMargin": "1.259037",
+        //         "maintenanceMargin": "0.212363",
+        //         "leverage": "0.339"
+        //     },
+        //     "positions": [],
+        //     "balances": [],
+        //     "orders": []
+        // }
+        //
         const orders = this.safeValue (response, 'orders', []);
-        return this.parseOrders (orders);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

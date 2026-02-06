@@ -99,6 +99,16 @@
                 "url": "https://data.api.drift.trade/user/12345/orders/perp",
                 "input": []
             }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://data.api.drift.trade/user/12345",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
         ]
     }
 }
