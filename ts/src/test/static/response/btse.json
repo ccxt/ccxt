@@ -3,6 +3,94 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook for contract",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "symbol": "ETH-PERP",
+                    "buyQuote": [
+                        {
+                            "price": "2017.53",
+                            "size": "69000"
+                        }
+                    ],
+                    "sellQuote": [
+                        {
+                            "price": "2017.64",
+                            "size": "242250"
+                        }
+                    ],
+                    "timestamp": "1770458657165",
+                    "depth": "1"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "bids": [
+                        [
+                            2017.53,
+                            69000
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2017.64,
+                            242250
+                        ]
+                    ],
+                    "timestamp": 1770458657165,
+                    "datetime": "2026-02-07T10:04:17.165Z",
+                    "nonce": null
+                }
+            },
+            {
+                "description": "fetch orderbook for spot",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ],
+                "httpResponse": {
+                    "symbol": "ETH-USDT",
+                    "buyQuote": [
+                        {
+                            "price": "2018.36",
+                            "size": "4.2245"
+                        }
+                    ],
+                    "sellQuote": [
+                        {
+                            "price": "2018.40",
+                            "size": "2.2700"
+                        }
+                    ],
+                    "timestamp": "1770458632549",
+                    "depth": "1"
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT",
+                    "bids": [
+                        [
+                            2018.36,
+                            4.2245
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            2018.4,
+                            2.27
+                        ]
+                    ],
+                    "timestamp": 1770458632549,
+                    "datetime": "2026-02-07T10:03:52.549Z",
+                    "nonce": null
+                }
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetch OHLCV with since, until and limit",
