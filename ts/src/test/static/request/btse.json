@@ -3,6 +3,26 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?listFullAttributes=true",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP&listFullAttributes=true",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchOpenInterests": [
             {
                 "description": "fetch open interests",
