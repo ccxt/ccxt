@@ -6,7 +6,7 @@ import Exchange from './abstract/btse.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OHLCV } from './base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -129,7 +129,7 @@ export default class btse extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenInterests': false,
@@ -138,7 +138,7 @@ export default class btse extends Exchange {
                 'fetchOption': false,
                 'fetchOptionChain': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrdersByStatus': false,
@@ -206,16 +206,16 @@ export default class btse extends Exchange {
                     'get': {
                         'spot/api/v3.3/market_summary': 5, // done
                         'spot/api/v3.3/ohlcv': 5, // done
-                        'spot/api/v3.3/price': 5,
-                        'spot/api/v3.3/orderbook': 5,
-                        'spot/api/v3.3/orderbook/L2': 5,
+                        'spot/api/v3.3/price': 5, // not used
+                        'spot/api/v3.3/orderbook': 5, // not used
+                        'spot/api/v3.3/orderbook/L2': 5, // done
                         'spot/api/v3.3/trades': 5,
                         'spot/api/v3.3/time': 5, // done
                         'futures/api/v2.3/market_summary': 5, // done
                         'futures/api/v2.3/ohlcv': 5, // done
-                        'futures/api/v2.3/price': 5,
-                        'futures/api/v2.3/orderbook': 5,
-                        'futures/api/v2.3/orderbook/L2': 5,
+                        'futures/api/v2.3/price': 5, // not used
+                        'futures/api/v2.3/orderbook': 5, // not used
+                        'futures/api/v2.3/orderbook/L2': 5, // done
                         'futures/api/v2.3/trades': 5,
                         'futures/api/v2.3/funding_history': 5,
                         'futures/api/v2.3/market/risk_limit': 5,
@@ -769,6 +769,55 @@ export default class btse extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#orderbook-2
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#orderbook-2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotApiV33OrderbookL2 (this.extend (request, params));
+        } else {
+            response = await this.publicGetFuturesApiV23OrderbookL2 (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "buyQuote": [
+        //             {
+        //                 "price": "2012.79",
+        //                 "size": "3.8940"
+        //             }
+        //         ],
+        //         "sellQuote": [
+        //             {
+        //                 "price": "2012.92",
+        //                 "size": "0.0050"
+        //             }
+        //         ],
+        //         "timestamp": 1770458310213,
+        //         "depth": 1
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'buyQuote', 'sellQuote', 'price', 'size');
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
