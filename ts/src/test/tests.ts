@@ -62,7 +62,6 @@ class testMainClass {
     onlySpecificTests: string[] = [];
     skippedSettingsForExchange = {};
     skippedMethods = {};
-    checkedPublicTests = {};
     testFiles: any = {};
     publicTests = {};
     ext: string = "";
@@ -239,7 +238,6 @@ class testMainClass {
             exchange.wssProxy = exchange.safeString (skippedSettingsForExchange, 'wssProxy');
         }
         this.skippedMethods = exchange.safeValue (skippedSettingsForExchange, 'skipMethods', {});
-        this.checkedPublicTests = {};
     }
 
     addPadding (message: string, size) {
@@ -266,25 +264,25 @@ class testMainClass {
         }
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
-        const isFetchCurrencies = (methodName === 'fetchCurrencies');
         const isProxyTest = (methodName === this.proxyTestFileName);
         const isFeatureTest = (methodName === 'features');
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
-            return true;
-        }
         let skipMessage = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
-            skipMessage = '[INFO] IGNORED_TEST';
-        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest && !isFeatureTest) {
-            skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
-        } else if (typeof skippedPropertiesForMethod === 'string') {
+        if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
-        } else if (!(methodName in this.testFiles)) {
-            skipMessage = '[INFO] UNIMPLEMENTED_TEST';
+        } else if (isLoadMarkets && this.wsTests) {
+            skipMessage = '[INFO] SKIPPING_LOADMARKETS_FOR_WS';
+        } else {
+            if (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests)) {
+                skipMessage = '[INFO] IGNORED_TEST';
+            } else if (!supportedByExchange && !isProxyTest && !isFeatureTest) {
+                skipMessage = '[INFO] UNSUPPORTED_TEST';
+            } else if (!(methodName in this.testFiles)) {
+                skipMessage = '[INFO] UNIMPLEMENTED_TEST';
+            }
         }
-        // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
+        // we should loadMarkets at first (however, the tests can be skipped later)
         if (isLoadMarkets) {
             await exchange.loadMarkets (true);
         }
@@ -306,10 +304,6 @@ class testMainClass {
         }
         if (this.info) {
             dump (this.addPadding ('[INFO] TESTING DONE', 25), name, methodName);
-        }
-        // add to the list of successed tests
-        if (isPublic) {
-            this.checkedPublicTests[methodName] = true;
         }
         return true;
     }
