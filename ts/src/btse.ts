@@ -6,7 +6,7 @@ import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRateHistory, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, FundingRates, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -100,9 +100,9 @@ export default class btse extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -211,7 +211,7 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/orderbook/L2': 5, // done
                         'spot/api/v3.3/trades': 5,
                         'spot/api/v3.3/time': 5, // done
-                        'futures/api/v2.3/market_summary': 5, // done todo fetchFundingRates
+                        'futures/api/v2.3/market_summary': 5, // done
                         'futures/api/v2.3/ohlcv': 5, // done
                         'futures/api/v2.3/price': 5, // not used
                         'futures/api/v2.3/orderbook': 5, // not used
@@ -1196,6 +1196,133 @@ export default class btse extends Exchange {
             'datetime': undefined,
             'info': interest,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchFundingRate() symbol does not support spot markets');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'listFullAttributes': true,
+        };
+        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        const data = this.safeDict (response, 0, {});
+        return this.parseFundingRate (data, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {
+            'listFullAttributes': true,
+        };
+        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        return this.parseFundingRates (response, symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "symbol": "ETH-PERP",
+        //         "last": 2034.23,
+        //         "lowestAsk": 2033.9,
+        //         "highestBid": 2033.75,
+        //         "openInterest": 23884716,
+        //         "openInterestUSD": 4859177.67,
+        //         "percentageChange": 4.3728,
+        //         "volume": 2060865914.715277,
+        //         "high24Hr": 2117.35,
+        //         "low24Hr": 1918.26,
+        //         "base": "ETH",
+        //         "quote": "USDT",
+        //         "contractStart": 0,
+        //         "contractEnd": 0,
+        //         "active": true,
+        //         "timeBasedContract": false,
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "startMatching": 0,
+        //         "inactiveTime": 0,
+        //         "fundingRate": 0.0001,
+        //         "contractSize": 0.0001,
+        //         "maxPosition": 800000000,
+        //         "minValidPrice": 0.01,
+        //         "minPriceIncrement": 0.01,
+        //         "minOrderSize": 1,
+        //         "maxOrderSize": 10000000,
+        //         "minRiskLimit": 1500000,
+        //         "maxRiskLimit": 800000000,
+        //         "minSizeIncrement": 1,
+        //         "availableSettlement": [
+        //             "USD",
+        //             "USDT",
+        //             "USDC",
+        //             "BTC",
+        //             "ETH",
+        //             "AED",
+        //             "AUD",
+        //             "CAD",
+        //             "CHF",
+        //             "EUR",
+        //             "GBP",
+        //             "HKD",
+        //             "INR",
+        //             "JPY",
+        //             "MYR",
+        //             "NZD",
+        //             "SGD",
+        //             "SOL",
+        //             "XRP"
+        //         ],
+        //         "fundingIntervalMinutes": 480,
+        //         "fundingTime": 1770480000000
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const nextFundingTimestamp = this.safeInteger (contract, 'fundingTime');
+        const minutes = this.safeString (contract, 'fundingIntervalMinutes');
+        const interval = minutes + 'm'; // todo check
+        return {
+            'info': contract,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': interval,
+        } as FundingRate;
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
