@@ -1,0 +1,137 @@
+{
+    "exchange": "btse",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV with since, until and limit",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1770451200000,
+                    1,
+                    {
+                        "until": 1770454800000
+                    }
+                ],
+                "httpResponse": [
+                    [
+                        1770454800,
+                        2019.71,
+                        2029.71,
+                        2019.09,
+                        2027.2,
+                        1458518.929142
+                    ],
+                    [
+                        1770451200,
+                        2026.9,
+                        2032.48,
+                        2015.43,
+                        2019.1,
+                        3633230.30589
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1770451200000,
+                        2026.9,
+                        2032.48,
+                        2015.43,
+                        2019.1,
+                        3633230.30589
+                    ]
+                ]
+            },
+            {
+                "description": "fetch OHLCV for future",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT-260327",
+                    "1h",
+                    1770454800000
+                ],
+                "httpResponse": [
+                    [
+                        1770454800,
+                        2027.84,
+                        2035.91,
+                        2025.79,
+                        2033.09,
+                        22.744921
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1770454800000,
+                        2027.84,
+                        2035.91,
+                        2025.79,
+                        2033.09,
+                        22.744921
+                    ]
+                ]
+            },
+            {
+                "description": "fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1770454800000
+                ],
+                "httpResponse": [
+                    [
+                        1770454800,
+                        2018.43,
+                        2029.24,
+                        2018.3,
+                        2023.98,
+                        36484915.5961
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1770454800000,
+                        2018.43,
+                        2029.24,
+                        2018.3,
+                        2023.98,
+                        36484915.5961
+                    ]
+                ]
+            },
+            {
+                "description": "fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1770454800000
+                ],
+                "httpResponse": [
+                    [
+                        1770454800,
+                        2019.71,
+                        2029.71,
+                        2019.09,
+                        2025.09,
+                        1322857.332627
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1770454800000,
+                        2019.71,
+                        2029.71,
+                        2019.09,
+                        2025.09,
+                        1322857.332627
+                    ]
+                ]
+            }
+        ]
+  }
+}
