@@ -3,6 +3,28 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "fetch orderbook for contract",
+                "method": "fetchOrderBook",
+                "url": "https://api.btse.com/futures/api/v2.3/orderbook/L2?symbol=ETH-PERP&depth=1",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch orderbook for spot",
+                "method": "fetchOrderBook",
+                "url": "https://api.btse.com/spot/api/v3.3/orderbook/L2?symbol=ETH-USDT&depth=1",
+                "input": [
+                    "ETH/USDT",
+                    1
+                ],
+                "output": null
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetch OHLCV with since, until and limit",
