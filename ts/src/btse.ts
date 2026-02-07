@@ -29,7 +29,7 @@ export default class btse extends Exchange {
                 'spot': true,
                 'margin': false,
                 'swap': true,
-                'future': false,
+                'future': true,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -184,7 +184,7 @@ export default class btse extends Exchange {
                 'transfer': false,
                 'watchMyLiquidationsForSymbols': false,
                 'withdraw': false,
-                'ws': true,
+                'ws': false,
             },
             'urls': {
                 'logo': '', // todo add logo
@@ -205,14 +205,14 @@ export default class btse extends Exchange {
                 'public': {
                     'get': {
                         'spot/api/v3.3/market_summary': 5, // done
-                        'spot/api/v3.3/ohlcv': 5,
+                        'spot/api/v3.3/ohlcv': 5, // done
                         'spot/api/v3.3/price': 5,
                         'spot/api/v3.3/orderbook': 5,
                         'spot/api/v3.3/orderbook/L2': 5,
                         'spot/api/v3.3/trades': 5,
                         'spot/api/v3.3/time': 5, // done
                         'futures/api/v2.3/market_summary': 5, // done
-                        'futures/api/v2.3/ohlcv': 5,
+                        'futures/api/v2.3/ohlcv': 5, // done
                         'futures/api/v2.3/price': 5,
                         'futures/api/v2.3/orderbook': 5,
                         'futures/api/v2.3/orderbook/L2': 5,
@@ -295,6 +295,66 @@ export default class btse extends Exchange {
             'features': {
                 'default': {
                     'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': {
+                            'mark': true,
+                            'last': true,
+                            'index': false,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // not supported
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'selfTradePrevention': false,
+                        'trailing': true,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'daysBack': 182, // 6 months
+                        'limit': 500,
+                        'untilDays': 7,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchCanceledAndClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 182, // 6 months
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
                     'fetchOHLCV': {
                         'limit': 300,
                     },
@@ -304,70 +364,7 @@ export default class btse extends Exchange {
                 },
                 'swap': {
                     'linear': {
-                        'sandbox': false,
-                        'createOrder': {
-                            'marginMode': false,
-                            'triggerPrice': false,
-                            'triggerPriceType': {
-                                'mark': true,
-                                'last': true,
-                                'index': false,
-                            },
-                            'stopLossPrice': true,
-                            'takeProfitPrice': true,
-                            'attachedStopLossTakeProfit': undefined, // not supported
-                            'timeInForce': {
-                                'IOC': true,
-                                'FOK': true,
-                                'PO': true,
-                                'GTD': false,
-                            },
-                            'hedged': true,
-                            'selfTradePrevention': false,
-                            'trailing': true,
-                            'iceberg': false,
-                            'leverage': false,
-                            'marketBuyRequiresPrice': false,
-                            'marketBuyByCost': false,
-                        },
-                        'createOrders': {
-                            'max': 5,
-                        },
-                        'fetchMyTrades': {
-                            'marginMode': false,
-                            'daysBack': 182, // 6 months
-                            'limit': 500,
-                            'untilDays': 7,
-                            'symbolRequired': false,
-                        },
-                        'fetchOrder': undefined,
-                        'fetchOpenOrder': {
-                            'marginMode': false,
-                            'trigger': true,
-                            'trailing': false,
-                            'symbolRequired': true,
-                        },
-                        'fetchOpenOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'trigger': true,
-                            'trailing': false,
-                            'symbolRequired': true,
-                        },
-                        'fetchOrders': undefined,
-                        'fetchCanceledAndClosedOrders': {
-                            'marginMode': false,
-                            'limit': 500,
-                            'daysBack': 182, // 6 months
-                            'untilDays': 7,
-                            'trigger': false,
-                            'trailing': false,
-                            'symbolRequired': false,
-                        },
-                        'fetchClosedOrders': undefined,
-                        'fetchOHLCV': {
-                            'limit': 300,
-                        },
+                        'extends': 'default',
                     },
                     'inverse': undefined,
                 },
