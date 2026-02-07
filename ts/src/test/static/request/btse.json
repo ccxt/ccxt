@@ -3,6 +3,35 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTickers": [
+            {
+                "description": "fetch tickers for spot",
+                "method": "fetchTickers",
+                "url": "https://api.btse.com/spot/api/v3.3/market_summary",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for contract",
+                "method": "fetchTicker",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch ticker for spot",
+                "method": "fetchTicker",
+                "url": "https://api.btse.com/spot/api/v3.3/market_summary?symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchMarketLeverageTiers": [
             {
                 "description": "fetch leverage tiers for ETH/USDT:USDT",
