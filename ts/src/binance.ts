@@ -3438,11 +3438,21 @@ export default class binance extends Exchange {
         let inverse = undefined;
         let symbol = base + '/' + quote;
         let strike = undefined;
+        let period = undefined;
         if (contract) {
             if (swap) {
                 symbol = symbol + ':' + settle;
             } else if (future) {
-                symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                if (contractType === 'CURRENT_QUARTER') {
+                    period = 'Q';
+                } else if (contractType === 'NEXT_QUARTER') {
+                    period = 'S';
+                }
+                if (period !== undefined) {
+                    symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + period;
+                } else {
+                    symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry);
+                }
             } else if (option) {
                 strike = this.numberToString (this.parseToNumeric (this.safeString (market, 'strikePrice')));
                 symbol = symbol + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + this.safeString (optionParts, 3);
@@ -3503,6 +3513,7 @@ export default class binance extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
+            'period': period,
             'type': unifiedType,
             'spot': spot,
             'margin': spot && isMarginTradingAllowed,
