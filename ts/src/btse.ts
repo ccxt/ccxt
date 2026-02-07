@@ -6,7 +6,7 @@ import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRate, FundingRateHistory, FundingRates, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRate, FundingRateHistory, FundingRates, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -157,7 +157,7 @@ export default class btse extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': false,
@@ -209,14 +209,14 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/price': 5, // not used
                         'spot/api/v3.3/orderbook': 5, // not used
                         'spot/api/v3.3/orderbook/L2': 5, // done
-                        'spot/api/v3.3/trades': 5,
+                        'spot/api/v3.3/trades': 5, // done
                         'spot/api/v3.3/time': 5, // done
                         'futures/api/v2.3/market_summary': 5, // done
                         'futures/api/v2.3/ohlcv': 5, // done
                         'futures/api/v2.3/price': 5, // not used
                         'futures/api/v2.3/orderbook': 5, // not used
                         'futures/api/v2.3/orderbook/L2': 5, // done
-                        'futures/api/v2.3/trades': 5,
+                        'futures/api/v2.3/trades': 5, // done
                         'futures/api/v2.3/funding_history': 5, // done
                         'futures/api/v2.3/market/risk_limit': 5, // done
                         'spot/api/v3.2/availableCurrencyNetworks': 15, // not used
@@ -412,6 +412,7 @@ export default class btse extends Exchange {
                 'exact': {
                     // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
                     // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
+                    // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
                 },
                 'broad': {
                 },
@@ -1226,6 +1227,7 @@ export default class btse extends Exchange {
      * @method
      * @name btse#fetchFundingRates
      * @description fetch the funding rate for multiple markets
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
@@ -1323,6 +1325,89 @@ export default class btse extends Exchange {
             'previousFundingDatetime': undefined,
             'interval': interval,
         } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-trades-fills
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-trades-fills
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotApiV33Trades (this.extend (request, params));
+        } else {
+            response = await this.publicGetFuturesApiV23Trades (this.extend (request, params));
+        }
+        //
+        //     [
+        //         {
+        //             "price": 2042.7041849,
+        //             "size": 0.01,
+        //             "side": "SELL",
+        //             "symbol": "ETH-USDT",
+        //             "serialId": 128814627,
+        //             "timestamp": 1770473932328
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "price": 2042.7041849,
+        //         "size": 0.01,
+        //         "side": "SELL",
+        //         "symbol": "ETH-USDT",
+        //         "serialId": 128814627,
+        //         "timestamp": 1770473932328
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': this.safeString (trade, 'serialId'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
