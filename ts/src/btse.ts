@@ -6,7 +6,7 @@ import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRateHistory, Int, LeverageTier, LeverageTiers, Market, OHLCV, OrderBook, Str, Strings } from './base/types.js';
+import type { Dict, FundingRateHistory, Int, LeverageTier, LeverageTiers, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -154,8 +154,8 @@ export default class btse extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -204,14 +204,14 @@ export default class btse extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'spot/api/v3.3/market_summary': 5, // done todo fetchTickers
+                        'spot/api/v3.3/market_summary': 5, // done
                         'spot/api/v3.3/ohlcv': 5, // done
                         'spot/api/v3.3/price': 5, // not used
                         'spot/api/v3.3/orderbook': 5, // not used
                         'spot/api/v3.3/orderbook/L2': 5, // done
                         'spot/api/v3.3/trades': 5,
                         'spot/api/v3.3/time': 5, // done
-                        'futures/api/v2.3/market_summary': 5, // done todo fetchTickers, fetchOpenInterest, fetchFundingRates
+                        'futures/api/v2.3/market_summary': 5, // done todo fetchOpenInterest, fetchFundingRates
                         'futures/api/v2.3/ohlcv': 5, // done
                         'futures/api/v2.3/price': 5, // not used
                         'futures/api/v2.3/orderbook': 5, // not used
@@ -960,6 +960,7 @@ export default class btse extends Exchange {
                     'info': entry,
                 };
                 tiers.push (parsed);
+                result[symbol] = this.sortBy (tiers, 'tier');
             }
         }
         return result as LeverageTiers;
@@ -982,6 +983,167 @@ export default class btse extends Exchange {
         }
         const result = await this.fetchLeverageTiers ([ symbol ], params);
         return result[symbol];
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTickers
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#market-summary
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] default is 'spot' (if not 'spot', contract markets will be queried)
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params, type);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicGetSpotApiV33MarketSummary (params);
+        } else {
+            response = await this.publicGetFuturesApiV23MarketSummary (params);
+        }
+        return this.parseTickers (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#market-summary
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            //
+            //     [
+            //         {
+            //             "symbol": "ETH-USDT",
+            //             "last": 2035.14,
+            //             "lowestAsk": 2035.57,
+            //             "highestBid": 2035.55,
+            //             "percentageChange": 5.94169703,
+            //             "volume": 89426694.95885499,
+            //             "high24Hr": 2119.19,
+            //             "low24Hr": 1915.22,
+            //             "base": "ETH",
+            //             "quote": "USDT",
+            //             "active": true,
+            //             "size": 43994.847,
+            //             "minValidPrice": 0.01,
+            //             "minPriceIncrement": 0.01,
+            //             "minOrderSize": 0.0001,
+            //             "maxOrderSize": 2000,
+            //             "minSizeIncrement": 0.0001,
+            //             "openInterest": 0,
+            //             "openInterestUSD": 0,
+            //             "contractStart": 0,
+            //             "contractEnd": 0,
+            //             "timeBasedContract": false,
+            //             "openTime": 0,
+            //             "closeTime": 0,
+            //             "startMatching": 0,
+            //             "inactiveTime": 0,
+            //             "fundingRate": 0,
+            //             "contractSize": 0,
+            //             "maxPosition": 0,
+            //             "minRiskLimit": 0,
+            //             "maxRiskLimit": 0,
+            //             "availableSettlement": null,
+            //             "futures": false,
+            //             "isMarketOpenToOtc": true,
+            //             "isMarketOpenToSpot": true
+            //         }
+            //     ]
+            response = await this.publicGetSpotApiV33MarketSummary (this.extend (request, params));
+        } else {
+            //
+            //     [
+            //         {
+            //             "symbol": "BTC-PERP",
+            //             "last": 66358.6,
+            //             "lowestAsk": 66359.8,
+            //             "highestBid": 66352.6,
+            //             "openInterest": 31447681,
+            //             "openInterestUSD": 20867816.81,
+            //             "percentageChange": -4.5777,
+            //             "volume": 4296340617.722564,
+            //             "high24Hr": 70819.6,
+            //             "low24Hr": 59838.9,
+            //             "base": "BTC",
+            //             "quote": "USDT",
+            //             "contractStart": 0,
+            //             "contractEnd": 0,
+            //             "active": true,
+            //             "timeBasedContract": false,
+            //             "openTime": 0,
+            //             "closeTime": 0,
+            //             "startMatching": 0,
+            //             "inactiveTime": 0,
+            //             "fundingRate": -0.000058,
+            //             "contractSize": 0.00001,
+            //             "maxPosition": 1100000000,
+            //             "minValidPrice": 0.1,
+            //             "minPriceIncrement": 0.1,
+            //             "minOrderSize": 1,
+            //             "maxOrderSize": 7500000,
+            //             "minRiskLimit": 3000000,
+            //             "maxRiskLimit": 1100000000,
+            //             "minSizeIncrement": 1,
+            //             "availableSettlement": [
+            //                 "USD",
+            //                 "USDT"
+            //             ]
+            //         }
+            //     ]
+            response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        }
+        const data = this.safeDict (response, 0, {});
+        return this.parseTicker (data, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'high24Hr'),
+            'low': this.safeString (ticker, 'low24Hr'),
+            'bid': this.safeString (ticker, 'highestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'lowestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'percentageChange'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'size'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
