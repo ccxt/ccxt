@@ -3,6 +3,26 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests",
+                "method": "fetchOpenInterests",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.btse.com/futures/api/v2.3/market_summary?symbol=BTC-PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchTickers": [
             {
                 "description": "fetch tickers for spot",
