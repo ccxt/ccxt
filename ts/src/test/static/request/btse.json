@@ -3,6 +3,18 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history with since",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.btse.com/futures/api/v2.3/funding_history?symbol=ETH-PERP&from=1770451200000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1770451200000
+                ],
+                "output": null
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetch orderbook for contract",
