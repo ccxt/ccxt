@@ -3,6 +3,26 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "fetch trades for swap",
+                "method": "fetchTrades",
+                "url": "https://api.btse.com/futures/api/v2.3/trades?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch trades for spot",
+                "method": "fetchTrades",
+                "url": "https://api.btse.com/spot/api/v3.3/trades?symbol=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRates": [
             {
                 "description": "fetch funding rates",
