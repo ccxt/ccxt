@@ -3,12 +3,41 @@
     "skipKeys": [
         "clientOid",
         "startAt",
-        "endAt"
+        "endAt",
+        "from",
+        "to"
     ],
     "outputType": "json",
     "options": {
     },
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history by futures endpoint",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/contract/funding-rates?symbol=XBTUSDTM&from=1769328000000&to=1769416181891",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1769328000000,
+                    1,
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rate history by uta endpoint",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/market/funding-rate-history?symbol=XBTUSDTM&startAt=1769328000000&endAt=1769416156319",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1769328000000,
+                    1
+                ],
+                "output": null
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetch transfers",
@@ -684,6 +713,17 @@
         ],
         "fetchTickers": [
             {
+                "description": "fetch tickers for swap",
+                "method": "fetchTickers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/active",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch tickers",
                 "method": "fetchTickers",
                 "url": "https://api.kucoin.com/api/v1/market/allTickers",
@@ -707,6 +747,15 @@
             }
         ],
         "fetchTicker": [
+            {
+                "description": "fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api-futures.kucoin.com/api/v1/ticker?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
@@ -770,6 +819,25 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "fetch depth 100 order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/depth100?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT",
+                    100
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch order book for swap",
+                "method": "fetchOrderBook",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
                 "url": "https://api.kucoin.com/api/v1/market/orderbook/level2_20?symbol=BTC-USDT",
@@ -801,6 +869,15 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv for swap market",
+                "method": "fetchOHLCV",
+                "url": "https://api-futures.kucoin.com/api/v1/kline/query?symbol=XBTUSDTM&to=1769405902836&granularity=1",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
             {
                 "description": "fetch ohlcv",
                 "method": "fetchOHLCV",

@@ -30,7 +30,7 @@ export default class kucoin extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'borrowCrossMargin': true,
@@ -183,7 +183,6 @@ export default class kucoin extends Exchange {
                     'get': {
                         // account
                         'user-info': 30, // 20MW
-                        'user/api-key': 30, // 20MW
                         'accounts': 7.5, // 5MW
                         'accounts/{accountId}': 7.5, // 5MW
                         'accounts/ledgers': 3, // 2MW
@@ -268,8 +267,6 @@ export default class kucoin extends Exchange {
                         'convert/limit/orders': 5,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
-                        // earn
-                        'earn/redeem-preview': 5, // 5EW
                     },
                     'post': {
                         // account
@@ -350,6 +347,7 @@ export default class kucoin extends Exchange {
                         'contracts/active': 4.5, // 3PW
                         'contracts/{symbol}': 4.5, // 3PW
                         'ticker': 3, // 2PW
+                        'allTickers': 7.5, // 5PW
                         'level2/snapshot': 4.5, // 3PW
                         'level2/depth20': 7.5, // 5PW
                         'level2/depth100': 15, // 10PW
@@ -536,7 +534,7 @@ export default class kucoin extends Exchange {
                 },
             },
             'timeframes': {
-                '1m': '1min',
+                '1m': '1min', // spot and uta
                 '3m': '3min',
                 '5m': '5min',
                 '15m': '15min',
@@ -568,6 +566,7 @@ export default class kucoin extends Exchange {
                     'The quantity is below the minimum requirement.': InvalidOrder, // {"msg":"The quantity is below the minimum requirement.","code":"400100"}
                     'not in the given range!': BadRequest, // {"msg":"price not in the given range!","code":"400100"}
                     'recAccountType not in the given range': BadRequest, // {"msg":"recAccountType not in the given range","code":"400100"}
+                    'Unsupported trading pair.': BadSymbol, // {"msg":"Unsupported trading pair.","code":"400100"}
                     '400': BadRequest,
                     '401': AuthenticationError,
                     '403': NotSupported,
@@ -751,12 +750,30 @@ export default class kucoin extends Exchange {
                 },
                 'fetchMarkets': {
                     'fetchTickersFees': true,
+                    'fetchContractMarkets': true,
                 },
                 'withdraw': {
                     'includeFee': false,
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
+                },
+                'timeframes': {
+                    'swap': {
+                        '1m': 1,
+                        '3m': undefined,
+                        '5m': 5,
+                        '15m': 15,
+                        '30m': 30,
+                        '1h': 60,
+                        '2h': 120,
+                        '4h': 240,
+                        '6h': undefined,
+                        '8h': 480,
+                        '12h': 720,
+                        '1d': 1440,
+                        '1w': 10080,
+                    },
                 },
                 // endpoint versions
                 'versions': {
@@ -1176,19 +1193,33 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.kucoin.com/#server-time
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-server-time
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        const response = await this.publicGetTimestamp (params);
-        //
-        //     {
-        //         "code":"200000",
-        //         "msg":"success",
-        //         "data":1546837113087
-        //     }
-        //
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
+        let response = undefined;
+        if (type !== 'spot') {
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": 1637385119302,
+            //    }
+            //
+            response = await this.futuresPublicGetTimestamp (params);
+        } else {
+            //
+            //     {
+            //         "code":"200000",
+            //         "msg":"success",
+            //         "data":1546837113087
+            //     }
+            //
+            response = await this.publicGetTimestamp (params);
+        }
         return this.safeInteger (response, 'data');
     }
 
@@ -1196,9 +1227,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.kucoin.com/#service-status
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-service-status
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-service-status
      * @see https://www.kucoin.com/docs-new/rest/ua/get-service-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] spot or swap
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
@@ -1206,6 +1239,8 @@ export default class kucoin extends Exchange {
     async fetchStatus (params = {}) {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', false);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         if (uta) {
             const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -1224,6 +1259,17 @@ export default class kucoin extends Exchange {
             //             "msg": ""
             //         }
             //     }
+            //
+        } else if (type !== 'spot') {
+            response = await this.futuresPublicGetStatus (params);
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "status": "open", //open, close, cancelonly
+            //            "msg": "upgrade match engine" //remark for operation
+            //        }
+            //    }
             //
         } else {
             response = await this.publicGetStatus (params);
@@ -1252,8 +1298,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchMarkets
      * @description retrieves data on all markets for kucoin
-     * @see https://docs.kucoin.com/#get-symbols-list-deprecated
-     * @see https://docs.kucoin.com/#get-all-tickers
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-symbols
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-symbol
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} an array of objects representing market data
@@ -1263,6 +1310,8 @@ export default class kucoin extends Exchange {
         [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
+        let fetchContractMarkets = true;
+        [ fetchContractMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchContractMarkets', fetchContractMarkets);
         if (uta) {
             return await this.fetchUtaMarkets (params);
         }
@@ -1330,7 +1379,6 @@ export default class kucoin extends Exchange {
             //
         }
         if (fetchTickersFees) {
-            promises.push (this.publicGetMarketAllTickers (params));
             //
             //     {
             //         "code": "200000",
@@ -1356,6 +1404,10 @@ export default class kucoin extends Exchange {
             //                     "makerCoefficient": "1" // Maker Fee Coefficient
             //                 }
             //
+            promises.push (this.publicGetMarketAllTickers (params));
+        }
+        if (fetchContractMarkets) {
+            promises.push (this.fetchContractMarkets (params));
         }
         if (credentialsSet) {
             // load migration status for account
@@ -1373,7 +1425,7 @@ export default class kucoin extends Exchange {
         const tickersResponse = this.safeDict (responses, tickersIdx, {});
         const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
         const tickersById = this.indexBy (tickerItems, 'symbol');
-        const result = [];
+        let result = [];
         for (let i = 0; i < symbolsData.length; i++) {
             const market = symbolsData[i];
             const id = this.safeString (market, 'symbol');
@@ -1445,8 +1497,172 @@ export default class kucoin extends Exchange {
                 'info': market,
             });
         }
+        if (fetchContractMarkets) {
+            const increment = fetchTickersFees ? 1 : 0;
+            const contractIdx = tickersIdx + increment;
+            const contractMarkets = this.safeList (responses, contractIdx, []);
+            result = this.arrayConcat (result, contractMarkets);
+        }
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
+        }
+        return result;
+    }
+
+    async fetchContractMarkets (params = {}): Promise<Market[]> {
+        const response = await this.futuresPublicGetContractsActive (params);
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ETHUSDTM",
+        //            "rootSymbol": "USDT",
+        //            "type": "FFWCSX",
+        //            "firstOpenDate": 1591086000000,
+        //            "expireDate": null,
+        //            "settleDate": null,
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "USDT",
+        //            "settleCurrency": "USDT",
+        //            "maxOrderQty": 1000000,
+        //            "maxPrice": 1000000.0000000000,
+        //            "lotSize": 1,
+        //            "tickSize": 0.05,
+        //            "indexPriceTickSize": 0.01,
+        //            "multiplier": 0.01,
+        //            "initialMargin": 0.01,
+        //            "maintainMargin": 0.005,
+        //            "maxRiskLimit": 1000000,
+        //            "minRiskLimit": 1000000,
+        //            "riskStep": 500000,
+        //            "makerFeeRate": 0.00020,
+        //            "takerFeeRate": 0.00060,
+        //            "takerFixFee": 0.0000000000,
+        //            "makerFixFee": 0.0000000000,
+        //            "settlementFee": null,
+        //            "isDeleverage": true,
+        //            "isQuanto": true,
+        //            "isInverse": false,
+        //            "markMethod": "FairPrice",
+        //            "fairMethod": "FundingRate",
+        //            "fundingBaseSymbol": ".ETHINT8H",
+        //            "fundingQuoteSymbol": ".USDTINT8H",
+        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //            "indexSymbol": ".KETHUSDT",
+        //            "settlementSymbol": "",
+        //            "status": "Open",
+        //            "fundingFeeRate": 0.000535,
+        //            "predictedFundingFeeRate": 0.002197,
+        //            "openInterest": "8724443",
+        //            "turnoverOf24h": 341156641.03354263,
+        //            "volumeOf24h": 74833.54000000,
+        //            "markPrice": 4534.07,
+        //            "indexPrice":4531.92,
+        //            "lastTradePrice": 4545.4500000000,
+        //            "nextFundingRateTime": 25481884,
+        //            "maxLeverage": 100,
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        //            "premiumsSymbol1M": ".ETHUSDTMPI",
+        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //            "fundingBaseSymbol1M": ".ETHINT",
+        //            "fundingQuoteSymbol1M": ".USDTINT",
+        //            "lowPrice": 4456.90,
+        //            "highPrice":  4674.25,
+        //            "priceChgPct": 0.0046,
+        //            "priceChg": 21.15
+        //        }
+        //    }
+        //
+        const result = [];
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'symbol');
+            const expiry = this.safeInteger (market, 'expireDate');
+            const future = this.safeString (market, 'nextFundingRateTime') === undefined;
+            const swap = !future;
+            const baseId = this.safeString (market, 'baseCurrency');
+            const quoteId = this.safeString (market, 'quoteCurrency');
+            const settleId = this.safeString (market, 'settleCurrency');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
+            let symbol = base + '/' + quote + ':' + settle;
+            let type = 'swap';
+            if (future) {
+                symbol = symbol + '-' + this.yymmdd (expiry, '');
+                type = 'future';
+            }
+            const inverse = this.safeValue (market, 'isInverse');
+            const status = this.safeString (market, 'status');
+            const multiplier = this.safeString (market, 'multiplier');
+            const tickSize = this.safeNumber (market, 'tickSize');
+            const lotSize = this.safeNumber (market, 'lotSize');
+            let limitAmountMin = lotSize;
+            if (limitAmountMin === undefined) {
+                limitAmountMin = this.safeNumber (market, 'baseMinSize');
+            }
+            let limitAmountMax = this.safeNumber (market, 'maxOrderQty');
+            if (limitAmountMax === undefined) {
+                limitAmountMax = this.safeNumber (market, 'baseMaxSize');
+            }
+            let limitPriceMax = this.safeNumber (market, 'maxPrice');
+            if (limitPriceMax === undefined) {
+                const baseMinSizeString = this.safeString (market, 'baseMinSize');
+                const quoteMaxSizeString = this.safeString (market, 'quoteMaxSize');
+                limitPriceMax = this.parseNumber (Precise.stringDiv (quoteMaxSizeString, baseMinSizeString));
+            }
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': false,
+                'margin': false,
+                'swap': swap,
+                'future': future,
+                'option': false,
+                'active': (status === 'Open'),
+                'contract': true,
+                'linear': !inverse,
+                'inverse': inverse,
+                'taker': this.safeNumber (market, 'takerFeeRate'),
+                'maker': this.safeNumber (market, 'makerFeeRate'),
+                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': lotSize,
+                    'price': tickSize,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.parseNumber ('1'),
+                        'max': this.safeNumber (market, 'maxLeverage'),
+                    },
+                    'amount': {
+                        'min': limitAmountMin,
+                        'max': limitAmountMax,
+                    },
+                    'price': {
+                        'min': tickSize,
+                        'max': limitPriceMax,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'quoteMinSize'),
+                        'max': this.safeNumber (market, 'quoteMaxSize'),
+                    },
+                },
+                'created': this.safeInteger (market, 'firstOpenDate'),
+                'info': market,
+            });
         }
         return result;
     }
@@ -1667,7 +1883,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://docs.kucoin.com/#get-currencies
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1775,7 +1991,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchAccounts
      * @description fetch all the accounts associated with a profile
-     * @see https://docs.kucoin.com/#list-accounts
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-list-spot
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
@@ -1858,7 +2074,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchDepositWithdrawFee
      * @description fetch the fee for deposits and withdrawals
-     * @see https://docs.kucoin.com/#get-withdrawal-quotas
+     * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
@@ -1989,7 +2205,7 @@ export default class kucoin extends Exchange {
         return (type === 'contract') || (type === 'future') || (type === 'futures'); // * (type === 'futures') deprecated, use (type === 'future')
     }
 
-    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+    parseSpotOrUtaTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "BTC-USDT",   // symbol
@@ -2100,43 +2316,163 @@ export default class kucoin extends Exchange {
         }, market);
     }
 
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "symbol": "LTCUSDTM",
+        //         "granularity": 1000,
+        //         "timePoint": 1727967339000,
+        //         "value": 62.37, mark price
+        //         "indexPrice": 62.37
+        //      }
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "sequence":  1629930362547,
+        //             "symbol": "ETHUSDTM",
+        //             "side": "buy",
+        //             "size":  130,
+        //             "price": "4724.7",
+        //             "bestBidSize":  5,
+        //             "bestBidPrice": "4724.6",
+        //             "bestAskPrice": "4724.65",
+        //             "tradeId": "618d2a5a77a0c4431d2335f4",
+        //             "ts":  1636641371963227600,
+        //             "bestAskSize":  1789
+        //          }
+        //     }
+        //
+        // from fetchTickers
+        //
+        // {
+        //     symbol: "XBTUSDTM",
+        //     rootSymbol: "USDT",
+        //     type: "FFWCSX",
+        //     firstOpenDate: 1585555200000,
+        //     expireDate: null,
+        //     settleDate: null,
+        //     baseCurrency: "XBT",
+        //     quoteCurrency: "USDT",
+        //     settleCurrency: "USDT",
+        //     maxOrderQty: 1000000,
+        //     maxPrice: 1000000,
+        //     lotSize: 1,
+        //     tickSize: 0.1,
+        //     indexPriceTickSize: 0.01,
+        //     multiplier: 0.001,
+        //     initialMargin: 0.008,
+        //     maintainMargin: 0.004,
+        //     maxRiskLimit: 100000,
+        //     minRiskLimit: 100000,
+        //     riskStep: 50000,
+        //     makerFeeRate: 0.0002,
+        //     takerFeeRate: 0.0006,
+        //     takerFixFee: 0,
+        //     makerFixFee: 0,
+        //     settlementFee: null,
+        //     isDeleverage: true,
+        //     isQuanto: true,
+        //     isInverse: false,
+        //     markMethod: "FairPrice",
+        //     fairMethod: "FundingRate",
+        //     fundingBaseSymbol: ".XBTINT8H",
+        //     fundingQuoteSymbol: ".USDTINT8H",
+        //     fundingRateSymbol: ".XBTUSDTMFPI8H",
+        //     indexSymbol: ".KXBTUSDT",
+        //     settlementSymbol: "",
+        //     status: "Open",
+        //     fundingFeeRate: 0.000297,
+        //     predictedFundingFeeRate: 0.000327,
+        //     fundingRateGranularity: 28800000,
+        //     openInterest: "8033200",
+        //     turnoverOf24h: 659795309.2524643,
+        //     volumeOf24h: 9998.54,
+        //     markPrice: 67193.51,
+        //     indexPrice: 67184.81,
+        //     lastTradePrice: 67191.8,
+        //     nextFundingRateTime: 20022985,
+        //     maxLeverage: 125,
+        //     premiumsSymbol1M: ".XBTUSDTMPI",
+        //     premiumsSymbol8H: ".XBTUSDTMPI8H",
+        //     fundingBaseSymbol1M: ".XBTINT",
+        //     fundingQuoteSymbol1M: ".USDTINT",
+        //     lowPrice: 64041.6,
+        //     highPrice: 67737.3,
+        //     priceChgPct: 0.0447,
+        //     priceChg: 2878.7
+        // }
+        //
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        const last = this.safeString2 (ticker, 'price', 'lastTradePrice');
+        const timestamp = this.safeIntegerProduct (ticker, 'ts', 0.000001);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'highPrice'),
+            'low': this.safeString (ticker, 'lowPrice'),
+            'bid': this.safeString (ticker, 'bestBidPrice'),
+            'bidVolume': this.safeString (ticker, 'bestBidSize'),
+            'ask': this.safeString (ticker, 'bestAskPrice'),
+            'askVolume': this.safeString (ticker, 'bestAskSize'),
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'priceChg'),
+            'percentage': this.safeString (ticker, 'priceChgPct'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volumeOf24h'),
+            'quoteVolume': this.safeString (ticker, 'turnoverOf24h'),
+            'markPrice': this.safeString2 (ticker, 'markPrice', 'value'),
+            'indexPrice': this.safeString (ticker, 'indexPrice'),
+            'info': ticker,
+        }, market);
+    }
+
+    typeToTradeType (type: Str): Str {
+        const tradeTypes: Dict = {
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+        };
+        return this.safeString (tradeTypes, type, type);
+    }
+
     /**
      * @method
      * @name kucoin#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.kucoin.com/#get-all-tickers
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-tickers
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-all-tickers
      * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
-     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {string[]|undefined} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
+     * @param {string} [params.type] spot or swap (default is spot)
+     * @param {string} [params.method] *swap only* the method to use, futuresPublicGetContractsActive or futuresPublicGetAllTickers (default is futuresPublicGetContractsActive)
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const request: Dict = {};
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'uta', false);
+        const tradeType = this.safeString (params, 'tradeType');
+        let firstMarket = undefined;
+        if (symbols !== undefined) {
+            const firstSymbol = this.safeString (symbols, 0);
+            firstMarket = this.market (firstSymbol);
+        }
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, params, type);
         let response = undefined;
-        if (uta) {
-            if (symbols !== undefined) {
-                const symbol = this.safeString (symbols, 0);
-                const market = this.market (symbol);
-                let type = undefined;
-                [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-                if (type === 'spot') {
-                    request['tradeType'] = 'SPOT';
-                } else {
-                    request['tradeType'] = 'FUTURES';
-                }
-            } else {
-                const tradeType = this.safeStringUpper (params, 'tradeType');
-                if (tradeType === undefined) {
-                    throw new ArgumentsRequired (this.id + ' fetchTickers() requires a tradeType parameter for uta, either SPOT or FUTURES');
-                }
-                request['tradeType'] = tradeType;
-                params = this.omit (params, 'tradeType');
+        if ((tradeType !== undefined) || uta) {
+            if (tradeType === undefined) {
+                request['tradeType'] = this.typeToTradeType (type);
             }
             response = await this.utaGetMarketTicker (this.extend (request, params));
             //
@@ -2165,6 +2501,8 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
+        } else if (type === 'swap') {
+            return await this.fetchContractTickers (symbols, params);
         } else {
             response = await this.publicGetMarketAllTickers (params);
             //
@@ -2202,13 +2540,89 @@ export default class kucoin extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
             tickers[i]['time'] = time;
-            const ticker = this.parseTicker (tickers[i]);
+            const ticker = this.parseSpotOrUtaTicker (tickers[i]);
             const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = ticker;
             }
         }
         return this.filterByArrayTickers (result, 'symbol', symbols);
+    }
+
+    async fetchContractTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
+        let response: Dict = undefined;
+        if (method === 'futuresPublicGetAllTickers') {
+            response = await this.futuresPublicGetAllTickers (params);
+        } else {
+            response = await this.futuresPublicGetContractsActive (params);
+        }
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "ETHUSDTM",
+        //            "rootSymbol": "USDT",
+        //            "type": "FFWCSX",
+        //            "firstOpenDate": 1591086000000,
+        //            "expireDate": null,
+        //            "settleDate": null,
+        //            "baseCurrency": "ETH",
+        //            "quoteCurrency": "USDT",
+        //            "settleCurrency": "USDT",
+        //            "maxOrderQty": 1000000,
+        //            "maxPrice": 1000000.0000000000,
+        //            "lotSize": 1,
+        //            "tickSize": 0.05,
+        //            "indexPriceTickSize": 0.01,
+        //            "multiplier": 0.01,
+        //            "initialMargin": 0.01,
+        //            "maintainMargin": 0.005,
+        //            "maxRiskLimit": 1000000,
+        //            "minRiskLimit": 1000000,
+        //            "riskStep": 500000,
+        //            "makerFeeRate": 0.00020,
+        //            "takerFeeRate": 0.00060,
+        //            "takerFixFee": 0.0000000000,
+        //            "makerFixFee": 0.0000000000,
+        //            "settlementFee": null,
+        //            "isDeleverage": true,
+        //            "isQuanto": true,
+        //            "isInverse": false,
+        //            "markMethod": "FairPrice",
+        //            "fairMethod": "FundingRate",
+        //            "fundingBaseSymbol": ".ETHINT8H",
+        //            "fundingQuoteSymbol": ".USDTINT8H",
+        //            "fundingRateSymbol": ".ETHUSDTMFPI8H",
+        //            "indexSymbol": ".KETHUSDT",
+        //            "settlementSymbol": "",
+        //            "status": "Open",
+        //            "fundingFeeRate": 0.000535,
+        //            "predictedFundingFeeRate": 0.002197,
+        //            "openInterest": "8724443",
+        //            "turnoverOf24h": 341156641.03354263,
+        //            "volumeOf24h": 74833.54000000,
+        //            "markPrice": 4534.07,
+        //            "indexPrice":4531.92,
+        //            "lastTradePrice": 4545.4500000000,
+        //            "nextFundingRateTime": 25481884,
+        //            "maxLeverage": 100,
+        //            "sourceExchanges":  [ "huobi", "Okex", "Binance", "Kucoin", "Poloniex", "Hitbtc" ],
+        //            "premiumsSymbol1M": ".ETHUSDTMPI",
+        //            "premiumsSymbol8H": ".ETHUSDTMPI8H",
+        //            "fundingBaseSymbol1M": ".ETHINT",
+        //            "fundingQuoteSymbol1M": ".USDTINT",
+        //            "lowPrice": 4456.90,
+        //            "highPrice":  4674.25,
+        //            "priceChgPct": 0.0046,
+        //            "priceChg": 21.15
+        //        }
+        //    }
+        //
+        const data = this.safeList (response, 'data');
+        const tickers = this.parseTickers (data, symbols);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     /**
@@ -2232,7 +2646,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.kucoin.com/#get-24hr-stats
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-24hr-stats
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-ticker
      * @see https://www.kucoin.com/docs-new/rest/ua/get-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2249,14 +2664,10 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
         let response = undefined;
         let result = undefined;
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params, type);
         if (uta) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
-            if (type === 'spot') {
-                request['tradeType'] = 'SPOT';
-            } else {
-                request['tradeType'] = 'FUTURES';
-            }
+            request['tradeType'] = this.typeToTradeType (type);
             response = await this.utaGetMarketTicker (this.extend (request, params));
             //
             //     {
@@ -2287,6 +2698,28 @@ export default class kucoin extends Exchange {
             const data = this.safeDict (response, 'data', {});
             const resultList = this.safeList (data, 'list', []);
             result = this.safeDict (resultList, 0, {});
+        } else if (type === 'swap') {
+            response = await this.futuresPublicGetTicker (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "sequence": 1638444978558,
+            //            "symbol": "ETHUSDTM",
+            //            "side": "sell",
+            //            "size": 4,
+            //            "price": "4229.35",
+            //            "bestBidSize": 2160,
+            //            "bestBidPrice": "4229.0",
+            //            "bestAskPrice": "4229.05",
+            //            "tradeId": "61aaa8b777a0c43055fe4851",
+            //            "ts": 1638574296209786785,
+            //            "bestAskSize": 36,
+            //        }
+            //    }
+            //
+            const data = this.safeDict (response, 'data', {});
+            return this.parseTicker (data, market);
         } else {
             response = await this.publicGetMarketStats (this.extend (request, params));
             //
@@ -2314,14 +2747,15 @@ export default class kucoin extends Exchange {
             //
             result = this.safeDict (response, 'data', {});
         }
-        return this.parseTicker (result, market);
+        return this.parseSpotOrUtaTicker (result, market);
     }
 
     /**
      * @method
      * @name kucoin#fetchMarkPrice
      * @description fetches the mark price for a specific market
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-detail
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-mark-price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2332,10 +2766,18 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseTicker (data, market);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, type);
+        let response = undefined;
+        if (type === 'swap') {
+            response = await this.futuresPublicGetMarkPriceSymbolCurrent (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            return this.parseTicker (data, market);
+        } else {
+            response = await this.publicGetMarkPriceSymbolCurrent (this.extend (request, params));
+            const data = this.safeDict (response, 'data', {});
+            return this.parseSpotOrUtaTicker (data, market);
+        }
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -2350,21 +2792,36 @@ export default class kucoin extends Exchange {
         //         "0.000945",               // quote volume
         //     ]
         //
-        return [
-            this.safeTimestamp (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 5),
-        ];
+        const timestampString = this.safeString (ohlcv, 0);
+        if (timestampString !== undefined && timestampString.length <= 10) {
+            // kucoin spot and uta return seconds timestamps
+            return [
+                this.safeTimestamp (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 5),
+            ];
+        } else {
+            // kucoin futures return milliseconds timestamps
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1),
+                this.safeNumber (ohlcv, 2),
+                this.safeNumber (ohlcv, 3),
+                this.safeNumber (ohlcv, 4),
+                this.safeNumber (ohlcv, 5),
+            ];
+        }
     }
 
     /**
      * @method
      * @name kucoin#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.kucoin.com/#get-klines
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
      * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -2377,12 +2834,27 @@ export default class kucoin extends Exchange {
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        // for spot and uta
+        let maxLimit = 1500;
+        let startKey = 'startAt';
+        let endKey = 'endAt';
+        let denominator = 1000;
+        let uta = undefined;
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        const isFutures = (market['swap'] && (!uta));
+        if (isFutures) {
+            // for futures
+            maxLimit = 200;
+            startKey = 'from';
+            endKey = 'to';
+            denominator = 1;
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 1500) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        const market = this.market (symbol);
         const marketId = market['id'];
         const request: Dict = {
             'symbol': marketId,
@@ -2390,25 +2862,44 @@ export default class kucoin extends Exchange {
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds (); // required param
         if (since !== undefined) {
-            request['startAt'] = this.parseToInt (Math.floor (since / 1000));
+            request[startKey] = this.parseToInt (Math.floor (since / denominator));
             if (limit === undefined) {
                 // https://docs.kucoin.com/#get-klines
                 // https://docs.kucoin.com/#details
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
-                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', 1500);
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit);
             }
             endAt = this.sum (since, limit * duration);
         } else if (limit !== undefined) {
             since = endAt - limit * duration;
-            request['startAt'] = this.parseToInt (Math.floor (since / 1000));
+            request[startKey] = this.parseToInt (Math.floor (since / denominator));
         }
-        request['endAt'] = this.parseToInt (Math.floor (endAt / 1000));
-        let uta = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
+        request[endKey] = this.parseToInt (Math.floor (endAt / denominator));
         let response = undefined;
         let result = undefined;
-        if (uta) {
+        if (isFutures) {
+            const timeframeOptions = this.safeDict (this.options, 'timeframes', {});
+            const swapTimeframes = this.safeDict (timeframeOptions, 'swap', {});
+            const parsedTimeframe = this.safeInteger (swapTimeframes, timeframe);
+            if (parsedTimeframe !== undefined) {
+                request['granularity'] = parsedTimeframe;
+            } else {
+                request['granularity'] = timeframe;
+            }
+            response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": [
+            //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+            //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+            //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+            //        ]
+            //    }
+            //
+            result = this.safeList (response, 'data', []);
+        } else if (uta) {
             let type = undefined;
             [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
             if (type === 'spot') {
@@ -2598,8 +3089,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-part-order-book-aggregated-
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-full-order-book-aggregated-
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
      * @see https://www.kucoin.com/docs-new/rest/ua/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
@@ -2616,14 +3108,14 @@ export default class kucoin extends Exchange {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'uta', false);
         let response = undefined;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
         if (uta) {
             if (limit === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrderBook() requires a limit argument for uta, either 20, 50, 100 or FULL');
             }
             request['limit'] = limit;
             request['symbol'] = market['id'];
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
             if (type === 'spot') {
                 request['tradeType'] = 'SPOT';
             } else {
@@ -2648,6 +3140,35 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
+        } else if (type === 'swap') {
+            if (level !== 2 && level !== undefined) {
+                throw new BadRequest (this.id + ' fetchOrderBook() can only return level 2');
+            }
+            if ((limit === undefined) || limit === 20) {
+                //
+                //     {
+                //         "code": "200000",
+                //         "data": {
+                //           "symbol": "XBTUSDM",      //Symbol
+                //           "sequence": 100,          //Ticker sequence number
+                //           "asks": [
+                //                 ["5000.0", 1000],   //Price, quantity
+                //                 ["6000.0", 1983]    //Price, quantity
+                //           ],
+                //           "bids": [
+                //                 ["3200.0", 800],    //Price, quantity
+                //                 ["3100.0", 100]     //Price, quantity
+                //           ],
+                //           "ts": 1604643655040584408  // timestamp
+                //         }
+                //     }
+                //
+                response = await this.futuresPublicGetLevel2Depth20 (this.extend (request, params));
+            } else if (limit === 100) {
+                response = await this.futuresPublicGetLevel2Depth100 (this.extend (request, params));
+            } else {
+                throw new BadRequest (this.id + ' fetchOrderBook() limit argument must be 20 or 100');
+            }
         } else if (!isAuthenticated || limit !== undefined) {
             if (level === 2) {
                 request['level'] = level;
@@ -2696,7 +3217,13 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        const timestamp = this.safeInteger (data, 'time');
+        let timestamp = this.safeInteger (data, 'time');
+        if (timestamp === undefined) {
+            const nanoseconds = this.safeInteger (data, 'ts');
+            if (nanoseconds !== undefined) {
+                timestamp = Math.floor (nanoseconds / 1000000);
+            }
+        }
         const orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', level - 2, level - 1);
         orderbook['nonce'] = this.safeInteger (data, 'sequence');
         return orderbook;
@@ -5706,20 +6233,19 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchFundingRateHistory
      * @description fetches historical funding rate prices
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-public-funding-history
      * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] not used by kucuoinfutures
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to true
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a since argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -5727,47 +6253,80 @@ export default class kucoin extends Exchange {
             'symbol': market['id'],
         };
         const until = this.safeInteger (params, 'until');
+        let uta = true; // for backward compatibility, dafult endpoint is uta
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'uta', uta);
         params = this.omit (params, 'until');
-        if (since !== undefined) {
-            request['startAt'] = since;
-            if (until === undefined) {
-                request['endAt'] = this.milliseconds ();
-            }
+        let start = since;
+        let end = until;
+        if (since === undefined) {
+            start = 0;
         }
-        if (until !== undefined) {
-            request['endAt'] = until;
+        if (until === undefined) {
+            end = this.milliseconds ();
         }
-        const response = await this.utaGetMarketFundingRateHistory (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "symbol": "XBTUSDTM",
-        //             "list": [
-        //                 {
-        //                     "fundingRate": 7.6E-5,
-        //                     "ts": 1706097600000
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        const result = this.safeList (data, 'list', []);
+        let response = undefined;
+        let resultKey = 'data';
+        if (uta) {
+            request['startAt'] = start;
+            request['endAt'] = end;
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "symbol": "XBTUSDTM",
+            //             "list": [
+            //                 {
+            //                     "fundingRate": 7.6E-5,
+            //                     "ts": 1706097600000
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            const utaResponse = await this.utaGetMarketFundingRateHistory (this.extend (request, params));
+            response = this.safeDict (utaResponse, 'data', {});
+            resultKey = 'list';
+        } else {
+            request['from'] = start;
+            request['to'] = end;
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "symbol": "IDUSDTM",
+            //                 "fundingRate": 2.26E-4,
+            //                 "timepoint": 1702296000000
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.futuresPublicGetContractFundingRates (this.extend (request, params));
+        }
+        const result = this.safeList (response, resultKey, []);
         return this.parseFundingRateHistories (result, market, since, limit);
     }
 
     parseFundingRateHistory (info, market: Market = undefined) {
         //
+        // uta
         //     {
         //         "fundingRate": 7.6E-5,
         //         "ts": 1706097600000
         //     }
         //
-        const timestamp = this.safeInteger (info, 'ts');
+        // futures
+        //     {
+        //         "symbol": "IDUSDTM",
+        //         "fundingRate": 2.26E-4,
+        //         "timepoint": 1702296000000
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const timestamp = this.safeInteger2 (info, 'ts', 'timepoint');
         return {
             'info': info,
-            'symbol': this.safeSymbol (undefined, market),
+            'symbol': this.safeSymbol (marketId, market),
             'fundingRate': this.safeNumber (info, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
