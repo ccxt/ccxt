@@ -6,7 +6,7 @@ import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str } from './base/types.js';
+import type { Dict, FundingRateHistory, Int, LeverageTier, LeverageTiers, Market, OHLCV, OrderBook, Str, Strings } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -115,14 +115,14 @@ export default class btse extends Exchange {
                 'fetchLedgerEntry': false,
                 'fetchLeverage': false,
                 'fetchLeverages': false,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchLiquidations': false,
                 'fetchLongShortRatio': false,
                 'fetchLongShortRatioHistory': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrices': false,
@@ -218,11 +218,11 @@ export default class btse extends Exchange {
                         'futures/api/v2.3/orderbook/L2': 5, // done
                         'futures/api/v2.3/trades': 5,
                         'futures/api/v2.3/funding_history': 5, // done
-                        'futures/api/v2.3/market/risk_limit': 5,
-                        'spot/api/v3.2/availableCurrencyNetworks': 15,
-                        'spot/api/v3.2/exchangeRate': 15,
-                        'public-api/wallet/v1/crypto/networks ': 15,
-                        'public-api/wallet/v1/assets/exchangeRate': 15,
+                        'futures/api/v2.3/market/risk_limit': 5, // done
+                        'spot/api/v3.2/availableCurrencyNetworks': 15, // not used
+                        'spot/api/v3.2/exchangeRate': 15, // not used
+                        'public-api/wallet/v1/crypto/networks ': 15, // not used
+                        'public-api/wallet/v1/assets/exchangeRate': 15, // not used
                     },
                 },
                 'private': {
@@ -895,6 +895,93 @@ export default class btse extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    /**
+     * @method
+     * @name btse#fetchLeverageTiers
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-risk-limit-setting
+     * @description retrieve information on the maximum leverage, for different trade sizes
+     * @param {string[]|undefined} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length === 1) {
+                const requestedSymbol = this.safeString (symbols, 0);
+                const market = this.market (requestedSymbol);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.publicGetFuturesApiV23MarketRiskLimit (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "time": 1770462468706,
+        //         "data": [
+        //             {
+        //                 "symbol": "RENDER-PERP",
+        //                 "riskLevel": 1,
+        //                 "riskLimitValue": 5000,
+        //                 "initialMarginRate": 0.01333333,
+        //                 "maintenanceMarginRate": 0.00666667,
+        //                 "maxLeverage": 75
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            if (symbols === undefined || this.inArray (symbol, symbols)) {
+                if (!(symbol in result)) {
+                    result[symbol] = [];
+                }
+                const tiers = result[symbol];
+                const parsed = {
+                    'tier': this.safeInteger (entry, 'riskLevel'),
+                    'symbol': symbol,
+                    'currency': market['settle'],
+                    'minNotional': undefined,
+                    'maxNotional': this.safeNumber (entry, 'riskLimitValue'),
+                    'maintenanceMarginRate': this.safeNumber (entry, 'maintenanceMarginRate'),
+                    'maxLeverage': this.safeNumber (entry, 'maxLeverage'),
+                    'info': entry,
+                };
+                tiers.push (parsed);
+            }
+        }
+        return result as LeverageTiers;
+    }
+
+    /**
+     * @method
+     * @name btse#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-risk-limit-setting
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
+        }
+        const result = await this.fetchLeverageTiers ([ symbol ], params);
+        return result[symbol];
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
