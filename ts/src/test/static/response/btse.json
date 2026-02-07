@@ -3,6 +3,38 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history with since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1770451200000
+                ],
+                "httpResponse": {
+                    "ETH-PERP": [
+                        {
+                            "time": "1770451200",
+                            "rate": "0.00001528",
+                            "symbol": "ETH-PERP"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "time": "1770451200",
+                            "rate": "0.00001528",
+                            "symbol": "ETH-PERP"
+                        },
+                        "symbol": "ETH/USDT:USDT",
+                        "fundingRate": 0.00001528,
+                        "timestamp": 1770451200000,
+                        "datetime": "2026-02-07T08:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchOrderBook": [
             {
                 "description": "fetch orderbook for contract",
