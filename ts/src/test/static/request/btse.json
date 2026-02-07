@@ -1,0 +1,68 @@
+{
+    "exchange": "btse",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV with since, until and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/spot/api/v3.3/ohlcv?symbol=ETH-USDT&resolution=60&start=1770451200000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1770451200000,
+                    1,
+                    {
+                        "until": 1770454800000
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for future",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-260327&resolution=60&start=1770454800000",
+                "input": [
+                    "ETH/USDT:USDT-260327",
+                    "1h",
+                    1770454800000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for future",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-260327&resolution=60",
+                "input": [
+                    "ETH/USDT:USDT-260327",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for swap",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/futures/api/v2.3/ohlcv?symbol=ETH-PERP&resolution=60&start=1770454800000",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1770454800000
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch OHLCV for spot",
+                "method": "fetchOHLCV",
+                "url": "https://api.btse.com/spot/api/v3.3/ohlcv?symbol=ETH-USDT&resolution=60&start=1770454800000",
+                "input": [
+                    "ETH/USDT",
+                    "1h",
+                    1770454800000
+                ],
+                "output": null
+            }
+        ]
+  },
+    "outputType": "both"
+}
