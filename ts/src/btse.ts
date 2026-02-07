@@ -6,7 +6,7 @@ import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, FundingRateHistory, Int, LeverageTier, LeverageTiers, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, FundingRateHistory, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -130,9 +130,9 @@ export default class btse extends Exchange {
                 'fetchMySettlementHistory': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
-                'fetchOpenInterest': false,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
-                'fetchOpenInterests': false,
+                'fetchOpenInterests': true,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOption': false,
@@ -211,7 +211,7 @@ export default class btse extends Exchange {
                         'spot/api/v3.3/orderbook/L2': 5, // done
                         'spot/api/v3.3/trades': 5,
                         'spot/api/v3.3/time': 5, // done
-                        'futures/api/v2.3/market_summary': 5, // done todo fetchOpenInterest, fetchFundingRates
+                        'futures/api/v2.3/market_summary': 5, // done todo fetchFundingRates
                         'futures/api/v2.3/ohlcv': 5, // done
                         'futures/api/v2.3/price': 5, // not used
                         'futures/api/v2.3/orderbook': 5, // not used
@@ -1143,6 +1143,58 @@ export default class btse extends Exchange {
             'markPrice': undefined,
             'indexPrice': undefined,
             'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        const interest = this.safeDict (response, 0, {});
+        return this.parseOpenInterest (interest, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetFuturesApiV23MarketSummary (params);
+        return this.parseOpenInterests (response, symbols) as OpenInterests;
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        const marketId = this.safeString (interest, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestUSD'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
         }, market);
     }
 
