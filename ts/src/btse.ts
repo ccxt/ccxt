@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/btse.js';
-// import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InsufficientFunds, NotSupported, PermissionDenied, RateLimitExceeded } from '../ccxt.js';
+import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market, OHLCV, OrderBook } from './base/types.js';
+import type { Dict, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -101,7 +101,7 @@ export default class btse extends Exchange {
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
@@ -204,20 +204,20 @@ export default class btse extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'spot/api/v3.3/market_summary': 5, // done
+                        'spot/api/v3.3/market_summary': 5, // done todo fetchTickers
                         'spot/api/v3.3/ohlcv': 5, // done
                         'spot/api/v3.3/price': 5, // not used
                         'spot/api/v3.3/orderbook': 5, // not used
                         'spot/api/v3.3/orderbook/L2': 5, // done
                         'spot/api/v3.3/trades': 5,
                         'spot/api/v3.3/time': 5, // done
-                        'futures/api/v2.3/market_summary': 5, // done
+                        'futures/api/v2.3/market_summary': 5, // done todo fetchTickers, fetchOpenInterest, fetchFundingRates
                         'futures/api/v2.3/ohlcv': 5, // done
                         'futures/api/v2.3/price': 5, // not used
                         'futures/api/v2.3/orderbook': 5, // not used
                         'futures/api/v2.3/orderbook/L2': 5, // done
                         'futures/api/v2.3/trades': 5,
-                        'futures/api/v2.3/funding_history': 5,
+                        'futures/api/v2.3/funding_history': 5, // done
                         'futures/api/v2.3/market/risk_limit': 5,
                         'spot/api/v3.2/availableCurrencyNetworks': 15,
                         'spot/api/v3.2/exchangeRate': 15,
@@ -818,6 +818,83 @@ export default class btse extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, market['symbol'], timestamp, 'buyQuote', 'sellQuote', 'price', 'size');
+    }
+
+    /**
+     * @method
+     * @name btse#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#funding-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of entries to fetch (default and max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (!(market['contract'])) {
+                throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
+            }
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        if (until !== undefined) {
+            request['to'] = until;
+        }
+        if (since === undefined && until === undefined) {
+            if (limit !== undefined) {
+                request['count'] = limit; // mutually exclusive with since/until
+            }
+        }
+        const response = await this.publicGetFuturesApiV23FundingHistory (this.extend (request, params));
+        //
+        //     {
+        //         "ETH-PERP": [
+        //             {
+        //                 "time": 1770451200,
+        //                 "rate": 0.00001528,
+        //                 "symbol": "ETH-PERP"
+        //             }
+        //         ]
+        //     }
+        //
+        let flattened = [];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const entry = this.safeList (response, key, []);
+            flattened = this.arrayConcat (flattened, entry);
+        }
+        return this.parseFundingRateHistories (flattened, market, since, limit);
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "time": 1770451200,
+        //         "rate": 0.00001528,
+        //         "symbol": "ETH-PERP"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const timestamp = this.safeTimestamp (contract, 'time');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (contract, 'rate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
