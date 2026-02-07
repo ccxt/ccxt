@@ -6,7 +6,7 @@ import Exchange from './abstract/btse.js';
 import { Precise } from './base/Precise.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Market } from './base/types.js';
+import type { Dict, Int, Market, OHLCV } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -293,7 +293,15 @@ export default class btse extends Exchange {
                 },
             },
             'features': {
-                'spot': undefined,
+                'default': {
+                    'sandbox': true,
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
                 'swap': {
                     'linear': {
                         'sandbox': false,
@@ -358,28 +366,29 @@ export default class btse extends Exchange {
                         },
                         'fetchClosedOrders': undefined,
                         'fetchOHLCV': {
-                            'limit': 500,
+                            'limit': 300,
                         },
                     },
                     'inverse': undefined,
                 },
                 'future': {
-                    'linear': undefined,
+                    'linear': {
+                        'extends': 'default',
+                    },
                     'inverse': undefined,
                 },
             },
             'timeframes': {
-                '1m': '1m',
-                '3m': '3m',
-                '5m': '5m',
-                '15m': '15m',
-                '30m': '30m',
-                '1h': '1h',
-                '2h': '2h',
-                '4h': '4h',
-                '6h': '6h',
-                '12h': '12h',
-                '1d': '1d',
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '6h': '360',
+                '1d': '1440',
+                '1w': '10080',
+                '1M': '43200',
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -404,6 +413,8 @@ export default class btse extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
+                    // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                 },
                 'broad': {
                 },
@@ -670,6 +681,97 @@ export default class btse extends Exchange {
             'created': this.parse8601 (this.safeString (market, 'createdAt')),
             'info': market,
         });
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#charting-data
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#charting-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default and max 300)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const maxLimit = 300;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+        }
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'symbol': market['id'],
+            'resolution': interval,
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        if (until !== undefined) {
+            if (since !== undefined) {
+                // check if the requested time range is too large for one request
+                // if so, just omit until for correct paginated calls for not to get an error from the exchange
+                const duration = this.parseTimeframe (timeframe);
+                const maxDelta = duration * maxLimit;
+                const difference = until - since;
+                if (difference < maxDelta) {
+                    request['end'] = until;
+                }
+            } else {
+                request['end'] = until;
+            }
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotApiV33Ohlcv (this.extend (request, params));
+        } else {
+            response = await this.publicGetFuturesApiV23Ohlcv (this.extend (request, params));
+        }
+        //
+        //     [
+        //         [
+        //             1770454800,
+        //             2018.43,
+        //             2020.0,
+        //             2018.43,
+        //             2019.21,
+        //             1291958.948051 // volume in quote currency
+        //         ]
+        //     ]
+        //
+        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        return result;
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         1770454800,
+        //         2018.43,
+        //         2020.0,
+        //         2018.43,
+        //         2019.21,
+        //         1291958.948051 // volume in quote currency
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
