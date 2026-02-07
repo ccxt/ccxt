@@ -2186,5 +2186,12 @@
                 "precision":"is undefined"
             }
         }
+    },
+    "btse": {
+        "skipMethods": {
+            "ticker": {
+                "compareOHLC": "close lower than low from API"
+            }
+        }
     }
 }
