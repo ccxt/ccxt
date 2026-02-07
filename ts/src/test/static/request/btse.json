@@ -3,6 +3,17 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetch leverage tiers for ETH/USDT:USDT",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.btse.com/futures/api/v2.3/market/risk_limit?symbol=ETH-PERP",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchFundingRateHistory": [
             {
                 "description": "fetch funding rate history with since",
