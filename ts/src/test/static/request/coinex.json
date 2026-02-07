@@ -186,6 +186,30 @@
                   "BTC/USDT"
                 ],
                 "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"SPOT\"}"
+            },
+            {
+                "description": "Spot cancel all stop loss orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.coinex.com/v2/futures/cancel-position-stop-loss",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "stopLoss": true
+                  }
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            },
+            {
+                "description": "Spot cancel all take profit orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.coinex.com/v2/futures/cancel-position-take-profit",
+                "input": [
+                  "BTC/USDT:USDT",
+                  {
+                    "takeProfit": true
+                  }
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
             }
         ],
         "fetchBalance": [
@@ -712,6 +736,32 @@
                   }
                 ],
                 "output": "{\"client_id\":\"client01\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\"}"
+            },
+            {
+                "description": "Swap cancel stop loss order",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v2/futures/cancel-position-stop-loss",
+                "input": [
+                  137175039001,
+                  "BTC/USDT:USDT",
+                  {
+                    "stopLoss": true
+                  }
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"stop_loss_id\":137175039001}"
+            },
+            {
+                "description": "Swap cancel take profit order",
+                "method": "cancelOrder",
+                "url": "https://api.coinex.com/v2/futures/cancel-position-take-profit",
+                "input": [
+                  137175039001,
+                  "BTC/USDT:USDT",
+                  {
+                    "takeProfit": true
+                  }
+                ],
+                "output": "{\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"take_profit_id\":137175039001}"
             }
         ],
         "fetchIsolatedBorrowRate": [
@@ -1149,6 +1199,40 @@
                   }
                 ],
                 "output": "{\"amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"price\":\"61000\",\"stop_id\":137091809783,\"trigger_price\":\"61500\"}"
+            },
+            {
+                "description": "Swap edit a stop loss order",
+                "method": "editOrder",
+                "url": "https://api.coinex.com/v2/futures/modify-position-stop-loss",
+                "input": [
+                  137091809783,
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  0.0001,
+                  null,
+                  {
+                    "stopLossPrice": 61500
+                  }
+                ],
+                "output": "{\"stop_loss_amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"stop_loss_id\":137091809783,\"stop_loss_price\":\"61500\"}"
+            },
+            {
+                "description": "Swap edit a take profit order",
+                "method": "editOrder",
+                "url": "https://api.coinex.com/v2/futures/modify-position-take-profit",
+                "input": [
+                  137091809783,
+                  "BTC/USDT:USDT",
+                  null,
+                  null,
+                  0.0001,
+                  null,
+                  {
+                    "takeProfitPrice": 61500
+                  }
+                ],
+                "output": "{\"take_profit_amount\":\"0.0001\",\"market\":\"BTCUSDT\",\"market_type\":\"FUTURES\",\"take_profit_id\":137091809783,\"take_profit_price\":\"61500\"}"
             }
         ],
         "createDepositAddress": [
