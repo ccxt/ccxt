@@ -1,0 +1,109 @@
+{
+    "BTC/USDC:USDC": {
+        "id": "BTC-PERP",
+        "lowercaseId": null,
+        "symbol": "BTC/USDC:USDC",
+        "base": "BTC",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00035,
+        "maker": -0.00002,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 9,
+            "price": 9
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 20
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": 3500
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "symbol": "BTC-PERP",
+            "marketIndex": "1",
+            "marketType": "perp",
+            "baseAsset": "BTC",
+            "quoteAsset": "USDC",
+            "status": "active",
+            "precision": "9",
+            "limits": {
+                "leverage": {
+                    "min": "1",
+                    "max": "20"
+                },
+                "amount": {
+                    "min": "0.0001",
+                    "max": "3500"
+                }
+            },
+            "fees": {
+                "maker": "-0.00002",
+                "taker": "0.00035"
+            },
+            "oraclePrice": "76367.875594",
+            "markPrice": "76353.150000",
+            "baseVolume": "1064.778900",
+            "quoteVolume": "81786544.070883",
+            "openInterest": {
+                "long": "292.8645",
+                "short": "-303.5413"
+            },
+            "fundingRate": {
+                "long": "-0.00046",
+                "short": "0.00046"
+            },
+            "fundingRate24h": "0.000276",
+            "fundingRateUpdateTs": "1770015603",
+            "price": "76354.300000",
+            "priceChange24h": "-1663.180541",
+            "priceChange24hPercent": "-2.13",
+            "priceHigh": {
+                "oracle": "79153.374141",
+                "fill": "79136.500000"
+            },
+            "priceLow": {
+                "oracle": "74533.774008",
+                "fill": "74487.470229"
+            }
+        },
+        "tierBased": null,
+        "percentage": null
+    }
+}

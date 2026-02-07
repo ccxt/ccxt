@@ -1,0 +1,138 @@
+{
+    "exchange": "drift",
+    "accountId": "ididididid",
+    "secret": "secretsecretsecretsecretsecretsecretsecrets",
+    "skipKeys": [
+        "signature"
+    ],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://data.api.drift.trade/stats/markets",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://data.api.drift.trade/stats/markets",
+                "input": [
+                    ["BTC/USDC:USDC"]
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://dlob.drift.trade/l2?marketName=BTC-PERP",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://data.api.drift.trade/market/BTC-PERP/trades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://data.api.drift.trade/user/12345/trades/BTC-PERP",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://data.api.drift.trade/user/12345/trades",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://data.api.drift.trade/market/BTC-PERP/candles/1",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://data.api.drift.trade/user/12345/orders/id/1",
+                "input": [
+                    1,
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders with symbol",
+                "method": "fetchOrders",
+                "url": "https://data.api.drift.trade/user/12345/orders/perp/BTC-PERP",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://data.api.drift.trade/user/12345/orders/perp",
+                "input": []
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://data.api.drift.trade/user/12345",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://data.api.drift.trade/user/12345",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://data.api.drift.trade/user/12345",
+                "input": []
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://data.api.drift.trade/user/12345/fundingPayments",
+                "input": []
+            }
+        ]
+    }
+}
