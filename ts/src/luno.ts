@@ -303,6 +303,7 @@ export default class luno extends Exchange {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 60000.0,
         });
     }
 

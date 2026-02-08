@@ -391,6 +391,7 @@ export default class bitvavo extends Exchange {
             'commonCurrencies': {
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
             },
+            'rollingWindowSize': 60000.0,
         });
     }
 

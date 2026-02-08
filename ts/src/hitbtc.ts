@@ -756,6 +756,7 @@ export default class hitbtc extends Exchange {
                 'XMT': 'MTL',
                 'XPNT': 'PNT',
             },
+            'rollingWindowSize': 1000.0,
         });
     }
 
