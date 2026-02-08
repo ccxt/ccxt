@@ -1158,6 +1158,7 @@ export default class gate extends Exchange {
                 },
                 'broad': {},
             },
+            'rollingWindowSize': 5000.0,
         });
     }
 
