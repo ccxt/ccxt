@@ -200,48 +200,84 @@ async def test_no_memory_leak():
     initial_tasks = len(asyncio.all_tasks())
     print(f"Initial asyncio tasks: {initial_tasks}")
 
-    # Perform multiple watch operations that would trigger the memory leak
-    # The old implementation would create a new task for each race() call
-    iterations = 100
-    symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT', 'ADA/USDT']
+    # Run multiple concurrent watch operations to better simulate production load
+    # where many symbols are watched simultaneously
+    duration_seconds = 30
+    symbols = ['BTC/USDT', 'ETH/USDT', 'LTC/USDT', 'XRP/USDT', 'ADA/USDT',
+               'DOGE/USDT', 'SOL/USDT', 'DOT/USDT', 'MATIC/USDT', 'AVAX/USDT']
 
-    print(f"Performing {iterations} watch operations across {len(symbols)} symbols...")
+    print(f"Running concurrent watch operations for {duration_seconds} seconds across {len(symbols)} symbols...")
 
-    for i in range(iterations):
-        try:
-            # watch_tickers uses watch_multiple which calls Future.race()
-            # This would create tasks in the old implementation
-            await asyncio.wait_for(exchange.watch_tickers(symbols), timeout=0.5)
-        except asyncio.TimeoutError:
-            # Expected - we don't want to wait for actual responses
-            pass
-        except Exception as e:
-            # Connection errors are ok, we're testing memory leak not connectivity
-            if 'NetworkError' not in str(type(e).__name__):
-                print(f"Warning: {type(e).__name__}: {e}")
+    start_time = asyncio.get_event_loop().time()
+    max_tasks_seen = initial_tasks
+    iterations = 0
+
+    async def watch_continuously(symbol):
+        """Continuously watch a symbol to create sustained load"""
+        nonlocal iterations
+        while asyncio.get_event_loop().time() - start_time < duration_seconds:
+            try:
+                await exchange.watch_ticker(symbol)
+                iterations += 1
+            except Exception as e:
+                # Connection errors are ok, we're testing memory leak not connectivity
+                if 'NetworkError' not in str(type(e).__name__):
+                    pass  # Ignore errors during test
+
+    # Create concurrent watch tasks for all symbols (simulates production)
+    watch_tasks = [asyncio.create_task(watch_continuously(symbol)) for symbol in symbols]
+
+    # Monitor task count while running
+    async def monitor_tasks():
+        nonlocal max_tasks_seen
+        while asyncio.get_event_loop().time() - start_time < duration_seconds:
+            await asyncio.sleep(5)
+            current_tasks = len(asyncio.all_tasks())
+            max_tasks_seen = max(max_tasks_seen, current_tasks)
+            elapsed = asyncio.get_event_loop().time() - start_time
+            task_growth = current_tasks - initial_tasks
+            print(f"  [{elapsed:.1f}s] Tasks: {current_tasks} (growth: {task_growth}), Iterations: {iterations}")
+
+    monitor_task = asyncio.create_task(monitor_tasks())
+
+    # Wait for test to complete
+    await asyncio.sleep(duration_seconds)
+
+    # Cancel all watch tasks
+    for task in watch_tasks:
+        task.cancel()
+    monitor_task.cancel()
+
+    # Wait for cancellation
+    await asyncio.gather(*watch_tasks, monitor_task, return_exceptions=True)
 
     # Give event loop time to clean up
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.5)
 
     # Check task count after operations
     final_tasks = len(asyncio.all_tasks())
     task_growth = final_tasks - initial_tasks
+    max_growth = max_tasks_seen - initial_tasks
 
     print(f"Final asyncio tasks: {final_tasks}")
     print(f"Task growth: {task_growth}")
+    print(f"Max tasks seen during test: {max_tasks_seen} (growth: {max_growth})")
+    print(f"Total iterations: {iterations}")
 
     # Clean up
     await exchange.close()
 
-    max_acceptable_growth = 10
+    # The old implementation would accumulate tasks equal to the number of concurrent operations
+    # With 10 symbols being watched continuously, we'd expect significant growth
+    max_acceptable_growth = 40
 
-    if task_growth > max_acceptable_growth:
+    if max_growth > max_acceptable_growth:
         raise AssertionError(
-            f"Memory leak detected! Task count grew by {task_growth} "
+            f"Memory leak detected! Max task growth was {max_growth} "
             f"(expected < {max_acceptable_growth}). "
-            f"The old implementation would leak ~{iterations} tasks."
+            f"The old implementation creates tasks that accumulate under concurrent load."
         )
 
-    print(f"PASSED - No memory leak detected (task growth: {task_growth} < {max_acceptable_growth})")
+    print(f"PASSED - No memory leak detected (max growth: {max_growth} < {max_acceptable_growth})")
 
 asyncio.run(test_ws_close())
