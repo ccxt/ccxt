@@ -29,6 +29,7 @@ include_once __DIR__ . '/test_omit.php';
 include_once __DIR__ . '/test_group_by.php';
 include_once __DIR__ . '/test_index_by.php';
 include_once __DIR__ . '/test_filter_by.php';
+include_once __DIR__ . '/test_precision_from_string.php';
 include_once __DIR__ . '/test_urlencode_base64.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
@@ -65,6 +66,7 @@ function base_tests_init() {
         test_handle_methods();
         test_remove_repeated_elements_from_array();
         test_parse_precision();
+        test_precision_from_string();
         test_extract_params();
         test_arrays_concat();
         test_eth_methods();

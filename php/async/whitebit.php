@@ -1850,7 +1850,7 @@ class whitebit extends Exchange {
             //         "time":1737380046
             //     }
             //
-            return $this->safe_integer($response, 'time');
+            return $this->safe_integer_product($response, 'time', 1000);
         }) ();
     }
 

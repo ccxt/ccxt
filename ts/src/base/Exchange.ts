@@ -6056,6 +6056,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createTwapOrder() is not supported yet');
+    }
+
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         throw new NotSupported (this.id + ' createConvertTrade() is not supported yet');
     }

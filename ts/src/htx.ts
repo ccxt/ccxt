@@ -3541,6 +3541,7 @@ export default class htx extends Exchange {
     /**
      * @method
      * @name htx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -3548,34 +3549,37 @@ export default class htx extends Exchange {
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.subType] linear or future
+     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const options = this.safeValue (this.options, 'fetchBalance', {});
-        const isUnifiedAccount = this.safeValue2 (params, 'isUnifiedAccount', 'unified', false);
-        params = this.omit (params, [ 'isUnifiedAccount', 'unified' ]);
+        let subType = undefined;
+        let isUnifiedAccount = undefined;
+        let isMultiAssetMode = undefined;
+        [ subType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+        [ isUnifiedAccount, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'unified', 'uta', false);
+        [ isMultiAssetMode, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'multiAssetMode', false);
         const request: Dict = {};
         const spot = (type === 'spot');
         const future = (type === 'future');
-        const defaultSubType = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
-        let subType = this.safeString2 (options, 'defaultSubType', 'subType', defaultSubType);
-        subType = this.safeString2 (params, 'defaultSubType', 'subType', subType);
         const inverse = (subType === 'inverse');
         const linear = (subType === 'linear');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         const isolated = (marginMode === 'isolated');
         const cross = (marginMode === 'cross');
         const margin = (type === 'margin') || (spot && (cross || isolated));
         let response = undefined;
-        if (spot || margin) {
+        if (isMultiAssetMode) {
+            response = await this.contractPrivateGetV5AccountBalance (this.extend (request, params));
+        } else if (spot || margin) {
             if (margin) {
                 if (isolated) {
                     response = await this.spotPrivateGetV1MarginAccountsBalance (this.extend (request, params));
@@ -3760,11 +3764,60 @@ export default class htx extends Exchange {
         //         "ts": 1640915104870
         //     }
         //
-        // TODO add balance parsing for linear swap
+        // multi asset mode
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "state": "normal",
+        //             "equity": "174.216697577770536136",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "174.216697577770536136",
+        //                     "available": "174.216697577770536136",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "available_margin": "174.216697577770536136",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "withdraw_available": "174.216697577770536136",
+        //                     "created_time": 1770293270932,
+        //                     "updated_time": 1770293270932,
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "174.216697577770536136",
+        //             "voucher_value": "0",
+        //             "created_time": 1770293268881,
+        //             "updated_time": 1770293270932
+        //         },
+        //         "ts": 1770293281344
+        //     }
         //
         let result: Dict = { 'info': response } as any;
         const data = this.safeValue (response, 'data');
-        if (spot || margin) {
+        if (isMultiAssetMode) {
+            const details = this.safeList (data, 'details', []);
+            for (let i = 0; i < details.length; i++) {
+                const balance = details[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString (balance, 'withdraw_available');
+                result[code] = account;
+            }
+            result = this.safeBalance (result);
+        } else if (spot || margin) {
             if (isolated) {
                 for (let i = 0; i < data.length; i++) {
                     const entry = data[i];

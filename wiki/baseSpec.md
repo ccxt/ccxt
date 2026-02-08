@@ -538,6 +538,28 @@ cancel multiple orders
 
 ---
 
+<a name="cancelTwapOrder" id="canceltwaporder"></a>
+
+## cancelTwapOrder
+cancels a running twap order
+
+**Kind**: instance   
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
+| params.vaultAddress | <code>string</code> | No | the vault address for order |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#canceltwaporder)
+
+---
+
 <a name="closeAllPositions" id="closeallpositions"></a>
 
 ## closeAllPositions
@@ -1228,6 +1250,32 @@ create a trailing order by providing the symbol, type, side, amount, price and t
 
 ---
 
+<a name="createTwapOrder" id="createtwaporder"></a>
+
+## createTwapOrder
+create a trade order that is executed as a TWAP order over a specified duration.
+
+**Kind**: instance   
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| duration | <code>int</code> | Yes | the duration of the TWAP order in milliseconds |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.randomize | <code>bool</code> | No | whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals) |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
+| params.vaultAddress | <code>string</code> | No | the vault address for order |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#createtwaporder)
+
+---
+
 <a name="createVault" id="createvault"></a>
 
 ## createVault
@@ -1430,6 +1478,26 @@ enables or disables demo trading mode
 * [binance](/exchanges/binance.md#enabledemotrading)
 * [bitget](/exchanges/bitget.md#enabledemotrading)
 * [bybit](/exchanges/bybit.md#enabledemotrading)
+
+---
+
+<a name="enableUserDexAbstraction" id="enableuserdexabstraction"></a>
+
+## enableUserDexAbstraction
+If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+
+**Kind**: instance   
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| enabled |  | Yes |  |
+| params |  | Yes |  |
+| params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#enableuserdexabstraction)
 
 ---
 
@@ -6360,6 +6428,25 @@ Instead of trading to increase the address based rate limits, this action allows
 
 ---
 
+<a name="setAgentAbstraction" id="setagentabstraction"></a>
+
+## setAgentAbstraction
+set agent abstraction mode
+
+**Kind**: instance   
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin" |
+| params | <code>object</code> | No |  |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#setagentabstraction)
+
+---
+
 <a name="setLeverage" id="setleverage"></a>
 
 ## setLeverage
@@ -6531,6 +6618,26 @@ enables or disables demo trading mode, if enabled will send PAPTRADING=1 in head
 
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#setsandboxmode)
+
+---
+
+<a name="setUserAbstraction" id="setuserabstraction"></a>
+
+## setUserAbstraction
+set user abstraction mode
+
+**Kind**: instance   
+**Returns**: dictionary response from the exchange
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| abstraction | <code>string</code> | Yes | one of the strings ["disabled", "unifiedAccount", "portfolioMargin"], |
+| params | <code>object</code> | No |  |
+| params.type | <code>string</code> | No | 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction' |
+
+##### Supported exchanges
+* [hyperliquid](/exchanges/hyperliquid.md#setuserabstraction)
 
 ---
 

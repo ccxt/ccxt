@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
 import testNumberToString from './test.numberToString.js';
@@ -24,6 +23,7 @@ import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
+import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
@@ -58,6 +58,7 @@ async function baseTestsInit() {
     testHandleMethods();
     testRemoveRepeatedElementsFromArray();
     testParsePrecision();
+    testPrecisionFromString();
     testExtractParams();
     testArraysConcat();
     testEthMethods();

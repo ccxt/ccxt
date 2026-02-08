@@ -562,6 +562,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
+                        'v5/account/set-limit-px-action': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s

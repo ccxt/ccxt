@@ -132,6 +132,7 @@ class kucoin extends Exchange {
                     'broker' => 'https://api-broker.kucoin.com',
                     'earn' => 'https://api.kucoin.com',
                     'uta' => 'https://api.kucoin.com',
+                    'utaPrivate' => 'https://api.kucoin.com',
                 ),
                 'www' => 'https://www.kucoin.com',
                 'doc' => array(
@@ -488,15 +489,53 @@ class kucoin extends Exchange {
                     'get' => array(
                         'market/announcement' => 20,
                         'market/currency' => 3,
+                        'market/currencies' => 3,
                         'market/instrument' => 4,
                         'market/ticker' => 15,
-                        'market/orderbook' => 3,
                         'market/trade' => 3,
                         'market/kline' => 3,
                         'market/funding-rate' => 2,
                         'market/funding-rate-history' => 5,
                         'market/cross-config' => 25,
+                        'market/collateral-discount-ratio' => 10,
+                        'market/index-price' => 20,
+                        'market/position-tiers' => 20,
+                        'market/open-interest' => 10,
                         'server/status' => 3,
+                    ),
+                ),
+                'utaPrivate' => array(
+                    'get' => array(
+                        'market/orderbook' => 3,
+                        'account/balance' => 5,
+                        'account/transfer-quota' => 20,
+                        'account/mode' => 30,
+                        'account/ledger' => 2,
+                        'account/interest-history' => 15,
+                        'account/deposit/address' => 5,
+                        '{accountMode}/account/balance' => 5,
+                        '{accountMode}/account/overview' => 5,
+                        '{accountMode}/order/detail' => 4,
+                        '{accountMode}/order/open-list' => 4,
+                        '{accountMode}/order/history' => 4,
+                        '{accountMode}/order/execution' => 4,
+                        '{accountMode}/position/open-list' => 3,
+                        '{accountMode}/position/history' => 2,
+                        '{accountMode}/position/tiers' => 20,
+                        'sub-account/balance' => 5,
+                        'user/fee-rate' => 3,
+                        'dcp/query' => 2,
+                    ),
+                    'post' => array(
+                        'account/transfer' => 4,
+                        'account/mode' => 30,
+                        '{accountMode}/account/modify-leverage' => 20,
+                        '{accountMode}/order/place' => 1,
+                        '{accountMode}/order/place-batch' => 4,
+                        '{accountMode}/order/cancel' => 1,
+                        '{accountMode}/order/cancel-batch' => 4,
+                        'sub-account/canTransferOut' => 5,
+                        'dcp/set' => 2,
                     ),
                 ),
             ),
@@ -2629,7 +2668,7 @@ class kucoin extends Exchange {
                 } else {
                     $request['tradeType'] = 'FUTURES';
                 }
-                $response = Async\await($this->utaGetMarketOrderbook ($this->extend($request, $params)));
+                $response = Async\await($this->utaPrivateGetMarketOrderbook ($this->extend($request, $params)));
                 //
                 //     {
                 //         "code" => "200000",
@@ -5861,9 +5900,9 @@ class kucoin extends Exchange {
             $endpoint = '/api/v1/' . $this->implode_params($path, $params);
         }
         $isUtaPrivate = false;
-        if ($api === 'uta') {
+        if (($api === 'uta') || ($api === 'utaPrivate')) {
             $endpoint = '/api/ua/v1/' . $this->implode_params($path, $params);
-            if ($path === 'market/orderbook') {
+            if ($api === 'utaPrivate') {
                 $isUtaPrivate = true;
             }
         }

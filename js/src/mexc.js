@@ -153,8 +153,8 @@ export default class mexc extends Exchange {
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
-                        'public': 'https://contract.mexc.com/api/v1/contract',
-                        'private': 'https://contract.mexc.com/api/v1/private',
+                        'public': 'https://api.mexc.com/api/v1/contract',
+                        'private': 'https://api.mexc.com/api/v1/private',
                     },
                     'broker': {
                         'private': 'https://api.mexc.com/api/v3/broker',
