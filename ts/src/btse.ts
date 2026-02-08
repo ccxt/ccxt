@@ -4,7 +4,7 @@
 import Exchange from './abstract/btse.js';
 import { BadRequest } from '../ccxt.js';
 import { Precise } from './base/Precise.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import type { Dict, FundingRate, FundingRateHistory, FundingRates, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
@@ -410,6 +410,8 @@ export default class btse extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    // {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+                    // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
                     // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
                     // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
@@ -1421,6 +1423,36 @@ export default class btse extends Exchange {
                 url += '?' + queryString;
             }
         }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            let bodyString = this.json (query);
+            if (method === 'GET') {
+                bodyString = '';
+            } else {
+                body = bodyString;
+            }
+            path = this.cleanPath (path);
+            const payload = path + nonce.toString () + bodyString;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
+            headers = {
+                'request-api': this.apiKey,
+                'request-nonce': nonce.toString (),
+                'request-sign': signature,
+                'Content-Type': 'application/json',
+            };
+        }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    cleanPath (path) {
+        let result = path.replace ('spot', '');
+        result = result.replace ('futures', '');
+        result = result.replace ('otc', '');
+        return result;
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
     }
 }
