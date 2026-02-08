@@ -1,0 +1,1458 @@
+
+//  ---------------------------------------------------------------------------
+
+import Exchange from './abstract/btse.js';
+import { BadRequest } from '../ccxt.js';
+import { Precise } from './base/Precise.js';
+import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
+import { TICK_SIZE } from './base/functions/number.js';
+import type { Dict, FundingRate, FundingRateHistory, FundingRates, Int, LeverageTier, LeverageTiers, Market, OHLCV, OpenInterests, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+
+//  ---------------------------------------------------------------------------
+
+/**
+ * @class btse
+ * @augments Exchange
+ */
+export default class btse extends Exchange {
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'id': 'btse',
+            'name': 'BTSE',
+            'countries': [ 'VG' ], // Virgin Islands (British)
+            'rateLimit': 1000 / 75, // 75 requests per second
+            'version': 'v3', // spot v3.3 and v3.2, swap v.2.3
+            'certified': false,
+            'pro': true,
+            'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': true,
+                'future': true,
+                'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
+                'cancelAllOrders': false,
+                'cancelOrder': false,
+                'cancelOrders': false,
+                'cancelOrdersWithClientOrderId': false,
+                'cancelOrderWithClientOrderId': false,
+                'closeAllPositions': false,
+                'closePosition': false,
+                'createDepositAddress': false,
+                'createLimitBuyOrder': false,
+                'createLimitOrder': false,
+                'createLimitSellOrder': false,
+                'createMarketBuyOrder': false,
+                'createMarketBuyOrderWithCost': false,
+                'createMarketOrder': false,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrder': false,
+                'createMarketSellOrderWithCost': false,
+                'createOrder': false,
+                'createOrders': false,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createPostOnlyOrder': false,
+                'createReduceOnlyOrder': false,
+                'createStopLimitOrder': false,
+                'createStopLossOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
+                'createTakeProfitOrder': false,
+                'createTrailingAmountOrder': false,
+                'createTrailingPercentOrder': false,
+                'createTriggerOrder': false,
+                'deposit': false,
+                'editOrder': false,
+                'editOrders': false,
+                'editOrderWithClientOrderId': false,
+                'fetchAccounts': false,
+                'fetchBalance': false,
+                'fetchBidsAsks': false,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledAndClosedOrders': false,
+                'fetchCanceledOrders': false,
+                'fetchClosedOrder': false,
+                'fetchClosedOrders': false,
+                'fetchConvertCurrencies': false,
+                'fetchConvertQuote': false,
+                'fetchConvertTrade': false,
+                'fetchConvertTradeHistory': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
+                'fetchDeposit': false,
+                'fetchDepositAddress': false,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': false,
+                'fetchDepositsWithdrawals': false,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
+                'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': true,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
+                'fetchL2OrderBook': false,
+                'fetchL3OrderBook': false,
+                'fetchLastPrices': false,
+                'fetchLedger': false,
+                'fetchLedgerEntry': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': true,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': true,
+                'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
+                'fetchMyTrades': false,
+                'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': true,
+                'fetchOpenOrder': false,
+                'fetchOpenOrders': false,
+                'fetchOption': false,
+                'fetchOptionChain': false,
+                'fetchOrder': false,
+                'fetchOrderBook': true,
+                'fetchOrderBooks': false,
+                'fetchOrders': false,
+                'fetchOrdersByStatus': false,
+                'fetchOrderTrades': false,
+                'fetchOrderWithClientOrderId': false,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
+                'fetchStatus': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTradingLimits': false,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
+                'fetchTransactions': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
+                'fetchWithdrawAddresses': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
+                'fetchWithdrawalWhitelist': false,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'sandbox': true,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'signIn': false,
+                'transfer': false,
+                'watchMyLiquidationsForSymbols': false,
+                'withdraw': false,
+                'ws': false,
+            },
+            'urls': {
+                'logo': '', // todo add logo
+                'api': {
+                    'public': 'https://api.btse.com',
+                    'private': 'https://api.btse.com',
+                },
+                'test': {
+                    'public': 'https://testapi.btse.io',
+                    'private': 'https://testapi.btse.io',
+                },
+                'www': 'https://www.btse.com',
+                'doc': 'https://support.btse.com/en/support/solutions/articles/43000044751-btse-api',
+                'referral': '', // todo check
+                'fees': 'https://support.btse.com/en/support/solutions/articles/43000064283',
+            },
+            'api': {
+                'public': {
+                    'get': {
+                        'spot/api/v3.3/market_summary': 5, // done
+                        'spot/api/v3.3/ohlcv': 5, // done
+                        'spot/api/v3.3/price': 5, // not used
+                        'spot/api/v3.3/orderbook': 5, // not used
+                        'spot/api/v3.3/orderbook/L2': 5, // done
+                        'spot/api/v3.3/trades': 5, // done
+                        'spot/api/v3.3/time': 5, // done
+                        'futures/api/v2.3/market_summary': 5, // done
+                        'futures/api/v2.3/ohlcv': 5, // done
+                        'futures/api/v2.3/price': 5, // not used
+                        'futures/api/v2.3/orderbook': 5, // not used
+                        'futures/api/v2.3/orderbook/L2': 5, // done
+                        'futures/api/v2.3/trades': 5, // done
+                        'futures/api/v2.3/funding_history': 5, // done
+                        'futures/api/v2.3/market/risk_limit': 5, // done
+                        'spot/api/v3.2/availableCurrencyNetworks': 15, // not used
+                        'spot/api/v3.2/exchangeRate': 15, // not used
+                        'public-api/wallet/v1/crypto/networks ': 15, // not used
+                        'public-api/wallet/v1/assets/exchangeRate': 15, // not used
+                    },
+                },
+                'private': {
+                    'get': {
+                        'spot/api/v3.3/order': 1,
+                        'spot/api/v3.3/user/open_orders': 5,
+                        'spot/api/v3.3/user/trade_history': 5,
+                        'spot/api/v3.3/user/fees': 5,
+                        'spot/api/v3.3/invest/products': 5,
+                        'spot/api/v3.3/invest/orders': 5,
+                        'spot/api/v3.3/invest/history': 5,
+                        'futures/api/v2.3/order': 1,
+                        'futures/api/v2.3/user/open_orders': 1,
+                        'futures/api/v2.3/user/trade_history': 5,
+                        'futures/api/v2.3/user/positions': 5,
+                        'futures/api/v2.3/risk_limit': 5,
+                        'futures/api/v2.3/leverage': 5,
+                        'futures/api/v2.3/user/fees': 5,
+                        'futures/api/v2.3/position_mode': 5,
+                        'futures/api/v2.3/user/margin_setting': 5,
+                        'futures/api/v2.3/user/wallet': 5,
+                        'futures/api/v2.3/user/wallet_history': 5,
+                        'futures/api/v2.3/user/unifiedWallet/margin': 5,
+                        'futures/api/v2.3/user/margin': 5,
+                        'otc/api/v1/getMarket': 1,
+                        'spot/api/v3.2/user/wallet': 15,
+                        'spot/api/v3.2/user/wallet_history': 15,
+                        'spot/api/v3.3/user/wallet/address': 15,
+                        'spot/api/v3.2/availableCurrencies': 15,
+                        'spot/api/v3.2/subaccount/wallet/history': 15,
+                    },
+                    'post': {
+                        'spot/api/v3.3/order': 1,
+                        'spot/api/v3.3/order/peg': 1,
+                        'spot/api/v3.3/order/cancelAllAfter': 1,
+                        'spot/api/v3.3/invest/deposit': 5,
+                        'spot/api/v3.3/invest/renew': 5,
+                        'spot/api/v3.3/invest/redeem': 5,
+                        'futures/api/v2.3/order': 1,
+                        'futures/api/v2.3/order/peg': 1,
+                        'futures/api/v2.3/order/cancelAllAfter': 1,
+                        'futures/api/v2.3/order/close_position': 1,
+                        'futures/api/v2.3/risk_limit': 5,
+                        'futures/api/v2.3/leverage': 5,
+                        'futures/api/v2.3/settle_in': 5,
+                        'futures/api/v2.3/order/bind/tpsl': 1,
+                        'futures/api/v2.3/position_mode': 5,
+                        'futures/api/v2.3/user/wallet/transfer': 5,
+                        'futures/api/v2.3/subaccount/wallet/transfer': 5,
+                        'otc/api/v1/quote': 1,
+                        'otc/api/v1/accept/{quoteId}': 1,
+                        'otc/api/v1/reject/{quoteId}': 1,
+                        'otc/api/v1/queryOrder/{quoteId}': 1,
+                        'spot/api/v3.3/user/wallet/address': 15,
+                        'spot/api/v3.3/user/wallet/withdraw': 15,
+                        'spot/api/v3.2/user/wallet/convert': 15,
+                        'spot/api/v3.3/user/wallet/transfer': 15,
+                    },
+                    'put': {
+                        'spot/api/v3.3/order': 1,
+                        'futures/api/v2.3/order': 1,
+                    },
+                    'delete': {
+                        'spot/api/v3.3/order': 1,
+                        'futures/api/v2.3/order': 1,
+                        'spot/api/v3.3/user/wallet/address': 15,
+                    },
+                },
+            },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'marginMode': false,
+                        'triggerPrice': false,
+                        'triggerPriceType': {
+                            'mark': true,
+                            'last': true,
+                            'index': false,
+                        },
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': undefined, // not supported
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'hedged': true,
+                        'selfTradePrevention': false,
+                        'trailing': true,
+                        'iceberg': false,
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                    },
+                    'createOrders': {
+                        'max': 5,
+                    },
+                    'fetchMyTrades': {
+                        'marginMode': false,
+                        'daysBack': 182, // 6 months
+                        'limit': 500,
+                        'untilDays': 7,
+                        'symbolRequired': false,
+                    },
+                    'fetchOrder': undefined,
+                    'fetchOpenOrder': {
+                        'marginMode': false,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOpenOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': true,
+                    },
+                    'fetchOrders': undefined,
+                    'fetchCanceledAndClosedOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': 182, // 6 months
+                        'untilDays': 7,
+                        'trigger': false,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
+                    'fetchClosedOrders': undefined,
+                    'fetchOHLCV': {
+                        'limit': 300,
+                    },
+                },
+                'spot': {
+                    'extends': 'default',
+                },
+                'swap': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+                'future': {
+                    'linear': {
+                        'extends': 'default',
+                    },
+                    'inverse': undefined,
+                },
+            },
+            'timeframes': {
+                '1m': '1',
+                '5m': '5',
+                '15m': '15',
+                '30m': '30',
+                '1h': '60',
+                '4h': '240',
+                '6h': '360',
+                '1d': '1440',
+                '1w': '10080',
+                '1M': '43200',
+            },
+            'precisionMode': TICK_SIZE,
+            'fees': {
+                'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0002'),
+                },
+                'spot': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.0002'),
+                },
+                'contract': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0002'),
+                    'taker': this.parseNumber ('0.00055'),
+                },
+            },
+            'exceptions': {
+                'exact': {
+                    // {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+                    // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
+                    // 400 Bad Request {"code":-11,"msg":"System error","success":false,"time":1770451790797,"data":[]}
+                    // {"code":400,"msg":"BADREQUEST: resolution too small for the requested time range. Records returned exceeds 300","success":false,"time":1770452248292,"data":[]}
+                    // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
+                },
+                'broad': {
+                },
+            },
+            'commonCurrencies': {
+            },
+            'options': {
+                'timeDifference': 0, // the difference between system clock and the exchange server clock in milliseconds
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
+                'networks': {
+                },
+                'timeInForce': {
+                },
+                'accountsByType': {
+                },
+                'accountsById': {
+                },
+            },
+        });
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTime
+     * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-server-time
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int} the current integer timestamp in milliseconds from the exchange server
+     */
+    async fetchTime (params = {}): Promise<Int> {
+        const response = await this.publicGetSpotApiV33Time (params);
+        //
+        //     {
+        //         "iso": "2026-02-06T11:48:37.976Z",
+        //         "epoch": 1770378517
+        //     }
+        //
+        return this.safeTimestamp (response, 'epoch');
+    }
+
+    /**
+     * @method
+     * @name btse#fetchMarkets
+     * @description retrieves data on all markets for btse
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#market-summary
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of objects representing market data
+     */
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        if (this.options['adjustForTimeDifference']) {
+            await this.loadTimeDifference ();
+        }
+        const spotPromise = this.publicGetSpotApiV33MarketSummary (params);
+        const contractPromise = this.publicGetFuturesApiV23MarketSummary (params);
+        const [ spotMarkets, contractMarkets ] = await Promise.all ([ spotPromise, contractPromise ]);
+        const markets = this.arrayConcat (spotMarkets, contractMarkets);
+        return this.parseMarkets (markets);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        // spot
+        //     {
+        //         "symbol": "ZSWAP-USDT",
+        //         "last": 0.0014137,
+        //         "lowestAsk": 0.0014242,
+        //         "highestBid": 0.0014051,
+        //         "percentageChange": -1.26414303,
+        //         "volume": 35492.87247512,
+        //         "high24Hr": 0.0014591,
+        //         "low24Hr": 0.0011803,
+        //         "base": "ZSWAP",
+        //         "quote": "USDT",
+        //         "active": true,
+        //         "size": 26176204.2,
+        //         "minValidPrice": 0.0000001,
+        //         "minPriceIncrement": 0.0000001,
+        //         "minOrderSize": 0.1,
+        //         "maxOrderSize": 20000000,
+        //         "minSizeIncrement": 0.1,
+        //         "openInterest": 0,
+        //         "openInterestUSD": 0,
+        //         "contractStart": 0,
+        //         "contractEnd": 0,
+        //         "timeBasedContract": false,
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "startMatching": 0,
+        //         "inactiveTime": 0,
+        //         "fundingRate": 0,
+        //         "contractSize": 0,
+        //         "maxPosition": 0,
+        //         "minRiskLimit": 0,
+        //         "maxRiskLimit": 0,
+        //         "availableSettlement": null,
+        //         "futures": false,
+        //         "isMarketOpenToOtc": false,
+        //         "isMarketOpenToSpot": true
+        //     }
+        //
+        // swap
+        //     {
+        //         "symbol": "BTC-PERP",
+        //         "last": 66358.6,
+        //         "lowestAsk": 66359.8,
+        //         "highestBid": 66352.6,
+        //         "openInterest": 31447681,
+        //         "openInterestUSD": 20867816.81,
+        //         "percentageChange": -4.5777,
+        //         "volume": 4296340617.722564,
+        //         "high24Hr": 70819.6,
+        //         "low24Hr": 59838.9,
+        //         "base": "BTC",
+        //         "quote": "USDT",
+        //         "contractStart": 0,
+        //         "contractEnd": 0,
+        //         "active": true,
+        //         "timeBasedContract": false,
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "startMatching": 0,
+        //         "inactiveTime": 0,
+        //         "fundingRate": -0.000058,
+        //         "contractSize": 0.00001,
+        //         "maxPosition": 1100000000,
+        //         "minValidPrice": 0.1,
+        //         "minPriceIncrement": 0.1,
+        //         "minOrderSize": 1,
+        //         "maxOrderSize": 7500000,
+        //         "minRiskLimit": 3000000,
+        //         "maxRiskLimit": 1100000000,
+        //         "minSizeIncrement": 1,
+        //         "availableSettlement": [
+        //             "USD",
+        //             "USDT"
+        //         ]
+        //     }
+        //
+        // future
+        //     {
+        //         "symbol": "BTC-260626",
+        //         "last": "67433.8",
+        //         "lowestAsk": "67485.5",
+        //         "highestBid": "67435.8",
+        //         "openInterest": "1571293",
+        //         "openInterestUSD": "1059955.67",
+        //         "percentageChange": "-4.5871",
+        //         "volume": "5969.600405",
+        //         "high24Hr": "71933.7",
+        //         "low24Hr": "60731.8",
+        //         "base": "BTC",
+        //         "quote": "USDT",
+        //         "contractStart": "0",
+        //         "contractEnd": "1782460830",
+        //         "active": true,
+        //         "timeBasedContract": true,
+        //         "openTime": "1766736000000",
+        //         "closeTime": "1782460830000",
+        //         "startMatching": "1766736015000",
+        //         "inactiveTime": "1782460800000",
+        //         "fundingRate": "0",
+        //         "contractSize": "0.00001",
+        //         "maxPosition": "40000000",
+        //         "minValidPrice": "0.1",
+        //         "minPriceIncrement": "0.1",
+        //         "minOrderSize": "1",
+        //         "maxOrderSize": "100000",
+        //         "minRiskLimit": "30000",
+        //         "maxRiskLimit": "40000000",
+        //         "minSizeIncrement": "1",
+        //         "availableSettlement": [
+        //             "USD",
+        //             "USDT"
+        //         ]
+        //     }
+        const id = this.safeString (market, 'symbol');
+        const baseId = this.safeString (market, 'base');
+        const quoteId = this.safeString (market, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        let symbol = base + '/' + quote;
+        const maxAmountString = this.safeString (market, 'maxOrderSize');
+        const minAmountString = this.safeString (market, 'minOrderSize');
+        const minPriceString = this.safeString (market, 'minValidPrice');
+        const pricePrecision = this.safeString (market, 'minPriceIncrement');
+        let amountPrecision = this.safeString (market, 'minSizeIncrement');
+        const isSpot = !(this.safeBool (market, 'futures', true)); // only spot markets have the 'futures' field, and it's false
+        let active = this.safeBool (market, 'active');
+        let type = 'spot';
+        let isSwap = false;
+        let isFuture = false;
+        let expiry = undefined;
+        let contractSize = undefined;
+        if (isSpot) {
+            active = this.safeValue (market, 'isMarketOpenToSpot');
+        }
+        if (!isSpot) {
+            symbol += ':' + quote; // todo check
+            contractSize = this.safeString (market, 'contractSize');
+            isFuture = this.safeBool (market, 'timeBasedContract', false);
+            amountPrecision = Precise.stringMul (amountPrecision, contractSize);
+            if (isFuture) {
+                expiry = this.safeInteger (market, 'closeTime');
+                symbol += '-' + this.yymmdd (expiry);
+                type = 'future';
+            } else {
+                type = 'swap';
+                isSwap = true;
+            }
+        }
+        let fees = this.fees['contract'];
+        if (isSpot) {
+            fees = this.fees['spot'];
+        }
+        return this.safeMarketStructure ({
+            'id': id,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': isSpot ? undefined : quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': isSpot ? undefined : quoteId,
+            'type': type,
+            'spot': isSpot,
+            'margin': isSpot ? false : undefined,
+            'swap': isSwap,
+            'future': isFuture,
+            'option': false,
+            'active': active,
+            'contract': isSwap || isFuture,
+            'linear': isSpot ? undefined : true,
+            'inverse': isSpot ? undefined : false,
+            'taker': fees['taker'],
+            'maker': fees['maker'],
+            'contractSize': this.parseNumber (contractSize),
+            'expiry': expiry,
+            'expiryDatetime': this.iso8601 (expiry),
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.parseNumber (amountPrecision),
+                'price': this.parseNumber (pricePrecision),
+            },
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.parseNumber (minAmountString),
+                    'max': this.parseNumber (maxAmountString),
+                },
+                'price': {
+                    'min': this.parseNumber (minPriceString),
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': this.parse8601 (this.safeString (market, 'createdAt')),
+            'info': market,
+        });
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOHLCV
+     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#charting-data
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#charting-data
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (default and max 300)
+     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const maxLimit = 300;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit);
+        }
+        const market = this.market (symbol);
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const request = {
+            'symbol': market['id'],
+            'resolution': interval,
+        };
+        if (since !== undefined) {
+            request['start'] = since;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until');
+        if (until !== undefined) {
+            if (since !== undefined) {
+                // check if the requested time range is too large for one request
+                // if so, just omit until for correct paginated calls for not to get an error from the exchange
+                const duration = this.parseTimeframe (timeframe);
+                const maxDelta = duration * maxLimit;
+                const difference = until - since;
+                if (difference < maxDelta) {
+                    request['end'] = until;
+                }
+            } else {
+                request['end'] = until;
+            }
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotApiV33Ohlcv (this.extend (request, params));
+        } else {
+            response = await this.publicGetFuturesApiV23Ohlcv (this.extend (request, params));
+        }
+        //
+        //     [
+        //         [
+        //             1770454800,
+        //             2018.43,
+        //             2020.0,
+        //             2018.43,
+        //             2019.21,
+        //             1291958.948051 // volume in quote currency
+        //         ]
+        //     ]
+        //
+        const result = this.parseOHLCVs (response, market, timeframe, since, limit);
+        return result;
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         1770454800,
+        //         2018.43,
+        //         2020.0,
+        //         2018.43,
+        //         2019.21,
+        //         1291958.948051 // volume in quote currency
+        //     ]
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOrderBook
+     * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#orderbook-2
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#orderbook-2
+     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     */
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['depth'] = limit;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotApiV33OrderbookL2 (this.extend (request, params));
+        } else {
+            response = await this.publicGetFuturesApiV23OrderbookL2 (this.extend (request, params));
+        }
+        //
+        //     {
+        //         "symbol": "ETH-USDT",
+        //         "buyQuote": [
+        //             {
+        //                 "price": "2012.79",
+        //                 "size": "3.8940"
+        //             }
+        //         ],
+        //         "sellQuote": [
+        //             {
+        //                 "price": "2012.92",
+        //                 "size": "0.0050"
+        //             }
+        //         ],
+        //         "timestamp": 1770458310213,
+        //         "depth": 1
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'buyQuote', 'sellQuote', 'price', 'size');
+    }
+
+    /**
+     * @method
+     * @name btse#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#funding-history
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of entries to fetch (default and max 100)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingRateHistory[]> {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            if (!(market['contract'])) {
+                throw new BadRequest (this.id + ' fetchFundingRateHistory() supports contract markets only');
+            }
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'until');
+        if (until !== undefined) {
+            request['to'] = until;
+        }
+        if (since === undefined && until === undefined) {
+            if (limit !== undefined) {
+                request['count'] = limit; // mutually exclusive with since/until
+            }
+        }
+        const response = await this.publicGetFuturesApiV23FundingHistory (this.extend (request, params));
+        //
+        //     {
+        //         "ETH-PERP": [
+        //             {
+        //                 "time": 1770451200,
+        //                 "rate": 0.00001528,
+        //                 "symbol": "ETH-PERP"
+        //             }
+        //         ]
+        //     }
+        //
+        let flattened = [];
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const entry = this.safeList (response, key, []);
+            flattened = this.arrayConcat (flattened, entry);
+        }
+        return this.parseFundingRateHistories (flattened, market, since, limit);
+    }
+
+    parseFundingRateHistory (contract, market: Market = undefined) {
+        //
+        //     {
+        //         "time": 1770451200,
+        //         "rate": 0.00001528,
+        //         "symbol": "ETH-PERP"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const timestamp = this.safeTimestamp (contract, 'time');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'fundingRate': this.safeNumber (contract, 'rate'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
+     * @name btse#fetchLeverageTiers
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-risk-limit-setting
+     * @description retrieve information on the maximum leverage, for different trade sizes
+     * @param {string[]|undefined} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
+     */
+    async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        if (symbols !== undefined) {
+            const length = symbols.length;
+            if (length === 1) {
+                const requestedSymbol = this.safeString (symbols, 0);
+                const market = this.market (requestedSymbol);
+                request['symbol'] = market['id'];
+            }
+        }
+        const response = await this.publicGetFuturesApiV23MarketRiskLimit (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "msg": "Success",
+        //         "time": 1770462468706,
+        //         "data": [
+        //             {
+        //                 "symbol": "RENDER-PERP",
+        //                 "riskLevel": 1,
+        //                 "riskLimitValue": 5000,
+        //                 "initialMarginRate": 0.01333333,
+        //                 "maintenanceMarginRate": 0.00666667,
+        //                 "maxLeverage": 75
+        //             }
+        //         ],
+        //         "success": true
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const market = this.safeMarket (marketId);
+            const symbol = market['symbol'];
+            if (symbols === undefined || this.inArray (symbol, symbols)) {
+                if (!(symbol in result)) {
+                    result[symbol] = [];
+                }
+                const tiers = result[symbol];
+                const parsed = {
+                    'tier': this.safeInteger (entry, 'riskLevel'),
+                    'symbol': symbol,
+                    'currency': market['settle'],
+                    'minNotional': undefined,
+                    'maxNotional': this.safeNumber (entry, 'riskLimitValue'),
+                    'maintenanceMarginRate': this.safeNumber (entry, 'maintenanceMarginRate'),
+                    'maxLeverage': this.safeNumber (entry, 'maxLeverage'),
+                    'info': entry,
+                };
+                tiers.push (parsed);
+                result[symbol] = this.sortBy (tiers, 'tier');
+            }
+        }
+        return result as LeverageTiers;
+    }
+
+    /**
+     * @method
+     * @name btse#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-risk-limit-setting
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
+        }
+        const result = await this.fetchLeverageTiers ([ symbol ], params);
+        return result[symbol];
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTickers
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#market-summary
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] default is 'spot' (if not 'spot', contract markets will be queried)
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params, type);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.publicGetSpotApiV33MarketSummary (params);
+        } else {
+            response = await this.publicGetFuturesApiV23MarketSummary (params);
+        }
+        return this.parseTickers (response, symbols);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#market-summary
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['spot']) {
+            //
+            //     [
+            //         {
+            //             "symbol": "ETH-USDT",
+            //             "last": 2035.14,
+            //             "lowestAsk": 2035.57,
+            //             "highestBid": 2035.55,
+            //             "percentageChange": 5.94169703,
+            //             "volume": 89426694.95885499,
+            //             "high24Hr": 2119.19,
+            //             "low24Hr": 1915.22,
+            //             "base": "ETH",
+            //             "quote": "USDT",
+            //             "active": true,
+            //             "size": 43994.847,
+            //             "minValidPrice": 0.01,
+            //             "minPriceIncrement": 0.01,
+            //             "minOrderSize": 0.0001,
+            //             "maxOrderSize": 2000,
+            //             "minSizeIncrement": 0.0001,
+            //             "openInterest": 0,
+            //             "openInterestUSD": 0,
+            //             "contractStart": 0,
+            //             "contractEnd": 0,
+            //             "timeBasedContract": false,
+            //             "openTime": 0,
+            //             "closeTime": 0,
+            //             "startMatching": 0,
+            //             "inactiveTime": 0,
+            //             "fundingRate": 0,
+            //             "contractSize": 0,
+            //             "maxPosition": 0,
+            //             "minRiskLimit": 0,
+            //             "maxRiskLimit": 0,
+            //             "availableSettlement": null,
+            //             "futures": false,
+            //             "isMarketOpenToOtc": true,
+            //             "isMarketOpenToSpot": true
+            //         }
+            //     ]
+            response = await this.publicGetSpotApiV33MarketSummary (this.extend (request, params));
+        } else {
+            //
+            //     [
+            //         {
+            //             "symbol": "BTC-PERP",
+            //             "last": 66358.6,
+            //             "lowestAsk": 66359.8,
+            //             "highestBid": 66352.6,
+            //             "openInterest": 31447681,
+            //             "openInterestUSD": 20867816.81,
+            //             "percentageChange": -4.5777,
+            //             "volume": 4296340617.722564,
+            //             "high24Hr": 70819.6,
+            //             "low24Hr": 59838.9,
+            //             "base": "BTC",
+            //             "quote": "USDT",
+            //             "contractStart": 0,
+            //             "contractEnd": 0,
+            //             "active": true,
+            //             "timeBasedContract": false,
+            //             "openTime": 0,
+            //             "closeTime": 0,
+            //             "startMatching": 0,
+            //             "inactiveTime": 0,
+            //             "fundingRate": -0.000058,
+            //             "contractSize": 0.00001,
+            //             "maxPosition": 1100000000,
+            //             "minValidPrice": 0.1,
+            //             "minPriceIncrement": 0.1,
+            //             "minOrderSize": 1,
+            //             "maxOrderSize": 7500000,
+            //             "minRiskLimit": 3000000,
+            //             "maxRiskLimit": 1100000000,
+            //             "minSizeIncrement": 1,
+            //             "availableSettlement": [
+            //                 "USD",
+            //                 "USDT"
+            //             ]
+            //         }
+            //     ]
+            response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        }
+        const data = this.safeDict (response, 0, {});
+        return this.parseTicker (data, market);
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (marketId, market),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'high24Hr'),
+            'low': this.safeString (ticker, 'low24Hr'),
+            'bid': this.safeString (ticker, 'highestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'lowestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'percentageChange'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'size'),
+            'quoteVolume': this.safeString (ticker, 'volume'),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOpenInterest
+     * @description Retrieves the open interest of a derivative trading pair
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() symbol does not support market ' + symbol);
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        const interest = this.safeDict (response, 0, {});
+        return this.parseOpenInterest (interest, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetFuturesApiV23MarketSummary (params);
+        return this.parseOpenInterests (response, symbols) as OpenInterests;
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        const marketId = this.safeString (interest, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return this.safeOpenInterest ({
+            'symbol': market['symbol'],
+            'openInterestAmount': this.safeNumber (interest, 'openInterest'),
+            'openInterestValue': this.safeNumber (interest, 'openInterestUSD'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        }, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new BadRequest (this.id + ' fetchFundingRate() symbol does not support spot markets');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'listFullAttributes': true,
+        };
+        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        const data = this.safeDict (response, 0, {});
+        return this.parseFundingRate (data, market);
+    }
+
+    /**
+     * @method
+     * @name btse#fetchFundingRates
+     * @description fetch the funding rate for multiple markets
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#market-summary
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     */
+    async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {
+            'listFullAttributes': true,
+        };
+        const response = await this.publicGetFuturesApiV23MarketSummary (this.extend (request, params));
+        return this.parseFundingRates (response, symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "symbol": "ETH-PERP",
+        //         "last": 2034.23,
+        //         "lowestAsk": 2033.9,
+        //         "highestBid": 2033.75,
+        //         "openInterest": 23884716,
+        //         "openInterestUSD": 4859177.67,
+        //         "percentageChange": 4.3728,
+        //         "volume": 2060865914.715277,
+        //         "high24Hr": 2117.35,
+        //         "low24Hr": 1918.26,
+        //         "base": "ETH",
+        //         "quote": "USDT",
+        //         "contractStart": 0,
+        //         "contractEnd": 0,
+        //         "active": true,
+        //         "timeBasedContract": false,
+        //         "openTime": 0,
+        //         "closeTime": 0,
+        //         "startMatching": 0,
+        //         "inactiveTime": 0,
+        //         "fundingRate": 0.0001,
+        //         "contractSize": 0.0001,
+        //         "maxPosition": 800000000,
+        //         "minValidPrice": 0.01,
+        //         "minPriceIncrement": 0.01,
+        //         "minOrderSize": 1,
+        //         "maxOrderSize": 10000000,
+        //         "minRiskLimit": 1500000,
+        //         "maxRiskLimit": 800000000,
+        //         "minSizeIncrement": 1,
+        //         "availableSettlement": [
+        //             "USD",
+        //             "USDT",
+        //             "USDC",
+        //             "BTC",
+        //             "ETH",
+        //             "AED",
+        //             "AUD",
+        //             "CAD",
+        //             "CHF",
+        //             "EUR",
+        //             "GBP",
+        //             "HKD",
+        //             "INR",
+        //             "JPY",
+        //             "MYR",
+        //             "NZD",
+        //             "SGD",
+        //             "SOL",
+        //             "XRP"
+        //         ],
+        //         "fundingIntervalMinutes": 480,
+        //         "fundingTime": 1770480000000
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const nextFundingTimestamp = this.safeInteger (contract, 'fundingTime');
+        const minutes = this.safeString (contract, 'fundingIntervalMinutes');
+        const interval = minutes + 'm'; // todo check
+        return {
+            'info': contract,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': interval,
+        } as FundingRate;
+    }
+
+    /**
+     * @method
+     * @name btse#fetchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://btsecom.github.io/docs/spotV3_3/en/#query-trades-fills
+     * @see https://btsecom.github.io/docs/futuresV2_3/en/#query-trades-fills
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch (max 500)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest entry to fetch
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.publicGetSpotApiV33Trades (this.extend (request, params));
+        } else {
+            response = await this.publicGetFuturesApiV23Trades (this.extend (request, params));
+        }
+        //
+        //     [
+        //         {
+        //             "price": 2042.7041849,
+        //             "size": 0.01,
+        //             "side": "SELL",
+        //             "symbol": "ETH-USDT",
+        //             "serialId": 128814627,
+        //             "timestamp": 1770473932328
+        //         }
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "price": 2042.7041849,
+        //         "size": 0.01,
+        //         "side": "SELL",
+        //         "symbol": "ETH-USDT",
+        //         "serialId": 128814627,
+        //         "timestamp": 1770473932328
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': this.safeString (trade, 'serialId'),
+            'order': undefined,
+            'type': undefined,
+            'side': this.safeStringLower (trade, 'side'),
+            'takerOrMaker': undefined,
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        const baseUrl = this.urls['api'][api];
+        let url = baseUrl + '/' + this.implodeParams (path, params);
+        const query = this.omit (params, this.extractParams (path));
+        let queryString = '';
+        if (method === 'GET') {
+            if (Object.keys (query).length) {
+                queryString = this.urlencode (query);
+                url += '?' + queryString;
+            }
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const nonce = this.nonce ();
+            let bodyString = this.json (query);
+            if (method === 'GET') {
+                bodyString = '';
+            } else {
+                body = bodyString;
+            }
+            path = this.cleanPath (path);
+            const payload = path + nonce.toString () + bodyString;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
+            headers = {
+                'request-api': this.apiKey,
+                'request-nonce': nonce.toString (),
+                'request-sign': signature,
+                'Content-Type': 'application/json',
+            };
+        }
+        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    cleanPath (path) {
+        let result = path.replace ('spot', '');
+        result = result.replace ('futures', '');
+        result = result.replace ('otc', '');
+        return result;
+    }
+
+    nonce () {
+        return this.milliseconds () - this.options['timeDifference'];
+    }
+}
