@@ -952,6 +952,7 @@ class Transpiler {
                 features[feature] = value
             }
         }
+        this.autoSetExchangeHas (code, features);
         let keys = Object.keys (features)
         keys.sort ((a, b) => a.localeCompare (b))
         const allKeys = Object.keys (sortingOrder).concat (keys)
@@ -964,6 +965,63 @@ class Transpiler {
             return false
         }
         return code.replace (capabilitiesObjectRegex, result)
+    }
+
+    autoSetExchangeHas (code: string, features: dict) {
+        // check unified methods and autofill the .has tree
+        const baseExchange = this.getBaseClass ()
+        const defaultDescribe = baseExchange.describe ();
+        const defaultHas = defaultDescribe.has;
+        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox' ];
+        const specialMethods = [
+            // ohlcv-related
+            'fetchMarkOHLCV',
+            'fetchPremiumOHLCV',
+            'fetchPremiumIndexOHLCV',
+            'fetchIndexOHLCV',
+            // order-related
+            'createTrailingAmountOrder',
+            'createTrailingAmountOrderWs',
+            'createTrailingPercentOrder',
+            'createTrailingPercentOrderWs',
+            'createMarketOrderWithCost',
+            'createMarketOrderWithCostWs',
+            'createMarketBuyOrderWithCost',
+            'createMarketBuyOrderWithCostWs',
+            'createMarketSellOrderWithCost',
+            'createMarketSellOrderWithCostWs',
+            'createTriggerOrder',
+            'createTriggerOrderWs',
+            'createStopLossOrder',
+            'createStopLossOrderWs',
+            'createTakeProfitOrder',
+            'createTakeProfitOrderWs',
+            'createOrderWithTakeProfitAndStopLoss',
+            'createOrderWithTakeProfitAndStopLossWs',
+            'createPostOnlyOrder',
+            'createPostOnlyOrderWs',
+            'createReduceOnlyOrder',
+            'createReduceOnlyOrderWs',
+            'createStopOrder',
+            'createStopOrderWs',
+            'createStopLimitOrder',
+            'createStopLimitOrderWs',
+            'createStopMarketOrder',
+            'createStopMarketOrderWs',
+        ];
+        for (const methodName of Object.keys (defaultHas)) {
+            // if code contains unified method defition, then it should be true
+            if (code.includes ('\n    async ' + methodName + ' (')) {
+                if (!(methodName in features) || (features[methodName] !== 'true,' && features[methodName] !== '\'emulated\',')) {
+                    features[methodName] = 'true,';
+                }
+            } else if (!exclusions.includes (methodName) && !specialMethods.includes (methodName)) {
+                // if code does not contain unified method definition, then we remove (unless false)
+                if (!(methodName in features) || features[methodName] !== 'false,') {
+                    delete features[methodName];
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------------
