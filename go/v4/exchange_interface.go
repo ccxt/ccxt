@@ -29,6 +29,8 @@ type IBaseExchange interface {
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
+	GetLast_response_headers() map[string]interface{}
+	GetLastResponseHeaders() map[string]interface{}
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val interface{})
 	GetHas() map[string]interface{}

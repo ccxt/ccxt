@@ -91,6 +91,8 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_response_headers    interface{}
+	LastResponseHeaders      interface{}
 	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
