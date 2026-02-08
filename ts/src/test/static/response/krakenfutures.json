@@ -61,7 +61,10 @@
                         "price": 0.50008,
                         "amount": 1,
                         "cost": 0.50008,
-                        "fee": {"cost": null, "currency": null },
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     },
                     {
@@ -86,7 +89,10 @@
                         "price": 68.54,
                         "amount": 0.1,
                         "cost": 6.854,
-                        "fee": {"cost": null, "currency": null },
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]
@@ -1060,6 +1066,94 @@
                         "stopLossPrice": null
                     }
                 ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "DOGE/USD:USD"
+                    ]
+                ],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2026-02-08T17:33:58.322Z",
+                    "tickers": [
+                        {
+                            "symbol": "PF_DOGEUSD",
+                            "last": "0.096326",
+                            "lastTime": "2026-02-08T17:32:13.922599Z",
+                            "tag": "perpetual",
+                            "pair": "DOGE:USD",
+                            "markPrice": "0.09624183255",
+                            "bid": "0.096234",
+                            "bidSize": "100",
+                            "ask": "0.096253",
+                            "askSize": "1714",
+                            "vol24h": "38320755",
+                            "volumeQuote": "3743943.987912",
+                            "openInterest": "23062948.000000000000000",
+                            "open24h": "0.097602",
+                            "high24h": "0.099418",
+                            "low24h": "0.095038",
+                            "lastSize": "665",
+                            "fundingRate": "-0.000000742689179664",
+                            "fundingRatePrediction": "-0.000000253089377012",
+                            "suspended": false,
+                            "indexPrice": "0.096257",
+                            "postOnly": false,
+                            "change24h": "-1.31"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "DOGE/USD:USD": {
+                        "info": {
+                            "symbol": "PF_DOGEUSD",
+                            "last": "0.096326",
+                            "lastTime": "2026-02-08T17:32:13.922599Z",
+                            "tag": "perpetual",
+                            "pair": "DOGE:USD",
+                            "markPrice": "0.09624183255",
+                            "bid": "0.096234",
+                            "bidSize": "100",
+                            "ask": "0.096253",
+                            "askSize": "1714",
+                            "vol24h": "38320755",
+                            "volumeQuote": "3743943.987912",
+                            "openInterest": "23062948.000000000000000",
+                            "open24h": "0.097602",
+                            "high24h": "0.099418",
+                            "low24h": "0.095038",
+                            "lastSize": "665",
+                            "fundingRate": "-0.000000742689179664",
+                            "fundingRatePrediction": "-0.000000253089377012",
+                            "suspended": false,
+                            "indexPrice": "0.096257",
+                            "postOnly": false,
+                            "change24h": "-1.31"
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "markPrice": 0.09624183255,
+                        "indexPrice": 0.096257,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1770571933922,
+                        "datetime": "2026-02-08T17:32:13.922Z",
+                        "fundingRate": -0.000007716906047878,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": -0.000002629723170332,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "1h"
+                    }
+                }
             }
         ]
     }
