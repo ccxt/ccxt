@@ -1681,14 +1681,18 @@ class Exchange(object):
     def precision_from_string(self, str):
         # support string formats like '1e-4'
         if 'e' in str or 'E' in str:
-            numStr = re.sub(r'\d\.?\d*[eE]', '', str)
-            return int(numStr) * -1
-        # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
-        # if not ('.' in str):
-        #     return len(str) * -1
+            # Find the exponent part after e/E
+            idx = str.find('e')
+            if idx == -1:
+                idx = str.find('E')
+            return -int(str[idx + 1:])
         # default strings like '0.0001'
-        parts = re.sub(r'0+$', '', str).split('.')
-        return len(parts[1]) if len(parts) > 1 else 0
+        dot_idx = str.find('.')
+        if dot_idx == -1:
+            return 0
+        # Strip trailing zeros and count decimal places
+        decimal_part = str[dot_idx + 1:].rstrip('0')
+        return len(decimal_part)
 
     def map_to_safe_map(self, dictionary):
         return dictionary  # wrapper for go

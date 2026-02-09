@@ -3589,6 +3589,7 @@ public partial class htx : Exchange
     /**
      * @method
      * @name htx#fetchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -3596,9 +3597,11 @@ public partial class htx : Exchange
      * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
      * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
-     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {string} [params.subType] linear or future
+     * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+     * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
@@ -3609,27 +3612,35 @@ public partial class htx : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object options = this.safeValue(this.options, "fetchBalance", new Dictionary<string, object>() {});
-        object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);
-        parameters = this.omit(parameters, new List<object>() {"isUnifiedAccount", "unified"});
+        object subType = null;
+        object isUnifiedAccount = null;
+        object isMultiAssetMode = null;
+        var subTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "defaultSubType", "subType", "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        var isUnifiedAccountparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "unified", "uta", false);
+        isUnifiedAccount = ((IList<object>)isUnifiedAccountparametersVariable)[0];
+        parameters = ((IList<object>)isUnifiedAccountparametersVariable)[1];
+        var isMultiAssetModeparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "multiAssetMode", false);
+        isMultiAssetMode = ((IList<object>)isMultiAssetModeparametersVariable)[0];
+        parameters = ((IList<object>)isMultiAssetModeparametersVariable)[1];
         object request = new Dictionary<string, object>() {};
         object spot = (isEqual(type, "spot"));
         object future = (isEqual(type, "future"));
-        object defaultSubType = this.safeString2(this.options, "defaultSubType", "subType", "linear");
-        object subType = this.safeString2(options, "defaultSubType", "subType", defaultSubType);
-        subType = this.safeString2(parameters, "defaultSubType", "subType", subType);
         object inverse = (isEqual(subType, "inverse"));
         object linear = (isEqual(subType, "linear"));
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        parameters = this.omit(parameters, new List<object>() {"defaultSubType", "subType"});
         object isolated = (isEqual(marginMode, "isolated"));
         object cross = (isEqual(marginMode, "cross"));
         object margin = isTrue((isEqual(type, "margin"))) || isTrue((isTrue(spot) && isTrue((isTrue(cross) || isTrue(isolated)))));
         object response = null;
-        if (isTrue(isTrue(spot) || isTrue(margin)))
+        if (isTrue(isMultiAssetMode))
+        {
+            response = await this.contractPrivateGetV5AccountBalance(this.extend(request, parameters));
+        } else if (isTrue(isTrue(spot) || isTrue(margin)))
         {
             if (isTrue(margin))
             {
@@ -3826,13 +3837,64 @@ public partial class htx : Exchange
         //         "ts": 1640915104870
         //     }
         //
-        // TODO add balance parsing for linear swap
+        // multi asset mode
+        //
+        //     {
+        //         "code": 200,
+        //         "message": "Success",
+        //         "data": {
+        //             "state": "normal",
+        //             "equity": "174.216697577770536136",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "174.216697577770536136",
+        //                     "available": "174.216697577770536136",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "available_margin": "174.216697577770536136",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "withdraw_available": "174.216697577770536136",
+        //                     "created_time": 1770293270932,
+        //                     "updated_time": 1770293270932,
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "174.216697577770536136",
+        //             "voucher_value": "0",
+        //             "created_time": 1770293268881,
+        //             "updated_time": 1770293270932
+        //         },
+        //         "ts": 1770293281344
+        //     }
         //
         object result = ((object)new Dictionary<string, object>() {
             { "info", response },
         });
         object data = this.safeValue(response, "data");
-        if (isTrue(isTrue(spot) || isTrue(margin)))
+        if (isTrue(isMultiAssetMode))
+        {
+            object details = this.safeList(data, "details", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
+            {
+                object balance = getValue(details, i);
+                object currencyId = this.safeString(balance, "currency");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "withdraw_available");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+            result = this.safeBalance(result);
+        } else if (isTrue(isTrue(spot) || isTrue(margin)))
         {
             if (isTrue(isolated))
             {

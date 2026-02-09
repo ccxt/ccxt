@@ -1729,6 +1729,18 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function build_user_abstraction_sig($message) {
+        $messageTypes = array(
+            'HyperliquidTransaction:UserSetAbstraction' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'user', 'type' => 'address' ),
+                array( 'name' => 'abstraction', 'type' => 'string' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
     public function build_approve_builder_fee_sig($message) {
         $messageTypes = array(
             'HyperliquidTransaction:ApproveBuilderFee' => array(
@@ -1831,25 +1843,37 @@ class hyperliquid extends Exchange {
         return true;
     }
 
-    public function enable_user_dex_abstraction(bool $enabled, $params = array ()) {
+    public function set_user_abstraction(string $abstraction, $params = array ()) {
+        /**
+         * set user $abstraction mode
+         *
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-$abstraction
+         *
+         * @param {string} $abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+         * @param {array} [$params]
+         * @param {string} [$params->type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+         * @return dictionary response from the exchange
+         */
         $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('enableUserDexAbstraction', $params);
+        list($userAddress, $params) = $this->handle_public_address('setUserAbstraction', $params);
         $nonce = $this->milliseconds();
         $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $type = $this->safe_string($params, 'type', 'userSetAbstraction');
+        $params = $this->omit($params, 'type');
         $payload = array(
             'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
             'user' => $userAddress,
-            'enabled' => $enabled,
+            'abstraction' => $abstraction,
             'nonce' => $nonce,
         );
-        $sig = $this->build_user_dex_abstraction_sig($payload);
+        $sig = $this->build_user_abstraction_sig($payload);
         $action = array(
             'hyperliquidChain' => $payload['hyperliquidChain'],
             'signatureChainId' => '0x66eee',
-            'enabled' => $payload['enabled'],
+            'abstraction' => $payload['abstraction'],
             'user' => $payload['user'],
             'nonce' => $nonce,
-            'type' => 'userDexAbstraction',
+            'type' => $type,
         );
         $request = array(
             'action' => $action,
@@ -1866,6 +1890,74 @@ class hyperliquid extends Exchange {
         // }
         //
         return $this->privatePostExchange ($request);
+    }
+
+    public function enable_user_dex_abstraction(bool $enabled, $params = array ()) {
+        /**
+         * If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+         * @param $enabled
+         * @param $params
+         * @param {string} [$params->type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+         * @return dictionary response from the exchange
+         */
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('enableUserDexAbstraction', $params);
+        $nonce = $this->milliseconds();
+        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $type = $this->safe_string($params, 'type', 'userDexAbstraction');
+        $params = $this->omit($params, 'type');
+        $payload = array(
+            'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+            'user' => $userAddress,
+            'enabled' => $enabled,
+            'nonce' => $nonce,
+        );
+        $sig = $this->build_user_dex_abstraction_sig($payload);
+        $action = array(
+            'hyperliquidChain' => $payload['hyperliquidChain'],
+            'signatureChainId' => '0x66eee',
+            'enabled' => $payload['enabled'],
+            'user' => $payload['user'],
+            'nonce' => $nonce,
+            'type' => $type,
+        );
+        $request = array(
+            'action' => $action,
+            'nonce' => $nonce,
+            'signature' => $sig,
+            'vaultAddress' => null,
+        );
+        //
+        // {
+        //     "status" => "ok",
+        //     "response" => {
+        //         "type" => "default"
+        //     }
+        // }
+        //
+        return $this->privatePostExchange ($request);
+    }
+
+    public function set_agent_abstraction(string $abstraction, $params = array ()) {
+        /**
+         * set agent $abstraction mode
+         * @param {string} $abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+         * @param {array} [$params]
+         * @return dictionary $response from the exchange
+         */
+        $nonce = $this->milliseconds();
+        $request = array(
+            'nonce' => $nonce,
+        );
+        $action = array(
+            'type' => 'agentSetAbstraction',
+            'abstraction' => $abstraction,
+        );
+        $signature = $this->sign_l1_action($action, $nonce);
+        $request['action'] = $action;
+        $request['signature'] = $signature;
+        $response = $this->privatePostExchange ($this->extend($request, $params));
+        return $response;
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

@@ -5491,6 +5491,9 @@ export default class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        throw new NotSupported(this.id + ' createTwapOrder() is not supported yet');
+    }
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
         throw new NotSupported(this.id + ' createConvertTrade() is not supported yet');
     }

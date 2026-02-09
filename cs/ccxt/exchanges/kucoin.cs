@@ -119,6 +119,7 @@ public partial class kucoin : Exchange
                     { "broker", "https://api-broker.kucoin.com" },
                     { "earn", "https://api.kucoin.com" },
                     { "uta", "https://api.kucoin.com" },
+                    { "utaPrivate", "https://api.kucoin.com" },
                 } },
                 { "www", "https://www.kucoin.com" },
                 { "doc", new List<object>() {"https://docs.kucoin.com"} },
@@ -437,15 +438,53 @@ public partial class kucoin : Exchange
                     { "get", new Dictionary<string, object>() {
                         { "market/announcement", 20 },
                         { "market/currency", 3 },
+                        { "market/currencies", 3 },
                         { "market/instrument", 4 },
                         { "market/ticker", 15 },
-                        { "market/orderbook", 3 },
                         { "market/trade", 3 },
                         { "market/kline", 3 },
                         { "market/funding-rate", 2 },
                         { "market/funding-rate-history", 5 },
                         { "market/cross-config", 25 },
+                        { "market/collateral-discount-ratio", 10 },
+                        { "market/index-price", 20 },
+                        { "market/position-tiers", 20 },
+                        { "market/open-interest", 10 },
                         { "server/status", 3 },
+                    } },
+                } },
+                { "utaPrivate", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "market/orderbook", 3 },
+                        { "account/balance", 5 },
+                        { "account/transfer-quota", 20 },
+                        { "account/mode", 30 },
+                        { "account/ledger", 2 },
+                        { "account/interest-history", 15 },
+                        { "account/deposit/address", 5 },
+                        { "{accountMode}/account/balance", 5 },
+                        { "{accountMode}/account/overview", 5 },
+                        { "{accountMode}/order/detail", 4 },
+                        { "{accountMode}/order/open-list", 4 },
+                        { "{accountMode}/order/history", 4 },
+                        { "{accountMode}/order/execution", 4 },
+                        { "{accountMode}/position/open-list", 3 },
+                        { "{accountMode}/position/history", 2 },
+                        { "{accountMode}/position/tiers", 20 },
+                        { "sub-account/balance", 5 },
+                        { "user/fee-rate", 3 },
+                        { "dcp/query", 2 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/transfer", 4 },
+                        { "account/mode", 30 },
+                        { "{accountMode}/account/modify-leverage", 20 },
+                        { "{accountMode}/order/place", 1 },
+                        { "{accountMode}/order/place-batch", 4 },
+                        { "{accountMode}/order/cancel", 1 },
+                        { "{accountMode}/order/cancel-batch", 4 },
+                        { "sub-account/canTransferOut", 5 },
+                        { "dcp/set", 2 },
                     } },
                 } },
             } },
@@ -2443,7 +2482,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
             }
-            response = await this.utaGetMarketOrderbook(this.extend(request, parameters));
+            response = await ((Task<object>)callDynamically(this, "utaPrivateGetMarketOrderbook", new object[] { this.extend(request, parameters) }));
         } else if (isTrue(!isTrue(isAuthenticated) || isTrue(!isEqual(limit, null))))
         {
             if (isTrue(isEqual(level, 2)))
@@ -5928,10 +5967,10 @@ public partial class kucoin : Exchange
             endpoint = add("/api/v1/", this.implodeParams(path, parameters));
         }
         object isUtaPrivate = false;
-        if (isTrue(isEqual(api, "uta")))
+        if (isTrue(isTrue((isEqual(api, "uta"))) || isTrue((isEqual(api, "utaPrivate")))))
         {
             endpoint = add("/api/ua/v1/", this.implodeParams(path, parameters));
-            if (isTrue(isEqual(path, "market/orderbook")))
+            if (isTrue(isEqual(api, "utaPrivate")))
             {
                 isUtaPrivate = true;
             }
