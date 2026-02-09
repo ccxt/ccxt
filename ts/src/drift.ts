@@ -1425,14 +1425,16 @@ export default class drift extends Exchange {
      * @name drift#fetchTransactions
      * @description fetch history of deposits and withdrawals
      * @param {string} [code] unified currency code for the currency of the transactions
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of transactions to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
     async fetchTransactions (
         code: Str = undefined,
         since: Int = undefined,
-        limit: Int = 20,
+        limit: Int = undefined,
         params = {}
     ): Promise<Transaction[]> {
         this.checkRequiredCredentials ();
@@ -1536,39 +1538,42 @@ export default class drift extends Exchange {
      * @method
      * @name drift#fetchLedger
      * @description fetch the history of changes in balance
-     * @param code
+     * @param {string} [code] unified currency code for the currency of the transactions
+     * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] the maximum number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {LedgerEntry[]} a list of [ledger entries]{@link https://docs.ccxt.com/#/?id=ledger-structure}
      */
     async fetchLedger (
         code: Str = undefined,
-        // since: Int = undefined, todo implement
-        limit: Int = 20,
+        since: Int = undefined,
+        limit: Int = undefined,
         params = {}
     ): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const currency = this.currency ('USDC'); // Everything settled in USDC
-        const maxEntries = Math.min (limit, 100);
-        let nextPage = undefined;
-        let entries: any[] = [];
-        let fetchMore = true;
-        while (fetchMore) {
-            const request: Dict = {
-                'accountId': this.accountId,
-            };
-            if (nextPage !== undefined) {
-                request['page'] = nextPage;
-            }
-            const response = await this.publicGetUserAccountIdSettlePnl (this.extend (request, params));
-            const records = this.safeValue (response, 'records', response);
-            entries = entries.concat (records);
-            nextPage = this.safeString (response, 'nextPage');
-            fetchMore = !((nextPage === undefined) || (records.length === 0) || (entries.length >= maxEntries));
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchLedger', code, since, limit, params, 'nextPage', 'page', undefined, 50) as LedgerEntry[];
         }
-        entries = entries.slice (0, maxEntries);
-        return this.parseLedger (entries, currency, limit);
+        code = 'USDC'; // Everything settled in USDC
+        const currency = this.currency ('USDC');
+        if (limit !== undefined) {
+            limit = Math.min (limit, 100);
+        }
+        const request: Dict = {
+            'accountId': this.accountId,
+        };
+        const response = await this.publicGetUserAccountIdSettlePnl (this.extend (request, params));
+        const entries = this.safeValue (response, 'records');
+        const meta = this.safeDict (response, 'meta');
+        const nextPage = this.safeString (meta, 'nextPage');
+        if ((entries.length > 0) && (nextPage !== undefined)) {
+            entries[0]['nextPage'] = nextPage;
+        }
+        return this.parseLedger (entries, currency, since, limit);
     }
 
     /**

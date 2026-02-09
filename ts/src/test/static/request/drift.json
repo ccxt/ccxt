@@ -141,6 +141,14 @@
                 "url": "https://data.api.drift.trade/user/12345/deposits",
                 "input": []
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "url": "https://data.api.drift.trade/user/12345/settlePnl",
+                "input": []
+            }
         ]
     }
 }
