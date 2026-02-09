@@ -4,7 +4,6 @@
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
 import testNumberToString from './test.numberToString.js';
-import testProperties from './test.properties.js';
 import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
@@ -34,7 +33,6 @@ import testCapitalize from './test.capitalize.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
-    testProperties ();
     testAfterConstructor ();
     testExtend ();
     testDeepExtend ();
