@@ -4,6 +4,7 @@
 - [Manual](Manual.md)
 - [CCXT Pro](ccxt.pro.manual.md)
 - [Contributing](CONTRIBUTING.md)
+- [AI Skills](ai-skills.md)
 - [Supported Exchanges](Exchange-Markets.md)
 - [Exchanges By Country](Exchange-Markets-By-Country.md)
 - [API Spec By Method](baseSpec.md)
