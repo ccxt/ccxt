@@ -2,7 +2,6 @@
 
 import * as functions from './functions.js';
 import {
-    keys as keysFunc,
     values as valuesFunc,
     // inArray as inArrayFunc,
     vwap as vwapFunc,
