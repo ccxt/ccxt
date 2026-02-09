@@ -189,7 +189,7 @@ export default class drift extends Exchange {
             const leverageLimits = this.safeValue (limits, 'leverage', {});
             const amountLimits = this.safeValue (limits, 'amount', {});
             const fees = this.safeValue (market, 'fees', {});
-            const precision = this.safeInteger (market, 'precision');
+            const precision = this.safeString (market, 'precision');
             result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': symbol,
@@ -217,8 +217,8 @@ export default class drift extends Exchange {
                 'maker': this.safeNumber (fees, 'maker'),
                 'taker': this.safeNumber (fees, 'taker'),
                 'precision': {
-                    'amount': precision,
-                    'price': precision,
+                    'amount': this.parseNumber (this.parsePrecision (precision)),
+                    'price': this.parseNumber (this.parsePrecision (precision)),
                 },
                 'limits': {
                     'leverage': {
@@ -1603,7 +1603,7 @@ export default class drift extends Exchange {
             'accountId': this.accountId,
             'symbol': market['id'],
             'direction': direction,
-            'amount': amount,
+            'amount': this.amountToPrecision (symbol, amount),
             'orderType': type,
         };
         if (type === 'limit') {
@@ -1612,13 +1612,12 @@ export default class drift extends Exchange {
                     this.id + ' createOrder() requires a price argument for limit orders'
                 );
             }
-            request['price'] = price;
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const response = await this.publicPostTxOrderPlace (
             this.extend (request, params)
         );
         await this.executeTx (response.tx);
-        // todo add order to response
         return this.parseOrder (response, market);
     }
 
@@ -1627,15 +1626,17 @@ export default class drift extends Exchange {
      * @name drift#cancelOrder
      * @description cancels an open order
      * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async cancelOrder (
         id: string,
+        symbol: Str = undefined,
         params = {}
     ): Promise<Order> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         const request: Dict = {
             'accountId': this.accountId,
             'orderId': id,
@@ -1643,23 +1644,21 @@ export default class drift extends Exchange {
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
         const txSig = await this.executeTx (response.tx);
         // todo add order to response
-        return this.safeOrder (
-            {
-                'id': id,
-                'clientOrderId': undefined,
-                'info': this.extend (response, { 'txSig': txSig }),
-                'symbol': undefined,
-                'timestamp': undefined,
-                'datetime': undefined,
-                'status': 'canceled',
-                'side': undefined,
-                'price': undefined,
-                'amount': undefined,
-                'filled': undefined,
-                'remaining': undefined,
-                'type': undefined,
-            }
-        );
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'info': this.extend (response, { 'txSig': txSig }),
+            'symbol': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'status': 'canceled',
+            'side': undefined,
+            'price': undefined,
+            'amount': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'type': undefined,
+        });
     }
 
     /**
@@ -1803,6 +1802,13 @@ export default class drift extends Exchange {
             'simulate': false,
         };
         const response = await this.publicPostTxExecute (request);
+        //
+        // {
+        //     "success": true,
+        //     "txSig": "xxxxx",
+        //     "message": "Transaction executed successfully"
+        // }
+        //
         return this.safeString (response, 'txSig');
     }
 

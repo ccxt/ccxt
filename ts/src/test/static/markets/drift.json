@@ -29,8 +29,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 9,
-            "price": 9
+            "amount": 1e-9,
+            "price": 1e-9
         },
         "limits": {
             "leverage": {

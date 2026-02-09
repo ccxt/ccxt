@@ -149,6 +149,21 @@
                 "url": "https://data.api.drift.trade/user/12345/settlePnl",
                 "input": []
             }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder",
+                "method": "createOrder",
+                "url": "https://data.api.drift.trade/tx/order/place",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.001,
+                    50000
+                ],
+                "output": "{\"accountId\":\"12345\",\"symbol\":\"BTC-PERP\",\"direction\":\"long\",\"amount\":\"0.001\",\"orderType\":\"limit\",\"price\":\"50000\"}"
+            }
         ]
     }
 }
