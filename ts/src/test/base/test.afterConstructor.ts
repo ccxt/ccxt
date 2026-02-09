@@ -93,11 +93,33 @@ function helperTestInitMarket () {
     assert (exchange2.markets['BTC/USD'] !== undefined);
 }
 
+function helperTestProeprties () {
+    const exchange = new ccxt.Exchange ({});
+    //
+    // userAgents
+    //
+    const keys = [ 'chrome', 'chrome39', 'chrome100' ];
+    assert (exchange.userAgents !== undefined);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const userAgent = exchange.userAgents[key];
+        assert (userAgent !== undefined);
+    }
+    //
+    assert (exchange.minFundingAddressLength > 0.9999 && exchange.minFundingAddressLength < 1.0001); // trick multilanguge types
+    //
+    assert (exchange.isSandboxModeEnabled === false);
+    assert (exchange.certified === false);
+    assert (exchange.pro === false);
+    assert (exchange.countries === undefined);
+}
+
 function testAfterConstructor () {
+    // here should be added all needed tests
     helperTestInitThrottler ();
     helperTestInitSandbox ();
     helperTestInitMarket ();
-    // todo: other constructor things
+    helperTestProeprties ();
 }
 
 
