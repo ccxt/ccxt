@@ -1352,23 +1352,6 @@ export default class drift extends Exchange {
         const request: Dict = {
             'accountId': this.accountId,
         };
-        // let nextPage = undefined;
-        // let allPayments: any[] = [];
-        // let fetchMore = true;
-        // while (fetchMore) {
-        //     const pageRequest = this.extend ({}, request);
-        //     if (nextPage !== undefined) {
-        //         pageRequest['page'] = nextPage;
-        //     }
-        //     const response = await (this as any).publicGetUserAccountIdFundingPayments (this.extend (pageRequest, params));
-        //     const records = this.safeList (response, 'records', []);
-        //     allPayments = allPayments.concat (records);
-        //     const meta = this.safeDict (response, 'meta', {});
-        //     nextPage = this.safeString (response, 'nextPage') ?? this.safeString (meta, 'nextPage');
-        //     fetchMore = !((nextPage === undefined) || (records.length === 0) || (allPayments.length >= maxEntries));
-        // }
-        // allPayments = allPayments.slice (0, maxEntries);
-        // return this.parseFundingHistories (allPayments);
         const response = await this.publicGetUserAccountIdFundingPayments (this.extend (request, params));
         //
         // {
@@ -1448,35 +1431,35 @@ export default class drift extends Exchange {
      */
     async fetchTransactions (
         code: Str = undefined,
-        // since: Int = undefined, todo look at implementing
+        since: Int = undefined,
         limit: Int = 20,
         params = {}
     ): Promise<Transaction[]> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransactions', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTransactions', code, since, limit, params, 'nextPage', 'page', undefined, 50) as Transaction[];
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const maxTransactions = Math.min (limit, 100);
-        let nextPage = undefined;
-        let transactions: any[] = [];
-        let fetchMore = true;
-        while (fetchMore) {
-            const request: Dict = {
-                'accountId': this.accountId,
-            };
-            if (nextPage !== undefined) {
-                request['page'] = nextPage;
-            }
-            const response = await this.publicGetUserAccountIdDeposits (this.extend (request, params));
-            const records = this.safeValue (response, 'records', response);
-            transactions = transactions.concat (records);
-            nextPage = this.safeString (response, 'nextPage');
-            fetchMore = !((nextPage === undefined) || (records.length === 0) || (transactions.length >= maxTransactions));
+        if (limit !== undefined) {
+            limit = Math.min (limit, 100);
         }
-        transactions = transactions.slice (0, maxTransactions);
-        return this.parseTransactions (transactions, currency, limit);
+        const request: Dict = {
+            'accountId': this.accountId,
+        };
+        const response = await this.publicGetUserAccountIdDeposits (this.extend (request, params));
+        const txs = this.safeValue (response, 'records');
+        const meta = this.safeDict (response, 'meta');
+        const nextPage = this.safeString (meta, 'nextPage');
+        if ((txs.length > 0) && (nextPage !== undefined)) {
+            txs[0]['nextPage'] = nextPage;
+        }
+        return this.parseTransactions (txs, currency, since, limit);
     }
 
     parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {

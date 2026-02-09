@@ -133,6 +133,14 @@
                 "url": "https://data.api.drift.trade/user/12345/fundingPayments",
                 "input": []
             }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions",
+                "method": "fetchTransactions",
+                "url": "https://data.api.drift.trade/user/12345/deposits",
+                "input": []
+            }
         ]
     }
 }
