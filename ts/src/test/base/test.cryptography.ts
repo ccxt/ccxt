@@ -1,3 +1,4 @@
+// NO_AUTO_TRANSPILE
 
 import assert from 'assert';
 import { sha256 } from '../../static_dependencies/noble-hashes/sha256.js';

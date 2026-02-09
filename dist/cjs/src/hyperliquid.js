@@ -213,6 +213,8 @@ class hyperliquid extends hyperliquid$1["default"] {
                     'Insufficient spot balance asset': errors.InsufficientFunds,
                     'Insufficient balance for withdrawal': errors.InsufficientFunds,
                     'Insufficient balance for token transfer': errors.InsufficientFunds,
+                    'TWAP order value too small. Min is $1200, which is $10 per minute.': errors.InvalidOrder,
+                    'TWAP was never placed, already canceled, or filled.': errors.OrderNotFound,
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -1966,6 +1968,82 @@ class hyperliquid extends hyperliquid$1["default"] {
     }
     /**
      * @method
+     * @name hyperliquid#createTwapOrder
+     * @description create a trade order that is executed as a TWAP order over a specified duration.
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {int} duration the duration of the TWAP order in milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        await this.loadMarkets();
+        await this.initializeClient();
+        const market = this.market(symbol);
+        const nonce = this.milliseconds();
+        const isBuy = (side === 'BUY');
+        let vaultAddress = undefined;
+        const randomize = this.safeBool(params, 'randomize', false);
+        params = this.omit(params, 'randomize');
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const durationMins = Math.floor(duration / 1000 / 60); // convert from ms to minutes
+        const orderObj = {
+            'a': this.parseToInt(market['baseId']),
+            'b': isBuy,
+            's': this.amountToPrecision(symbol, amount),
+            'r': this.safeBool(params, 'reduceOnly', false),
+            'm': durationMins,
+            't': randomize,
+        };
+        const orderAction = {
+            'type': 'twapOrder',
+            'twap': orderObj,
+        };
+        const signature = this.signL1Action(orderAction, nonce, vaultAddress);
+        const request = {
+            'action': orderAction,
+            'nonce': nonce,
+            'signature': signature,
+            // 'vaultAddress': vaultAddress,
+        };
+        if (vaultAddress !== undefined) {
+            params = this.omit(params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const expiresAfter = this.safeInteger(params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            request['expiresAfter'] = expiresAfter;
+            params = this.omit(params, 'expiresAfter');
+        }
+        const response = await this.privatePostExchange(request);
+        // {
+        //     "status":"ok",
+        //     "response":{
+        //         "type":"twapOrder",
+        //         "data":{
+        //             "status": {
+        //                 "running":{
+        //                 "twapId":77738308
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        const responseObj = this.safeDict(response, 'response', {});
+        const data = this.safeDict(responseObj, 'data', {});
+        const status = this.safeDict(data, 'status', {});
+        const running = this.safeDict(status, 'running', {});
+        const orderId = this.safeString(running, 'twapId');
+        return this.parseOrder({ 'status': 'running', 'oid': orderId }, market);
+    }
+    /**
+     * @method
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
@@ -2202,9 +2280,14 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
+        if (this.safeBool(params, 'twap', false)) {
+            params = this.omit(params, 'twap');
+            return await this.cancelTwapOrder(id, symbol, params);
+        }
         const orders = await this.cancelOrders([id], symbol, params);
         return this.safeDict(orders, 0);
     }
@@ -2256,6 +2339,66 @@ class hyperliquid extends hyperliquid$1["default"] {
             }));
         }
         return orders;
+    }
+    /**
+     * @method
+     * @name hyperliquid#cancelTwapOrder
+     * @description cancels a running twap order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelTwapOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' cancelTwapOrder() requires a symbol argument');
+        }
+        const market = this.market(symbol);
+        let vaultAddress = undefined;
+        [vaultAddress, params] = this.handleOptionAndParams(params, 'cancelTwapOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        const action = {
+            'type': 'twapCancel',
+            'a': this.parseToInt(market['baseId']),
+            't': this.parseToNumeric(id),
+        };
+        const nonce = this.milliseconds();
+        const signature = this.signL1Action(action, nonce, vaultAddress);
+        const request = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+            // 'vaultAddress': vaultAddress,
+        };
+        if (vaultAddress !== undefined) {
+            params = this.omit(params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const expiresAfter = this.safeInteger(params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            request['expiresAfter'] = expiresAfter;
+            params = this.omit(params, 'expiresAfter');
+        }
+        const response = await this.privatePostExchange(request);
+        //
+        //  {
+        //     "status":"ok",
+        //     "response":{
+        //        "type":"twapCancel",
+        //        "data":{
+        //           "status": "success"
+        //        }
+        //     }
+        //  }
+        //
+        const responseObj = this.safeDict(response, 'response', {});
+        const data = this.safeDict(responseObj, 'data', {});
+        const status = this.safeString(data, 'status');
+        return this.parseOrder({ 'status': status, 'oid': id }, market);
     }
     cancelOrdersRequest(ids, symbol = undefined, params = {}) {
         /**
@@ -4535,6 +4678,13 @@ class hyperliquid extends hyperliquid$1["default"] {
                 message = this.safeString(statuses[i], 'error');
                 if (message !== undefined) {
                     break;
+                }
+            }
+            if ('status' in data) {
+                const errorStatus = this.safeDict(data, 'status', {});
+                const errorMsg = this.safeString(errorStatus, 'error');
+                if (errorStatus !== undefined) {
+                    message = errorMsg;
                 }
             }
         }

@@ -529,6 +529,10 @@ type CreateOrderOptions = ccxt.CreateOrderOptions
 var WithCreateOrderPrice = ccxt.WithCreateOrderPrice
 var WithCreateOrderParams = ccxt.WithCreateOrderParams
 
+type CreateTwapOrderOptionsStruct = ccxt.CreateTwapOrderOptionsStruct
+type CreateTwapOrderOptions = ccxt.CreateTwapOrderOptions
+var WithCreateTwapOrderParams = ccxt.WithCreateTwapOrderParams
+
 type CreateConvertTradeOptionsStruct = ccxt.CreateConvertTradeOptionsStruct
 type CreateConvertTradeOptions = ccxt.CreateConvertTradeOptions
 var WithCreateConvertTradeAmount = ccxt.WithCreateConvertTradeAmount

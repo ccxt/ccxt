@@ -2402,16 +2402,16 @@ class krakenfutures extends krakenfutures$1["default"] {
         let fundingRateResult = Precise["default"].stringDiv(fundingRateString, markPriceString);
         const nextFundingRateString = this.safeString(ticker, 'fundingRatePrediction');
         let nextFundingRateResult = Precise["default"].stringDiv(nextFundingRateString, markPriceString);
-        if (fundingRateResult > '0.25') {
+        if (Precise["default"].stringGt(fundingRateResult, '0.25')) {
             fundingRateResult = '0.25';
         }
-        else if (fundingRateResult > '-0.25') {
+        else if (Precise["default"].stringLt(fundingRateResult, '-0.25')) {
             fundingRateResult = '-0.25';
         }
-        if (nextFundingRateResult > '0.25') {
+        if (Precise["default"].stringGt(nextFundingRateResult, '0.25')) {
             nextFundingRateResult = '0.25';
         }
-        else if (nextFundingRateResult > '-0.25') {
+        else if (Precise["default"].stringLt(nextFundingRateResult, '-0.25')) {
             nextFundingRateResult = '-0.25';
         }
         return {

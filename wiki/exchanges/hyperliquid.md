@@ -23,10 +23,12 @@
 * [enableUserDexAbstraction](#enableuserdexabstraction)
 * [setAgentAbstraction](#setagentabstraction)
 * [createOrder](#createorder)
+* [createTwapOrder](#createtwaporder)
 * [createOrders](#createorders)
 * [createOrdersRequest](#createordersrequest)
 * [cancelOrder](#cancelorder)
 * [cancelOrders](#cancelorders)
+* [cancelTwapOrder](#canceltwaporder)
 * [cancelOrdersRequest](#cancelordersrequest)
 * [cancelOrdersForSymbols](#cancelordersforsymbols)
 * [cancelAllOrdersAfter](#cancelallordersafter)
@@ -495,6 +497,33 @@ hyperliquid.createOrder (symbol, type, side, amount[, price, params])
 ```
 
 
+<a name="createTwapOrder" id="createtwaporder"></a>
+
+### createTwapOrder{docsify-ignore}
+create a trade order that is executed as a TWAP order over a specified duration.
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
+| duration | <code>int</code> | Yes | the duration of the TWAP order in milliseconds |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.randomize | <code>bool</code> | No | whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals) |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
+| params.vaultAddress | <code>string</code> | No | the vault address for order |
+
+
+```javascript
+hyperliquid.createTwapOrder (symbol, side, amount, duration[, params])
+```
+
+
 <a name="createOrders" id="createorders"></a>
 
 ### createOrders{docsify-ignore}
@@ -558,6 +587,7 @@ cancels an open order
 | params.clientOrderId | <code>string</code> | No | client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef) |
 | params.vaultAddress | <code>string</code> | No | the vault address for order |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.twap | <code>boolean</code> | No | whether the order to cancel is a twap order, (default is false) |
 
 
 ```javascript
@@ -591,6 +621,30 @@ cancel multiple orders
 
 ```javascript
 hyperliquid.cancelOrders (ids[, symbol, params])
+```
+
+
+<a name="cancelTwapOrder" id="canceltwaporder"></a>
+
+### cancelTwapOrder{docsify-ignore}
+cancels a running twap order
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.expiresAfter | <code>int</code> | No | time in ms after which the twap order expires |
+| params.vaultAddress | <code>string</code> | No | the vault address for order |
+
+
+```javascript
+hyperliquid.cancelTwapOrder (id, symbol[, params])
 ```
 
 
