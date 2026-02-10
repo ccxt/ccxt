@@ -167,6 +167,134 @@
                     }
                 ]
             }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "bids": [
+                        {
+                            "price": "68691600000",
+                            "size": "110200000",
+                            "sources": {
+                                "dlob": "110200000"
+                            }
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "68731115338",
+                            "size": "4100000",
+                            "sources": {
+                                "dlob": "4100000"
+                            }
+                        }
+                    ],
+                    "marketName": "BTC-PERP",
+                    "marketType": "perp",
+                    "marketIndex": 1,
+                    "ts": 1770730108227,
+                    "slot": 399332134,
+                    "markPrice": "68711357669",
+                    "bestBidPrice": "68691600000",
+                    "bestAskPrice": "68731115338",
+                    "spreadPct": "57509",
+                    "spreadQuote": "39515338",
+                    "oracle": 68746842279,
+                    "oracleData": {
+                        "price": "68746842279",
+                        "slot": "399332133",
+                        "confidence": "989242",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68746842279",
+                        "twapConfidence": "68746842279"
+                    },
+                    "mmOracleData": {
+                        "price": "68746842279",
+                        "slot": "399332133",
+                        "confidence": "989242",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68746842279",
+                        "twapConfidence": "68746842279"
+                    },
+                    "marketSlot": 399332133
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "timestamp": 1770730108227,
+                    "datetime": "2026-02-10T13:28:28.227Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 68691.6,
+                    "bidVolume": 0.1102,
+                    "ask": 68731.115338,
+                    "askVolume": 0.0041,
+                    "close": null,
+                    "last": null,
+                    "change": null,
+                    "percentage": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "info": {
+                        "bids": [
+                            {
+                                "price": "68691600000",
+                                "size": "110200000",
+                                "sources": {
+                                    "dlob": "110200000"
+                                }
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "price": "68731115338",
+                                "size": "4100000",
+                                "sources": {
+                                    "dlob": "4100000"
+                                }
+                            }
+                        ],
+                        "marketName": "BTC-PERP",
+                        "marketType": "perp",
+                        "marketIndex": 1,
+                        "ts": 1770730108227,
+                        "slot": 399332134,
+                        "markPrice": "68711357669",
+                        "bestBidPrice": "68691600000",
+                        "bestAskPrice": "68731115338",
+                        "spreadPct": "57509",
+                        "spreadQuote": "39515338",
+                        "oracle": 68746842279,
+                        "oracleData": {
+                            "price": "68746842279",
+                            "slot": "399332133",
+                            "confidence": "989242",
+                            "hasSufficientNumberOfDataPoints": true,
+                            "twap": "68746842279",
+                            "twapConfidence": "68746842279"
+                        },
+                        "mmOracleData": {
+                            "price": "68746842279",
+                            "slot": "399332133",
+                            "confidence": "989242",
+                            "hasSufficientNumberOfDataPoints": true,
+                            "twap": "68746842279",
+                            "twapConfidence": "68746842279"
+                        },
+                        "marketSlot": 399332133
+                    },
+                    "open": null,
+                    "average": null,
+                    "vwap": null,
+                    "previousClose": null,
+                    "indexPrice": null
+                }
+            }
         ]
     }
 }
