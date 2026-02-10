@@ -208,7 +208,7 @@
                 "method": "fetchLeverages",
                 "url": "https://trades.grvt.io/full/v1/get_all_initial_leverage",
                 "input": [
-                    "BTC/USDT:USDT"
+                    ["BTC/USDT:USDT"]
                 ],
                 "output": "{\"sub_account_id\":\"2147050003876484\"}"
             },
