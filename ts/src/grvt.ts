@@ -1735,7 +1735,7 @@ export default class grvt extends Exchange {
         const result1 = this.safeDict (responses[0], 'result', {});
         const mainAccountId = this.safeString (result1, 'main_account_id');
         this.options['userMainAccountId'] = mainAccountId;
-        if (undefinedAccount) {
+        if (accountIsUndefined) {
             const subAccountIds = this.safeList (responses[1], 'sub_account_ids', []);
             const length = subAccountIds.length;
             if (length < 1) {
