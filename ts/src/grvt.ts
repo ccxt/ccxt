@@ -1121,7 +1121,7 @@ export default class grvt extends Exchange {
 
     getSubAccountId (params) {
         let subAccountId = undefined;
-        [ subAccountId, params ] = this.handleOptionAndParams (params, undefined, 'accountId');
+        [ subAccountId, params ] = this.handleParamString (params, 'accountId');
         if (subAccountId === undefined) {
             throw new ArgumentsRequired (this.id + ' you should set "accountId" in options or params, which can be found in the grvt dashboard, under Api-Keys page');
         }
