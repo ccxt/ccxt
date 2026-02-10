@@ -877,7 +877,7 @@
                             "builder_fee": "0"
                         },
                         {
-                            "event_time": "1767942501169853220",
+                            "event_time": "1767942501169153220",
                             "sub_account_id": "2147050003876484",
                             "instrument": "BTC_USDT_Perp",
                             "is_buyer": true,
@@ -909,7 +909,7 @@
                 "parsedResponse": [
                     {
                         "info": {
-                            "event_time": "1767942501169853220",
+                            "event_time": "1767942501169153220",
                             "sub_account_id": "2147050003876484",
                             "instrument": "BTC_USDT_Perp",
                             "is_buyer": true,
@@ -1249,6 +1249,7 @@
         ],
         "createOrder": [
             {
+                "disableCS": true,
                 "description": "swap sell trigger & reduceOnly",
                 "method": "createOrder",
                 "input": [
@@ -1410,6 +1411,7 @@
                 }
             },
             {
+                "disableCS": true,
                 "description": "swap buy trigger",
                 "method": "createOrder",
                 "input": [
@@ -1571,6 +1573,7 @@
                 }
             },
             {
+                "disableCS": true,
                 "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
                 "method": "createOrder",
                 "input": [
@@ -1730,6 +1733,7 @@
                 }
             },
             {
+                "disableCS": true,
                 "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
                 "method": "createOrder",
                 "input": [
@@ -1889,6 +1893,7 @@
                 }
             },
             {
+                "disableCS": true,
                 "description": "createOrder perp buy limit",
                 "method": "createOrder",
                 "input": [
