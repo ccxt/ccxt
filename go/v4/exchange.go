@@ -173,6 +173,10 @@ type Exchange struct {
 
 	PaddingMode int
 
+	Countries map[string]interface{}
+	Certified bool
+	Pro       bool
+
 	MinFundingAddressLength int
 	MaxEntriesPerRequest    int
 
