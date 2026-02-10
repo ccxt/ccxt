@@ -3008,6 +3008,7 @@ export default class grvt extends Exchange {
             }
             return true;
         }
+        return false;
     }
 
     eipDomainData () {
