@@ -184,9 +184,6 @@ export default class grvt extends Exchange {
                 'networksById': {
                     '1': 'ERC20',
                 },
-                'builderFee': true,
-                'builder': '0x21d2a053495994b1132a38cd1171acec40c6741e',
-                'builderRate': 0.01,
             },
             'precisionMode': TICK_SIZE,
             'features': {
@@ -387,26 +384,6 @@ export default class grvt extends Exchange {
                     { 'name': 'postOnly', 'type': 'bool' },
                     { 'name': 'reduceOnly', 'type': 'bool' },
                     { 'name': 'legs', 'type': 'OrderLeg[]' },
-                    { 'name': 'nonce', 'type': 'uint32' },
-                    { 'name': 'expiration', 'type': 'int64' },
-                ],
-                'OrderLeg': [
-                    { 'name': 'assetID', 'type': 'uint256' },
-                    { 'name': 'contractSize', 'type': 'uint64' },
-                    { 'name': 'limitPrice', 'type': 'uint64' },
-                    { 'name': 'isBuyingContract', 'type': 'bool' },
-                ],
-            },
-            'EIP712_ORDER_WITH_BUILDER_TYPE': {
-                'OrderWithBuilderFee': [
-                    { 'name': 'subAccountID', 'type': 'uint64' },
-                    { 'name': 'isMarket', 'type': 'bool' },
-                    { 'name': 'timeInForce', 'type': 'uint8' },
-                    { 'name': 'postOnly', 'type': 'bool' },
-                    { 'name': 'reduceOnly', 'type': 'bool' },
-                    { 'name': 'legs', 'type': 'OrderLeg[]' },
-                    { 'name': 'builder', 'type': 'address' },
-                    { 'name': 'builderFee', 'type': 'uint32' },
                     { 'name': 'nonce', 'type': 'uint32' },
                     { 'name': 'expiration', 'type': 'int64' },
                 ],
@@ -1839,7 +1816,7 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        await this.initializeClient (params);
+        // await this.initializeClient (params);
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -1917,16 +1894,8 @@ export default class grvt extends Exchange {
             };
             params = this.omit (params, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
         }
-        let eipType = 'EIP712_ORDER_TYPE';
-        const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true));
-        if (builderFee) {
-            eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
-            orderRequest['builder'] = this.safeString (this.options, 'builder');
-            orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
-        }
-        params = this.omit (params, [ 'builderFee' ]);
         // @ts-ignore
-        const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
+        const signedOrderRequest = this.createSignedRequest (orderRequest, 'EIP712_ORDER_TYPE');
         const request = {
             'order': signedOrderRequest,
         };
@@ -2042,10 +2011,6 @@ export default class grvt extends Exchange {
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
-        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
-            returnValue['builder'] = order['builder'];
-            returnValue['builderFee'] = this.parseToInt (this.feeAmountMultiplier () * parseFloat (order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
-        }
         return returnValue;
     }
 
@@ -3063,7 +3028,7 @@ export default class grvt extends Exchange {
             messageData = this.eipMessageForTransfer (request, currencyObj);
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             messageData = this.eipMessageForWithdrawal (request, currencyObj);
-        } else if (structureType === 'EIP712_ORDER_TYPE' || structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+        } else if (structureType === 'EIP712_ORDER_TYPE') {
             messageData = this.eipMessageForOrder (request, structureType);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
             messageData = this.eipMessageForBuilderApproval (request);
