@@ -6,7 +6,7 @@ var deepcoin$1 = require('../deepcoin.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class deepcoin extends deepcoin$1["default"] {
     describe() {

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.36'
+__version__ = '4.5.37'
 
 # -----------------------------------------------------------------------------
 
@@ -913,15 +913,19 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary_or_list, key_list):
-        isDataArray = isinstance(dictionary_or_list, list)
-        isDataDict = isinstance(dictionary_or_list, dict)
-        for key in key_list:
-            if isDataDict:
-                if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
-                    return dictionary_or_list[key]
-            elif isDataArray and not isinstance(key, str):
-                if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
-                    return dictionary_or_list[key]
+        if isinstance(dictionary_or_list, dict):
+            get = dictionary_or_list.get
+            for key in key_list:
+                value = get(key)
+                if value is not None and value != '':
+                    return value
+        elif isinstance(dictionary_or_list, list):
+            length = len(dictionary_or_list)
+            for key in key_list:
+                if isinstance(key, int) and 0 <= key < length:
+                    value = dictionary_or_list[key]
+                    if value is not None and value != '':
+                        return value
         return None
 
     @staticmethod
@@ -1681,14 +1685,18 @@ class Exchange(object):
     def precision_from_string(self, str):
         # support string formats like '1e-4'
         if 'e' in str or 'E' in str:
-            numStr = re.sub(r'\d\.?\d*[eE]', '', str)
-            return int(numStr) * -1
-        # support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
-        # if not ('.' in str):
-        #     return len(str) * -1
+            # Find the exponent part after e/E
+            idx = str.find('e')
+            if idx == -1:
+                idx = str.find('E')
+            return -int(str[idx + 1:])
         # default strings like '0.0001'
-        parts = re.sub(r'0+$', '', str).split('.')
-        return len(parts[1]) if len(parts) > 1 else 0
+        dot_idx = str.find('.')
+        if dot_idx == -1:
+            return 0
+        # Strip trailing zeros and count decimal places
+        decimal_part = str[dot_idx + 1:].rstrip('0')
+        return len(decimal_part)
 
     def map_to_safe_map(self, dictionary):
         return dictionary  # wrapper for go
@@ -1761,15 +1769,15 @@ class Exchange(object):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
         if 'y' == unit:
-            scale = 60 * 60 * 24 * 365
+            scale = 31536000  # 60 * 60 * 24 * 365
         elif 'M' == unit:
-            scale = 60 * 60 * 24 * 30
+            scale = 2592000  # 60 * 60 * 24 * 30
         elif 'w' == unit:
-            scale = 60 * 60 * 24 * 7
+            scale = 604800  # 60 * 60 * 24 * 7
         elif 'd' == unit:
-            scale = 60 * 60 * 24
+            scale = 86400  # 60 * 60 * 24
         elif 'h' == unit:
-            scale = 60 * 60
+            scale = 3600  # 60 * 60
         elif 'm' == unit:
             scale = 60
         elif 's' == unit:

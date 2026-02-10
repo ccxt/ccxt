@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 /**
  * @class mexc
@@ -152,8 +152,8 @@ class mexc extends mexc$1["default"] {
                         'private': 'https://www.mexc.com/open/api/v2',
                     },
                     'contract': {
-                        'public': 'https://contract.mexc.com/api/v1/contract',
-                        'private': 'https://contract.mexc.com/api/v1/private',
+                        'public': 'https://api.mexc.com/api/v1/contract',
+                        'private': 'https://api.mexc.com/api/v1/private',
                     },
                     'broker': {
                         'private': 'https://api.mexc.com/api/v3/broker',

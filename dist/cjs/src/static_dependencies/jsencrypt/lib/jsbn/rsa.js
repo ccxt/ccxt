@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var jsbn = require('./jsbn.js');
 var rng = require('./rng.js');
 
-// ----------------------------------------------------------------------------
+// Depends on jsbn.js and rng.js
 // function linebrk(s,n) {
 //   var ret = "";
 //   var i = 0;

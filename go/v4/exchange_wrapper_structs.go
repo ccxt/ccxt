@@ -2251,6 +2251,19 @@ func WithCreateOrderParams(params map[string]interface{}) CreateOrderOptions {
 }
 
 
+type CreateTwapOrderOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type CreateTwapOrderOptions func(opts *CreateTwapOrderOptionsStruct)
+
+func WithCreateTwapOrderParams(params map[string]interface{}) CreateTwapOrderOptions {
+    return func(opts *CreateTwapOrderOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type CreateConvertTradeOptionsStruct struct {
     Amount *float64
     Params *map[string]interface{}
@@ -6685,6 +6698,27 @@ func WithCreateSpotOrderRequestPrice(price float64) CreateSpotOrderRequestOption
 
 func WithCreateSpotOrderRequestParams(params map[string]interface{}) CreateSpotOrderRequestOptions {
     return func(opts *CreateSpotOrderRequestOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type CancelTwapOrderOptionsStruct struct {
+    Symbol *string
+    Params *map[string]interface{}
+}
+
+type CancelTwapOrderOptions func(opts *CancelTwapOrderOptionsStruct)
+
+func WithCancelTwapOrderSymbol(symbol string) CancelTwapOrderOptions {
+    return func(opts *CancelTwapOrderOptionsStruct) {
+        opts.Symbol = &symbol
+    }
+}
+
+
+func WithCancelTwapOrderParams(params map[string]interface{}) CancelTwapOrderOptions {
+    return func(opts *CancelTwapOrderOptionsStruct) {
         opts.Params = &params
     }
 }

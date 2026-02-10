@@ -2374,7 +2374,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         for (const testName of baseFunctionTests) {
             const tsFile = `${baseFolders.ts}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 

@@ -2717,14 +2717,14 @@ func  (this *KrakenfuturesCore) ParseFundingRate(ticker interface{}, optionalArg
     var fundingRateResult interface{} = Precise.StringDiv(fundingRateString, markPriceString)
     var nextFundingRateString interface{} = this.SafeString(ticker, "fundingRatePrediction")
     var nextFundingRateResult interface{} = Precise.StringDiv(nextFundingRateString, markPriceString)
-    if IsTrue(IsGreaterThan(fundingRateResult, "0.25")) {
+    if IsTrue(Precise.StringGt(fundingRateResult, "0.25")) {
         fundingRateResult = "0.25"
-    } else if IsTrue(IsGreaterThan(fundingRateResult, "-0.25")) {
+    } else if IsTrue(Precise.StringLt(fundingRateResult, "-0.25")) {
         fundingRateResult = "-0.25"
     }
-    if IsTrue(IsGreaterThan(nextFundingRateResult, "0.25")) {
+    if IsTrue(Precise.StringGt(nextFundingRateResult, "0.25")) {
         nextFundingRateResult = "0.25"
-    } else if IsTrue(IsGreaterThan(nextFundingRateResult, "-0.25")) {
+    } else if IsTrue(Precise.StringLt(nextFundingRateResult, "-0.25")) {
         nextFundingRateResult = "-0.25"
     }
     return map[string]interface{} {

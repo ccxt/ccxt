@@ -311,6 +311,7 @@ class ImplicitAPI:
     private_post_v5_account_borrow = privatePostV5AccountBorrow = Entry('v5/account/borrow', 'private', 'POST', {'cost': 5})
     private_post_v5_account_repay = privatePostV5AccountRepay = Entry('v5/account/repay', 'private', 'POST', {'cost': 5})
     private_post_v5_account_no_convert_repay = privatePostV5AccountNoConvertRepay = Entry('v5/account/no-convert-repay', 'private', 'POST', {'cost': 5})
+    private_post_v5_account_set_limit_px_action = privatePostV5AccountSetLimitPxAction = Entry('v5/account/set-limit-px-action', 'private', 'POST', {'cost': 5})
     private_post_v5_asset_exchange_quote_apply = privatePostV5AssetExchangeQuoteApply = Entry('v5/asset/exchange/quote-apply', 'private', 'POST', {'cost': 1})
     private_post_v5_asset_exchange_convert_execute = privatePostV5AssetExchangeConvertExecute = Entry('v5/asset/exchange/convert-execute', 'private', 'POST', {'cost': 1})
     private_post_v5_asset_transfer_inter_transfer = privatePostV5AssetTransferInterTransfer = Entry('v5/asset/transfer/inter-transfer', 'private', 'POST', {'cost': 50})
