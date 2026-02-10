@@ -616,6 +616,43 @@
                     }
                 ]
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770732120,
+                            "fillOpen": 68959.2,
+                            "fillHigh": 68959.2,
+                            "fillClose": 68881.4,
+                            "fillLow": 68881.4,
+                            "oracleOpen": 68939.447441,
+                            "oracleHigh": 68939.447441,
+                            "oracleClose": 68898.529659,
+                            "oracleLow": 68898.529659,
+                            "quoteVolume": 268.63746,
+                            "baseVolume": 0.0039
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1770732120000,
+                        68959.2,
+                        68959.2,
+                        68881.4,
+                        68881.4,
+                        268.63746
+                    ]
+                ]
+            }
         ]
     }
 }
