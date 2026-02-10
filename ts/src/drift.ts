@@ -1689,54 +1689,6 @@ export default class drift extends Exchange {
 
     /**
      * @method
-     * @name drift#deposit
-     * @description make a deposit
-     * @param {string} code unified currency code
-     * @param {float} amount amount to deposit
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
-     */
-    async deposit (
-        code: string,
-        amount: number,
-        params = {}
-    ): Promise<Transaction> {
-        await this.loadMarkets ();
-        this.checkRequiredCredentials ();
-        const request: Dict = {
-            'accountId': this.accountId,
-            'amount': amount,
-            'symbol': code,
-        };
-        const response = await this.publicPostTxDeposit (this.extend (request));
-        const txSig = await this.executeTx (response.tx);
-        // todo add deposit to response
-        return {
-            'info': this.extend (response, { 'txSig': txSig }),
-            'id': this.safeString (response, 'depositRecordId'),
-            'txid': txSig,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'address': undefined,
-            'addressFrom': undefined,
-            'addressTo': undefined,
-            'tag': undefined,
-            'tagFrom': undefined,
-            'tagTo': undefined,
-            'type': 'deposit',
-            'amount': amount,
-            'currency': code,
-            'status': 'ok',
-            'updated': undefined,
-            'fee': undefined,
-            'network': undefined,
-            'internal': undefined,
-            'comment': undefined,
-        };
-    }
-
-    /**
-     * @method
      * @name drift#withdraw
      * @description make a withdrawal
      * @param {string} code unified currency code
@@ -1744,13 +1696,9 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async withdraw (
-        code: string,
-        amount: number,
-        params = {}
-    ): Promise<Transaction> {
-        await this.loadMarkets ();
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkRequiredCredentials ();
+        await this.loadMarkets ();
         const request: Dict = {
             'accountId': this.accountId,
             'amount': amount,
@@ -1758,11 +1706,10 @@ export default class drift extends Exchange {
         };
         const response = await this.publicPostTxWithdraw (this.extend (request));
         const txSig = await this.executeTx (response.tx);
-        // todo add deposit to response
         return {
-            'info': this.extend (response, { 'txSig': txSig }),
-            'id': this.safeString (response, 'withdrawRecordId'),
-            'txid': txSig,
+            'info': response,
+            'id': undefined,
+            'txid': undefined,
             'timestamp': undefined,
             'datetime': undefined,
             'address': this.accountId,

@@ -186,6 +186,18 @@
                 ],
                 "output": "{\"accountId\":\"12345\",\"symbol\":\"BTC-PERP\"}"
             }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "url": "https://data.api.drift.trade/tx/withdraw",
+                "input": [
+                    "USDC",
+                    1
+                ],
+                "output": "{\"accountId\":\"12345\",\"symbol\":\"USDC\",\"amount\":1}"
+            }
         ]
     }
 }
