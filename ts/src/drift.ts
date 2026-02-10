@@ -1643,11 +1643,10 @@ export default class drift extends Exchange {
         };
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
         const txSig = await this.executeTx (response.tx);
-        // todo add order to response
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
-            'info': this.extend (response, { 'txSig': txSig }),
+            'info': response,
             'symbol': undefined,
             'timestamp': undefined,
             'datetime': undefined,
@@ -1673,19 +1672,19 @@ export default class drift extends Exchange {
         symbol: Str = undefined,
         params = {}
     ): Promise<Order[]> {
-        await this.loadMarkets ();
         this.checkRequiredCredentials ();
-        const market = symbol !== undefined ? this.market (symbol) : undefined;
+        await this.loadMarkets ();
         const request: Dict = {
             'accountId': this.accountId,
         };
-        if (market !== undefined) {
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
         await this.executeTx (response.tx);
-        // todo add order to response
-        return [];
+        return response;
     }
 
     /**

@@ -164,6 +164,28 @@
                 ],
                 "output": "{\"accountId\":\"12345\",\"symbol\":\"BTC-PERP\",\"direction\":\"long\",\"amount\":\"0.001\",\"orderType\":\"limit\",\"price\":\"50000\"}"
             }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://data.api.drift.trade/tx/order/cancel",
+                "input": [
+                    10
+                ],
+                "output": "{\"accountId\":\"12345\",\"orderId\":10}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://data.api.drift.trade/tx/order/cancel",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"accountId\":\"12345\",\"symbol\":\"BTC-PERP\"}"
+            }
         ]
     }
 }
