@@ -2524,17 +2524,17 @@ public partial class krakenfutures : Exchange
         object fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         object nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         object nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (isTrue(isGreaterThan(fundingRateResult, "0.25")))
+        if (isTrue(Precise.stringGt(fundingRateResult, "0.25")))
         {
             fundingRateResult = "0.25";
-        } else if (isTrue(isGreaterThan(fundingRateResult, "-0.25")))
+        } else if (isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
         {
             fundingRateResult = "-0.25";
         }
-        if (isTrue(isGreaterThan(nextFundingRateResult, "0.25")))
+        if (isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
         {
             nextFundingRateResult = "0.25";
-        } else if (isTrue(isGreaterThan(nextFundingRateResult, "-0.25")))
+        } else if (isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
         {
             nextFundingRateResult = "-0.25";
         }

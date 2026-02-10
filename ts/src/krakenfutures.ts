@@ -2409,14 +2409,14 @@ export default class krakenfutures extends Exchange {
         let fundingRateResult = Precise.stringDiv (fundingRateString, markPriceString);
         const nextFundingRateString = this.safeString (ticker, 'fundingRatePrediction');
         let nextFundingRateResult = Precise.stringDiv (nextFundingRateString, markPriceString);
-        if (fundingRateResult > '0.25') {
+        if (Precise.stringGt (fundingRateResult, '0.25')) {
             fundingRateResult = '0.25';
-        } else if (fundingRateResult > '-0.25') {
+        } else if (Precise.stringLt (fundingRateResult, '-0.25')) {
             fundingRateResult = '-0.25';
         }
-        if (nextFundingRateResult > '0.25') {
+        if (Precise.stringGt (nextFundingRateResult, '0.25')) {
             nextFundingRateResult = '0.25';
-        } else if (nextFundingRateResult > '-0.25') {
+        } else if (Precise.stringLt (nextFundingRateResult, '-0.25')) {
             nextFundingRateResult = '-0.25';
         }
         return {
