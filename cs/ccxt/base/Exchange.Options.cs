@@ -11,6 +11,10 @@ public partial class Exchange
     public object fetchResponse = null; // tmp for response tests
     public string id { get; set; } = "Exchange";
 
+    public string[] countries = null;
+    public bool certified = false;
+    public bool pro = false;
+
     public bool alias { get; set; } = false;
 
     public string version { get; set; } = "";
