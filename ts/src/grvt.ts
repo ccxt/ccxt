@@ -449,7 +449,7 @@ export default class grvt extends Exchange {
         const expires = this.safeInteger (this.options, 'signInExpiration', 0);
         // if previous sign-in not expired (give 10 seconds margin)
         if (expires !== undefined && expires > now + 10000) {
-            return;
+            return false;
         }
         const request = {
             'api_key': this.apiKey,
