@@ -1592,7 +1592,7 @@ export default class grvt extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarketsAndSignIn ();
         await this.loadAccountInfos ();
         const currency = this.currency (code);
@@ -1977,7 +1977,8 @@ export default class grvt extends Exchange {
             const market = this.market (leg['instrument']);
             const bigInt10 = this.convertToBigIntCustom ('10');
             const precisionValue = this.precisionFromString (this.safeString (market['precision'], 'base'));
-            const sizeMultiplier = Math.pow (bigInt10, this.convertToBigIntCustom (precisionValue.toString ()));
+            const precisionValueStr = precisionValue.toString ();
+            const sizeMultiplier = Math.pow (bigInt10, this.convertToBigIntCustom (precisionValueStr));
             const size = leg['size'];
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
