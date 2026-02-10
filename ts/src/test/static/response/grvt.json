@@ -1289,51 +1289,51 @@
                     "result": [
                         {
                             "instrument": "BTC_USDT_Perp",
-                            "funding_rate": "0.01",
-                            "funding_time": "1768233600000000000",
-                            "mark_price": "91600.337629404",
-                            "funding_rate_8_h_avg": "0.01",
+                            "funding_rate": "-0.008",
+                            "funding_time": "1770739200000000000",
+                            "mark_price": "69223.585720469",
+                            "funding_rate_8_h_avg": "-0.008",
                             "funding_interval_hours": 8
                         },
                         {
                             "instrument": "BTC_USDT_Perp",
-                            "funding_rate": "-0.0013",
-                            "funding_time": "1768204800000000000",
-                            "mark_price": "91387.78166062",
-                            "funding_rate_8_h_avg": "-0.0013",
+                            "funding_rate": "-0.002",
+                            "funding_time": "1770710400000000000",
+                            "mark_price": "68879.80003446",
+                            "funding_rate_8_h_avg": "-0.002",
                             "funding_interval_hours": 8
                         }
                     ],
-                    "next": "eyJmdW5kaW5nVGltZSI6MTc2ODIwNDgwMDAwMDAwMDAwMH0"
+                    "next": "eyJmdW5kaW5nVGltZSI6MTc3MDcxMDQwMDAwMDAwMDAwMH0"
                 },
                 "parsedResponse": [
                     {
                         "info": {
                             "instrument": "BTC_USDT_Perp",
-                            "funding_rate": "-0.0013",
-                            "funding_time": "1768204800000000000",
-                            "mark_price": "91387.78166062",
-                            "funding_rate_8_h_avg": "-0.0013",
+                            "funding_rate": "-0.002",
+                            "funding_time": "1770710400000000000",
+                            "mark_price": "68879.80003446",
+                            "funding_rate_8_h_avg": "-0.002",
                             "funding_interval_hours": 8
                         },
                         "symbol": "BTC/USDT:USDT",
-                        "fundingRate": -0.0013,
-                        "timestamp": 1768204800000,
-                        "datetime": "2026-01-12T08:00:00.000Z"
+                        "fundingRate": -0.002,
+                        "timestamp": 1770710400000,
+                        "datetime": "2026-02-10T08:00:00.000Z"
                     },
                     {
                         "info": {
                             "instrument": "BTC_USDT_Perp",
-                            "funding_rate": "0.01",
-                            "funding_time": "1768233600000000000",
-                            "mark_price": "91600.337629404",
-                            "funding_rate_8_h_avg": "0.01",
+                            "funding_rate": "-0.008",
+                            "funding_time": "1770739200000000000",
+                            "mark_price": "69223.585720469",
+                            "funding_rate_8_h_avg": "-0.008",
                             "funding_interval_hours": 8
                         },
                         "symbol": "BTC/USDT:USDT",
-                        "fundingRate": 0.01,
-                        "timestamp": 1768233600000,
-                        "datetime": "2026-01-12T16:00:00.000Z"
+                        "fundingRate": -0.008,
+                        "timestamp": 1770739200000,
+                        "datetime": "2026-02-10T16:00:00.000Z"
                     }
                 ]
             }

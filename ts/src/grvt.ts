@@ -1097,7 +1097,7 @@ export default class grvt extends Exchange {
         return this.parseFundingRateHistories (result, market);
     }
 
-    parseFundingRateHistory (rawItem, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistory (rawItem, market: Market = undefined) {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
