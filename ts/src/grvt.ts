@@ -1968,7 +1968,7 @@ export default class grvt extends Exchange {
         return parseInt (x);
     }
 
-    eipMessageForOrder (order, structureType: Str = undefined) {
+    eipMessageForOrder (order) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
@@ -3029,7 +3029,7 @@ export default class grvt extends Exchange {
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
             messageData = this.eipMessageForWithdrawal (request, currencyObj);
         } else if (structureType === 'EIP712_ORDER_TYPE') {
-            messageData = this.eipMessageForOrder (request, structureType);
+            messageData = this.eipMessageForOrder (request);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
             messageData = this.eipMessageForBuilderApproval (request);
         }
