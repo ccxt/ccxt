@@ -493,6 +493,129 @@
                     }
                 ]
             }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770731837,
+                            "txSig": "4wCmEKNdf57RWMYXKbhZRF2Ng2r3gUG5atkpc8GbU7g29ucuvrQXgHnuyWQ2884oDfhatwCVgE6QeSksa9WUUEH9",
+                            "txSigIndex": 1,
+                            "slot": 399336514,
+                            "fillerReward": "0.004825",
+                            "baseAssetAmountFilled": "0.001000000",
+                            "quoteAssetAmountFilled": "68.936100",
+                            "takerFee": "0.048256",
+                            "makerRebate": "-0.001861",
+                            "referrerReward": "0.000000",
+                            "quoteAssetAmountSurplus": "0.000000",
+                            "takerOrderBaseAssetAmount": "0.005300000",
+                            "takerOrderCumulativeBaseAssetAmountFilled": "0.005300000",
+                            "takerOrderCumulativeQuoteAssetAmountFilled": "365.354730",
+                            "makerOrderBaseAssetAmount": "0.110500000",
+                            "makerOrderCumulativeBaseAssetAmountFilled": "0.001000000",
+                            "makerOrderCumulativeQuoteAssetAmountFilled": "68.936100",
+                            "oraclePrice": "68941.288473",
+                            "makerFee": "-0.001861",
+                            "action": "fill",
+                            "actionExplanation": "orderFilledWithMatch",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "filler": "JE9m89yHHiCGzzL2FAeeZgHKAFwjkW4Qp1GfjegWnojR",
+                            "fillRecordId": "7062235",
+                            "taker": "4giLmCjex6SvXtC1rx38gxqKgsmw2kNrEuYeRA4En1kq",
+                            "takerOrderId": "6256",
+                            "takerOrderDirection": "long",
+                            "maker": "BrRpSaQ6hFDw8darPCyP9Sw7sjydMFQqB4ECAotXSEci",
+                            "makerOrderId": "38935885",
+                            "makerOrderDirection": "short",
+                            "spotFulfillmentMethodFee": "0.000000",
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "bitFlags": 1,
+                            "takerExistingQuoteEntryAmount": "",
+                            "takerExistingBaseAssetAmount": "",
+                            "makerExistingQuoteEntryAmount": "69.891378",
+                            "makerExistingBaseAssetAmount": ""
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770731837,
+                            "txSig": "4wCmEKNdf57RWMYXKbhZRF2Ng2r3gUG5atkpc8GbU7g29ucuvrQXgHnuyWQ2884oDfhatwCVgE6QeSksa9WUUEH9",
+                            "txSigIndex": 1,
+                            "slot": 399336514,
+                            "fillerReward": "0.004825",
+                            "baseAssetAmountFilled": "0.001000000",
+                            "quoteAssetAmountFilled": "68.936100",
+                            "takerFee": "0.048256",
+                            "makerRebate": "-0.001861",
+                            "referrerReward": "0.000000",
+                            "quoteAssetAmountSurplus": "0.000000",
+                            "takerOrderBaseAssetAmount": "0.005300000",
+                            "takerOrderCumulativeBaseAssetAmountFilled": "0.005300000",
+                            "takerOrderCumulativeQuoteAssetAmountFilled": "365.354730",
+                            "makerOrderBaseAssetAmount": "0.110500000",
+                            "makerOrderCumulativeBaseAssetAmountFilled": "0.001000000",
+                            "makerOrderCumulativeQuoteAssetAmountFilled": "68.936100",
+                            "oraclePrice": "68941.288473",
+                            "makerFee": "-0.001861",
+                            "action": "fill",
+                            "actionExplanation": "orderFilledWithMatch",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "filler": "JE9m89yHHiCGzzL2FAeeZgHKAFwjkW4Qp1GfjegWnojR",
+                            "fillRecordId": "7062235",
+                            "taker": "4giLmCjex6SvXtC1rx38gxqKgsmw2kNrEuYeRA4En1kq",
+                            "takerOrderId": "6256",
+                            "takerOrderDirection": "long",
+                            "maker": "BrRpSaQ6hFDw8darPCyP9Sw7sjydMFQqB4ECAotXSEci",
+                            "makerOrderId": "38935885",
+                            "makerOrderDirection": "short",
+                            "spotFulfillmentMethodFee": "0.000000",
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "bitFlags": 1,
+                            "takerExistingQuoteEntryAmount": "",
+                            "takerExistingBaseAssetAmount": "",
+                            "makerExistingQuoteEntryAmount": "69.891378",
+                            "makerExistingBaseAssetAmount": ""
+                        },
+                        "amount": 0.001,
+                        "datetime": "2026-02-10T13:57:17.000Z",
+                        "id": "7062235",
+                        "price": 68936.1,
+                        "timestamp": 1770731837000,
+                        "symbol": "BTC/USDC:USDC",
+                        "side": "buy",
+                        "cost": 68.9361,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.048256
+                        },
+                        "order": "6256",
+                        "takerOrMaker": null,
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.048256
+                            }
+                        ]
+                    }
+                ]
+            }
         ]
     }
 }
