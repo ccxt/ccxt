@@ -294,6 +294,7 @@
         ],
         "fetchPositions": [
             {
+                "disableGO": true,
                 "description": "fetchPositions with symbols",
                 "method": "fetchPositions",
                 "input": [
@@ -346,6 +347,7 @@
         ],
         "cancelAllOrders": [
             {
+                "disableGO": true,
                 "description": "cancelAllOrders symbol perp",
                 "method": "cancelAllOrders",
                 "input": [
@@ -668,6 +670,7 @@
         ],
         "fetchMyTrades": [
             {
+                "disableGO": true,
                 "description": "fetchMyTrades symbol perp",
                 "method": "fetchMyTrades",
                 "input": [
