@@ -5,5 +5,168 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "markets": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDC",
+                            "status": "active",
+                            "precision": 9,
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 20
+                                },
+                                "amount": {
+                                    "min": 0.0001,
+                                    "max": 3500
+                                }
+                            },
+                            "fees": {
+                                "maker": -0.00002,
+                                "taker": 0.00035
+                            },
+                            "oraclePrice": "68525.837797",
+                            "markPrice": "68481.850665",
+                            "baseVolume": "293.803700",
+                            "quoteVolume": "20508203.775252",
+                            "openInterest": {
+                                "long": "264.7866",
+                                "short": "-312.3766"
+                            },
+                            "fundingRate": {
+                                "long": "0.00093",
+                                "short": "-0.00093"
+                            },
+                            "fundingRate24h": "-0.000569",
+                            "fundingRateUpdateTs": 1770728410,
+                            "price": "68388.600000",
+                            "priceChange24h": "-741.000000",
+                            "priceChange24hPercent": "-1.07",
+                            "priceHigh": {
+                                "oracle": "71062.711743",
+                                "fill": "71050.000000"
+                            },
+                            "priceLow": {
+                                "oracle": "68263.971130",
+                                "fill": "68218.000000"
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-PERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "base": "BTC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00035,
+                        "maker": -0.00002,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-9,
+                            "price": 1e-9
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 20
+                            },
+                            "amount": {
+                                "min": 0.0001,
+                                "max": 3500
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDC",
+                            "status": "active",
+                            "precision": 9,
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 20
+                                },
+                                "amount": {
+                                    "min": 0.0001,
+                                    "max": 3500
+                                }
+                            },
+                            "fees": {
+                                "maker": -0.00002,
+                                "taker": 0.00035
+                            },
+                            "oraclePrice": "68525.837797",
+                            "markPrice": "68481.850665",
+                            "baseVolume": "293.803700",
+                            "quoteVolume": "20508203.775252",
+                            "openInterest": {
+                                "long": "264.7866",
+                                "short": "-312.3766"
+                            },
+                            "fundingRate": {
+                                "long": "0.00093",
+                                "short": "-0.00093"
+                            },
+                            "fundingRate24h": "-0.000569",
+                            "fundingRateUpdateTs": 1770728410,
+                            "price": "68388.600000",
+                            "priceChange24h": "-741.000000",
+                            "priceChange24hPercent": "-1.07",
+                            "priceHigh": {
+                                "oracle": "71062.711743",
+                                "fill": "71050.000000"
+                            },
+                            "priceLow": {
+                                "oracle": "68263.971130",
+                                "fill": "68218.000000"
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
     }
 }

@@ -1,34 +1,6 @@
 import Exchange from './abstract/drift.js';
-import type {
-    Int,
-    OrderSide,
-    OrderType,
-    Trade,
-    OHLCV,
-    Order,
-    OrderBook,
-    Balances,
-    Str,
-    Ticker,
-    Tickers,
-    Strings,
-    Market,
-    Num,
-    Dict,
-    int,
-    Position,
-    Currencies,
-    Currency,
-    Transaction,
-    LedgerEntry,
-    FundingHistory,
-} from './base/types.js';
-import {
-    NotSupported,
-    ArgumentsRequired,
-    InsufficientFunds,
-    OrderNotFound,
-} from './base/errors.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory } from './base/types.js';
+import { NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { base58 } from './static_dependencies/scure-base/index.js'; // adjust path
@@ -380,10 +352,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
-    async fetchTickers (
-        symbols: Strings = undefined,
-        params = {}
-    ): Promise<Tickers> {
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
         const marketIds = this.marketIds (symbols);
         const depthParam = this.safeString (params, 'depth', '1'); // default is 1
@@ -518,11 +487,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
-    async fetchOrderBook (
-        symbol: string,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<OrderBook> {
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -614,12 +579,7 @@ export default class drift extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async fetchTrades (
-        symbol: string,
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<Trade[]> {
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
@@ -705,12 +665,7 @@ export default class drift extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async fetchMyTrades (
-        symbol: string = undefined,
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<Trade[]> {
+    async fetchMyTrades (symbol: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let paginate = false;
@@ -859,13 +814,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OHLCV[]} A list of OHLCV data in an array [timestamp, open, high, low, close, volume]
      */
-    async fetchOHLCV (
-        symbol: string,
-        timeframe: string = '1m',
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe);
@@ -931,11 +880,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrder (
-        id: string,
-        symbol: Str = undefined,
-        params = {}
-    ): Promise<Order> {
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const request: Dict = {
@@ -1002,12 +947,7 @@ export default class drift extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async fetchOrders (
-        symbol: Str = undefined,
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<Order[]> {
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let paginate = false;
@@ -1336,12 +1276,7 @@ export default class drift extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
      */
-    async fetchFundingHistory (
-        symbol: Str = undefined,
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<FundingHistory[]> {
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let paginate = false;
@@ -1438,12 +1373,7 @@ export default class drift extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Transaction[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchTransactions (
-        code: Str = undefined,
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<Transaction[]> {
+    async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let paginate = false;
@@ -1552,12 +1482,7 @@ export default class drift extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {LedgerEntry[]} a list of [ledger entries]{@link https://docs.ccxt.com/#/?id=ledger-structure}
      */
-    async fetchLedger (
-        code: Str = undefined,
-        since: Int = undefined,
-        limit: Int = undefined,
-        params = {}
-    ): Promise<LedgerEntry[]> {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         let paginate = false;
@@ -1595,14 +1520,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async createOrder (
-        symbol: string,
-        type: OrderType,
-        side: OrderSide,
-        amount: number,
-        price: Num = undefined,
-        params = {}
-    ): Promise<Order> {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const direction = (side === 'buy') ? 'long' : 'short';
@@ -1637,11 +1555,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelOrder (
-        id: string,
-        symbol: Str = undefined,
-        params = {}
-    ): Promise<Order> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const request: Dict = {
@@ -1675,10 +1589,7 @@ export default class drift extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
-    async cancelAllOrders (
-        symbol: Str = undefined,
-        params = {}
-    ): Promise<Order[]> {
+    async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const request: Dict = {
@@ -1767,14 +1678,7 @@ export default class drift extends Exchange {
         return this.safeString (response, 'txSig');
     }
 
-    sign (
-        path: string,
-        api: string = 'public',
-        method: string = 'GET',
-        params: Dict = {},
-        headers: any = undefined,
-        body: any = undefined
-    ) {
+    sign (path: string, api: string = 'public', method: string = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public' || api === 'dlob') {
@@ -1790,17 +1694,7 @@ export default class drift extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (
-        code: int,
-        reason: string,
-        url: string,
-        method: string,
-        headers: Dict,
-        body: string,
-        response: any,
-        requestHeaders: any,
-        requestBody: any
-    ) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
         if (response === undefined) {
             return undefined;
         }
