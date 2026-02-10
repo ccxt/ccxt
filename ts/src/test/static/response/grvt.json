@@ -294,7 +294,7 @@
         ],
         "fetchPositions": [
             {
-                "disableGO": true,
+                "disabledGO": true,
                 "description": "fetchPositions with symbols",
                 "method": "fetchPositions",
                 "input": [
@@ -347,7 +347,7 @@
         ],
         "cancelAllOrders": [
             {
-                "disableGO": true,
+                "disabledGO": true,
                 "description": "cancelAllOrders symbol perp",
                 "method": "cancelAllOrders",
                 "input": [
@@ -670,7 +670,7 @@
         ],
         "fetchMyTrades": [
             {
-                "disableGO": true,
+                "disabledGO": true,
                 "description": "fetchMyTrades symbol perp",
                 "method": "fetchMyTrades",
                 "input": [
@@ -1252,7 +1252,8 @@
         ],
         "createOrder": [
             {
-                "disableCS": true,
+                "disabledCS": true,
+                "disabledPHP": true,
                 "description": "swap sell trigger & reduceOnly",
                 "method": "createOrder",
                 "input": [
@@ -1414,7 +1415,8 @@
                 }
             },
             {
-                "disableCS": true,
+                "disabledCS": true,
+                "disabledPHP": true,
                 "description": "swap buy trigger",
                 "method": "createOrder",
                 "input": [
@@ -1576,7 +1578,8 @@
                 }
             },
             {
-                "disableCS": true,
+                "disabledCS": true,
+                "disabledPHP": true,
                 "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
                 "method": "createOrder",
                 "input": [
@@ -1736,7 +1739,8 @@
                 }
             },
             {
-                "disableCS": true,
+                "disabledCS": true,
+                "disabledPHP": true,
                 "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
                 "method": "createOrder",
                 "input": [
@@ -1896,7 +1900,8 @@
                 }
             },
             {
-                "disableCS": true,
+                "disabledCS": true,
+                "disabledPHP": true,
                 "description": "createOrder perp buy limit",
                 "method": "createOrder",
                 "input": [
