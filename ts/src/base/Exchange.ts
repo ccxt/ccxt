@@ -1628,7 +1628,12 @@ export default class Exchange {
     ethGetAddressFromPrivateKey (privateKey: string): string {
         // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
         // Removes the "0x" prefix if present
-        const publicKeyUncompressed = this.base16ToBinary (this.remove0xPrefix (this.ethGetPublicKeyFromPrivateKey (privateKey, false))).slice (1); // Remove 0x04 prefix
+        const cleanPrivateKey = this.remove0xPrefix (privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
+        // secp256k1.getPublicKey returns compressed key, we need uncompressed
+        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (false).slice (1); // Remove 0x04 prefix
         // Hash the public key with Keccak256
         const publicKeyHash = keccak_256 (publicKeyUncompressed);
         // Take the last 20 bytes (40 hex chars)
