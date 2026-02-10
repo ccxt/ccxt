@@ -220,22 +220,28 @@ function helperTestProperties () {
     //
     // common props
     //
-    assert (exchange.id === undefined);
+    assert (exchange.id === 'Exchange');
     assert (exchange.has !== undefined);
     assert (exchange.api === undefined);
     assert (exchange.features === undefined);
     assert (exchange.minFundingAddressLength > 0.9999 && exchange.minFundingAddressLength < 1.0001);
     assert (exchange.isSandboxModeEnabled === false);
-    assert (exchange.enableRateLimit === undefined);
+    assert (exchange.enableRateLimit === true);
     assert (exchange.rateLimiterAlgorithm === 'leakyBucket');
     assert (exchange.rateLimit === 2000);
     assert (exchange.certified === false);
     assert (exchange.pro === false);
     assert (exchange.alias === false);
-    assert (exchange.httpExceptions === undefined);
-    assert (exchange.limits === undefined);
-    assert (exchange.rollingWindowSize === 0.0);
-    assert (exchange.httpExceptions === undefined);
+    const httpExceptionKeys = [ '400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530' ];
+    testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchange.httpExceptions), httpExceptionKeys); // todo: add better deepAssert with error classes
+    const limits = {
+        'leverage': { 'min': undefined, 'max': undefined },
+        'amount': { 'min': undefined, 'max': undefined },
+        'price': { 'min': undefined, 'max': undefined },
+        'cost': { 'min': undefined, 'max': undefined },
+    };
+    testSharedMethods.assertDeepEqual (exchange, {}, 'limits', exchange.limits, limits);
+    assert (exchange.rollingWindowSize === 60000);
     assert (exchange.countries === undefined);
     const urls = {
         'logo': undefined,
@@ -247,13 +253,13 @@ function helperTestProperties () {
     testSharedMethods.assertDeepEqual (exchange, {}, 'urls', exchange.urls, urls);
     assert (exchange.precision === undefined);
     assert (exchange.hostname === undefined);
-    assert (exchange.precisionMode === undefined || exchange.precisionMode === 0);
-    assert (exchange.paddingMode === undefined || exchange.paddingMode === 0);
+    assert (exchange.precisionMode === undefined || exchange.precisionMode === 4);
+    assert (exchange.paddingMode === undefined || exchange.paddingMode === 5);
     testSharedMethods.assertDeepEqual (exchange, {}, 'headers', exchange.headers, {});
     assert (exchange.origin === '*');
     assert (exchange.substituteCommonCurrencyCodes === true);
     assert (exchange.quoteJsonNumbers === true);
-    assert (exchange.handleContentTypeApplicationZip === true);
+    assert (exchange.handleContentTypeApplicationZip === false);
     assert (exchange.reduceFees === true);
     const fees = {
         'trading': {
@@ -286,8 +292,8 @@ function helperTestProperties () {
     assert (exchange.marketsLoading === undefined);
     assert (exchange.version === undefined);
     assert (exchange.name === undefined);
-    testSharedMethods.assertDeepEqual (exchange, {}, 'exceptions', exchange.exceptions, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'timeframes', exchange.timeframes, {});
+    assert (exchange.exceptions === undefined);
+    assert (exchange.timeframes === undefined);
     testSharedMethods.assertDeepEqual (exchange, {}, 'clients', exchange.clients, {});
     testSharedMethods.assertDeepEqual (exchange, {}, 'streaming', exchange.streaming, {});
     testSharedMethods.assertDeepEqual (exchange, {}, 'proxyDictionaries', exchange.proxyDictionaries, {});
