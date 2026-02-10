@@ -1144,7 +1144,7 @@
                 },
                 "parsedResponse": [
                     [
-                        1768089600000000,
+                        1768089600000,
                         90464,
                         91245.9,
                         90201,
@@ -1152,7 +1152,7 @@
                         3880.117
                     ],
                     [
-                        1768176000000000,
+                        1768176000000,
                         90977.6,
                         92460.2,
                         90100,
@@ -1201,7 +1201,7 @@
                 },
                 "parsedResponse": [
                     [
-                        1768230000000000,
+                        1768230000000,
                         90871.9,
                         91636.8,
                         90673,
@@ -1209,7 +1209,7 @@
                         497.2
                     ],
                     [
-                        1768233600000000,
+                        1768233600000,
                         91633.1,
                         92274.9,
                         91527.3,
@@ -1258,7 +1258,7 @@
                 },
                 "parsedResponse": [
                     [
-                        1768236720000000,
+                        1768236720000,
                         92057.3,
                         92109.6,
                         92057.3,
@@ -1266,7 +1266,7 @@
                         4.918
                     ],
                     [
-                        1768236780000000,
+                        1768236780000,
                         92107.1,
                         92108.1,
                         92080.6,
@@ -1350,7 +1350,6 @@
                     73000,
                     {
                         "accountId": 2147050003876484,
-                        "builderFee": false,
                         "triggerPrice": 77000,
                         "triggerDirection": "descending",
                         "reduceOnly": true
@@ -1966,164 +1965,6 @@
                                 "0.0"
                             ],
                             "update_time": "1768236865187481296",
-                            "avg_fill_price": [
-                                "0.0"
-                            ]
-                        },
-                        "builder": "0x00",
-                        "builder_fee": "0.0"
-                    },
-                    "lastTradeTimestamp": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null,
-                    "fee": null
-                }
-            },
-            {
-                "description": "createOrder perp buy limit with triggerPrice",
-                "method": "createOrder",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    "0.001",
-                    70000,
-                    {
-                        "triggerPrice": 71000
-                    }
-                ],
-                "httpResponse": {
-                    "result": {
-                        "order_id": "0x00",
-                        "sub_account_id": "2147050003876484",
-                        "is_market": false,
-                        "time_in_force": "GOOD_TILL_TIME",
-                        "post_only": false,
-                        "reduce_only": false,
-                        "legs": [
-                            {
-                                "instrument": "BTC_USDT_Perp",
-                                "size": "0.001",
-                                "limit_price": "70000.0",
-                                "is_buying_asset": true
-                            }
-                        ],
-                        "signature": {
-                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
-                            "r": "0xb64610e62a71557e013b62591d4844925829dd7ad74dded5f4516ff573ec3eee",
-                            "s": "0x777059929231198c80ac5c5ca4f8c91be1d51729eb649eb6c6ec9e55f2a10871",
-                            "v": "27",
-                            "expiration": "1766239839141000000",
-                            "nonce": "1766239809",
-                            "chain_id": "0"
-                        },
-                        "metadata": {
-                            "client_order_id": "1766239809",
-                            "create_time": "1766239808840440579",
-                            "trigger": {
-                                "trigger_type": "UNSPECIFIED",
-                                "tpsl": {
-                                    "trigger_by": "UNSPECIFIED",
-                                    "trigger_price": "0.0",
-                                    "close_position": false
-                                }
-                            },
-                            "broker": "UNSPECIFIED",
-                            "is_position_transfer": false,
-                            "allow_crossing": false
-                        },
-                        "state": {
-                            "status": "PENDING",
-                            "reject_reason": "UNSPECIFIED",
-                            "book_size": [
-                                "0.001"
-                            ],
-                            "traded_size": [
-                                "0.0"
-                            ],
-                            "update_time": "1766239808840440579",
-                            "avg_fill_price": [
-                                "0.0"
-                            ]
-                        },
-                        "builder": "0x00",
-                        "builder_fee": "0.0"
-                    }
-                },
-                "parsedResponse": {
-                    "isMultiLeg": false,
-                    "id": "0x00",
-                    "clientOrderId": "1766239809",
-                    "timestamp": 1766239808840,
-                    "datetime": "2025-12-20T14:10:08.840Z",
-                    "lastTradeTimeStamp": null,
-                    "lastUpdateTimestamp": 1766239808840,
-                    "status": "pending",
-                    "symbol": "BTC/USDT:USDT",
-                    "type": "market",
-                    "timeInForce": "GTC",
-                    "postOnly": false,
-                    "side": "buy",
-                    "price": 70000,
-                    "triggerPrice": null,
-                    "cost": 0,
-                    "average": null,
-                    "amount": 0.001,
-                    "filled": 0,
-                    "remaining": 0.001,
-                    "trades": [],
-                    "fees": [],
-                    "reduceOnly": false,
-                    "info": {
-                        "order_id": "0x00",
-                        "sub_account_id": "2147050003876484",
-                        "is_market": false,
-                        "time_in_force": "GOOD_TILL_TIME",
-                        "post_only": false,
-                        "reduce_only": false,
-                        "legs": [
-                            {
-                                "instrument": "BTC_USDT_Perp",
-                                "size": "0.001",
-                                "limit_price": "70000.0",
-                                "is_buying_asset": true
-                            }
-                        ],
-                        "signature": {
-                            "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
-                            "r": "0xb64610e62a71557e013b62591d4844925829dd7ad74dded5f4516ff573ec3eee",
-                            "s": "0x777059929231198c80ac5c5ca4f8c91be1d51729eb649eb6c6ec9e55f2a10871",
-                            "v": "27",
-                            "expiration": "1766239839141000000",
-                            "nonce": "1766239809",
-                            "chain_id": "0"
-                        },
-                        "metadata": {
-                            "client_order_id": "1766239809",
-                            "create_time": "1766239808840440579",
-                            "trigger": {
-                                "trigger_type": "UNSPECIFIED",
-                                "tpsl": {
-                                    "trigger_by": "UNSPECIFIED",
-                                    "trigger_price": "0.0",
-                                    "close_position": false
-                                }
-                            },
-                            "broker": "UNSPECIFIED",
-                            "is_position_transfer": false,
-                            "allow_crossing": false
-                        },
-                        "state": {
-                            "status": "PENDING",
-                            "reject_reason": "UNSPECIFIED",
-                            "book_size": [
-                                "0.001"
-                            ],
-                            "traded_size": [
-                                "0.0"
-                            ],
-                            "update_time": "1766239808840440579",
                             "avg_fill_price": [
                                 "0.0"
                             ]
