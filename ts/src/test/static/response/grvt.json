@@ -34,7 +34,7 @@
                             "quote_decimals": 6,
                             "tick_size": "0.01",
                             "min_size": "0.1",
-                            "create_time": "1768040726362818304",
+                            "create_time": "1768040726362418304",
                             "max_position_size": "7729.0",
                             "funding_interval_hours": 8,
                             "adjusted_funding_rate_cap": "0.75",
@@ -108,7 +108,7 @@
                             "quote_decimals": 6,
                             "tick_size": "0.01",
                             "min_size": "0.1",
-                            "create_time": "1768040726362818304",
+                            "create_time": "1768040726362418304",
                             "max_position_size": "7729.0",
                             "funding_interval_hours": 8,
                             "adjusted_funding_rate_cap": "0.75",
@@ -434,97 +434,6 @@
                 ]
             }
         ],
-        "fetchTransfers": [
-            {
-                "description": "fetchTransfers with currency",
-                "method": "fetchTransfers",
-                "input": [
-                    "USDT",
-                    null,
-                    2
-                ],
-                "httpResponse": {
-                    "result": [
-                        {
-                            "tx_id": "75450597",
-                            "from_account_id": "0xa1bbc15f7bc79f6a1a619487cdcd1d43cc4474f3",
-                            "from_sub_account_id": "0",
-                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-                            "to_sub_account_id": "0",
-                            "currency": "USDT",
-                            "num_tokens": "0.0153",
-                            "signature": {
-                                "signer": "0x3e5faf87a23813027f7386ab6bf528b212bfa6a3",
-                                "r": "0xb12e60234c64841c14711c88f4457b4287b604df0fe7b541fdeb254105d888e4",
-                                "s": "0x79119fb8199374d39316b3b135dcdd8dfb6b1809f68792af80bce4def983b4cb",
-                                "v": 28,
-                                "expiration": "1768290362427571295",
-                                "nonce": 1063791604,
-                                "chain_id": "325"
-                            },
-                            "event_time": "1767685562437206175",
-                            "transfer_type": "TRADING_DEPOSIT_YIELD_INCENTIVE",
-                            "transfer_metadata": "{\"epoch\":46}"
-                        },
-                        {
-                            "tx_id": "70097161",
-                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-                            "from_sub_account_id": "2147050003876484",
-                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-                            "to_sub_account_id": "0",
-                            "currency": "USDT",
-                            "num_tokens": "1.234",
-                            "signature": {
-                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
-                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
-                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
-                                "v": 27,
-                                "expiration": "1766170918875000000",
-                                "nonce": 1766170888,
-                                "chain_id": "0"
-                            },
-                            "event_time": "1766170891072131476",
-                            "transfer_type": "STANDARD",
-                            "transfer_metadata": ""
-                        }
-                    ],
-                    "next": "eyJ0eElEIjo3MDA5NzE2MX0"
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "tx_id": "70097161",
-                            "from_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-                            "from_sub_account_id": "2147050003876484",
-                            "to_account_id": "0x42c9f56f2c9da534f64b8806d64813b29c62a01d",
-                            "to_sub_account_id": "0",
-                            "currency": "USDT",
-                            "num_tokens": "1.234",
-                            "signature": {
-                                "signer": "0xbf465e6083a43b170791ea29393f601381c560be",
-                                "r": "0xeafd25fa5c21c7ed224cccec543bcb2754a07831e2066afa7481bc632010da20",
-                                "s": "0x10f767d16bcc6e8e8a93fbe75c70107ed24ebb4137fddb596b6e58820fa12ed6",
-                                "v": 27,
-                                "expiration": "1766170918875000000",
-                                "nonce": 1766170888,
-                                "chain_id": "0"
-                            },
-                            "event_time": "1766170891072131476",
-                            "transfer_type": "STANDARD",
-                            "transfer_metadata": ""
-                        },
-                        "id": "70097161",
-                        "timestamp": 1766170891072,
-                        "datetime": "2025-12-19T19:01:31.072Z",
-                        "currency": "USDT",
-                        "amount": null,
-                        "fromAccount": "2147050003876484",
-                        "toAccount": "0",
-                        "status": null
-                    }
-                ]
-            }
-        ],
         "fetchWithdrawals": [
             {
                 "description": "fetchWithdrawals with currency",
@@ -796,7 +705,7 @@
                             "builder_fee": "0"
                         },
                         {
-                            "event_time": "1767942501169853220",
+                            "event_time": "1767942501169153220",
                             "sub_account_id": "2147050003876484",
                             "instrument": "BTC_USDT_Perp",
                             "is_buyer": true,
@@ -828,7 +737,7 @@
                 "parsedResponse": [
                     {
                         "info": {
-                            "event_time": "1767942501169853220",
+                            "event_time": "1767942501169153220",
                             "sub_account_id": "2147050003876484",
                             "instrument": "BTC_USDT_Perp",
                             "is_buyer": true,
