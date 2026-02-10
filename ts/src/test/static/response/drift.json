@@ -988,6 +988,111 @@
                     }
                 ]
             }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "account": {
+                        "balance": "27.547672",
+                        "totalCollateral": "27.547672",
+                        "freeCollateral": "26.181103",
+                        "health": "99",
+                        "initialMargin": "1.366004",
+                        "maintenanceMargin": "0.238456",
+                        "leverage": "0.3992"
+                    },
+                    "positions": [],
+                    "balances": [
+                        {
+                            "symbol": "USDC",
+                            "marketIndex": 0,
+                            "balance": "28.202300",
+                            "openOrders": 0,
+                            "liquidationPrice": "0.031668"
+                        }
+                    ],
+                    "orders": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "marketType": "perp",
+                            "orderId": 14,
+                            "price": "300.000000",
+                            "baseAssetAmount": "0.010000000",
+                            "baseAssetAmountFilled": "0.000000000",
+                            "quoteAssetAmountFilled": "0.000000",
+                            "status": "open",
+                            "orderType": "limit",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "triggerPrice": "0.000000",
+                            "triggerCondition": "above"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "balance": "27.547672",
+                            "totalCollateral": "27.547672",
+                            "freeCollateral": "26.181103",
+                            "health": "99",
+                            "initialMargin": "1.366004",
+                            "maintenanceMargin": "0.238456",
+                            "leverage": "0.3992"
+                        },
+                        "positions": [],
+                        "balances": [
+                            {
+                                "symbol": "USDC",
+                                "marketIndex": 0,
+                                "balance": "28.202300",
+                                "openOrders": 0,
+                                "liquidationPrice": "0.031668"
+                            }
+                        ],
+                        "orders": [
+                            {
+                                "symbol": "BTC-PERP",
+                                "marketIndex": 0,
+                                "marketType": "perp",
+                                "orderId": 14,
+                                "price": "300.000000",
+                                "baseAssetAmount": "0.010000000",
+                                "baseAssetAmountFilled": "0.000000000",
+                                "quoteAssetAmountFilled": "0.000000",
+                                "status": "open",
+                                "orderType": "limit",
+                                "direction": "short",
+                                "reduceOnly": false,
+                                "postOnly": false,
+                                "triggerPrice": "0.000000",
+                                "triggerCondition": "above"
+                            }
+                        ]
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "USDC": {
+                        "free": 28.2023,
+                        "used": 0,
+                        "total": 28.2023
+                    },
+                    "free": {
+                        "USDC": 28.2023
+                    },
+                    "used": {
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDC": 28.2023
+                    }
+                }
+            }
         ]
     }
 }
