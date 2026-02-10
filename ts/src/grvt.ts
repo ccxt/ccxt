@@ -159,7 +159,7 @@ export default class grvt extends Exchange {
                         'full/v1/vault_redeem_cancel': rlOthers,
                         'full/v1/vault_view_redemption_queue': rlOthers,
                         'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers,
+                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders': rlOthers,
                         'full/v1/builder_fill_history': rlOthers,
                     },
