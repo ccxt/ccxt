@@ -1722,8 +1722,8 @@ export default class grvt extends Exchange {
         //         }
         //     }
         //
-        const undefinedAccount = this.safeString (this.options, 'accountId') === undefined;
-        if (undefinedAccount) {
+        const accountIsUndefined = this.safeString (this.options, 'accountId') === undefined;
+        if (accountIsUndefined) {
             promises.push (this.privateTradingPostFullV1GetSubAccounts ());
         }
         //
