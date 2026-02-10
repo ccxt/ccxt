@@ -347,10 +347,10 @@ export default class Exchange {
         token: Bool,  // reserved for HTTP auth in some cases
     };
 
-    rateLimit: Num = undefined; // milliseconds
+    rateLimit: Num = 2000; // milliseconds
     tokenBucket: Dictionary<number> = undefined;
     throttler: any = undefined;
-    enableRateLimit: boolean = undefined;
+    enableRateLimit: boolean = true;
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
     rateLimiterAlgorithm: string = 'leakyBucket';
 
@@ -406,15 +406,11 @@ export default class Exchange {
 
     version: Str = undefined;
 
-    marketsByAltname: Dictionary<Market> = undefined;
-
     name: Str = undefined;
 
     lastRestRequestTimestamp: int;
 
     targetAccount: string = undefined;
-
-    stablePairs: Dictionary<boolean> = {};
 
     httpProxyAgentModule: any = undefined;
     httpsProxyAgentModule: any = undefined;
@@ -1975,15 +1971,15 @@ export default class Exchange {
 
     describe (): any {
         return {
-            'id': undefined,
-            'name': undefined,
-            'countries': undefined,
-            'enableRateLimit': true,
-            'rateLimit': 2000, // milliseconds = seconds * 1000
+            'id': this.id,
+            'name': this.name,
+            'countries': this.countries,
+            'enableRateLimit': this.enableRateLimit,
+            'rateLimit': this.rateLimit, // milliseconds = seconds * 1000
             'timeout': this.timeout, // milliseconds = seconds * 1000
-            'certified': false, // if certified by the CCXT dev team
-            'pro': false, // if it is integrated with CCXT Pro for WebSocket support
-            'alias': false, // whether this exchange is an alias to another exchange
+            'certified': this.certified, // if certified by the CCXT dev team
+            'pro': this.pro, // if it is integrated with CCXT Pro for WebSocket support
+            'alias': this.alias, // whether this exchange is an alias to another exchange
             'dex': false,
             'has': {
                 'publicAPI': true,

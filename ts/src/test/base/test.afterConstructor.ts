@@ -130,6 +130,19 @@ function helperTestProperties () {
     assert (exchange.privateKey === undefined);
     assert (exchange.walletAddress === undefined);
     assert (exchange.token === undefined);
+    const requiredCredentials = {
+        'apiKey': true,
+        'secret': true,
+        'uid': false,
+        'accountId': false,
+        'login': false,
+        'password': false,
+        'twofa': false,
+        'privateKey': false,
+        'walletAddress': false,
+        'token': false,
+    };
+    testSharedMethods.assertDeepEqual (exchange, {}, 'requiredCredentials', exchange.requiredCredentials, requiredCredentials);
 
     //
     // cache
@@ -146,8 +159,22 @@ function helperTestProperties () {
     assert (exchange.myLiquidations === undefined);
     assert (exchange.myTrades === undefined);
     assert (exchange.positions === undefined);
+    assert (exchange.markets === undefined);
+    assert (exchange.symbols === undefined);
+    assert (exchange.markets_by_id === undefined);
+    assert (exchange.ids === undefined);
+    testSharedMethods.assertDeepEqual (exchange, {}, 'currencies', exchange.currencies, {});
+    assert (exchange.baseCurrencies === undefined);
+    assert (exchange.quoteCurrencies === undefined);
+    assert (exchange.currencies_by_id === undefined);
+    assert (exchange.codes === undefined);
+    assert (exchange.accounts === undefined);
+    assert (exchange.accountsById === undefined);
+    testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', exchange.commonCurrencies, { 'XBT': 'BTC', 'BCHSV': 'BSV' });
 
+    //
     // proxies
+    //
     assert (exchange.proxy === undefined);
     assert (exchange.proxyUrl === undefined);
     assert (exchange.proxy_url === undefined);
@@ -175,30 +202,8 @@ function helperTestProperties () {
     assert (exchange.ws_socks_proxy === undefined);
 
     //
-    // common props
+    // request-response
     //
-    assert (exchange.api === undefined);
-    assert (exchange.minFundingAddressLength > 0.9999 && exchange.minFundingAddressLength < 1.0001);
-    assert (exchange.isSandboxModeEnabled === false);
-    assert (exchange.certified === false);
-    assert (exchange.pro === false);
-    assert (exchange.countries === undefined);
-    assert (exchange.urls === undefined);
-
-    //
-    // others
-    //
-    testSharedMethods.assertDeepEqual (exchange, {}, 'headers', exchange.headers, {});
-    assert (exchange.origin === '*');
-    assert (exchange.substituteCommonCurrencyCodes === true);
-    assert (exchange.quoteJsonNumbers === true);
-    assert (exchange.handleContentTypeApplicationZip === true);
-    assert (exchange.reduceFees === true);
-    assert (exchange.timeout === 10000);
-    assert (exchange.verbose === false);
-    assert (exchange.newUpdates === true);
-    assert (exchange.requiresWeb3 === false);
-    assert (exchange.requiresEddsa === false);
     assert (exchange.lastRestRequestTimestamp === 0);
     assert (exchange.enableLastJsonResponse === false);
     assert (exchange.enableLastHttpResponse === true);
@@ -211,6 +216,81 @@ function helperTestProperties () {
     assert (exchange.last_request_url === undefined);
     assert (exchange.last_request_path === undefined);
     assert (exchange.returnResponseHeaders === false);
+
+    //
+    // common props
+    //
+    assert (exchange.id === undefined);
+    assert (exchange.has !== undefined);
+    assert (exchange.api === undefined);
+    assert (exchange.features === undefined);
+    assert (exchange.minFundingAddressLength > 0.9999 && exchange.minFundingAddressLength < 1.0001);
+    assert (exchange.isSandboxModeEnabled === false);
+    assert (exchange.enableRateLimit === undefined);
+    assert (exchange.rateLimiterAlgorithm === 'leakyBucket');
+    assert (exchange.rateLimit === 2000);
+    assert (exchange.certified === false);
+    assert (exchange.pro === false);
+    assert (exchange.alias === false);
+    assert (exchange.httpExceptions === undefined);
+    assert (exchange.limits === undefined);
+    assert (exchange.rollingWindowSize === 0.0);
+    assert (exchange.httpExceptions === undefined);
+    assert (exchange.countries === undefined);
+    const urls = {
+        'logo': undefined,
+        'api': undefined,
+        'www': undefined,
+        'doc': undefined,
+        'fees': undefined,
+    };
+    testSharedMethods.assertDeepEqual (exchange, {}, 'urls', exchange.urls, urls);
+    assert (exchange.precision === undefined);
+    assert (exchange.hostname === undefined);
+    assert (exchange.precisionMode === undefined || exchange.precisionMode === 0);
+    assert (exchange.paddingMode === undefined || exchange.paddingMode === 0);
+    testSharedMethods.assertDeepEqual (exchange, {}, 'headers', exchange.headers, {});
+    assert (exchange.origin === '*');
+    assert (exchange.substituteCommonCurrencyCodes === true);
+    assert (exchange.quoteJsonNumbers === true);
+    assert (exchange.handleContentTypeApplicationZip === true);
+    assert (exchange.reduceFees === true);
+    const fees = {
+        'trading': {
+            'tierBased': undefined,
+            'percentage': undefined,
+            'taker': undefined,
+            'maker': undefined,
+        },
+        'funding': {
+            'tierBased': undefined,
+            'percentage': undefined,
+            'withdraw': {},
+            'deposit': {},
+        },
+    };
+    testSharedMethods.assertDeepEqual (exchange, {}, 'fees', exchange.fees, fees);
+    const status = {
+        'status': 'ok',
+        'updated': undefined,
+        'eta': undefined,
+        'url': undefined,
+    };
+    testSharedMethods.assertDeepEqual (exchange, {}, 'status', exchange.status, status);
+    assert (exchange.timeout === 10000);
+    assert (exchange.verbose === false);
+    assert (exchange.newUpdates === true);
+    assert (exchange.requiresWeb3 === false);
+    assert (exchange.requiresEddsa === false);
+    assert (!exchange.reloadingMarkets); // undefined or false
+    assert (exchange.marketsLoading === undefined);
+    assert (exchange.version === undefined);
+    assert (exchange.name === undefined);
+    testSharedMethods.assertDeepEqual (exchange, {}, 'exceptions', exchange.exceptions, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'timeframes', exchange.timeframes, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'clients', exchange.clients, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'streaming', exchange.streaming, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'proxyDictionaries', exchange.proxyDictionaries, {});
 }
 
 function testAfterConstructor () {
