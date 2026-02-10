@@ -295,6 +295,81 @@
                     "indexPrice": null
                 }
             }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "bids": [
+                        {
+                            "price": "68864700000",
+                            "size": "72500000",
+                            "sources": {
+                                "vamm": "72500000"
+                            }
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "68918200000",
+                            "size": "217500000",
+                            "sources": {
+                                "vamm": "217500000"
+                            }
+                        }
+                    ],
+                    "marketName": "BTC-PERP",
+                    "marketType": "perp",
+                    "marketIndex": 1,
+                    "ts": 1770731534675,
+                    "slot": 399335746,
+                    "markPrice": "68891450000",
+                    "bestBidPrice": "68864700000",
+                    "bestAskPrice": "68918200000",
+                    "spreadPct": "77658",
+                    "spreadQuote": "53500000",
+                    "oracle": 68922094561,
+                    "oracleData": {
+                        "price": "68922094561",
+                        "slot": "399335745",
+                        "confidence": "4476719",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68922094561",
+                        "twapConfidence": "68922094561"
+                    },
+                    "mmOracleData": {
+                        "price": "68922094561",
+                        "slot": "399335745",
+                        "confidence": "4476719",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68922094561",
+                        "twapConfidence": "68922094561"
+                    },
+                    "marketSlot": 399335745
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            68864.7,
+                            0.0725
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            68918.2,
+                            0.2175
+                        ]
+                    ],
+                    "timestamp": 1770731534675,
+                    "datetime": "2026-02-10T13:52:14.675Z",
+                    "nonce": null
+                }
+            }
         ]
     }
 }
