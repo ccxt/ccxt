@@ -327,7 +327,7 @@ export default class drift extends Exchange {
         let askPrice = undefined;
         let askVolume = undefined;
         if (bestAsk.length > 1) {
-            askPrice = bestAsk[0]
+            askPrice = bestAsk[0];
             askVolume = bestAsk[1];
         }
         const marketsStats = this.safeValue (responses[1], 'markets', []);
@@ -442,7 +442,7 @@ export default class drift extends Exchange {
             let askPrice = undefined;
             let askVolume = undefined;
             if (bestAsk.length > 1) {
-                askPrice = bestAsk[0]
+                askPrice = bestAsk[0];
                 askVolume = bestAsk[1];
             }
             const marketStats = this.safeValue (statsById, marketId, {});
@@ -608,6 +608,7 @@ export default class drift extends Exchange {
      * @name drift#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -698,6 +699,7 @@ export default class drift extends Exchange {
      * @name drift#fetchMyTrades
      * @description fetch all trades made by the user
      * @param {string} [symbol] unified market symbol to fetch trades for, required by some exchanges
+     * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -925,6 +927,7 @@ export default class drift extends Exchange {
      * @name drift#fetchOrder
      * @description fetches information on an order made by the user
      * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -993,6 +996,7 @@ export default class drift extends Exchange {
      * @name drift#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum amount of orders to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1084,6 +1088,9 @@ export default class drift extends Exchange {
      * @method
      * @name drift#fetchOpenOrders
      * @description fetch all unfilled currently open orders
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum amount of orders to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -1598,7 +1605,7 @@ export default class drift extends Exchange {
     ): Promise<Order> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const direction = (side === 'buy') ? 'long' : 'short'; 
+        const direction = (side === 'buy') ? 'long' : 'short';
         const request: Dict = {
             'accountId': this.accountId,
             'symbol': market['id'],
@@ -1642,7 +1649,7 @@ export default class drift extends Exchange {
             'orderId': id,
         };
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
-        const txSig = await this.executeTx (response.tx);
+        await this.executeTx (response.tx);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -1693,6 +1700,8 @@ export default class drift extends Exchange {
      * @description make a withdrawal
      * @param {string} code unified currency code
      * @param {float} amount amount to withdraw
+     * @param {string} address the address to withdraw to
+     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Transaction} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
@@ -1705,7 +1714,7 @@ export default class drift extends Exchange {
             'symbol': code,
         };
         const response = await this.publicPostTxWithdraw (this.extend (request));
-        const txSig = await this.executeTx (response.tx);
+        await this.executeTx (response.tx);
         return {
             'info': response,
             'id': undefined,
