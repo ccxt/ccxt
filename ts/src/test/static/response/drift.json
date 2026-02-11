@@ -1222,6 +1222,88 @@
                     }
                 ]
             }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions",
+                "method": "fetchTransactions",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1750006818,
+                            "txSig": "",
+                            "txSigIndex": 1,
+                            "slot": 399216604,
+                            "amount": "1.000000",
+                            "oraclePrice": "0.999927",
+                            "marketDepositBalance": "125324486.312326148",
+                            "marketWithdrawBalance": "50709710.305888169",
+                            "marketCumulativeDepositInterest": "1.1996503210",
+                            "marketCumulativeBorrowInterest": "1.3923734825",
+                            "totalDepositsAfter": "29.989500",
+                            "totalWithdrawsAfter": "1.999864",
+                            "depositRecordId": "12638973",
+                            "userAuthority": "",
+                            "user": "",
+                            "direction": "withdraw",
+                            "explanation": "none",
+                            "marketIndex": 0,
+                            "symbol": "USDC"
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1750006818,
+                            "txSig": "",
+                            "txSigIndex": 1,
+                            "slot": 399216604,
+                            "amount": "1.000000",
+                            "oraclePrice": "0.999927",
+                            "marketDepositBalance": "125324486.312326148",
+                            "marketWithdrawBalance": "50709710.305888169",
+                            "marketCumulativeDepositInterest": "1.1996503210",
+                            "marketCumulativeBorrowInterest": "1.3923734825",
+                            "totalDepositsAfter": "29.989500",
+                            "totalWithdrawsAfter": "1.999864",
+                            "depositRecordId": "12638973",
+                            "userAuthority": "",
+                            "user": "",
+                            "direction": "withdraw",
+                            "explanation": "none",
+                            "marketIndex": 0,
+                            "symbol": "USDC"
+                        },
+                        "id": "USDC-12638973",
+                        "txid": null,
+                        "timestamp": 1750006818000,
+                        "datetime": "2025-06-15T17:00:18.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 1,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": null,
+                        "network": null,
+                        "comment": "none",
+                        "internal": null
+                    }
+                ]
+            }
         ]
     }
 }
