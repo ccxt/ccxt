@@ -570,8 +570,8 @@ export default class grvt extends Exchange {
             'option': false,
             'active': undefined, // todo: ask support to add
             'contract': isContract,
-            'linear': (isSwap ? true : undefined),
-            'inverse': (isSwap ? false : undefined),
+            'linear': isSwap ? true : undefined,
+            'inverse': isSwap ? false : undefined,
             'contractSize': this.parseNumber ('1'), // tbd, vague response from support
             'expiry': undefined,
             'expiryDatetime': undefined,
