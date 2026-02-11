@@ -1544,9 +1544,7 @@ export default class drift extends Exchange {
         const lowerType = type.toLowerCase ();
         if (lowerType === 'limit') {
             if (price === undefined) {
-                throw new Error (
-                    this.id + ' createOrder() requires a price argument for limit orders'
-                );
+                throw new ExchangeError (this.id + ' createOrder() requires a price argument for limit orders');
             }
             request['price'] = this.priceToPrecision (symbol, price);
         }
