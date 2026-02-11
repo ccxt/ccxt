@@ -1,6 +1,6 @@
 import Exchange from './abstract/drift.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory, IndexType } from './base/types.js';
-import { NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound, ExchangeError } from './base/errors.js';
+import { BadRequest, InvalidOrder, NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound, ExchangeError } from './base/errors.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { Precise } from './base/Precise.js';
@@ -122,8 +122,304 @@ export default class drift extends Exchange {
                 'exact': {
                     'ValidationError': ArgumentsRequired,
                     'InsufficientCollateral': InsufficientFunds,
-                    '6003': InsufficientFunds,
-                },
+                    '6000': ExchangeError, // Invalid Spot Market Authority
+                    '6001': ExchangeError, // Clearing house not insurance fund authority
+                    '6002': InsufficientFunds, // Insufficient deposit
+                    '6003': InsufficientFunds, // Insufficient collateral
+                    '6004': ExchangeError, // Sufficient collateral
+                    '6005': InvalidOrder, // Max number of positions taken
+                    '6006': InvalidOrder, // Admin Controls Prices Disabled
+                    '6007': InvalidOrder, // Market Delisted
+                    '6008': InvalidOrder, // Market Index Already Initialized
+                    '6009': InvalidOrder, // User Account And User Positions Account Mismatch
+                    '6010': InvalidOrder, // User Has No Position In Market
+                    '6011': InvalidOrder, // Invalid Initial Peg
+                    '6012': InvalidOrder, // AMM repeg already configured with amt given
+                    '6013': InvalidOrder, // AMM repeg incorrect repeg direction
+                    '6014': InvalidOrder, // AMM repeg out of bounds pnl
+                    '6015': InvalidOrder, // Slippage Outside Limit Price
+                    '6016': InvalidOrder, // Order Size Too Small
+                    '6017': InvalidOrder, // Price change too large when updating K
+                    '6018': InvalidOrder, // Admin tried to withdraw amount larger than fees collected
+                    '6019': InvalidOrder, // Math Error
+                    '6020': InvalidOrder, // Conversion to u128/u64 failed with an overflow or underflow
+                    '6021': InvalidOrder, // Clock unavailable
+                    '6022': InvalidOrder, // Unable To Load Oracles
+                    '6023': InvalidOrder, // Price Bands Breached
+                    '6024': ExchangeError, // Exchange is paused
+                    '6025': ExchangeError, // Invalid whitelist token
+                    '6026': ExchangeError, // Whitelist token not found
+                    '6027': ExchangeError, // Invalid discount token
+                    '6028': ExchangeError, // Discount token not found
+                    '6029': ExchangeError, // Referrer not found
+                    '6030': ExchangeError, // ReferrerNotFound
+                    '6031': ExchangeError, // ReferrerMustBeWritable
+                    '6032': ExchangeError, // ReferrerMustBeWritable
+                    '6033': ExchangeError, // ReferrerAndReferrerStatsAuthorityUnequal
+                    '6034': ExchangeError, // InvalidReferrer
+                    '6035': InvalidOrder, // InvalidOracle
+                    '6036': InvalidOrder, // OracleNotFound
+                    '6037': InvalidOrder, // Liquidations Blocked By Oracle
+                    '6038': InvalidOrder, // Can not deposit more than max deposit
+                    '6039': InvalidOrder, // Can not delete user that still has collateral
+                    '6040': InvalidOrder, // AMM funding out of bounds pnl
+                    '6041': InvalidOrder, // Casting Failure
+                    '6042': InvalidOrder, // InvalidOrder
+                    '6043': InvalidOrder, // InvalidOrderMaxTs
+                    '6044': InvalidOrder, // InvalidOrderMarketType
+                    '6045': InvalidOrder, // InvalidOrderForInitialMarginReq
+                    '6046': InvalidOrder, // InvalidOrderNotRiskReducing
+                    '6047': InvalidOrder, // InvalidOrderSizeTooSmall
+                    '6048': InvalidOrder, // InvalidOrderNotStepSizeMultiple
+                    '6049': InvalidOrder, // InvalidOrderBaseQuoteAsset
+                    '6050': InvalidOrder, // InvalidOrderIOC
+                    '6051': InvalidOrder, // InvalidOrderPostOnly
+                    '6052': InvalidOrder, // InvalidOrderIOCPostOnly
+                    '6053': InvalidOrder, // InvalidOrderTrigger
+                    '6054': InvalidOrder, // InvalidOrderAuction
+                    '6055': InvalidOrder, // InvalidOrderOracleOffset
+                    '6056': InvalidOrder, // InvalidOrderMinOrderSize
+                    '6057': InvalidOrder, // Failed to Place Post-Only Limit Order
+                    '6058': InvalidOrder, // User has no order
+                    '6059': InvalidOrder, // Order Amount Too Small
+                    '6060': InvalidOrder, // Max number of orders taken
+                    '6061': InvalidOrder, // Order does not exist
+                    '6062': InvalidOrder, // Order not open
+                    '6063': InvalidOrder, // FillOrderDidNotUpdateState
+                    '6064': InvalidOrder, // Reduce only order increased risk
+                    '6065': InvalidOrder, // Unable to load AccountLoader
+                    '6066': InvalidOrder, // Trade Size Too Large
+                    '6067': BadRequest, // User cant refer themselves
+                    '6068': BadRequest, // Did not receive expected referrer
+                    '6069': BadRequest, // Could not deserialize referrer
+                    '6070': ExchangeError, // Could not deserialize referrer stats
+                    '6071': InvalidOrder, // User Order Id Already In Use
+                    '6072': InvalidOrder, // No positions liquidatable
+                    '6073': InvalidOrder, // Invalid Margin Ratio
+                    '6074': InvalidOrder, // Cant Cancel Post Only Order
+                    '6075': InvalidOrder, // InvalidOracleOffset
+                    '6076': InvalidOrder, // CantExpireOrders
+                    '6077': InvalidOrder, // CouldNotLoadMarketData
+                    '6078': InvalidOrder, // PerpMarketNotFound
+                    '6079': InvalidOrder, // InvalidMarketAccount
+                    '6080': InvalidOrder, // UnableToLoadMarketAccount
+                    '6081': InvalidOrder, // MarketWrongMutability
+                    '6082': InvalidOrder, // UnableToCastUnixTime
+                    '6083': InvalidOrder, // CouldNotFindSpotPosition
+                    '6084': InvalidOrder, // NoSpotPositionAvailable
+                    '6085': InvalidOrder, // InvalidSpotMarketInitialization
+                    '6086': InvalidOrder, // CouldNotLoadSpotMarketData
+                    '6087': InvalidOrder, // SpotMarketNotFound
+                    '6088': InvalidOrder, // InvalidSpotMarketAccount
+                    '6089': InvalidOrder, // UnableToLoadSpotMarketAccount
+                    '6090': InvalidOrder, // SpotMarketWrongMutability
+                    '6091': InvalidOrder, // SpotInterestNotUpToDate
+                    '6092': InvalidOrder, // SpotMarketInsufficientDeposits
+                    '6093': InvalidOrder, // UserMustSettleTheirOwnPositiveUnsettledPNL
+                    '6094': InvalidOrder, // CantUpdatePoolBalanceType
+                    '6095': InvalidOrder, // InsufficientCollateralForSettlingPNL
+                    '6096': InvalidOrder, // AMMNotUpdatedInSameSlot
+                    '6097': InvalidOrder, // AuctionNotComplete
+                    '6098': InvalidOrder, // MakerNotFound
+                    '6099': InvalidOrder, // MakerNotFound
+                    '6100': InvalidOrder, // MakerMustBeWritable
+                    '6101': InvalidOrder, // MakerMustBeWritable
+                    '6102': InvalidOrder, // MakerOrderNotFound
+                    '6103': InvalidOrder, // CouldNotDeserializeMaker
+                    '6104': InvalidOrder, // CouldNotDeserializeMaker
+                    '6105': InvalidOrder, // AuctionPriceDoesNotSatisfyMaker
+                    '6106': InvalidOrder, // MakerCantFulfillOwnOrder
+                    '6107': InvalidOrder, // MakerOrderMustBePostOnly
+                    '6108': InvalidOrder, // CantMatchTwoPostOnlys
+                    '6109': InvalidOrder, // OrderBreachesOraclePriceLimits
+                    '6110': InvalidOrder, // OrderMustBeTriggeredFirst
+                    '6111': InvalidOrder, // OrderNotTriggerable
+                    '6112': InvalidOrder, // OrderDidNotSatisfyTriggerCondition
+                    '6113': InvalidOrder, // PositionAlreadyBeingLiquidated
+                    '6114': InvalidOrder, // PositionDoesntHaveOpenPositionOrOrders
+                    '6115': InvalidOrder, // AllOrdersAreAlreadyLiquidations
+                    '6116': InvalidOrder, // CantCancelLiquidationOrder
+                    '6117': InvalidOrder, // UserIsBeingLiquidated
+                    '6118': InvalidOrder, // LiquidationsOngoing
+                    '6119': InvalidOrder, // WrongSpotBalanceType
+                    '6120': InvalidOrder, // UserCantLiquidateThemself
+                    '6121': InvalidOrder, // InvalidPerpPositionToLiquidate
+                    '6122': InvalidOrder, // InvalidBaseAssetAmountForLiquidatePerp
+                    '6123': InvalidOrder, // InvalidPositionLastFundingRate
+                    '6124': InvalidOrder, // InvalidPositionDelta
+                    '6125': InvalidOrder, // UserBankrupt
+                    '6126': InvalidOrder, // UserNotBankrupt
+                    '6127': InvalidOrder, // UserHasInvalidBorrow
+                    '6128': InvalidOrder, // DailyWithdrawLimit
+                    '6129': InvalidOrder, // DefaultError
+                    '6130': InvalidOrder, // Insufficient LP tokens
+                    '6131': InvalidOrder, // Cant LP with a market position
+                    '6132': InvalidOrder, // Unable to burn LP tokens
+                    '6133': InvalidOrder, // Trying to remove liqudity too fast after adding it
+                    '6134': InvalidOrder, // Invalid Spot Market Vault
+                    '6135': InvalidOrder, // Invalid Spot Market State
+                    '6136': InvalidOrder, // InvalidSerumProgram
+                    '6137': InvalidOrder, // InvalidSerumMarket
+                    '6138': InvalidOrder, // InvalidSerumBids
+                    '6139': InvalidOrder, // InvalidSerumAsks
+                    '6140': InvalidOrder, // InvalidSerumOpenOrders
+                    '6141': InvalidOrder, // FailedSerumCPI
+                    '6142': InvalidOrder, // FailedToFillOnExternalMarket
+                    '6143': InvalidOrder, // InvalidFulfillmentConfig
+                    '6144': InvalidOrder, // InvalidFeeStructure
+                    '6145': InvalidOrder, // Insufficient IF shares
+                    '6146': InvalidOrder, // the Market has paused this action
+                    '6147': InvalidOrder, // the Market status doesnt allow placing orders
+                    '6148': InvalidOrder, // the Market status doesnt allow filling orders
+                    '6149': InvalidOrder, // the Market status doesnt allow withdraws
+                    '6150': InvalidOrder, // Action violates the Protected Asset Tier rules
+                    '6151': InvalidOrder, // Action violates the Isolated Asset Tier rules
+                    '6152': InvalidOrder, // User Cant Be Deleted
+                    '6153': InvalidOrder, // Reduce Only Withdraw Increased Risk
+                    '6154': InvalidOrder, // Max Open Interest
+                    '6155': InvalidOrder, // Cant Resolve Perp Bankruptcy
+                    '6156': InvalidOrder, // Liquidation Doesnt Satisfy Limit Price
+                    '6157': InvalidOrder, // Margin Trading Disabled
+                    '6158': InvalidOrder, // Invalid Market Status to Settle Perp Pnl
+                    '6159': InvalidOrder, // PerpMarketNotInSettlement
+                    '6160': InvalidOrder, // PerpMarketNotInReduceOnly
+                    '6161': InvalidOrder, // PerpMarketSettlementBufferNotReached
+                    '6162': InvalidOrder, // PerpMarketSettlementUserHasOpenOrders
+                    '6163': InvalidOrder, // PerpMarketSettlementUserHasActiveLP
+                    '6164': InvalidOrder, // UnableToSettleExpiredUserPosition
+                    '6165': InvalidOrder, // UnequalMarketIndexForSpotTransfer
+                    '6166': InvalidOrder, // InvalidPerpPositionDetected
+                    '6167': InvalidOrder, // InvalidSpotPositionDetected
+                    '6168': InvalidOrder, // InvalidAmmDetected
+                    '6169': InvalidOrder, // InvalidAmmForFillDetected
+                    '6170': InvalidOrder, // InvalidAmmLimitPriceOverride
+                    '6171': InvalidOrder, // InvalidOrderFillPrice
+                    '6172': InvalidOrder, // SpotMarketBalanceInvariantViolated
+                    '6173': InvalidOrder, // SpotMarketVaultInvariantViolated
+                    '6174': InvalidOrder, // InvalidPDA
+                    '6175': InvalidOrder, // InvalidPDASigner
+                    '6176': InvalidOrder, // RevenueSettingsCannotSettleToIF
+                    '6177': InvalidOrder, // NoRevenueToSettleToIF
+                    '6178': InvalidOrder, // NoAmmPerpPnlDeficit
+                    '6179': InvalidOrder, // SufficientPerpPnlPool
+                    '6180': InvalidOrder, // InsufficientPerpPnlPool
+                    '6181': InvalidOrder, // PerpPnlDeficitBelowThreshold
+                    '6182': InvalidOrder, // MaxRevenueWithdrawPerPeriodReached
+                    '6183': InvalidOrder, // InvalidSpotPositionDetected
+                    '6184': InvalidOrder, // NoIFWithdrawAvailable
+                    '6185': InvalidOrder, // InvalidIFUnstake
+                    '6186': InvalidOrder, // InvalidIFUnstakeSize
+                    '6187': InvalidOrder, // InvalidIFUnstakeCancel
+                    '6188': InvalidOrder, // InvalidIFForNewStakes
+                    '6189': InvalidOrder, // InvalidIFRebase
+                    '6190': InvalidOrder, // InvalidInsuranceUnstakeSize
+                    '6191': InvalidOrder, // InvalidOrderLimitPrice
+                    '6192': InvalidOrder, // InvalidIFDetected
+                    '6193': InvalidOrder, // InvalidAmmMaxSpreadDetected
+                    '6194': InvalidOrder, // InvalidConcentrationCoef
+                    '6195': InvalidOrder, // InvalidSrmVault
+                    '6196': InvalidOrder, // InvalidVaultOwner
+                    '6197': InvalidOrder, // InvalidMarketStatusForFills
+                    '6198': InvalidOrder, // IFWithdrawRequestInProgress
+                    '6199': InvalidOrder, // NoIFWithdrawRequestInProgress
+                    '6200': InvalidOrder, // IFWithdrawRequestTooSmall
+                    '6201': InvalidOrder, // IncorrectSpotMarketAccountPassed
+                    '6202': InvalidOrder, // BlockchainClockInconsistency
+                    '6203': InvalidOrder, // InvalidIFSharesDetected
+                    '6204': InvalidOrder, // NewLPSizeTooSmall
+                    '6205': InvalidOrder, // MarketStatusInvalidForNewLP
+                    '6206': InvalidOrder, // InvalidMarkTwapUpdateDetected
+                    '6207': InvalidOrder, // MarketSettlementAttemptOnActiveMarket
+                    '6208': InvalidOrder, // MarketSettlementRequiresSettledLP
+                    '6209': InvalidOrder, // MarketSettlementAttemptTooEarly
+                    '6210': InvalidOrder, // MarketSettlementTargetPriceInvalid
+                    '6211': InvalidOrder, // UnsupportedSpotMarket
+                    '6212': InvalidOrder, // SpotOrdersDisabled
+                    '6213': InvalidOrder, // Market Being Initialized
+                    '6214': InvalidOrder, // Invalid Sub Account Id
+                    '6215': InvalidOrder, // Invalid Trigger Order Condition
+                    '6216': InvalidOrder, // Invalid Spot Position
+                    '6217': InvalidOrder, // Cant transfer between same user account
+                    '6218': InvalidOrder, // Invalid Perp Position
+                    '6219': InvalidOrder, // Unable To Get Limit Price
+                    '6220': InvalidOrder, // Invalid Liquidation
+                    '6221': InvalidOrder, // Spot Fulfullment Config Disabled
+                    '6222': InvalidOrder, // Invalid Maker
+                    '6223': InvalidOrder, // Failed Unwrap
+                    '6224': InvalidOrder, // Max Number Of Users
+                    '6225': InvalidOrder, // InvalidOracleForSettlePnl
+                    '6226': InvalidOrder, // MarginOrdersOpen
+                    '6227': InvalidOrder, // TierViolationLiquidatingPerpPnl
+                    '6228': BadRequest, // CouldNotLoadUserData
+                    '6229': BadRequest, // UserWrongMutability
+                    '6230': BadRequest, // InvalidUserAccount
+                    '6231': BadRequest, // CouldNotLoadUserData
+                    '6232': BadRequest, // UserWrongMutability
+                    '6233': BadRequest, // InvalidUserAccount
+                    '6234': BadRequest, // UserNotFound
+                    '6235': InvalidOrder, // UnableToLoadUserAccount
+                    '6236': InvalidOrder, // UserStatsNotFound
+                    '6237': InvalidOrder, // UnableToLoadUserStatsAccount
+                    '6238': InvalidOrder, // User Not Inactive
+                    '6239': InvalidOrder, // RevertFill
+                    '6240': InvalidOrder, // Invalid MarketAccount for Deletion
+                    '6241': InvalidOrder, // Invalid Spot Fulfillment Params
+                    '6242': InvalidOrder, // Failed to Get Mint
+                    '6243': InvalidOrder, // FailedPhoenixCPI
+                    '6244': InvalidOrder, // FailedToDeserializePhoenixMarket
+                    '6245': InvalidOrder, // InvalidPricePrecision
+                    '6246': InvalidOrder, // InvalidPhoenixProgram
+                    '6247': InvalidOrder, // InvalidPhoenixMarket
+                    '6248': InvalidOrder, // InvalidSwap
+                    '6249': InvalidOrder, // SwapLimitPriceBreached
+                    '6250': InvalidOrder, // SpotMarketReduceOnly
+                    '6251': InvalidOrder, // FundingWasNotUpdated
+                    '6252': InvalidOrder, // ImpossibleFill
+                    '6253': InvalidOrder, // CantUpdatePerpBidAskTwap
+                    '6254': InvalidOrder, // UserReduceOnly
+                    '6255': InvalidOrder, // InvalidMarginCalculation
+                    '6256': InvalidOrder, // CantPayUserInitFee
+                    '6257': InvalidOrder, // CantReclaimRent
+                    '6258': InvalidOrder, // InsuranceFundOperationPaused
+                    '6259': InvalidOrder, // NoUnsettledPnl
+                    '6260': InvalidOrder, // PnlPoolCantSettleUser
+                    '6261': ExchangeError, // OracleInvalid
+                    '6262': ExchangeError, // OracleTooVolatile
+                    '6263': ExchangeError, // OracleTooUncertain
+                    '6264': ExchangeError, // OracleStaleForMargin
+                    '6265': ExchangeError, // OracleInsufficientDataPoints
+                    '6266': ExchangeError, // OracleStaleForAMM
+                    '6267': InvalidOrder, // Unable to parse pull oracle message
+                    '6268': InvalidOrder, // Can not borow more than max borrows
+                    '6269': InvalidOrder, // Updates must be monotonically increasing
+                    '6270': InvalidOrder, // Trying to update price feed with the wrong feed id
+                    '6271': InvalidOrder, // The message in the update must be a PriceFeedMessage
+                    '6272': InvalidOrder, // Could not deserialize the message in the update
+                    '6273': InvalidOrder, // Wrong guardian set owner in update price atomic
+                    '6274': InvalidOrder, // Oracle post update atomic price feed account must be drift program
+                    '6275': InvalidOrder, // Oracle vaa owner must be wormhole program
+                    '6276': InvalidOrder, // Multi updates must have 2 or fewer accounts passed in remaining accounts
+                    '6277': InvalidOrder, // Don't have the same remaining accounts number and merkle price updates left
+                    '6278': InvalidOrder, // Remaining account passed is not a valid pda
+                    '6279': InvalidOrder, // FailedOpenbookV2CPI
+                    '6280': InvalidOrder, // InvalidOpenbookV2Program
+                    '6281': InvalidOrder, // InvalidOpenbookV2Market
+                    '6282': InvalidOrder, // Non zero transfer fee
+                    '6283': InvalidOrder, // Liquidation order failed to fill
+                    '6284': InvalidOrder, // Invalid prediction market order
+                    '6285': InvalidOrder, // Ed25519 Ix must be before place and make swift order ix
+                    '6286': InvalidOrder, // Swift message verificaiton failed
+                    '6287': InvalidOrder, // Market index mismatched b/w taker and maker swift order params
+                    '6288': InvalidOrder, // Swift only available for market/oracle perp orders
+                    '6289': InvalidOrder, // Place and take order success condition failed
+                    '6290': InvalidOrder, // Invalid High Leverage Mode Config
+                    '6291': InvalidOrder, // Invalid RFQ User Account
+                    '6292': InvalidOrder, // RFQUserAccount should be mutable
+                    '6293': InvalidOrder, // RFQUserAccount has too many active RFQs
+                    '6294': InvalidOrder, // RFQ order not filled as expected
+                    '6295': InvalidOrder, // RFQ orders must be jit makers
+                    '6296': InvalidOrder, // RFQ matches must be valid
+                },InvalidOrder
                 'broad': {},
             },
         });
@@ -1365,7 +1661,6 @@ export default class drift extends Exchange {
             }
         }
         const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
-        const txSig = this.safeString (payment, 'txSig');
         const txSigIndex = this.safeString (payment, 'txSigIndex');
         return {
             'info': payment,
