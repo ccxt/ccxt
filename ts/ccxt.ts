@@ -112,7 +112,6 @@ import foxbit from  './src/foxbit.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
-import grvt from  './src/grvt.js'
 import hashkey from  './src/hashkey.js'
 import hibachi from  './src/hibachi.js'
 import hitbtc from  './src/hitbtc.js'
@@ -207,7 +206,6 @@ import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
 import geminiPro from  './src/pro/gemini.js'
-import grvtPro from  './src/pro/grvt.js'
 import hashkeyPro from  './src/pro/hashkey.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
@@ -308,7 +306,6 @@ const exchanges = {
     'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
-    'grvt':                   grvt,
     'hashkey':                hashkey,
     'hibachi':                hibachi,
     'hitbtc':                 hitbtc,
@@ -403,7 +400,6 @@ const pro = {
     'gate':                   gatePro,
     'gateio':                 gateioPro,
     'gemini':                 geminiPro,
-    'grvt':                   grvtPro,
     'hashkey':                hashkeyPro,
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
@@ -646,7 +642,6 @@ export {
     gate,
     gateio,
     gemini,
-    grvt,
     hashkey,
     hibachi,
     hitbtc,
