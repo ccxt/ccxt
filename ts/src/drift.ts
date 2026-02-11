@@ -1974,7 +1974,9 @@ export default class drift extends Exchange {
         const signatureBytes = this.base64ToBinary (signatureBase64);
         const signatureHex = this.binaryToBase16 (signatureBytes);
         const txHex = this.binaryToBase16 (txBytes);
-        const signedTxHex = txHex.slice (0, 2) + signatureHex + txHex.slice (signatureHex.length + 2);
+        const txStart = signatureHex.length + 2;
+        const txEnd = txHex.length + 0;
+        const signedTxHex = txHex.slice (0, 2) + signatureHex + txHex.slice (txStart, txEnd);
         const signedTxBytes = this.base16ToBinary (signedTxHex);
         const signedTxBase64 = this.binaryToBase64 (signedTxBytes);
         const request: Dict = {
