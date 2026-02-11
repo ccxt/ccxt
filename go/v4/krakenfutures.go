@@ -2720,7 +2720,7 @@ func (this *KrakenfuturesCore) ParseFundingRate(ticker interface{}, optionalArgs
 	//         "fundingRate": -0.000000756414717067,
 	//         "fundingRatePrediction": 0.000000195218676,
 	//         "suspended": false,
-	//         "indexPrice": 0.043392,
+	//         "indexPrice": 0.043391,
 	//         "postOnly": false,
 	//         "change24h": -0.46
 	//     }
