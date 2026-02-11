@@ -63,7 +63,7 @@
                         "contract": true,
                         "linear": true,
                         "inverse": false,
-                        "contractSize": null,
+                        "contractSize": 1,
                         "expiry": null,
                         "expiryDatetime": null,
                         "strike": null,
