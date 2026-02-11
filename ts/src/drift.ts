@@ -3,7 +3,6 @@ import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balance
 import { NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound } from './base/errors.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { base58 } from './static_dependencies/scure-base/index.js'; // adjust path
 import { Precise } from './base/Precise.js';
 
 export default class drift extends Exchange {
@@ -1654,7 +1653,7 @@ export default class drift extends Exchange {
     async executeTx (serializedTx: string): Promise<string> {
         this.checkRequiredCredentials ();
         const txBytes = this.base64ToBinary (serializedTx);
-        const keyBytes = base58.decode (this.privateKey);
+        const keyBytes = this.base58ToBinary (this.privateKey);
         const secretKey = keyBytes.slice (0, 32);
         const sigCount = txBytes[0];
         const signaturesEnd = 1 + sigCount * 64;
