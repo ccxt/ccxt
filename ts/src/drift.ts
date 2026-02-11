@@ -1076,7 +1076,7 @@ export default class drift extends Exchange {
                 takerOrMaker = 'maker';
             }
         }
-        const directionKey = takerOrMaker === 'maker' ? 'makerOrderDirection' : 'takerOrderDirection';
+        const directionKey = (takerOrMaker === 'maker') ? 'makerOrderDirection' : 'takerOrderDirection';
         const direction = this.safeStringLower (trade, directionKey);
         const side = (direction === 'long') ? 'buy' : 'sell';
         const amountString = this.safeString (trade, 'baseAssetAmountFilled');
@@ -1388,7 +1388,7 @@ export default class drift extends Exchange {
         const immediateOrCancel = this.safeBool (order, 'immediateOrCancel');
         const timeInForce = immediateOrCancel ? 'IOC' : 'GTC';
         const feeCost = this.safeNumber (order, 'cumulativeFee');
-        const feeCurrencyId = market ? market['quote'] : 'USDC';
+        const feeCurrencyId = (market !== undefined) ? market['quote'] : 'USDC';
         const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
         let fee = undefined;
         if (feeCost === undefined) {
