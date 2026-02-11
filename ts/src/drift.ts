@@ -1,12 +1,12 @@
 import Exchange from './abstract/drift.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory, IndexType } from './base/types.js';
 import { NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound, ExchangeError } from './base/errors.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { Precise } from './base/Precise.js';
 
 export default class drift extends Exchange {
-    describe () {
+    describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'drift',
             'name': 'Drift Protocol',
@@ -139,7 +139,7 @@ export default class drift extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetStatsMarkets (params);
         const allMarkets = this.safeValue (response, 'markets', []);
-        const result: Market[] = [];
+        const result = [];
         for (let i = 0; i < allMarkets.length; i++) {
             const market = allMarkets[i];
             const marketType = this.safeString (market, 'marketType');
@@ -155,8 +155,15 @@ export default class drift extends Exchange {
             const settle = quote;
             const symbol = base + '/' + quote + ':' + settle;
             const status = this.safeString (market, 'status');
-            const activeStatuses = [ 'active', 'fundingPaused', 'ammPaused' ];
-            const active = activeStatuses.includes (status);
+            const activeStatuses = {
+                'active': true,
+                'fundingPaused': true,
+                'ammPaused': true
+            };
+            let active = undefined;
+            if (status in activeStatuses) {
+                active = activeStatuses[status];
+            }
             const limits = this.safeValue (market, 'limits', {});
             const leverageLimits = this.safeValue (limits, 'leverage', {});
             const amountLimits = this.safeValue (limits, 'amount', {});
@@ -286,19 +293,19 @@ export default class drift extends Exchange {
         const responses = await Promise.all (promises);
         const dlobl2 = responses[0];
         const timestamp = this.safeInteger (dlobl2, 'ts');
-        const bids = this.safeValue (dlobl2, 'bids', []);
-        const asks = this.safeValue (dlobl2, 'asks', []);
-        const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [];
-        const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [];
+        const bids = this.safeList (dlobl2, 'bids');
+        const asks = this.safeList (dlobl2, 'asks');
         let bidPrice = undefined;
         let bidVolume = undefined;
-        if (bestBid.length > 1) {
+        let askPrice = undefined;
+        let askVolume = undefined;
+        if (Array.isArray (bids)) {
+            const bestBid = this.parseBidAsk (bids[0]);
             bidPrice = bestBid[0];
             bidVolume = bestBid[1];
         }
-        let askPrice = undefined;
-        let askVolume = undefined;
-        if (bestAsk.length > 1) {
+        if (Array.isArray (asks)) {
+            const bestAsk = this.parseBidAsk (asks[0]);
             askPrice = bestAsk[0];
             askVolume = bestAsk[1];
         }
@@ -408,10 +415,10 @@ export default class drift extends Exchange {
             const marketId = this.safeString2 (book, 'marketName', 'symbol');
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
-            const bids = this.safeValue (book, 'bids', []);
-            const asks = this.safeValue (book, 'asks', []);
-            const bestBid = (bids.length > 0) ? this.parseBidAsk (bids[0]) : [];
-            const bestAsk = (asks.length > 0) ? this.parseBidAsk (asks[0]) : [];
+            const bids = this.safeList (book, 'bids');
+            const asks = this.safeList (book, 'asks');
+            const bestBid = (Array.isArray (bids)) ? this.parseBidAsk (bids[0]) : [];
+            const bestAsk = (Array.isArray (asks)) ? this.parseBidAsk (asks[0]) : [];
             let bidPrice = undefined;
             let bidVolume = undefined;
             if (bestBid.length > 1) {
@@ -569,7 +576,7 @@ export default class drift extends Exchange {
         );
     }
 
-    parseBidAsk (bidask) {
+    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const rawPrice = this.safeString (bidask, 'price');
         const rawAmount = this.safeString (bidask, 'size');
         const price = rawPrice === undefined ? undefined : this.parseNumber (Precise.stringDiv (rawPrice, '1000000'));
@@ -655,10 +662,10 @@ export default class drift extends Exchange {
         //     }
         // }
         //
-        const trades = this.safeValue (response, 'records');
+        const trades = this.safeList (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
-        if ((trades.length > 0) && (nextPage !== undefined)) {
+        if ((Array.isArray (trades)) && (nextPage !== undefined)) {
             trades[0]['nextPage'] = nextPage;
         }
         return this.parseTrades (trades, market, limit);
@@ -749,10 +756,10 @@ export default class drift extends Exchange {
         //     }
         // }
         //
-        const trades = this.safeValue (response, 'records');
+        const trades = this.safeList (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
-        if ((trades.length > 0) && (nextPage !== undefined)) {
+        if ((Array.isArray (trades)) && (nextPage !== undefined)) {
             trades[0]['nextPage'] = nextPage;
         }
         return this.parseTrades (trades, market, limit);
@@ -868,7 +875,7 @@ export default class drift extends Exchange {
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
-    parseOHLCV (ohlcv: Dict): OHLCV {
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
             this.safeTimestamp (ohlcv, 'ts'),
             this.safeNumber (ohlcv, 'fillOpen'),
@@ -1023,10 +1030,10 @@ export default class drift extends Exchange {
         //     }
         // }
         //
-        const orders = this.safeValue (response, 'records');
+        const orders = this.safeList (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
-        if ((orders.length > 0) && (nextPage !== undefined)) {
+        if ((Array.isArray (orders)) && (nextPage !== undefined)) {
             orders[0]['nextPage'] = nextPage;
         }
         return this.parseOrders (orders, market, since, limit);
@@ -1094,13 +1101,14 @@ export default class drift extends Exchange {
                 'currency': feeCurrency,
             };
         }
+        const symbol = this.safeString (order, 'symbol');
         return this.safeOrder (
             {
                 'info': order,
                 'id': id,
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
-                'symbol': this.safeSymbol (order.symbol, market),
+                'symbol': this.safeSymbol (symbol, market),
                 'type': this.parseOrderType (this.safeString (order, 'orderType')),
                 'postOnly': this.safeValue (order, 'postOnly', false),
                 'reduceOnly': this.safeValue (order, 'reduceOnly', false),
@@ -1328,16 +1336,16 @@ export default class drift extends Exchange {
         //     }
         // }
         //
-        const payments = this.safeValue (response, 'records');
+        const payments = this.safeList (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
-        if ((payments.length > 0) && (nextPage !== undefined)) {
+        if ((Array.isArray (payments)) && (nextPage !== undefined)) {
             payments[0]['nextPage'] = nextPage;
         }
         return this.parseIncomes (payments, market, since, limit);
     }
 
-    parseIncome (payment: Dict, market: Market = undefined): FundingHistory {
+    parseIncome (payment, market: Market = undefined): Dict {
         const timestamp = this.safeTimestamp (payment, 'ts');
         const marketIndex = this.safeInteger (payment, 'marketIndex');
         let marketId = undefined;
@@ -1359,14 +1367,13 @@ export default class drift extends Exchange {
         const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
         const txSig = this.safeString (payment, 'txSig');
         const txSigIndex = this.safeString (payment, 'txSigIndex');
-        const id = txSigIndex === undefined ? txSig : txSig + ':' + txSigIndex;
         return {
             'info': payment,
             'symbol': symbol,
             'code': 'USDC',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'id': id,
+            'id': txSigIndex,
             'amount': this.safeNumber (payment, 'fundingPayment'),
         };
     }
@@ -1401,10 +1408,10 @@ export default class drift extends Exchange {
             'accountId': this.accountId,
         };
         const response = await this.publicGetUserAccountIdDeposits (this.extend (request, params));
-        const txs = this.safeValue (response, 'records');
+        const txs = this.safeList (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
-        if ((txs.length > 0) && (nextPage !== undefined)) {
+        if ((Array.isArray (txs)) && (nextPage !== undefined)) {
             txs[0]['nextPage'] = nextPage;
         }
         return this.parseTransactions (txs, currency, since, limit);
@@ -1508,10 +1515,10 @@ export default class drift extends Exchange {
             'accountId': this.accountId,
         };
         const response = await this.publicGetUserAccountIdSettlePnl (this.extend (request, params));
-        const entries = this.safeValue (response, 'records');
+        const entries = this.safeList (response, 'records');
         const meta = this.safeDict (response, 'meta');
         const nextPage = this.safeString (meta, 'nextPage');
-        if ((entries.length > 0) && (nextPage !== undefined)) {
+        if ((Array.isArray (entries)) && (nextPage !== undefined)) {
             entries[0]['nextPage'] = nextPage;
         }
         return this.parseLedger (entries, currency, since, limit);
@@ -1687,7 +1694,7 @@ export default class drift extends Exchange {
         return this.safeString (response, 'txSig');
     }
 
-    sign (path: string, api: string = 'public', method: string = 'GET', params: Dict = {}, headers: any = undefined, body: any = undefined) {
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public' || api === 'dlob') {

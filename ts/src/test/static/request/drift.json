@@ -7,26 +7,6 @@
     ],
     "outputType": "json",
     "methods": {
-        "fetchTicker": [
-            {
-                "description": "fetchTicker",
-                "method": "fetchTicker",
-                "url": "https://data.api.drift.trade/stats/markets",
-                "input": [
-                    "BTC/USDC:USDC"
-                ]
-            }
-        ],
-        "fetchTickers": [
-            {
-                "description": "fetchTickers",
-                "method": "fetchTickers",
-                "url": "https://data.api.drift.trade/stats/markets",
-                "input": [
-                    ["BTC/USDC:USDC"]
-                ]
-            }
-        ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",
@@ -171,9 +151,9 @@
                 "method": "cancelOrder",
                 "url": "https://data.api.drift.trade/tx/order/cancel",
                 "input": [
-                    10
+                    "10"
                 ],
-                "output": "{\"accountId\":\"12345\",\"orderId\":10}"
+                "output": "{\"accountId\":\"12345\",\"orderId\":\"10\"}"
             }
         ],
         "cancelAllOrders": [
