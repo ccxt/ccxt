@@ -2046,7 +2046,8 @@ export default class bitmex extends Exchange {
         if (postOnly === true) {
             execInstructions.push ('ParticipateDoNotInitiate');
         }
-        if (execInstructions.length > 0) {
+        const execInstLength = execInstructions.length;
+        if (execInstLength > 0) {
             request['execInst'] = execInstructions.join (',');
         }
         // support for unified trigger format
