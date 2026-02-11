@@ -53,6 +53,7 @@
         ],
         "fetchPositions": [
             {
+                "disabledGO": true,
                 "description": "fetchPositions with symbols",
                 "method": "fetchPositions",
                 "url": "https://trades.grvt.io/full/v1/positions",
@@ -97,6 +98,7 @@
         ],
         "cancelAllOrders": [
             {
+                "disabledGO": true,
                 "description": "cancelAllOrders symbol perp",
                 "method": "cancelAllOrders",
                 "url": "https://trades.grvt.io/full/v1/cancel_all_orders",
@@ -176,6 +178,7 @@
         ],
         "fetchMyTrades": [
             {
+                "disabledGO": true,
                 "description": "fetchMyTrades symbol perp",
                 "method": "fetchMyTrades",
                 "url": "https://trades.grvt.io/full/v1/fill_history",
