@@ -1170,6 +1170,58 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770662471,
+                            "txSig": "",
+                            "txSigIndex": 3,
+                            "slot": 399465084,
+                            "userAuthority": "",
+                            "user": "",
+                            "marketIndex": 2,
+                            "fundingPayment": "0.000256",
+                            "baseAssetAmount": "-0.005000000",
+                            "userLastCumulativeFunding": "1179.301676333",
+                            "ammCumulativeFundingLong": "1179.722876302",
+                            "ammCumulativeFundingShort": "1179.352901291"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770662471,
+                            "txSig": "",
+                            "txSigIndex": 3,
+                            "slot": 399465084,
+                            "userAuthority": "",
+                            "user": "",
+                            "marketIndex": 2,
+                            "fundingPayment": "0.000256",
+                            "baseAssetAmount": "-0.005000000",
+                            "userLastCumulativeFunding": "1179.301676333",
+                            "ammCumulativeFundingLong": "1179.722876302",
+                            "ammCumulativeFundingShort": "1179.352901291"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "code": "USDC",
+                        "timestamp": 1770662471000,
+                        "datetime": "2026-02-09T18:41:11.000Z",
+                        "id": "undefined:3",
+                        "amount": 0.000256
+                    }
+                ]
+            }
         ]
     }
 }
