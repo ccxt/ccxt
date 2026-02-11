@@ -359,7 +359,11 @@ export default class drift extends Exchange {
         if (depthParam.indexOf (',') >= 0) {
             depth = depthParam;
         } else {
-            depth = marketIds.map (() => depthParam).join (',');
+            const depths = [];
+            for (let i = 0; i < marketIds.length; i++) {
+                depths.push (depthParam);
+            }
+            depth = depths.join (',');
         }
         params = this.omit (params, 'depth');
         const request: Dict = {
@@ -382,16 +386,22 @@ export default class drift extends Exchange {
         }
         const result: Dict = {};
         const books = this.safeValue (responses[0], 'l2s', responses[0]);
-        const booksArray = Array.isArray (books)
-            ? books
-            : Object.keys (books).map ((key) => {
+        let booksArray = [];
+        if (Array.isArray (books)) {
+            booksArray = books;
+        } else {
+            const bookKeys = Object.keys (books);
+            for (let i = 0; i < bookKeys.length; i++) {
+                const key = bookKeys[i];
                 const entry = books[key];
                 if (entry === undefined) {
-                    return { 'marketName': key };
+                    booksArray.push ({ 'marketName': key });
+                } else {
+                    entry['marketName'] = this.safeString (entry, 'marketName', key);
+                    booksArray.push (entry);
                 }
-                entry['marketName'] = this.safeString (entry, 'marketName', key);
-                return entry;
-            });
+            }
+        }
         for (let i = 0; i < booksArray.length; i++) {
             const book = booksArray[i];
             const marketId = this.safeString2 (book, 'marketName', 'symbol');
