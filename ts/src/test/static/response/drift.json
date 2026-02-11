@@ -1093,6 +1093,83 @@
                     }
                 }
             }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "account": {
+                        "balance": "27.547672",
+                        "totalCollateral": "27.547672",
+                        "freeCollateral": "26.181103",
+                        "health": "99",
+                        "initialMargin": "1.366004",
+                        "maintenanceMargin": "0.238456",
+                        "leverage": "0.3992"
+                    },
+                    "positions": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "baseAssetAmount": "-0.050000000",
+                            "quoteEntryAmount": "4.198370",
+                            "settledPnl": "0.000000",
+                            "feesAndFunding": "-0.002247",
+                            "liquidationPrice": "614.750360"
+                        }
+                    ],
+                    "balances": [
+                        {
+                            "symbol": "USDC",
+                            "marketIndex": 0,
+                            "balance": "28.202300",
+                            "openOrders": 0,
+                            "liquidationPrice": "0.031668"
+                        }
+                    ],
+                    "orders": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "marketType": "perp",
+                            "orderId": 14,
+                            "price": "300.000000",
+                            "baseAssetAmount": "0.010000000",
+                            "baseAssetAmountFilled": "0.000000000",
+                            "quoteAssetAmountFilled": "0.000000",
+                            "status": "open",
+                            "orderType": "limit",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "triggerPrice": "0.000000",
+                            "triggerCondition": "above"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "baseAssetAmount": "-0.050000000",
+                            "quoteEntryAmount": "4.198370",
+                            "settledPnl": "0.000000",
+                            "feesAndFunding": "-0.002247",
+                            "liquidationPrice": "614.750360"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "contracts": -0.05,
+                        "side": "short",
+                        "notional": 4.19837,
+                        "entryPrice": 83.9674,
+                        "liquidationPrice": 614.75036,
+                        "contractSize": null
+                    }
+                ]
+            }
         ]
     }
 }
