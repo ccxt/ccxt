@@ -1531,7 +1531,8 @@ export default class drift extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'orderType': type,
         };
-        if (type === 'limit') {
+        const lowerType = type.toLowerCase ();
+        if (lowerType === 'limit') {
             if (price === undefined) {
                 throw new Error (
                     this.id + ' createOrder() requires a price argument for limit orders'
