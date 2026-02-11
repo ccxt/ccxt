@@ -1,6 +1,6 @@
 import Exchange from './abstract/drift.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory } from './base/types.js';
-import { NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound } from './base/errors.js';
+import { NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound, ExchangeError } from './base/errors.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { Precise } from './base/Precise.js';
@@ -774,7 +774,7 @@ export default class drift extends Exchange {
             }
         }
         const directionKey = takerOrMaker === 'maker' ? 'makerOrderDirection' : 'takerOrderDirection';
-        const direction = this.safeStringLower (trade, directionKey) ?? this.safeStringLower (trade, 'takerOrderDirection');
+        const direction = this.safeStringLower (trade, directionKey);
         const side = direction === 'long' ? 'buy' : 'sell';
         const amountString = this.safeString (trade, 'baseAssetAmountFilled');
         const costString = this.safeString (trade, 'quoteAssetAmountFilled');
@@ -1713,10 +1713,8 @@ export default class drift extends Exchange {
         const error = this.safeString (response, 'error');
         const name = this.safeString (response, 'name');
         const codeValue = this.safeString (response, 'code');
-        const details = this.safeString (response, 'details');
-        const message = this.safeString (response, 'message');
         if (error !== undefined || name !== undefined || codeValue !== undefined) {
-            const feedback = this.id + ': ' + (error ?? name) + ': ' + (details ?? message);
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (
                 this.exceptions['exact'],
                 error,
@@ -1732,7 +1730,7 @@ export default class drift extends Exchange {
                 codeValue,
                 feedback
             );
-            throw new Error (feedback);
+            throw new ExchangeError (feedback);
         }
         return undefined;
     }
