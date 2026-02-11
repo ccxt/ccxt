@@ -448,7 +448,6 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}) {
-        // await this.sleep (10); // temporary workaround for allowing promise-all to prioritize loadMarkets
         this.checkRequiredCredentials ();
         const now = this.milliseconds ();
         // expires in 24 hours as CS suggested
@@ -1822,7 +1821,6 @@ export default class grvt extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarketsAndSignIn ();
-        // await this.initializeClient (params);
         const market = this.market (symbol);
         const orderLeg = {
             'instrument': market['id'],
@@ -2972,7 +2970,7 @@ export default class grvt extends Exchange {
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
-            params = this.omit (params, 'clientOrderId', 'client_order_id');
+            params = this.omit (params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         } else {
             request['order_id'] = id;
@@ -2987,60 +2985,6 @@ export default class grvt extends Exchange {
         //
         const result = this.safeDict (response, 'result', {});
         return this.parseOrder (result);
-    }
-
-    async initializeClient (params = {}) {
-        const builderFee: Bool = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
-        if (!builderFee) {
-            return false; // skip if builder fee is not enabled
-        }
-        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
-        if (approvedBuilderFee) {
-            return true; // skip if builder fee is already approved
-        }
-        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAccountInfos () ]);
-        //
-        // {
-        //     "results": [{
-        //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
-        //         "max_futures_fee_rate": 0.001,
-        //         "max_spot_fee_rate": 0.0001
-        //     }]
-        // }
-        //
-        const currentBuilders = results[0];
-        const result = this.safeList (currentBuilders, 'results', []);
-        const length = result.length;
-        let run = false;
-        if (length <= 0) {
-            run = true;
-        }
-        if (run) {
-            try {
-                const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
-                let request: Dict = {
-                    'main_account_id': defaultFromAccountId,
-                    'builder_account_id': this.safeString (this.options, 'builder'),
-                    'max_futures_fee_rate': this.safeString (this.options, 'builderRate'),
-                    'max_spot_fee_rate': this.safeString (this.options, 'builderRate'),
-                    'signature': this.defaultSignature (),
-                };
-                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
-                //
-                // {
-                //     "result": {
-                //         "ack": "true"
-                //     }
-                // }
-                //
-                this.options['approvedBuilderFee'] = true;
-            } catch (e) {
-                this.options['builderFee'] = false; // disable builder fee if an error occurs
-            }
-            return true;
-        }
-        return false;
     }
 
     eipDomainData () {
