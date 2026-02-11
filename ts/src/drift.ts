@@ -419,7 +419,7 @@ export default class drift extends Exchange {
                     '6294': InvalidOrder, // RFQ order not filled as expected
                     '6295': InvalidOrder, // RFQ orders must be jit makers
                     '6296': InvalidOrder, // RFQ matches must be valid
-                },InvalidOrder
+                },
                 'broad': {},
             },
         });
@@ -454,7 +454,7 @@ export default class drift extends Exchange {
             const activeStatuses = {
                 'active': true,
                 'fundingPaused': true,
-                'ammPaused': true
+                'ammPaused': true,
             };
             let active = undefined;
             if (status in activeStatuses) {
