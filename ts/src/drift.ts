@@ -713,17 +713,17 @@ export default class drift extends Exchange {
             const symbol = market['symbol'];
             const bids = this.safeList (book, 'bids');
             const asks = this.safeList (book, 'asks');
-            const bestBid = (Array.isArray (bids)) ? this.parseBidAsk (bids[0]) : [];
-            const bestAsk = (Array.isArray (asks)) ? this.parseBidAsk (asks[0]) : [];
             let bidPrice = undefined;
             let bidVolume = undefined;
-            if (bestBid.length > 1) {
+            let askPrice = undefined;
+            let askVolume = undefined;
+            if (Array.isArray (bids)) {
+                const bestBid = this.parseBidAsk (bids[0]);
                 bidPrice = bestBid[0];
                 bidVolume = bestBid[1];
             }
-            let askPrice = undefined;
-            let askVolume = undefined;
-            if (bestAsk.length > 1) {
+            if (Array.isArray (asks)) {
+                const bestAsk = this.parseBidAsk (asks[0]);
                 askPrice = bestAsk[0];
                 askVolume = bestAsk[1];
             }
