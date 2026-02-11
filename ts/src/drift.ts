@@ -875,8 +875,8 @@ export default class drift extends Exchange {
     parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
         const rawPrice = this.safeString (bidask, 'price');
         const rawAmount = this.safeString (bidask, 'size');
-        const price = rawPrice === undefined ? undefined : this.parseNumber (Precise.stringDiv (rawPrice, '1000000'));
-        const amount = rawAmount === undefined ? undefined : this.parseNumber (Precise.stringDiv (rawAmount, '1000000000'));
+        const price = (rawPrice === undefined) ? undefined : this.parseNumber (Precise.stringDiv (rawPrice, '1000000'));
+        const amount = (rawAmount === undefined) ? undefined : this.parseNumber (Precise.stringDiv (rawAmount, '1000000000'));
         const result = [ price, amount ];
         return result;
     }
@@ -1078,7 +1078,7 @@ export default class drift extends Exchange {
         }
         const directionKey = takerOrMaker === 'maker' ? 'makerOrderDirection' : 'takerOrderDirection';
         const direction = this.safeStringLower (trade, directionKey);
-        const side = direction === 'long' ? 'buy' : 'sell';
+        const side = (direction === 'long') ? 'buy' : 'sell';
         const amountString = this.safeString (trade, 'baseAssetAmountFilled');
         const costString = this.safeString (trade, 'quoteAssetAmountFilled');
         const priceString = Precise.stringDiv (costString, amountString);
@@ -1092,7 +1092,7 @@ export default class drift extends Exchange {
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,
-                'currency': market ? this.safeCurrencyCode (market['quote']) : 'USDC',
+                'currency': (market !== undefined) ? this.safeCurrencyCode (market['quote']) : 'USDC',
             };
         }
         const orderIdKey = (takerOrMaker === 'maker') ? 'makerOrderId' : 'takerOrderId';
@@ -1377,7 +1377,7 @@ export default class drift extends Exchange {
         const id = this.safeString (order, 'orderId');
         const timestamp = this.safeTimestamp (order, 'ts');
         const direction = this.safeStringLower (order, 'direction');
-        const side = direction === 'long' ? 'buy' : 'sell';
+        const side = (direction === 'long') ? 'buy' : 'sell';
         const amount = Precise.stringAbs (this.safeString (order, 'baseAssetAmount'));
         const filled = Precise.stringAbs (this.safeString (order, 'baseAssetAmountFilled'));
         const remaining = Precise.stringSub (amount, filled);
@@ -1419,7 +1419,7 @@ export default class drift extends Exchange {
                 'remaining': remaining,
                 'status': status,
                 'fee': fee,
-                'fees': fee === undefined ? undefined : [ fee ],
+                'fees': (fee === undefined) ? undefined : [ fee ],
                 'timeInForce': timeInForce,
                 'lastUpdateTimestamp': this.safeTimestamp (order, 'lastUpdatedTs'),
             },
@@ -1562,17 +1562,18 @@ export default class drift extends Exchange {
         const quoteEntryAmountAbs = Precise.stringAbs (this.safeString (position, 'quoteEntryAmount'));
         const baseAssetAmountAbs = Precise.stringAbs (this.safeString (position, 'baseAssetAmount'));
         let entryPriceString = undefined;
+        let entryPrice = undefined;
         if (quoteEntryAmountAbs !== undefined && baseAssetAmountAbs !== undefined && Precise.stringGt (baseAssetAmountAbs, '0')) {
             entryPriceString = Precise.stringDiv (quoteEntryAmountAbs, baseAssetAmountAbs);
+            entryPrice = this.parseNumber (entryPriceString);
         }
-        const entryPrice = entryPriceString === undefined ? undefined : this.parseNumber (entryPriceString);
         const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
         return this.safePosition ({
             'info': position,
             'symbol': this.safeSymbol (marketId),
             'contracts': contracts,
             'side': side,
-            'notional': quoteEntryAmountAbs === undefined ? undefined : this.parseNumber (quoteEntryAmountAbs),
+            'notional': (quoteEntryAmountAbs === undefined) ? undefined : this.parseNumber (quoteEntryAmountAbs),
             'entryPrice': entryPrice,
             'liquidationPrice': liquidationPrice,
         });
@@ -1753,7 +1754,7 @@ export default class drift extends Exchange {
         const timestamp = this.safeTimestamp (entry, 'ts');
         const marketId = this.safeString (entry, 'marketIndex');
         const market = this.safeMarket (marketId);
-        const currencyId = market !== undefined ? market['quote'] : undefined;
+        const currencyId = (market !== undefined) ? market['quote'] : undefined;
         const code = this.safeCurrencyCode (currencyId, currency);
         const amount = this.parseNumber (this.safeString (entry, 'pnl'));
         let direction = undefined;
