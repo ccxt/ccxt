@@ -1304,6 +1304,68 @@
                     }
                 ]
             }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770111117,
+                            "txSig": "",
+                            "txSigIndex": 2,
+                            "slot": 398222413,
+                            "pnl": "0.028690",
+                            "user": "",
+                            "baseAssetAmount": "0.000000000",
+                            "quoteAssetAmountAfter": "0.000000",
+                            "quoteEntryAmount": "0.000000",
+                            "settlePrice": "80.073147",
+                            "marketIndex": 0,
+                            "explanation": "none"
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770111117,
+                            "txSig": "",
+                            "txSigIndex": 2,
+                            "slot": 398222413,
+                            "pnl": "0.028690",
+                            "user": "",
+                            "baseAssetAmount": "0.000000000",
+                            "quoteAssetAmountAfter": "0.000000",
+                            "quoteEntryAmount": "0.000000",
+                            "settlePrice": "80.073147",
+                            "marketIndex": 0,
+                            "explanation": "none"
+                        },
+                        "id": null,
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "type": "pnl",
+                        "currency": "USDC",
+                        "amount": 0.02869,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "timestamp": 1770111117000,
+                        "datetime": "2026-02-03T09:31:57.000Z",
+                        "fee": null
+                    }
+                ]
+            }
         ]
     }
 }
