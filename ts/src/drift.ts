@@ -762,7 +762,7 @@ export default class drift extends Exchange {
         const timestamp = this.safeTimestamp (trade, 'ts');
         const marketId = this.safeString (trade, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const accountId = this.safeString2 (this.options, 'accountId', 'account_id') ?? this.safeString (this, 'accountId');
+        const accountId = this.safeString2 (this.options, 'accountId', 'account_id', this.accountId);
         const takerAccount = this.safeString (trade, 'taker');
         const makerAccount = this.safeString (trade, 'maker');
         let takerOrMaker = undefined;
