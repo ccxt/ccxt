@@ -22,6 +22,7 @@ interface Exchange {
     publicGetMarketSymbolTrades (params?: {}): Promise<implicitReturnType>;
     publicGetMarketSymbolCandlesResolution (params?: {}): Promise<implicitReturnType>;
     publicGetStatsMarkets (params?: {}): Promise<implicitReturnType>;
+    publicGetAuthorityAuthorityIdAccounts (params?: {}): Promise<implicitReturnType>;
     publicPostTxOrderPlace (params?: {}): Promise<implicitReturnType>;
     publicPostTxOrderCancel (params?: {}): Promise<implicitReturnType>;
     publicPostTxExecute (params?: {}): Promise<implicitReturnType>;

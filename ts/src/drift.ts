@@ -101,6 +101,7 @@ export default class drift extends Exchange {
                         'market/{symbol}/trades',
                         'market/{symbol}/candles/{resolution}',
                         'stats/markets',
+                        'authority/{authorityId}/accounts',
                     ],
                     'post': [
                         'tx/order/place',
@@ -1530,6 +1531,7 @@ export default class drift extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         const direction = (side === 'buy') ? 'long' : 'short';
