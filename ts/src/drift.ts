@@ -829,9 +829,7 @@ export default class drift extends Exchange {
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe);
         if (resolution === undefined) {
-            throw new NotSupported (
-                this.id + ' fetchOHLCV() does not support timeframe ' + timeframe
-            );
+            throw new NotSupported (this.id + ' fetchOHLCV() does not support timeframe ' + timeframe);
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -1265,7 +1263,7 @@ export default class drift extends Exchange {
         }
         const entryPrice = entryPriceString === undefined ? undefined : this.parseNumber (entryPriceString);
         const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
-        return this.safePosition ({ // todo add margin modes, leverage, collateral etc
+        return this.safePosition ({
             'info': position,
             'symbol': this.safeSymbol (marketId),
             'contracts': contracts,
