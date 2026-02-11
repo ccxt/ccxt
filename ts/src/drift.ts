@@ -785,15 +785,15 @@ export default class drift extends Exchange {
         } else {
             feeCostString = this.safeString (trade, 'takerFee');
         }
-        const fee = feeCostString === undefined
-            ? undefined
-            : {
+        let fee = undefined;
+        if (feeCostString !== undefined) {
+            fee = {
                 'cost': feeCostString,
                 'currency': market ? this.safeCurrencyCode (market['quote']) : 'USDC',
             };
-        const orderId = takerOrMaker === 'maker'
-            ? this.safeString (trade, 'makerOrderId')
-            : this.safeString (trade, 'takerOrderId');
+        }
+        const orderIdKey = (takerOrMaker === 'maker') ? 'makerOrderId' : 'takerOrderId';
+        const orderId = this.safeString (trade, orderIdKey);
         return this.safeTrade (
             {
                 'info': trade,
@@ -1259,9 +1259,10 @@ export default class drift extends Exchange {
         }
         const quoteEntryAmountAbs = Precise.stringAbs (this.safeString (position, 'quoteEntryAmount'));
         const baseAssetAmountAbs = Precise.stringAbs (this.safeString (position, 'baseAssetAmount'));
-        const entryPriceString = (quoteEntryAmountAbs !== undefined && baseAssetAmountAbs !== undefined && Precise.stringGt (baseAssetAmountAbs, '0'))
-            ? Precise.stringDiv (quoteEntryAmountAbs, baseAssetAmountAbs)
-            : undefined;
+        let entryPriceString = undefined;
+        if (quoteEntryAmountAbs !== undefined && baseAssetAmountAbs !== undefined && Precise.stringGt (baseAssetAmountAbs, '0')) {
+            entryPriceString = Precise.stringDiv (quoteEntryAmountAbs, baseAssetAmountAbs);
+        }
         const entryPrice = entryPriceString === undefined ? undefined : this.parseNumber (entryPriceString);
         const liquidationPrice = this.safeNumber (position, 'liquidationPrice');
         return this.safePosition ({ // todo add margin modes, leverage, collateral etc
