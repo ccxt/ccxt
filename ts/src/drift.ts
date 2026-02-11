@@ -1,5 +1,5 @@
 import Exchange from './abstract/drift.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory, IndexType } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, OrderBook, Balances, Str, Ticker, Tickers, Strings, Market, Num, Dict, int, Position, Currencies, Currency, Transaction, LedgerEntry, FundingHistory } from './base/types.js';
 import { BadRequest, InvalidOrder, NotSupported, ArgumentsRequired, InsufficientFunds, OrderNotFound, ExchangeError } from './base/errors.js';
 import { eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
