@@ -596,14 +596,14 @@ export default class drift extends Exchange {
         let askPrice = undefined;
         let askVolume = undefined;
         if (Array.isArray (bids)) {
-            const bestBid = this.parseBidAsk (bids[0]);
-            bidPrice = bestBid[0];
-            bidVolume = bestBid[1];
+            const bestBid = this.parseBidAsk (bids[0], 'price', 'size');
+            bidPrice = this.processObPrice (bestBid[0]);
+            bidVolume = this.processObAmount (bestBid[1]);
         }
         if (Array.isArray (asks)) {
-            const bestAsk = this.parseBidAsk (asks[0]);
-            askPrice = bestAsk[0];
-            askVolume = bestAsk[1];
+            const bestAsk = this.parseBidAsk (asks[0], 'price', 'size');
+            askPrice = this.processObPrice (bestAsk[0]);
+            askVolume = this.processObAmount (bestAsk[1]);
         }
         const marketsStats = this.safeValue (responses[1], 'markets', []);
         const stats = this.findMarketStat (marketsStats, market['id']);
@@ -718,14 +718,14 @@ export default class drift extends Exchange {
             let askPrice = undefined;
             let askVolume = undefined;
             if (Array.isArray (bids)) {
-                const bestBid = this.parseBidAsk (bids[0]);
-                bidPrice = bestBid[0];
-                bidVolume = bestBid[1];
+                const bestBid = this.parseBidAsk (bids[0], 'price', 'size');
+                bidPrice = this.processObPrice (bestBid[0]);
+                bidVolume = this.processObAmount (bestBid[1]);
             }
             if (Array.isArray (asks)) {
-                const bestAsk = this.parseBidAsk (asks[0]);
-                askPrice = bestAsk[0];
-                askVolume = bestAsk[1];
+                const bestAsk = this.parseBidAsk (asks[0], 'price', 'size');
+                askPrice = this.processObPrice (bestAsk[0]);
+                askVolume = this.processObAmount (bestAsk[1]);
             }
             const marketStats = this.safeValue (statsById, marketId, {});
             const last = this.safeNumber (marketStats, 'price');
@@ -861,24 +861,36 @@ export default class drift extends Exchange {
         const timestamp = this.safeInteger (response, 'ts');
         const bids = this.safeValue (response, 'bids', []);
         const asks = this.safeValue (response, 'asks', []);
-        return this.parseOrderBook (
+        const ob = this.parseOrderBook (
             {
                 'bids': bids,
                 'asks': asks,
                 'timestamp': timestamp,
             },
             symbol,
-            timestamp
+            timestamp,
+            'bids',
+            'asks',
+            'price',
+            'size'
         );
+        for (let i = 0; i < ob['bids'].length; i++) {
+            ob['bids'][i][0] = this.processObPrice (ob['bids'][i][0]);
+            ob['bids'][i][1] = this.processObAmount (ob['bids'][i][1]);
+        }
+        for (let i = 0; i < ob['asks'].length; i++) {
+            ob['asks'][i][0] = this.processObPrice (ob['asks'][i][0]);
+            ob['asks'][i][1] = this.processObAmount (ob['asks'][i][1]);
+        }
+        return ob;
     }
 
-    parseBidAsk (bidask, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
-        const rawPrice = this.safeString (bidask, 'price');
-        const rawAmount = this.safeString (bidask, 'size');
-        const price = (rawPrice === undefined) ? undefined : this.parseNumber (Precise.stringDiv (rawPrice, '1000000'));
-        const amount = (rawAmount === undefined) ? undefined : this.parseNumber (Precise.stringDiv (rawAmount, '1000000000'));
-        const result = [ price, amount ];
-        return result;
+    processObPrice (price: number): number {
+        return this.parseNumber (Precise.stringDiv (this.numberToString (price), '1000000'));
+    }
+
+    processObAmount (amount: number): number {
+        return this.parseNumber (Precise.stringDiv (this.numberToString (amount), '1000000000'));
     }
 
     /**
