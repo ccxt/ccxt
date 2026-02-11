@@ -1854,7 +1854,7 @@ export default class drift extends Exchange {
         const response = await this.publicPostTxOrderPlace (
             this.extend (request, params)
         );
-        await this.executeTx (response.tx);
+        await this.executeTx (response['tx']);
         return this.parseOrder (response, market);
     }
 
@@ -1875,7 +1875,7 @@ export default class drift extends Exchange {
             'orderId': id,
         };
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
-        await this.executeTx (response.tx);
+        await this.executeTx (response['tx']);
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
@@ -1913,7 +1913,7 @@ export default class drift extends Exchange {
             request['symbol'] = market['id'];
         }
         const response = await this.publicPostTxOrderCancel (this.extend (request, params));
-        await this.executeTx (response.tx);
+        await this.executeTx (response['tx']);
         return response;
     }
 
@@ -1937,7 +1937,7 @@ export default class drift extends Exchange {
             'symbol': code,
         };
         const response = await this.publicPostTxWithdraw (this.extend (request));
-        await this.executeTx (response.tx);
+        await this.executeTx (response['tx']);
         return {
             'info': response,
             'id': undefined,
@@ -1967,13 +1967,15 @@ export default class drift extends Exchange {
         const txBytes = this.base64ToBinary (serializedTx);
         const keyBytes = this.base58ToBinary (this.privateKey);
         const secretKey = keyBytes.slice (0, 32);
-        const sigCount = txBytes[0];
-        const signaturesEnd = 1 + sigCount * 64;
+        const sigCount = this.parseToInt (txBytes[0]);
+        const signaturesEnd = sigCount * 64 + 1;
         const messageBytes = txBytes.slice (signaturesEnd);
         const signatureBase64 = eddsa (messageBytes, secretKey, ed25519);
         const signatureBytes = this.base64ToBinary (signatureBase64);
-        const signedTxBytes = new Uint8Array (txBytes);
-        signedTxBytes.set (signatureBytes, 1);
+        const signatureHex = this.binaryToBase16 (signatureBytes);
+        const txHex = this.binaryToBase16 (txBytes);
+        const signedTxHex = txHex.slice (0, 2) + signatureHex + txHex.slice (signatureHex.length + 2);
+        const signedTxBytes = this.base16ToBinary (signedTxHex);
         const signedTxBase64 = this.binaryToBase64 (signedTxBytes);
         const request: Dict = {
             'signedTx': signedTxBase64,
