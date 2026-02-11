@@ -180,6 +180,7 @@ export default class grvt extends Exchange {
                     'SOL': '900',
                     'TRX': '728126428',
                     'ZKSYNCERA': '324',
+                    'KAIA': '8217',
                 },
                 'networksById': {
                     '1': 'ERC20',
@@ -192,7 +193,12 @@ export default class grvt extends Exchange {
                     'createOrder': {
                         'marginMode': false,
                         'triggerPrice': true,
-                        'triggerPriceType': true,
+                        'triggerPriceType': {
+                            'last': true,
+                            'mark': true,
+                            'index': true,
+                            'median': true, // mid
+                        },
                         'triggerDirection': true,
                         'stopLossPrice': true,
                         'takeProfitPrice': true,
@@ -564,15 +570,15 @@ export default class grvt extends Exchange {
             'option': false,
             'active': undefined, // todo: ask support to add
             'contract': isContract,
-            'linear': undefined,
-            'inverse': undefined,
-            'contractSize': undefined,
+            'linear': (isSwap ? true : undefined),
+            'inverse': (isSwap ? false : undefined),
+            'contractSize': this.parseNumber ('1'), // tbd, vague response from support
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber (market, 'min_size'), // not base_decimals!
+                'amount': this.safeNumber (market, 'min_size'), // confirmed, not 'base_decimals'
                 'price': this.safeNumber (market, 'tick_size'),
                 'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'base_decimals'))),
                 'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quote_decimals'))),
