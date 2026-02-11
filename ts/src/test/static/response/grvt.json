@@ -10,7 +10,7 @@
     },
     "apiKey": "sample123",
     "secret": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
-    "skipKeys": [ "r", "s", "v", "nonce", "expiration" ],
+    "skipKeys": [ "r", "s", "v", "nonce", "expiration", "client_order_id" ],
     "methods": {
         "fetchMarkets": [
             {
@@ -1253,7 +1253,6 @@
         "createOrder": [
             {
                 "disabledCS": true,
-                "disabledPHP": true,
                 "description": "swap sell trigger & reduceOnly",
                 "method": "createOrder",
                 "input": [
@@ -1416,7 +1415,6 @@
             },
             {
                 "disabledCS": true,
-                "disabledPHP": true,
                 "description": "swap buy trigger",
                 "method": "createOrder",
                 "input": [
@@ -1427,7 +1425,6 @@
                     70000,
                     {
                         "accountId": 2147050003876484,
-                        "builderFee": false,
                         "triggerPrice": 67000,
                         "triggerDirection": "descending"
                     }
@@ -1579,7 +1576,6 @@
             },
             {
                 "disabledCS": true,
-                "disabledPHP": true,
                 "description": "createOrder perp buy limit with triggerPrice & triggerDirection asc",
                 "method": "createOrder",
                 "input": [
@@ -1740,7 +1736,6 @@
             },
             {
                 "disabledCS": true,
-                "disabledPHP": true,
                 "description": "createOrder perp buy limit with triggerPrice & triggerDirection desc",
                 "method": "createOrder",
                 "input": [
@@ -1901,7 +1896,6 @@
             },
             {
                 "disabledCS": true,
-                "disabledPHP": true,
                 "description": "createOrder perp buy limit",
                 "method": "createOrder",
                 "input": [

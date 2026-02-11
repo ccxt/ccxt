@@ -1832,21 +1832,47 @@ export default class grvt extends Exchange {
         } else {
             throw new InvalidOrder (this.id + ' createOrder(): order side must be either "buy" or "sell"');
         }
+        const isMarketOrder = (type === 'market');
         const orderRequest = {
             'sub_account_id': this.getSubAccountId (params),
-            'time_in_force': 'GOOD_TILL_TIME',
+            'time_in_force': undefined,
             'legs': [ orderLeg ],
             'signature': this.defaultSignature (),
             'metadata': {
                 'client_order_id': this.nonce ().toString (),
                 // 'create_time': (this.milliseconds() * str(1000000)),
             },
-            'is_market': false,
+            'is_market': isMarketOrder,
             'post_only': false,
-            'reduce_only': false,
+            'reduce_only': this.safeBool (params, 'reduceOnly', false),
             // 'order_id': null,
             // 'state': null,
         };
+        let timeInForce = this.safeStringUpper (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarketOrder, undefined, params);
+        if (postOnly) {
+            orderRequest['post_only'] = true;
+        } else {
+            if (timeInForce === undefined) {
+                timeInForce = 'GOOD_TILL_TIME';
+            } else {
+                const tifMap = {
+                    'GTC': 'GOOD_TILL_TIME',
+                    'FOK': 'FILL_OR_KILL', // tbd: why not 'ALL_OR_NONE'
+                    'IOC': 'IMMEDIATE_OR_CANCEL',
+                };
+                timeInForce = this.safeString (tifMap, timeInForce, timeInForce);
+            }
+            orderRequest['time_in_force'] = timeInForce;
+        }
+        if (!isMarketOrder) {
+            if (postOnly) {
+                timeInForce = 'POST_ONLY';
+            } else if (timeInForce === 'ioc') {
+                timeInForce = 'IMMEDIATE_OR_CANCEL';
+            }
+        }
+        params = this.omit (params, [ 'reduceOnly', 'postOnly', 'timeInForce' ]);
         // Trigger & SL & TP
         let triggerPrice: Str = undefined;
         let stopLossPrice: Str = undefined;
@@ -1982,7 +2008,7 @@ export default class grvt extends Exchange {
             const size = leg['size'];
             const sizeParts = size.split ('.');
             const sizeDec = this.safeString (sizeParts, 1, '');
-            const sizeDecLength = sizeDec.length;
+            const sizeDecLength = sizeDec.length + 0; // php tr
             const sizeDecLengthStr = sizeDecLength.toString ();
             const sizeInteger = this.convertToBigIntCustom (size.replace ('.', '')) * sizeMultiplier / (Math.pow (bigInt10, this.convertToBigIntCustom (sizeDecLengthStr)));
             const legOrder = {
@@ -1994,7 +2020,7 @@ export default class grvt extends Exchange {
                 const price = leg['limit_price'];
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
-                const limitDecLength = limitDec.length;
+                const limitDecLength = limitDec.length + 0; // php tr
                 const limitDecLengthStr = limitDecLength.toString ();
                 const powerNum = limitDecLengthStr === '0' ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
                 const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, powerNum)));
@@ -2811,7 +2837,7 @@ export default class grvt extends Exchange {
                 'id': undefined,
             });
         }
-        const isMarket = this.safeString (order, 'is_market');
+        const isMarket = this.safeBool (order, 'is_market');
         const orderType = isMarket ? 'market' : 'limit';
         const isPostOnly = this.safeBool (order, 'post_only');
         const isReduceOnly = this.safeBool (order, 'reduce_only');
@@ -3082,7 +3108,6 @@ export default class grvt extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const query = this.omit (params, this.extractParams (path));
-        path = this.implodeParams (path, params);
         let url = this.urls['api'][api] + path;
         let queryString = '';
         if (method === 'GET') {
