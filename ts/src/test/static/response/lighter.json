@@ -1,6 +1,8 @@
 {
     "exchange": "lighter",
-    "skipKeys": [],
+    "skipKeys": [
+        "vwap"
+    ],
     "options": {
         "accountIndex": 12345678
     },
