@@ -178,6 +178,7 @@
         ],
         "fetchMyTrades": [
             {
+                "disabledGO": true,
                 "description": "fetchMyTrades symbol perp",
                 "method": "fetchMyTrades",
                 "url": "https://trades.grvt.io/full/v1/fill_history",
