@@ -2,6 +2,9 @@
     "exchange": "lighter",
     "skipKeys": [],
     "outputType": "urlencoded",
+    "options": {
+        "accountIndex": 12345678
+    },
     "methods": {
         "fetchStatus": [
             {
