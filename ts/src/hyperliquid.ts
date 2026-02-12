@@ -3451,11 +3451,15 @@ export default class hyperliquid extends Exchange {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
-        const fee = this.safeString (trade, 'fee');
+        let fee = this.safeString (trade, 'fee');
         let takerOrMaker = undefined;
         const crossed = this.safeBool (trade, 'crossed');
         if (crossed !== undefined) {
             takerOrMaker = crossed ? 'taker' : 'maker';
+        }
+        const builderFee = this.safeString (trade, 'builderFee');
+        if (builderFee !== undefined) {
+            fee = Precise.stringAdd (fee, builderFee);
         }
         return this.safeTrade ({
             'info': trade,
