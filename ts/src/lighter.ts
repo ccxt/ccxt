@@ -356,7 +356,7 @@ export default class lighter extends Exchange {
         return signer;
     }
 
-    async createSubAccount (params = {}) {
+    async createSubAccount (name, params = {}) {
         let accountIndex = undefined;
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'accountIndex', 'account_index');
         if (accountIndex === undefined) {
