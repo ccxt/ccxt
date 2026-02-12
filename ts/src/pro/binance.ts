@@ -2955,9 +2955,9 @@ export default class binance extends binanceRest {
         }
         let url = '';
         let urlType = type;
-        if (type === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api'][type];
+            url = this.urls['api']['ws']['ws-api']['spot'];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -3743,9 +3743,9 @@ export default class binance extends binanceRest {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
         let url = '';
-        if (type === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api'][type];
+            url = this.urls['api']['ws']['ws-api']['spot'];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -4482,8 +4482,8 @@ export default class binance extends binanceRest {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
         let url = '';
-        if (type === 'spot') {
-            url = this.urls['api']['ws']['ws-api'][type];
+        if (type === 'spot' || type === 'margin') {
+            url = this.urls['api']['ws']['ws-api']['spot'];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
