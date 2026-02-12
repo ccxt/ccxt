@@ -835,14 +835,12 @@ public partial class okx : ccxt.okx
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseWsLiquidation(rawLiquidation);
             object symbol = this.safeString(liquidation, "symbol");
-            object liquidations = this.safeValue(this.liquidations, symbol);
-            if (isTrue(isEqual(liquidations, null)))
+            if (isTrue(isEqual(this.liquidations, null)))
             {
-                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-                liquidations = new ArrayCache(limit);
+                this.liquidations = new ArrayCacheBySymbolBySide();
             }
-            callDynamically(liquidations, "append", new object[] {liquidation});
-            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            object cache = this.liquidations;
+            callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
             callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
         }
@@ -945,14 +943,12 @@ public partial class okx : ccxt.okx
             }
             object liquidation = this.parseWsMyLiquidation(rawLiquidation);
             object symbol = this.safeString(liquidation, "symbol");
-            object liquidations = this.safeValue(this.liquidations, symbol);
-            if (isTrue(isEqual(liquidations, null)))
+            if (isTrue(isEqual(this.liquidations, null)))
             {
-                object limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
-                liquidations = new ArrayCache(limit);
+                this.liquidations = new ArrayCacheBySymbolBySide();
             }
-            callDynamically(liquidations, "append", new object[] {liquidation});
-            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            object cache = this.liquidations;
+            callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "myLiquidations"});
             callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("myLiquidations::", symbol)});
         }
@@ -2084,7 +2080,7 @@ public partial class okx : ccxt.okx
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
-    public virtual void handleOrders(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrders(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2308,6 +2304,13 @@ public partial class okx : ccxt.okx
         op = ((IList<object>)opparametersVariable)[0];
         parameters = ((IList<object>)opparametersVariable)[1];
         object args = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
+        if (isTrue(!isEqual(instIdCode, null)))
+        {
+            ((IDictionary<string,object>)args).Remove((string)"instId");
+            ((IDictionary<string,object>)args)["instIdCode"] = instIdCode;
+        }
         object ordType = this.safeString(args, "ordType");
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(ordType, "trigger"))) || isTrue((isEqual(ordType, "conditional")))) || isTrue((isEqual(type, "oco")))) || isTrue((isEqual(type, "move_order_stop")))) || isTrue((isEqual(type, "iceberg")))) || isTrue((isEqual(type, "twap")))))
         {
@@ -2388,6 +2391,13 @@ public partial class okx : ccxt.okx
         op = ((IList<object>)opparametersVariable)[0];
         parameters = ((IList<object>)opparametersVariable)[1];
         object args = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
+        if (isTrue(!isEqual(instIdCode, null)))
+        {
+            ((IDictionary<string,object>)args).Remove((string)"instId");
+            ((IDictionary<string,object>)args)["instIdCode"] = instIdCode;
+        }
         object request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", op },
@@ -2420,8 +2430,10 @@ public partial class okx : ccxt.okx
         object messageHash = this.requestId();
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
         object arg = new Dictionary<string, object>() {
-            { "instId", this.marketId(symbol) },
+            { "instIdCode", instIdCode },
         };
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -2465,12 +2477,16 @@ public partial class okx : ccxt.okx
         object url = this.getUrl("private", "private");
         object messageHash = this.requestId();
         object args = new List<object>() {};
+        object market = this.market(symbol);
+        object instIdCode = this.safeInteger(market, "instIdCode");
+        object instParams = new Dictionary<string, object>() {
+            { "instIdCode", instIdCode },
+        };
         for (object i = 0; isLessThan(i, idsLength); postFixIncrement(ref i))
         {
-            object arg = new Dictionary<string, object>() {
-                { "instId", this.marketId(symbol) },
+            object arg = this.extend(instParams, new Dictionary<string, object>() {
                 { "ordId", getValue(ids, i) },
-            };
+            });
             ((IList<object>)args).Add(arg);
         }
         object request = new Dictionary<string, object>() {

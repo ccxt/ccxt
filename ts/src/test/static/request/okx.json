@@ -1178,6 +1178,14 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Inverse swap fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://www.okx.com/api/v5/account/positions?instId=BTC-USD-SWAP&instType=SWAP",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
             }
         ],
         "fetchPositions": [

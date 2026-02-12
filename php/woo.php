@@ -2146,7 +2146,7 @@ class woo extends Exchange {
             $request['limit'] = min ($limit, 1000);
         }
         if ($since !== null) {
-            $request['after'] = $since;
+            $request['after'] = $since - 1; // #27793
         }
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, 'until');
@@ -2600,7 +2600,7 @@ class woo extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $currencyRows = $this->get_asset_history_rows($code, $since, $limit, $params);
         $currency = $this->safe_value($currencyRows, 0);
@@ -3714,7 +3714,7 @@ class woo extends Exchange {
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
     }
@@ -3729,7 +3729,7 @@ class woo extends Exchange {
          * @param {float} $amount amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
-         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'REDUCE', $params);
     }

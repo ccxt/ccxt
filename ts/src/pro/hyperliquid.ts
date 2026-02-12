@@ -321,6 +321,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -342,6 +343,7 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -350,10 +352,12 @@ export default class hyperliquid extends hyperliquidRest {
         symbols = this.marketSymbols (symbols, undefined, true);
         let messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
+        let channel = 'webData2';
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', channel);
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': 'webData2', // allMids
+                'type': channel, // webData2 or allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };
@@ -386,18 +390,21 @@ export default class hyperliquid extends hyperliquidRest {
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
+        let channel = 'webData2';
+        [ channel, params ] = this.handleOptionAndParams (params, 'unWatchTickers', 'channel', channel);
         const messageHash = 'unsubscribe:' + subMessageHash;
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': 'webData2', // allMids
+                'type': channel, // allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         };
@@ -548,7 +555,11 @@ export default class hyperliquid extends hyperliquidRest {
                     }, market);
                     this.tickers[symbol] = ticker;
                 }
-                const messageHash = 'tickers:' + this.safeString (data, 'dex');
+                let messageHash = 'tickers';
+                const dexMessage = this.safeString (data, 'dex');
+                if (dexMessage !== undefined) {
+                    messageHash += ':' + dexMessage;
+                }
                 client.resolve (this.tickers, messageHash);
                 return true;
             }

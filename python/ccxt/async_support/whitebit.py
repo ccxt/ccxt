@@ -1752,7 +1752,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "time":1737380046
         #     }
         #
-        return self.safe_integer(response, 'time')
+        return self.safe_integer_product(response, 'time', 1000)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
@@ -2807,7 +2807,7 @@ class whitebit(Exchange, ImplicitAPI):
             'status': self.parse_transaction_status(status),
             'updated': None,
             'tagFrom': None,
-            'tag': None,
+            'tag': self.safe_string(transaction, 'memo'),
             'tagTo': None,
             'comment': self.safe_string(transaction, 'description'),
             'internal': None,

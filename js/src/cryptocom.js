@@ -175,6 +175,7 @@ export default class cryptocom extends Exchange {
                             'public/get-valuations': 1,
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
+                            'public/get-announcements': 1,
                             'public/get-risk-parameters': 1,
                         },
                         'post': {
@@ -229,6 +230,8 @@ export default class cryptocom extends Exchange {
                             'private/staking/convert': 2,
                             'private/staking/get-open-convert': 2,
                             'private/staking/get-convert-history': 2,
+                            'private/create-isolated-margin-transfer': 10 / 3,
+                            'private/change-isolated-margin-leverage': 10 / 3,
                         },
                     },
                 },
@@ -481,6 +484,7 @@ export default class cryptocom extends Exchange {
                     '219': InvalidOrder,
                     '306': InsufficientFunds,
                     '314': InvalidOrder,
+                    '315': InvalidOrder,
                     '325': InvalidOrder,
                     '415': InvalidOrder,
                     '10001': ExchangeError,
@@ -2706,7 +2710,7 @@ export default class cryptocom extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

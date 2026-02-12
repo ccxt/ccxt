@@ -741,6 +741,159 @@ func (this *Aster) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
     }
     return res, nil
 }
+/**
+ * @method
+ * @name aster#watchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+ */
+func (this *Aster) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
+    res := <- this.Core.WatchBalance(params...)
+    if ccxt.IsError(res) {
+        return ccxt.Balances{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewBalances(res), nil
+}
+/**
+ * @method
+ * @name aster#watchPositions
+ * @description watch all open positions
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+ * @param {string[]|undefined} symbols list of unified market symbols
+ * @param {number} [since] since timestamp
+ * @param {number} [limit] limit
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+ */
+func (this *Aster) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
+
+    opts := ccxt.WatchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchPositions(symbols, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPositionArray(res), nil
+}
+/**
+ * @method
+ * @name aster#watchOrders
+ * @description watches information on multiple orders made by the user
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+ * @param {string} [symbol] unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Aster) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
+
+    opts := ccxt.WatchOrdersOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchOrders(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewOrderArray(res), nil
+}
+/**
+ * @method
+ * @name aster#watchMyTrades
+ * @description watches information on multiple trades made by the user
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+ * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+ * @param {string} [symbol] unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+ */
+func (this *Aster) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {
+
+    opts := ccxt.WatchMyTradesOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbol interface{} = nil
+    if opts.Symbol != nil {
+        symbol = *opts.Symbol
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchMyTrades(symbol, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewTradeArray(res), nil
+}
 // missing typed methods from base
 //nolint
 func (this *Aster) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
@@ -919,13 +1072,9 @@ func (this *Aster) FetchTradingFeesWs(params ...interface{}) (ccxt.TradingFees, 
 func (this *Aster) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
 func (this *Aster) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
 func (this *Aster) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
-func (this *Aster) WatchBalance(params ...interface{}) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
 func (this *Aster) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
 func (this *Aster) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
 func (this *Aster) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
-func (this *Aster) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
-func (this *Aster) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrders(options...)}
 func (this *Aster) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
 func (this *Aster) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
-func (this *Aster) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.WatchPositions(options...)}
 func (this *Aster) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

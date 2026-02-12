@@ -411,7 +411,8 @@ class lbank(ccxt.async_support.lbank):
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 
     def handle_trades(self, client, message):
         #

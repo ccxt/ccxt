@@ -617,7 +617,7 @@ phemex.fetchFundingRate (symbol[, params])
 Either adds or reduces margin in an isolated position in order to set the margin to a specific value
 
 **Kind**: instance method of [<code>phemex</code>](#phemex)  
-**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#assign-position-balance-in-isolated-marign-mode  
 

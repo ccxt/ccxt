@@ -10,6 +10,71 @@
         }
     },
     "methods": {
+        "createOrder": [
+            {
+                "description": "create order",
+                "method": "createOrder",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    "market",
+                    "sell",
+                    1,
+                    25
+                ],
+                "httpResponse": {
+                    "status": "ok",
+                    "response": {
+                        "type": "order",
+                        "data": {
+                            "statuses": [
+                                {
+                                    "filled": {
+                                        "totalSz": "1.0",
+                                        "avgPx": "25.585",
+                                        "oid": "296683658818"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "filled": {
+                            "totalSz": "1.0",
+                            "avgPx": "25.585",
+                            "oid": "296683658818"
+                        }
+                    },
+                    "id": "296683658818",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": null,
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "amount": 1,
+                    "cost": 25.585,
+                    "average": 25.585,
+                    "filled": 1,
+                    "remaining": 0,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
         "createOrderWithTakeProfitAndStopLoss": [
             {
                 "description": "create order with tp and sl",
@@ -65,9 +130,9 @@
                     "price": null,
                     "triggerPrice": null,
                     "amount": 1,
-                    "cost": null,
+                    "cost": 39.9351,
                     "average": 39.9351,
-                    "filled": null,
+                    "filled": 1,
                     "remaining": null,
                     "status": null,
                     "fee": null,

@@ -1032,7 +1032,24 @@ public partial class bitget : ccxt.bitget
         } else
         {
             object orderbook = this.orderBook(new Dictionary<string, object>() {});
-            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp);
+            object bidsKey = "bids";
+            object asksKey = "asks";
+            // bitget UTA has `a` and `b` instead of `asks` and `bids`
+            if (isTrue(inOp(rawOrderBook, "a")))
+            {
+                if (!isTrue((inOp(rawOrderBook, "asks"))))
+                {
+                    asksKey = "a";
+                }
+            }
+            if (isTrue(inOp(rawOrderBook, "b")))
+            {
+                if (!isTrue((inOp(rawOrderBook, "bids"))))
+                {
+                    bidsKey = "b";
+                }
+            }
+            object parsedOrderbook = this.parseOrderBook(rawOrderBook, symbol, timestamp, bidsKey, asksKey);
             (orderbook as IOrderBook).reset(parsedOrderbook);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }

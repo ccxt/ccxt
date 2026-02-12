@@ -470,7 +470,7 @@ bitstamp.fetchWithdrawals (code[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions  
 

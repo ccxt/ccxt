@@ -759,7 +759,7 @@ woo.fetchDepositAddress (code[, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history  
 
@@ -1135,7 +1135,7 @@ woo.setLeverage (leverage[, symbol, params])
 add margin
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.woox.io/#update-isolated-margin-setting  
 
@@ -1158,7 +1158,7 @@ woo.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>woo</code>](#woo)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.woox.io/#update-isolated-margin-setting  
 

@@ -1,5 +1,5 @@
 import asterRest from '../aster.js';
-import type { Strings, Tickers, Dict, Ticker, Int, Market, Trade, OrderBook, OHLCV } from '../base/types.js';
+import type { Balances, Str, Strings, Tickers, Ticker, Int, Trade, Order, OrderBook, OHLCV, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class aster extends asterRest {
     describe(): any;
@@ -167,7 +167,7 @@ export default class aster extends asterRest {
      */
     unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleTrade(client: Client, message: any): void;
-    parseWsTrade(trade: Dict, market?: Market): Trade;
+    parseWsTrade(trade: any, market?: any): Trade;
     /**
      * @method
      * @name aster#watchOrderBook
@@ -269,5 +269,71 @@ export default class aster extends asterRest {
     unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    authenticate(type?: string, params?: {}): Promise<void>;
+    keepAliveListenKey(params?: {}): Promise<void>;
+    getPrivateUrl(type?: string): string;
+    /**
+     * @method
+     * @name aster#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    watchBalance(params?: {}): Promise<Balances>;
+    setBalanceCache(client: Client, type: any): void;
+    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    handleBalance(client: Client, message: any): void;
+    /**
+     * @method
+     * @name aster#watchPositions
+     * @description watch all open positions
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    setPositionsCache(client: Client): void;
+    loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
+    handlePositions(client: any, message: any): void;
+    parseWsPosition(position: any, market?: any): Position;
+    /**
+     * @method
+     * @name aster#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name aster#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleOrderUpdate(client: Client, message: any): void;
+    handleMyTrade(client: Client, message: any): void;
+    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: any, market?: any): Order;
+    getMarketFromOrder(client: Client, order: any): import("../base/types.js").MarketInterface;
     handleMessage(client: Client, message: any): void;
 }

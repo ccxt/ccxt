@@ -7,78 +7,78 @@
 
 package ccxt
 
-func (this *ProbitCore) PublicGetMarket (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetMarket", args...)
+func (this *ProbitCore) PublicGetMarket(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarket", args...)
 }
 
-func (this *ProbitCore) PublicGetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrency", args...)
+func (this *ProbitCore) PublicGetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *ProbitCore) PublicGetCurrencyWithPlatform (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrencyWithPlatform", args...)
+func (this *ProbitCore) PublicGetCurrencyWithPlatform(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencyWithPlatform", args...)
 }
 
-func (this *ProbitCore) PublicGetTime (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTime", args...)
+func (this *ProbitCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *ProbitCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *ProbitCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *ProbitCore) PublicGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBook", args...)
+func (this *ProbitCore) PublicGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *ProbitCore) PublicGetTrade (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrade", args...)
+func (this *ProbitCore) PublicGetTrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrade", args...)
 }
 
-func (this *ProbitCore) PublicGetCandle (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandle", args...)
+func (this *ProbitCore) PublicGetCandle(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandle", args...)
 }
 
-func (this *ProbitCore) PrivatePostNewOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostNewOrder", args...)
+func (this *ProbitCore) PrivatePostNewOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNewOrder", args...)
 }
 
-func (this *ProbitCore) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCancelOrder", args...)
+func (this *ProbitCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *ProbitCore) PrivatePostWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawal", args...)
+func (this *ProbitCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawal", args...)
 }
 
-func (this *ProbitCore) PrivateGetBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetBalance", args...)
+func (this *ProbitCore) PrivateGetBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetBalance", args...)
 }
 
-func (this *ProbitCore) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrder", args...)
+func (this *ProbitCore) PrivateGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrder", args...)
 }
 
-func (this *ProbitCore) PrivateGetOpenOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOpenOrder", args...)
+func (this *ProbitCore) PrivateGetOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOpenOrder", args...)
 }
 
-func (this *ProbitCore) PrivateGetOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetOrderHistory", args...)
+func (this *ProbitCore) PrivateGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrderHistory", args...)
 }
 
-func (this *ProbitCore) PrivateGetTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTradeHistory", args...)
+func (this *ProbitCore) PrivateGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeHistory", args...)
 }
 
-func (this *ProbitCore) PrivateGetDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositAddress", args...)
+func (this *ProbitCore) PrivateGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositAddress", args...)
 }
 
-func (this *ProbitCore) PrivateGetTransferPayment (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransferPayment", args...)
+func (this *ProbitCore) PrivateGetTransferPayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransferPayment", args...)
 }
 
-func (this *ProbitCore) AccountsPostToken (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("accountsPostToken", args...)
+func (this *ProbitCore) AccountsPostToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("accountsPostToken", args...)
 }

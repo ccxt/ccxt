@@ -5271,7 +5271,7 @@ class bitmart extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
          */
         $this->load_markets();
         $currency = null;

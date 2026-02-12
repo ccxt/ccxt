@@ -707,7 +707,7 @@ modetrade.fetchBalance ([params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>modetrade</code>](#modetrade)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history  
 

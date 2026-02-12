@@ -709,6 +709,12 @@ abstract class coinex extends \ccxt\async\Exchange {
     public function v2_private_post_futures_batch_stop_order($params = array()) {
         return $this->request('futures/batch-stop-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function v2_private_post_futures_cancel_position_stop_loss($params = array()) {
+        return $this->request('futures/cancel-position-stop-loss', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function v2_private_post_futures_cancel_position_take_profit($params = array()) {
+        return $this->request('futures/cancel-position-take-profit', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
     public function v2_private_post_futures_modify_order($params = array()) {
         return $this->request('futures/modify-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
@@ -1455,6 +1461,12 @@ abstract class coinex extends \ccxt\async\Exchange {
     }
     public function v2PrivatePostFuturesBatchStopOrder($params = array()) {
         return $this->request('futures/batch-stop-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function v2PrivatePostFuturesCancelPositionStopLoss($params = array()) {
+        return $this->request('futures/cancel-position-stop-loss', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function v2PrivatePostFuturesCancelPositionTakeProfit($params = array()) {
+        return $this->request('futures/cancel-position-take-profit', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2PrivatePostFuturesModifyOrder($params = array()) {
         return $this->request('futures/modify-order', array('v2', 'private'), 'POST', $params, null, null, array("cost" => 20));

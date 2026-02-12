@@ -1413,7 +1413,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint.
         :param str [params.positionId]: PositionId of the order to add margin.
         :param str [params.timestamp]: Tiemstamp.
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1457,7 +1457,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint.
         :param str [params.positionId]: PositionId of the order to add margin.
         :param str [params.timestamp]: Tiemstamp.
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

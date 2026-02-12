@@ -476,12 +476,15 @@ query for balance and get the amount of funds available for trading or funds loc
 - https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
 - https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.unified | <code>bool</code> | No | provide this parameter if you have a recent account with unified cross+isolated margin account |
+| params.subType | <code>string</code> | No | linear or future |
+| params.uta | <code>bool</code> | No | provide this parameter if you have a recent account with unified cross+isolated margin account |
+| params.multiAssetMode | <code>bool</code> | No | set to true if you are using multi-asset mode for USDT-margined contracts |
 
 
 ```javascript
@@ -1228,7 +1231,7 @@ htx.fetchPosition (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>htx</code>](#htx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://huobiapi.github.io/docs/spot/v1/en/#get-account-history  
 

@@ -1161,7 +1161,7 @@ export default class binance extends Exchange {
      * @param {string} id the identification number of the ledger entry
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedgerEntry(id: string, code?: Str, params?: {}): Promise<LedgerEntry>;
     /**
@@ -1181,7 +1181,7 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch the ledger for a portfolio margin account
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
     parseLedgerEntry(item: Dict, currency?: Currency): LedgerEntry;
@@ -1209,7 +1209,7 @@ export default class binance extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**
@@ -1221,7 +1221,7 @@ export default class binance extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
     /**

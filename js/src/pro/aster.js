@@ -6,26 +6,30 @@
 
 //  ---------------------------------------------------------------------------
 import asterRest from '../aster.js';
+import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class aster extends asterRest {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchBidsAsks': true,
-                'watchTicker': true,
-                'watchTickers': true,
                 'watchMarkPrice': true,
                 'watchMarkPrices': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
+                'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
+                'watchPositions': true,
+                'watchTicker': true,
+                'watchTickers': true,
+                'watchMyTrades': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
                 'unWatchMarkPrice': true,
@@ -41,12 +45,40 @@ export default class aster extends asterRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://sstream.asterdex.com/stream',
-                        'swap': 'wss://fstream.asterdex.com/stream',
+                        'public': {
+                            'spot': 'wss://sstream.asterdex.com/stream',
+                            'swap': 'wss://fstream.asterdex.com/stream',
+                        },
+                        'private': {
+                            'spot': 'wss://sstream.asterdex.com/ws',
+                            'swap': 'wss://fstream.asterdex.com/ws',
+                        },
                     },
                 },
             },
-            'options': {},
+            'options': {
+                'listenKey': {
+                    'spot': undefined,
+                    'swap': undefined,
+                },
+                'lastAuthenticatedTime': {
+                    'spot': 0,
+                    'swap': 0,
+                },
+                'listenKeyRefreshRate': {
+                    'spot': 3600000,
+                    'swap': 3600000,
+                },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': false,
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'wallet': 'wb',
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+            },
             'streaming': {},
             'exceptions': {},
         });
@@ -115,7 +147,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -158,7 +190,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -226,7 +258,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -271,7 +303,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -397,7 +429,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' watchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -437,7 +469,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' unWatchBidsAsks() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -548,7 +580,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -591,7 +623,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -643,30 +675,158 @@ export default class aster extends asterRest {
         client.resolve(stored, messageHash);
     }
     parseWsTrade(trade, market = undefined) {
+        //
+        // public watchTrades
+        //
+        //     {
+        //         "e": "trade",       // event type
+        //         "E": 1579481530911, // event time
+        //         "s": "ETHBTC",      // symbol
+        //         "t": 158410082,     // trade id
+        //         "p": "0.01914100",  // price
+        //         "q": "0.00700000",  // quantity
+        //         "b": 586187049,     // buyer order id
+        //         "a": 586186710,     // seller order id
+        //         "T": 1579481530910, // trade time
+        //         "m": false,         // is the buyer the market maker
+        //         "M": true           // binance docs say it should be ignored
+        //     }
+        //
+        //     {
+        //        "e": "aggTrade",  // Event type
+        //        "E": 123456789,   // Event time
+        //        "s": "BNBBTC",    // Symbol
+        //        "a": 12345,       // Aggregate trade ID
+        //        "p": "0.001",     // Price
+        //        "q": "100",       // Quantity
+        //        "f": 100,         // First trade ID
+        //        "l": 105,         // Last trade ID
+        //        "T": 123456785,   // Trade time
+        //        "m": true,        // Is the buyer the market maker?
+        //        "M": true         // Ignore
+        //     }
+        //
+        // private watchMyTrades spot
+        //
+        //     {
+        //         "e": "executionReport",
+        //         "E": 1611063861489,
+        //         "s": "BNBUSDT",
+        //         "c": "m4M6AD5MF3b1ERe65l4SPq",
+        //         "S": "BUY",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "2.00000000",
+        //         "p": "0.00000000",
+        //         "P": "0.00000000",
+        //         "F": "0.00000000",
+        //         "g": -1,
+        //         "C": '',
+        //         "x": "TRADE",
+        //         "X": "PARTIALLY_FILLED",
+        //         "r": "NONE",
+        //         "i": 1296882607,
+        //         "l": "0.33200000",
+        //         "z": "0.33200000",
+        //         "L": "46.86600000",
+        //         "n": "0.00033200",
+        //         "N": "BNB",
+        //         "T": 1611063861488,
+        //         "t": 109747654,
+        //         "I": 2696953381,
+        //         "w": false,
+        //         "m": false,
+        //         "M": true,
+        //         "O": 1611063861488,
+        //         "Z": "15.55951200",
+        //         "Y": "15.55951200",
+        //         "Q": "0.00000000"
+        //     }
+        //
+        // private watchMyTrades future/delivery
+        //
+        //     {
+        //         "s": "BTCUSDT",
+        //         "c": "pb2jD6ZQHpfzSdUac8VqMK",
+        //         "S": "SELL",
+        //         "o": "MARKET",
+        //         "f": "GTC",
+        //         "q": "0.001",
+        //         "p": "0",
+        //         "ap": "33468.46000",
+        //         "sp": "0",
+        //         "x": "TRADE",
+        //         "X": "FILLED",
+        //         "i": 13351197194,
+        //         "l": "0.001",
+        //         "z": "0.001",
+        //         "L": "33468.46",
+        //         "n": "0.00027086",
+        //         "N": "BNB",
+        //         "T": 1612095165362,
+        //         "t": 458032604,
+        //         "b": "0",
+        //         "a": "0",
+        //         "m": false,
+        //         "R": false,
+        //         "wt": "CONTRACT_PRICE",
+        //         "ot": "MARKET",
+        //         "ps": "BOTH",
+        //         "cp": false,
+        //         "rp": "0.00335000",
+        //         "pP": false,
+        //         "si": 0,
+        //         "ss": 0
+        //     }
+        //
+        const id = this.safeString2(trade, 't', 'a');
         const timestamp = this.safeInteger(trade, 'T');
-        const symbol = market['symbol'];
-        const amountString = this.safeString(trade, 'q');
-        const priceString = this.safeString(trade, 'p');
-        const isMaker = this.safeBool(trade, 'm');
-        let takerOrMaker = undefined;
-        if (isMaker !== undefined) {
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+        const price = this.safeString2(trade, 'L', 'p');
+        const amount = this.safeString2(trade, 'q', 'l');
+        let cost = this.safeString(trade, 'Y');
+        if (cost === undefined) {
+            if ((price !== undefined) && (amount !== undefined)) {
+                cost = Precise.stringMul(price, amount);
+            }
         }
+        const marketId = this.safeString(trade, 's');
+        const defaultType = (market === undefined) ? this.safeString(this.options, 'defaultType', 'spot') : market['type'];
+        const symbol = this.safeSymbol(marketId, market, undefined, defaultType);
+        let side = this.safeStringLower(trade, 'S');
+        let takerOrMaker = undefined;
+        const orderId = this.safeString(trade, 'i');
+        if ('m' in trade) {
+            if (side === undefined) {
+                side = trade['m'] ? 'sell' : 'buy'; // this is reversed intentionally
+            }
+            takerOrMaker = trade['m'] ? 'maker' : 'taker';
+        }
+        let fee = undefined;
+        const feeCost = this.safeString(trade, 'n');
+        if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 'N');
+            const feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrencyCode,
+            };
+        }
+        const type = this.safeStringLower(trade, 'o');
         return this.safeTrade({
-            'id': this.safeString(trade, 'a'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
-            'order': undefined,
-            'type': undefined,
-            'side': undefined,
+            'id': id,
+            'order': orderId,
+            'type': type,
             'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
-            'cost': undefined,
-            'fee': undefined,
-        }, market);
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'fee': fee,
+        });
     }
     /**
      * @method
@@ -721,7 +881,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -763,7 +923,7 @@ export default class aster extends asterRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a non-empty array of symbols');
         }
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -888,7 +1048,7 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(marketSymbols[0]);
         const type = this.safeString(firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -935,7 +1095,7 @@ export default class aster extends asterRest {
         const marketSymbols = this.marketSymbols(symbols, undefined, false, true, true);
         const firstMarket = this.market(marketSymbols[0]);
         const type = this.safeString(firstMarket, 'type', 'swap');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws']['public'][type];
         const subscriptionArgs = [];
         const messageHashes = [];
         const request = {
@@ -1019,6 +1179,707 @@ export default class aster extends asterRest {
             this.safeNumber(ohlcv, 'v'),
         ];
     }
+    async authenticate(type = 'spot', params = {}) {
+        const time = this.milliseconds();
+        const lastAuthenticatedTimeOptions = this.safeDict(this.options, 'lastAuthenticatedTime', {});
+        const lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
+        const listenKeyRefreshRateOptions = this.safeDict(this.options, 'listenKeyRefreshRate', {});
+        const listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
+        if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
+            let response = undefined;
+            if (type === 'spot') {
+                response = await this.sapiPrivatePostV1ListenKey(params);
+            }
+            else {
+                response = await this.fapiPrivatePostV1ListenKey(params);
+            }
+            this.options['listenKey'][type] = this.safeString(response, 'listenKey');
+            this.options['lastAuthenticatedTime'][type] = time;
+            params = this.extend({ 'type': type }, params);
+            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+        }
+    }
+    async keepAliveListenKey(params = {}) {
+        const type = this.safeString(params, 'type', 'spot');
+        const listenKeyOptions = this.safeDict(this.options, 'listenKey', {});
+        const listenKey = this.safeString(listenKeyOptions, type);
+        if (listenKey === undefined) {
+            return;
+        }
+        try {
+            await this.sapiPrivatePutV1ListenKey(); // extend the expiry
+        }
+        catch (error) {
+            const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+            const client = this.client(url);
+            const messageHashes = Object.keys(client.futures);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                client.reject(error, messageHash);
+            }
+            this.options['listenKey'][type] = undefined;
+            this.options['lastAuthenticatedTime'][type] = 0;
+            return;
+        }
+        // whether or not to schedule another listenKey keepAlive request
+        const listenKeyRefreshOptions = this.safeDict(this.options, 'listenKeyRefresh', {});
+        const listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, 'listenKeyRefreshRate', 3600000);
+        this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+    }
+    getPrivateUrl(type = 'spot') {
+        const listenKeyOptions = this.safeDict(this.options, 'listenKey', {});
+        const listenKey = this.safeString(listenKeyOptions, type);
+        const url = this.urls['api']['ws']['private'][type] + '/' + listenKey;
+        return url;
+    }
+    /**
+     * @method
+     * @name aster#watchBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot'
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance(params = {}) {
+        await this.loadMarkets();
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
+        await this.authenticate(type, params);
+        const url = this.getPrivateUrl(type);
+        const client = this.client(url);
+        this.setBalanceCache(client, type);
+        const options = this.safeDict(this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool(options, 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
+        const messageHash = type + ':balance';
+        const message = undefined;
+        return await this.watch(url, messageHash, message, type);
+    }
+    setBalanceCache(client, type) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
+            return;
+        }
+        const options = this.safeValue(this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool(options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+        else {
+            this.balance[type] = {};
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type) {
+        const params = {
+            'type': type,
+        };
+        const response = await this.fetchBalance(params);
+        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance[type], type + ':balance');
+        }
+    }
+    handleBalance(client, message) {
+        //
+        // spot balance update
+        //     {
+        //         "B": [
+        //             {
+        //                 "a": "USDT",
+        //                 "f": "16.29445191",
+        //                 "l": "0"
+        //             },
+        //             {
+        //                 "a": "ETH",
+        //                 "f": "0.00199920",
+        //                 "l": "0"
+        //             }
+        //         ],
+        //         "e": "outboundAccountPosition",
+        //         "T": 1768547778317,
+        //         "u": 1768547778317,
+        //         "E": 1768547778321,
+        //         "m": "ORDER"
+        //     }
+        //
+        // swap balance and position update
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "T": 1768551627708,
+        //         "E": 1768551627710,
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDT",
+        //                     "wb": "39.41184271",
+        //                     "cw": "39.41184271",
+        //                     "bc": "0"
+        //                 }
+        //             ],
+        //             "P": [
+        //                 {
+        //                     "s": "ETHUSDT",
+        //                     "pa": "0",
+        //                     "ep": "0.00000000",
+        //                     "cr": "-0.59070000",
+        //                     "up": "0",
+        //                     "mt": "isolated",
+        //                     "iw": "0",
+        //                     "ps": "BOTH",
+        //                     "ma": "USDT"
+        //                 }
+        //             ],
+        //             "m": "ORDER"
+        //         }
+        //     }
+        //
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        const messageHash = accountType + ':balance';
+        if (this.balance[accountType] === undefined) {
+            this.balance[accountType] = {};
+        }
+        this.balance[accountType]['info'] = message;
+        message = this.safeDict(message, 'a', message);
+        const B = this.safeList(message, 'B', []);
+        const wallet = this.safeString(this.options, 'wallet', 'wb');
+        for (let i = 0; i < B.length; i++) {
+            const entry = B[i];
+            const currencyId = this.safeString(entry, 'a');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString(entry, 'f');
+            account['used'] = this.safeString(entry, 'l');
+            account['total'] = this.safeString(entry, wallet);
+            this.balance[accountType][code] = account;
+        }
+        const timestamp = this.safeInteger(message, 'E');
+        this.balance[accountType]['timestamp'] = timestamp;
+        this.balance[accountType]['datetime'] = this.iso8601(timestamp);
+        this.balance[accountType] = this.safeBalance(this.balance[accountType]);
+        client.resolve(this.balance[accountType], messageHash);
+    }
+    /**
+     * @method
+     * @name aster#watchPositions
+     * @description watch all open positions
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {number} [since] since timestamp
+     * @param {number} [limit] limit
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        const type = 'swap';
+        await this.authenticate(type, params);
+        const url = this.getPrivateUrl(type);
+        const client = this.client(url);
+        this.setPositionsCache(client);
+        const messageHashes = [];
+        const messageHash = 'positions';
+        symbols = this.marketSymbols(symbols, 'swap', true, true);
+        if (symbols === undefined) {
+            messageHashes.push(messageHash);
+        }
+        else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push(messageHash + '::' + symbol);
+            }
+        }
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
+        const cache = this.positions;
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+            const snapshot = await client.future('fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watchMultiple(url, messageHashes, undefined, [type]);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(cache, symbols, since, limit, true);
+    }
+    setPositionsCache(client) {
+        if (this.positions !== undefined) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot) {
+            const messageHash = 'fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, client, messageHash);
+            }
+        }
+        else {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+    }
+    async loadPositionsSnapshot(client, messageHash) {
+        const positions = await this.fetchPositions();
+        this.positions = new ArrayCacheBySymbolBySide();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber(position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append(position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'positions');
+        }
+    }
+    handlePositions(client, message) {
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "T": 1768551627708,
+        //         "E": 1768551627710,
+        //         "a": {
+        //             "B": [
+        //                 {
+        //                     "a": "USDT",
+        //                     "wb": "39.41184271",
+        //                     "cw": "39.41184271",
+        //                     "bc": "0"
+        //                 }
+        //             ],
+        //             "P": [
+        //                 {
+        //                     "s": "ETHUSDT",
+        //                     "pa": "0",
+        //                     "ep": "0.00000000",
+        //                     "cr": "-0.59070000",
+        //                     "up": "0",
+        //                     "mt": "isolated",
+        //                     "iw": "0",
+        //                     "ps": "BOTH",
+        //                     "ma": "USDT"
+        //                 }
+        //             ],
+        //             "m": "ORDER"
+        //         }
+        //     }
+        //
+        const messageHash = 'positions';
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        const cache = this.positions;
+        const data = this.safeDict(message, 'a', {});
+        const rawPositions = this.safeList(data, 'P', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition(rawPosition);
+            const timestamp = this.safeInteger(message, 'E');
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601(timestamp);
+            newPositions.push(position);
+            cache.append(position);
+        }
+        const messageHashes = this.findMessageHashes(client, messageHash);
+        if (!this.isEmpty(messageHashes)) {
+            for (let i = 0; i < newPositions.length; i++) {
+                const position = newPositions[i];
+                const symbol = position['symbol'];
+                const symbolMessageHash = messageHash + '::' + symbol;
+                client.resolve(position, symbolMessageHash);
+            }
+            client.resolve(newPositions, 'positions');
+        }
+    }
+    parseWsPosition(position, market = undefined) {
+        //
+        //     {
+        //         "s": "BTCUSDT", // Symbol
+        //         "pa": "0", // Position Amount
+        //         "ep": "0.00000", // Entry Price
+        //         "cr": "200", // (Pre-fee) Accumulated Realized
+        //         "up": "0", // Unrealized PnL
+        //         "mt": "isolated", // Margin Type
+        //         "iw": "0.00000000", // Isolated Wallet (if isolated position)
+        //         "ps": "BOTH" // Position Side
+        //     }
+        //
+        const marketId = this.safeString(position, 's');
+        const contracts = this.safeString(position, 'pa');
+        const contractsAbs = Precise.stringAbs(this.safeString(position, 'pa'));
+        let positionSide = this.safeStringLower(position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise.stringEq(contracts, '0')) {
+                if (Precise.stringLt(contracts, '0')) {
+                    positionSide = 'short';
+                }
+                else {
+                    positionSide = 'long';
+                }
+            }
+        }
+        return this.safePosition({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol(marketId, undefined, undefined, 'swap'),
+            'notional': undefined,
+            'marginMode': this.safeString(position, 'mt'),
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber(position, 'ep'),
+            'unrealizedPnl': this.safeNumber(position, 'up'),
+            'percentage': undefined,
+            'contracts': this.parseNumber(contractsAbs),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': positionSide,
+            'hedged': hedged,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
+    }
+    /**
+     * @method
+     * @name aster#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        let messageHash = 'orders';
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params, type);
+        await this.authenticate(type, params);
+        if (market !== undefined) {
+            messageHash += '::' + symbol;
+        }
+        const url = this.getPrivateUrl(type);
+        const client = this.client(url);
+        this.setBalanceCache(client, type);
+        const orders = await this.watchMultiple(url, [messageHash], undefined, [type]);
+        if (this.newUpdates) {
+            limit = orders.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    /**
+     * @method
+     * @name aster#watchMyTrades
+     * @description watches information on multiple trades made by the user
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update
+     * @see https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', default is 'spot' if symbol is not provided
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+            symbol = market['symbol'];
+        }
+        let messageHash = 'myTrades';
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchOrders', market, params, type);
+        await this.authenticate(type, params);
+        if (market !== undefined) {
+            messageHash += '::' + symbol;
+        }
+        const url = this.getPrivateUrl(type);
+        const client = this.client(url);
+        this.setBalanceCache(client, type);
+        const trades = await this.watchMultiple(url, [messageHash], undefined, [type]);
+        if (this.newUpdates) {
+            limit = trades.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+    }
+    handleOrderUpdate(client, message) {
+        const rawOrder = this.safeDict(message, 'o', message);
+        const e = this.safeString(message, 'e');
+        if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
+            message = this.safeDict(message, 'o', message);
+        }
+        this.handleOrder(client, rawOrder);
+        this.handleMyTrade(client, message);
+    }
+    handleMyTrade(client, message) {
+        const messageHash = 'myTrades';
+        const executionType = this.safeString(message, 'x');
+        if (executionType === 'TRADE') {
+            const isSwap = client.url.indexOf('fstream') >= 0;
+            const type = isSwap ? 'swap' : 'spot';
+            const fakeMarket = this.safeMarketStructure({ 'type': type });
+            const trade = this.parseWsTrade(message, fakeMarket);
+            const orderId = this.safeString(trade, 'order');
+            let tradeFee = this.safeDict(trade, 'fee', {});
+            tradeFee = this.extend({}, tradeFee);
+            const symbol = this.safeString(trade, 'symbol');
+            if (orderId !== undefined && tradeFee !== undefined && symbol !== undefined) {
+                const cachedOrders = this.orders;
+                if (cachedOrders !== undefined) {
+                    const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
+                    const order = this.safeValue(orders, orderId);
+                    if (order !== undefined) {
+                        // accumulate order fees
+                        const fees = this.safeValue(order, 'fees');
+                        const fee = this.safeValue(order, 'fee');
+                        if (!this.isEmpty(fees)) {
+                            let insertNewFeeCurrency = true;
+                            for (let i = 0; i < fees.length; i++) {
+                                const orderFee = fees[i];
+                                if (orderFee['currency'] === tradeFee['currency']) {
+                                    const feeCost = this.sum(tradeFee['cost'], orderFee['cost']);
+                                    order['fees'][i]['cost'] = parseFloat(this.currencyToPrecision(tradeFee['currency'], feeCost));
+                                    insertNewFeeCurrency = false;
+                                    break;
+                                }
+                            }
+                            if (insertNewFeeCurrency) {
+                                order['fees'].push(tradeFee);
+                            }
+                        }
+                        else if (fee !== undefined) {
+                            if (fee['currency'] === tradeFee['currency']) {
+                                const feeCost = this.sum(fee['cost'], tradeFee['cost']);
+                                order['fee']['cost'] = parseFloat(this.currencyToPrecision(tradeFee['currency'], feeCost));
+                            }
+                            else if (fee['currency'] === undefined) {
+                                order['fee'] = tradeFee;
+                            }
+                            else {
+                                order['fees'] = [fee, tradeFee];
+                                order['fee'] = undefined;
+                            }
+                        }
+                        else {
+                            order['fee'] = tradeFee;
+                        }
+                        // save this trade in the order
+                        const orderTrades = this.safeList(order, 'trades', []);
+                        orderTrades.push(trade);
+                        order['trades'] = orderTrades;
+                        // don't append twice cause it breaks newUpdates mode
+                        // this order already exists in the cache
+                    }
+                }
+            }
+            if (this.myTrades === undefined) {
+                const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
+                this.myTrades = new ArrayCacheBySymbolById(limit);
+            }
+            const myTrades = this.myTrades;
+            myTrades.append(trade);
+            client.resolve(this.myTrades, messageHash);
+            const messageHashSymbol = messageHash + ':' + symbol;
+            client.resolve(this.myTrades, messageHashSymbol);
+        }
+    }
+    handleOrder(client, message) {
+        //
+        // spot
+        //     {
+        //         "e": "executionReport",        // Event type
+        //         "E": 1499405658658,            // Event time
+        //         "s": "ETHBTC",                 // Symbol
+        //         "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+        //         "S": "BUY",                    // Side
+        //         "o": "LIMIT",                  // Order type
+        //         "f": "GTC",                    // Time in force
+        //         "q": "1.00000000",             // Order quantity
+        //         "p": "0.10264410",             // Order price
+        //         "P": "0.00000000",             // Stop price
+        //         "F": "0.00000000",             // Iceberg quantity
+        //         "g": -1,                       // OrderListId
+        //         "C": null,                     // Original client order ID; This is the ID of the order being canceled
+        //         "x": "NEW",                    // Current execution type
+        //         "X": "NEW",                    // Current order status
+        //         "r": "NONE",                   // Order reject reason; will be an error code.
+        //         "i": 4293153,                  // Order ID
+        //         "l": "0.00000000",             // Last executed quantity
+        //         "z": "0.00000000",             // Cumulative filled quantity
+        //         "L": "0.00000000",             // Last executed price
+        //         "n": "0",                      // Commission amount
+        //         "N": null,                     // Commission asset
+        //         "T": 1499405658657,            // Transaction time
+        //         "t": -1,                       // Trade ID
+        //         "I": 8641984,                  // Ignore
+        //         "w": true,                     // Is the order on the book?
+        //         "m": false,                    // Is this trade the maker side?
+        //         "M": false,                    // Ignore
+        //         "O": 1499405658657,            // Order creation time
+        //         "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+        //         "Y": "0.00000000"              // Last quote asset transacted quantity (i.e. lastPrice * lastQty),
+        //         "Q": "0.00000000"              // Quote Order Qty
+        //     }
+        //
+        // swap
+        //     {
+        //         "s":"BTCUSDT",                 // Symbol
+        //         "c":"TEST",                    // Client Order Id
+        //                                        // special client order id:
+        //                                        // starts with "autoclose-": liquidation order
+        //                                        // "adl_autoclose": ADL auto close order
+        //         "S":"SELL",                    // Side
+        //         "o":"TRAILING_STOP_MARKET",    // Order Type
+        //         "f":"GTC",                     // Time in Force
+        //         "q":"0.001",                   // Original Quantity
+        //         "p":"0",                       // Original Price
+        //         "ap":"0",                      // Average Price
+        //         "sp":"7103.04",                // Stop Price. Please ignore with TRAILING_STOP_MARKET order
+        //         "x":"NEW",                     // Execution Type
+        //         "X":"NEW",                     // Order Status
+        //         "i":8886774,                   // Order Id
+        //         "l":"0",                       // Order Last Filled Quantity
+        //         "z":"0",                       // Order Filled Accumulated Quantity
+        //         "L":"0",                       // Last Filled Price
+        //         "N":"USDT",                    // Commission Asset, will not push if no commission
+        //         "n":"0",                       // Commission, will not push if no commission
+        //         "T":1568879465651,             // Order Trade Time
+        //         "t":0,                         // Trade Id
+        //         "b":"0",                       // Bids Notional
+        //         "a":"9.91",                    // Ask Notional
+        //         "m":false,                     // Is this trade the maker side?
+        //         "R":false,                     // Is this reduce only
+        //         "wt":"CONTRACT_PRICE",         // Stop Price Working Type
+        //         "ot":"TRAILING_STOP_MARKET",   // Original Order Type
+        //         "ps":"LONG",                   // Position Side
+        //         "cp":false,                    // If Close-All, pushed with conditional order
+        //         "AP":"7476.89",                // Activation Price, only puhed with TRAILING_STOP_MARKET order
+        //         "cr":"5.0",                    // Callback Rate, only puhed with TRAILING_STOP_MARKET order
+        //         "rp":"0"                       // Realized Profit of the trade
+        //     }
+        //
+        const messageHash = 'orders';
+        const market = this.getMarketFromOrder(client, message);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        const cache = this.orders;
+        const parsed = this.parseWsOrder(message, market);
+        const symbol = market['symbol'];
+        cache.append(parsed);
+        const messageHashes = this.findMessageHashes(client, messageHash);
+        if (!this.isEmpty(messageHashes)) {
+            const symbolMessageHash = messageHash + '::' + symbol;
+            client.resolve(cache, symbolMessageHash);
+            client.resolve(cache, messageHash);
+        }
+    }
+    parseWsOrder(order, market = undefined) {
+        const executionType = this.safeString(order, 'x');
+        const marketId = this.safeString(order, 's');
+        market = this.safeMarket(marketId, market);
+        let timestamp = this.safeInteger(order, 'O');
+        const T = this.safeInteger(order, 'T');
+        let lastTradeTimestamp = undefined;
+        if (executionType === 'NEW' || executionType === 'AMENDMENT' || executionType === 'CANCELED') {
+            if (timestamp === undefined) {
+                timestamp = T;
+            }
+        }
+        else if (executionType === 'TRADE') {
+            lastTradeTimestamp = T;
+        }
+        const lastUpdateTimestamp = T;
+        let fee = undefined;
+        const feeCost = this.safeString(order, 'n');
+        if ((feeCost !== undefined) && (Precise.stringGt(feeCost, '0'))) {
+            const feeCurrencyId = this.safeString(order, 'N');
+            const feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        const rawStatus = this.safeString(order, 'X');
+        const status = this.parseOrderStatus(rawStatus);
+        let clientOrderId = this.safeString2(order, 'C', 'caid');
+        if ((clientOrderId === undefined) || (clientOrderId.length === 0)) {
+            clientOrderId = this.safeString(order, 'c');
+        }
+        const stopPrice = this.safeStringN(order, ['P', 'sp', 'tp']);
+        let timeInForce = this.safeString(order, 'f');
+        if (timeInForce === 'GTX') {
+            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+            timeInForce = 'PO';
+        }
+        return this.safeOrder({
+            'info': order,
+            'symbol': market['symbol'],
+            'id': this.safeString2(order, 'i', 'aid'),
+            'clientOrderId': clientOrderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
+            'type': this.parseOrderType(this.safeStringLower(order, 'o')),
+            'timeInForce': timeInForce,
+            'postOnly': undefined,
+            'reduceOnly': this.safeBool(order, 'R'),
+            'side': this.safeStringLower(order, 'S'),
+            'price': this.safeString(order, 'p'),
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'amount': this.safeString(order, 'q'),
+            'cost': this.safeString(order, 'Z'),
+            'average': this.safeString(order, 'ap'),
+            'filled': this.safeString(order, 'z'),
+            'remaining': undefined,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        });
+    }
+    getMarketFromOrder(client, order) {
+        const marketId = this.safeString(order, 's');
+        const subscriptions = client.subscriptions;
+        const subscriptionsKeys = Object.keys(subscriptions);
+        const marketType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
+        return this.safeMarket(marketId, undefined, undefined, marketType);
+    }
     handleMessage(client, message) {
         const stream = this.safeString(message, 'stream');
         if (stream !== undefined) {
@@ -1039,6 +1900,20 @@ export default class aster extends asterRest {
             const method = this.safeValue(methods, topic);
             if (method !== undefined) {
                 method.call(this, client, message);
+            }
+        }
+        else {
+            // private messages
+            const event = this.safeString(message, 'e');
+            if (event === 'outboundAccountPosition') {
+                this.handleBalance(client, message);
+            }
+            else if (event === 'ACCOUNT_UPDATE') {
+                this.handleBalance(client, message);
+                this.handlePositions(client, message);
+            }
+            else if ((event === 'ORDER_TRADE_UPDATE') || (event === 'executionReport')) {
+                this.handleOrderUpdate(client, message);
             }
         }
     }

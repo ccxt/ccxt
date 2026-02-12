@@ -61,15 +61,6 @@ abstract class aster extends \ccxt\async\Exchange {
     public function fapipublic_get_v1_forceorders($params = array()) {
         return $this->request('v1/forceOrders', 'fapiPublic', 'GET', $params, null, null, array());
     }
-    public function fapipublic_post_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'fapiPublic', 'POST', $params, null, null, array());
-    }
-    public function fapipublic_put_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'fapiPublic', 'PUT', $params, null, null, array());
-    }
-    public function fapipublic_delete_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'fapiPublic', 'DELETE', $params, null, null, array());
-    }
     public function fapiprivate_get_v1_positionside_dual($params = array()) {
         return $this->request('v1/positionSide/dual', 'fapiPrivate', 'GET', $params, null, null, array());
     }
@@ -151,6 +142,12 @@ abstract class aster extends \ccxt\async\Exchange {
     public function fapiprivate_post_v1_positionmargin($params = array()) {
         return $this->request('v1/positionMargin', 'fapiPrivate', 'POST', $params, null, null, array());
     }
+    public function fapiprivate_post_v1_listenkey($params = array()) {
+        return $this->request('v1/listenKey', 'fapiPrivate', 'POST', $params, null, null, array());
+    }
+    public function fapiprivate_put_v1_listenkey($params = array()) {
+        return $this->request('v1/listenKey', 'fapiPrivate', 'PUT', $params, null, null, array());
+    }
     public function fapiprivate_delete_v1_order($params = array()) {
         return $this->request('v1/order', 'fapiPrivate', 'DELETE', $params, null, null, array());
     }
@@ -159,6 +156,9 @@ abstract class aster extends \ccxt\async\Exchange {
     }
     public function fapiprivate_delete_v1_batchorders($params = array()) {
         return $this->request('v1/batchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function fapiprivate_delete_v1_listenkey($params = array()) {
+        return $this->request('v1/listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array());
     }
     public function sapipublic_get_v1_ping($params = array()) {
         return $this->request('v1/ping', 'sapiPublic', 'GET', $params, null, null, array());
@@ -196,21 +196,6 @@ abstract class aster extends \ccxt\async\Exchange {
     public function sapipublic_get_v1_aster_withdraw_estimatefee($params = array()) {
         return $this->request('v1/aster/withdraw/estimateFee', 'sapiPublic', 'GET', $params, null, null, array());
     }
-    public function sapipublic_post_v1_getnonce($params = array()) {
-        return $this->request('v1/getNonce', 'sapiPublic', 'POST', $params, null, null, array());
-    }
-    public function sapipublic_post_v1_createapikey($params = array()) {
-        return $this->request('v1/createApiKey', 'sapiPublic', 'POST', $params, null, null, array());
-    }
-    public function sapipublic_post_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPublic', 'POST', $params, null, null, array());
-    }
-    public function sapipublic_put_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPublic', 'PUT', $params, null, null, array());
-    }
-    public function sapipublic_delete_v1_listenkey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPublic', 'DELETE', $params, null, null, array());
-    }
     public function sapiprivate_get_v1_commissionrate($params = array()) {
         return $this->request('v1/commissionRate', 'sapiPrivate', 'GET', $params, null, null, array());
     }
@@ -244,11 +229,20 @@ abstract class aster extends \ccxt\async\Exchange {
     public function sapiprivate_post_v1_aster_user_withdraw($params = array()) {
         return $this->request('v1/aster/user-withdraw', 'sapiPrivate', 'POST', $params, null, null, array());
     }
+    public function sapiprivate_post_v1_listenkey($params = array()) {
+        return $this->request('v1/listenKey', 'sapiPrivate', 'POST', $params, null, null, array());
+    }
+    public function sapiprivate_put_v1_listenkey($params = array()) {
+        return $this->request('v1/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array());
+    }
     public function sapiprivate_delete_v1_order($params = array()) {
         return $this->request('v1/order', 'sapiPrivate', 'DELETE', $params, null, null, array());
     }
     public function sapiprivate_delete_v1_allopenorders($params = array()) {
         return $this->request('v1/allOpenOrders', 'sapiPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function sapiprivate_delete_v1_listenkey($params = array()) {
+        return $this->request('v1/listenKey', 'sapiPrivate', 'DELETE', $params, null, null, array());
     }
     public function fapiPublicGetV1Ping($params = array()) {
         return $this->request('v1/ping', 'fapiPublic', 'GET', $params, null, null, array());
@@ -303,15 +297,6 @@ abstract class aster extends \ccxt\async\Exchange {
     }
     public function fapiPublicGetV1ForceOrders($params = array()) {
         return $this->request('v1/forceOrders', 'fapiPublic', 'GET', $params, null, null, array());
-    }
-    public function fapiPublicPostV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'fapiPublic', 'POST', $params, null, null, array());
-    }
-    public function fapiPublicPutV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'fapiPublic', 'PUT', $params, null, null, array());
-    }
-    public function fapiPublicDeleteV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'fapiPublic', 'DELETE', $params, null, null, array());
     }
     public function fapiPrivateGetV1PositionSideDual($params = array()) {
         return $this->request('v1/positionSide/dual', 'fapiPrivate', 'GET', $params, null, null, array());
@@ -394,6 +379,12 @@ abstract class aster extends \ccxt\async\Exchange {
     public function fapiPrivatePostV1PositionMargin($params = array()) {
         return $this->request('v1/positionMargin', 'fapiPrivate', 'POST', $params, null, null, array());
     }
+    public function fapiPrivatePostV1ListenKey($params = array()) {
+        return $this->request('v1/listenKey', 'fapiPrivate', 'POST', $params, null, null, array());
+    }
+    public function fapiPrivatePutV1ListenKey($params = array()) {
+        return $this->request('v1/listenKey', 'fapiPrivate', 'PUT', $params, null, null, array());
+    }
     public function fapiPrivateDeleteV1Order($params = array()) {
         return $this->request('v1/order', 'fapiPrivate', 'DELETE', $params, null, null, array());
     }
@@ -402,6 +393,9 @@ abstract class aster extends \ccxt\async\Exchange {
     }
     public function fapiPrivateDeleteV1BatchOrders($params = array()) {
         return $this->request('v1/batchOrders', 'fapiPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function fapiPrivateDeleteV1ListenKey($params = array()) {
+        return $this->request('v1/listenKey', 'fapiPrivate', 'DELETE', $params, null, null, array());
     }
     public function sapiPublicGetV1Ping($params = array()) {
         return $this->request('v1/ping', 'sapiPublic', 'GET', $params, null, null, array());
@@ -439,21 +433,6 @@ abstract class aster extends \ccxt\async\Exchange {
     public function sapiPublicGetV1AsterWithdrawEstimateFee($params = array()) {
         return $this->request('v1/aster/withdraw/estimateFee', 'sapiPublic', 'GET', $params, null, null, array());
     }
-    public function sapiPublicPostV1GetNonce($params = array()) {
-        return $this->request('v1/getNonce', 'sapiPublic', 'POST', $params, null, null, array());
-    }
-    public function sapiPublicPostV1CreateApiKey($params = array()) {
-        return $this->request('v1/createApiKey', 'sapiPublic', 'POST', $params, null, null, array());
-    }
-    public function sapiPublicPostV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPublic', 'POST', $params, null, null, array());
-    }
-    public function sapiPublicPutV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPublic', 'PUT', $params, null, null, array());
-    }
-    public function sapiPublicDeleteV1ListenKey($params = array()) {
-        return $this->request('v1/listenKey', 'sapiPublic', 'DELETE', $params, null, null, array());
-    }
     public function sapiPrivateGetV1CommissionRate($params = array()) {
         return $this->request('v1/commissionRate', 'sapiPrivate', 'GET', $params, null, null, array());
     }
@@ -487,10 +466,19 @@ abstract class aster extends \ccxt\async\Exchange {
     public function sapiPrivatePostV1AsterUserWithdraw($params = array()) {
         return $this->request('v1/aster/user-withdraw', 'sapiPrivate', 'POST', $params, null, null, array());
     }
+    public function sapiPrivatePostV1ListenKey($params = array()) {
+        return $this->request('v1/listenKey', 'sapiPrivate', 'POST', $params, null, null, array());
+    }
+    public function sapiPrivatePutV1ListenKey($params = array()) {
+        return $this->request('v1/listenKey', 'sapiPrivate', 'PUT', $params, null, null, array());
+    }
     public function sapiPrivateDeleteV1Order($params = array()) {
         return $this->request('v1/order', 'sapiPrivate', 'DELETE', $params, null, null, array());
     }
     public function sapiPrivateDeleteV1AllOpenOrders($params = array()) {
         return $this->request('v1/allOpenOrders', 'sapiPrivate', 'DELETE', $params, null, null, array());
+    }
+    public function sapiPrivateDeleteV1ListenKey($params = array()) {
+        return $this->request('v1/listenKey', 'sapiPrivate', 'DELETE', $params, null, null, array());
     }
 }

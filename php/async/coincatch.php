@@ -4974,7 +4974,7 @@ class coincatch extends Exchange {
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             $params['methodName'] = 'reduceMargin';
             return Async\await($this->modify_margin_helper($symbol, -$amount, 'reduce', $params));
@@ -4992,7 +4992,7 @@ class coincatch extends Exchange {
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->side] *for isolated margin mode with hedged position mode only* 'long' or 'short'
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             $params['methodName'] = 'addMargin';
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
@@ -5283,7 +5283,7 @@ class coincatch extends Exchange {
              * @param {string} [$params->business] *swap only*
              * @param {string} [$params->lastEndId] *swap only*
              * @param {bool} [$params->next] *swap only*
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             $methodName = 'fetchLedger';
             Async\await($this->load_markets());

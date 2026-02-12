@@ -87,6 +87,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': True,
@@ -278,7 +279,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'positionSide/dual': 5,
                                 'trade/batchCancelReplace': 5,
                                 'trade/closePosition': 2,
-                                'trade/getVst': 5,
+                                'trade/getVst': 5,  # deprecated
                                 'twap/order': 5,
                                 'twap/cancelOrder': 5,
                                 'trade/assetMode': 5,
@@ -322,6 +323,7 @@ class bingx(Exchange, ImplicitAPI):
                                 'quote/bookTicker': 1,
                             },
                             'post': {
+                                'trade/getVst': 5,
                                 'trade/order': 2,
                                 'trade/batchOrders': 2,
                                 'trade/closeAllPositions': 2,
@@ -1766,6 +1768,84 @@ class bingx(Exchange, ImplicitAPI):
             'fundingRate': self.safe_number(contract, 'fundingRate'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+        }
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches historical funding received
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+
+        :param str symbol: unified symbol of the market to fetch the funding history for
+        :param int [since]: timestamp in ms of the earliest funding to fetch
+        :param int [limit]: the maximum amount of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding to fetch
+        :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
+        """
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingHistory', symbol, since, limit, '24h', params)
+        request: dict = {
+            'incomeType': 'FUNDING_FEE',
+        }
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = since
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer_2(params, 'until', 'endTime')
+        if until is not None:
+            params = self.omit(params, ['until'])
+            request['endTime'] = until
+        response = self.swapV2PrivateGetUserIncome(self.extend(request, params))
+        #         {
+        #             "code": 0,
+        #             "msg": "",
+        #             "data": [
+        #                 {
+        #                 "symbol": "LDO-USDT",
+        #                 "incomeType": "FUNDING_FEE",
+        #                 "income": "-0.0292",
+        #                 "asset": "USDT",
+        #                 "info": "Funding Fee",
+        #                 "time": 1702713615000,
+        #                 "tranId": "170***6*2_3*9_20***97",
+        #                 "tradeId": "170***6*2_3*9_20***97"
+        #                 }
+        #             ]
+        #         }
+        data = self.safe_list(response, 'data', [])
+        return self.parse_incomes(data, market, since, limit)
+
+    def parse_income(self, income, market: Market = None):
+        # {
+        #     "symbol": "LDO-USDT",
+        #     "incomeType": "FUNDING_FEE",
+        #     "income": "-0.0292",
+        #     "asset": "USDT",
+        #     "info": "Funding Fee",
+        #     "time": 1702713615000,
+        #     "tranId": "170***6*2_3*9_20***97",
+        #     "tradeId": "170***6*2_3*9_20***97"
+        # }
+        marketId = self.safe_string(income, 'symbol')
+        currencyId = self.safe_string(income, 'asset')
+        timestamp = self.safe_integer(income, 'time')
+        return {
+            'info': income,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'code': self.safe_currency_code(currencyId),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'tranId'),
+            'amount': self.safe_number(income, 'income'),
+            'type': 'funding',
         }
 
     def fetch_open_interest(self, symbol: str, params={}):
@@ -5253,7 +5333,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the bingx api endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         type = self.safe_integer(params, 'type')  # 1 increase margin 2 decrease margin
         if type is None:

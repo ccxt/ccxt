@@ -317,4 +317,153 @@ public partial class aster
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
+    /// <summary>
+    /// query for balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-account_update"/>  <br/>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', default is 'spot'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// watch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-balance-and-position-update"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// number : since timestamp
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// number : limit
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchPositions(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// watches information on multiple orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update"/>  <br/>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market orders were made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', default is 'spot' if symbol is not provided
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// watches information on multiple trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-spot-api.md#payload-order-update"/>  <br/>
+    /// See <see href="https://github.com/asterdex/api-docs/blob/master/aster-finance-futures-api.md#event-order-update"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the market orders were made in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap', default is 'spot' if symbol is not provided
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
 }

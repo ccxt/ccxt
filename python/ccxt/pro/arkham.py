@@ -121,7 +121,7 @@ class arkham(ccxt.async_support.arkham):
         #     volume24h: '32.89729',
         #     quoteVolume24h: '3924438.7146048',
         #     markPrice: '0',
-        #     indexPrice: '118963.080293501',
+        #     indexPrice: '118963.080293502',
         #     fundingRate: '0',
         #     nextFundingRate: '0',
         #     nextFundingTime: 0,

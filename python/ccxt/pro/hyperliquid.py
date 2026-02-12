@@ -314,6 +314,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         market = self.market(symbol)
@@ -333,6 +334,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
         :param str [params.dex]: for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
@@ -340,10 +342,12 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbols = self.market_symbols(symbols, None, True)
         messageHash = 'tickers'
         url = self.urls['api']['ws']['public']
+        channel = 'webData2'
+        channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', channel)
         request: dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': 'webData2',  # allMids
+                'type': channel,  # webData2 or allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         }
@@ -372,17 +376,20 @@ class hyperliquid(ccxt.async_support.hyperliquid):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: 'webData2' or 'allMids', default is 'webData2'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         subMessageHash = 'tickers'
+        channel = 'webData2'
+        channel, params = self.handle_option_and_params(params, 'unWatchTickers', 'channel', channel)
         messageHash = 'unsubscribe:' + subMessageHash
         url = self.urls['api']['ws']['public']
         request: dict = {
             'method': 'unsubscribe',
             'subscription': {
-                'type': 'webData2',  # allMids
+                'type': channel,  # allMids
                 'user': '0x0000000000000000000000000000000000000000',
             },
         }
@@ -526,7 +533,10 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                         'price': self.safe_number(mids, name),
                     }, market)
                     self.tickers[symbol] = ticker
-                messageHash = 'tickers:' + self.safe_string(data, 'dex')
+                messageHash = 'tickers'
+                dexMessage = self.safe_string(data, 'dex')
+                if dexMessage is not None:
+                    messageHash += ':' + dexMessage
                 client.resolve(self.tickers, messageHash)
                 return True
         # spot

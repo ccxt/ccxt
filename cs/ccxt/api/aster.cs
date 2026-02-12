@@ -101,21 +101,6 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPublicGetV1ForceOrders",parameters);
     }
 
-    public async Task<object> fapiPublicPostV1ListenKey (object parameters = null)
-    {
-        return await this.callAsync ("fapiPublicPostV1ListenKey",parameters);
-    }
-
-    public async Task<object> fapiPublicPutV1ListenKey (object parameters = null)
-    {
-        return await this.callAsync ("fapiPublicPutV1ListenKey",parameters);
-    }
-
-    public async Task<object> fapiPublicDeleteV1ListenKey (object parameters = null)
-    {
-        return await this.callAsync ("fapiPublicDeleteV1ListenKey",parameters);
-    }
-
     public async Task<object> fapiPrivateGetV1PositionSideDual (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateGetV1PositionSideDual",parameters);
@@ -251,6 +236,16 @@ public partial class aster : Exchange
         return await this.callAsync ("fapiPrivatePostV1PositionMargin",parameters);
     }
 
+    public async Task<object> fapiPrivatePostV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePostV1ListenKey",parameters);
+    }
+
+    public async Task<object> fapiPrivatePutV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivatePutV1ListenKey",parameters);
+    }
+
     public async Task<object> fapiPrivateDeleteV1Order (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateDeleteV1Order",parameters);
@@ -264,6 +259,11 @@ public partial class aster : Exchange
     public async Task<object> fapiPrivateDeleteV1BatchOrders (object parameters = null)
     {
         return await this.callAsync ("fapiPrivateDeleteV1BatchOrders",parameters);
+    }
+
+    public async Task<object> fapiPrivateDeleteV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("fapiPrivateDeleteV1ListenKey",parameters);
     }
 
     public async Task<object> sapiPublicGetV1Ping (object parameters = null)
@@ -326,31 +326,6 @@ public partial class aster : Exchange
         return await this.callAsync ("sapiPublicGetV1AsterWithdrawEstimateFee",parameters);
     }
 
-    public async Task<object> sapiPublicPostV1GetNonce (object parameters = null)
-    {
-        return await this.callAsync ("sapiPublicPostV1GetNonce",parameters);
-    }
-
-    public async Task<object> sapiPublicPostV1CreateApiKey (object parameters = null)
-    {
-        return await this.callAsync ("sapiPublicPostV1CreateApiKey",parameters);
-    }
-
-    public async Task<object> sapiPublicPostV1ListenKey (object parameters = null)
-    {
-        return await this.callAsync ("sapiPublicPostV1ListenKey",parameters);
-    }
-
-    public async Task<object> sapiPublicPutV1ListenKey (object parameters = null)
-    {
-        return await this.callAsync ("sapiPublicPutV1ListenKey",parameters);
-    }
-
-    public async Task<object> sapiPublicDeleteV1ListenKey (object parameters = null)
-    {
-        return await this.callAsync ("sapiPublicDeleteV1ListenKey",parameters);
-    }
-
     public async Task<object> sapiPrivateGetV1CommissionRate (object parameters = null)
     {
         return await this.callAsync ("sapiPrivateGetV1CommissionRate",parameters);
@@ -406,6 +381,16 @@ public partial class aster : Exchange
         return await this.callAsync ("sapiPrivatePostV1AsterUserWithdraw",parameters);
     }
 
+    public async Task<object> sapiPrivatePostV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("sapiPrivatePostV1ListenKey",parameters);
+    }
+
+    public async Task<object> sapiPrivatePutV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("sapiPrivatePutV1ListenKey",parameters);
+    }
+
     public async Task<object> sapiPrivateDeleteV1Order (object parameters = null)
     {
         return await this.callAsync ("sapiPrivateDeleteV1Order",parameters);
@@ -414,6 +399,11 @@ public partial class aster : Exchange
     public async Task<object> sapiPrivateDeleteV1AllOpenOrders (object parameters = null)
     {
         return await this.callAsync ("sapiPrivateDeleteV1AllOpenOrders",parameters);
+    }
+
+    public async Task<object> sapiPrivateDeleteV1ListenKey (object parameters = null)
+    {
+        return await this.callAsync ("sapiPrivateDeleteV1ListenKey",parameters);
     }
 
 }

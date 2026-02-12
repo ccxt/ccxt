@@ -432,7 +432,8 @@ public partial class lbank : ccxt.lbank
         };
         object request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)

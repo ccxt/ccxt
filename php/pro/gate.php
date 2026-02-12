@@ -1596,18 +1596,17 @@ class gate extends \ccxt\async\gate {
         //
         $rawLiquidations = $this->safe_list($message, 'result', array());
         $newLiquidations = array();
+        if ($this->liquidations === null) {
+            $this->liquidations = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->liquidations;
         for ($i = 0; $i < count($rawLiquidations); $i++) {
             $rawLiquidation = $rawLiquidations[$i];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
+            $cache->append ($liquidation);
             $symbol = $this->safe_string($liquidation, 'symbol');
-            $liquidations = $this->safe_value($this->liquidations, $symbol);
-            if ($liquidations === null) {
-                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $liquidations = new ArrayCache ($limit);
-            }
-            $liquidations->append ($liquidation);
-            $this->liquidations[$symbol] = $liquidations;
-            $client->resolve ($liquidations, 'myLiquidations::' . $symbol);
+            $symbolLiquidations = $this->safe_value($cache, $symbol, array());
+            $client->resolve ($symbolLiquidations, 'myLiquidations::' . $symbol);
         }
         $client->resolve ($newLiquidations, 'myLiquidations');
     }

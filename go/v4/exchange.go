@@ -91,6 +91,8 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_response_headers    interface{}
+	LastResponseHeaders      interface{}
 	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
@@ -162,12 +164,12 @@ type Exchange struct {
 	Orders         interface{} // *ArrayCache  // cache object, not a map
 	MyTrades       interface{} // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   *sync.Map
+	Liquidations   interface{} // *ArrayCacheBySymbolBySide
 	FundingRates   interface{}
 	Bidsasks       *sync.Map
 	TriggerOrders  interface{} // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations *sync.Map
+	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
 
@@ -483,6 +485,7 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
+		ch <- true
 		return true
 	}()
 	return ch

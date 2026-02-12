@@ -7,506 +7,518 @@
 
 package ccxt
 
-func (this *CryptocomCore) BasePublicGetV1PublicGetAnnouncements (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("basePublicGetV1PublicGetAnnouncements", args...)
+func (this *CryptocomCore) BasePublicGetV1PublicGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("basePublicGetV1PublicGetAnnouncements", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicAuth", args...)
+func (this *CryptocomCore) V1PublicGetPublicAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicAuth", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetInstruments", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetInstruments", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetBook", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetBook", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetCandlestick (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetCandlestick", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetCandlestick(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetCandlestick", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetTrades", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetTrades", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetTickers", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetTickers", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetValuations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetValuations", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetValuations(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetValuations", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetExpiredSettlementPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetExpiredSettlementPrice", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetExpiredSettlementPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetExpiredSettlementPrice", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetInsurance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetInsurance", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetInsurance", args...)
 }
 
-func (this *CryptocomCore) V1PublicGetPublicGetRiskParameters (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicGetPublicGetRiskParameters", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetAnnouncements(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetAnnouncements", args...)
 }
 
-func (this *CryptocomCore) V1PublicPostPublicStakingGetConversionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PublicPostPublicStakingGetConversionRate", args...)
+func (this *CryptocomCore) V1PublicGetPublicGetRiskParameters(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicGetPublicGetRiskParameters", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateSetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateSetCancelOnDisconnect", args...)
+func (this *CryptocomCore) V1PublicPostPublicStakingGetConversionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PublicPostPublicStakingGetConversionRate", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetCancelOnDisconnect", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateSetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateSetCancelOnDisconnect", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateUserBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateUserBalance", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetCancelOnDisconnect", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateUserBalanceHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateUserBalanceHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateUserBalance", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetPositions", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateUserBalanceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateUserBalanceHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCreateOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCreateOrder", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetPositions", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateAmendOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateAmendOrder", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCreateOrder", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCreateOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCreateOrderList", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateAmendOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateAmendOrder", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCancelOrder", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCreateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCreateOrderList", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCancelOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCancelOrderList", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCancelOrder", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCancelAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCancelAllOrders", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCancelOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCancelOrderList", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateClosePosition", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCancelAllOrders", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetOrderHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateClosePosition", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetOpenOrders", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetOrderHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetOrderDetail", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetOpenOrders", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetTrades", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetOrderDetail", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateChangeAccountLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateChangeAccountLeverage", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetTrades", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetTransactions", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateChangeAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateChangeAccountLeverage", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCreateSubaccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCreateSubaccountTransfer", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetTransactions", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetSubaccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetSubaccountBalances", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCreateSubaccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCreateSubaccountTransfer", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetOrderList", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetSubaccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetSubaccountBalances", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateCreateWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateCreateWithdrawal", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetOrderList", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetCurrencyNetworks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetCurrencyNetworks", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCreateWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCreateWithdrawal", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetDepositAddress", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetCurrencyNetworks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetCurrencyNetworks", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetAccounts", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetDepositAddress", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetWithdrawalHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetAccounts", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetDepositHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetWithdrawalHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetFeeRate", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetDepositHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateGetInstrumentFeeRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateGetInstrumentFeeRate", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetFeeRate", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositInfo", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateGetInstrumentFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetInstrumentFeeRate", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositInfo", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatWithdrawHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatWithdrawHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatCreateWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatCreateWithdraw", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatWithdrawHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatTransactionQuota (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionQuota", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatCreateWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatCreateWithdraw", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatTransactionLimit (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionLimit", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatTransactionQuota(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionQuota", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatGetBankAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatGetBankAccounts", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatTransactionLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatTransactionLimit", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingStake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingStake", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatGetBankAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatGetBankAccounts", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingUnstake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingUnstake", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingStake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingStake", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetStakingPosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetStakingPosition", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingUnstake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingUnstake", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetStakingInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetStakingInstruments", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetStakingPosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetStakingPosition", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetOpenStake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetOpenStake", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetStakingInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetStakingInstruments", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetStakeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetStakeHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetOpenStake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetOpenStake", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetRewardHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetRewardHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetStakeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetStakeHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingConvert", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetRewardHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetRewardHistory", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetOpenConvert (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetOpenConvert", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingConvert", args...)
 }
 
-func (this *CryptocomCore) V1PrivatePostPrivateStakingGetConvertHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v1PrivatePostPrivateStakingGetConvertHistory", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetOpenConvert(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetOpenConvert", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicAuth", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateStakingGetConvertHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateStakingGetConvertHistory", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicGetInstruments", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateCreateIsolatedMarginTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateCreateIsolatedMarginTransfer", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicGetBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicGetBook", args...)
+func (this *CryptocomCore) V1PrivatePostPrivateChangeIsolatedMarginLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v1PrivatePostPrivateChangeIsolatedMarginLeverage", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicGetCandlestick (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicGetCandlestick", args...)
+func (this *CryptocomCore) V2PublicGetPublicAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicAuth", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicGetTicker", args...)
+func (this *CryptocomCore) V2PublicGetPublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicGetInstruments", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicGetTrades", args...)
+func (this *CryptocomCore) V2PublicGetPublicGetBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicGetBook", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicMarginGetTransferCurrencies (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicMarginGetTransferCurrencies", args...)
+func (this *CryptocomCore) V2PublicGetPublicGetCandlestick(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicGetCandlestick", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicMarginGetLoadCurrenices (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicMarginGetLoadCurrenices", args...)
+func (this *CryptocomCore) V2PublicGetPublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicGetTicker", args...)
 }
 
-func (this *CryptocomCore) V2PublicGetPublicRespondHeartbeat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PublicGetPublicRespondHeartbeat", args...)
+func (this *CryptocomCore) V2PublicGetPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicGetTrades", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateSetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateSetCancelOnDisconnect", args...)
+func (this *CryptocomCore) V2PublicGetPublicMarginGetTransferCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicMarginGetTransferCurrencies", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetCancelOnDisconnect", args...)
+func (this *CryptocomCore) V2PublicGetPublicMarginGetLoadCurrenices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicMarginGetLoadCurrenices", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateCreateWithdrawal (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateCreateWithdrawal", args...)
+func (this *CryptocomCore) V2PublicGetPublicRespondHeartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetPublicRespondHeartbeat", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetWithdrawalHistory", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateSetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateSetCancelOnDisconnect", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetCurrencyNetworks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetCurrencyNetworks", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetCancelOnDisconnect", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetDepositHistory", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateCreateWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateCreateWithdrawal", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetDepositAddress", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetWithdrawalHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetWithdrawalHistory", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateExportCreateExportRequest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateExportCreateExportRequest", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetCurrencyNetworks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetCurrencyNetworks", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateExportGetExportRequests (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateExportGetExportRequests", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetDepositHistory", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateExportDownloadExportOutput (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateExportDownloadExportOutput", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetDepositAddress", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetAccountSummary (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetAccountSummary", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateExportCreateExportRequest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateExportCreateExportRequest", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateCreateOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateCreateOrder", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateExportGetExportRequests(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateExportGetExportRequests", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateCancelOrder", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateExportDownloadExportOutput(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateExportDownloadExportOutput", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateCancelAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateCancelAllOrders", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetAccountSummary(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetAccountSummary", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateCreateOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateCreateOrderList", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateCreateOrder", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetOrderHistory", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateCancelOrder", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetOpenOrders", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateCancelAllOrders", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetOrderDetail", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateCreateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateCreateOrderList", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetTrades", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetOrderHistory", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetAccounts", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetOpenOrders", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateGetSubaccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateGetSubaccountBalances", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetOrderDetail", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateCreateSubaccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateCreateSubaccountTransfer", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetTrades", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcGetOtcUser (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcGetOtcUser", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetAccounts", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcGetInstruments", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateGetSubaccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateGetSubaccountBalances", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcRequestQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcRequestQuote", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateCreateSubaccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateCreateSubaccountTransfer", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcAcceptQuote (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcAcceptQuote", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcGetOtcUser(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetOtcUser", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcGetQuoteHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcGetQuoteHistory", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetInstruments", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcGetTradeHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcGetTradeHistory", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcRequestQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcRequestQuote", args...)
 }
 
-func (this *CryptocomCore) V2PrivatePostPrivateOtcCreateOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("v2PrivatePostPrivateOtcCreateOrder", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcAcceptQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcAcceptQuote", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicAuth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicAuth", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcGetQuoteHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetQuoteHistory", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetInstruments (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetInstruments", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcGetTradeHistory", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetBook", args...)
+func (this *CryptocomCore) V2PrivatePostPrivateOtcCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostPrivateOtcCreateOrder", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetCandlestick (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetCandlestick", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicAuth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicAuth", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetTrades", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetInstruments", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetTickers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetTickers", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetBook", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetValuations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetValuations", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetCandlestick(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetCandlestick", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetExpiredSettlementPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetExpiredSettlementPrice", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetTrades", args...)
 }
 
-func (this *CryptocomCore) DerivativesPublicGetPublicGetInsurance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPublicGetPublicGetInsurance", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetTickers", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateSetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateSetCancelOnDisconnect", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetValuations(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetValuations", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetCancelOnDisconnect (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetCancelOnDisconnect", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetExpiredSettlementPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetExpiredSettlementPrice", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateUserBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateUserBalance", args...)
+func (this *CryptocomCore) DerivativesPublicGetPublicGetInsurance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPublicGetPublicGetInsurance", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateUserBalanceHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateUserBalanceHistory", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateSetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateSetCancelOnDisconnect", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetPositions", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetCancelOnDisconnect(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetCancelOnDisconnect", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateCreateOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrder", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateUserBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateUserBalance", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateCreateOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrderList", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateUserBalanceHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateUserBalanceHistory", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateCancelOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrder", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetPositions", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateCancelOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrderList", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateCreateOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrder", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateCancelAllOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateCancelAllOrders", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateCreateOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateCreateOrderList", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateClosePosition (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateClosePosition", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrder", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateConvertCollateral (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateConvertCollateral", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateCancelOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateCancelOrderList", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderHistory", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateCancelAllOrders", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetOpenOrders", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateClosePosition(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateClosePosition", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOrderDetail (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderDetail", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateConvertCollateral(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateConvertCollateral", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetTrades", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderHistory", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateChangeAccountLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateChangeAccountLeverage", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOpenOrders", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetTransactions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetTransactions", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderDetail", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateCreateSubaccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateCreateSubaccountTransfer", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetTrades", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetSubaccountBalances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetSubaccountBalances", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateChangeAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateChangeAccountLeverage", args...)
 }
 
-func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderList", args...)
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetTransactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetTransactions", args...)
+}
+
+func (this *CryptocomCore) DerivativesPrivatePostPrivateCreateSubaccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateCreateSubaccountTransfer", args...)
+}
+
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetSubaccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetSubaccountBalances", args...)
+}
+
+func (this *CryptocomCore) DerivativesPrivatePostPrivateGetOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("derivativesPrivatePostPrivateGetOrderList", args...)
 }

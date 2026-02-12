@@ -1301,6 +1301,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("utaGetMarketCurrency",parameters);
     }
 
+    public async Task<object> utaGetMarketCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketCurrencies",parameters);
+    }
+
     public async Task<object> utaGetMarketInstrument (object parameters = null)
     {
         return await this.callAsync ("utaGetMarketInstrument",parameters);
@@ -1309,11 +1314,6 @@ public partial class kucoin : Exchange
     public async Task<object> utaGetMarketTicker (object parameters = null)
     {
         return await this.callAsync ("utaGetMarketTicker",parameters);
-    }
-
-    public async Task<object> utaGetMarketOrderbook (object parameters = null)
-    {
-        return await this.callAsync ("utaGetMarketOrderbook",parameters);
     }
 
     public async Task<object> utaGetMarketTrade (object parameters = null)
@@ -1341,9 +1341,169 @@ public partial class kucoin : Exchange
         return await this.callAsync ("utaGetMarketCrossConfig",parameters);
     }
 
+    public async Task<object> utaGetMarketCollateralDiscountRatio (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketCollateralDiscountRatio",parameters);
+    }
+
+    public async Task<object> utaGetMarketIndexPrice (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketIndexPrice",parameters);
+    }
+
+    public async Task<object> utaGetMarketPositionTiers (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketPositionTiers",parameters);
+    }
+
+    public async Task<object> utaGetMarketOpenInterest (object parameters = null)
+    {
+        return await this.callAsync ("utaGetMarketOpenInterest",parameters);
+    }
+
     public async Task<object> utaGetServerStatus (object parameters = null)
     {
         return await this.callAsync ("utaGetServerStatus",parameters);
+    }
+
+    public async Task<object> utaPrivateGetMarketOrderbook (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetMarketOrderbook",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountBalance",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountTransferQuota (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountTransferQuota",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountMode (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountMode",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountLedger (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountLedger",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountInterestHistory (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountInterestHistory",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountDepositAddress",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModeAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModeAccountBalance",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModeAccountOverview (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModeAccountOverview",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModeOrderDetail (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModeOrderDetail",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModeOrderOpenList (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModeOrderOpenList",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModeOrderHistory (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModeOrderHistory",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModeOrderExecution (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModeOrderExecution",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModePositionOpenList (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModePositionOpenList",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModePositionHistory (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModePositionHistory",parameters);
+    }
+
+    public async Task<object> utaPrivateGetAccountModePositionTiers (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetAccountModePositionTiers",parameters);
+    }
+
+    public async Task<object> utaPrivateGetSubAccountBalance (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetSubAccountBalance",parameters);
+    }
+
+    public async Task<object> utaPrivateGetUserFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetUserFeeRate",parameters);
+    }
+
+    public async Task<object> utaPrivateGetDcpQuery (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivateGetDcpQuery",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountTransfer (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountTransfer",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountMode (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountMode",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountModeAccountModifyLeverage (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountModeAccountModifyLeverage",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountModeOrderPlace (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountModeOrderPlace",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountModeOrderPlaceBatch (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountModeOrderPlaceBatch",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountModeOrderCancel (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountModeOrderCancel",parameters);
+    }
+
+    public async Task<object> utaPrivatePostAccountModeOrderCancelBatch (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostAccountModeOrderCancelBatch",parameters);
+    }
+
+    public async Task<object> utaPrivatePostSubAccountCanTransferOut (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostSubAccountCanTransferOut",parameters);
+    }
+
+    public async Task<object> utaPrivatePostDcpSet (object parameters = null)
+    {
+        return await this.callAsync ("utaPrivatePostDcpSet",parameters);
     }
 
 }

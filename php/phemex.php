@@ -4271,7 +4271,7 @@ class phemex extends Exchange {
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the exchange API endpoint
-         * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);

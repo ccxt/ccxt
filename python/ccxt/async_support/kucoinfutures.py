@@ -1843,7 +1843,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

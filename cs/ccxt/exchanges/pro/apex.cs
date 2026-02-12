@@ -15,6 +15,7 @@ public partial class apex : ccxt.apex
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchOrderBook", true },
+                { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
                 { "watchTrades", true },
                 { "watchTradesForSymbols", false },
@@ -22,6 +23,7 @@ public partial class apex : ccxt.apex
                 { "watchMyTrades", true },
                 { "watchBalance", false },
                 { "watchOHLCV", true },
+                { "watchOHLCVForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://omni.apex.exchange/assets/logo_content-CY9uyFbz.svg" },
@@ -506,7 +508,7 @@ public partial class apex : ccxt.apex
             object unfiedTimeframe = this.safeString(data, 1, "1");
             object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add("candle.", timeframeId), "."), symbolString));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
+            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), unfiedTimeframe));
         }
         var symboltimeframestoredVariable = await this.watchTopics(url, messageHashes, rawHashes, parameters);
         var symbol = ((IList<object>) symboltimeframestoredVariable)[0];
@@ -555,12 +557,11 @@ public partial class apex : ccxt.apex
         object marketType = ((bool) isTrue(isSpot)) ? "spot" : "contract";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object ohlcvsByTimeframe = this.safeValue(this.ohlcvs, symbol);
-        if (isTrue(isEqual(ohlcvsByTimeframe, null)))
+        if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (isTrue(isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null)))
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);

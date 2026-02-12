@@ -574,6 +574,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_futures_get_settle_positions_contract($params = array()) {
         return $this->request('{settle}/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_futures_get_settle_get_leverage_contract($params = array()) {
+        return $this->request('{settle}/get_leverage/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_futures_get_settle_dual_comp_positions_contract($params = array()) {
         return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -619,6 +622,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_futures_post_settle_positions_contract_leverage($params = array()) {
         return $this->request('{settle}/positions/{contract}/leverage', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_futures_post_settle_positions_contract_set_leverage($params = array()) {
+        return $this->request('{settle}/positions/{contract}/set_leverage', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function private_futures_post_settle_positions_contract_risk_limit($params = array()) {
         return $this->request('{settle}/positions/{contract}/risk_limit', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -630,6 +636,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function private_futures_post_settle_dual_mode($params = array()) {
         return $this->request('{settle}/dual_mode', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_futures_post_settle_set_position_mode($params = array()) {
+        return $this->request('{settle}/set_position_mode', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_futures_post_settle_dual_comp_positions_contract_margin($params = array()) {
         return $this->request('{settle}/dual_comp/positions/{contract}/margin', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
@@ -817,6 +826,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function private_earn_get_dual_orders($params = array()) {
         return $this->request('dual/orders', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function private_earn_get_dual_balance($params = array()) {
+        return $this->request('dual/balance', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function private_earn_get_structured_orders($params = array()) {
         return $this->request('structured/orders', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -984,6 +996,33 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function private_rebate_get_user_sub_relation($params = array()) {
         return $this->request('user/sub_relation', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function private_otc_get_get_user_def_bank($params = array()) {
+        return $this->request('get_user_def_bank', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_get_order_list($params = array()) {
+        return $this->request('order/list', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_get_stable_coin_order_list($params = array()) {
+        return $this->request('stable_coin/order/list', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_get_order_detail($params = array()) {
+        return $this->request('order/detail', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_post_quote($params = array()) {
+        return $this->request('quote', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_post_order_create($params = array()) {
+        return $this->request('order/create', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_post_stable_coin_order_create($params = array()) {
+        return $this->request('stable_coin/order/create', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_post_order_paid($params = array()) {
+        return $this->request('order/paid', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_otc_post_order_cancel($params = array()) {
+        return $this->request('order/cancel', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function publicWalletGetCurrencyChains($params = array()) {
         return $this->request('currency_chains', array('public', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
@@ -1552,6 +1591,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateFuturesGetSettlePositionsContract($params = array()) {
         return $this->request('{settle}/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateFuturesGetSettleGetLeverageContract($params = array()) {
+        return $this->request('{settle}/get_leverage/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateFuturesGetSettleDualCompPositionsContract($params = array()) {
         return $this->request('{settle}/dual_comp/positions/{contract}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1597,6 +1639,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateFuturesPostSettlePositionsContractLeverage($params = array()) {
         return $this->request('{settle}/positions/{contract}/leverage', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privateFuturesPostSettlePositionsContractSetLeverage($params = array()) {
+        return $this->request('{settle}/positions/{contract}/set_leverage', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
+    }
     public function privateFuturesPostSettlePositionsContractRiskLimit($params = array()) {
         return $this->request('{settle}/positions/{contract}/risk_limit', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1608,6 +1653,9 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function privateFuturesPostSettleDualMode($params = array()) {
         return $this->request('{settle}/dual_mode', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateFuturesPostSettleSetPositionMode($params = array()) {
+        return $this->request('{settle}/set_position_mode', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function privateFuturesPostSettleDualCompPositionsContractMargin($params = array()) {
         return $this->request('{settle}/dual_comp/positions/{contract}/margin', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 1));
@@ -1795,6 +1843,9 @@ abstract class gateio extends \ccxt\async\gate {
     public function privateEarnGetDualOrders($params = array()) {
         return $this->request('dual/orders', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
+    public function privateEarnGetDualBalance($params = array()) {
+        return $this->request('dual/balance', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
     public function privateEarnGetStructuredOrders($params = array()) {
         return $this->request('structured/orders', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -1962,5 +2013,32 @@ abstract class gateio extends \ccxt\async\gate {
     }
     public function privateRebateGetUserSubRelation($params = array()) {
         return $this->request('user/sub_relation', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    public function privateOtcGetGetUserDefBank($params = array()) {
+        return $this->request('get_user_def_bank', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcGetOrderList($params = array()) {
+        return $this->request('order/list', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcGetStableCoinOrderList($params = array()) {
+        return $this->request('stable_coin/order/list', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcGetOrderDetail($params = array()) {
+        return $this->request('order/detail', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcPostQuote($params = array()) {
+        return $this->request('quote', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcPostOrderCreate($params = array()) {
+        return $this->request('order/create', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcPostStableCoinOrderCreate($params = array()) {
+        return $this->request('stable_coin/order/create', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcPostOrderPaid($params = array()) {
+        return $this->request('order/paid', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privateOtcPostOrderCancel($params = array()) {
+        return $this->request('order/cancel', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

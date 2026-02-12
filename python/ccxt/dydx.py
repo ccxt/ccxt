@@ -1717,7 +1717,7 @@ class dydx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.address]: wallet address that made trades
         :param str [params.subAccountNumber]: sub account number
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         currency = None

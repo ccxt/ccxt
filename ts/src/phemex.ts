@@ -4289,7 +4289,7 @@ export default class phemex extends Exchange {
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
-     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();

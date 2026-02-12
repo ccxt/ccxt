@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kucoin.js';
-import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -128,6 +128,7 @@ export default class kucoin extends Exchange {
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -484,15 +485,53 @@ export default class kucoin extends Exchange {
                     'get': {
                         'market/announcement': 20,
                         'market/currency': 3,
+                        'market/currencies': 3,
                         'market/instrument': 4,
                         'market/ticker': 15,
-                        'market/orderbook': 3,
                         'market/trade': 3,
                         'market/kline': 3,
                         'market/funding-rate': 2,
                         'market/funding-rate-history': 5,
                         'market/cross-config': 25,
+                        'market/collateral-discount-ratio': 10,
+                        'market/index-price': 20,
+                        'market/position-tiers': 20,
+                        'market/open-interest': 10,
                         'server/status': 3,
+                    },
+                },
+                'utaPrivate': {
+                    'get': {
+                        'market/orderbook': 3,
+                        'account/balance': 5,
+                        'account/transfer-quota': 20,
+                        'account/mode': 30,
+                        'account/ledger': 2,
+                        'account/interest-history': 15,
+                        'account/deposit/address': 5,
+                        '{accountMode}/account/balance': 5,
+                        '{accountMode}/account/overview': 5,
+                        '{accountMode}/order/detail': 4,
+                        '{accountMode}/order/open-list': 4,
+                        '{accountMode}/order/history': 4,
+                        '{accountMode}/order/execution': 4,
+                        '{accountMode}/position/open-list': 3,
+                        '{accountMode}/position/history': 2,
+                        '{accountMode}/position/tiers': 20,
+                        'sub-account/balance': 5,
+                        'user/fee-rate': 3,
+                        'dcp/query': 2,
+                    },
+                    'post': {
+                        'account/transfer': 4,
+                        'account/mode': 30,
+                        '{accountMode}/account/modify-leverage': 20,
+                        '{accountMode}/order/place': 1,
+                        '{accountMode}/order/place-batch': 4,
+                        '{accountMode}/order/cancel': 1,
+                        '{accountMode}/order/cancel-batch': 4,
+                        'sub-account/canTransferOut': 5,
+                        'dcp/set': 2,
                     },
                 },
             },
@@ -625,7 +664,7 @@ export default class kucoin extends Exchange {
                     '400370': InvalidOrder, // {"code":"400370","msg":"Max. price: 0.02500000000000000000"}
                     '400400': BadRequest, // Parameter error
                     '400401': AuthenticationError, // User is not logged in
-                    '400500': InvalidOrder, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
+                    '400500': RestrictedLocation, // {"code":"400500","msg":"Your located country/region is currently not supported for the trading of this token"}
                     '400600': BadSymbol, // {"code":"400600","msg":"validation.createOrder.symbolNotAvailable"}
                     '400760': InvalidOrder, // {"code":"400760","msg":"order price should be more than XX"}
                     '401000': BadRequest, // {"code":"401000","msg":"The interface has been deprecated"}
@@ -2590,7 +2629,7 @@ export default class kucoin extends Exchange {
             } else {
                 request['tradeType'] = 'FUTURES';
             }
-            response = await this.utaGetMarketOrderbook (this.extend (request, params));
+            response = await this.utaPrivateGetMarketOrderbook (this.extend (request, params));
             //
             //     {
             //         "code": "200000",
@@ -4896,7 +4935,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();
@@ -5755,9 +5794,9 @@ export default class kucoin extends Exchange {
             endpoint = '/api/v1/' + this.implodeParams (path, params);
         }
         let isUtaPrivate = false;
-        if (api === 'uta') {
+        if ((api === 'uta') || (api === 'utaPrivate')) {
             endpoint = '/api/ua/v1/' + this.implodeParams (path, params);
-            if (path === 'market/orderbook') {
+            if (api === 'utaPrivate') {
                 isUtaPrivate = true;
             }
         }

@@ -37,6 +37,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v1_public_get_public_get_insurance($params = array()) {
         return $this->request('public/get-insurance', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v1_public_get_public_get_announcements($params = array()) {
+        return $this->request('public/get-announcements', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1_public_get_public_get_risk_parameters($params = array()) {
         return $this->request('public/get-risk-parameters', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -180,6 +183,12 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1_private_post_private_staking_get_convert_history($params = array()) {
         return $this->request('private/staking/get-convert-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function v1_private_post_private_create_isolated_margin_transfer($params = array()) {
+        return $this->request('private/create-isolated-margin-transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1_private_post_private_change_isolated_margin_leverage($params = array()) {
+        return $this->request('private/change-isolated-margin-leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function v2_public_get_public_auth($params = array()) {
         return $this->request('public/auth', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -415,6 +424,9 @@ abstract class cryptocom extends \ccxt\Exchange {
     public function v1PublicGetPublicGetInsurance($params = array()) {
         return $this->request('public/get-insurance', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v1PublicGetPublicGetAnnouncements($params = array()) {
+        return $this->request('public/get-announcements', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v1PublicGetPublicGetRiskParameters($params = array()) {
         return $this->request('public/get-risk-parameters', array('v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -558,6 +570,12 @@ abstract class cryptocom extends \ccxt\Exchange {
     }
     public function v1PrivatePostPrivateStakingGetConvertHistory($params = array()) {
         return $this->request('private/staking/get-convert-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function v1PrivatePostPrivateCreateIsolatedMarginTransfer($params = array()) {
+        return $this->request('private/create-isolated-margin-transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateChangeIsolatedMarginLeverage($params = array()) {
+        return $this->request('private/change-isolated-margin-leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function v2PublicGetPublicAuth($params = array()) {
         return $this->request('public/auth', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));

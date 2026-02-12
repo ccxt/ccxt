@@ -236,15 +236,6 @@ class aster(Exchange, ImplicitAPI):
                         'v1/adlQuantile',
                         'v1/forceOrders',
                     ],
-                    'post': [
-                        'v1/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                    ],
-                    'delete': [
-                        'v1/listenKey',
-                    ],
                 },
                 'fapiPrivate': {
                     'get': [
@@ -277,11 +268,16 @@ class aster(Exchange, ImplicitAPI):
                         'v1/leverage',
                         'v1/marginType',
                         'v1/positionMargin',
+                        'v1/listenKey',
+                    ],
+                    'put': [
+                        'v1/listenKey',
                     ],
                     'delete': [
                         'v1/order',
                         'v1/allOpenOrders',
                         'v1/batchOrders',
+                        'v1/listenKey',
                     ],
                 },
                 'sapiPublic': {
@@ -299,17 +295,6 @@ class aster(Exchange, ImplicitAPI):
                         'v1/ticker/bookTicker',
                         'v1/aster/withdraw/estimateFee',
                     ],
-                    'post': [
-                        'v1/getNonce',
-                        'v1/createApiKey',
-                        'v1/listenKey',
-                    ],
-                    'put': [
-                        'v1/listenKey',
-                    ],
-                    'delete': [
-                        'v1/listenKey',
-                    ],
                 },
                 'sapiPrivate': {
                     'get': [
@@ -326,10 +311,15 @@ class aster(Exchange, ImplicitAPI):
                         'v1/asset/wallet/transfer',
                         'v1/asset/sendToAddress',
                         'v1/aster/user-withdraw',
+                        'v1/listenKey',
+                    ],
+                    'put': [
+                        'v1/listenKey',
                     ],
                     'delete': [
                         'v1/order',
                         'v1/allOpenOrders',
+                        'v1/listenKey',
                     ],
                 },
             },
@@ -364,6 +354,7 @@ class aster(Exchange, ImplicitAPI):
                 },
             },
             'options': {
+                'defaultType': 'spot',
                 'recvWindow': 10 * 1000,  # 10 sec
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
@@ -3502,10 +3493,12 @@ class aster(Exchange, ImplicitAPI):
             headers = {
                 'X-MBX-APIKEY': self.apiKey,
             }
-            nonce = self.milliseconds()
+            timestamp = self.milliseconds()
+            # Nonce is in microseconds
+            nonce = self.microseconds()
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
             extendedParams = self.extend({
-                'timestamp': nonce,
+                'timestamp': timestamp,
             }, params)
             if defaultRecvWindow is not None:
                 extendedParams['recvWindow'] = defaultRecvWindow
