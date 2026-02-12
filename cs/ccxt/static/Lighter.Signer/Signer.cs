@@ -5,24 +5,24 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Lighter
+namespace Lighter.Signer
 {
     /// <summary>
-    /// LighterSigner - C# wrapper for the Lighter signing native library (Go c-shared).
+    /// Signer - C# wrapper for the Lighter signing native library (Go c-shared).
     /// netstandard2.0/2.1 compatible (no NativeLibrary resolver, no records).
     /// </summary>
-    public sealed class LighterSigner : IDisposable
+    public sealed class Signer : IDisposable
     {
-        private static LighterSigner? _instance;
+        private static Signer? _instance;
 
         private readonly NativeLib _lib;
         private bool _disposed;
 
         /// <summary>Get singleton instance (like PHP getInstance()).</summary>
-        public static LighterSigner GetInstance(string? libraryPath = null)
+        public static Signer GetInstance(string? libraryPath = null)
         {
             if (_instance == null)
-                _instance = new LighterSigner(libraryPath);
+                _instance = new Signer(libraryPath);
 
             return _instance;
         }
@@ -34,7 +34,7 @@ namespace Lighter
             _instance = null;
         }
 
-        private LighterSigner(string? libraryPath)
+        private Signer(string? libraryPath)
         {
             var path = libraryPath ?? GetDefaultLibraryPath();
             if (!File.Exists(path))
@@ -409,7 +409,7 @@ namespace Lighter
 
         private void EnsureNotDisposed()
         {
-            if (_disposed) throw new ObjectDisposedException(nameof(LighterSigner));
+            if (_disposed) throw new ObjectDisposedException(nameof(Signer));
         }
 
         private static SignedTx ParseSignedTx(SignedTxResponse r)

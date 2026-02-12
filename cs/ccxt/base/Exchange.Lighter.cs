@@ -1,6 +1,6 @@
 
 namespace ccxt;
-using Lighter;
+using Lighter.Signer;
 using System.Linq;
 using System.Text;
 using System.Numerics;
@@ -8,7 +8,7 @@ using System.Numerics;
 public partial class Exchange
 {
     public object loadLighterLibrary(object path, object chainId, object privateKey, object apiKeyIndex, object accountIndex) {
-        LighterSigner lighterSigner = Lighter.LighterSigner.GetInstance((string) path);
+        Lighter.Signer.Signer lighterSigner = Lighter.Signer.Signer.GetInstance((string) path);
 
         string url = (string) this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         lighterSigner.CreateClient(
@@ -21,7 +21,7 @@ public partial class Exchange
         return lighterSigner;
     }
 
-    private object formatSignedLighterTx (Lighter.LighterSigner.SignedTx signedTx) {
+    private object formatSignedLighterTx (Lighter.Signer.Signer.SignedTx signedTx) {
         object res = new List<object>() {};
         ((IList<object>)res).Add(signedTx.TxType);
         ((IList<object>)res).Add(signedTx.TxInfo);
@@ -29,10 +29,10 @@ public partial class Exchange
     }
 
     public object lighterSignCreateGroupedOrders(object signer, object request) {
-        List<Lighter.LighterSigner.CreateOrderTxReq> ordersArr = new List<Lighter.LighterSigner.CreateOrderTxReq>() {};
+        List<Lighter.Signer.Signer.CreateOrderTxReq> ordersArr = new List<Lighter.Signer.Signer.CreateOrderTxReq>() {};
         var ordersList = (IList<object>) getValue(request, "orders");
         foreach (var order in ordersList) {
-            ordersArr.Add(new Lighter.LighterSigner.CreateOrderTxReq{
+            ordersArr.Add(new Lighter.Signer.Signer.CreateOrderTxReq{
                 MarketIndex      = Convert.ToByte(getValue(order, "market_index")),
                 ClientOrderIndex = Convert.ToInt64(getValue(order, "client_order_index")),
                 BaseAmount       = Convert.ToInt64(getValue(order, "base_amount")),
@@ -45,14 +45,14 @@ public partial class Exchange
                 OrderExpiry      = Convert.ToInt64(getValue(order, "order_expiry"))
             });
         }
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateGroupedOrders(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignCreateGroupedOrders(
             Convert.ToByte(getValue(request, "grouping_type")), ordersArr, Convert.ToInt64(getValue(request, "nonce")), Convert.ToInt32(getValue(request, "api_key_index")), Convert.ToInt64(getValue(request, "account_index"))
         );
         return this.formatSignedLighterTx(signedTx);
     }
 
     public object lighterSignCreateOrder(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateOrder(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignCreateOrder(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "client_order_index")),
             Convert.ToInt64(getValue(request, "base_amount")),
@@ -71,7 +71,7 @@ public partial class Exchange
     }
 
     public object lighterSignCancelOrder(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCancelOrder(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignCancelOrder(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "order_index")),
             Convert.ToInt64(getValue(request, "nonce")),
@@ -82,7 +82,7 @@ public partial class Exchange
     }
 
     public object lighterSignWithdraw(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignWithdraw(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignWithdraw(
             Convert.ToInt32(getValue(request, "asset_index")),
             Convert.ToInt32(getValue(request, "route_type")),
             Convert.ToUInt64(getValue(request, "amount")),
@@ -94,7 +94,7 @@ public partial class Exchange
     }
 
     public object lighterSignCreateSubAccount(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCreateSubAccount(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignCreateSubAccount(
             Convert.ToInt64(getValue(request, "nonce")),
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
@@ -103,7 +103,7 @@ public partial class Exchange
     }
 
     public object lighterSignCancelAllOrders(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignCancelAllOrders(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignCancelAllOrders(
             Convert.ToInt32(getValue(request, "time_in_force")),
             Convert.ToInt64(getValue(request, "time")),
             Convert.ToInt64(getValue(request, "nonce")),
@@ -114,7 +114,7 @@ public partial class Exchange
     }
 
     public object lighterSignModifyOrder(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignModifyOrder(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignModifyOrder(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "index")),
             Convert.ToInt64(getValue(request, "base_amount")),
@@ -128,7 +128,7 @@ public partial class Exchange
     }
 
     public object lighterSignTransfer(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignTransfer(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignTransfer(
             Convert.ToInt32(getValue(request, "to_account_index")),
             Convert.ToInt16(getValue(request, "asset_index")),
             Convert.ToByte(getValue(request, "from_route_type")),
@@ -144,7 +144,7 @@ public partial class Exchange
     }
 
     public object lighterSignUpdateLeverage(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignUpdateLeverage(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignUpdateLeverage(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt32(getValue(request, "initial_margin_fraction")),
             Convert.ToInt32(getValue(request, "margin_mode")),
@@ -156,7 +156,7 @@ public partial class Exchange
     }
 
     public object lighterCreateAuthToken(object signer, object request) {
-        string authToken = ((LighterSigner) signer).CreateAuthToken(
+        string authToken = ((Lighter.Signer.Signer) signer).CreateAuthToken(
             Convert.ToInt64(getValue(request, "deadline")),
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
@@ -165,7 +165,7 @@ public partial class Exchange
     }
 
     public object lighterSignUpdateMargin(object signer, object request) {
-        Lighter.LighterSigner.SignedTx signedTx = ((LighterSigner) signer).SignUpdateMargin(
+        Lighter.Signer.Signer.SignedTx signedTx = ((Lighter.Signer.Signer) signer).SignUpdateMargin(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "usdc_amount")),
             Convert.ToInt32(getValue(request, "direction")),
