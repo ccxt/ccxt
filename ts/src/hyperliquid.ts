@@ -2407,7 +2407,6 @@ export default class hyperliquid extends Exchange {
             'type': 'twapCancel',
             'a': this.parseToInt (market['baseId']),
             't': this.parseToNumeric (id),
-
         };
         const nonce = this.milliseconds ();
         const signature = this.signL1Action (action, nonce, vaultAddress);
