@@ -5,7 +5,7 @@ import { ExchangeError, ArgumentsRequired, InvalidOrder, OrderNotFound, BadReque
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, MarketInterface, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, int, Transaction, Currency, TradingFeeInterface, LedgerEntry, FundingRates, FundingRate, OpenInterests, Leverage, MarginMode, Tickers, Ticker, FundingHistory } from './base/types.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 
 //  ---------------------------------------------------------------------------
@@ -343,7 +343,7 @@ export default class pacifica extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 100,
+                        'limit': 4000,
                     },
                     'fetchLedger': {
                         'code': false,
@@ -376,13 +376,6 @@ export default class pacifica extends Exchange {
                 },
             },
         });
-    }
-
-    market (symbol: string): MarketInterface {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        return super.market (symbol);
     }
 
     /**
@@ -3249,7 +3242,9 @@ export default class pacifica extends Exchange {
         const message = this.prepareMessage (header, payload);
         const messageBytes = this.encode (message);
         const secretBytes = this.base58ToBinary (privateKey);
+        this.log (secretBytes);
         const seed = this.arraySlice (secretBytes, 0, 32);
+        this.log (seed);
         const signatureBase64 = eddsa (messageBytes, seed, ed25519);
         const signatureBinary = this.base64ToBinary (signatureBase64);
         const signatureBase58 = this.binaryToBase58 (signatureBinary);
