@@ -5,7 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Lighter.Signer
+namespace LighterSigner
 {
     /// <summary>
     /// Signer - C# wrapper for the Lighter signing native library (Go c-shared).
