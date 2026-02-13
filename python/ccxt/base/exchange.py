@@ -549,7 +549,7 @@ class Exchange(object):
             return os.path.isfile(path)
         except Exception:
             return False
-    
+
     def dir_read(self, path: str):
         """
         Read directory contents (synchronous)
@@ -599,7 +599,7 @@ class Exchange(object):
             return os.path.isdir(path)
         except Exception:
             return False
-         
+
     @staticmethod
     def gzip_deflate(response, text):
         encoding = response.info().get('Content-Encoding')
