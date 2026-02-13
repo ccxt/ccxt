@@ -1,0 +1,164 @@
+{
+    "WBNB/USDT": {
+        "id": "101",
+        "symbol": "WBNB/USDT",
+        "base": "WBNB",
+        "quote": "USDT",
+        "baseId": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+        "quoteId": "0x55d398326f99059fF775485246999027B3197955",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "optionType": null,
+        "strike": null,
+        "settle": null,
+        "settleId": null,
+        "active": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.000000000000000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 10000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "info": {
+            "pair_id": 101,
+            "chain_id": 56,
+            "pair_symbol": "WBNB-USDT"
+        }
+    },
+    "BTCB/USDT": {
+        "id": "103",
+        "symbol": "BTCB/USDT",
+        "base": "BTCB",
+        "quote": "USDT",
+        "baseId": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+        "quoteId": "0x55d398326f99059fF775485246999027B3197955",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "optionType": null,
+        "strike": null,
+        "settle": null,
+        "settleId": null,
+        "active": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.000000000000000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 100
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "info": {
+            "pair_id": 103,
+            "chain_id": 56,
+            "pair_symbol": "BTCB-USDT"
+        }
+    },
+    "WETH/USDC": {
+        "id": "102",
+        "symbol": "WETH/USDC",
+        "base": "WETH",
+        "quote": "USDC",
+        "baseId": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        "quoteId": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+        "type": "spot",
+        "spot": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "margin": false,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "optionType": null,
+        "strike": null,
+        "settle": null,
+        "settleId": null,
+        "active": true,
+        "taker": 0.001,
+        "maker": 0.001,
+        "precision": {
+            "amount": 0.000000000000000001,
+            "price": 0.01
+        },
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 1000
+            },
+            "price": {
+                "min": 0.01,
+                "max": 1000000
+            },
+            "cost": {
+                "min": 1,
+                "max": 10000000
+            }
+        },
+        "marginModes": {
+            "cross": false,
+            "isolated": false
+        },
+        "info": {
+            "pair_id": 102,
+            "chain_id": 1,
+            "pair_symbol": "WETH-USDC"
+        }
+    }
+}

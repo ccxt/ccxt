@@ -1,0 +1,416 @@
+{
+    "exchange": "deluthium",
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {
+        "defaultChainId": 56,
+        "defaultSlippage": 0.5,
+        "pairIdCache": {
+            "WBNB/USDT:56": {
+                "pairId": "101",
+                "chainId": 56
+            },
+            "WETH/USDC:1": {
+                "pairId": "102",
+                "chainId": 1
+            },
+            "BTCB/USDT:56": {
+                "pairId": "103",
+                "chainId": 56
+            }
+        }
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets with default BSC chain - snake_case params",
+                "method": "fetchMarkets",
+                "url": "https://rfq-api.deluthium.ai/v1/listing/pairs",
+                "input": [],
+                "output": {
+                    "chain_id": 56
+                }
+            },
+            {
+                "description": "fetchMarkets with explicit Ethereum chain",
+                "method": "fetchMarkets",
+                "url": "https://rfq-api.deluthium.ai/v1/listing/pairs",
+                "input": [{"chainId": 1}],
+                "output": {
+                    "chain_id": 1
+                }
+            },
+            {
+                "description": "fetchMarkets with Base chain",
+                "method": "fetchMarkets",
+                "url": "https://rfq-api.deluthium.ai/v1/listing/pairs",
+                "input": [{"chainId": 8453}],
+                "output": {
+                    "chain_id": 8453
+                }
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies with default chain - snake_case params",
+                "method": "fetchCurrencies",
+                "url": "https://rfq-api.deluthium.ai/v1/listing/tokens",
+                "input": [],
+                "output": {
+                    "chain_id": 56
+                }
+            },
+            {
+                "description": "fetchCurrencies with specific token address",
+                "method": "fetchCurrencies",
+                "url": "https://rfq-api.deluthium.ai/v1/listing/tokens",
+                "input": [{"token_address": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"}],
+                "output": {
+                    "chain_id": 56,
+                    "token_address": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker with cached pairId - camelCase params",
+                "method": "fetchTicker",
+                "url": "https://rfq-api.deluthium.ai/v1/market/pair",
+                "input": ["WBNB/USDT"],
+                "output": {
+                    "chainId": 56,
+                    "pairId": 101,
+                    "interval": "1h"
+                }
+            },
+            {
+                "description": "fetchTicker with explicit chainId override",
+                "method": "fetchTicker",
+                "url": "https://rfq-api.deluthium.ai/v1/market/pair",
+                "input": ["WETH/USDC", {"chainId": 1}],
+                "output": {
+                    "chainId": 1,
+                    "pairId": 102,
+                    "interval": "1h"
+                }
+            },
+            {
+                "description": "fetchTicker with custom interval",
+                "method": "fetchTicker",
+                "url": "https://rfq-api.deluthium.ai/v1/market/pair",
+                "input": ["WBNB/USDT", {"interval": "24h"}],
+                "output": {
+                    "chainId": 56,
+                    "pairId": 101,
+                    "interval": "24h"
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV 1h candles - camelCase params",
+                "method": "fetchOHLCV",
+                "url": "https://rfq-api.deluthium.ai/v1/market/klines",
+                "input": ["WBNB/USDT", "1h"],
+                "output": {
+                    "chainId": 56,
+                    "pairId": 101,
+                    "interval": "1h"
+                }
+            },
+            {
+                "description": "fetchOHLCV 1d candles with limit",
+                "method": "fetchOHLCV",
+                "url": "https://rfq-api.deluthium.ai/v1/market/klines",
+                "input": ["WBNB/USDT", "1d", null, 100],
+                "output": {
+                    "chainId": 56,
+                    "pairId": 101,
+                    "interval": "1d",
+                    "limit": 100
+                }
+            },
+            {
+                "description": "fetchOHLCV with since timestamp",
+                "method": "fetchOHLCV",
+                "url": "https://rfq-api.deluthium.ai/v1/market/klines",
+                "input": ["WBNB/USDT", "15m", 1706832000000],
+                "output": {
+                    "chainId": 56,
+                    "pairId": 101,
+                    "interval": "15m",
+                    "startTime": 1706832000000
+                }
+            },
+            {
+                "description": "fetchOHLCV with all timeframe options",
+                "method": "fetchOHLCV",
+                "url": "https://rfq-api.deluthium.ai/v1/market/klines",
+                "input": ["BTCB/USDT", "4h", 1706832000000, 50, {"chainId": 56}],
+                "output": {
+                    "chainId": 56,
+                    "pairId": 103,
+                    "interval": "4h",
+                    "startTime": 1706832000000,
+                    "limit": 50
+                }
+            }
+        ],
+        "fetchQuote": [
+            {
+                "description": "fetchQuote indicative buy - snake_case params",
+                "method": "fetchQuote",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/indicative",
+                "input": ["WBNB/USDT", 100, "buy"],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "100"
+                }
+            },
+            {
+                "description": "fetchQuote indicative sell",
+                "method": "fetchQuote",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/indicative",
+                "input": ["WBNB/USDT", 0.5, "sell"],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "token_in": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "token_out": "0x55d398326f99059fF775485246999027B3197955",
+                    "amount_in": "0.5"
+                }
+            },
+            {
+                "description": "fetchQuote with explicit chainId",
+                "method": "fetchQuote",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/indicative",
+                "input": ["WETH/USDC", 1000, "buy", {"chainId": 1}],
+                "output": {
+                    "src_chain_id": 1,
+                    "dst_chain_id": 1,
+                    "token_in": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                    "token_out": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                    "amount_in": "1000"
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder firm quote buy - snake_case params",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890"
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0x1234567890123456789012345678901234567890",
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "100",
+                    "slippage": 0.5,
+                    "expiry_time_sec": 60
+                }
+            },
+            {
+                "description": "createOrder firm quote sell",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "sell", 0.5, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890"
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0x1234567890123456789012345678901234567890",
+                    "token_in": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "token_out": "0x55d398326f99059fF775485246999027B3197955",
+                    "amount_in": "0.5",
+                    "slippage": 0.5,
+                    "expiry_time_sec": 60
+                }
+            },
+            {
+                "description": "createOrder with custom slippage",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890",
+                    "slippage": 1.5
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0x1234567890123456789012345678901234567890",
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "100",
+                    "slippage": 1.5,
+                    "expiry_time_sec": 60
+                }
+            },
+            {
+                "description": "createOrder with indicative_amount_out for slippage pre-validation",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "buy", 50, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890",
+                    "indicative_amount_out": "81500000000000000"
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0x1234567890123456789012345678901234567890",
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "50",
+                    "slippage": 0.5,
+                    "expiry_time_sec": 60,
+                    "indicative_amount_out": "81500000000000000"
+                }
+            },
+            {
+                "description": "createOrder cross-chain BSC to Base",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890",
+                    "chainId": 56,
+                    "dstChainId": 8453,
+                    "slippage": 1.0
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 8453,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0x1234567890123456789012345678901234567890",
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "100",
+                    "slippage": 1.0,
+                    "expiry_time_sec": 60
+                }
+            },
+            {
+                "description": "createOrder with custom expiry time",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890",
+                    "expiryTimeSec": 120
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0x1234567890123456789012345678901234567890",
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "100",
+                    "slippage": 0.5,
+                    "expiry_time_sec": 120
+                }
+            },
+            {
+                "description": "createOrder with different from/to addresses",
+                "method": "createOrder",
+                "url": "https://rfq-api.deluthium.ai/v1/quote/firm",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "walletAddress": "0x1234567890123456789012345678901234567890",
+                    "toAddress": "0xABCDEF1234567890ABCDEF1234567890ABCDEF12"
+                }],
+                "output": {
+                    "src_chain_id": 56,
+                    "dst_chain_id": 56,
+                    "from_address": "0x1234567890123456789012345678901234567890",
+                    "to_address": "0xABCDEF1234567890ABCDEF1234567890ABCDEF12",
+                    "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                    "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                    "amount_in": "100",
+                    "slippage": 0.5,
+                    "expiry_time_sec": 60
+                }
+            }
+        ]
+    },
+    "authenticationTests": {
+        "description": "All endpoints require JWT Bearer token authentication",
+        "allEndpointsRequireAuth": true,
+        "authHeader": {
+            "name": "Authorization",
+            "format": "Bearer {apiKey}"
+        },
+        "noPublicEndpoints": true,
+        "endpoints": [
+            {
+                "path": "/v1/listing/pairs",
+                "method": "GET",
+                "requiresAuth": true
+            },
+            {
+                "path": "/v1/listing/tokens",
+                "method": "GET",
+                "requiresAuth": true
+            },
+            {
+                "path": "/v1/market/pair",
+                "method": "GET",
+                "requiresAuth": true
+            },
+            {
+                "path": "/v1/market/klines",
+                "method": "GET",
+                "requiresAuth": true
+            },
+            {
+                "path": "/v1/quote/indicative",
+                "method": "POST",
+                "requiresAuth": true
+            },
+            {
+                "path": "/v1/quote/firm",
+                "method": "POST",
+                "requiresAuth": true
+            }
+        ]
+    },
+    "parameterStyleTests": {
+        "description": "Testing snake_case vs camelCase parameter naming per endpoint",
+        "snakeCaseEndpoints": [
+            {
+                "endpoint": "/v1/listing/pairs",
+                "params": ["chain_id"]
+            },
+            {
+                "endpoint": "/v1/listing/tokens",
+                "params": ["chain_id", "token_address"]
+            },
+            {
+                "endpoint": "/v1/quote/indicative",
+                "params": ["src_chain_id", "dst_chain_id", "token_in", "token_out", "amount_in"]
+            },
+            {
+                "endpoint": "/v1/quote/firm",
+                "params": ["src_chain_id", "dst_chain_id", "from_address", "to_address", "token_in", "token_out", "amount_in", "slippage", "expiry_time_sec", "indicative_amount_out"]
+            }
+        ],
+        "camelCaseEndpoints": [
+            {
+                "endpoint": "/v1/market/pair",
+                "params": ["chainId", "pairId", "interval"]
+            },
+            {
+                "endpoint": "/v1/market/klines",
+                "params": ["chainId", "pairId", "interval", "startTime", "limit"]
+            }
+        ]
+    }
+}

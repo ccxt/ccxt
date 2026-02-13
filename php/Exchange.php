@@ -397,6 +397,7 @@ class Exchange {
         'deepcoin',
         'defx',
         'delta',
+        'deluthium',
         'deribit',
         'derive',
         'digifinex',

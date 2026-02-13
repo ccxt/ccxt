@@ -140,6 +140,7 @@ from ccxt.cryptomus import cryptomus                                  # noqa: F4
 from ccxt.deepcoin import deepcoin                                    # noqa: F401
 from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
+from ccxt.deluthium import deluthium                                  # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
 from ccxt.derive import derive                                        # noqa: F401
 from ccxt.digifinex import digifinex                                  # noqa: F401
@@ -253,6 +254,7 @@ exchanges = [
     'deepcoin',
     'defx',
     'delta',
+    'deluthium',
     'deribit',
     'derive',
     'digifinex',

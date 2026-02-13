@@ -1,0 +1,684 @@
+{
+    "exchange": "deluthium",
+    "skipKeys": [],
+    "options": {
+        "defaultChainId": 56,
+        "defaultSlippage": 0.5,
+        "pairIdCache": {
+            "WBNB/USDT:56": {
+                "pairId": "101",
+                "chainId": 56
+            },
+            "WETH/USDC:1": {
+                "pairId": "102",
+                "chainId": 1
+            }
+        }
+    },
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "BSC chain markets with hyphen symbol format conversion",
+                "input": [{"chainId": 56}],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": [
+                        {
+                            "pair_id": 101,
+                            "chain_id": 56,
+                            "pair_symbol": "WBNB-USDT",
+                            "base_token": {
+                                "token_symbol": "WBNB",
+                                "token_address": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                                "token_decimals": 18
+                            },
+                            "quote_token": {
+                                "token_symbol": "USDT",
+                                "token_address": "0x55d398326f99059fF775485246999027B3197955",
+                                "token_decimals": 18
+                            },
+                            "status": "active"
+                        },
+                        {
+                            "pair_id": 103,
+                            "chain_id": 56,
+                            "pair_symbol": "BTCB-USDT",
+                            "base_token": {
+                                "token_symbol": "BTCB",
+                                "token_address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+                                "token_decimals": 18
+                            },
+                            "quote_token": {
+                                "token_symbol": "USDT",
+                                "token_address": "0x55d398326f99059fF775485246999027B3197955",
+                                "token_decimals": 18
+                            },
+                            "status": "active"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "101",
+                        "symbol": "WBNB/USDT",
+                        "base": "WBNB",
+                        "quote": "USDT",
+                        "baseId": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "quoteId": "0x55d398326f99059fF775485246999027B3197955",
+                        "type": "spot",
+                        "spot": true,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "contract": false,
+                        "active": true,
+                        "info": {}
+                    },
+                    {
+                        "id": "103",
+                        "symbol": "BTCB/USDT",
+                        "base": "BTCB",
+                        "quote": "USDT",
+                        "baseId": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
+                        "quoteId": "0x55d398326f99059fF775485246999027B3197955",
+                        "type": "spot",
+                        "spot": true,
+                        "swap": false,
+                        "future": false,
+                        "option": false,
+                        "contract": false,
+                        "active": true,
+                        "info": {}
+                    }
+                ]
+            },
+            {
+                "description": "Ethereum chain markets",
+                "input": [{"chainId": 1}],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": [
+                        {
+                            "pair_id": 102,
+                            "chain_id": 1,
+                            "pair_symbol": "WETH-USDC",
+                            "base_token": {
+                                "token_symbol": "WETH",
+                                "token_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                                "token_decimals": 18
+                            },
+                            "quote_token": {
+                                "token_symbol": "USDC",
+                                "token_address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                                "token_decimals": 6
+                            },
+                            "status": "active"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "102",
+                        "symbol": "WETH/USDC",
+                        "base": "WETH",
+                        "quote": "USDC",
+                        "baseId": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                        "quoteId": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+                        "type": "spot",
+                        "spot": true,
+                        "active": true,
+                        "info": {}
+                    }
+                ]
+            },
+            {
+                "description": "Empty markets response",
+                "input": [{"chainId": 999}],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": []
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "BSC chain tokens",
+                "input": [{"chain_id": 56}],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": [
+                        {
+                            "token_symbol": "WBNB",
+                            "token_address": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                            "token_decimals": 18,
+                            "chain_id": 56,
+                            "is_native": false
+                        },
+                        {
+                            "token_symbol": "USDT",
+                            "token_address": "0x55d398326f99059fF775485246999027B3197955",
+                            "token_decimals": 18,
+                            "chain_id": 56,
+                            "is_native": false
+                        },
+                        {
+                            "token_symbol": "BNB",
+                            "token_address": "0x0000000000000000000000000000000000000000",
+                            "token_decimals": 18,
+                            "chain_id": 56,
+                            "is_native": true
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "WBNB": {
+                        "id": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "code": "WBNB",
+                        "precision": 18,
+                        "active": true,
+                        "info": {}
+                    },
+                    "USDT": {
+                        "id": "0x55d398326f99059fF775485246999027B3197955",
+                        "code": "USDT",
+                        "precision": 18,
+                        "active": true,
+                        "info": {}
+                    },
+                    "BNB": {
+                        "id": "0x0000000000000000000000000000000000000000",
+                        "code": "BNB",
+                        "precision": 18,
+                        "active": true,
+                        "info": {}
+                    }
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "BSC ticker with camelCase params - uses cached pairId",
+                "input": ["WBNB/USDT", {"chainId": 56}],
+                "httpResponse": {
+                    "code": 10000,
+                    "message": "success",
+                    "data": {
+                        "pair_id": 101,
+                        "chain_id": 56,
+                        "pair_symbol": "WBNB-USDT",
+                        "price": "612.45",
+                        "price_change_24h": "2.35",
+                        "price_change_percentage_24h": "0.385",
+                        "high_24h": "625.80",
+                        "low_24h": "605.12",
+                        "volume_24h_base": "15234.567",
+                        "volume_24h_quote": "9345678.90",
+                        "open_24h": "610.10",
+                        "close_24h": "612.45",
+                        "bid": "612.30",
+                        "ask": "612.60",
+                        "timestamp": 1706918400000
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "WBNB/USDT",
+                    "timestamp": 1706918400000,
+                    "datetime": "2024-02-03T00:00:00.000Z",
+                    "high": 625.80,
+                    "low": 605.12,
+                    "bid": 612.30,
+                    "ask": 612.60,
+                    "open": 610.10,
+                    "close": 612.45,
+                    "last": 612.45,
+                    "change": 2.35,
+                    "percentage": 0.385,
+                    "baseVolume": 15234.567,
+                    "quoteVolume": 9345678.90,
+                    "info": {}
+                }
+            },
+            {
+                "description": "Ticker with numeric error code (Market Data Service format)",
+                "input": ["INVALID/PAIR"],
+                "httpResponse": {
+                    "code": 20004,
+                    "message": "Pair not found"
+                },
+                "parsedResponse": "BadSymbol"
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "1h candles with camelCase params",
+                "input": ["WBNB/USDT", "1h", null, 5, {"chainId": 56}],
+                "httpResponse": {
+                    "code": 10000,
+                    "message": "success",
+                    "data": [
+                        {
+                            "timestamp": 1706914800000,
+                            "open": "608.50",
+                            "high": "612.00",
+                            "low": "607.20",
+                            "close": "610.80",
+                            "volume": "1234.56"
+                        },
+                        {
+                            "timestamp": 1706918400000,
+                            "open": "610.80",
+                            "high": "615.30",
+                            "low": "609.50",
+                            "close": "612.45",
+                            "volume": "2345.67"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [1706914800000, 608.50, 612.00, 607.20, 610.80, 1234.56],
+                    [1706918400000, 610.80, 615.30, 609.50, 612.45, 2345.67]
+                ]
+            },
+            {
+                "description": "1d candles",
+                "input": ["WBNB/USDT", "1d", null, 2],
+                "httpResponse": {
+                    "code": 10000,
+                    "message": "success",
+                    "data": [
+                        {
+                            "timestamp": 1706832000000,
+                            "open": "600.00",
+                            "high": "625.80",
+                            "low": "595.50",
+                            "close": "612.45",
+                            "volume": "45678.90"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [1706832000000, 600.00, 625.80, 595.50, 612.45, 45678.90]
+                ]
+            }
+        ],
+        "fetchQuote": [
+            {
+                "description": "Indicative quote for buy side",
+                "input": ["WBNB/USDT", 100, "buy", {"chainId": 56}],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {
+                        "quote_id": "q-12345",
+                        "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                        "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "amount_in": "100000000000000000000",
+                        "amount_out": "163200000000000000",
+                        "price": "612.50",
+                        "price_impact": "0.05",
+                        "fee_amount": "100000000000000000",
+                        "expiry_timestamp": 1706918460000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "q-12345",
+                    "symbol": "WBNB/USDT",
+                    "side": "buy",
+                    "amountIn": "100",
+                    "amountOut": "0.1632",
+                    "price": 612.50,
+                    "priceImpact": 0.05,
+                    "fee": "0.1",
+                    "expiry": 1706918460000,
+                    "info": {}
+                }
+            },
+            {
+                "description": "Indicative quote for sell side",
+                "input": ["WBNB/USDT", 0.5, "sell", {"chainId": 56}],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {
+                        "quote_id": "q-12346",
+                        "token_in": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "token_out": "0x55d398326f99059fF775485246999027B3197955",
+                        "amount_in": "500000000000000000",
+                        "amount_out": "305500000000000000000",
+                        "price": "611.00",
+                        "price_impact": "0.02",
+                        "fee_amount": "50000000000000000",
+                        "expiry_timestamp": 1706918460000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "q-12346",
+                    "symbol": "WBNB/USDT",
+                    "side": "sell",
+                    "amountIn": "0.5",
+                    "amountOut": "305.5",
+                    "price": 611.00,
+                    "priceImpact": 0.02,
+                    "fee": "0.05",
+                    "expiry": 1706918460000,
+                    "info": {}
+                }
+            },
+            {
+                "description": "Quote with insufficient liquidity - string error code",
+                "input": ["WBNB/USDT", 1000000, "buy"],
+                "httpResponse": {
+                    "code": "INSUFFICIENT_LIQUIDITY",
+                    "message": "Not enough liquidity to fill order"
+                },
+                "parsedResponse": "InsufficientFunds"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "Firm quote for market buy - returns calldata",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "chainId": 56,
+                    "slippage": 0.5,
+                    "walletAddress": "0x1234567890123456789012345678901234567890"
+                }],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {
+                        "quote_id": "firm-q-12345",
+                        "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                        "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "amount_in": "100000000000000000000",
+                        "amount_out": "163000000000000000",
+                        "min_amount_out": "162185000000000000",
+                        "router_address": "0xRouterAddress1234567890123456789012345678",
+                        "calldata": "0x12345678abcdef...",
+                        "expiry_timestamp": 1706918460000,
+                        "gas_estimate": "250000"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "firm-q-12345",
+                    "symbol": "WBNB/USDT",
+                    "type": "market",
+                    "side": "buy",
+                    "amount": 100,
+                    "status": "open",
+                    "info": {
+                        "calldata": "0x12345678abcdef...",
+                        "router_address": "0xRouterAddress1234567890123456789012345678",
+                        "gas_estimate": "250000"
+                    }
+                }
+            },
+            {
+                "description": "Firm quote for market sell",
+                "input": ["WBNB/USDT", "market", "sell", 0.5, null, {
+                    "chainId": 56,
+                    "walletAddress": "0x1234567890123456789012345678901234567890"
+                }],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {
+                        "quote_id": "firm-q-12346",
+                        "token_in": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "token_out": "0x55d398326f99059fF775485246999027B3197955",
+                        "amount_in": "500000000000000000",
+                        "amount_out": "305500000000000000000",
+                        "min_amount_out": "303972500000000000000",
+                        "router_address": "0xRouterAddress1234567890123456789012345678",
+                        "calldata": "0xabcdef12345678...",
+                        "expiry_timestamp": 1706918460000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "firm-q-12346",
+                    "symbol": "WBNB/USDT",
+                    "type": "market",
+                    "side": "sell",
+                    "amount": 0.5,
+                    "status": "open",
+                    "info": {
+                        "calldata": "0xabcdef12345678...",
+                        "router_address": "0xRouterAddress1234567890123456789012345678"
+                    }
+                }
+            },
+            {
+                "description": "Firm quote with indicative_amount_out for slippage validation",
+                "input": ["WBNB/USDT", "market", "buy", 50, null, {
+                    "chainId": 56,
+                    "slippage": 0.5,
+                    "indicative_amount_out": "81500000000000000",
+                    "walletAddress": "0x1234567890123456789012345678901234567890"
+                }],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {
+                        "quote_id": "firm-q-12347",
+                        "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                        "token_out": "0xBB4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+                        "amount_in": "50000000000000000000",
+                        "amount_out": "81500000000000000",
+                        "min_amount_out": "81092500000000000",
+                        "router_address": "0xRouterAddress1234567890123456789012345678",
+                        "calldata": "0x7890abcdef1234...",
+                        "expiry_timestamp": 1706918460000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "firm-q-12347",
+                    "symbol": "WBNB/USDT",
+                    "type": "market",
+                    "side": "buy",
+                    "amount": 50,
+                    "status": "open",
+                    "info": {
+                        "calldata": "0x7890abcdef1234..."
+                    }
+                }
+            },
+            {
+                "description": "Cross-chain swap BSC to Base",
+                "input": ["WBNB/USDT", "market", "buy", 100, null, {
+                    "chainId": 56,
+                    "dstChainId": 8453,
+                    "slippage": 1.0,
+                    "walletAddress": "0x1234567890123456789012345678901234567890"
+                }],
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {
+                        "quote_id": "cross-q-12345",
+                        "src_chain_id": 56,
+                        "dst_chain_id": 8453,
+                        "token_in": "0x55d398326f99059fF775485246999027B3197955",
+                        "token_out": "0x4200000000000000000000000000000000000006",
+                        "amount_in": "100000000000000000000",
+                        "amount_out": "163000000000000000",
+                        "router_address": "0xCrossChainRouter1234567890123456789012",
+                        "calldata": "0xcrosschain12345...",
+                        "expiry_timestamp": 1706918460000
+                    }
+                },
+                "parsedResponse": {
+                    "id": "cross-q-12345",
+                    "symbol": "WBNB/USDT",
+                    "type": "market",
+                    "side": "buy",
+                    "amount": 100,
+                    "status": "open",
+                    "info": {
+                        "src_chain_id": 56,
+                        "dst_chain_id": 8453,
+                        "calldata": "0xcrosschain12345..."
+                    }
+                }
+            }
+        ]
+    },
+    "errorTests": {
+        "description": "Dual error format handling tests - Trading Service (string) and Market Data Service (numeric)",
+        "stringErrorCodes": [
+            {
+                "description": "INVALID_INPUT error",
+                "httpResponse": {
+                    "code": "INVALID_INPUT",
+                    "message": "Invalid request parameters"
+                },
+                "expectedExceptionClass": "BadRequest"
+            },
+            {
+                "description": "INVALID_TOKEN error",
+                "httpResponse": {
+                    "code": "INVALID_TOKEN",
+                    "message": "Token address is invalid"
+                },
+                "expectedExceptionClass": "BadSymbol"
+            },
+            {
+                "description": "INVALID_AMOUNT error",
+                "httpResponse": {
+                    "code": "INVALID_AMOUNT",
+                    "message": "Amount is too small or invalid"
+                },
+                "expectedExceptionClass": "InvalidOrder"
+            },
+            {
+                "description": "INVALID_PAIR error",
+                "httpResponse": {
+                    "code": "INVALID_PAIR",
+                    "message": "Trading pair not found"
+                },
+                "expectedExceptionClass": "BadSymbol"
+            },
+            {
+                "description": "INVALID_DEADLINE error",
+                "httpResponse": {
+                    "code": "INVALID_DEADLINE",
+                    "message": "Deadline has passed"
+                },
+                "expectedExceptionClass": "InvalidOrder"
+            },
+            {
+                "description": "QUOTE_EXPIRED error",
+                "httpResponse": {
+                    "code": "QUOTE_EXPIRED",
+                    "message": "Quote has expired"
+                },
+                "expectedExceptionClass": "OrderNotFound"
+            },
+            {
+                "description": "INSUFFICIENT_LIQUIDITY error",
+                "httpResponse": {
+                    "code": "INSUFFICIENT_LIQUIDITY",
+                    "message": "Not enough liquidity"
+                },
+                "expectedExceptionClass": "InsufficientFunds"
+            },
+            {
+                "description": "MM_NOT_AVAILABLE error",
+                "httpResponse": {
+                    "code": "MM_NOT_AVAILABLE",
+                    "message": "Market makers are unavailable"
+                },
+                "expectedExceptionClass": "ExchangeNotAvailable"
+            },
+            {
+                "description": "NO_QUOTES error",
+                "httpResponse": {
+                    "code": "NO_QUOTES",
+                    "message": "No quotes available"
+                },
+                "expectedExceptionClass": "ExchangeError"
+            },
+            {
+                "description": "SLIPPAGE_EXCEEDED error",
+                "httpResponse": {
+                    "code": "SLIPPAGE_EXCEEDED",
+                    "message": "Slippage tolerance exceeded"
+                },
+                "expectedExceptionClass": "InvalidOrder"
+            },
+            {
+                "description": "INTERNAL_ERROR",
+                "httpResponse": {
+                    "code": "INTERNAL_ERROR",
+                    "message": "Internal server error"
+                },
+                "expectedExceptionClass": "ExchangeError"
+            },
+            {
+                "description": "SIGNING_ERROR error",
+                "httpResponse": {
+                    "code": "SIGNING_ERROR",
+                    "message": "Failed to sign transaction"
+                },
+                "expectedExceptionClass": "AuthenticationError"
+            },
+            {
+                "description": "TIMEOUT_ERROR",
+                "httpResponse": {
+                    "code": "TIMEOUT_ERROR",
+                    "message": "Request timed out"
+                },
+                "expectedExceptionClass": "RequestTimeout"
+            }
+        ],
+        "numericErrorCodes": [
+            {
+                "description": "10095 - Invalid parameters",
+                "httpResponse": {
+                    "code": 10095,
+                    "message": "Invalid parameters"
+                },
+                "expectedExceptionClass": "BadRequest"
+            },
+            {
+                "description": "20003 - Internal service error",
+                "httpResponse": {
+                    "code": 20003,
+                    "message": "Internal service error"
+                },
+                "expectedExceptionClass": "ExchangeError"
+            },
+            {
+                "description": "20004 - Not found (pair not found)",
+                "httpResponse": {
+                    "code": 20004,
+                    "message": "Pair not found"
+                },
+                "expectedExceptionClass": "BadSymbol"
+            }
+        ],
+        "successCodes": [
+            {
+                "description": "String success code '10000'",
+                "httpResponse": {
+                    "code": "10000",
+                    "message": "success",
+                    "data": {}
+                },
+                "shouldNotThrow": true
+            },
+            {
+                "description": "Numeric success code 10000",
+                "httpResponse": {
+                    "code": 10000,
+                    "message": "success",
+                    "data": {}
+                },
+                "shouldNotThrow": true
+            }
+        ]
+    }
+}
