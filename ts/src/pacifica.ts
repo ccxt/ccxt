@@ -679,7 +679,7 @@ export default class pacifica extends Exchange {
     /**
      * @method
      * @name pacifica#fetchAccountSettings
-     * @description fetch account's market settings. Settings are cached for originAddress or walletAddress. To refresh the cache, call await loadAccountSettings(refresh=true)
+     * @description fetch account's market settings. Settings are cached for originAddress or walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
