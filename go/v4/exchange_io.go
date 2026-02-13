@@ -14,8 +14,8 @@ func (this *Exchange) FileRead(path string, args ...interface{}) (interface{}, e
 	return string(data), nil
 }
 
-// writeFile writes data to a file
-func (this *Exchange) WriteFile(path string, data string, args ...interface{}) error {
+// fileWrite writes data to a file
+func (this *Exchange) FileWrite(path string, data string, args ...interface{}) error {
 	dir := filepath.Dir(path)
 	if dir != "" && dir != "." {
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -31,8 +31,8 @@ func (this *Exchange) FileExists(path string) bool {
 	return err == nil
 }
 
-// deleteFile deletes a file
-func (this *Exchange) DeleteFile(path string) error {
+// fileDelete deletes a file
+func (this *Exchange) FileDelete(path string) error {
 	if !this.FileExists(path) {
 		return nil
 	}
