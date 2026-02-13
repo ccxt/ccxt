@@ -190,7 +190,7 @@ export default class pacifica extends pacificaRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
@@ -248,7 +248,7 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderIds' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ]);
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
@@ -322,7 +322,7 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const request = this.cancelOrderRequest (id, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'trigger', 'stop', 'clientOrderId' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
@@ -377,7 +377,7 @@ export default class pacifica extends pacificaRest {
         await this.loadMarkets ();
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest (symbol, params);
-        params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'originAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ]);
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];

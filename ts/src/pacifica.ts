@@ -662,7 +662,7 @@ export default class pacifica extends Exchange {
         return {
             'info': market,
             'symbol': this.safeString (market, 'symbol'),
-            'marginMode': this.handleOption ('fetchLeverage', 'defaultMarginMode'),
+            'marginMode': this.handleOption ('fetchLeverage', 'defaultMarginMode', 'cross'),
             'longLeverage': this.safeInteger (leverageLimits, 'max'),
             'shortLeverage': this.safeInteger (leverageLimits, 'max'),
         } as Leverage;
@@ -943,12 +943,13 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'until', undefined);
+        [ until, params ] = this.handleParamInteger (params, 'until', undefined);
         const request: Dict = {
             'symbol': market['id'],
             'interval': timeframe,
             'start_time': since,
         };
+
         const nowMillis = this.milliseconds ();
         if (limit !== undefined) {
             until = since + (limit * (this.parseTimeframe (timeframe) * 1000));
@@ -1075,7 +1076,7 @@ export default class pacifica extends Exchange {
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
         let until = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'until');
+        [ until, params ] = this.handleParamInteger (params, 'until', undefined);
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as Trade[];
@@ -1505,8 +1506,8 @@ export default class pacifica extends Exchange {
             } else {
                 status = 'open';
             }
-            const order_id = this.safeString (order, 'order_id');
-            ordersToReturn.push (this.safeOrder ({ 'info': order, 'id': order_id, 'status': status }));
+            const orderId = this.safeString (order, 'order_id');
+            ordersToReturn.push (this.safeOrder ({ 'info': order, 'id': orderId, 'status': status }));
         }
         return ordersToReturn as Order[];
     }
@@ -1581,8 +1582,8 @@ export default class pacifica extends Exchange {
             };
             actions.push (action);
         }
-        let clientOrderIds = undefined;
-        [ clientOrderIds, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'clientOrderIds', []);
+        let clientOrderIds = this.safeList (params, 'clientOrderIds', []);
+        params = this.omit (params, 'clientOrderIds')
         for (let i = 0; i < clientOrderIds.length; i++) {
             const cloid = clientOrderIds[i];
             const cloidParams = {
@@ -1738,7 +1739,7 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ]);
         const response = await this.privatePostOrdersEdit (this.extend (request, params));
         //
         // {
@@ -1748,8 +1749,8 @@ export default class pacifica extends Exchange {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const order_id = this.safeString (data, 'order_id');
-        return this.safeOrder ({ 'id': order_id, 'info': response, 'symbol': symbol });
+        const orderId = this.safeString (data, 'order_id');
+        return this.safeOrder ({ 'id': orderId, 'info': response, 'symbol': symbol });
     }
 
     editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num, price: Num, market: Market, params = {}) {
@@ -2462,13 +2463,13 @@ export default class pacifica extends Exchange {
         if (side !== undefined) {
             side = (side === 'bid') ? 'long' : 'short';
         }
-        const created_at = this.safeInteger (position, 'created_at');
+        const createdAt = this.safeInteger (position, 'created_at');
         return this.safePosition ({
             'info': position,
             'id': undefined,
             'symbol': symbol,
-            'timestamp': created_at,
-            'datetime': this.iso8601 (created_at),
+            'timestamp': createdAt,
+            'datetime': this.iso8601 (createdAt),
             'isolated': isIsolated,
             'hedged': undefined,
             'side': side,
@@ -2516,7 +2517,7 @@ export default class pacifica extends Exchange {
             'is_isolated': isIsolated,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow' ]);
         const response = await this.privatePostAccountMargin (request);
         // {
         //     "success": true
@@ -2549,7 +2550,7 @@ export default class pacifica extends Exchange {
             'leverage': leverage,
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow' ]);
         const response = await this.privatePostAccountLeverage (request);
         // {
         //     "success": true
@@ -2580,7 +2581,7 @@ export default class pacifica extends Exchange {
             'amount': amount.toString (),
         };
         const request = this.postActionRequest (operationType, sigPayload, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow' ]);
         const response = await this.privatePostAccountWithdraw (this.extend (request, params));
         return { 'info': response } as Transaction;
     }
@@ -3023,7 +3024,7 @@ export default class pacifica extends Exchange {
         const timestamp = this.milliseconds ();
         let expiryWindow = undefined;
         [ expiryWindow, params ] = this.handleOptionAndParams2 (params, 'createSubAccount', 'expiryWindow', 'expiry_window', 5000);
-        const subaccount_signature_header = {
+        const subaccountSignatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': 'subaccount_initiate',
@@ -3031,19 +3032,19 @@ export default class pacifica extends Exchange {
         const subSigPayload = {
             'account': originAddress,
         };
-        const subaccount_signature = this.signMessage (subaccount_signature_header, subSigPayload, subAccountPrivateKey);
-        const main_signature_header = {
+        const subaccountSignature = this.signMessage (subaccountSignatureHeader, subSigPayload, subAccountPrivateKey);
+        const mainSignatureHeader = {
             'timestamp': timestamp,
             'expiry_window': expiryWindow,
             'type': 'subaccount_confirm',
         };
         const mainSigPayload = {
-            'signature': subaccount_signature,
+            'signature': subaccountSignature,
         };
-        const main_signature = this.signMessage (main_signature_header, mainSigPayload, this.privateKey);
+        const main_signature = this.signMessage (mainSignatureHeader, mainSigPayload, this.privateKey);
         finalHeaders['main_account'] = originAddress;
         finalHeaders['subaccount'] = subAccountAddress;
-        finalHeaders['sub_signature'] = subaccount_signature;
+        finalHeaders['sub_signature'] = subaccountSignature;
         finalHeaders['main_signature'] = main_signature;
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
