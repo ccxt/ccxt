@@ -497,6 +497,109 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
+    def file_read(self, path: str, encoding: str = 'utf-8'):
+        """
+        Read file contents (synchronous)
+        :param str path: File path to read
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns str|None: File contents as string, or None on error
+        """
+        try:
+            with open(path, 'r', encoding=encoding) as file:
+                return file.read()
+        except Exception:
+            return None
+
+    def file_write(self, path: str, data: str, encoding: str = 'utf-8'):
+        """
+        Write file contents (synchronous)
+        :param str path: File path to write
+        :param str data: Data to write
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns bool: True if successful, False otherwise
+        """
+        try:
+            with open(path, 'w', encoding=encoding) as file:
+                file.write(data)
+            return True
+        except Exception:
+            return False
+
+    def file_delete(self, path: str):
+        """
+        Delete file (synchronous)
+        :param str path: File path to delete
+        :returns bool: True if successful, False otherwise
+        """
+        try:
+            import os
+            os.remove(path)
+            return True
+        except Exception:
+            return False
+
+    def file_exists(self, path: str):
+        """
+        Check if file exists (synchronous)
+        :param str path: File path to check
+        :returns bool: True if file exists, False otherwise
+        """
+        try:
+            import os
+            return os.path.isfile(path)
+        except Exception:
+            return False
+    
+    def dir_read(self, path: str):
+        """
+        Read directory contents (synchronous)
+        :param str path: Directory path to read
+        :returns list|None: List of filenames in the directory, or None on error
+        """
+        try:
+            import os
+            return os.listdir(path)
+        except Exception:
+            return None
+
+    def directory_create(self, path: str):
+        """
+        Create directory (synchronous)
+        :param str path: Directory path to create
+        :returns bool: True if successful, False otherwise
+        """
+        try:
+            import os
+            os.makedirs(path, exist_ok=True)
+            return True
+        except Exception:
+            return False
+
+    def directory_delete(self, path: str):
+        """
+        Delete directory (synchronous)
+        :param str path: Directory path to delete
+        :returns bool: True if successful, False otherwise
+        """
+        try:
+            import os
+            os.rmdir(path)
+            return True
+        except Exception:
+            return False
+
+    def directory_exists(self, path: str):
+        """
+        Check if directory exists (synchronous)
+        :param str path: Directory path to check
+        :returns bool: True if directory exists, False otherwise
+        """
+        try:
+            import os
+            return os.path.isdir(path)
+        except Exception:
+            return False
+         
     @staticmethod
     def gzip_deflate(response, text):
         encoding = response.info().get('Content-Encoding')
