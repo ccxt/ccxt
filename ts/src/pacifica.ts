@@ -1648,8 +1648,8 @@ export default class pacifica extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {bool|undefined} [params.stop] necessary if this is to cancel a stop order.
+     * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
@@ -1694,9 +1694,6 @@ export default class pacifica extends Exchange {
         const sigPayload: Dict = {
             'symbol': market['id'],
         };
-        if ((clientOrderId === undefined) && (id === undefined)) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires either "id" or "clientOrderId"');
-        }
         if (clientOrderId !== undefined) {
             sigPayload['client_order_id'] = clientOrderId;
         } else {
