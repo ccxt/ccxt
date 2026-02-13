@@ -256,3 +256,68 @@ export function deleteFileSync (path: string): void {
 }
 
 /*  ------------------------------------------------------------------------ */
+
+/**
+ * Create directory (Node.js only)
+ * @param path Directory path to create
+ * @param options Options for directory creation (recursive: true by default)
+ */
+export async function directoryCreate (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
+    if (!isNode) {
+        return;
+    }
+    const fs = await initFileSystem();
+    if (fs) {
+        try {
+            await fs.mkdir(path, options);
+        } catch (e) {
+            // Silent fail if directory already exists or can't be created
+        }
+    }
+}
+
+/*  ------------------------------------------------------------------------ */
+
+/**
+ * Check if directory exists (Node.js only)
+ * @param path Directory path to check
+ * @returns true if directory exists, false otherwise
+ */
+export async function directoryExists (path: string): Promise<boolean> {
+    if (!isNode) {
+        return false;
+    }
+    const fs = await initFileSystem();
+    if (fs) {
+        try {
+            const stats = await fs.stat(path);
+            return stats.isDirectory();
+        } catch (e) {
+            return false;
+        }
+    }
+    return false;
+}
+
+/*  ------------------------------------------------------------------------ */
+
+/**
+ * Delete directory (Node.js only)
+ * @param path Directory path to delete
+ * @param options Options for directory deletion (recursive: true by default)
+ */
+export async function directoryDelete (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
+    if (!isNode) {
+        return;
+    }
+    const fs = await initFileSystem();
+    if (fs) {
+        try {
+            await fs.rm(path, options);
+        } catch (e) {
+            // Silent fail if directory doesn't exist or can't be deleted
+        }
+    }
+}
+
+/*  ------------------------------------------------------------------------ */
