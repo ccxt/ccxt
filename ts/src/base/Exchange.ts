@@ -535,13 +535,14 @@ export default class Exchange {
     packb = packb;
     urlencodeBase64 = urlencodeBase64;
     // io
+    // @ts-ignore
     fileRead = readFile;
+    // @ts-ignore
     fileWrite = writeFile;
+    // @ts-ignore
     fileExists = fileExists;
+    // @ts-ignore
     fileDelete = deleteFile;
-    directoryCreate = directoryCreate;
-    directoryDelete = directoryDelete;
-    directoryExists = directoryExists;
 
     constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions);
