@@ -1261,6 +1261,56 @@ class Exchange {
         return $token . '.' . static::urlencode_base64($signature);
     }
 
+    public function file_read(string $path) {
+        if (!file_exists($path)) {
+            throw new \Exception("File not found: $path");
+        }
+        return file_get_contents($path);
+    }
+
+    public function file_write(string $path, string $data) {
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        file_put_contents($path, $data);
+    }
+
+    public function file_exists(string $path) {
+        return file_exists($path);
+    }
+
+    public function file_delete(string $path) {
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
+    public function directory_create(string $path) {
+        if (!is_dir($path)) {
+            mkdir($path, 0777, true);
+        }
+    }
+
+    public function directory_exists(string $path) {
+        return is_dir($path);
+    }
+
+    public function directory_delete(string $path) {
+        if (is_dir($path)) {
+            $files = array_diff(scandir($path), array('.', '..'));
+            foreach ($files as $file) {
+                $filePath = $path . DIRECTORY_SEPARATOR . $file;
+                if (is_dir($filePath)) {
+                    $this->directory_delete($filePath);
+                } else {
+                    unlink($filePath);
+                }
+            }
+            rmdir($path);
+        }
+    }
+
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {
         $base64url = strtr($base64, '+/', '-_');
 
