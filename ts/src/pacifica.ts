@@ -1431,15 +1431,17 @@ export default class pacifica extends Exchange {
             const order = orders[i];
             const symbol = this.safeString (order, 'symbol');
             const side = this.safeString (order, 'side');
-            const price = this.safeNumber (order, 'price');
+            const price = this.safeString (order, 'price');
             const type = this.safeString (order, 'type', 'limit');
             const orderParams = this.safeDict (order, 'params', {});
             orderParams['timestamp'] = timestamp;
-            const amount = this.safeNumber (order, 'amount');
+            const amount = this.safeString (order, 'amount');
+            const amountNumber = this.parseNumber (amount);
+            const priceNumber = this.parseNumber (price);
             if (type !== 'limit') {
                 throw new NotSupported (this.id + ' createOrders() supports only type = "limit"! Your value type=' + type);
             }
-            const requestList = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const requestList = this.createOrderRequest (symbol, type, side, amountNumber, priceNumber, orderParams);
             const action = {
                 'type': 'Create',
                 'data': requestList[0],
@@ -3175,9 +3177,10 @@ export default class pacifica extends Exchange {
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
-        const cost = this.safeNumber (config, 'cost', 1);
+        const cost = this.safeString (config, 'cost', '1');
+        const costNumber = this.parseNumber (cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
-        if (cost > 1) {
+        if (costNumber > 1) {
             if (this.apiKey) {
                 const costWithKey = this.handleOption (
                     method,
@@ -3187,7 +3190,7 @@ export default class pacifica extends Exchange {
                 return costWithKey;
             }
         }
-        return cost;
+        return costNumber;
     }
 
     sortJsonKeys (value: any): any {
