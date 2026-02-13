@@ -515,6 +515,7 @@ export default class whitebit extends Exchange {
         const taker = Precise.stringDiv (takerFeeRate, '100');
         const makerFeeRate = this.safeString (market, 'makerFee');
         const maker = Precise.stringDiv (makerFeeRate, '100');
+        const isSpot = !swap;
         return {
             'id': id,
             'symbol': symbol,
@@ -525,7 +526,7 @@ export default class whitebit extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': false,
@@ -536,7 +537,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber (taker),
             'maker': this.parseNumber (maker),
-            'contractSize': !swap ? undefined : contractSize,
+            'contractSize': isSpot ? undefined : contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
