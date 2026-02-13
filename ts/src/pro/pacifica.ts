@@ -92,6 +92,7 @@ export default class pacifica extends pacificaRest {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float|undefined} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
      * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string|undefined} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
@@ -107,8 +108,8 @@ export default class pacifica extends pacificaRest {
         await this.loadMarkets ();
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
         params = this.omit (params, [
-            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'tif', 'stopPrice', 'triggerPrice', 'stopLossCloid', 'builderCode',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'expiry_window', 'agentAddress', 'originAddress',
+            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid', 'builderCode',
+            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
         ]);
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
@@ -307,7 +308,8 @@ export default class pacifica extends pacificaRest {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {bool|undefined} [params.stop] necessary if this is to cancel a stop order.
+     * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
@@ -320,7 +322,7 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const request = this.cancelOrderRequest (id, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderId' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'trigger', 'stop', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
         const urlKey = (isTestnet) ? 'test' : 'api';
         const url = this.urls[urlKey]['ws']['public'];
@@ -365,7 +367,7 @@ export default class pacifica extends pacificaRest {
      * @see https://docs.pacifica.fi/api-documentation/api/websocket/trading-operations/cancel-all-orders
      * @param {string} symbol (optional) unified market symbol of the market to cancel orders in.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.excludeReduceOnly] whether to exclude reduce-only orders
+     * @param {boolean|undefined} [params.excludeReduceOnly] whether to exclude reduce-only orders
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )

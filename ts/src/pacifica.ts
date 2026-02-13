@@ -1213,7 +1213,6 @@ export default class pacifica extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency. Not used for set tpsl order!
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float|undefined} [params.stopPrice] alias for triggerPrice
      * @param {float|undefined} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
      * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
@@ -1230,8 +1229,8 @@ export default class pacifica extends Exchange {
         await this.loadMarkets ();
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
         params = this.omit (params, [
-            'reduceOnly', 'reduce_only', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'tif', 'stopPrice', 'triggerPrice', 'stopLossCloid', 'builderCode',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'expiry_window', 'agentAddress', 'originAddress',
+            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
+            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'originAddress',
         ]);
         let response = undefined;
         if (operationType === 'create_market_order') {
@@ -1280,7 +1279,6 @@ export default class pacifica extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders, but can be used as limit_price of Trigger Order.
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {float|undefined} [params.stopPrice] alias for triggerPrice
          * @param {float|undefined} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
          * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
@@ -1306,10 +1304,10 @@ export default class pacifica extends Exchange {
         }
         amount = this.parseNumber (amount);
         price = this.parseNumber (price);
-        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
+        const triggerPrice = this.safeString (params, 'triggerPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const tifRaw = this.safeStringUpper2 (params, 'timeInForce', 'tif');
+        const tifRaw = this.safeStringUpper (params, 'timeInForce');
         const isMarket = orderType === 'MARKET';
         const isTakeProfitOrder = (takeProfitPrice !== undefined);
         const isStopLossOrder = (stopLossPrice !== undefined);
@@ -1533,7 +1531,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'clientOrderIds' ]);
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ]);
         const response = await this.privatePostOrdersBatch (this.extend (request, params));
         //
         // {
@@ -1573,10 +1571,6 @@ export default class pacifica extends Exchange {
     }
 
     cancelOrdersRequest (ids: Str[], symbol: Str = undefined, params = {}) {
-        const isStopOrder = this.safeBool (params, 'isStopOrder', false);
-        if (isStopOrder) {
-            throw new NotSupported (this.id + ' cancelOrders() do not support param "isStopOrder" (will be false only) !');
-        }
         const actions = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -1620,7 +1614,7 @@ export default class pacifica extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const request = this.cancelAllOrdersRequest (symbol, params);
-        params = this.omit (params, [ 'excludeReduceOnly', 'exclude_reduce_only', 'agentAddress', 'originAddress', 'expiryWindow', 'expiry_window' ]);
+        params = this.omit (params, [ 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ]);
         const response = await this.privatePostOrdersCancelAll (this.extend (request, params));
         //
         // {
@@ -1665,10 +1659,10 @@ export default class pacifica extends Exchange {
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
+     * @param {bool|undefined} [params.stop] necessary if this is to cancel a stop order.
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
-     * @param {bool} [params.isStopOrder] Required if order is stop order. (Another endpoint in use)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1677,8 +1671,8 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const request = this.cancelOrderRequest (id, symbol, params);
-        const isStopOrder = this.safeBool2 (params, 'isStopOrder', 'is_stop_order', false);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'expiry_window', 'is_stop_order', 'isStopOrder', 'clientOrderId' ]);
+        const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false)
+        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         let response = undefined;
         if (isStopOrder) {
             response = await this.privatePostOrdersStopCancel (this.extend (request, params));
@@ -1699,7 +1693,7 @@ export default class pacifica extends Exchange {
 
     cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
         const market = this.market (symbol);
-        const isStopOrder = this.safeBool (params, 'isStopOrder', false);
+        const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false)
         let operationType = undefined;
         if (isStopOrder) {
             operationType = 'cancel_stop_order';
