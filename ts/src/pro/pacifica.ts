@@ -92,7 +92,7 @@ export default class pacifica extends pacificaRest {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float|undefined} [params.triggerPrice] The price a trigger order is triggered at
+     * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
      * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string|undefined} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
