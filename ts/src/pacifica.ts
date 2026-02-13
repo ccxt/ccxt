@@ -964,7 +964,7 @@ export default class pacifica extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "symbol" argument');
         }
-        const defaultMaxLimit = 3950; // 4000 by docs, but in deal >~3960 returns error
+        const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
         await this.loadMarkets ();
         const market = this.market (symbol);
         let paginate = false;
@@ -3153,9 +3153,10 @@ export default class pacifica extends Exchange {
         if (address !== undefined) {
             return [ address, params ];
         }
-        [ address, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'walletAddress');
-        if (address !== undefined) {
-            return [ address, params ];
+        let address1 = undefined;
+        [ address1, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'walletAddress');
+        if (address1 !== undefined) {
+            return [ address1, params ];
         }
         if (this.walletAddress !== undefined) {
             return [ this.walletAddress, params ];
