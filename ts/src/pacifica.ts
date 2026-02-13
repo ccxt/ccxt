@@ -343,7 +343,7 @@ export default class pacifica extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOHLCV': {
-                        'limit': 4000,
+                        'limit': 3950,
                     },
                     'fetchLedger': {
                         'code': false,
@@ -954,50 +954,69 @@ export default class pacifica extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int|undefined} [params.until] timestamp in ms of the latest candle to fetch. 'limit' is priority
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchOHLCV() requires a "since" argument');
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "since" argument');
         }
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + 'fetchOHLCV() requires a "symbol" argument');
+            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a "symbol" argument');
         }
+        const defaultMaxLimit = 3950; // 4000 by docs, but in deal >~3960 returns error
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request: Dict = {
-            'symbol': market['id'],
-            'interval': timeframe,
-            'start_time': since,
-        };
-        [ request, params ] = this.handleUntilOption ('end_time', request, params);
-        if (limit !== undefined) {
-            request['end_time'] = since + (limit * (this.parseTimeframe (timeframe) * 1000));
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate', false);
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit) as OHLCV[];
+        } else {
+            let request: Dict = {
+                'symbol': market['id'],
+                'interval': timeframe,
+                'start_time': since,
+            };
+            [ request, params ] = this.handleUntilOption ('end_time', request, params);
+            const nowMillis = this.milliseconds ();
+            let until = this.safeInteger (request, 'end_time');
+            if (until === undefined) {
+                if (limit !== undefined) {
+                    until = since + (limit * (this.parseTimeframe (timeframe) * 1000)) - 1;
+                }
+                if (until === undefined) {
+                    until = since + (defaultMaxLimit * (this.parseTimeframe (timeframe) * 1000)) - 1;
+                }
+                if (until > nowMillis) {
+                    until = nowMillis;
+                }
+                request['end_time'] = until;
+            }
+            const response = await this.publicGetKline (this.extend (request, params));
+            //
+            // {
+            //   "success": true,
+            //   "data": [
+            //     {
+            //       "t": 1748954160000,
+            //       "T": 1748954220000,
+            //       "s": "BTC",
+            //       "i": "1m",
+            //       "o": "105376",
+            //       "c": "105376",
+            //       "h": "105376",
+            //       "l": "105376",
+            //       "v": "0.00022",
+            //       "n": 2
+            //     }
+            //   ],
+            //   "error": null,
+            //   "code": null
+            // }
+            //
+            const candles = this.safeList (response, 'data', []);
+            return this.parseOHLCVs (candles, market, timeframe, since, limit);
         }
-        const response = await this.publicGetKline (this.extend (request, params));
-        //
-        // {
-        //   "success": true,
-        //   "data": [
-        //     {
-        //       "t": 1748954160000,
-        //       "T": 1748954220000,
-        //       "s": "BTC",
-        //       "i": "1m",
-        //       "o": "105376",
-        //       "c": "105376",
-        //       "h": "105376",
-        //       "l": "105376",
-        //       "v": "0.00022",
-        //       "n": 2
-        //     }
-        //   ],
-        //   "error": null,
-        //   "code": null
-        // }
-        //
-        const candles = this.safeList (response, 'data', []);
-        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -1229,7 +1248,7 @@ export default class pacifica extends Exchange {
      * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
      * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
      * @param {string|undefined} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-     * @param {bool|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+     * @param {boolean|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use.
@@ -1294,7 +1313,7 @@ export default class pacifica extends Exchange {
          * @param {float|undefined} [params.stopLossPrice] the price that a stop loss order is triggered at (optional provide stopLossCloid)
          * @param {float|undefined} [params.takeProfitPrice] the price that a take profit order is triggered at (optional provide takeProfitCloid)
          * @param {string|undefined} [params.timeInForce] "GTC", "IOC", or "PO" or "ALO" or "PO_TOB" (or "TOB" - PO by top of book)
-         * @param {bool|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
+         * @param {boolean|undefined} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
          * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
          * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
          * @param {string|undefined} [params.agentAddress] only if agent wallet in use
@@ -1671,7 +1690,7 @@ export default class pacifica extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {bool|undefined} [params.stop] necessary if this is to cancel a stop order.
+     * @param {boolean|undefined} [params.stop] necessary if this is to cancel a stop order.
      * @param {string|undefined} [params.clientOrderId] client order id, (optional uuid v4 e.g.: f47ac10b-58cc-4372-a567-0e02b2c3d479)
      * @param {int|undefined} [params.expiryWindow] time to live in milliseconds
      * @param {string|undefined} [params.agentAddress] only if agent wallet in use
@@ -3246,9 +3265,7 @@ export default class pacifica extends Exchange {
         const message = this.prepareMessage (header, payload);
         const messageBytes = this.encode (message);
         const secretBytes = this.base58ToBinary (privateKey);
-        this.log (secretBytes);
         const seed = this.arraySlice (secretBytes, 0, 32);
-        this.log (seed);
         const signatureBase64 = eddsa (messageBytes, seed, ed25519);
         const signatureBinary = this.base64ToBinary (signatureBase64);
         const signatureBase58 = this.binaryToBase58 (signatureBinary);
