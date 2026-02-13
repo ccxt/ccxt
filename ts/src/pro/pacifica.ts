@@ -149,14 +149,13 @@ export default class pacifica extends pacificaRest {
         //   "type": "create_order"
         // }
         //
-        const error = this.safeString (response, 'error', undefined);
         const code = this.safeInteger (response, 'code');
         let success = false;
         if (code === 200) {
             success = true;
         }
         let status = undefined;
-        if ((error !== undefined) || (!success)) {
+        if (!success) {
             status = 'rejected';
         } else {
             status = 'open';
@@ -208,14 +207,13 @@ export default class pacifica extends pacificaRest {
         //   "t": 1749223026150,
         //   "type": "edit_order"
         // }
-        const error = this.safeString (response, 'error', undefined);
         const code = this.safeInteger (response, 'code');
         let success = false;
         if (code === 200) {
             success = true;
         }
         let status = undefined;
-        if ((error !== undefined) || (!success)) {
+        if (!success) {
             status = 'rejected';
         } else {
             status = 'open';
@@ -342,14 +340,13 @@ export default class pacifica extends pacificaRest {
         //   "type": "cancel_order"
         // }
         //
-        const error = this.safeString (response, 'error', undefined);
         const code = this.safeInteger (response, 'code');
         let success = false;
         if (code === 200) {
             success = true;
         }
         let status = undefined;
-        if ((error !== undefined) || (!success)) {
+        if (!success) {
             status = 'rejected';
         } else {
             status = 'open';

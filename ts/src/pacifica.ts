@@ -1239,10 +1239,9 @@ export default class pacifica extends Exchange {
         //    },
         // }
         //
-        const error = this.safeString (response, 'error', undefined);
         const success = this.safeBool (response, 'success', false);
         let status = undefined;
-        if ((error !== undefined) || (!success)) {
+        if (!success) {
             status = 'rejected';
         } else {
             status = 'open';
