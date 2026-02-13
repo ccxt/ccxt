@@ -2,6 +2,78 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "contract with a funding interval different from 8h",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ZRX/USDT:USDT",
+                    1769529863000,
+                    3
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00010131",
+                                "fundingRateTimestamp": "1769540400000"
+                            },
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00014161",
+                                "fundingRateTimestamp": "1769536800000"
+                            },
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00017947",
+                                "fundingRateTimestamp": "1769533200000"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1769616369874"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00017947",
+                            "fundingRateTimestamp": "1769533200000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00017947,
+                        "timestamp": 1769533200000,
+                        "datetime": "2026-01-27T17:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00014161",
+                            "fundingRateTimestamp": "1769536800000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00014161,
+                        "timestamp": 1769536800000,
+                        "datetime": "2026-01-27T18:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00010131",
+                            "fundingRateTimestamp": "1769540400000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00010131,
+                        "timestamp": 1769540400000,
+                        "datetime": "2026-01-27T19:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchMarginMode": [
             {
                 "description": "fetch margin mode",
@@ -3033,6 +3105,137 @@
         ],
         "fetchPositions": [
             {
+                "description": "positions with realisedPNL",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "TRIA/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "TRIAUSDT%2C1770811200032%2C0",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "TRIAUSDT",
+                                "leverage": "2",
+                                "breakEvenPrice": "0.01955723",
+                                "autoAddMargin": "0",
+                                "avgPrice": "0.01961459",
+                                "liqPrice": "0.04102339",
+                                "riskLimitValue": "5000",
+                                "takeProfit": "",
+                                "positionValue": "229.68681",
+                                "isReduceOnly": false,
+                                "positionIMByMp": "101.1025483",
+                                "tpslMode": "Full",
+                                "riskId": "1",
+                                "trailingStop": "0",
+                                "liqPriceByMp": "",
+                                "unrealisedPnl": "28.23968",
+                                "markPrice": "0.017203",
+                                "adlRankIndicator": "5",
+                                "cumRealisedPnl": "-0.41970255",
+                                "positionMM": "4.4079259",
+                                "createdTime": "1770457253034",
+                                "positionIdx": "0",
+                                "positionIM": "101.1025483",
+                                "positionMMByMp": "4.4079259",
+                                "seq": "130752219714",
+                                "updatedTime": "1770811200032",
+                                "side": "Sell",
+                                "bustPrice": "",
+                                "positionBalance": "0",
+                                "leverageSysUpdatedTime": "",
+                                "curRealisedPnl": "-0.41970255",
+                                "size": "11710",
+                                "positionStatus": "Normal",
+                                "mmrSysUpdatedTime": "",
+                                "stopLoss": "0.024012",
+                                "tradeMode": "0",
+                                "sessionAvgPrice": ""
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1770825492605"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "TRIAUSDT",
+                            "leverage": "2",
+                            "breakEvenPrice": "0.01955723",
+                            "autoAddMargin": "0",
+                            "avgPrice": "0.01961459",
+                            "liqPrice": "0.04102339",
+                            "riskLimitValue": "5000",
+                            "takeProfit": "",
+                            "positionValue": "229.68681",
+                            "isReduceOnly": false,
+                            "positionIMByMp": "101.1025483",
+                            "tpslMode": "Full",
+                            "riskId": "1",
+                            "trailingStop": "0",
+                            "liqPriceByMp": "",
+                            "unrealisedPnl": "28.23968",
+                            "markPrice": "0.017203",
+                            "adlRankIndicator": "5",
+                            "cumRealisedPnl": "-0.41970255",
+                            "positionMM": "4.4079259",
+                            "createdTime": "1770457253034",
+                            "positionIdx": "0",
+                            "positionIM": "101.1025483",
+                            "positionMMByMp": "4.4079259",
+                            "seq": "130752219714",
+                            "updatedTime": "1770811200032",
+                            "side": "Sell",
+                            "bustPrice": "",
+                            "positionBalance": "0",
+                            "leverageSysUpdatedTime": "",
+                            "curRealisedPnl": "-0.41970255",
+                            "size": "11710",
+                            "positionStatus": "Normal",
+                            "mmrSysUpdatedTime": "",
+                            "stopLoss": "0.024012",
+                            "tradeMode": "0",
+                            "sessionAvgPrice": "",
+                            "nextPageCursor": "TRIAUSDT%2C1770811200032%2C0"
+                        },
+                        "id": null,
+                        "symbol": "TRIA/USDT:USDT",
+                        "timestamp": 1770457253034,
+                        "datetime": "2026-02-07T09:40:53.034Z",
+                        "lastUpdateTimestamp": 1770811200032,
+                        "initialMargin": 101.1025483,
+                        "initialMarginPercentage": 0.44017568226926046,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.01961459,
+                        "notional": 229.68681,
+                        "leverage": 2,
+                        "unrealizedPnl": 28.23968,
+                        "realizedPnl": -0.41970255,
+                        "contracts": 11710,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": 0.04102339,
+                        "markPrice": 0.017203,
+                        "lastPrice": null,
+                        "collateral": 0,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "stopLossPrice": 0.024012,
+                        "takeProfitPrice": null,
+                        "hedged": false
+                    }
+                ]
+            },
+            {
                 "description": "fetch positions with hedged mode in the response",
                 "method": "fetchPositions",
                 "input": [],
@@ -3140,7 +3343,7 @@
                         "notional": 4.2225,
                         "leverage": 10,
                         "unrealizedPnl": -0.048,
-                        "realizedPnl": null,
+                        "realizedPnl": -0.00226936,
                         "contracts": 30,
                         "contractSize": 1,
                         "marginRatio": null,
@@ -3495,7 +3698,7 @@
                     "notional": 0.000010775246672334,
                     "leverage": 10,
                     "unrealizedPnl": null,
-                    "realizedPnl": null,
+                    "realizedPnl": -0.00000001,
                     "contracts": 1,
                     "contractSize": 1,
                     "marginRatio": 0,

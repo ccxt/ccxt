@@ -277,7 +277,7 @@ export default class Exchange {
     token: string;  // reserved for HTTP auth in some cases
 
     balance: any = {};
-    liquidations: Dictionary<Liquidation> = {};
+    liquidations: any = undefined;
     orderbooks: Dictionary<Ob> = {};
     tickers: Dictionary<Ticker> = {};
     fundingRates: Dictionary<FundingRate> = {};
@@ -287,7 +287,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction> = {};
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: Dictionary<Liquidation> = {};
+    myLiquidations: any = undefined;
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -581,12 +581,12 @@ export default class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -1018,6 +1018,10 @@ export default class Exchange {
             }
             throw e;
         }
+    }
+
+    jsonStringifyWithNull (obj) {
+        return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
     parseJson (jsonString) {
@@ -6052,6 +6056,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createTwapOrder() is not supported yet');
+    }
+
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         throw new NotSupported (this.id + ' createConvertTrade() is not supported yet');
     }
@@ -7959,7 +7967,8 @@ export default class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray (result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit (uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy (uniqueResults, key);
+        return this.filterBySinceLimit (sortedRes, since, limit, key);
     }
 
     async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
@@ -8734,6 +8743,33 @@ export default class Exchange {
                 }
             }
         }
+    }
+
+    timeframeFromMilliseconds (ms: number): string {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
     }
 }
 

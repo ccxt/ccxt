@@ -122,7 +122,7 @@
                         "timeInForce": "GTC"
                     }
                 ],
-                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"postOnly\":true,\"timeInForce\":\"GTC\"}"
+                "output": "{\"symbol\":\"XBT_USDT\",\"side\":\"Buy\",\"orderQty\":10000,\"ordType\":\"Limit\",\"text\":\"CCXT\",\"price\":36000,\"timeInForce\":\"GTC\",\"execInst\":\"ParticipateDoNotInitiate\"}"
             },
             {
                 "description": "spot market buy with triggerPrice and triggerDirection below",
@@ -188,7 +188,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"reduceOnly\":true}"
+                "output": "{\"symbol\":\"XBTUSDT\",\"side\":\"Sell\",\"orderQty\":1000,\"ordType\":\"Market\",\"text\":\"CCXT\",\"execInst\":\"ReduceOnly\"}"
             },
             {
                 "description": "Swap market trailing order",

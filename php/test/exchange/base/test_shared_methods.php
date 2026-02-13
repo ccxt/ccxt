@@ -639,12 +639,12 @@ function assert_round_minute_timestamp($exchange, $skipped_properties, $method, 
 }
 
 
-function deep_equal($a, $b) {
+function deep_equal($exchange, $a, $b) {
     return json_encode($a) === json_encode($b);
 }
 
 
 function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
     $log_text = log_template($exchange, $method, array());
-    assert(deep_equal($a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
+    assert(deep_equal($exchange, $a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
 }

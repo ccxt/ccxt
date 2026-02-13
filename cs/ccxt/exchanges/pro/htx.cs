@@ -46,22 +46,22 @@ public partial class htx : ccxt.htx
                             } },
                             { "future", new Dictionary<string, object>() {
                                 { "linear", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/linear-swap-ws" },
-                                    { "private", "wss://api.hbdm.com/linear-swap-notification" },
+                                    { "public", "wss://api.hbdm.vn/linear-swap-ws" },
+                                    { "private", "wss://api.hbdm.vn/linear-swap-notification" },
                                 } },
                                 { "inverse", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/ws" },
-                                    { "private", "wss://api.hbdm.com/notification" },
+                                    { "public", "wss://api.hbdm.vn/ws" },
+                                    { "private", "wss://api.hbdm.vn/notification" },
                                 } },
                             } },
                             { "swap", new Dictionary<string, object>() {
                                 { "inverse", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/swap-ws" },
-                                    { "private", "wss://api.hbdm.com/swap-notification" },
+                                    { "public", "wss://api.hbdm.vn/swap-ws" },
+                                    { "private", "wss://api.hbdm.vn/swap-notification" },
                                 } },
                                 { "linear", new Dictionary<string, object>() {
-                                    { "public", "wss://api.hbdm.com/linear-swap-ws" },
-                                    { "private", "wss://api.hbdm.com/linear-swap-notification" },
+                                    { "public", "wss://api.hbdm.vn/linear-swap-ws" },
+                                    { "private", "wss://api.hbdm.vn/linear-swap-notification" },
                                 } },
                             } },
                         } },

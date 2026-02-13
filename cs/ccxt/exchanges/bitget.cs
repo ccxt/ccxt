@@ -3351,7 +3351,6 @@ public partial class bitget : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString2(ticker, "lastPr", "lastPrice");
         object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
-        object change = this.safeString(ticker, "change24h");
         object category = this.safeString(ticker, "category");
         object markPrice = this.safeString(ticker, "markPrice");
         object marketType = null;
@@ -3365,7 +3364,8 @@ public partial class bitget : Exchange
         object percentage = this.safeString(ticker, "price24hPcnt");
         if (isTrue(isEqual(percentage, null)))
         {
-            percentage = Precise.stringMul(change, "100");
+            object change24h = this.safeString(ticker, "change24h");
+            percentage = Precise.stringMul(change24h, "100");
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, marketType) },
@@ -3382,7 +3382,7 @@ public partial class bitget : Exchange
             { "close", close },
             { "last", close },
             { "previousClose", null },
-            { "change", change },
+            { "change", null },
             { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h") },

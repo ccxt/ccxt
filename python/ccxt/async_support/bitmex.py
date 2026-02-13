@@ -1819,10 +1819,12 @@ class bitmex(Exchange, ImplicitAPI):
             filled = Precise.string_div(cumQty, average)
         else:
             filled = cumQty
-        execInst = self.safe_string(order, 'execInst')
+        execInst = self.safe_string(order, 'execInst', '')
         postOnly = None
-        if execInst is not None:
-            postOnly = (execInst == 'ParticipateDoNotInitiate')
+        reduceOnly = None
+        if len(execInst) > 0:
+            postOnly = (execInst.find('ParticipateDoNotInitiate') >= 0)
+            reduceOnly = ((execInst.find('ReduceOnly') >= 0) or (execInst.find('Close') >= 0))
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         triggerPrice = self.safe_number(order, 'stopPx')
         remaining = self.safe_string(order, 'leavesQty')
@@ -1837,6 +1839,7 @@ class bitmex(Exchange, ImplicitAPI):
             'type': self.safe_string_lower(order, 'ordType'),
             'timeInForce': self.parse_time_in_force(self.safe_string(order, 'timeInForce')),
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_string(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -1938,6 +1941,8 @@ class bitmex(Exchange, ImplicitAPI):
         if reduceOnly is not None:
             if (not market['swap']) and (not market['future']):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
+        postOnly = self.safe_bool(params, 'postOnly')
+        params = self.omit(params, ['reduceOnly', 'postOnly'])
         brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         qty = self.parse_to_int(self.amount_to_precision(symbol, amount))
         request: dict = {
@@ -1947,6 +1952,14 @@ class bitmex(Exchange, ImplicitAPI):
             'ordType': orderType,
             'text': brokerId,
         }
+        execInstructions = []
+        if reduceOnly is True:
+            execInstructions.append('ReduceOnly')
+        if postOnly is True:
+            execInstructions.append('ParticipateDoNotInitiate')
+        execInstLength = len(execInstructions)
+        if execInstLength > 0:
+            request['execInst'] = ','.join(execInstructions)
         # support for unified trigger format
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')

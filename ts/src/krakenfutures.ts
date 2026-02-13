@@ -1516,6 +1516,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1531,13 +1532,20 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.historyGetOrders (this.extend (request, params));
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        let response = undefined;
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+            response = await this.historyGetTriggers (this.extend (request, params));
+        } else {
+            response = await this.historyGetOrders (this.extend (request, params));
+        }
         const allOrders = this.safeList (response, 'elements', []);
         const closedOrders = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
-            const orderPlaced = this.safeDict (event, 'OrderPlaced');
+            const orderPlaced = this.safeDict2 (event, 'OrderPlaced', 'OrderTriggerActivated');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict (orderPlaced, 'order', {});
                 const filled = this.safeString (innerOrder, 'filled');
@@ -1559,6 +1567,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1574,17 +1583,25 @@ export default class krakenfutures extends Exchange {
         if (since !== undefined) {
             request['from'] = since;
         }
-        const response = await this.historyGetOrders (this.extend (request, params));
+        let response = undefined;
+        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+            response = await this.historyGetTriggers (this.extend (request, params));
+        } else {
+            response = await this.historyGetOrders (this.extend (request, params));
+        }
         const allOrders = this.safeList (response, 'elements', []);
         const canceledAndRejected = [];
         for (let i = 0; i < allOrders.length; i++) {
             const order = allOrders[i];
             const event = this.safeDict (order, 'event', {});
-            const orderPlaced = this.safeDict (event, 'OrderPlaced');
+            const isCancelledTriggerOrder = ('OrderTriggerCancelled' in event);
+            const orderPlaced = this.safeDict2 (event, 'OrderPlaced', 'OrderTriggerCancelled');
             if (orderPlaced !== undefined) {
                 const innerOrder = this.safeDict (orderPlaced, 'order', {});
                 const filled = this.safeString (innerOrder, 'filled');
-                if (filled === '0') {
+                if (filled === '0' || isCancelledTriggerOrder) {
                     innerOrder['status'] = 'canceled'; // status not available in the response
                     canceledAndRejected.push (innerOrder);
                 }
@@ -1671,6 +1688,8 @@ export default class krakenfutures extends Exchange {
             'notFound': 'rejected', // the order was not found, either because it had already been cancelled or it never existed
             'untouched': 'open', // the entire size of the order is unfilled
             'partiallyFilled': 'open', // the size of the order is partially but not entirely filled
+            'ENTERED_BOOK': 'open',
+            'FULLY_EXECUTED': 'closed',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1910,6 +1929,72 @@ export default class krakenfutures extends Exchange {
         //     status: 'closed'
         //   }
         //
+        // order: {
+        //     type: 'ORDER',
+        //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId: null,
+        //     symbol: 'PF_LTCUSD',
+        //     side: 'buy',
+        //     quantity: '0.1',
+        //     filled: '0',
+        //     limitPrice: '40',
+        //     reduceOnly: false,
+        //     timestamp: '2026-02-13T12:09:03.738Z',
+        //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        // },
+        //     status: 'ENTERED_BOOK',
+        //     updateReason: null,
+        //     error: null
+        // }
+        //
+        const orderDictFromFetchOrder = this.safeDict (order, 'order');
+        if (orderDictFromFetchOrder !== undefined) {
+            // order: {
+            //     type: 'ORDER',
+            //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId: null,
+            //     symbol: 'PF_LTCUSD',
+            //     side: 'buy',
+            //     quantity: '0.1',
+            //     filled: '0',
+            //     limitPrice: '40',
+            //     reduceOnly: false,
+            //     timestamp: '2026-02-13T12:09:03.738Z',
+            //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            // },
+            //     status: 'ENTERED_BOOK',
+            //     updateReason: null,
+            //     error: null
+            //
+            const datetime = this.safeString (orderDictFromFetchOrder, 'timestamp');
+            const innerStatus = this.safeString (order, 'status');
+            return this.safeOrder ({
+                'info': order,
+                'id': this.safeString (orderDictFromFetchOrder, 'orderId'),
+                'clientOrderId': this.safeStringN (orderDictFromFetchOrder, [ 'cliOrdId' ]),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'lastTradeTimestamp': undefined,
+                'lastUpdateTimestamp': this.parse8601 (this.safeString (orderDictFromFetchOrder, 'lastUpdateTimestamp')),
+                'symbol': this.safeSymbol (this.safeString (orderDictFromFetchOrder, 'symbol'), market),
+                'type': undefined,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'reduceOnly': this.safeBool (orderDictFromFetchOrder, 'reduceOnly'),
+                'side': this.safeString (orderDictFromFetchOrder, 'side'),
+                'price': this.safeString (orderDictFromFetchOrder, 'limitPrice'),
+                'triggerPrice': undefined,
+                'amount': this.safeString (orderDictFromFetchOrder, 'quantity'),
+                'cost': undefined,
+                'average': undefined,
+                'filled': this.safeString (orderDictFromFetchOrder, 'filled'),
+                'remaining': undefined,
+                'status': this.parseOrderStatus (innerStatus),
+                'fee': undefined,
+                'fees': undefined,
+                'trades': undefined,
+            });
+        }
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
         const orderEventsLength = orderEvents.length;
@@ -2379,7 +2464,7 @@ export default class krakenfutures extends Exchange {
         //         "fundingRate": -0.000000756414717067,
         //         "fundingRatePrediction": 0.000000195218676,
         //         "suspended": false,
-        //         "indexPrice": 0.043392,
+        //         "indexPrice": 0.043391,
         //         "postOnly": false,
         //         "change24h": -0.46
         //     }
@@ -2392,14 +2477,14 @@ export default class krakenfutures extends Exchange {
         let fundingRateResult = Precise.stringDiv (fundingRateString, markPriceString);
         const nextFundingRateString = this.safeString (ticker, 'fundingRatePrediction');
         let nextFundingRateResult = Precise.stringDiv (nextFundingRateString, markPriceString);
-        if (fundingRateResult > '0.25') {
+        if (Precise.stringGt (fundingRateResult, '0.25')) {
             fundingRateResult = '0.25';
-        } else if (fundingRateResult > '-0.25') {
+        } else if (Precise.stringLt (fundingRateResult, '-0.25')) {
             fundingRateResult = '-0.25';
         }
-        if (nextFundingRateResult > '0.25') {
+        if (Precise.stringGt (nextFundingRateResult, '0.25')) {
             nextFundingRateResult = '0.25';
-        } else if (nextFundingRateResult > '-0.25') {
+        } else if (Precise.stringLt (nextFundingRateResult, '-0.25')) {
             nextFundingRateResult = '-0.25';
         }
         return {
@@ -2686,7 +2771,7 @@ export default class krakenfutures extends Exchange {
         for (let i = 0; i < marginLevels.length; i++) {
             const tier = marginLevels[i];
             const initialMargin = this.safeString (tier, 'initialMargin');
-            const minNotional = this.safeNumber (tier, 'numNonContractUnits');
+            const minNotional = this.safeNumber2 (tier, 'numNonContractUnits', 'contracts');
             if (i !== 0) {
                 const tiersLength = tiers.length;
                 const previousTier = tiers[tiersLength - 1];

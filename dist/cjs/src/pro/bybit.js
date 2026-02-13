@@ -1695,13 +1695,12 @@ class bybit extends bybit$1["default"] {
                 const market = this.safeMarket(marketId, undefined, '', 'contract');
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-                let liquidations = this.safeValue(this.liquidations, symbol);
-                if (liquidations === undefined) {
+                if (this.liquidations === undefined) {
                     const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                    liquidations = new Cache.ArrayCache(limit);
+                    this.liquidations = new Cache.ArrayCache(limit);
                 }
-                liquidations.append(liquidation);
-                this.liquidations[symbol] = liquidations;
+                const cache = this.liquidations;
+                cache.append(liquidation);
                 client.resolve([liquidation], 'liquidations');
                 client.resolve([liquidation], 'liquidations::' + symbol);
             }
@@ -1712,13 +1711,12 @@ class bybit extends bybit$1["default"] {
             const market = this.safeMarket(marketId, undefined, '', 'contract');
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
+            if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new Cache.ArrayCache(limit);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'liquidations');
             client.resolve([liquidation], 'liquidations::' + symbol);
         }

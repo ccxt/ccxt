@@ -861,6 +861,8 @@ func ToFloat64(v interface{}) float64 {
 		if err == nil {
 			return result
 		}
+		// result could be changed
+		result = math.NaN()
 	}
 	return result
 }

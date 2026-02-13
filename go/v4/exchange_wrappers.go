@@ -2538,6 +2538,24 @@ func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side strin
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
+
+	opts := CreateTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTwapOrder(symbol, side, amount, duration, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
 func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
 	opts := CreateConvertTradeOptionsStruct{}

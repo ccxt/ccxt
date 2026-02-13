@@ -1800,7 +1800,7 @@ export default class whitebit extends Exchange {
         //         "time":1737380046
         //     }
         //
-        return this.safeInteger(response, 'time');
+        return this.safeIntegerProduct(response, 'time', 1000);
     }
     /**
      * @method

@@ -740,7 +740,7 @@ class cryptomus extends Exchange {
         }
         //
         //     {
-        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return $this->parse_order($response, $market);

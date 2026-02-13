@@ -3285,7 +3285,6 @@ class bitget extends bitget$1["default"] {
         const marketId = this.safeString(ticker, 'symbol');
         const close = this.safeString2(ticker, 'lastPr', 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'ts'); // exchange bitget provided 0
-        const change = this.safeString(ticker, 'change24h');
         const category = this.safeString(ticker, 'category');
         const markPrice = this.safeString(ticker, 'markPrice');
         let marketType;
@@ -3297,7 +3296,8 @@ class bitget extends bitget$1["default"] {
         }
         let percentage = this.safeString(ticker, 'price24hPcnt');
         if (percentage === undefined) {
-            percentage = Precise["default"].stringMul(change, '100');
+            const change24h = this.safeString(ticker, 'change24h');
+            percentage = Precise["default"].stringMul(change24h, '100');
         }
         return this.safeTicker({
             'symbol': this.safeSymbol(marketId, market, undefined, marketType),
@@ -3314,7 +3314,7 @@ class bitget extends bitget$1["default"] {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2(ticker, 'baseVolume', 'volume24h'),

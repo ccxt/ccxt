@@ -236,6 +236,8 @@ class ImplicitAPI:
     v2_private_post_futures_stop_order = v2PrivatePostFuturesStopOrder = Entry('futures/stop-order', ['v2', 'private'], 'POST', {'cost': 20})
     v2_private_post_futures_batch_order = v2PrivatePostFuturesBatchOrder = Entry('futures/batch-order', ['v2', 'private'], 'POST', {'cost': 1})
     v2_private_post_futures_batch_stop_order = v2PrivatePostFuturesBatchStopOrder = Entry('futures/batch-stop-order', ['v2', 'private'], 'POST', {'cost': 1})
+    v2_private_post_futures_cancel_position_stop_loss = v2PrivatePostFuturesCancelPositionStopLoss = Entry('futures/cancel-position-stop-loss', ['v2', 'private'], 'POST', {'cost': 20})
+    v2_private_post_futures_cancel_position_take_profit = v2PrivatePostFuturesCancelPositionTakeProfit = Entry('futures/cancel-position-take-profit', ['v2', 'private'], 'POST', {'cost': 20})
     v2_private_post_futures_modify_order = v2PrivatePostFuturesModifyOrder = Entry('futures/modify-order', ['v2', 'private'], 'POST', {'cost': 20})
     v2_private_post_futures_modify_stop_order = v2PrivatePostFuturesModifyStopOrder = Entry('futures/modify-stop-order', ['v2', 'private'], 'POST', {'cost': 20})
     v2_private_post_futures_batch_modify_order = v2PrivatePostFuturesBatchModifyOrder = Entry('futures/batch-modify-order', ['v2', 'private'], 'POST', {'cost': 20})

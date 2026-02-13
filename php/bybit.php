@@ -343,7 +343,7 @@ class bybit extends Exchange {
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info' => 5,
-                        'v5/account/transaction-log' => 1,
+                        'v5/account/transaction-log' => 1.66, // 30/s = 50 / 30
                         'v5/account/contract-transaction-log' => 1,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
@@ -539,6 +539,7 @@ class bybit extends Exchange {
                         'v5/account/borrow' => 5,
                         'v5/account/repay' => 5,
                         'v5/account/no-convert-repay' => 5,
+                        'v5/account/set-limit-px-action' => 5,
                         // asset
                         'v5/asset/exchange/quote-apply' => 1, // 50/s
                         'v5/asset/exchange/convert-execute' => 1, // 50/s
@@ -897,6 +898,7 @@ class bybit extends Exchange {
                     '170203' => '\\ccxt\\InvalidOrder', // Please enter the TP/SL price.
                     '170204' => '\\ccxt\\InvalidOrder', // trigger price cannot be higher than 110% price.
                     '170206' => '\\ccxt\\InvalidOrder', // trigger price cannot be lower than 90% of qty.
+                    '170209' => '\\ccxt\\RestrictedLocation', // array("retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea (Cambodia ],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":array(),"retExtInfo":array(),"time":1769526868171)
                     '170210' => '\\ccxt\\InvalidOrder', // New order rejected.
                     '170213' => '\\ccxt\\OrderNotFound', // Order does not exist.
                     '170217' => '\\ccxt\\InvalidOrder', // Only LIMIT-MAKER order is supported for the current pair.
@@ -2895,7 +2897,7 @@ class bybit extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 200);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, 200);
         }
         if ($limit === null) {
             $limit = 200;
@@ -2908,6 +2910,7 @@ class bybit extends Exchange {
             'limit' => $limit, // Limit for data size per page. [1, 200]. Default => 200
         );
         $market = $this->market($symbol);
+        $fundingTimeFrameMins = $this->safe_integer($market['info'], 'fundingInterval');
         $symbol = $market['symbol'];
         $request['symbol'] = $market['id'];
         $type = null;
@@ -2928,7 +2931,10 @@ class bybit extends Exchange {
             if ($since !== null) {
                 // end time is required when $since is not empty
                 $fundingInterval = 60 * 60 * 8 * 1000;
-                $request['endTime'] = $since . $limit * $fundingInterval;
+                if ($fundingTimeFrameMins !== null) {
+                    $fundingInterval = $fundingTimeFrameMins * 60 * 1000;
+                }
+                $request['endTime'] = $this->sum($since, $limit * $fundingInterval);
             }
         }
         $response = $this->publicGetV5MarketFundingHistory ($this->extend($request, $params));
@@ -4160,11 +4166,15 @@ class bybit extends Exchange {
                         }
                     }
                 }
-                if ($tpslModeSl !== $tpslModeTp) {
+                if ($isTakeProfitOrder && $isStopLossOrder && $tpslModeSl !== $tpslModeTp) {
                     throw new InvalidOrder($this->id . ' createOrder() requires both $stopLoss and $takeProfit to be full or partial when using combination');
                 }
-                $request['tpslMode'] = $tpslModeSl; // same
-                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
+                if ($tpslModeSl !== null) {
+                    $request['tpslMode'] = $tpslModeSl;
+                } else {
+                    $request['tpslMode'] = $tpslModeTp;
+                }
+                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint' ));
             }
         } else {
             $request['side'] = $this->capitalize($side);
@@ -6819,7 +6829,7 @@ class bybit extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
-            'realizedPnl' => $this->safe_number($position, 'closedPnl'),
+            'realizedPnl' => $this->safe_number_2($position, 'curRealisedPnl', 'closedPnl'),
             'contracts' => $this->parse_number($size), // in USD for inverse swaps
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),

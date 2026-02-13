@@ -473,7 +473,7 @@
             {
                 "description": "fetchOHLCV with since & until",
                 "method": "fetchOHLCV",
-                "url": "https://api.woox.io/v3/public/klineHistory?after=1704067200000&before=1704067300000&symbol=SPOT_BTC_USDT&type=1m",
+                "url": "https://api.woox.io/v3/public/klineHistory?after=1704067199999&before=1704067300000&symbol=SPOT_BTC_USDT&type=1m",
                 "input": [
                     "BTC/USDT",
                     "1m",

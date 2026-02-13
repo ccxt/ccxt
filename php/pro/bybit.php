@@ -1784,13 +1784,12 @@ class bybit extends \ccxt\async\bybit {
                 $market = $this->safe_market($marketId, null, '', 'contract');
                 $symbol = $market['symbol'];
                 $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-                $liquidations = $this->safe_value($this->liquidations, $symbol);
-                if ($liquidations === null) {
+                if ($this->liquidations === null) {
                     $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                    $liquidations = new ArrayCache ($limit);
+                    $this->liquidations = new ArrayCache ($limit);
                 }
-                $liquidations->append ($liquidation);
-                $this->liquidations[$symbol] = $liquidations;
+                $cache = $this->liquidations;
+                $cache->append ($liquidation);
                 $client->resolve (array( $liquidation ), 'liquidations');
                 $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
             }
@@ -1800,13 +1799,12 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->safe_market($marketId, null, '', 'contract');
             $symbol = $market['symbol'];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
-            $liquidations = $this->safe_value($this->liquidations, $symbol);
-            if ($liquidations === null) {
+            if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-                $liquidations = new ArrayCache ($limit);
+                $this->liquidations = new ArrayCache ($limit);
             }
-            $liquidations->append ($liquidation);
-            $this->liquidations[$symbol] = $liquidations;
+            $cache = $this->liquidations;
+            $cache->append ($liquidation);
             $client->resolve (array( $liquidation ), 'liquidations');
             $client->resolve (array( $liquidation ), 'liquidations::' . $symbol);
         }

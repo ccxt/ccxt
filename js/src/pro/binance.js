@@ -352,13 +352,12 @@ export default class binance extends binanceRest {
         const market = this.safeMarket(marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation(rawLiquidation, market);
-        let liquidations = this.safeValue(this.liquidations, symbol);
-        if (liquidations === undefined) {
+        if (this.liquidations === undefined) {
             const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-            liquidations = new ArrayCache(limit);
+            this.liquidations = new ArrayCache(limit);
         }
-        liquidations.append(liquidation);
-        this.liquidations[symbol] = liquidations;
+        const cache = this.liquidations;
+        cache.append(liquidation);
         client.resolve([liquidation], 'liquidations');
         client.resolve([liquidation], 'liquidations::' + symbol);
     }
@@ -563,13 +562,13 @@ export default class binance extends binanceRest {
         const market = this.safeMarket(marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol(marketId, market);
         const liquidation = this.parseWsLiquidation(message, market);
-        let myLiquidations = this.safeValue(this.myLiquidations, symbol);
-        if (myLiquidations === undefined) {
+        let cache = this.myLiquidations;
+        if (cache === undefined) {
             const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
-            myLiquidations = new ArrayCache(limit);
+            cache = new ArrayCache(limit);
         }
-        myLiquidations.append(liquidation);
-        this.myLiquidations[symbol] = myLiquidations;
+        cache.append(liquidation);
+        this.myLiquidations = cache;
         client.resolve([liquidation], 'myLiquidations');
         client.resolve([liquidation], 'myLiquidations::' + symbol);
     }

@@ -257,7 +257,8 @@ func (e *Exchange) BinaryToBase58(buff2 interface{}) string {
 	return binaryToBase58(buff)
 }
 
-func (e *Exchange) BinaryToBase64(buff []byte) string {
+func (e *Exchange) BinaryToBase64(buff2 interface{}) string {
+	buff := buff2.([]byte)
 	return base64.StdEncoding.EncodeToString(buff)
 }
 

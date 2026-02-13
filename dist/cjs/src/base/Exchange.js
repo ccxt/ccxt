@@ -118,7 +118,7 @@ class Exchange {
         this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orderbooks = {};
         this.tickers = {};
         this.fundingRates = {};
@@ -126,7 +126,7 @@ class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
@@ -336,12 +336,12 @@ class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -771,6 +771,9 @@ class Exchange {
             }
             throw e;
         }
+    }
+    jsonStringifyWithNull(obj) {
+        return JSON.stringify(obj, (_, v) => (v === undefined ? null : v));
     }
     parseJson(jsonString) {
         try {
@@ -5503,6 +5506,9 @@ class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        throw new errors.NotSupported(this.id + ' createTwapOrder() is not supported yet');
+    }
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createConvertTrade() is not supported yet');
     }
@@ -7277,7 +7283,8 @@ class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
@@ -8041,6 +8048,32 @@ class Exchange {
                 }
             }
         }
+    }
+    timeframeFromMilliseconds(ms) {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
     }
 }
 
