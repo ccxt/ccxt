@@ -942,22 +942,14 @@ export default class pacifica extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let until = undefined;
-        [ until, params ] = this.handleParamInteger (params, 'until', undefined);
-        const request: Dict = {
+        let request: Dict = {
             'symbol': market['id'],
             'interval': timeframe,
             'start_time': since,
         };
-
-        const nowMillis = this.milliseconds ();
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         if (limit !== undefined) {
-            until = since + (limit * (this.parseTimeframe (timeframe) * 1000));
-        }
-        if (until !== undefined) {
-            if (until <= nowMillis) {
-                request['end_time'] = until;
-            }
+            request['end_time'] = since + (limit * (this.parseTimeframe (timeframe) * 1000));
         }
         const response = await this.publicGetKline (this.extend (request, params));
         //
@@ -1075,13 +1067,12 @@ export default class pacifica extends Exchange {
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('fetchMyTrades', params);
-        let until = undefined;
-        [ until, params ] = this.handleParamInteger (params, 'until', undefined);
         const defaultLimit = 100;  // Default max limit
         if (paginate) {
             return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, defaultLimit) as Trade[];
         }
-        const request: Dict = {};
+        let request: Dict = {};
+        [ request, params ] = this.handleUntilOption ('end_time', request, params);
         request['account'] = userAddress;
         if (symbol !== undefined) {
             request['symbol'] = market['id'];
@@ -1091,9 +1082,6 @@ export default class pacifica extends Exchange {
         }
         if (since !== undefined) {
             request['start_time'] = since;
-        }
-        if (until !== undefined) {
-            request['end_time'] = until;
         }
         const response = await this.publicGetTradesHistory (this.extend (request, params));
         //
@@ -1582,8 +1570,8 @@ export default class pacifica extends Exchange {
             };
             actions.push (action);
         }
-        let clientOrderIds = this.safeList (params, 'clientOrderIds', []);
-        params = this.omit (params, 'clientOrderIds')
+        const clientOrderIds = this.safeList (params, 'clientOrderIds', []);
+        params = this.omit (params, 'clientOrderIds');
         for (let i = 0; i < clientOrderIds.length; i++) {
             const cloid = clientOrderIds[i];
             const cloidParams = {
@@ -1672,7 +1660,7 @@ export default class pacifica extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         const request = this.cancelOrderRequest (id, symbol, params);
-        const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false)
+        const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         let response = undefined;
         if (isStopOrder) {
@@ -1694,7 +1682,7 @@ export default class pacifica extends Exchange {
 
     cancelOrderRequest (id: Str, symbol: Str = undefined, params = {}) {
         const market = this.market (symbol);
-        const isStopOrder = this.safeBool2(params, 'trigger', 'stop', false)
+        const isStopOrder = this.safeBool2 (params, 'trigger', 'stop', false);
         let operationType = undefined;
         if (isStopOrder) {
             operationType = 'cancel_stop_order';
