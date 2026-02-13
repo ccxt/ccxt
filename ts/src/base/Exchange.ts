@@ -165,6 +165,7 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
+    readFile, writeFile, fileExists, deleteFile,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
