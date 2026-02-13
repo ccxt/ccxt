@@ -1057,7 +1057,6 @@ export default class pacifica extends pacificaRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        // only order updates are supported; Pacifica has an order state subscription (not implemented here)
         await this.loadMarkets ();
         let userAddress = undefined;
         [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchOrders', params);

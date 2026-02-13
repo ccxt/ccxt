@@ -386,7 +386,9 @@ export default class pacifica extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        return await this.fetchSwapMarkets (params);
+        await this.loadAccountSettings (true);
+        const swapMarkets = await this.fetchSwapMarkets ();
+        return swapMarkets as Market[];
     }
 
     /**
@@ -620,10 +622,16 @@ export default class pacifica extends Exchange {
         const market = this.market (symbol);
         let userAccount = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchLeverage', params);
-        const request: Dict = {
-            'account': userAccount,
-        };
-        const settings = await this.fetchAccountSettings (this.extend (request, params));
+        const cacheAddress = this.safeString2 (params, 'originAddress', 'walletAddress');
+        let settings = undefined;
+        if (userAccount === cacheAddress) {
+            settings = this.options['settings'];
+        } else {
+            const request: Dict = {
+                'account': userAccount,
+            };
+            settings = await this.fetchAccountSettings (this.extend (request, params));
+        }
         const setting = this.safeDict (settings, symbol, undefined);
         if (setting === undefined) {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -671,7 +679,7 @@ export default class pacifica extends Exchange {
     /**
      * @method
      * @name pacifica#fetchAccountSettings
-     * @description fetch account's market settings
+     * @description fetch account's market settings. Settings are cached for originAddress or walletAddress. To refresh the cache, call await loadAccountSettings(refresh=true)
      * @see https://docs.pacifica.fi/api-documentation/api/rest-api/account/get-account-settings
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string|undefined} [params.account] will default to this.walletAddress if not provided
@@ -701,6 +709,15 @@ export default class pacifica extends Exchange {
         return this.parseAccountSettings (this.safeList (response, 'data', []));
     }
 
+    async loadAccountSettings (refresh: boolean = false, params = {}) {
+        let settings = this.handleOption ('loadAccountSettings', 'settings', undefined);
+        if ((settings === undefined) || (refresh === true)) {
+            this.options['settings'] = this.createSafeDictionary ();
+            settings = await this.fetchAccountSettings (params);
+            this.options['settings'] = settings;
+        }
+    }
+
     parseAccountSettings (settings: any[]): Dict {
         const settingsLen = settings.length;
         if (settingsLen === 0) {
@@ -726,13 +743,19 @@ export default class pacifica extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
-        await this.loadMarkets ();
+        await this.loadAccountSettings ();
         let userAccount = undefined;
         [ userAccount, params ] = this.handleOriginAndSingleAddress ('fetchMarginMode', params);
-        const request: Dict = {
-            'account': userAccount,
-        };
-        const settings = await this.fetchAccountSettings (this.extend (request, params));
+        const cacheAddress = this.safeString2 (params, 'originAddress', 'walletAddress');
+        let settings = undefined;
+        if (userAccount === cacheAddress) {
+            settings = this.options['settings'];
+        } else {
+            const request: Dict = {
+                'account': userAccount,
+            };
+            settings = await this.fetchAccountSettings (this.extend (request, params));
+        }
         // {
         //   "WLFI/USDC:USDC": {
         //       "symbol": "WLFI",
@@ -3106,15 +3129,14 @@ export default class pacifica extends Exchange {
     }
 
     handleOriginAndSingleAddress (methodName: string, params: Dict) {
-        let address1 = undefined;
-        [ address1, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'mainAddress');
-        if (address1 !== undefined) {
-            return [ address1, params ];
+        let address = undefined;
+        [ address, params ] = this.handleOptionAndParams2 (params, methodName, 'account', 'address');
+        if (address !== undefined) {
+            return [ address, params ];
         }
-        let address2 = undefined;
-        [ address2, params ] = this.handleOptionAndParams2 (params, methodName, 'account', 'address');
-        if (address2 !== undefined) {
-            return [ address2, params ];
+        [ address, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'walletAddress');
+        if (address !== undefined) {
+            return [ address, params ];
         }
         if (this.walletAddress !== undefined) {
             return [ this.walletAddress, params ];
