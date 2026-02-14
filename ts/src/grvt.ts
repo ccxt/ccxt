@@ -264,6 +264,11 @@ export default class grvt extends Exchange {
                     'inverse': undefined,
                 },
             },
+            'requiredCredentials': {
+                'privateKey': true,
+                'apiKey': true,
+                'secret': true,
+            },
             'quoteJsonNumbers': false, // needed for some endpoints (todo: specify in implementations)
             'exceptions': {
                 'exact': {
