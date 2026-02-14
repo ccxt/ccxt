@@ -266,15 +266,15 @@ export default class Exchange {
     verbose: boolean = false;
     twofa: string = undefined;  // two-factor authentication (2-FA)
 
-    apiKey: string;
-    secret: string;
-    uid: string;
-    accountId: string;
-    login: string;
-    password: string;
-    privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string;  // a wallet address "0x"-prefixed hexstring
-    token: string;  // reserved for HTTP auth in some cases
+    apiKey: string = '';
+    secret: string = '';
+    uid: string = '';
+    accountId: string = '';
+    login: string = '';
+    password: string = '';
+    privateKey: string = '';  // a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string = '';  // a wallet address "0x"-prefixed hexstring
+    token: string = '';  // reserved for HTTP auth in some cases
 
     balance: any = {};
     liquidations: any = undefined;
@@ -561,17 +561,6 @@ export default class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey = undefined;
-        this.secret = undefined;
-        this.uid = undefined;
-        this.login = undefined;
-        this.password = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
-        // placeholders for cached data
         this.balance = {};
         this.bidsasks = {};
         this.orderbooks = {};
