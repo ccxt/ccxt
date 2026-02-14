@@ -100,10 +100,10 @@ function helperTestProperties () {
     // userAgents
     //
     const keys = [ 'chrome', 'chrome39', 'chrome100' ];
-    assert (exchange.userAgents !== undefined);
+    assert (exchange.getProperty (exchange, 'userAgents') !== undefined);
     for (let i = 0; i < keys.length; i++) {
         const key = keys[i];
-        const userAgent = exchange.userAgents[key];
+        const userAgent = exchange.getProperty (exchange, 'userAgents')[key];
         assert (userAgent !== undefined);
     }
 
@@ -122,13 +122,14 @@ function helperTestProperties () {
     //
     // credentials
     //
-    assert (exchange.apiKey === undefined);
+    assert (exchange.getProperty (exchange, 'apiKey') === undefined);
     assert (exchange.secret === undefined);
     assert (exchange.uid === undefined);
     assert (exchange.login === undefined);
     assert (exchange.password === undefined);
-    assert (exchange.privateKey === undefined);
-    assert (exchange.walletAddress === undefined);
+    assert (exchange.twofa === undefined);
+    assert (exchange.getProperty (exchange, 'privateKey') === undefined);
+    assert (exchange.getProperty (exchange, 'walletAddress') === undefined);
     assert (exchange.token === undefined);
     const requiredCredentials = {
         'apiKey': true,
@@ -142,7 +143,7 @@ function helperTestProperties () {
         'walletAddress': false,
         'token': false,
     };
-    testSharedMethods.assertDeepEqual (exchange, {}, 'requiredCredentials', exchange.requiredCredentials, requiredCredentials);
+    testSharedMethods.assertDeepEqual (exchange, {}, exchange.getProperty (exchange, 'requiredCredentials'), exchange.requiredCredentials, requiredCredentials);
 
     //
     // cache
@@ -156,53 +157,53 @@ function helperTestProperties () {
     testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, {});
     testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, {});
     testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, {});
-    assert (exchange.myLiquidations === undefined);
-    assert (exchange.myTrades === undefined);
+    assert (exchange.getProperty (exchange, 'myLiquidations') === undefined);
+    assert (exchange.getProperty (exchange, 'myTrades') === undefined);
     assert (exchange.positions === undefined);
     assert (exchange.markets === undefined);
     assert (exchange.symbols === undefined);
     assert (exchange.markets_by_id === undefined);
     assert (exchange.ids === undefined);
     testSharedMethods.assertDeepEqual (exchange, {}, 'currencies', exchange.currencies, {});
-    assert (exchange.baseCurrencies === undefined);
-    assert (exchange.quoteCurrencies === undefined);
+    assert (exchange.getProperty (exchange, 'baseCurrencies') === undefined);
+    assert (exchange.getProperty (exchange, 'quoteCurrencies') === undefined);
     assert (exchange.currencies_by_id === undefined);
     assert (exchange.codes === undefined);
     assert (exchange.accounts === undefined);
-    assert (exchange.accountsById === undefined);
-    testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', exchange.commonCurrencies, { 'XBT': 'BTC', 'BCHSV': 'BSV' });
+    assert (exchange.getProperty (exchange, 'accountsById') === undefined);
+    testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', exchange.getProperty (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
 
     //
     // proxies
     //
     assert (exchange.proxy === undefined);
-    assert (exchange.proxyUrl === undefined);
+    assert (exchange.getProperty (exchange, 'proxyUrl') === undefined);
     assert (exchange.proxy_url === undefined);
-    assert (exchange.proxyUrlCallback === undefined);
+    assert (exchange.getProperty (exchange, 'proxyUrlCallback') === undefined);
     assert (exchange.proxy_url_callback === undefined);
-    assert (exchange.httpProxy === undefined);
+    assert (exchange.getProperty (exchange, 'httpProxy') === undefined);
     assert (exchange.http_proxy === undefined);
-    assert (exchange.httpProxyCallback === undefined);
+    assert (exchange.getProperty (exchange, 'httpProxyCallback') === undefined);
     assert (exchange.http_proxy_callback === undefined);
-    assert (exchange.httpsProxy === undefined);
+    assert (exchange.getProperty (exchange, 'httpsProxy') === undefined);
     assert (exchange.https_proxy === undefined);
-    assert (exchange.httpsProxyCallback === undefined);
+    assert (exchange.getProperty (exchange, 'httpsProxyCallback') === undefined);
     assert (exchange.https_proxy_callback === undefined);
-    assert (exchange.socksProxy === undefined);
+    assert (exchange.getProperty (exchange, 'socksProxy') === undefined);
     assert (exchange.socks_proxy === undefined);
-    assert (exchange.socksProxyCallback === undefined);
+    assert (exchange.getProperty (exchange, 'socksProxyCallback') === undefined);
     assert (exchange.socks_proxy_callback === undefined);
-    assert (exchange.wsProxy === undefined);
+    assert (exchange.getProperty (exchange, 'wsProxy') === undefined);
     assert (exchange.ws_proxy === undefined);
-    assert (exchange.wssProxy === undefined);
+    assert (exchange.getProperty (exchange, 'wssProxy') === undefined);
     assert (exchange.wss_proxy === undefined);
-    assert (exchange.wsSocksProxy === undefined);
+    assert (exchange.getProperty (exchange, 'wsSocksProxy') === undefined);
     assert (exchange.ws_socks_proxy === undefined);
 
     //
     // request-response
     //
-    assert (exchange.lastRestRequestTimestamp === 0);
+    assert (exchange.getProperty (exchange, 'lastRestRequestTimestamp') === 0);
     // assert (exchange.enableLastJsonResponse === false);
     // assert (exchange.enableLastHttpResponse === true);
     // assert (exchange.enableLastResponseHeaders === true);
@@ -213,7 +214,7 @@ function helperTestProperties () {
     assert (exchange.last_request_body === undefined);
     assert (exchange.last_request_url === undefined);
     // assert (exchange.last_request_path === undefined);
-    assert (exchange.returnResponseHeaders === false);
+    assert (exchange.getProperty (exchange, 'returnResponseHeaders') === false);
 
     //
     // common props
