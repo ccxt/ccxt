@@ -778,10 +778,19 @@ class aster extends aster$1["default"] {
         //         "ss": 0
         //     }
         //
+        const e = this.safeString(trade, 'e');
+        const isPublicTrade = (e === 'trade') || (e === 'aggTrade');
         const id = this.safeString2(trade, 't', 'a');
         const timestamp = this.safeInteger(trade, 'T');
         const price = this.safeString2(trade, 'L', 'p');
-        const amount = this.safeString2(trade, 'q', 'l');
+        let amount = undefined;
+        if (isPublicTrade) {
+            amount = this.safeString(trade, 'q');
+        }
+        else {
+            // private trades, amount is in 'l' field, quantity of the last filled trade
+            amount = this.safeString(trade, 'l');
+        }
         let cost = this.safeString(trade, 'Y');
         if (cost === undefined) {
             if ((price !== undefined) && (amount !== undefined)) {
@@ -1711,7 +1720,7 @@ class aster extends aster$1["default"] {
             const myTrades = this.myTrades;
             myTrades.append(trade);
             client.resolve(this.myTrades, messageHash);
-            const messageHashSymbol = messageHash + ':' + symbol;
+            const messageHashSymbol = messageHash + '::' + symbol;
             client.resolve(this.myTrades, messageHashSymbol);
         }
     }

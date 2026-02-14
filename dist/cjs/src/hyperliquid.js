@@ -215,6 +215,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                     'Insufficient balance for token transfer': errors.InsufficientFunds,
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': errors.InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': errors.OrderNotFound,
+                    'Too many cumulative requests sent': errors.RateLimitExceeded, // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -3397,11 +3398,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
-        const fee = this.safeString(trade, 'fee');
+        let fee = this.safeString(trade, 'fee');
         let takerOrMaker = undefined;
         const crossed = this.safeBool(trade, 'crossed');
         if (crossed !== undefined) {
             takerOrMaker = crossed ? 'taker' : 'maker';
+        }
+        const builderFee = this.safeString(trade, 'builderFee');
+        if (builderFee !== undefined) {
+            fee = Precise["default"].stringAdd(fee, builderFee);
         }
         return this.safeTrade({
             'info': trade,

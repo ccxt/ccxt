@@ -6852,7 +6852,7 @@ export default class bybit extends Exchange {
             'notional': this.parseNumber(notional),
             'leverage': this.parseNumber(leverage),
             'unrealizedPnl': this.parseNumber(unrealisedPnl),
-            'realizedPnl': this.safeNumber(position, 'closedPnl'),
+            'realizedPnl': this.safeNumber2(position, 'curRealisedPnl', 'closedPnl'),
             'contracts': this.parseNumber(size),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': this.parseNumber(marginRatio),

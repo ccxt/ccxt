@@ -868,10 +868,20 @@ public partial class aster : ccxt.aster
         //         "ss": 0
         //     }
         //
+        object e = this.safeString(trade, "e");
+        object isPublicTrade = isTrue((isEqual(e, "trade"))) || isTrue((isEqual(e, "aggTrade")));
         object id = this.safeString2(trade, "t", "a");
         object timestamp = this.safeInteger(trade, "T");
         object price = this.safeString2(trade, "L", "p");
-        object amount = this.safeString2(trade, "q", "l");
+        object amount = null;
+        if (isTrue(isPublicTrade))
+        {
+            amount = this.safeString(trade, "q");
+        } else
+        {
+            // private trades, amount is in 'l' field, quantity of the last filled trade
+            amount = this.safeString(trade, "l");
+        }
         object cost = this.safeString(trade, "Y");
         if (isTrue(isEqual(cost, null)))
         {
@@ -1950,7 +1960,7 @@ public partial class aster : ccxt.aster
             object myTrades = this.myTrades;
             callDynamically(myTrades, "append", new object[] {trade});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHash});
-            object messageHashSymbol = add(add(messageHash, ":"), symbol);
+            object messageHashSymbol = add(add(messageHash, "::"), symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.myTrades, messageHashSymbol});
         }
     }

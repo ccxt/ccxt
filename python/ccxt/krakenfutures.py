@@ -1616,6 +1616,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             'notFound': 'rejected',  # the order was not found, either because it had already been cancelled or it never existed
             'untouched': 'open',  # the entire size of the order is unfilled
             'partiallyFilled': 'open',  # the size of the order is partially but not entirely filled
+            'ENTERED_BOOK': 'open',
+            'FULLY_EXECUTED': 'closed',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1854,6 +1856,71 @@ class krakenfutures(Exchange, ImplicitAPI):
         #     status: 'closed'
         #   }
         #
+        # order: {
+        #     type: 'ORDER',
+        #     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        #     cliOrdId: null,
+        #     symbol: 'PF_LTCUSD',
+        #     side: 'buy',
+        #     quantity: '0.1',
+        #     filled: '0',
+        #     limitPrice: '40',
+        #     reduceOnly: False,
+        #     timestamp: '2026-02-13T12:09:03.738Z',
+        #     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        # },
+        #     status: 'ENTERED_BOOK',
+        #     updateReason: null,
+        #     error: null
+        # }
+        #
+        orderDictFromFetchOrder = self.safe_dict(order, 'order')
+        if orderDictFromFetchOrder is not None:
+            # order: {
+            #     type: 'ORDER',
+            #     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            #     cliOrdId: null,
+            #     symbol: 'PF_LTCUSD',
+            #     side: 'buy',
+            #     quantity: '0.1',
+            #     filled: '0',
+            #     limitPrice: '40',
+            #     reduceOnly: False,
+            #     timestamp: '2026-02-13T12:09:03.738Z',
+            #     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            # },
+            #     status: 'ENTERED_BOOK',
+            #     updateReason: null,
+            #     error: null
+            #
+            datetime = self.safe_string(orderDictFromFetchOrder, 'timestamp')
+            innerStatus = self.safe_string(order, 'status')
+            return self.safe_order({
+                'info': order,
+                'id': self.safe_string(orderDictFromFetchOrder, 'orderId'),
+                'clientOrderId': self.safe_string_n(orderDictFromFetchOrder, ['cliOrdId']),
+                'timestamp': self.parse8601(datetime),
+                'datetime': datetime,
+                'lastTradeTimestamp': None,
+                'lastUpdateTimestamp': self.parse8601(self.safe_string(orderDictFromFetchOrder, 'lastUpdateTimestamp')),
+                'symbol': self.safe_symbol(self.safe_string(orderDictFromFetchOrder, 'symbol'), market),
+                'type': None,
+                'timeInForce': None,
+                'postOnly': None,
+                'reduceOnly': self.safe_bool(orderDictFromFetchOrder, 'reduceOnly'),
+                'side': self.safe_string(orderDictFromFetchOrder, 'side'),
+                'price': self.safe_string(orderDictFromFetchOrder, 'limitPrice'),
+                'triggerPrice': None,
+                'amount': self.safe_string(orderDictFromFetchOrder, 'quantity'),
+                'cost': None,
+                'average': None,
+                'filled': self.safe_string(orderDictFromFetchOrder, 'filled'),
+                'remaining': None,
+                'status': self.parse_order_status(innerStatus),
+                'fee': None,
+                'fees': None,
+                'trades': None,
+            })
         orderEvents = self.safe_value(order, 'orderEvents', [])
         errorStatus = self.safe_string(order, 'status')
         orderEventsLength = len(orderEvents)
@@ -2283,7 +2350,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         #         "fundingRate": -0.000000756414717067,
         #         "fundingRatePrediction": 0.000000195218676,
         #         "suspended": False,
-        #         "indexPrice": 0.043392,
+        #         "indexPrice": 0.043391,
         #         "postOnly": False,
         #         "change24h": -0.46
         #     }
@@ -2296,13 +2363,13 @@ class krakenfutures(Exchange, ImplicitAPI):
         fundingRateResult = Precise.string_div(fundingRateString, markPriceString)
         nextFundingRateString = self.safe_string(ticker, 'fundingRatePrediction')
         nextFundingRateResult = Precise.string_div(nextFundingRateString, markPriceString)
-        if fundingRateResult > '0.25':
+        if Precise.string_gt(fundingRateResult, '0.25'):
             fundingRateResult = '0.25'
-        elif fundingRateResult > '-0.25':
+        elif Precise.string_lt(fundingRateResult, '-0.25'):
             fundingRateResult = '-0.25'
-        if nextFundingRateResult > '0.25':
+        if Precise.string_gt(nextFundingRateResult, '0.25'):
             nextFundingRateResult = '0.25'
-        elif nextFundingRateResult > '-0.25':
+        elif Precise.string_lt(nextFundingRateResult, '-0.25'):
             nextFundingRateResult = '-0.25'
         return {
             'info': ticker,

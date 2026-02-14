@@ -358,7 +358,8 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
         if (this.liquidations === undefined) {
-            this.liquidations = new ArrayCacheBySymbolBySide ();
+            const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
+            this.liquidations = new ArrayCache (limit);
         }
         const cache = this.liquidations;
         cache.append (liquidation);
@@ -571,7 +572,8 @@ export default class binance extends binanceRest {
         const liquidation = this.parseWsLiquidation (message, market);
         let cache = this.myLiquidations;
         if (cache === undefined) {
-            cache = new ArrayCacheBySymbolBySide ();
+            const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
+            cache = new ArrayCache (limit);
         }
         cache.append (liquidation);
         this.myLiquidations = cache;

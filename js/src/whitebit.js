@@ -515,6 +515,7 @@ export default class whitebit extends Exchange {
         const taker = Precise.stringDiv(takerFeeRate, '100');
         const makerFeeRate = this.safeString(market, 'makerFee');
         const maker = Precise.stringDiv(makerFeeRate, '100');
+        const isSpot = !swap;
         return {
             'id': id,
             'symbol': symbol,
@@ -525,7 +526,7 @@ export default class whitebit extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': false,
@@ -536,7 +537,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': contractSize,
+            'contractSize': isSpot ? undefined : contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -2437,7 +2438,7 @@ export default class whitebit extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'status': undefined,
+            'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'side': side,
             'price': price,
             'type': orderType,
@@ -2450,6 +2451,15 @@ export default class whitebit extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+    parseOrderStatus(status) {
+        const statuses = {
+            'CANCELED': 'canceled',
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+        };
+        return this.safeStringLower(statuses, status, status);
     }
     /**
      * @method
