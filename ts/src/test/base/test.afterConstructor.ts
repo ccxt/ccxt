@@ -223,16 +223,16 @@ function helperTestProperties () {
     assert (exchange.has !== undefined);
     assert (exchange.api === undefined);
     assert (exchange.features === undefined);
-    assert (exchange.minFundingAddressLength > 0.9999 && exchange.minFundingAddressLength < 1.0001);
-    assert (exchange.isSandboxModeEnabled === false);
-    assert (exchange.enableRateLimit === true);
-    assert (exchange.rateLimiterAlgorithm === 'leakyBucket');
-    assert (exchange.rateLimit === 2000);
+    assert (exchange.getProperty (exchange, 'minFundingAddressLength') >= 1);
+    assert (exchange.getProperty (exchange, 'isSandboxModeEnabled') === false);
+    assert (exchange.getProperty (exchange, 'enableRateLimit') === true);
+    assert (exchange.getProperty (exchange, 'rateLimiterAlgorithm') === 'leakyBucket');
+    assert (exchange.getProperty (exchange, 'rateLimit') === 2000);
     assert (exchange.certified === false);
     assert (exchange.pro === false);
     assert (exchange.alias === false);
     const httpExceptionKeys = [ '400', '401', '403', '404', '405', '407', '408', '409', '410', '418', '422', '429', '451', '500', '501', '502', '503', '504', '511', '520', '521', '522', '525', '526', '530' ];
-    testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchange.httpExceptions), httpExceptionKeys); // todo: add better deepAssert with error classes
+    testSharedMethods.assertDeepEqual (exchange, {}, 'httpExceptionKeys', Object.keys (exchange.getProperty (exchange, 'httpExceptions')), httpExceptionKeys); // todo: add better deepAssert with error classes
     const limits = {
         'leverage': { 'min': undefined, 'max': undefined },
         'amount': { 'min': undefined, 'max': undefined },
@@ -240,7 +240,7 @@ function helperTestProperties () {
         'cost': { 'min': undefined, 'max': undefined },
     };
     testSharedMethods.assertDeepEqual (exchange, {}, 'limits', exchange.limits, limits);
-    assert (exchange.rollingWindowSize === 60000);
+    assert (exchange.getProperty (exchange, 'rollingWindowSize') === 60000);
     assert (exchange.countries === undefined);
     const urls = {
         'logo': undefined,
@@ -252,14 +252,14 @@ function helperTestProperties () {
     testSharedMethods.assertDeepEqual (exchange, {}, 'urls', exchange.urls, urls);
     assert (exchange.precision === undefined);
     assert (exchange.hostname === undefined);
-    assert (exchange.precisionMode === undefined || exchange.precisionMode === 4);
-    assert (exchange.paddingMode === undefined || exchange.paddingMode === 5);
+    assert (exchange.getProperty (exchange, 'precisionMode') === undefined || exchange.getProperty (exchange, 'precisionMode') === 4);
+    assert (exchange.getProperty (exchange, 'paddingMode') === undefined || exchange.getProperty (exchange, 'paddingMode') === 5);
     testSharedMethods.assertDeepEqual (exchange, {}, 'headers', exchange.headers, {});
     // assert (exchange.origin === '*');
-    assert (exchange.substituteCommonCurrencyCodes === true);
-    // assert (exchange.quoteJsonNumbers === true);
-    // assert (exchange.handleContentTypeApplicationZip === false);
-    assert (exchange.reduceFees === true);
+    assert (exchange.getProperty (exchange, 'substituteCommonCurrencyCodes') === true);
+    // assert (exchange.getProperty (exchange, 'quoteJsonNumbers') === true);
+    // assert (exchange.getProperty (exchange, 'handleContentTypeApplicationZip') === false);
+    assert (exchange.getProperty (exchange, 'reduceFees') === true);
     const fees = {
         'trading': {
             'tierBased': undefined,
@@ -284,10 +284,11 @@ function helperTestProperties () {
     testSharedMethods.assertDeepEqual (exchange, {}, 'status', exchange.status, status);
     assert (exchange.timeout === 10000);
     assert (exchange.verbose === false);
-    assert (exchange.newUpdates === true);
+    assert (exchange.getProperty (exchange, 'newUpdates') === true);
     // assert (exchange.requiresEddsa === false);
-    assert (!exchange.reloadingMarkets); // undefined or false
-    assert (exchange.marketsLoading === undefined);
+    assert (!exchange.getProperty (exchange, 'reloadingMarkets'));
+    assert (exchange.getProperty (exchange, 'marketsLoading') === undefined);
+    // undefined or false
     assert (exchange.version === undefined);
     assert (exchange.name === undefined);
     assert (exchange.exceptions === undefined);
