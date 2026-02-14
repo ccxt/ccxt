@@ -81,6 +81,7 @@ type Exchange struct {
 	PrecisionMode          int
 	Limits                 map[string]interface{}
 	Fees                   map[string]interface{}
+	Status                 map[string]interface{}
 	CurrenciesById         *sync.Map
 	ReduceFees             bool
 

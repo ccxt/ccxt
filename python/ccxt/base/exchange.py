@@ -991,7 +991,7 @@ class Exchange(object):
     @staticmethod
     def sort(array):
         return sorted(array)
-    
+
     @staticmethod
     def _fast_clone(obj):
         if isinstance(obj, list):
