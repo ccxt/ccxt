@@ -522,6 +522,7 @@ class whitebit extends Exchange {
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'makerFee');
         $maker = Precise::string_div($makerFeeRate, '100');
+        $isSpot = !$swap;
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -532,7 +533,7 @@ class whitebit extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => !$swap,
+            'spot' => $isSpot,
             'margin' => $margin,
             'swap' => $swap,
             'future' => false,
@@ -543,7 +544,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $contractSize,
+            'contractSize' => $isSpot ? null : $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -2500,7 +2501,7 @@ class whitebit extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'timeInForce' => null,
             'postOnly' => null,
-            'status' => null,
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'side' => $side,
             'price' => $price,
             'type' => $orderType,
@@ -2513,6 +2514,16 @@ class whitebit extends Exchange {
             'fee' => $fee,
             'trades' => null,
         ), $market);
+    }
+
+    public function parse_order_status(?string $status) {
+        $statuses = array(
+            'CANCELED' => 'canceled',
+            'OPEN' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'FILLED' => 'closed',
+        );
+        return $this->safe_string_lower($statuses, $status, $status);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

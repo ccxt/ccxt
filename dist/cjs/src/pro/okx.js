@@ -758,7 +758,8 @@ class okx extends okx$1["default"] {
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
             if (this.liquidations === undefined) {
-                this.liquidations = new Cache.ArrayCacheBySymbolBySide();
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
             const cache = this.liquidations;
             cache.append(liquidation);
@@ -855,7 +856,8 @@ class okx extends okx$1["default"] {
             const liquidation = this.parseWsMyLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
             if (this.liquidations === undefined) {
-                this.liquidations = new Cache.ArrayCacheBySymbolBySide();
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
             const cache = this.liquidations;
             cache.append(liquidation);

@@ -396,6 +396,7 @@ public partial class whitebit : Exchange
         object taker = Precise.stringDiv(takerFeeRate, "100");
         object makerFeeRate = this.safeString(market, "makerFee");
         object maker = Precise.stringDiv(makerFeeRate, "100");
+        object isSpot = !isTrue(swap);
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -406,7 +407,7 @@ public partial class whitebit : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", !isTrue(swap) },
+            { "spot", isSpot },
             { "margin", margin },
             { "swap", swap },
             { "future", false },
@@ -417,7 +418,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", contractSize },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -2505,7 +2506,7 @@ public partial class whitebit : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "timeInForce", null },
             { "postOnly", null },
-            { "status", null },
+            { "status", this.parseOrderStatus(this.safeString(order, "status")) },
             { "side", side },
             { "price", price },
             { "type", orderType },
@@ -2518,6 +2519,17 @@ public partial class whitebit : Exchange
             { "fee", fee },
             { "trades", null },
         }, market);
+    }
+
+    public virtual object parseOrderStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "CANCELED", "canceled" },
+            { "OPEN", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "FILLED", "closed" },
+        };
+        return this.safeStringLower(statuses, status, status);
     }
 
     /**

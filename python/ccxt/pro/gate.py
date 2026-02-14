@@ -1435,7 +1435,8 @@ class gate(ccxt.async_support.gate):
         rawLiquidations = self.safe_list(message, 'result', [])
         newLiquidations = []
         if self.liquidations is None:
-            self.liquidations = ArrayCacheBySymbolBySide()
+            limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+            self.liquidations = ArrayCache(limit)
         cache = self.liquidations
         for i in range(0, len(rawLiquidations)):
             rawLiquidation = rawLiquidations[i]

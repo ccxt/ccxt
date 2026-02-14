@@ -1983,11 +1983,13 @@ public partial class bitmex : Exchange
         {
             filled = cumQty;
         }
-        object execInst = this.safeString(order, "execInst");
+        object execInst = this.safeString(order, "execInst", "");
         object postOnly = null;
-        if (isTrue(!isEqual(execInst, null)))
+        object reduceOnly = null;
+        if (isTrue(isGreaterThan(((string)execInst).Length, 0)))
         {
-            postOnly = (isEqual(execInst, "ParticipateDoNotInitiate"));
+            postOnly = (isGreaterThanOrEqual(getIndexOf(execInst, "ParticipateDoNotInitiate"), 0));
+            reduceOnly = (isTrue((isGreaterThanOrEqual(getIndexOf(execInst, "ReduceOnly"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(execInst, "Close"), 0))));
         }
         object timestamp = this.parse8601(this.safeString(order, "timestamp"));
         object triggerPrice = this.safeNumber(order, "stopPx");
@@ -2003,6 +2005,7 @@ public partial class bitmex : Exchange
             { "type", this.safeStringLower(order, "ordType") },
             { "timeInForce", this.parseTimeInForce(this.safeString(order, "timeInForce")) },
             { "postOnly", postOnly },
+            { "reduceOnly", reduceOnly },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", triggerPrice },
@@ -2125,6 +2128,8 @@ public partial class bitmex : Exchange
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() does not support reduceOnly for "), getValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
+        object postOnly = this.safeBool(parameters, "postOnly");
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "postOnly"});
         object brokerId = this.safeString(this.options, "brokerId", "CCXT");
         object qty = this.parseToInt(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
@@ -2134,6 +2139,20 @@ public partial class bitmex : Exchange
             { "ordType", orderType },
             { "text", brokerId },
         };
+        object execInstructions = new List<object>() {};
+        if (isTrue(isEqual(reduceOnly, true)))
+        {
+            ((IList<object>)execInstructions).Add("ReduceOnly");
+        }
+        if (isTrue(isEqual(postOnly, true)))
+        {
+            ((IList<object>)execInstructions).Add("ParticipateDoNotInitiate");
+        }
+        object execInstLength = getArrayLength(execInstructions);
+        if (isTrue(isGreaterThan(execInstLength, 0)))
+        {
+            ((IDictionary<string,object>)request)["execInst"] = String.Join(",", ((IList<object>)execInstructions).ToArray());
+        }
         // support for unified trigger format
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");

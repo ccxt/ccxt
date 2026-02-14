@@ -1022,7 +1022,8 @@ func  (this *OkxCore) HandleLiquidation(client interface{}, message interface{})
         var liquidation interface{} = this.ParseWsLiquidation(rawLiquidation)
         var symbol interface{} = this.SafeString(liquidation, "symbol")
         if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
-            this.Liquidations = ccxt.NewArrayCacheBySymbolBySide()
+            var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
+            this.Liquidations = ccxt.NewArrayCache(limit)
         }
         var cache interface{} = this.Liquidations
         cache.(ccxt.Appender).Append(liquidation)
@@ -1053,15 +1054,15 @@ func  (this *OkxCore) WatchMyLiquidationsForSymbols(symbols interface{}, optiona
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes8028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8028)
+            retRes8038 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8038)
             var isTrigger interface{} = this.SafeValue2(params, "stop", "trigger", false)
             params = this.Omit(params, []interface{}{"stop", "trigger"})
         
-            retRes8058 := (<-this.Authenticate(map[string]interface{} {
+            retRes8068 := (<-this.Authenticate(map[string]interface{} {
                 "access": ccxt.Ternary(ccxt.IsTrue(isTrigger), "business", "private"),
             }))
-            ccxt.PanicOnError(retRes8058)
+            ccxt.PanicOnError(retRes8068)
             symbols = this.MarketSymbols(symbols, nil, true, true)
             var messageHash interface{} = "myLiquidations"
             var messageHashes interface{} = []interface{}{}
@@ -1141,7 +1142,8 @@ func  (this *OkxCore) HandleMyLiquidation(client interface{}, message interface{
         var liquidation interface{} = this.ParseWsMyLiquidation(rawLiquidation)
         var symbol interface{} = this.SafeString(liquidation, "symbol")
         if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
-            this.Liquidations = ccxt.NewArrayCacheBySymbolBySide()
+            var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
+            this.Liquidations = ccxt.NewArrayCache(limit)
         }
         var cache interface{} = this.Liquidations
         cache.(ccxt.Appender).Append(liquidation)
@@ -1263,8 +1265,8 @@ func  (this *OkxCore) WatchOHLCV(symbol interface{}, optionalArgs ...interface{}
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9878 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9878)
+            retRes9898 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9898)
             symbol = this.Symbol(symbol)
             var interval interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
             var name interface{} = ccxt.Add("candle", interval)
@@ -1300,12 +1302,12 @@ func  (this *OkxCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interface
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes10088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10088)
+            retRes10108 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10108)
         
-                retRes100915 :=  (<-this.UnWatchOHLCVForSymbols([]interface{}{[]interface{}{symbol, timeframe}}, params))
-                ccxt.PanicOnError(retRes100915)
-                ch <- retRes100915
+                retRes101115 :=  (<-this.UnWatchOHLCVForSymbols([]interface{}{[]interface{}{symbol, timeframe}}, params))
+                ccxt.PanicOnError(retRes101115)
+                ch <- retRes101115
                 return nil
         
             }()
@@ -1337,8 +1339,8 @@ func  (this *OkxCore) WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, opt
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\\'BTC/USDT\\', \\'1m\\'], [\\'LTC/USDT\\', \\'5m\\']]")))
             }
         
-            retRes10278 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10278)
+            retRes10298 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10298)
             var topics interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -1395,8 +1397,8 @@ func  (this *OkxCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{}, o
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\\'BTC/USDT\\', \\'1m\\'], [\\'LTC/USDT\\', \\'5m\\']]")))
             }
         
-            retRes10708 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10708)
+            retRes10728 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10728)
             var topics interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -1419,9 +1421,9 @@ func  (this *OkxCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes interface{}, o
             }
             var url interface{} = this.GetUrl("candle", "public")
         
-                retRes109215 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-                ccxt.PanicOnError(retRes109215)
-                ch <- retRes109215
+                retRes109415 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
+                ccxt.PanicOnError(retRes109415)
+                ch <- retRes109415
                 return nil
         
             }()
@@ -1516,9 +1518,9 @@ func  (this *OkxCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfa
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes117615 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes117615)
-        ch <- retRes117615
+                retRes117815 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes117815)
+        ch <- retRes117815
                 return nil
         
             }()
@@ -1545,8 +1547,8 @@ func  (this *OkxCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11918)
+            retRes11938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11938)
             symbols = this.MarketSymbols(symbols)
             var depth interface{} = nil
             depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
@@ -1568,10 +1570,10 @@ func  (this *OkxCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs
                     panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " watchOrderBook/watchOrderBookForSymbols requires authentication for this depth. ccxt.Add credentials or change the depth option to books or books5")))
                 }
         
-                retRes121012 := (<-this.Authenticate(map[string]interface{} {
+                retRes121212 := (<-this.Authenticate(map[string]interface{} {
                     "access": "public",
                 }))
-                ccxt.PanicOnError(retRes121012)
+                ccxt.PanicOnError(retRes121212)
             }
             var topics interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
@@ -1619,8 +1621,8 @@ func  (this *OkxCore) UnWatchOrderBookForSymbols(symbols interface{}, optionalAr
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes12458 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12458)
+            retRes12478 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes12478)
             symbols = this.MarketSymbols(symbols, nil, false)
             var depth interface{} = nil
             depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "depth", "books")
@@ -1658,9 +1660,9 @@ func  (this *OkxCore) UnWatchOrderBookForSymbols(symbols interface{}, optionalAr
             }
             var url interface{} = this.GetUrl(depth, "public")
         
-                retRes128015 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-                ccxt.PanicOnError(retRes128015)
-                ch <- retRes128015
+                retRes128215 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
+                ccxt.PanicOnError(retRes128215)
+                ch <- retRes128215
                 return nil
         
             }()
@@ -1685,9 +1687,9 @@ func  (this *OkxCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...inter
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes129515 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes129515)
-                ch <- retRes129515
+                retRes129715 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes129715)
+                ch <- retRes129715
                 return nil
         
             }()
@@ -1956,9 +1958,9 @@ func  (this *OkxCore) Authenticate(optionalArgs ...interface{}) <- chan interfac
                 this.Watch(url, messageHash, request, messageHash)
             }
         
-                retRes155815 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes155815)
-                ch <- retRes155815
+                retRes156015 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes156015)
+                ch <- retRes156015
                 return nil
         
             }()
@@ -1979,15 +1981,15 @@ func  (this *OkxCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes15698 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15698)
+            retRes15718 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes15718)
         
-            retRes15708 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes15708)
+            retRes15728 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes15728)
         
-                retRes157115 :=  (<-this.Subscribe("private", "account", "account", nil, params))
-                ccxt.PanicOnError(retRes157115)
-                ch <- retRes157115
+                retRes157315 :=  (<-this.Subscribe("private", "account", "account", nil, params))
+                ccxt.PanicOnError(retRes157315)
+                ch <- retRes157315
                 return nil
         
             }()
@@ -2110,13 +2112,13 @@ func  (this *OkxCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfa
             var isTrigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
             params = this.Omit(params, []interface{}{"trigger", "stop"})
         
-            retRes16778 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16778)
+            retRes16798 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes16798)
         
-            retRes16788 := (<-this.Authenticate(map[string]interface{} {
+            retRes16808 := (<-this.Authenticate(map[string]interface{} {
                 "access": ccxt.Ternary(ccxt.IsTrue(isTrigger), "business", "private"),
             }))
-            ccxt.PanicOnError(retRes16788)
+            ccxt.PanicOnError(retRes16808)
             var channel interface{} = ccxt.Ternary(ccxt.IsTrue(isTrigger), "orders-algo", "orders")
             var messageHash interface{} = ccxt.Add(channel, "::myTrades")
             var market interface{} = nil
@@ -2180,11 +2182,11 @@ func  (this *OkxCore) WatchPositions(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes17218 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes17218)
+            retRes17238 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes17238)
         
-            retRes17228 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes17228)
+            retRes17248 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes17248)
             symbols = this.MarketSymbols(symbols)
             var request interface{} = map[string]interface{} {
                 "instType": "ANY",
@@ -2354,13 +2356,13 @@ func  (this *OkxCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
             var isTrigger interface{} = this.SafeValue2(params, "stop", "trigger", false)
             params = this.Omit(params, []interface{}{"stop", "trigger"})
         
-            retRes18688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes18688)
+            retRes18708 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes18708)
         
-            retRes18698 := (<-this.Authenticate(map[string]interface{} {
+            retRes18718 := (<-this.Authenticate(map[string]interface{} {
                 "access": ccxt.Ternary(ccxt.IsTrue(isTrigger), "business", "private"),
             }))
-            ccxt.PanicOnError(retRes18698)
+            ccxt.PanicOnError(retRes18718)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -2603,11 +2605,11 @@ func  (this *OkxCore) CreateOrderWs(symbol interface{}, typeVar interface{}, sid
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes20988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes20988)
+            retRes21008 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes21008)
         
-            retRes20998 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes20998)
+            retRes21018 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes21018)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var op interface{} = nil
@@ -2634,9 +2636,9 @@ func  (this *OkxCore) CreateOrderWs(symbol interface{}, typeVar interface{}, sid
                 "args": []interface{}{args},
             }
         
-                retRes212315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes212315)
-                ch <- retRes212315
+                retRes212515 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes212515)
+                ch <- retRes212515
                 return nil
         
             }()
@@ -2702,11 +2704,11 @@ func  (this *OkxCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes21768 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes21768)
+            retRes21788 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes21788)
         
-            retRes21778 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes21778)
+            retRes21798 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes21798)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var op interface{} = nil
@@ -2726,9 +2728,9 @@ func  (this *OkxCore) EditOrderWs(id interface{}, symbol interface{}, typeVar in
                 "args": []interface{}{args},
             }
         
-                retRes219415 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-                ccxt.PanicOnError(retRes219415)
-                ch <- retRes219415
+                retRes219615 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+                ccxt.PanicOnError(retRes219615)
+                ch <- retRes219615
                 return nil
         
             }()
@@ -2758,11 +2760,11 @@ func  (this *OkxCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs() requires a symbol argument")))
             }
         
-            retRes22128 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22128)
+            retRes22148 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes22148)
         
-            retRes22138 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes22138)
+            retRes22158 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes22158)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var clientOrderId interface{} = this.SafeString2(params, "clOrdId", "clientOrderId")
@@ -2783,9 +2785,9 @@ func  (this *OkxCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
                 "args": []interface{}{this.Extend(arg, params)},
             }
         
-                retRes223315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes223315)
-                ch <- retRes223315
+                retRes223515 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes223515)
+                ch <- retRes223515
                 return nil
         
             }()
@@ -2818,11 +2820,11 @@ func  (this *OkxCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrdersWs() requires a symbol argument")))
             }
         
-            retRes22548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22548)
+            retRes22568 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes22568)
         
-            retRes22558 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes22558)
+            retRes22578 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes22578)
             var url interface{} = this.GetUrl("private", "private")
             var messageHash interface{} = this.RequestId()
             var args interface{} = []interface{}{}
@@ -2843,9 +2845,9 @@ func  (this *OkxCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{
                 "args": args,
             }
         
-                retRes227515 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-                ccxt.PanicOnError(retRes227515)
-                ch <- retRes227515
+                retRes227715 :=  (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+                ccxt.PanicOnError(retRes227715)
+                ch <- retRes227715
                 return nil
         
             }()
@@ -2873,11 +2875,11 @@ func  (this *OkxCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan int
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs() requires a symbol argument")))
             }
         
-            retRes22918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes22918)
+            retRes22938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes22938)
         
-            retRes22928 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes22928)
+            retRes22948 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes22948)
             var market interface{} = this.Market(symbol)
             if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(market, "type"), "option")) {
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs is only applicable to ccxt.Option in Portfolio Margin mode, and MMP privilege is required.")))
@@ -2893,9 +2895,9 @@ func  (this *OkxCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan int
         }, params)},
             }
         
-                retRes230715 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes230715)
-                ch <- retRes230715
+                retRes230915 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes230915)
+                ch <- retRes230915
                 return nil
         
             }()

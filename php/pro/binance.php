@@ -363,7 +363,8 @@ class binance extends \ccxt\async\binance {
         $symbol = $market['symbol'];
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
         if ($this->liquidations === null) {
-            $this->liquidations = new ArrayCacheBySymbolBySide ();
+            $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+            $this->liquidations = new ArrayCache ($limit);
         }
         $cache = $this->liquidations;
         $cache->append ($liquidation);
@@ -578,7 +579,8 @@ class binance extends \ccxt\async\binance {
         $liquidation = $this->parse_ws_liquidation($message, $market);
         $cache = $this->myLiquidations;
         if ($cache === null) {
-            $cache = new ArrayCacheBySymbolBySide ();
+            $limit = $this->safe_integer($this->options, 'myLiquidationsLimit', 1000);
+            $cache = new ArrayCache ($limit);
         }
         $cache->append ($liquidation);
         $this->myLiquidations = $cache;

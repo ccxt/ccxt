@@ -1897,10 +1897,12 @@ export default class bitmex extends Exchange {
         } else {
             filled = cumQty;
         }
-        const execInst = this.safeString (order, 'execInst');
+        const execInst = this.safeString (order, 'execInst', '');
         let postOnly = undefined;
-        if (execInst !== undefined) {
-            postOnly = (execInst === 'ParticipateDoNotInitiate');
+        let reduceOnly = undefined;
+        if (execInst.length > 0) {
+            postOnly = (execInst.indexOf ('ParticipateDoNotInitiate') >= 0);
+            reduceOnly = ((execInst.indexOf ('ReduceOnly') >= 0) || (execInst.indexOf ('Close') >= 0));
         }
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const triggerPrice = this.safeNumber (order, 'stopPx');
@@ -1916,6 +1918,7 @@ export default class bitmex extends Exchange {
             'type': this.safeStringLower (order, 'ordType'),
             'timeInForce': this.parseTimeInForce (this.safeString (order, 'timeInForce')),
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
             'triggerPrice': triggerPrice,
@@ -2025,6 +2028,8 @@ export default class bitmex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const postOnly = this.safeBool (params, 'postOnly');
+        params = this.omit (params, [ 'reduceOnly', 'postOnly' ]);
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const qty = this.parseToInt (this.amountToPrecision (symbol, amount));
         const request: Dict = {
@@ -2034,6 +2039,17 @@ export default class bitmex extends Exchange {
             'ordType': orderType,
             'text': brokerId,
         };
+        const execInstructions = [];
+        if (reduceOnly === true) {
+            execInstructions.push ('ReduceOnly');
+        }
+        if (postOnly === true) {
+            execInstructions.push ('ParticipateDoNotInitiate');
+        }
+        const execInstLength = execInstructions.length;
+        if (execInstLength > 0) {
+            request['execInst'] = execInstructions.join (',');
+        }
         // support for unified trigger format
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');

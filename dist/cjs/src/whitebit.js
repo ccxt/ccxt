@@ -514,6 +514,7 @@ class whitebit extends whitebit$1["default"] {
         const taker = Precise["default"].stringDiv(takerFeeRate, '100');
         const makerFeeRate = this.safeString(market, 'makerFee');
         const maker = Precise["default"].stringDiv(makerFeeRate, '100');
+        const isSpot = !swap;
         return {
             'id': id,
             'symbol': symbol,
@@ -524,7 +525,7 @@ class whitebit extends whitebit$1["default"] {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': false,
@@ -535,7 +536,7 @@ class whitebit extends whitebit$1["default"] {
             'inverse': inverse,
             'taker': this.parseNumber(taker),
             'maker': this.parseNumber(maker),
-            'contractSize': contractSize,
+            'contractSize': isSpot ? undefined : contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -2435,7 +2436,7 @@ class whitebit extends whitebit$1["default"] {
             'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'status': undefined,
+            'status': this.parseOrderStatus(this.safeString(order, 'status')),
             'side': side,
             'price': price,
             'type': orderType,
@@ -2448,6 +2449,15 @@ class whitebit extends whitebit$1["default"] {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+    parseOrderStatus(status) {
+        const statuses = {
+            'CANCELED': 'canceled',
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+        };
+        return this.safeStringLower(statuses, status, status);
     }
     /**
      * @method
