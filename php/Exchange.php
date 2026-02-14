@@ -314,7 +314,6 @@ class Exchange {
     public $last_request_body = null;
     public $last_request_url = null;
 
-    public $requiresWeb3 = false;
     public $requiresEddsa = false;
     public $rateLimit = 2000;
 

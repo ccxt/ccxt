@@ -100,7 +100,6 @@ export default class Exchange {
         fees?: string;
         referral?: string;
     };
-    requiresWeb3: boolean;
     requiresEddsa: boolean;
     precision: {
         amount: Num;

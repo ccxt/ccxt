@@ -301,7 +301,6 @@ export default class Exchange {
         referral?: string;
     };
 
-    requiresWeb3: boolean = false;
     requiresEddsa: boolean = false;
     precision: {
         amount: Num,
@@ -586,7 +585,6 @@ export default class Exchange {
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
-        this.requiresWeb3 = false;
         this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;

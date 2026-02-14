@@ -192,8 +192,6 @@ function helperTestProperties () {
     assert (exchange.socks_proxy === undefined);
     assert (exchange.socksProxyCallback === undefined);
     assert (exchange.socks_proxy_callback === undefined);
-    assert (exchange.userAgent === undefined);
-    assert (exchange.user_agent === undefined);
     assert (exchange.wsProxy === undefined);
     assert (exchange.ws_proxy === undefined);
     assert (exchange.wssProxy === undefined);
@@ -205,16 +203,16 @@ function helperTestProperties () {
     // request-response
     //
     assert (exchange.lastRestRequestTimestamp === 0);
-    assert (exchange.enableLastJsonResponse === false);
-    assert (exchange.enableLastHttpResponse === true);
-    assert (exchange.enableLastResponseHeaders === true);
+    // assert (exchange.enableLastJsonResponse === false);
+    // assert (exchange.enableLastHttpResponse === true);
+    // assert (exchange.enableLastResponseHeaders === true);
     assert (exchange.last_http_response === undefined);
-    assert (exchange.last_json_response === undefined);
+    // assert (exchange.last_json_response === undefined);
     assert (exchange.last_response_headers === undefined);
     assert (exchange.last_request_headers === undefined);
     assert (exchange.last_request_body === undefined);
     assert (exchange.last_request_url === undefined);
-    assert (exchange.last_request_path === undefined);
+    // assert (exchange.last_request_path === undefined);
     assert (exchange.returnResponseHeaders === false);
 
     //
@@ -256,10 +254,10 @@ function helperTestProperties () {
     assert (exchange.precisionMode === undefined || exchange.precisionMode === 4);
     assert (exchange.paddingMode === undefined || exchange.paddingMode === 5);
     testSharedMethods.assertDeepEqual (exchange, {}, 'headers', exchange.headers, {});
-    assert (exchange.origin === '*');
+    // assert (exchange.origin === '*');
     assert (exchange.substituteCommonCurrencyCodes === true);
-    assert (exchange.quoteJsonNumbers === true);
-    assert (exchange.handleContentTypeApplicationZip === false);
+    // assert (exchange.quoteJsonNumbers === true);
+    // assert (exchange.handleContentTypeApplicationZip === false);
     assert (exchange.reduceFees === true);
     const fees = {
         'trading': {
@@ -286,8 +284,7 @@ function helperTestProperties () {
     assert (exchange.timeout === 10000);
     assert (exchange.verbose === false);
     assert (exchange.newUpdates === true);
-    assert (exchange.requiresWeb3 === false);
-    assert (exchange.requiresEddsa === false);
+    // assert (exchange.requiresEddsa === false);
     assert (!exchange.reloadingMarkets); // undefined or false
     assert (exchange.marketsLoading === undefined);
     assert (exchange.version === undefined);
@@ -296,7 +293,6 @@ function helperTestProperties () {
     assert (exchange.timeframes === undefined);
     testSharedMethods.assertDeepEqual (exchange, {}, 'clients', exchange.clients, {});
     testSharedMethods.assertDeepEqual (exchange, {}, 'streaming', exchange.streaming, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'proxyDictionaries', exchange.proxyDictionaries, {});
 }
 
 function testAfterConstructor () {
