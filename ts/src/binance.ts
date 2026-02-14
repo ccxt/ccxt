@@ -12007,7 +12007,7 @@ export default class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
+        const userDataStream = (path === 'userDataStream') || (path === 'listenKey') || (path === 'userListenToken');
         if (userDataStream) {
             if (this.apiKey) {
                 // v1 special case for userDataStream
