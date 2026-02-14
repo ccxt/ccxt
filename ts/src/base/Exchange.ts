@@ -2209,9 +2209,12 @@ export default class Exchange {
             'urls': {
                 'logo': undefined,
                 'api': undefined,
+                'test': undefined,
                 'www': undefined,
                 'doc': undefined,
+                'api_management': undefined,
                 'fees': undefined,
+                'referral': undefined,
             },
             'api': undefined,
             'requiredCredentials': {
@@ -2248,6 +2251,7 @@ export default class Exchange {
                 'updated': undefined,
                 'eta': undefined,
                 'url': undefined,
+                'info': undefined,
             },
             'exceptions': undefined,
             'httpExceptions': {
