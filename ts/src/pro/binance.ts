@@ -2516,7 +2516,7 @@ export default class binance extends binanceRest {
             // Schedule token renewal before expiration
             const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
             if (renewalTime > 0) {
-                this.delay (renewalTime, this.renewListenToken, { 'type': marketType, ...params });
+                this.delay (renewalTime, this.renewListenToken, this.extend (params, { 'type': marketType }));
             }
             await this.watch (url, messageHash, message, messageHash, subscription);
         }
