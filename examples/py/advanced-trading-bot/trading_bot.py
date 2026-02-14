@@ -20,17 +20,37 @@ import time
 import logging
 import sys
 
-# Setup simple logging to see what's happening
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# Setup logging
+def setup_logging():
+    """
+    Configures logging to both console and file.
+    """
+    logger = logging.getLogger('trading_bot')
+    logger.setLevel(logging.INFO)
+
+    # Create handlers
+    c_handler = logging.StreamHandler()
+    f_handler = logging.FileHandler('trading_bot.log')
+    c_handler.setLevel(logging.INFO)
+    f_handler.setLevel(logging.INFO)
+
+    # Create formatters and add it to handlers
+    log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(log_format)
+    f_handler.setFormatter(log_format)
+
+    # Add handlers to the logger
+    logger.addHandler(c_handler)
+    logger.addHandler(f_handler)
+
+    return logger
+
+logger = setup_logging()
 
 def load_config(config_path='config.json'):
     """
     Loads proper setting from the json file.
-    We need this because we don't want to hardcode API keys!
+    Handles comments in JSON (which is not standard but useful for config files).
     """
     try:
         with open(config_path, 'r') as f:
@@ -43,12 +63,65 @@ def load_config(config_path='config.json'):
                 lines.append(line)
             clean_content = "\n".join(lines)
             
-            return json.loads(clean_content)
+            config = json.loads(clean_content)
+            
+            # Validate required fields
+            required_fields = ['exchange', 'api_key', 'secret']
+            missing_fields = [field for field in required_fields if field not in config]
+            
+            if missing_fields:
+                logger.error(f"Missing required fields in config: {', '.join(missing_fields)}")
+                sys.exit(1)
+                
+            return config
+            
     except FileNotFoundError:
-        logger.error(f"Config file '{config_path}' not found! Please create it.")
+        logger.error(f"Config file '{config_path}' not found! Please create it by copying config.json.example to {config_path}.")
         sys.exit(1)
     except json.JSONDecodeError:
-        logger.error(f"Error parsing '{config_path}'. strict json format expected (trailing commas not allowed).")
+        logger.error(f"Error parsing '{config_path}'. Strict JSON format expected (trailing commas not allowed).")
+        sys.exit(1)
+
+def initialize_exchange(config):
+    """
+    Initializes the exchange instance with API keys and testing connection.
+    """
+    exchange_id = config.get('exchange', 'binance')
+    api_key = config.get('api_key')
+    secret = config.get('secret')
+    
+    logger.info(f"Connecting to {exchange_id}...")
+    
+    try:
+        # Dynamic class loading from ccxt
+        if not hasattr(ccxt, exchange_id):
+            logger.error(f"Exchange '{exchange_id}' not found in ccxt library.")
+            sys.exit(1)
+            
+        exchange_class = getattr(ccxt, exchange_id)
+        exchange = exchange_class({
+            'apiKey': api_key,
+            'secret': secret,
+            'enableRateLimit': True, # Important to avoid bans!
+        })
+        
+        # Check if we have access / test connection
+        # load_markets() is usually the first call to verify connection
+        exchange.load_markets()
+        logger.info(f"Successfully connected to {exchange_id}")
+        return exchange
+        
+    except ccxt.NetworkError as e:
+        logger.error(f"Network error connecting to {exchange_id}: {e}")
+        sys.exit(1)
+    except ccxt.AuthenticationError as e:
+        logger.error(f"Authentication error. Check your API keys: {e}")
+        sys.exit(1)
+    except ccxt.ExchangeError as e:
+        logger.error(f"Exchange error: {e}")
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Unexpected error initializing exchange: {e}")
         sys.exit(1)
 
 def main():
@@ -57,35 +130,19 @@ def main():
     # 1. Get our settings
     config = load_config()
     
-    # Extract config variables for easier use
-    exchange_id = config.get('exchange', 'binance')
-    api_key = config.get('api_key')
-    secret = config.get('secret')
+    # 2. Connect to the exchange
+    exchange = initialize_exchange(config)
+    
+    # Extract other config variables
     symbol = config.get('symbol', 'BTC/USDT')
     amount_usd = config.get('trade_amount_usd', 10)
     price_offset_pct = config.get('price_offset_percent', 0.1)
     dry_run = config.get('dry_run', True)
     
-    # 2. Connect to the exchange
-    logger.info(f"Connecting to {exchange_id}...")
-    
-    # Dynamic class loading from ccxt
-    exchange_class = getattr(ccxt, exchange_id)
-    exchange = exchange_class({
-        'apiKey': api_key,
-        'secret': secret,
-        'enableRateLimit': True, # Important to avoid bans!
-    })
-
     try:
-        # 3. Check if we have access
-        # load_markets() is usually the first call to verify connection
-        exchange.load_markets()
-        logger.info(f"Successfully connected to {exchange_id}")
-        
         # Verify symbol exists
         if symbol not in exchange.markets:
-            logger.error(f"Symbol {symbol} not supported on {exchange_id}")
+            logger.error(f"Symbol {symbol} not supported on {exchange.id}")
             return
 
         # 4. Fetch current market price (ticker)
@@ -105,17 +162,22 @@ def main():
         logger.info(f"Amount to buy: {amount:.6f} (approx ${amount_usd})")
 
         # 6. Safety Checks before ordering
-        balance = exchange.fetch_balance()
-        # Assuming we are trading USDT pairs, we check USDT balance
-        quote_currency = symbol.split('/')[1]
-        free_balance = balance.get(quote_currency, {}).get('free', 0)
-        
-        logger.info(f"Free {quote_currency} balance: {free_balance:.2f}")
-        
-        if free_balance < amount_usd:
-            logger.warning(f"Insufficient funds! Needed: {amount_usd}, Available: {free_balance}")
-            if not dry_run:
-                return # Stop if not enough money and not testing
+        # Using fetch_balance safely
+        try:
+            balance = exchange.fetch_balance()
+            # Assuming we are trading USDT pairs, we check USDT balance
+            # For robustness, handle different quote currencies if needed, but keeping it simple for now
+            quote_currency = symbol.split('/')[1]
+            free_balance = balance.get(quote_currency, {}).get('free', 0)
+            
+            logger.info(f"Free {quote_currency} balance: {free_balance:.2f}")
+            
+            if free_balance < amount_usd:
+                logger.warning(f"Insufficient funds! Needed: {amount_usd}, Available: {free_balance}")
+                if not dry_run:
+                    return # Stop if not enough money and not testing
+        except Exception as e:
+            logger.warning(f"Could not fetch balance (check permissions): {e}")
 
         # 7. Place the order
         if dry_run:
@@ -130,15 +192,18 @@ def main():
             # Simple wait logic to check if it fills (optional)
             logger.info("Waiting a moment to see status...")
             time.sleep(2)
-            fetched_order = exchange.fetch_order(order['id'], symbol)
-            logger.info(f"Order Status: {fetched_order['status']}")
+            try:
+                fetched_order = exchange.fetch_order(order['id'], symbol)
+                logger.info(f"Order Status: {fetched_order['status']}")
+            except Exception as e:
+                logger.warning(f"Could not fetch order status: {e}")
 
     except ccxt.NetworkError as e:
-        logger.error(f"Network error: {e}")
+        logger.error(f"Network error during trading: {e}")
     except ccxt.ExchangeError as e:
-        logger.error(f"Exchange error: {e}")
+        logger.error(f"Exchange error during trading: {e}")
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.error(f"Unexpected error in main loop: {e}")
 
 if __name__ == "__main__":
     main()
