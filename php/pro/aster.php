@@ -830,10 +830,18 @@ class aster extends \ccxt\async\aster {
         //         "ss" => 0
         //     }
         //
+        $e = $this->safe_string($trade, 'e');
+        $isPublicTrade = ($e === 'trade') || ($e === 'aggTrade');
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
         $price = $this->safe_string_2($trade, 'L', 'p');
-        $amount = $this->safe_string_2($trade, 'q', 'l');
+        $amount = null;
+        if ($isPublicTrade) {
+            $amount = $this->safe_string($trade, 'q');
+        } else {
+            // private trades, $amount is in 'l' field, quantity of the last filled $trade
+            $amount = $this->safe_string($trade, 'l');
+        }
         $cost = $this->safe_string($trade, 'Y');
         if ($cost === null) {
             if (($price !== null) && ($amount !== null)) {
@@ -1812,7 +1820,7 @@ class aster extends \ccxt\async\aster {
             $myTrades = $this->myTrades;
             $myTrades->append ($trade);
             $client->resolve ($this->myTrades, $messageHash);
-            $messageHashSymbol = $messageHash . ':' . $symbol;
+            $messageHashSymbol = $messageHash . '::' . $symbol;
             $client->resolve ($this->myTrades, $messageHashSymbol);
         }
     }

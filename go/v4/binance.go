@@ -4879,7 +4879,7 @@ func (this *BinanceCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 		// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
 		// the reality is that the time range wider than 500 candles won't work right
 		var defaultLimit interface{} = 500
-		var maxLimit interface{} = 1500
+		var maxLimit interface{} = 1000
 		var price interface{} = this.SafeString(params, "price")
 		var until interface{} = this.SafeInteger(params, "until")
 		params = this.Omit(params, []interface{}{"price", "until"})

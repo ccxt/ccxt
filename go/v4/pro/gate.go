@@ -2058,7 +2058,8 @@ func  (this *GateCore) HandleLiquidation(client interface{}, message interface{}
     var rawLiquidations interface{} = this.SafeList(message, "result", []interface{}{})
     var newLiquidations interface{} = []interface{}{}
     if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
-        this.Liquidations = ccxt.NewArrayCacheBySymbolBySide()
+        var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
+        this.Liquidations = ccxt.NewArrayCache(limit)
     }
     var cache interface{} = this.Liquidations
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawLiquidations)); i++ {
@@ -2509,9 +2510,9 @@ func  (this *GateCore) SubscribePublic(url interface{}, messageHash interface{},
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes199315 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
-                ccxt.PanicOnError(retRes199315)
-                ch <- retRes199315
+                retRes199415 :=  (<-this.Watch(url, messageHash, message, messageHash, subscription))
+                ccxt.PanicOnError(retRes199415)
+                ch <- retRes199415
                 return nil
         
             }()
@@ -2535,9 +2536,9 @@ func  (this *GateCore) SubscribePublicMultiple(url interface{}, messageHashes in
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes200715 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
-                ccxt.PanicOnError(retRes200715)
-                ch <- retRes200715
+                retRes200815 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
+                ccxt.PanicOnError(retRes200815)
+                ch <- retRes200815
                 return nil
         
             }()
@@ -2569,9 +2570,9 @@ func  (this *GateCore) UnSubscribePublicMultiple(url interface{}, topic interfac
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes202915 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
-                ccxt.PanicOnError(retRes202915)
-                ch <- retRes202915
+                retRes203015 :=  (<-this.WatchMultiple(url, messageHashes, message, messageHashes, sub))
+                ccxt.PanicOnError(retRes203015)
+                ch <- retRes203015
                 return nil
         
             }()
@@ -2589,9 +2590,9 @@ func  (this *GateCore) Authenticate(url interface{}, messageType interface{}) <-
             var authenticated interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
         
-                    retRes203919 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
-                    ccxt.PanicOnError(retRes203919)
-                    ch <- retRes203919
+                    retRes204019 :=  (<-this.RequestPrivate(url, map[string]interface{} {}, channel, messageHash))
+                    ccxt.PanicOnError(retRes204019)
+                    ch <- retRes204019
                     return nil
             }
         
@@ -2645,9 +2646,9 @@ func  (this *GateCore) RequestPrivate(url interface{}, reqParams interface{}, ch
                 "payload": payload,
             }
         
-                retRes208215 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
-                ccxt.PanicOnError(retRes208215)
-                ch <- retRes208215
+                retRes208315 :=  (<-this.Watch(url, messageHash, request, messageHash, requestId))
+                ccxt.PanicOnError(retRes208315)
+                ch <- retRes208315
                 return nil
         
             }()
@@ -2701,9 +2702,9 @@ func  (this *GateCore) SubscribePrivate(url interface{}, messageHash interface{}
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes212615 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
-                ccxt.PanicOnError(retRes212615)
-                ch <- retRes212615
+                retRes212715 :=  (<-this.Watch(url, messageHash, message, messageHash, messageHash))
+                ccxt.PanicOnError(retRes212715)
+                ch <- retRes212715
                 return nil
         
             }()

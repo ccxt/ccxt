@@ -335,6 +335,7 @@ export default class whitebit extends Exchange {
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseOrderType(type: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
+    parseOrderStatus(status: Str): string;
     /**
      * @method
      * @name whitebit#fetchOrderTrades

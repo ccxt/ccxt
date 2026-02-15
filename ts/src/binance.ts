@@ -4681,7 +4681,7 @@ export default class binance extends Exchange {
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         const defaultLimit = 500;
-        const maxLimit = 1500;
+        const maxLimit = 1000;
         const price = this.safeString (params, 'price');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);

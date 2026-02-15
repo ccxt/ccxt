@@ -1785,7 +1785,8 @@ class bybit extends \ccxt\async\bybit {
                 $symbol = $market['symbol'];
                 $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
                 if ($this->liquidations === null) {
-                    $this->liquidations = new ArrayCacheBySymbolBySide ();
+                    $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                    $this->liquidations = new ArrayCache ($limit);
                 }
                 $cache = $this->liquidations;
                 $cache->append ($liquidation);
@@ -1799,7 +1800,8 @@ class bybit extends \ccxt\async\bybit {
             $symbol = $market['symbol'];
             $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
             if ($this->liquidations === null) {
-                $this->liquidations = new ArrayCacheBySymbolBySide ();
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $this->liquidations = new ArrayCache ($limit);
             }
             $cache = $this->liquidations;
             $cache->append ($liquidation);

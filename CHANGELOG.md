@@ -1,3 +1,59 @@
+<a id="v4.5.38"></a>
+# [v4.5.38](https://github.com/ccxt/ccxt/releases/tag/v4.5.38) - 2026-02-13
+
+## What's Changed
+* hyperliquid error mapping by [@ndubel](https://github.com/ndubel) in [#27882](https://github.com/ccxt/ccxt/pull/27882)
+* fix: update version in go pro by [@sc0Vu](https://github.com/sc0Vu) in [#27880](https://github.com/ccxt/ccxt/pull/27880)
+* test(krakenfutures): rev back static by [@ttodua](https://github.com/ttodua) in [#27884](https://github.com/ccxt/ccxt/pull/27884)
+* fix(bitmex): map reduceOnly and postOnly to execInst in createOrder by [@byshing](https://github.com/byshing) in [#27883](https://github.com/ccxt/ccxt/pull/27883)
+* fix(bybit): add realisedPNL to positions by [@carlosmiei](https://github.com/carlosmiei) in [#27886](https://github.com/ccxt/ccxt/pull/27886)
+* fix(hyperliquid): rm empty line by [@carlosmiei](https://github.com/carlosmiei) in [#27888](https://github.com/ccxt/ccxt/pull/27888)
+* fix(gate): map INVALID_PARAM_VALUE to badRequest by [@carlosmiei](https://github.com/carlosmiei) in [#27889](https://github.com/ccxt/ccxt/pull/27889)
+* fix(binance, bitmex, bybit,gate,okx): liquidations to return ArrayCache isntead of arraycachebysymbol by [@pcriadoperez](https://github.com/pcriadoperez) in [#27891](https://github.com/ccxt/ccxt/pull/27891)
+* bitstamp new endpoints by [@ndubel](https://github.com/ndubel) in [#27893](https://github.com/ccxt/ccxt/pull/27893)
+* fix(hyperliquid): add builderFee to trade parsing by [@carlosmiei](https://github.com/carlosmiei) in [#27890](https://github.com/ccxt/ccxt/pull/27890)
+* fix(hyperliquid): builder encoding in GO by [@carlosmiei](https://github.com/carlosmiei) in [#27898](https://github.com/ccxt/ccxt/pull/27898)
+* fix(aster):  private trade quantity by [@carlosmiei](https://github.com/carlosmiei) in [#27899](https://github.com/ccxt/ccxt/pull/27899)
+* fix(krakenfutures): parseOrders from fetchOrder(s) by [@carlosmiei](https://github.com/carlosmiei) in [#27901](https://github.com/ccxt/ccxt/pull/27901)
+* fix(whitebit): order status parsing and contract size removal from sp… by [@carlosmiei](https://github.com/carlosmiei) in [#27903](https://github.com/ccxt/ccxt/pull/27903)
+
+## New Contributors
+* [@byshing](https://github.com/byshing) made their first contribution in [#27883](https://github.com/ccxt/ccxt/pull/27883)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.37...v4.5.38
+
+[Changes][v4.5.38]
+
+
+<a id="v4.5.37"></a>
+# [v4.5.37](https://github.com/ccxt/ccxt/releases/tag/v4.5.37) - 2026-02-09
+
+## What's Changed
+* feat(bybit): add  v5/account/set-limit-px-action by [@carlosmiei](https://github.com/carlosmiei) in [#27842](https://github.com/ccxt/ccxt/pull/27842)
+* feat(mexc): futures update API domain by [@nhymxu](https://github.com/nhymxu) in [#27839](https://github.com/ccxt/ccxt/pull/27839)
+* fix(whitebit): fetchTIme unit by [@carlosmiei](https://github.com/carlosmiei) in [#27846](https://github.com/ccxt/ccxt/pull/27846)
+* feat(hyperliquid): add setUserAbstraction and setAgentAbstraction method by [@carlosmiei](https://github.com/carlosmiei) in [#27847](https://github.com/ccxt/ccxt/pull/27847)
+* test: add precisionFromString tests by [@ttodua](https://github.com/ttodua) in [#27851](https://github.com/ccxt/ccxt/pull/27851)
+* feat(kucoin): add uta endpoints by [@Dan-krm](https://github.com/Dan-krm) in [#27852](https://github.com/ccxt/ccxt/pull/27852)
+* feat(htx): fetchBalance, multiAssetMode support by [@Dan-krm](https://github.com/Dan-krm) in [#27848](https://github.com/ccxt/ccxt/pull/27848)
+* perf: python precision_from_string 5x by [@ttodua](https://github.com/ttodua) in [#27850](https://github.com/ccxt/ccxt/pull/27850)
+* chore(deps-dev): bump webpack from 5.97.1 to 5.105.0 by [@dependabot](https://github.com/dependabot)[bot] in [#27858](https://github.com/ccxt/ccxt/pull/27858)
+* feat(hyperliquid): add createTwapOrder and cancelTwapOrder by [@carlosmiei](https://github.com/carlosmiei) in [#27854](https://github.com/ccxt/ccxt/pull/27854)
+* test: remove default flag by [@ttodua](https://github.com/ttodua) in [#27859](https://github.com/ccxt/ccxt/pull/27859)
+* fix: Properly clamp funding rate in Kraken Futures by [@slavivanov](https://github.com/slavivanov) in [#27870](https://github.com/ccxt/ccxt/pull/27870)
+* feat(go): add LastResponseHeaders by [@carlosmiei](https://github.com/carlosmiei) in [#27869](https://github.com/ccxt/ccxt/pull/27869)
+* feat(ai): add support for skills to codex and gemini cli by [@pcriadoperez](https://github.com/pcriadoperez) in [#27872](https://github.com/ccxt/ccxt/pull/27872)
+* feat(go): add parseTimeframe to IBaseExchange by [@carlosmiei](https://github.com/carlosmiei) in [#27875](https://github.com/ccxt/ccxt/pull/27875)
+* tests: temporaty disable php test in krakenfutured by [@carlosmiei](https://github.com/carlosmiei) in [#27876](https://github.com/ccxt/ccxt/pull/27876)
+* perf: python parse_timeframe by [@ttodua](https://github.com/ttodua) in [#27853](https://github.com/ccxt/ccxt/pull/27853)
+* perf: python get_object_value_from_key_list (10%) by [@ttodua](https://github.com/ttodua) in [#27779](https://github.com/ccxt/ccxt/pull/27779)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.36...v4.5.37
+
+[Changes][v4.5.37]
+
+
 <a id="v4.5.36"></a>
 # [v4.5.36](https://github.com/ccxt/ccxt/releases/tag/v4.5.36) - 2026-02-03
 
@@ -12362,6 +12418,8 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.38]: https://github.com/ccxt/ccxt/compare/v4.5.37...v4.5.38
+[v4.5.37]: https://github.com/ccxt/ccxt/compare/v4.5.36...v4.5.37
 [v4.5.36]: https://github.com/ccxt/ccxt/compare/v4.5.35...v4.5.36
 [v4.5.35]: https://github.com/ccxt/ccxt/compare/v4.5.34...v4.5.35
 [v4.5.34]: https://github.com/ccxt/ccxt/compare/v4.5.33...v4.5.34

@@ -35,6 +35,10 @@ func (this *BitstampCore) PublicGetTradingPairsInfo(args ...interface{}) <-chan 
 	return this.callEndpointAsync("publicGetTradingPairsInfo", args...)
 }
 
+func (this *BitstampCore) PublicGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarkets", args...)
+}
+
 func (this *BitstampCore) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
@@ -45,6 +49,14 @@ func (this *BitstampCore) PublicGetEurUsd(args ...interface{}) <-chan interface{
 
 func (this *BitstampCore) PublicGetTravelRuleVasps(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTravelRuleVasps", args...)
+}
+
+func (this *BitstampCore) PublicGetFundingRatePair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundingRatePair", args...)
+}
+
+func (this *BitstampCore) PublicGetFundingRateHistoryPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundingRateHistoryPair", args...)
 }
 
 func (this *BitstampCore) PrivateGetTravelRuleContacts(args ...interface{}) <-chan interface{} {
@@ -61,6 +73,14 @@ func (this *BitstampCore) PrivateGetEarnSubscriptions(args ...interface{}) <-cha
 
 func (this *BitstampCore) PrivateGetEarnTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetEarnTransactions", args...)
+}
+
+func (this *BitstampCore) PrivateGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeHistory", args...)
+}
+
+func (this *BitstampCore) PrivateGetTradeHistoryPair(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTradeHistoryPair", args...)
 }
 
 func (this *BitstampCore) PrivatePostAccountBalances(args ...interface{}) <-chan interface{} {
@@ -109,6 +129,10 @@ func (this *BitstampCore) PrivatePostOpenOrdersAll(args ...interface{}) <-chan i
 
 func (this *BitstampCore) PrivatePostOpenOrdersPair(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostOpenOrdersPair", args...)
+}
+
+func (this *BitstampCore) PrivatePostReplaceOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostReplaceOrder", args...)
 }
 
 func (this *BitstampCore) PrivatePostOrderStatus(args ...interface{}) <-chan interface{} {
@@ -209,6 +233,14 @@ func (this *BitstampCore) PrivatePostBtcUnconfirmed(args ...interface{}) <-chan 
 
 func (this *BitstampCore) PrivatePostWebsocketsToken(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWebsocketsToken", args...)
+}
+
+func (this *BitstampCore) PrivatePostRevokeAllApiKeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostRevokeAllApiKeys", args...)
+}
+
+func (this *BitstampCore) PrivatePostGetMaxOrderAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMaxOrderAmount", args...)
 }
 
 func (this *BitstampCore) PrivatePostBtcWithdrawal(args ...interface{}) <-chan interface{} {

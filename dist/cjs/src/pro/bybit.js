@@ -1696,7 +1696,8 @@ class bybit extends bybit$1["default"] {
                 const symbol = market['symbol'];
                 const liquidation = this.parseWsLiquidation(rawLiquidation, market);
                 if (this.liquidations === undefined) {
-                    this.liquidations = new Cache.ArrayCacheBySymbolBySide();
+                    const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                    this.liquidations = new Cache.ArrayCache(limit);
                 }
                 const cache = this.liquidations;
                 cache.append(liquidation);
@@ -1711,7 +1712,8 @@ class bybit extends bybit$1["default"] {
             const symbol = market['symbol'];
             const liquidation = this.parseWsLiquidation(rawLiquidation, market);
             if (this.liquidations === undefined) {
-                this.liquidations = new Cache.ArrayCacheBySymbolBySide();
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
             const cache = this.liquidations;
             cache.append(liquidation);

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.36'
+__version__ = '4.5.38'
 
 # -----------------------------------------------------------------------------
 
@@ -1235,6 +1235,9 @@ class Exchange(BaseExchange):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}):
+        raise NotSupported(self.id + ' createTwapOrder() is not supported yet')
 
     async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
         raise NotSupported(self.id + ' createConvertTrade() is not supported yet')

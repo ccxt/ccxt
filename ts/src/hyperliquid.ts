@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -215,6 +215,7 @@ export default class hyperliquid extends Exchange {
                     'Insufficient balance for token transfer': InsufficientFunds,
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': OrderNotFound,
+                    'Too many cumulative requests sent': RateLimitExceeded, // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -2407,7 +2408,6 @@ export default class hyperliquid extends Exchange {
             'type': 'twapCancel',
             'a': this.parseToInt (market['baseId']),
             't': this.parseToNumeric (id),
-
         };
         const nonce = this.milliseconds ();
         const signature = this.signL1Action (action, nonce, vaultAddress);
@@ -3452,11 +3452,15 @@ export default class hyperliquid extends Exchange {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
-        const fee = this.safeString (trade, 'fee');
+        let fee = this.safeString (trade, 'fee');
         let takerOrMaker = undefined;
         const crossed = this.safeBool (trade, 'crossed');
         if (crossed !== undefined) {
             takerOrMaker = crossed ? 'taker' : 'maker';
+        }
+        const builderFee = this.safeString (trade, 'builderFee');
+        if (builderFee !== undefined) {
+            fee = Precise.stringAdd (fee, builderFee);
         }
         return this.safeTrade ({
             'info': trade,

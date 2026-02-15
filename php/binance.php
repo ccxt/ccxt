@@ -4673,7 +4673,7 @@ class binance extends Exchange {
         // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 $candles won't work right
         $defaultLimit = 500;
-        $maxLimit = 1500;
+        $maxLimit = 1000;
         $price = $this->safe_string($params, 'price');
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'price', 'until' ));

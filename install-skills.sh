@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # CCXT Skills Installation Script
-# Installs CCXT usage skills for Claude Code and OpenCode
+# Installs CCXT usage skills for Claude Code, OpenCode, Codex, and Gemini
 #
 # Usage:
 #   Local:  ./install-skills.sh
@@ -29,6 +29,8 @@ SKILLS_SOURCE_DIR="$SCRIPT_DIR/.claude/skills"
 # Target directories
 CLAUDE_SKILLS_DIR="$HOME/.claude/skills"
 OPENCODE_SKILLS_DIR="$HOME/.opencode/skills"
+CODEX_SKILLS_DIR="$HOME/skills"
+GEMINI_SKILLS_DIR="$HOME/.gemini/skills"
 
 # Temporary directory for remote installation
 TEMP_DIR=""
@@ -58,7 +60,7 @@ CCXT Skills Installer
 
 Usage: $0 [OPTIONS]
 
-Install CCXT usage skills for Claude Code and OpenCode.
+Install CCXT usage skills for Claude Code, OpenCode, Codex, and Gemini.
 
 OPTIONS:
     --typescript    Install only ccxt-typescript skill
@@ -78,6 +80,8 @@ EXAMPLES:
 The skills will be installed to:
   - ~/.claude/skills/ (for Claude Code)
   - ~/.opencode/skills/ (for OpenCode)
+  - ~/skills/ (for Codex)
+  - ~/.gemini/skills/ (for Gemini)
 
 EOF
     exit 0
@@ -374,13 +378,19 @@ main() {
     # Install to OpenCode
     install_to_target "$OPENCODE_SKILLS_DIR" "OpenCode" "${selected_skills[@]}"
 
+    # Install to Codex
+    install_to_target "$CODEX_SKILLS_DIR" "Codex" "${selected_skills[@]}"
+
+    # Install to Gemini
+    install_to_target "$GEMINI_SKILLS_DIR" "Gemini" "${selected_skills[@]}"
+
     # Display completion message
     echo ""
     echo "═══════════════════════════════════════════════════════════════"
     print_success "Installation complete!"
     echo "═══════════════════════════════════════════════════════════════"
     echo ""
-    echo "The skills are now available in Claude Code and OpenCode."
+    echo "The skills are now available in Claude Code, OpenCode, Codex, and Gemini."
     echo ""
     echo "Usage examples:"
     echo ""
@@ -395,7 +405,7 @@ main() {
     echo "  \"Show me how to fetch a ticker in TypeScript\""
     echo "  \"How do I handle errors in CCXT Go?\""
     echo ""
-    print_info "Restart your Claude Code/OpenCode session to load the new skills."
+    print_info "Restart your Claude Code/OpenCode/Codex/Gemini session to load the new skills."
     echo ""
 }
 
