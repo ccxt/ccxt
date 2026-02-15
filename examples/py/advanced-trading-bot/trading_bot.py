@@ -124,6 +124,60 @@ def initialize_exchange(config):
         logger.error(f"Unexpected error initializing exchange: {e}")
         sys.exit(1)
 
+def fetch_ticker(exchange, symbol):
+    """
+    Fetches the latest ticker data for a symbol.
+    """
+    try:
+        ticker = exchange.fetch_ticker(symbol)
+        logger.info(f"Ticker for {symbol}: Bid={ticker['bid']}, Ask={ticker['ask']}, Last={ticker['last']}")
+        return ticker
+    except ccxt.NetworkError as e:
+        logger.error(f"Network error fetching ticker for {symbol}: {e}")
+        return None
+    except ccxt.ExchangeError as e:
+        logger.error(f"Exchange error fetching ticker for {symbol}: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error fetching ticker: {e}")
+        return None
+
+def fetch_order_book(exchange, symbol, limit=5):
+    """
+    Fetches the order book for a symbol.
+    """
+    try:
+        order_book = exchange.fetch_order_book(symbol, limit)
+        best_bid = order_book['bids'][0][0] if order_book['bids'] else None
+        best_ask = order_book['asks'][0][0] if order_book['asks'] else None
+        logger.info(f"Order Book for {symbol}: Best Bid={best_bid}, Best Ask={best_ask}")
+        return order_book
+    except Exception as e:
+        logger.error(f"Error fetching order book for {symbol}: {e}")
+        return None
+
+def calculate_limit_price(ticker, side, offset_percent):
+    """
+    Calculates a limit price based on the current ticker and offset.
+    """
+    if not ticker:
+        return None
+        
+    price = 0.0
+    if side == 'buy':
+        # Buy below average/bid
+        base_price = ticker['bid'] if ticker['bid'] else ticker['last']
+        price = base_price * (1 - offset_percent / 100)
+    elif side == 'sell':
+        # Sell above average/ask
+        base_price = ticker['ask'] if ticker['ask'] else ticker['last']
+        price = base_price * (1 + offset_percent / 100)
+    
+    # Round to 8 decimals (common for crypto)
+    price = round(price, 8)
+    logger.info(f"Calculated {side} limit price: {price} (Offset: {offset_percent}%)")
+    return price
+
 def main():
     logger.info("Starting the Trading Bot...")
     
@@ -145,20 +199,25 @@ def main():
             logger.error(f"Symbol {symbol} not supported on {exchange.id}")
             return
 
-        # 4. Fetch current market price (ticker)
-        ticker = exchange.fetch_ticker(symbol)
-        last_price = ticker['last']
-        logger.info(f"Current price for {symbol}: {last_price}")
+        # 4. Fetch Market Data
+        logger.info("Fetching market data...")
+        ticker = fetch_ticker(exchange, symbol)
+        if not ticker:
+            return
+            
+        # Optional: Fetch Order Book just to show we can
+        fetch_order_book(exchange, symbol)
 
         # 5. Calculate order details
-        # We want to buy a bit below current price (limit order)
-        target_price = last_price * (1 - price_offset_pct / 100)
+        target_price = calculate_limit_price(ticker, 'buy', price_offset_pct)
+        if not target_price:
+            logger.error("Could not calculate target price.")
+            return
         
         # Calculate amount in base currency (e.g., BTC)
         # amount = USD_value / price
         amount = amount_usd / target_price
         
-        logger.info(f"Target Buy Price: {target_price:.2f}")
         logger.info(f"Amount to buy: {amount:.6f} (approx ${amount_usd})")
 
         # 6. Safety Checks before ordering
