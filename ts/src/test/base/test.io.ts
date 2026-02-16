@@ -12,7 +12,9 @@ function testIo () {
     });
 
     const ms = exchange.milliseconds ();
-    const fileName = 'ccxt-test-io-' + ms.toString ();
+    // upper tmp dir
+    const upperTmpDir = '../../../../../../../../../../../../tmp/';
+    const fileName = upperTmpDir + 'ccxt-test-io-' + ms.toString ();
     const fileContent = 'hello world';
     assert (exchange.fileWrite (fileName, fileContent), "can not write file");
     assert (exchange.fileExists (fileName), "file does not exist");
