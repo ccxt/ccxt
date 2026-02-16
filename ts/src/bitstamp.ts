@@ -6,7 +6,7 @@ import { AccountSuspended, AuthenticationError, BadRequest, ExchangeError, NotSu
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -169,7 +169,7 @@ export default class bitstamp extends Exchange {
                         'currencies/': 1,
                         'eur_usd/': 1,
                         'travel_rule/vasps/': 1,
-                        'funding_rate/{pair}/': 1,
+                        'funding_rate/{market_symbol}/': 1,
                         'funding_rate_history/{pair}/': 1,
                     },
                 },
@@ -2175,6 +2175,67 @@ export default class bitstamp extends Exchange {
             currency = this.currency (code);
         }
         return this.parseLedger (response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bitstamp#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market_symbol': market['id'],
+        };
+        const response = await this.publicGetFundingRatePair (this.extend (request, params));
+        //
+        //     {
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050",
+        //         "market": "BTC/USD-PERP",
+        //         "next_funding_time": "1644406050"
+        //     }
+        //
+        return this.parseFundingRate (response, market);
+    }
+
+    parseFundingRate (fundingRate, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050",
+        //         "market": "BTC/USD-PERP",
+        //         "next_funding_time": "1644406050"
+        //     }
+        //
+        const currentTime = this.safeIntegerProduct (fundingRate, 'timestamp', 1000);
+        const nextFundingRateTimestamp = this.safeIntegerProduct (fundingRate, 'next_funding_time', 1000);
+        const marketId = this.safeString (fundingRate, 'market');
+        return {
+            'info': fundingRate,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': currentTime,
+            'datetime': this.iso8601 (currentTime),
+            'previousFundingRate': undefined,
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': this.safeNumber (fundingRate, 'funding_rate'),
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'interval': undefined,
+        } as FundingRate;
     }
 
     /**
