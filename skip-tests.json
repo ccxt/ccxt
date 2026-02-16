@@ -503,7 +503,7 @@
     },
     "bitstamp": {
         "skipMethods": {
-            "fetchMarkets": {
+            "loadMarkets": {
                 "contractSize": "not provided"
             },
             "fetchCurrencies": {

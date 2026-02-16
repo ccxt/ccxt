@@ -613,6 +613,9 @@ export default class bitstamp extends Exchange {
         const response = await this.fetchMarketsFromCache (params);
         //
         //    [
+        //
+        //   spot:
+        //
         //        {
         //            "name": "BTC/USD",
         //            "market_symbol": "btcusd",
@@ -627,6 +630,31 @@ export default class bitstamp extends Exchange {
         //            "description": "Bitcoin / U.S. dollar",
         //            "market_type": "SPOT"
         //        },
+        //        ...
+        //
+        //    perp:
+        //
+        //         {
+        //             "name": "BTC/USD-PERP",
+        //             "market_symbol": "btcusd-perp",
+        //             "base_currency": "BTC",
+        //             "base_decimals": 5,
+        //             "counter_currency": "USD",
+        //             "counter_decimals": 0,
+        //             "minimum_order_value": "10",
+        //             "maximum_order_value": "500000.00000000",
+        //             "minimum_order_amount": "0.00001000",
+        //             "maximum_order_amount": "10.00000000",
+        //             "trading": "Enabled",
+        //             "instant_order_counter_decimals": 2,
+        //             "instant_and_market_orders": "Enabled",
+        //             "description": "Bitcoin / U.S. dollar Perpetual",
+        //             "market_type": "PERPETUAL",
+        //             "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
+        //             "payoff_type": "Linear",
+        //             "contract_size": "1.00000000",
+        //             "isin": "EZHKD4DNKHY3"
+        //         }
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
@@ -634,8 +662,22 @@ export default class bitstamp extends Exchange {
             const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            let settleId: Str = undefined;
             const marketTypeRaw = this.safeString (market, 'market_type');
-            const type = (marketTypeRaw === 'SPOT') ? 'spot' : 'swap';
+            let type: Str = undefined;
+            let subType: Str = undefined;
+            if (marketTypeRaw === 'SPOT') {
+                type = 'spot';
+            } else if (marketTypeRaw === 'PERPETUAL') {
+                type = 'swap';
+                settleId = quoteId;
+                const payoffType = this.safeString (market, 'payoff_type');
+                if (payoffType === 'Linear') {
+                    subType = 'linear';
+                } else if (payoffType === 'Inverse') {
+                    subType = 'inverse';
+                }
+            }
             const isSpot = (type === 'spot');
             const symbol = base + '/' + quote;
             result.push ({
@@ -643,11 +685,12 @@ export default class bitstamp extends Exchange {
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settleId ? this.safeCurrencyCode (settleId) : undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
+                'settleId': settleId,
                 'type': type,
+                'subType': subType,
                 'spot': isSpot,
                 'margin': false,
                 'future': false,
@@ -672,8 +715,8 @@ export default class bitstamp extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber (market, 'minimum_order_amount'),
+                        'max': this.safeNumber (market, 'maximum_order_amount'),
                     },
                     'price': {
                         'min': undefined,
@@ -681,7 +724,7 @@ export default class bitstamp extends Exchange {
                     },
                     'cost': {
                         'min': this.safeNumber (market, 'minimum_order_value'),
-                        'max': undefined,
+                        'max': this.safeNumber (market, 'maximum_order_value'),
                     },
                 },
                 'created': undefined,
