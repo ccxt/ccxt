@@ -2,6 +2,31 @@
     "exchange": "bitstamp",
     "skipKeys": [],
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "+limit +since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USD:USD",
+                    1770000000000,
+                    2
+                ],
+                "httpResponse": {
+                    "market": "ETH/USD-PERP",
+                    "funding_rate_history": [
+                        {
+                            "funding_rate": "-0.00011",
+                            "timestamp": "1771228800"
+                        },
+                        {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        }
+                    ]
+                },
+                "parsedResponse": []
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
