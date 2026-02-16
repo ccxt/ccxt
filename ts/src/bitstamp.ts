@@ -612,51 +612,52 @@ export default class bitstamp extends Exchange {
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.fetchMarketsFromCache (params);
         //
-        //     [
-        //         {
-        //             "trading": "Enabled",
-        //             "base_decimals": 8,
-        //             "url_symbol": "btcusd",
-        //             "name": "BTC/USD",
-        //             "instant_and_market_orders": "Enabled",
-        //             "minimum_order": "20.0 USD",
-        //             "counter_decimals": 2,
-        //             "description": "Bitcoin / U.S. dollar"
-        //         }
-        //     ]
+        //    [
+        //        {
+        //            "name": "BTC/USD",
+        //            "market_symbol": "btcusd",
+        //            "base_currency": "BTC",
+        //            "base_decimals": 8,
+        //            "counter_currency": "USD",
+        //            "counter_decimals": 0,
+        //            "minimum_order_value": "10",
+        //            "trading": "Enabled",
+        //            "instant_order_counter_decimals": 2,
+        //            "instant_and_market_orders": "Enabled",
+        //            "description": "Bitcoin / U.S. dollar",
+        //            "market_type": "SPOT"
+        //        },
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const name = this.safeString (market, 'name');
-            let [ base, quote ] = name.split ('/');
-            const baseId = base.toLowerCase ();
-            const quoteId = quote.toLowerCase ();
-            base = this.safeCurrencyCode (base);
-            quote = this.safeCurrencyCode (quote);
-            const minimumOrder = this.safeString (market, 'minimum_order');
-            const parts = minimumOrder.split (' ');
-            const status = this.safeString (market, 'trading');
+            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const marketTypeRaw = this.safeString (market, 'market_type');
+            const type = (marketTypeRaw === 'SPOT') ? 'spot' : 'swap';
+            const isSpot = (type === 'spot');
+            const symbol = base + '/' + quote;
             result.push ({
                 'id': this.safeString (market, 'url_symbol'),
-                'marketId': baseId + '_' + quoteId,
-                'symbol': base + '/' + quote,
+                'marketId': this.safeString (market, 'market_symbol'),
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
                 'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': type,
+                'spot': isSpot,
                 'margin': false,
                 'future': false,
-                'swap': false,
+                'swap': !isSpot,
                 'option': false,
-                'active': (status === 'Enabled'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'active': (this.safeString (market, 'trading') === 'Enabled'),
+                'contract': !isSpot,
+                'linear': isSpot ? undefined : true,
+                'inverse': isSpot ? undefined : false,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -680,7 +681,7 @@ export default class bitstamp extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (parts, 0),
+                        'min': this.safeNumber (market, 'minimum_order_value'),
                         'max': undefined,
                     },
                 },
@@ -731,6 +732,40 @@ export default class bitstamp extends Exchange {
         };
     }
 
+    async fetchMarketsFromCache (params = {}) {
+        // this method is now redundant
+        // currencies are now fetched before markets
+        const options = this.safeValue (this.options, 'fetchMarkets', {});
+        const timestamp = this.safeInteger (options, 'timestamp');
+        const expires = this.safeInteger (options, 'expires', 1000);
+        const now = this.milliseconds ();
+        if ((timestamp === undefined) || ((now - timestamp) > expires)) {
+            const response = await this.publicGetMarkets (params);
+            //
+            //    [
+            //        {
+            //            "name": "BTC/USD",
+            //            "market_symbol": "btcusd",
+            //            "base_currency": "BTC",
+            //            "base_decimals": 8,
+            //            "counter_currency": "USD",
+            //            "counter_decimals": 0,
+            //            "minimum_order_value": "10",
+            //            "trading": "Enabled",
+            //            "instant_order_counter_decimals": 2,
+            //            "instant_and_market_orders": "Enabled",
+            //            "description": "Bitcoin / U.S. dollar",
+            //            "market_type": "SPOT"
+            //        },
+            //
+            this.options['fetchMarkets'] = this.extend (options, {
+                'response': response,
+                'timestamp': now,
+            });
+        }
+        return this.safeValue (this.options['fetchMarkets'], 'response');
+    }
+
     /**
      * @method
      * @name bitstamp#fetchCurrencies
@@ -740,7 +775,21 @@ export default class bitstamp extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        const response = await this.publicGetMarkets (params);
+        const response = await this.fetchMarketsFromCache (params);
+        //
+        //     [
+        //         {
+        //             "trading": "Enabled",
+        //             "base_decimals": 8,
+        //             "url_symbol": "btcusd",
+        //             "name": "BTC/USD",
+        //             "instant_and_market_orders": "Enabled",
+        //             "minimum_order": "20.0 USD",
+        //             "counter_decimals": 2,
+        //             "description": "Bitcoin / U.S. dollar"
+        //         },
+        //     ]
+        //
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
