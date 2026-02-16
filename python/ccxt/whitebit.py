@@ -523,6 +523,7 @@ class whitebit(Exchange, ImplicitAPI):
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'makerFee')
         maker = Precise.string_div(makerFeeRate, '100')
+        isSpot = not swap
         return {
             'id': id,
             'symbol': symbol,
@@ -533,7 +534,7 @@ class whitebit(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': not swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': False,
@@ -544,7 +545,7 @@ class whitebit(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.parse_number(taker),
             'maker': self.parse_number(maker),
-            'contractSize': contractSize,
+            'contractSize': None if isSpot else contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -2325,7 +2326,7 @@ class whitebit(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': None,
             'postOnly': None,
-            'status': None,
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'side': side,
             'price': price,
             'type': orderType,
@@ -2338,6 +2339,15 @@ class whitebit(Exchange, ImplicitAPI):
             'fee': fee,
             'trades': None,
         }, market)
+
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
+            'CANCELED': 'canceled',
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+        }
+        return self.safe_string_lower(statuses, status, status)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

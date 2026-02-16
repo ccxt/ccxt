@@ -1879,7 +1879,8 @@ public partial class bybit : ccxt.bybit
                 object liquidation = this.parseWsLiquidation(rawLiquidation, market);
                 if (isTrue(isEqual(this.liquidations, null)))
                 {
-                    this.liquidations = new ArrayCacheBySymbolBySide();
+                    object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                    this.liquidations = new ArrayCache(limit);
                 }
                 object cache = this.liquidations;
                 callDynamically(cache, "append", new object[] {liquidation});
@@ -1895,7 +1896,8 @@ public partial class bybit : ccxt.bybit
             object liquidation = this.parseWsLiquidation(rawLiquidation, market);
             if (isTrue(isEqual(this.liquidations, null)))
             {
-                this.liquidations = new ArrayCacheBySymbolBySide();
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                this.liquidations = new ArrayCache(limit);
             }
             object cache = this.liquidations;
             callDynamically(cache, "append", new object[] {liquidation});

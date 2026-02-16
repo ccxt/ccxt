@@ -326,6 +326,7 @@ interface binance {
     sapiPostManagedSubaccountWithdraw(params?: {}): Promise<implicitReturnType>;
     sapiPostUserDataStream(params?: {}): Promise<implicitReturnType>;
     sapiPostUserDataStreamIsolated(params?: {}): Promise<implicitReturnType>;
+    sapiPostUserListenToken(params?: {}): Promise<implicitReturnType>;
     sapiPostFuturesTransfer(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingCustomizedFixedPurchase(params?: {}): Promise<implicitReturnType>;
     sapiPostLendingDailyPurchase(params?: {}): Promise<implicitReturnType>;

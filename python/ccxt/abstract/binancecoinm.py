@@ -296,6 +296,7 @@ class ImplicitAPI:
     sapi_post_managed_subaccount_withdraw = sapiPostManagedSubaccountWithdraw = Entry('managed-subaccount/withdraw', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_userdatastream = sapiPostUserDataStream = Entry('userDataStream', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_userdatastream_isolated = sapiPostUserDataStreamIsolated = Entry('userDataStream/isolated', 'sapi', 'POST', {'cost': 0.1})
+    sapi_post_userlistentoken = sapiPostUserListenToken = Entry('userListenToken', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_futures_transfer = sapiPostFuturesTransfer = Entry('futures/transfer', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_lending_customizedfixed_purchase = sapiPostLendingCustomizedFixedPurchase = Entry('lending/customizedFixed/purchase', 'sapi', 'POST', {'cost': 0.1})
     sapi_post_lending_daily_purchase = sapiPostLendingDailyPurchase = Entry('lending/daily/purchase', 'sapi', 'POST', {'cost': 0.1})

@@ -373,7 +373,8 @@ public partial class binance : ccxt.binance
         object liquidation = this.parseWsLiquidation(rawLiquidation, market);
         if (isTrue(isEqual(this.liquidations, null)))
         {
-            this.liquidations = new ArrayCacheBySymbolBySide();
+            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            this.liquidations = new ArrayCache(limit);
         }
         object cache = this.liquidations;
         callDynamically(cache, "append", new object[] {liquidation});
@@ -603,7 +604,8 @@ public partial class binance : ccxt.binance
         object cache = this.myLiquidations;
         if (isTrue(isEqual(cache, null)))
         {
-            cache = new ArrayCacheBySymbolBySide();
+            object limit = this.safeInteger(this.options, "myLiquidationsLimit", 1000);
+            cache = new ArrayCache(limit);
         }
         callDynamically(cache, "append", new object[] {liquidation});
         this.myLiquidations = cache;

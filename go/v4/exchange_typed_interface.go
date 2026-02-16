@@ -511,9 +511,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "poloniex":
 		itf := NewPoloniex(options)
 		return itf
-	case "probit":
-		itf := NewProbit(options)
-		return itf
 	case "timex":
 		itf := NewTimex(options)
 		return itf

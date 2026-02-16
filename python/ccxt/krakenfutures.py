@@ -1618,6 +1618,10 @@ class krakenfutures(Exchange, ImplicitAPI):
             'partiallyFilled': 'open',  # the size of the order is partially but not entirely filled
             'ENTERED_BOOK': 'open',
             'FULLY_EXECUTED': 'closed',
+            'CANCELLED': 'canceled',
+            'TRIGGER_PLACED': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'UNTOUCHED': 'open',
         }
         return self.safe_string(statuses, status, status)
 
