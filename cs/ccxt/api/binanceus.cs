@@ -1636,6 +1636,11 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiPostUserDataStreamIsolated",parameters);
     }
 
+    public async Task<object> sapiPostUserListenToken (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostUserListenToken",parameters);
+    }
+
     public async Task<object> sapiPostFuturesTransfer (object parameters = null)
     {
         return await this.callAsync ("sapiPostFuturesTransfer",parameters);

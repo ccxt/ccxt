@@ -603,6 +603,7 @@ class binance(Exchange, ImplicitAPI):
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
+                        'userListenToken': 0.1,
                         'futures/transfer': 0.1,
                         # lending
                         'lending/customizedFixed/purchase': 0.1,
@@ -11378,7 +11379,7 @@ class binance(Exchange, ImplicitAPI):
                 }
             else:
                 raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
-        userDataStream = (path == 'userDataStream') or (path == 'listenKey')
+        userDataStream = (path == 'userDataStream') or (path == 'listenKey') or (path == 'userListenToken')
         if userDataStream:
             if self.apiKey:
                 # v1 special case for userDataStream

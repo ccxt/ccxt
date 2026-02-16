@@ -549,6 +549,7 @@ public partial class binance : Exchange
                         { "managed-subaccount/withdraw", 0.1 },
                         { "userDataStream", 0.1 },
                         { "userDataStream/isolated", 0.1 },
+                        { "userListenToken", 0.1 },
                         { "futures/transfer", 0.1 },
                         { "lending/customizedFixed/purchase", 0.1 },
                         { "lending/daily/purchase", 0.1 },
@@ -12706,7 +12707,7 @@ public partial class binance : Exchange
                 throw new AuthenticationError ((string)add(this.id, " historicalTrades endpoint requires `apiKey` credential")) ;
             }
         }
-        object userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
+        object userDataStream = isTrue(isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")))) || isTrue((isEqual(path, "userListenToken")));
         if (isTrue(userDataStream))
         {
             if (isTrue(this.apiKey))

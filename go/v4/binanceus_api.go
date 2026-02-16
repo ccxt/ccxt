@@ -1307,6 +1307,10 @@ func (this *BinanceusCore) SapiPostUserDataStreamIsolated(args ...interface{}) <
 	return this.callEndpointAsync("sapiPostUserDataStreamIsolated", args...)
 }
 
+func (this *BinanceusCore) SapiPostUserListenToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostUserListenToken", args...)
+}
+
 func (this *BinanceusCore) SapiPostFuturesTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostFuturesTransfer", args...)
 }

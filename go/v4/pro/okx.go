@@ -2305,7 +2305,7 @@ func  (this *OkxCore) HandlePositions(client interface{}, message interface{})  
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var rawPosition interface{} = ccxt.GetValue(data, i)
         var position interface{} = this.ParsePosition(rawPosition)
-        if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(position, "contracts"), 0)) {
+        if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(position, "contracts"), 0)) && ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(rawPosition, "posSide"), "net"))) {
             ccxt.AddElementToObject(position, "side", "long")
             var shortPosition interface{} = this.Clone(position)
             ccxt.AddElementToObject(shortPosition, "side", "short")

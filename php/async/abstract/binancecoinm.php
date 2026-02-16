@@ -889,6 +889,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     public function sapi_post_userdatastream_isolated($params = array()) {
         return $this->request('userDataStream/isolated', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_post_userlistentoken($params = array()) {
+        return $this->request('userListenToken', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_post_futures_transfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -3237,6 +3240,9 @@ abstract class binancecoinm extends \ccxt\async\binance {
     }
     public function sapiPostUserDataStreamIsolated($params = array()) {
         return $this->request('userDataStream/isolated', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostUserListenToken($params = array()) {
+        return $this->request('userListenToken', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPostFuturesTransfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));

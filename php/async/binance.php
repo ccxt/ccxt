@@ -586,6 +586,7 @@ class binance extends Exchange {
                         'managed-subaccount/withdraw' => 0.1,
                         'userDataStream' => 0.1,
                         'userDataStream/isolated' => 0.1,
+                        'userListenToken' => 0.1,
                         'futures/transfer' => 0.1,
                         // lending
                         'lending/customizedFixed/purchase' => 0.1,
@@ -12140,7 +12141,7 @@ class binance extends Exchange {
                 throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
+        $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey') || ($path === 'userListenToken');
         if ($userDataStream) {
             if ($this->apiKey) {
                 // v1 special case for $userDataStream

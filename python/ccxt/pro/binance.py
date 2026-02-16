@@ -2279,6 +2279,87 @@ class binance(ccxt.async_support.binance):
             client.reject(message, accountType)
         client.resolve(message, messageHash)
 
+    async def ensure_user_data_stream_ws_subscribe_listen_token(self, marketType: str = 'margin', params={}):
+        """
+        subscribes to user data stream using listenToken(for margin)
+        :param str marketType: - the market type(e.g., 'margin')
+        :param dict params: - extra parameters specific to the request
+        :param str [params.symbol]: - required for isolated margin
+        :param boolean [params.isIsolated]: - whether it is isolated margin
+        :param number [params.validity]: - validity in milliseconds, default 24 hours, max 24 hours
+
+        {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+
+        :returns: Promise<void>
+        """
+        url = self.urls['api']['ws']['ws-api']['spot']
+        options = self.safe_dict(self.options, marketType, {})
+        lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
+        listenTokenRefreshRate = self.safe_integer(self.options, 'listenTokenRefreshRate', 82800000)  # 23 hours default
+        time = self.milliseconds()
+        delay = self.sum(listenTokenRefreshRate, 10000)
+        if time - lastAuthenticatedTime > delay:
+            # Step 1: Create listenToken via REST API
+            symbol = self.safe_string(params, 'symbol')
+            isIsolated = self.safe_bool(params, 'isIsolated', False)
+            validity = self.safe_integer(params, 'validity')
+            request: dict = {}
+            if isIsolated:
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode')
+                marketId = self.market_id(symbol)
+                request['symbol'] = marketId
+                request['isIsolated'] = True
+            if validity is not None:
+                request['validity'] = validity
+            response = await self.sapiPostUserListenToken(request)
+            listenToken = self.safe_string(response, 'token')
+            expirationTime = self.safe_integer(response, 'expirationTime')
+            # Step 2: Subscribe to user data stream via WebSocket API
+            requestId = self.request_id(url)
+            messageHash = str(requestId)
+            message: dict = {
+                'id': messageHash,
+                'method': 'userDataStream.subscribe.listenToken',
+                'params': {
+                    'listenToken': listenToken,
+                },
+            }
+            subscription: dict = {
+                'id': messageHash,
+                'method': self.handle_user_data_stream_subscribe,
+                'subscription': marketType,
+            }
+            self.options[marketType] = self.extend(options, {
+                'listenToken': listenToken,
+                'expirationTime': expirationTime,
+                'lastAuthenticatedTime': time,
+                'symbol': symbol,
+                'isIsolated': isIsolated,
+                'validity': validity,
+            })
+            # Schedule token renewal before expiration
+            renewalTime = expirationTime - time - 60000  # Renew 1 minute before expiration
+            if renewalTime > 0:
+                extendedParams = self.extend(params, {'type': marketType})
+                self.delay(renewalTime, self.renew_listen_token, extendedParams)
+            await self.watch(url, messageHash, message, messageHash, subscription)
+
+    async def renew_listen_token(self, params={}):
+        type = self.safe_string(params, 'type', 'margin')
+        options = self.safe_dict(self.options, type, {})
+        symbol = self.safe_string(options, 'symbol')
+        isIsolated = self.safe_bool(options, 'isIsolated', False)
+        validity = self.safe_integer(options, 'validity')
+        renewParams: dict = {}
+        if symbol is not None:
+            renewParams['symbol'] = symbol
+        if isIsolated:
+            renewParams['isIsolated'] = isIsolated
+        if validity is not None:
+            renewParams['validity'] = validity
+        await self.ensure_user_data_stream_ws_subscribe_listen_token(type, renewParams)
+
     async def authenticate(self, params={}):
         time = self.milliseconds()
         type = None
@@ -2298,8 +2379,16 @@ class binance(ccxt.async_support.binance):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('authenticate', params)
         isIsolatedMargin = (marginMode == 'isolated')
-        isCrossMargin = (marginMode == 'cross') or (marginMode is None)
         symbol = self.safe_string(params, 'symbol')
+        # For margin use WebSocket API listenToken subscription
+        if type == 'margin' or isIsolatedMargin:
+            marginParams: dict = {}
+            if symbol is not None:
+                marginParams['symbol'] = symbol
+            if isIsolatedMargin:
+                marginParams['isIsolated'] = True
+            await self.ensure_user_data_stream_ws_subscribe_listen_token('margin', marginParams)
+            return
         params = self.omit(params, 'symbol')
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
@@ -2314,14 +2403,6 @@ class binance(ccxt.async_support.binance):
                 response = await self.fapiPrivatePostListenKey(params)
             elif type == 'delivery':
                 response = await self.dapiPrivatePostListenKey(params)
-            elif type == 'margin' and isCrossMargin:
-                response = await self.sapiPostUserDataStream(params)
-            elif isIsolatedMargin:
-                if symbol is None:
-                    raise ArgumentsRequired(self.id + ' authenticate() requires a symbol argument for isolated margin mode')
-                marketId = self.market_id(symbol)
-                params = self.extend(params, {'symbol': marketId})
-                response = await self.sapiPostUserDataStreamIsolated(params)
             else:
                 response = await self.publicPostUserDataStream(params)
             self.options[type] = self.extend(options, {
@@ -2342,13 +2423,15 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
+        # For margin, token renewal is handled by renewListenToken method
+        if type == 'margin':
+            return
         options = self.safe_value(self.options, type, {})
         listenKey = self.safe_string(options, 'listenKey')
         if listenKey is None:
             # A network error happened: we can't renew a listen key that does not exist.
             return
         request: dict = {}
-        symbol = self.safe_string(params, 'symbol')
         params = self.omit(params, ['type', 'symbol'])
         time = self.milliseconds()
         try:
@@ -2361,11 +2444,7 @@ class binance(ccxt.async_support.binance):
                 await self.dapiPrivatePutListenKey(self.extend(request, params))
             else:
                 request['listenKey'] = listenKey
-                if type == 'margin':
-                    request['symbol'] = symbol
-                    await self.sapiPutUserDataStream(self.extend(request, params))
-                else:
-                    await self.publicPutUserDataStream(self.extend(request, params))
+                await self.publicPutUserDataStream(self.extend(request, params))
         except Exception as error:
             urlType = type
             if isPortfolioMargin:
@@ -2652,9 +2731,9 @@ class binance(ccxt.async_support.binance):
             type = 'delivery'
         url = ''
         urlType = type
-        if type == 'spot':
+        if type == 'spot' or type == 'margin':
             # route to WebSocket API connection where the user data stream is subscribed
-            url = self.urls['api']['ws']['ws-api'][type]
+            url = self.urls['api']['ws']['ws-api']['spot']
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
@@ -3388,9 +3467,9 @@ class binance(ccxt.async_support.binance):
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchOrders', 'papi', 'portfolioMargin', False)
         url = ''
-        if type == 'spot':
+        if type == 'spot' or type == 'margin':
             # route orders to ws-api user data stream
-            url = self.urls['api']['ws']['ws-api'][type]
+            url = self.urls['api']['ws']['ws-api']['spot']
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
@@ -4069,8 +4148,8 @@ class binance(ccxt.async_support.binance):
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchMyTrades', 'papi', 'portfolioMargin', False)
         url = ''
-        if type == 'spot':
-            url = self.urls['api']['ws']['ws-api'][type]
+        if type == 'spot' or type == 'margin':
+            url = self.urls['api']['ws']['ws-api']['spot']
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
