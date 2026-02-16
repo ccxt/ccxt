@@ -1,7 +1,8 @@
 {
     "exchange": "pacifica",
-    "skipKeys": ["wallet", "signature", "timestamp", "symbol", "end_time"],
+    "skipKeys": ["wallet", "timestamp", "symbol", "signature", "end_time"],
     "options": {},
+    "apiKey": null,
     "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
     "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
     "isSandboxModeEnabled": true,
@@ -166,19 +167,6 @@
                 "url": "https://test-api.pacifica.fi/api/v1/book?symbol=BTC&agg_level=1",
                 "input": [
                     "BTC/USDC:USDC"
-                ],
-                "output": null
-            }
-        ],
-        "fetchOHLCV": [
-            {
-                "description": "Fetch candles 1m",
-                "method": "fetchOHLCV",
-                "url": "https://api.pacifica.fi/api/v1/kline?symbol=BTC&interval=1m&start_time=1768867200000",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "1m",
-                    1768867200000
                 ],
                 "output": null
             }

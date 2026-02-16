@@ -1,7 +1,8 @@
 {
     "exchange": "pacifica",
-    "skipKeys": ["start_time", "end_time"],
+    "skipKeys": ["start_time", "signature", "end_time"],
     "options": {},
+    "apiKey": null,
     "privateKey": "2fGURdTtScQVocLdZovb6kJ3V8TmWe3eg5TJpYAqrTRTqYf27goDdQVfMx4W2uUmTwTc78qxsxhhvrdx7MTd55rn",
     "walletAddress": "bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
     "isSandboxModeEnabled": true,
@@ -976,79 +977,6 @@
                     "datetime": "2026-01-27T22:44:41.390Z",
                     "nonce": null
                 }
-            }
-        ],
-        "fetchOHLCV": [
-            {
-                "description": "Fetch candles 1m",
-                "method": "fetchOHLCV",
-                "input": [
-                    "BTC/USDC:USDC",
-                    "1m",
-                    1768867200000,
-                    2
-                ],
-                "httpResponse": {
-                    "success": true,
-                    "data": [
-                        {
-                            "t": "1768867200000",
-                            "T": "1768867260000",
-                            "s": "BTC",
-                            "i": "1m",
-                            "o": "92590",
-                            "c": "92569",
-                            "h": "92627",
-                            "l": "92560",
-                            "v": "9.32802",
-                            "n": "184"
-                        },
-                        {
-                            "t": "1768867260000",
-                            "T": "1768867320000",
-                            "s": "BTC",
-                            "i": "1m",
-                            "o": "92568",
-                            "c": "92584",
-                            "h": "92601",
-                            "l": "92556",
-                            "v": "12.6291",
-                            "n": "213"
-                        },
-                        {
-                            "t": "1768867320000",
-                            "T": "1768867380000",
-                            "s": "BTC",
-                            "i": "1m",
-                            "o": "92584",
-                            "c": "92596",
-                            "h": "92610",
-                            "l": "92584",
-                            "v": "10.25738",
-                            "n": "126"
-                        }
-                    ],
-                    "error": null,
-                    "code": null
-                },
-                "parsedResponse": [
-                    [
-                        1768867200000,
-                        92590,
-                        92627,
-                        92560,
-                        92569,
-                        9.32802
-                    ],
-                    [
-                        1768867260000,
-                        92568,
-                        92601,
-                        92556,
-                        92584,
-                        12.6291
-                    ]
-                ]
             }
         ]
   }

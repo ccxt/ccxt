@@ -386,8 +386,7 @@ export default class pacifica extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        await this.loadAccountSettings (true);
-        const swapMarkets = await this.fetchSwapMarkets ();
+        const swapMarkets = await this.fetchSwapMarkets (params);
         return swapMarkets as Market[];
     }
 
@@ -618,6 +617,7 @@ export default class pacifica extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        await this.loadAccountSettings ();
         await this.loadMarkets ();
         const market = this.market (symbol);
         let userAccount = undefined;
@@ -3154,7 +3154,7 @@ export default class pacifica extends Exchange {
             return [ address, params ];
         }
         let address1 = undefined;
-        [ address1, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'walletAddress');
+        [ address1, params ] = this.handleOptionAndParams2 (params, methodName, 'originAddress', 'main_address');
         if (address1 !== undefined) {
             return [ address1, params ];
         }
