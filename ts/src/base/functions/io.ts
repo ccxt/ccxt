@@ -53,7 +53,7 @@ export async function initFileSystemSync () {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export async function readFile (path: string, encoding: BufferEncoding = 'utf8'): Promise<string | undefined> {
+export async function readFileAsync (path: string, encoding: BufferEncoding = 'utf8'): Promise<string | undefined> {
     if (!isNode) {
         return undefined;
     }
@@ -72,7 +72,7 @@ export async function readFile (path: string, encoding: BufferEncoding = 'utf8')
  * @param data Data to write
  * @param encoding File encoding (default: 'utf8')
  */
-export async function writeFile (path: string, data: string, encoding: BufferEncoding = 'utf8'): Promise<void> {
+export async function writeFileAsync (path: string, data: string, encoding: BufferEncoding = 'utf8'): Promise<void> {
     if (!isNode) {
         return;
     }
@@ -89,7 +89,7 @@ export async function writeFile (path: string, data: string, encoding: BufferEnc
  * @param path File path to check
  * @returns true if file exists, false otherwise
  */
-export async function fileExists (path: string): Promise<boolean> {
+export async function fileExistsAsync (path: string): Promise<boolean> {
     if (!isNode) {
         return false;
     }
@@ -131,7 +131,7 @@ export async function readDir (path: string): Promise<string[]> {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export function readFileSync (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
+export function fileRead (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
     if (!isNode) {
         return undefined;
     }
@@ -154,18 +154,20 @@ export function readFileSync (path: string, encoding: BufferEncoding = 'utf8'): 
  * @param data Data to write
  * @param encoding File encoding (default: 'utf8')
  */
-export function writeFileSync (path: string, data: string, encoding: BufferEncoding = 'utf8'): void {
+export function fileWrite (path: string, data: string, encoding: BufferEncoding = 'utf8'): boolean {
     if (!isNode) {
-        return;
+        return !isNode; // return true in non-Node environments to indicate success (no-op)
     }
     if (fsSyncModule === null) {
         // Sync module not initialized yet
-        return;
+        return false;
     }
     try {
         fsSyncModule.writeFileSync(path, data, encoding);
+        return true;
     } catch (e) {
         // Silent fail
+        return false;
     }
 }
 
@@ -176,7 +178,7 @@ export function writeFileSync (path: string, data: string, encoding: BufferEncod
  * @param path File path to check
  * @returns true if file exists, false otherwise
  */
-export function fileExistsSync (path: string): boolean {
+export function fileExists (path: string): boolean {
     if (!isNode) {
         return false;
     }
@@ -220,7 +222,7 @@ export function readDirSync (path: string): string[] {
  * Delete file (Node.js only)
  * @param path File path to delete
  */
-export async function deleteFile (path: string): Promise<void> {
+export async function deleteFileAsync (path: string): Promise<void> {
     if (!isNode) {
         return;
     }
@@ -240,7 +242,7 @@ export async function deleteFile (path: string): Promise<void> {
  * Delete file synchronously (Node.js only)
  * @param path File path to delete
  */
-export function deleteFileSync (path: string): void {
+export function fileDelete (path: string): void {
     if (!isNode) {
         return;
     }
@@ -262,7 +264,7 @@ export function deleteFileSync (path: string): void {
  * @param path Directory path to create
  * @param options Options for directory creation (recursive: true by default)
  */
-export async function directoryCreate (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
+export async function directoryCreateAsync (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
     if (!isNode) {
         return;
     }
@@ -283,7 +285,7 @@ export async function directoryCreate (path: string, options: { recursive?: bool
  * @param path Directory path to check
  * @returns true if directory exists, false otherwise
  */
-export async function directoryExists (path: string): Promise<boolean> {
+export async function directoryExistsAsync (path: string): Promise<boolean> {
     if (!isNode) {
         return false;
     }
@@ -306,7 +308,7 @@ export async function directoryExists (path: string): Promise<boolean> {
  * @param path Directory path to delete
  * @param options Options for directory deletion (recursive: true by default)
  */
-export async function directoryDelete (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
+export async function directoryDeleteAsync (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
     if (!isNode) {
         return;
     }
