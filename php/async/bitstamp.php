@@ -167,9 +167,12 @@ class bitstamp extends Exchange {
                         'ticker/{pair}/' => 1,
                         'transactions/{pair}/' => 1,
                         'trading-pairs-info/' => 1,
+                        'markets/' => 1,
                         'currencies/' => 1,
                         'eur_usd/' => 1,
                         'travel_rule/vasps/' => 1,
+                        'funding_rate/{pair}/' => 1,
+                        'funding_rate_history/{pair}/' => 1,
                     ),
                 ),
                 'private' => array(
@@ -178,6 +181,8 @@ class bitstamp extends Exchange {
                         'contacts/{contact_uuid}/' => 1,
                         'earn/subscriptions/' => 1,
                         'earn/transactions/' => 1,
+                        'trade_history/' => 1,
+                        'trade_history/{pair}' => 1,
                     ),
                     'post' => array(
                         'account_balances/' => 1,
@@ -192,6 +197,7 @@ class bitstamp extends Exchange {
                         'open_order' => 1,
                         'open_orders/all/' => 1,
                         'open_orders/{pair}/' => 1,
+                        'replace_order/' => 1,
                         'order_status/' => 1,
                         'cancel_order/' => 1,
                         'cancel_all_orders/' => 1,
@@ -217,6 +223,8 @@ class bitstamp extends Exchange {
                         'liquidation_address/info/' => 1,
                         'btc_unconfirmed/' => 1,
                         'websockets_token/' => 1,
+                        'revoke_all_api_keys/' => 1,
+                        'get_max_order_amount/' => 1,
                         // individual coins
                         'btc_withdrawal/' => 1,
                         'btc_address/' => 1,
@@ -1654,6 +1662,7 @@ class bitstamp extends Exchange {
             'Open' => 'open',
             'Finished' => 'closed',
             'Canceled' => 'canceled',
+            'Cancel pending' => 'canceling',
         );
         return $this->safe_string($statuses, $status, $status);
     }

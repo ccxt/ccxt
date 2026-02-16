@@ -830,10 +830,18 @@ class aster extends \ccxt\async\aster {
         //         "ss" => 0
         //     }
         //
+        $e = $this->safe_string($trade, 'e');
+        $isPublicTrade = ($e === 'trade') || ($e === 'aggTrade');
         $id = $this->safe_string_2($trade, 't', 'a');
         $timestamp = $this->safe_integer($trade, 'T');
         $price = $this->safe_string_2($trade, 'L', 'p');
-        $amount = $this->safe_string_2($trade, 'q', 'l');
+        $amount = null;
+        if ($isPublicTrade) {
+            $amount = $this->safe_string($trade, 'q');
+        } else {
+            // private trades, $amount is in 'l' field, quantity of the last filled $trade
+            $amount = $this->safe_string($trade, 'l');
+        }
         $cost = $this->safe_string($trade, 'Y');
         if ($cost === null) {
             if (($price !== null) && ($amount !== null)) {
@@ -1577,23 +1585,26 @@ class aster extends \ccxt\async\aster {
         //     }
         //
         $messageHash = 'positions';
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $data = $this->safe_dict($message, 'a', array());
+        $rawPositions = $this->safe_list($data, 'P', array());
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_ws_position($rawPosition);
+            $timestamp = $this->safe_integer($message, 'E');
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
         $messageHashes = $this->find_message_hashes($client, $messageHash);
         if (!$this->is_empty($messageHashes)) {
-            if ($this->positions === null) {
-                $this->positions = new ArrayCacheBySymbolBySide ();
-            }
-            $cache = $this->positions;
-            $data = $this->safe_dict($message, 'a', array());
-            $rawPositions = $this->safe_list($data, 'P', array());
-            $newPositions = array();
-            for ($i = 0; $i < count($rawPositions); $i++) {
-                $rawPosition = $rawPositions[$i];
-                $position = $this->parse_ws_position($rawPosition);
-                $timestamp = $this->safe_integer($message, 'E');
-                $position['timestamp'] = $timestamp;
-                $position['datetime'] = $this->iso8601($timestamp);
-                $newPositions[] = $position;
-                $cache->append ($position);
+            for ($i = 0; $i < count($newPositions); $i++) {
+                $position = $newPositions[$i];
                 $symbol = $position['symbol'];
                 $symbolMessageHash = $messageHash . '::' . $symbol;
                 $client->resolve ($position, $symbolMessageHash);
@@ -1809,7 +1820,7 @@ class aster extends \ccxt\async\aster {
             $myTrades = $this->myTrades;
             $myTrades->append ($trade);
             $client->resolve ($this->myTrades, $messageHash);
-            $messageHashSymbol = $messageHash . ':' . $symbol;
+            $messageHashSymbol = $messageHash . '::' . $symbol;
             $client->resolve ($this->myTrades, $messageHashSymbol);
         }
     }
@@ -1890,18 +1901,18 @@ class aster extends \ccxt\async\aster {
         //     }
         //
         $messageHash = 'orders';
+        $market = $this->get_market_from_order($client, $message);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
+        $cache = $this->orders;
+        $parsed = $this->parse_ws_order($message, $market);
+        $symbol = $market['symbol'];
+        $cache->append ($parsed);
         $messageHashes = $this->find_message_hashes($client, $messageHash);
         if (!$this->is_empty($messageHashes)) {
-            $market = $this->get_market_from_order($client, $message);
-            if ($this->orders === null) {
-                $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-                $this->orders = new ArrayCacheBySymbolById ($limit);
-            }
-            $cache = $this->orders;
-            $parsed = $this->parse_ws_order($message, $market);
-            $symbol = $market['symbol'];
             $symbolMessageHash = $messageHash . '::' . $symbol;
-            $cache->append ($parsed);
             $client->resolve ($cache, $symbolMessageHash);
             $client->resolve ($cache, $messageHash);
         }

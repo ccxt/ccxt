@@ -484,6 +484,7 @@ export default class cryptocom extends Exchange {
                     '219': InvalidOrder,
                     '306': InsufficientFunds,
                     '314': InvalidOrder,
+                    '315': InvalidOrder,
                     '325': InvalidOrder,
                     '415': InvalidOrder,
                     '10001': ExchangeError,

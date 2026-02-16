@@ -2350,7 +2350,7 @@ func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "after", since)
+			AddElementToObject(request, "after", Subtract(since, 1)) // #27793
 		}
 		var until interface{} = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")

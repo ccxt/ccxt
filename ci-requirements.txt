@@ -11,5 +11,5 @@ tox>=4.8.0
 mypy==1.6.1
 pyopenssl
 psutil
-protobuf==5.29.5
+protobuf==6.33.5
 coincurve==20.0.0

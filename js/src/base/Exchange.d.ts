@@ -77,7 +77,7 @@ export default class Exchange {
     walletAddress: string;
     token: string;
     balance: any;
-    liquidations: Dictionary<Liquidation>;
+    liquidations: any;
     orderbooks: Dictionary<Ob>;
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
@@ -87,7 +87,7 @@ export default class Exchange {
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction>;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
-    myLiquidations: Dictionary<Liquidation>;
+    myLiquidations: any;
     myTrades: ArrayCache;
     positions: any;
     urls: {
@@ -203,8 +203,8 @@ export default class Exchange {
     newUpdates: boolean;
     streaming: Dictionary<any>;
     sleep: (ms: any) => Promise<unknown>;
-    deepExtend: (...xs: any) => any;
-    deepExtendSafe: (...xs: any) => any;
+    deepExtend: (...args: any) => any;
+    deepExtendSafe: (...args: any) => any;
     isNode: boolean;
     keys: {
         (o: object): string[];
@@ -334,6 +334,7 @@ export default class Exchange {
     isBinaryMessage(msg: any): boolean;
     decodeProtoMsg(data: any): any;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
+    jsonStringifyWithNull(obj: any): string;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
@@ -765,6 +766,7 @@ export default class Exchange {
     fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<string>;
     fetchUnifiedOrder(order: any, params?: {}): Promise<Order>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    createTwapOrder(symbol: string, side: OrderSide, amount: number, duration: number, params?: {}): Promise<Order>;
     createConvertTrade(id: string, fromCode: string, toCode: string, amount?: Num, params?: {}): Promise<Conversion>;
     fetchConvertTrade(id: string, code?: Str, params?: {}): Promise<Conversion>;
     fetchConvertTradeHistory(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Conversion[]>;
@@ -992,5 +994,6 @@ export default class Exchange {
     unWatchBidsAsks(symbols?: Strings, params?: {}): Promise<any>;
     cleanUnsubscription(client: any, subHash: string, unsubHash: string, subHashIsPrefix?: boolean): void;
     cleanCache(subscription: Dict): void;
+    timeframeFromMilliseconds(ms: number): string;
 }
 export { Exchange, };
