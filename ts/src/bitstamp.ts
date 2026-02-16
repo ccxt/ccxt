@@ -2250,7 +2250,7 @@ export default class bitstamp extends Exchange {
         const request: Dict = {
             'market_symbol': market['id'],
         };
-        const response = await this.publicGetFundingRatePair (this.extend (request, params));
+        const response = await this.publicGetFundingRateMarketSymbol (this.extend (request, params));
         //
         //     {
         //         "funding_rate": "0.0024",

@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "default",
+                "method": "fetchFundingRate",
+                "url": "https://www.bitstamp.net/api/v2/funding_rate/ethusd-perp/",
+                "input": [
+                    "ETH/USD:USD"
+                ],
+                "output": null
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch main balance",
