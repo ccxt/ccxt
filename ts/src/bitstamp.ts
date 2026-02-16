@@ -792,15 +792,12 @@ export default class bitstamp extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const name = this.safeString (market, 'name');
-            let [ base, quote ] = name.split ('/');
-            const baseId = base.toLowerCase ();
-            const quoteId = quote.toLowerCase ();
-            base = this.safeCurrencyCode (base);
-            quote = this.safeCurrencyCode (quote);
+            const [ baseId, quoteId ] = [ this.safeString (market, 'base_currency'), this.safeString (market, 'counter_currency') ];
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
             const description = this.safeString (market, 'description');
             const [ baseDescription, quoteDescription ] = description.split (' / ');
-            const minimumOrder = this.safeString (market, 'minimum_order');
+            const minimumOrder = this.safeString (market, 'minimum_order_value');
             const parts = minimumOrder.split (' ');
             const cost = parts[0];
             if (!(base in result)) {
