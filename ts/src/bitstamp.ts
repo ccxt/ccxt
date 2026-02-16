@@ -1555,6 +1555,43 @@ export default class bitstamp extends Exchange {
 
     /**
      * @method
+     * @name bitstamp#editOrder
+     * @description edit a trade order
+     * @see https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder
+     * @param {string} id order id
+     * @param {string} [symbol] unified symbol of the market to create an order in
+     * @param {string} [type] 'market', 'limit' or 'stop_limit'
+     * @param {string} [side] 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.triggerPrice] the price to trigger a stop order
+     * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+     * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'amount': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
+        };
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['client_order_id'] = clientOrderId;
+            params = this.omit (params, [ 'clientOrderId' ]);
+        } else {
+            request['id'] = id;
+        }
+        const response = await this.privatePostReplaceOrder (this.extend (request, params));
+        const order = this.parseOrder (response, market);
+        order['type'] = type;
+        return order;
+    }
+
+    /**
+     * @method
      * @name bitstamp#cancelOrder
      * @description cancels an open order
      * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
