@@ -639,8 +639,7 @@ export default class bitstamp extends Exchange {
             const isSpot = (type === 'spot');
             const symbol = base + '/' + quote;
             result.push ({
-                'id': this.safeString (market, 'url_symbol'),
-                'marketId': this.safeString (market, 'market_symbol'),
+                'id': this.safeString (market, 'market_symbol'),
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
