@@ -178,6 +178,95 @@ def calculate_limit_price(ticker, side, offset_percent):
     logger.info(f"Calculated {side} limit price: {price} (Offset: {offset_percent}%)")
     return price
 
+def fetch_balance(exchange):
+    """
+    Fetches the account balance from the exchange.
+    """
+    try:
+        balance = exchange.fetch_balance()
+        
+        # Log balances for major assets
+        currencies = ['USDT', 'BTC', 'ETH']
+        log_msg = "Balances: "
+        for currency in currencies:
+            if currency in balance:
+                 total = balance[currency]['total']
+                 free = balance[currency]['free']
+                 used = balance[currency]['used']
+                 log_msg += f"{currency}: Total={total}, Free={free}, Used={used} | "
+        
+        logger.info(log_msg)
+        return balance
+        
+    except ccxt.NetworkError as e:
+        logger.error(f"Network error fetching balance: {e}")
+        return None
+    except ccxt.ExchangeError as e:
+        logger.error(f"Exchange error fetching balance: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error fetching balance: {e}")
+        return None
+
+def check_sufficient_balance(balance, currency, required_amount):
+    """
+    Checks if the free balance is sufficient for the required amount.
+    Adds a 1% buffer for fees.
+    """
+    if not balance or currency not in balance:
+        return False, f"Balance information for {currency} not available."
+        
+    free_balance = balance[currency]['free']
+    
+    # 1% buffer for fees
+    required_with_buffer = required_amount * 1.01
+    
+    if free_balance >= required_with_buffer:
+        return True, "Sufficient balance."
+    else:
+        return False, f"Insufficient {currency} balance. Available: {free_balance}, Required (w/ 1% buffer): {required_with_buffer:.6f}"
+
+def calculate_order_amount(exchange, symbol, amount_usd, price):
+    """
+    Calculates the order amount in base currency, rounds it according to market precision,
+    and checks against market limits and balance.
+    """
+    try:
+        if not symbol or not price or price <= 0:
+             return 0, False, "Invalid symbol or price."
+
+        # Parse symbol
+        base_currency, quote_currency = symbol.split('/')
+        
+        # Calculate tentative amount
+        amount = amount_usd / price
+        
+        # Get market info for precision and limits
+        market = exchange.market(symbol)
+        
+        # Apply limits
+        limits = market.get('limits', {})
+        amount_limits = limits.get('amount', {})
+        min_amount = amount_limits.get('min')
+        max_amount = amount_limits.get('max')
+        
+        if min_amount and amount < min_amount:
+            return 0, False, f"Amount {amount:.8f} is below minimum limit {min_amount}."
+        if max_amount and amount > max_amount:
+            return 0, False, f"Amount {amount:.8f} exceeds maximum limit {max_amount}."
+            
+        # Round to precision
+        amount = exchange.amount_to_precision(symbol, amount)
+        amount = float(amount) # Ensure it's a float for comparisons
+        
+        logger.info(f"Calculated order amount: {amount} {base_currency} (approx ${amount_usd})")
+        
+        return amount, True, "Amount calculated successfully."
+
+    except Exception as e:
+        logger.error(f"Error calculating order amount: {e}")
+        return 0, False, str(e)
+
 def main():
     logger.info("Starting the Trading Bot...")
     
@@ -207,38 +296,43 @@ def main():
             
         # Optional: Fetch Order Book just to show we can
         fetch_order_book(exchange, symbol)
-
-        # 5. Calculate order details
+        
+        # 5. Calculate Order Details
         target_price = calculate_limit_price(ticker, 'buy', price_offset_pct)
         if not target_price:
             logger.error("Could not calculate target price.")
             return
-        
-        # Calculate amount in base currency (e.g., BTC)
-        # amount = USD_value / price
-        amount = amount_usd / target_price
-        
-        logger.info(f"Amount to buy: {amount:.6f} (approx ${amount_usd})")
 
-        # 6. Safety Checks before ordering
-        # Using fetch_balance safely
-        try:
-            balance = exchange.fetch_balance()
-            # Assuming we are trading USDT pairs, we check USDT balance
-            # For robustness, handle different quote currencies if needed, but keeping it simple for now
-            quote_currency = symbol.split('/')[1]
-            free_balance = balance.get(quote_currency, {}).get('free', 0)
+        # Fetch Balance
+        logger.info("Fetching balance...")
+        balance = fetch_balance(exchange)
+        if not balance:
+            logger.warn("Could not fetch balance. Proceeding with caution (or aborting in real run).")
+            if not dry_run:
+                 return
+
+        # Calculate Amount and Validate
+        amount, is_valid, msg = calculate_order_amount(exchange, symbol, amount_usd, target_price)
+        
+        if not is_valid:
+            logger.error(f"Order amount validation failed: {msg}")
+            return
             
-            logger.info(f"Free {quote_currency} balance: {free_balance:.2f}")
-            
-            if free_balance < amount_usd:
-                logger.warning(f"Insufficient funds! Needed: {amount_usd}, Available: {free_balance}")
+        # Check Balance Logic
+        # For a BUY order, we need QUOTE currency (e.g., USDT to buy BTC)
+        quote_currency = symbol.split('/')[1]
+        
+        # Check if we have enough USDT
+        if balance:
+            has_funds, funds_msg = check_sufficient_balance(balance, quote_currency, amount_usd)
+            if not has_funds:
+                logger.warning(funds_msg)
                 if not dry_run:
-                    return # Stop if not enough money and not testing
-        except Exception as e:
-            logger.warning(f"Could not fetch balance (check permissions): {e}")
-
-        # 7. Place the order
+                    return
+            else:
+                logger.info(funds_msg)
+        
+        # 6. Place the Order
         if dry_run:
             logger.info("[DRY RUN] Simulation mode active. No real order placed.")
             logger.info(f"[DRY RUN] Would buy {amount} {symbol} @ {target_price}")
