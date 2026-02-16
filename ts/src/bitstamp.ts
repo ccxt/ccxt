@@ -1753,7 +1753,7 @@ export default class bitstamp extends Exchange {
         if (since !== undefined) {
             request['since_timestamp'] = Math.round (since / 1000);
         }
-        request = this.handleUntilOption ('until_timestamp', request, params, 0.001);
+        [ request, params ] = this.handleUntilOption ('until_timestamp', request, params, 0.001);
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -1775,16 +1775,15 @@ export default class bitstamp extends Exchange {
     parseFundingRateHistory (contract, market: Market = undefined) {
         //
         //     {
-        //         "symbol": "BTCUSDT",
-        //         "fundingRate": "0.00063521",
-        //         "fundingTime": "1621267200000",
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050"
         //     }
         //
-        const timestamp = this.safeInteger (contract, 'fundingTime');
+        const timestamp = this.safeIntegerProduct (contract, 'timestamp', 0.001);
         return {
             'info': contract,
-            'symbol': this.safeSymbol (this.safeString (contract, 'symbol'), undefined, undefined, 'swap'),
-            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'symbol': undefined,
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
