@@ -503,6 +503,9 @@
     },
     "bitstamp": {
         "skipMethods": {
+            "loadMarkets": {
+                "contractSize": "not provided"
+            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided",
