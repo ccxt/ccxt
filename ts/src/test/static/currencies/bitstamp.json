@@ -1,61 +1,89 @@
 {
     "BTC": {
-        "id": "btc",
+        "id": "BTC",
         "code": "BTC",
         "info": {
             "name": "BTC/USD",
-            "url_symbol": "btcusd",
+            "market_symbol": "btcusd",
+            "base_currency": "BTC",
             "base_decimals": 8,
+            "counter_currency": "USD",
             "counter_decimals": 0,
-            "instant_order_counter_decimals": 2,
-            "minimum_order": "10 USD",
+            "minimum_order_value": "10",
             "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
-            "description": "Bitcoin / U.S. dollar"
+            "description": "Bitcoin / U.S. dollar",
+            "market_type": "SPOT"
         },
         "type": "crypto",
         "name": "Bitcoin",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "precision": 1e-8,
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": 1e-8,
+                "max": null
             },
             "price": {
-                "min": 1e-8
+                "min": 1e-8,
+                "max": null
             },
-            "cost": {},
-            "withdraw": {}
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
         "networks": {}
     },
     "USDT": {
-        "id": "usdt",
+        "id": "USDT",
         "code": "USDT",
         "info": {
             "name": "USDT/USD",
-            "url_symbol": "usdtusd",
+            "market_symbol": "usdtusd",
+            "base_currency": "USDT",
             "base_decimals": 5,
+            "counter_currency": "USD",
             "counter_decimals": 5,
-            "instant_order_counter_decimals": 5,
-            "minimum_order": "10.00000 USD",
+            "minimum_order_value": "10.00000",
             "trading": "Enabled",
+            "instant_order_counter_decimals": 5,
             "instant_and_market_orders": "Enabled",
-            "description": "Tether / U.S. dollar"
+            "description": "Tether / U.S. dollar",
+            "market_type": "SPOT"
         },
         "type": "crypto",
         "name": "Tether",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "precision": 0.00001,
         "limits": {
             "amount": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
             "price": {
-                "min": 0.00001
+                "min": 0.00001,
+                "max": null
             },
-            "cost": {},
-            "withdraw": {}
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
         "networks": {}
     },
@@ -92,34 +120,46 @@
         "networks": {}
     },
     "USD": {
-        "id": "usd",
+        "id": "USD",
         "code": "USD",
         "info": {
             "name": "BTC/USD",
-            "url_symbol": "btcusd",
+            "market_symbol": "btcusd",
+            "base_currency": "BTC",
             "base_decimals": 8,
+            "counter_currency": "USD",
             "counter_decimals": 0,
-            "instant_order_counter_decimals": 2,
-            "minimum_order": "10 USD",
+            "minimum_order_value": "10",
             "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
-            "description": "Bitcoin / U.S. dollar"
+            "description": "Bitcoin / U.S. dollar",
+            "market_type": "SPOT"
         },
         "type": "fiat",
         "name": "U.S. dollar",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "precision": 1,
         "limits": {
             "amount": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "price": {
-                "min": 1
+                "min": 1,
+                "max": null
             },
             "cost": {
-                "min": 10
+                "min": 10,
+                "max": null
             },
-            "withdraw": {}
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
         "networks": {}
     },
@@ -154,32 +194,46 @@
         "networks": {}
     },
     "ETH": {
-        "id": "eth",
+        "id": "ETH",
         "code": "ETH",
         "info": {
             "name": "ETH/BTC",
-            "url_symbol": "ethbtc",
+            "market_symbol": "ethbtc",
+            "base_currency": "ETH",
             "base_decimals": 8,
+            "counter_currency": "BTC",
             "counter_decimals": 8,
-            "instant_order_counter_decimals": 8,
-            "minimum_order": "0.00020000 BTC",
+            "minimum_order_value": "0.00005000",
             "trading": "Enabled",
+            "instant_order_counter_decimals": 8,
             "instant_and_market_orders": "Enabled",
-            "description": "Ether / Bitcoin"
+            "description": "Ethereum / Bitcoin",
+            "market_type": "SPOT"
         },
         "type": "crypto",
-        "name": "Ether",
+        "name": "Ethereum",
         "active": true,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "precision": 1e-8,
         "limits": {
             "amount": {
-                "min": 1e-8
+                "min": 1e-8,
+                "max": null
             },
             "price": {
-                "min": 1e-8
+                "min": 1e-8,
+                "max": null
             },
-            "cost": {},
-            "withdraw": {}
+            "cost": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         },
         "networks": {}
     },

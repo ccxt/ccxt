@@ -1300,5 +1300,353 @@
             ]
         },
         "marketId": "eth_usdt"
+    },
+    "BTC/USD:USD": {
+        "id": "btcusd-perp",
+        "lowercaseId": null,
+        "symbol": "BTC/USD:USD",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.00001,
+            "price": 1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.00001,
+                "max": 10
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 500000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "name": "BTC/USD-PERP",
+            "market_symbol": "btcusd-perp",
+            "base_currency": "BTC",
+            "base_decimals": 5,
+            "counter_currency": "USD",
+            "counter_decimals": 0,
+            "minimum_order_value": "10",
+            "maximum_order_value": "500000.00000000",
+            "minimum_order_amount": "0.00001000",
+            "maximum_order_amount": "10.00000000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Bitcoin / U.S. dollar Perpetual",
+            "market_type": "PERPETUAL",
+            "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
+            "payoff_type": "Linear",
+            "contract_size": "1.00000000",
+            "isin": "EZHKD4DNKHY3"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.003
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1500000,
+                    0.0016
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    20000000,
+                    0.001
+                ],
+                [
+                    50000000,
+                    0.0008
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    250000000,
+                    0.0005
+                ],
+                [
+                    1000000000,
+                    0.0003
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.003
+                ],
+                [
+                    10000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1500000,
+                    0.0006
+                ],
+                [
+                    5000000,
+                    0.0003
+                ],
+                [
+                    20000000,
+                    0.002
+                ],
+                [
+                    50000000,
+                    0.0001
+                ],
+                [
+                    100000000,
+                    0
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "ETH/USD:USD": {
+        "id": "ethusd-perp",
+        "lowercaseId": null,
+        "symbol": "ETH/USD:USD",
+        "base": "ETH",
+        "quote": "USD",
+        "settle": "USD",
+        "baseId": "ETH",
+        "quoteId": "USD",
+        "settleId": "USD",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 1000
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": 500000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "name": "ETH/USD-PERP",
+            "market_symbol": "ethusd-perp",
+            "base_currency": "ETH",
+            "base_decimals": 3,
+            "counter_currency": "USD",
+            "counter_decimals": 1,
+            "minimum_order_value": "10.0",
+            "maximum_order_value": "500000.00000000",
+            "minimum_order_amount": "0.00100000",
+            "maximum_order_amount": "1000.00000000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 2,
+            "instant_and_market_orders": "Enabled",
+            "description": "Ethereum / U.S. dollar Perpetual",
+            "market_type": "PERPETUAL",
+            "underlying_asset": "Kaiko ETH Benchmark Reference Rate",
+            "payoff_type": "Linear",
+            "contract_size": "1.00000000",
+            "isin": "EZTS6C9N08Q8"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.003
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1500000,
+                    0.0016
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    20000000,
+                    0.001
+                ],
+                [
+                    50000000,
+                    0.0008
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    250000000,
+                    0.0005
+                ],
+                [
+                    1000000000,
+                    0.0003
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.003
+                ],
+                [
+                    10000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1500000,
+                    0.0006
+                ],
+                [
+                    5000000,
+                    0.0003
+                ],
+                [
+                    20000000,
+                    0.002
+                ],
+                [
+                    50000000,
+                    0.0001
+                ],
+                [
+                    100000000,
+                    0
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        }
     }
 }

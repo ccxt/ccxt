@@ -664,6 +664,7 @@ export default class bitstamp extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             let settleId: Str = undefined;
             const marketTypeRaw = this.safeString (market, 'market_type');
+            let symbol = base + '/' + quote;
             let type: Str = undefined;
             let subType: Str = undefined;
             if (marketTypeRaw === 'SPOT') {
@@ -671,6 +672,7 @@ export default class bitstamp extends Exchange {
             } else if (marketTypeRaw === 'PERPETUAL') {
                 type = 'swap';
                 settleId = quoteId;
+                symbol = base + '/' + quote + ':' + settleId;
                 const payoffType = this.safeString (market, 'payoff_type');
                 if (payoffType === 'Linear') {
                     subType = 'linear';
@@ -679,7 +681,6 @@ export default class bitstamp extends Exchange {
                 }
             }
             const isSpot = (type === 'spot');
-            const symbol = base + '/' + quote;
             result.push ({
                 'id': this.safeString (market, 'market_symbol'),
                 'symbol': symbol,
