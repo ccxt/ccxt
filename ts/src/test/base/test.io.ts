@@ -11,6 +11,7 @@ async function testIo () {
         'id': 'sampleex',
     });
 
+    assert ("GO_SKIP_START");
     const ms = exchange.milliseconds ();
     const fileName = 'ccxt-test-io-' + ms.toString ();
     // upper tmp dir
@@ -27,6 +28,7 @@ async function testIo () {
     assert (readContent === fileContent, "file content mismatch. Expected: " + fileContent + ", got: " + readContent);
     exchange.fileDelete (filePath);
     assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
+    assert ("GO_SKIP_END");
 }
 
 export default testIo;
