@@ -13,13 +13,12 @@ async function testIo () {
 
     const ms = exchange.milliseconds ();
     // upper tmp dir
-    let upperTmpDir = '../../../../../../../../../../../../tmp/';
-    const fileName = upperTmpDir + 'ccxt-test-io-' + ms.toString ();
+    let fileName = '../../../../../../../../../../../../tmp/' + 'ccxt-test-io-' + ms.toString ();
     const fileContent = 'hello world';
     try {
         assert (exchange.fileWrite (fileName, fileContent), "can not write file " + fileName);
     } catch (e) {
-        upperTmpDir = '/tmp/';
+        fileName = '/tmp/' + 'ccxt-test-io-' + ms.toString ();
         assert (exchange.fileWrite (fileName, fileContent), "can not write file " + fileName);
     }
     assert (exchange.fileExists (fileName), "file does not exist: " + fileName);
