@@ -118,9 +118,13 @@ type Exchange struct {
 	httpClient *http.Client
 
 	HttpProxy            interface{}
-	HttpsProxy           interface{}
 	Http_proxy           interface{}
+	HttpProxyCallback    interface{}
+	Http_proxy_callback  interface{}
+	HttpsProxy           interface{}
 	Https_proxy          interface{}
+	HttpsProxyCallback   interface{}
+	Https_proxy_callback interface{}
 	Proxy                interface{}
 	ProxyUrl             interface{}
 	ProxyUrlCallback     interface{}
@@ -131,21 +135,12 @@ type Exchange struct {
 	SocksProxyCallback   interface{}
 	Socks_proxy_callback interface{}
 
-	HttpsProxyCallback   interface{}
-	Https_proxy_callback interface{}
-
-	HttpProxyCallback   interface{}
-	Http_proxy_callback interface{}
-	SocksroxyCallback   interface{}
-
-	WsSocksProxy   string
-	Ws_socks_proxy string
-
-	WssProxy  string
-	Wss_proxy string
-
-	WsProxy  string
-	Ws_proxy string
+	WsProxy        interface{}
+	Ws_proxy       interface{}
+	WssProxy       interface{}
+	Wss_proxy      interface{}
+	WsSocksProxy   interface{}
+	Ws_socks_proxy interface{}
 
 	HttpProxyAgentModule         interface{} // or interface{} if you don't have a type yet
 	HttpsProxyAgentModule        interface{}
@@ -156,7 +151,7 @@ type Exchange struct {
 
 	SubstituteCommonCurrencyCodes bool
 
-	Twofa string
+	Twofa interface{}
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp

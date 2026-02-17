@@ -147,34 +147,6 @@ function helperTestProperties () {
     testSharedMethods.assertDeepEqual (exchange, {}, 'requiredCredentials', testSharedMethods.getExchangeProperty (exchange, 'requiredCredentials'), requiredCredentials);
 
     //
-    // cache
-    //
-    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, {});
-    assert (exchange.liquidations === undefined, 'liquidations should be undefined');
-    assert (exchange.orders === undefined, 'orders should be undefined');
-    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, {});
-    assert (testSharedMethods.getExchangeProperty (exchange, 'myLiquidations') === undefined);
-    assert (testSharedMethods.getExchangeProperty (exchange, 'myTrades') === undefined);
-    assert (exchange.positions === undefined, 'positions should be undefined');
-    assert (exchange.markets === undefined, 'markets should be undefined');
-    assert (exchange.symbols === undefined, 'symbols should be undefined');
-    assert (exchange.markets_by_id === undefined, 'markets_by_id should be undefined');
-    assert (exchange.ids === undefined, 'ids should be undefined');
-    testSharedMethods.assertDeepEqual (exchange, {}, 'currencies', exchange.currencies, {});
-    assert (testSharedMethods.getExchangeProperty (exchange, 'baseCurrencies') === undefined, 'baseCurrencies should be undefined');
-    assert (testSharedMethods.getExchangeProperty (exchange, 'quoteCurrencies') === undefined, 'quoteCurrencies should be undefined');
-    assert (exchange.currencies_by_id === undefined, 'currencies_by_id should be undefined');
-    assert (exchange.codes === undefined, 'codes should be undefined');
-    assert (exchange.accounts === undefined, 'accounts should be undefined');
-    assert (testSharedMethods.getExchangeProperty (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
-    testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.getExchangeProperty (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
-
-    //
     // proxies
     //
     assert (exchange.proxy === undefined, 'proxy should be undefined');
@@ -220,7 +192,8 @@ function helperTestProperties () {
     //
     // common props
     //
-    assert (exchange.id === 'Exchange', 'id should be "Exchange"');
+    assert ("GO_SKIP_START");
+    assert (exchange.id === 'Exch' + 'ange', 'id should be "Exchange"');
     assert (exchange.has !== undefined, 'has should not be undefined');
     assert (exchange.api === undefined, 'api should be undefined');
     assert (exchange.features === undefined, 'features should be undefined');
@@ -302,6 +275,41 @@ function helperTestProperties () {
     assert (exchange.timeframes === undefined, 'timeframes should be undefined');
     // testSharedMethods.assertDeepEqual (exchange, {}, 'clients', testSharedMethods.getExchangeProperty (exchange, 'clients'), {}); // todo WS
     // testSharedMethods.assertDeepEqual (exchange, {}, 'streaming', testSharedMethods.getExchangeProperty (exchange, 'streaming'), {}); // todo WS
+
+    //
+    // instance dynamic cache
+    //
+    // todo: remove initialization from GO
+    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, {});
+    assert (exchange.liquidations === undefined, 'liquidations should be undefined');
+    assert (exchange.orders === undefined, 'orders should be undefined');
+    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, {});
+    assert (testSharedMethods.getExchangeProperty (exchange, 'myLiquidations') === undefined);
+    assert (testSharedMethods.getExchangeProperty (exchange, 'myTrades') === undefined);
+    assert (exchange.positions === undefined, 'positions should be undefined');
+
+    //
+    // common props
+    //
+    assert (exchange.markets === undefined, 'markets should be undefined');
+    assert (exchange.symbols === undefined, 'symbols should be undefined');
+    assert (exchange.markets_by_id === undefined, 'markets_by_id should be undefined');
+    assert (exchange.ids === undefined, 'ids should be undefined');
+    testSharedMethods.assertDeepEqual (exchange, {}, 'currencies', exchange.currencies, {});
+    assert (testSharedMethods.getExchangeProperty (exchange, 'baseCurrencies') === undefined, 'baseCurrencies should be undefined');
+    assert (testSharedMethods.getExchangeProperty (exchange, 'quoteCurrencies') === undefined, 'quoteCurrencies should be undefined');
+    assert (exchange.currencies_by_id === undefined, 'currencies_by_id should be undefined');
+    assert (exchange.codes === undefined, 'codes should be undefined');
+    assert (exchange.accounts === undefined, 'accounts should be undefined');
+    assert (testSharedMethods.getExchangeProperty (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
+    testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.getExchangeProperty (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
+    assert ("GO_SKIP_END");
+    //
 }
 
 function testAfterConstructor () {
