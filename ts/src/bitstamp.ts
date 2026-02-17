@@ -1827,7 +1827,8 @@ export default class bitstamp extends Exchange {
         //         ]
         //     }
         //
-        return this.parseFundingRateHistories (response, market, since, limit) as FundingRateHistory[];
+        const values = this.safeValue (response, 'funding_rate_history', []);
+        return this.parseFundingRateHistories (values, market, since, limit) as FundingRateHistory[];
     }
 
     parseFundingRateHistory (contract, market: Market = undefined) {
