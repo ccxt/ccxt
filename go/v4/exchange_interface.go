@@ -106,6 +106,7 @@ type ICoreExchange interface {
 	Sum(args ...interface{}) interface{}
 	NumberToString(num interface{}) interface{}
 	ParseToNumeric(value interface{}) interface{}
+	Capitalize(value interface{}) string
 	LoadMarkets(params ...interface{}) <-chan interface{}
 	SafeDict(dictionary interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	InArray(needle interface{}, haystack interface{}) bool

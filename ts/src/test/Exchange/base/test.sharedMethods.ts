@@ -619,6 +619,19 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
     assert (deepEqual (exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull (a) + ' != ' + exchange.jsonStringifyWithNull (b) + logText);
 }
 
+function getExchangeProperty (exchange: Exchange, key: string | number) {
+    if (key in exchange) {
+        return exchange[key];
+    } else {
+        const keyUpper = exchange.capitalize (key.toString ());
+        if (keyUpper in exchange) {
+            return exchange[keyUpper];
+        } else {
+            return undefined;
+        }
+    }
+}
+
 export default {
     deepEqual,
     assertDeepEqual,
@@ -652,4 +665,5 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    getExchangeProperty,
 };
