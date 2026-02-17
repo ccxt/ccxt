@@ -99,11 +99,19 @@ def initialize_exchange(config):
             sys.exit(1)
             
         exchange_class = getattr(ccxt, exchange_id)
-        exchange = exchange_class({
-            'apiKey': api_key,
-            'secret': secret,
-            'enableRateLimit': True, # Important to avoid bans!
-        })
+        
+        # Check for placeholder keys
+        if api_key == 'YOUR_API_KEY' or secret == 'YOUR_SECRET_KEY':
+            logger.warning("Placeholder API keys detected. Connecting in PUBLIC mode (no trading/balances).")
+            exchange = exchange_class({
+                'enableRateLimit': True,
+            })
+        else:
+            exchange = exchange_class({
+                'apiKey': api_key,
+                'secret': secret,
+                'enableRateLimit': True,
+            })
         
         # Check if we have access / test connection
         # load_markets() is usually the first call to verify connection
@@ -198,10 +206,18 @@ def fetch_balance(exchange):
         logger.info(log_msg)
         return balance
         
-    except ccxt.NetworkError as e:
-        logger.error(f"Network error fetching balance: {e}")
-        return None
-    except ccxt.ExchangeError as e:
+    except (ccxt.AuthenticationError, ccxt.ExchangeError) as e:
+        # If we are in dry_run and have no keys, return a mock balance for testing
+        # We can't easily pass 'dry_run' here without changing signature, 
+        # but we can check if keys are set on exchange.
+        if not exchange.apiKey or exchange.apiKey == 'YOUR_API_KEY':
+             logger.warning(f"Could not fetch real balance (Auth failed: {e}). Using MOCK balance for dry-run.")
+             return {
+                 'USDT': {'free': 1000.0, 'used': 0.0, 'total': 1000.0},
+                 'BTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
+                 'ETH': {'free': 0.0, 'used': 0.0, 'total': 0.0},
+                 'info': {'msg': 'Mock balance'}
+             }
         logger.error(f"Exchange error fetching balance: {e}")
         return None
     except Exception as e:
@@ -267,6 +283,102 @@ def calculate_order_amount(exchange, symbol, amount_usd, price):
         logger.error(f"Error calculating order amount: {e}")
         return 0, False, str(e)
 
+def place_limit_order(exchange, symbol, side, amount, price, dry_run=True):
+    """
+    Places a limit order safely.
+    If dry_run is True, it only logs the action.
+    """
+    try:
+        if dry_run:
+            logger.info(f"[DRY RUN] Would place LIMIT {side.upper()} order: {amount} {symbol} @ {price}")
+            # Return a fake order object for testing
+            return {
+                'id': f'dry_run_{int(time.time())}',
+                'symbol': symbol,
+                'type': 'limit',
+                'side': side,
+                'amount': amount,
+                'price': price,
+                'status': 'open (simulated)',
+                'timestamp': int(time.time() * 1000),
+                'info': {'msg': 'This is a dry run order'}
+            }
+            
+        # Real Order Placement
+        logger.info(f"Placing REAL {side.upper()} limit order: {amount} {symbol} @ {price}")
+        order = exchange.create_limit_order(symbol, side, amount, price)
+        logger.info(f"Order placed successfully! ID: {order['id']}")
+        return order
+
+    except ccxt.InsufficientFunds as e:
+        logger.error(f"Insufficient funds for order: {e}")
+        return None
+    except ccxt.InvalidOrder as e:
+        logger.error(f"Invalid order parameters: {e}")
+        return None
+    except ccxt.ExchangeError as e:
+        logger.error(f"Exchange error during order placement: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error placing order: {e}")
+        return None
+
+def create_order_params(exchange, config, ticker, balance):
+    """
+    Calculates and validates order parameters (side, amount, price).
+    """
+    symbol = config.get('symbol', 'BTC/USDT')
+    amount_usd = config.get('trade_amount_usd', 10)
+    price_offset_pct = config.get('price_offset_percent', 0.1)
+    
+    # 1. Determine Side (Simulated strategy: Always Buy for now)
+    side = 'buy'
+    
+    # 2. Calculate Price
+    price = calculate_limit_price(ticker, side, price_offset_pct)
+    if not price:
+        logger.error("Could not calculate limit price.")
+        return None
+
+    # 3. Calculate Amount
+    amount, is_valid, msg = calculate_order_amount(exchange, symbol, amount_usd, price)
+    if not is_valid:
+        logger.error(f"Order validation failed: {msg}")
+        return None
+        
+    # 4. Check Balance (Double check before returning)
+    quote_currency = symbol.split('/')[1]
+    has_funds, funds_msg = check_sufficient_balance(balance, quote_currency, amount_usd)
+    
+    if not has_funds:
+        logger.warning(funds_msg)
+        # We might still return params in a dry_run, but generally we should stop.
+        # For this function, let's return None to be safe.
+        return None
+    
+    logger.info(funds_msg) # Log sufficient balance
+    
+    return side, amount, price
+
+def log_order_summary(order):
+    """
+    Pretty prints the order details.
+    """
+    if not order:
+        return
+
+    logger.info("-" * 40)
+    logger.info(f"ORDER SUMMARY ({order.get('status', 'unknown').upper()})")
+    logger.info("-" * 40)
+    logger.info(f"ID:       {order.get('id')}")
+    logger.info(f"Symbol:   {order.get('symbol')}")
+    logger.info(f"Side:     {order.get('side', '').upper()}")
+    logger.info(f"Type:     {order.get('type', '').upper()}")
+    logger.info(f"Amount:   {order.get('amount')}")
+    logger.info(f"Price:    {order.get('price')}")
+    logger.info(f"Status:   {order.get('status')}")
+    logger.info("-" * 40)
+
 def main():
     logger.info("Starting the Trading Bot...")
     
@@ -288,68 +400,50 @@ def main():
             logger.error(f"Symbol {symbol} not supported on {exchange.id}")
             return
 
-        # 4. Fetch Market Data
-        logger.info("Fetching market data...")
+        # 4. Fetch Market Data & Balance
+        logger.info("Fetching market data and balance...")
         ticker = fetch_ticker(exchange, symbol)
-        if not ticker:
+        balance = fetch_balance(exchange)
+        
+        if not ticker or not balance:
+            logger.error("Failed to fetch necessary data. Aborting.")
             return
             
-        # Optional: Fetch Order Book just to show we can
+        # Optional: Fetch Order Book to show depth (not used in logic yet)
         fetch_order_book(exchange, symbol)
         
-        # 5. Calculate Order Details
-        target_price = calculate_limit_price(ticker, 'buy', price_offset_pct)
-        if not target_price:
-            logger.error("Could not calculate target price.")
-            return
-
-        # Fetch Balance
-        logger.info("Fetching balance...")
-        balance = fetch_balance(exchange)
-        if not balance:
-            logger.warn("Could not fetch balance. Proceeding with caution (or aborting in real run).")
-            if not dry_run:
-                 return
-
-        # Calculate Amount and Validate
-        amount, is_valid, msg = calculate_order_amount(exchange, symbol, amount_usd, target_price)
+        # 5. Prepare Order Parameters
+        logger.info("Calculating order parameters...")
+        order_params = create_order_params(exchange, config, ticker, balance)
         
-        if not is_valid:
-            logger.error(f"Order amount validation failed: {msg}")
-            return
-            
-        # Check Balance Logic
-        # For a BUY order, we need QUOTE currency (e.g., USDT to buy BTC)
-        quote_currency = symbol.split('/')[1]
-        
-        # Check if we have enough USDT
-        if balance:
-            has_funds, funds_msg = check_sufficient_balance(balance, quote_currency, amount_usd)
-            if not has_funds:
-                logger.warning(funds_msg)
-                if not dry_run:
-                    return
-            else:
-                logger.info(funds_msg)
-        
-        # 6. Place the Order
-        if dry_run:
-            logger.info("[DRY RUN] Simulation mode active. No real order placed.")
-            logger.info(f"[DRY RUN] Would buy {amount} {symbol} @ {target_price}")
+        start_order_execution = False
+        if order_params:
+            side, amount, price = order_params
+            start_order_execution = True
         else:
-            logger.info("Placing REAL limit buy order...")
-            # create_order(symbol, type, side, amount, price)
-            order = exchange.create_order(symbol, 'limit', 'buy', amount, target_price)
-            logger.info(f"Order placed successfully! ID: {order['id']}")
+            logger.warning("Could not generate valid order parameters.")
+
+        # 6. Place Order (with Dry Run Safety)
+        if start_order_execution:
+            # SAFETY CHECK: DRY RUN IS ENABLED BY DEFAULT
+            if dry_run:
+                logger.info(">> DRY RUN MODE ENABLED: No real funds will be used. <<")
             
-            # Simple wait logic to check if it fills (optional)
-            logger.info("Waiting a moment to see status...")
-            time.sleep(2)
-            try:
-                fetched_order = exchange.fetch_order(order['id'], symbol)
-                logger.info(f"Order Status: {fetched_order['status']}")
-            except Exception as e:
-                logger.warning(f"Could not fetch order status: {e}")
+            order = place_limit_order(exchange, symbol, side, amount, price, dry_run)
+            
+            # 7. Log Summary
+            if order:
+                log_order_summary(order)
+                
+                # If it was a real order, we might want to wait and check status
+                if not dry_run:
+                     logger.info("Waiting a moment to check order status...")
+                     time.sleep(2)
+                     try:
+                         updated_order = exchange.fetch_order(order['id'], symbol)
+                         log_order_summary(updated_order)
+                     except Exception as e:
+                         logger.warning(f"Could not fetch updated order status: {e}")
 
     except ccxt.NetworkError as e:
         logger.error(f"Network error during trading: {e}")
