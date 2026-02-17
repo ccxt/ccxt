@@ -1172,7 +1172,7 @@ func (this *Exchange) GetCurrenciesList() []Currency {
 	return currencies
 }
 
-func (this *Exchange) SetProperty(obj interface{}, property interface{}, value interface{}) {
+func (this *Exchange) SetProperty(obj interface{}, property interface{}, defaultValue interface{}) {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
@@ -1189,7 +1189,7 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, value i
 	// Check if the field exists and is settable
 	if field.IsValid() && field.CanSet() {
 		// Set the field with the default value, casting it to the right type
-		field.Set(reflect.ValueOf(value))
+		field.Set(reflect.ValueOf(defaultValue))
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
 	}
@@ -1217,12 +1217,15 @@ func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interfac
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj interface{}, property interface{}, defaultValue interface{}) interface{} {
+func (this *Exchange) GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
-		return defaultValue
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return nil
 	}
 
 	// Get the reflection object for the obj
@@ -1237,7 +1240,10 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}, default
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
-		return defaultValue
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
+		return nil
 	}
 }
 
