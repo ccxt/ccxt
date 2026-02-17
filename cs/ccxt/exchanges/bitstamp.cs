@@ -578,54 +578,102 @@ public partial class bitstamp : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.fetchMarketsFromCache(parameters);
         //
-        //     [
+        //    [
+        //
+        //   spot:
+        //
+        //        {
+        //            "name": "BTC/USD",
+        //            "market_symbol": "btcusd",
+        //            "base_currency": "BTC",
+        //            "base_decimals": 8,
+        //            "counter_currency": "USD",
+        //            "counter_decimals": 0,
+        //            "minimum_order_value": "10",
+        //            "trading": "Enabled",
+        //            "instant_order_counter_decimals": 2,
+        //            "instant_and_market_orders": "Enabled",
+        //            "description": "Bitcoin / U.S. dollar",
+        //            "market_type": "SPOT"
+        //        },
+        //        ...
+        //
+        //    perp:
+        //
         //         {
+        //             "name": "BTC/USD-PERP",
+        //             "market_symbol": "btcusd-perp",
+        //             "base_currency": "BTC",
+        //             "base_decimals": 5,
+        //             "counter_currency": "USD",
+        //             "counter_decimals": 0,
+        //             "minimum_order_value": "10",
+        //             "maximum_order_value": "500000.00000000",
+        //             "minimum_order_amount": "0.00001000",
+        //             "maximum_order_amount": "10.00000000",
         //             "trading": "Enabled",
-        //             "base_decimals": 8,
-        //             "url_symbol": "btcusd",
-        //             "name": "BTC/USD",
+        //             "instant_order_counter_decimals": 2,
         //             "instant_and_market_orders": "Enabled",
-        //             "minimum_order": "20.0 USD",
-        //             "counter_decimals": 2,
-        //             "description": "Bitcoin / U.S. dollar"
+        //             "description": "Bitcoin / U.S. dollar Perpetual",
+        //             "market_type": "PERPETUAL",
+        //             "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
+        //             "payoff_type": "Linear",
+        //             "contract_size": "1.00000000",
+        //             "isin": "EZHKD4DNKHY3"
         //         }
-        //     ]
         //
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
-            object name = this.safeString(market, "name");
-            var bsquoteVariable = ((string)name).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-            var bs = ((IList<object>) bsquoteVariable)[0];
-            var quote = ((IList<object>) bsquoteVariable)[1];
-            object baseId = ((string)bs).ToLower();
-            object quoteId = ((string)quote).ToLower();
-            bs = this.safeCurrencyCode(bs);
-            quote = this.safeCurrencyCode(quote);
-            object minimumOrder = this.safeString(market, "minimum_order");
-            object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object status = this.safeString(market, "trading");
+            var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
+            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
+            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object settleId = null;
+            object marketTypeRaw = this.safeString(market, "market_type");
+            object symbol = add(add(bs, "/"), quote);
+            object type = null;
+            object subType = null;
+            if (isTrue(isEqual(marketTypeRaw, "SPOT")))
+            {
+                type = "spot";
+            } else if (isTrue(isEqual(marketTypeRaw, "PERPETUAL")))
+            {
+                type = "swap";
+                settleId = quoteId;
+                symbol = add(add(add(add(bs, "/"), quote), ":"), settleId);
+                object payoffType = this.safeString(market, "payoff_type");
+                if (isTrue(isEqual(payoffType, "Linear")))
+                {
+                    subType = "linear";
+                } else if (isTrue(isEqual(payoffType, "Inverse")))
+                {
+                    subType = "inverse";
+                }
+            }
+            object isSpot = (isEqual(type, "spot"));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
-                { "id", this.safeString(market, "url_symbol") },
-                { "marketId", add(add(baseId, "_"), quoteId) },
-                { "symbol", add(add(bs, "/"), quote) },
+                { "id", this.safeString(market, "market_symbol") },
+                { "symbol", symbol },
                 { "base", bs },
                 { "quote", quote },
-                { "settle", null },
+                { "settle", ((bool) isTrue(settleId)) ? this.safeCurrencyCode(settleId) : null },
                 { "baseId", baseId },
                 { "quoteId", quoteId },
-                { "settleId", null },
-                { "type", "spot" },
-                { "spot", true },
+                { "settleId", settleId },
+                { "type", type },
+                { "subType", subType },
+                { "spot", isSpot },
                 { "margin", false },
                 { "future", false },
-                { "swap", false },
+                { "swap", !isTrue(isSpot) },
                 { "option", false },
-                { "active", (isEqual(status, "Enabled")) },
-                { "contract", false },
-                { "linear", null },
-                { "inverse", null },
+                { "active", (isEqual(this.safeString(market, "trading"), "Enabled")) },
+                { "contract", !isTrue(isSpot) },
+                { "linear", ((bool) isTrue(isSpot)) ? null : true },
+                { "inverse", ((bool) isTrue(isSpot)) ? null : false },
                 { "contractSize", null },
                 { "expiry", null },
                 { "expiryDatetime", null },
@@ -641,16 +689,16 @@ public partial class bitstamp : Exchange
                         { "max", null },
                     } },
                     { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+                        { "min", this.safeNumber(market, "minimum_order_amount") },
+                        { "max", this.safeNumber(market, "maximum_order_amount") },
                     } },
                     { "price", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(parts, 0) },
-                        { "max", null },
+                        { "min", this.safeNumber(market, "minimum_order_value") },
+                        { "max", this.safeNumber(market, "maximum_order_value") },
                     } },
                 } },
                 { "created", null },
@@ -713,7 +761,24 @@ public partial class bitstamp : Exchange
         object now = this.milliseconds();
         if (isTrue(isTrue((isEqual(timestamp, null))) || isTrue((isGreaterThan((subtract(now, timestamp)), expires)))))
         {
-            object response = await this.publicGetTradingPairsInfo(parameters);
+            object response = await this.publicGetMarkets(parameters);
+            //
+            //    [
+            //        {
+            //            "name": "BTC/USD",
+            //            "market_symbol": "btcusd",
+            //            "base_currency": "BTC",
+            //            "base_decimals": 8,
+            //            "counter_currency": "USD",
+            //            "counter_decimals": 0,
+            //            "minimum_order_value": "10",
+            //            "trading": "Enabled",
+            //            "instant_order_counter_decimals": 2,
+            //            "instant_and_market_orders": "Enabled",
+            //            "description": "Bitcoin / U.S. dollar",
+            //            "market_type": "SPOT"
+            //        },
+            //
             ((IDictionary<string,object>)this.options)["fetchMarkets"] = this.extend(options, new Dictionary<string, object>() {
                 { "response", response },
                 { "timestamp", now },
@@ -752,19 +817,16 @@ public partial class bitstamp : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
-            object name = this.safeString(market, "name");
-            var bsquoteVariable = ((string)name).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-            var bs = ((IList<object>) bsquoteVariable)[0];
-            var quote = ((IList<object>) bsquoteVariable)[1];
-            object baseId = ((string)bs).ToLower();
-            object quoteId = ((string)quote).ToLower();
-            bs = this.safeCurrencyCode(bs);
-            quote = this.safeCurrencyCode(quote);
+            var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
+            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
+            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
             object description = this.safeString(market, "description");
             var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
             var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
             var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
-            object minimumOrder = this.safeString(market, "minimum_order");
+            object minimumOrder = this.safeString(market, "minimum_order_value");
             object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object cost = getValue(parts, 0);
             if (!isTrue((inOp(result, bs))))
@@ -1074,7 +1136,7 @@ public partial class bitstamp : Exchange
         }
         object feeCostString = this.safeString(trade, "fee");
         object feeCurrency = getValue(market, "quote");
-        object priceId = ((bool) isTrue((!isEqual(rawMarketId, null)))) ? rawMarketId : getValue(market, "marketId");
+        object priceId = ((bool) isTrue((!isEqual(rawMarketId, null)))) ? rawMarketId : getValue(market, "id");
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, getValue(market, "baseId"), amountString);
         costString = this.safeString(trade, getValue(market, "quoteId"), costString);
