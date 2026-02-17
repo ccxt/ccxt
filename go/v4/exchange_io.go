@@ -6,23 +6,26 @@ import (
 )
 
 // fileRead reads a file and returns its contents
-func (this *Exchange) FileRead(path string, args ...interface{}) (interface{}, error) {
+func (this *Exchange) FileRead(path string, args ...interface{}) string {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return ""
 	}
-	return string(data), nil
+	return string(data)
 }
 
 // fileWrite writes data to a file
-func (this *Exchange) FileWrite(path string, data string, args ...interface{}) error {
+func (this *Exchange) FileWrite(path string, data string, args ...interface{}) bool {
 	dir := filepath.Dir(path)
 	if dir != "" && dir != "." {
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			return err
+			return false
 		}
 	}
-	return os.WriteFile(path, []byte(data), 0644)
+	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
+		return false
+	}
+	return true
 }
 
 // fileExists checks if a file exists
@@ -32,16 +35,22 @@ func (this *Exchange) FileExists(path string) bool {
 }
 
 // fileDelete deletes a file
-func (this *Exchange) FileDelete(path string) error {
+func (this *Exchange) FileDelete(path string) bool {
 	if !this.FileExists(path) {
-		return nil
+		return true
 	}
-	return os.Remove(path)
+	if err := os.Remove(path); err != nil {
+		return false
+	}
+	return true
 }
 
 // directoryCreate creates a directory
-func (this *Exchange) DirectoryCreate(path string) error {
-	return os.MkdirAll(path, 0755)
+func (this *Exchange) DirectoryCreate(path string) bool {
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return false
+	}
+	return true
 }
 
 // directoryExists checks if a directory exists
@@ -54,9 +63,12 @@ func (this *Exchange) DirectoryExists(path string) bool {
 }
 
 // directoryDelete deletes a directory and all its contents
-func (this *Exchange) DirectoryDelete(path string) error {
+func (this *Exchange) DirectoryDelete(path string) bool {
 	if !this.DirectoryExists(path) {
-		return nil
+		return true
 	}
-	return os.RemoveAll(path)
+	if err := os.RemoveAll(path); err != nil {
+		return false
+	}
+	return true
 }
