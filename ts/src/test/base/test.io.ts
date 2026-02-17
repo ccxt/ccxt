@@ -12,20 +12,21 @@ async function testIo () {
     });
 
     const ms = exchange.milliseconds ();
+    const fileName = 'ccxt-test-io-' + ms.toString ();
     // upper tmp dir
-    let fileName = '../../../../../../../../../../../../tmp/' + 'ccxt-test-io-' + ms.toString ();
-    const fileContent = 'hello world';
+    let filePath = '../../../../../../../../../../../../tmp/' + fileName;
+    const fileContent: string = 'hello world';
     try {
-        assert (exchange.fileWrite (fileName, fileContent), "can not write file " + fileName);
+        assert (exchange.fileWrite (filePath, fileContent), "can not write file " + filePath);
     } catch (e) {
-        fileName = '/tmp/' + 'ccxt-test-io-' + ms.toString ();
-        assert (exchange.fileWrite (fileName, fileContent), "can not write file " + fileName);
+        filePath = '/tmp/' + fileName;
+        assert (exchange.fileWrite (filePath, fileContent), "can not write file " + filePath);
     }
-    assert (exchange.fileExists (fileName), "file does not exist: " + fileName);
-    const readContent = exchange.fileRead (fileName);
+    assert (exchange.fileExists (filePath), "file does not exist: " + filePath);
+    const readContent = exchange.fileRead (filePath);
     assert (readContent === fileContent, "file content mismatch. Expected: " + fileContent + ", got: " + readContent);
-    exchange.fileDelete (fileName);
-    assert (!exchange.fileExists (fileName), "file was not deleted: " + fileName);
+    exchange.fileDelete (filePath);
+    assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
 }
 
 export default testIo;
