@@ -13,7 +13,7 @@ let fsSyncModule: any = null;
  * Initialize file system module (Node.js only)
  * Uses dynamic import to prevent bundling in browser builds
  */
-export async function initFileSystem () {
+export async function initFileSystemAsync () {
     if (isNode && fsModule === null) {
         try {
             // Dynamic import with webpackIgnore to prevent bundling
@@ -32,7 +32,7 @@ export async function initFileSystem () {
  * Initialize synchronous file system module (Node.js only)
  * Uses dynamic import to prevent bundling in browser builds
  */
-export async function initFileSystemSync () {
+export async function initFileSystem () {
     if (isNode && fsSyncModule === null) {
         try {
             // Dynamic import with webpackIgnore to prevent bundling
@@ -43,6 +43,11 @@ export async function initFileSystemSync () {
         }
     }
     return fsSyncModule;
+}
+
+if (isNode) {
+    // Pre-initialize synchronous fs module for sync methods
+    initFileSystem();
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -57,7 +62,7 @@ export async function readFileAsync (path: string, encoding: BufferEncoding = 'u
     if (!isNode) {
         return undefined;
     }
-    const fs = await initFileSystem();
+    const fs = await initFileSystemAsync();
     if (fs) {
         return await fs.readFile(path, encoding);
     }
@@ -76,7 +81,7 @@ export async function writeFileAsync (path: string, data: string, encoding: Buff
     if (!isNode) {
         return;
     }
-    const fs = await initFileSystem();
+    const fs = await initFileSystemAsync();
     if (fs) {
         await fs.writeFile(path, data, encoding);
     }
@@ -93,7 +98,7 @@ export async function fileExistsAsync (path: string): Promise<boolean> {
     if (!isNode) {
         return false;
     }
-    const fs = await initFileSystem();
+    const fs = await initFileSystemAsync();
     if (fs) {
         try {
             await fs.access(path);
@@ -116,7 +121,7 @@ export async function readDir (path: string): Promise<string[]> {
     if (!isNode) {
         return [];
     }
-    const fs = await initFileSystem();
+    const fs = await initFileSystemAsync();
     if (fs) {
         return await fs.readdir(path);
     }

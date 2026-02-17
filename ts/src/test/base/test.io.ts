@@ -5,7 +5,7 @@ import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 
-function testIo () {
+async function testIo () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'sampleex',

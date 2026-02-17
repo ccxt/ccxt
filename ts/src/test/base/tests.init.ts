@@ -47,7 +47,6 @@ async function baseTestsInit () {
     testSafeMethods ();
     testSafeTicker ();
     testJson ();
-    testIo ();
     testSortBy ();
     testSum ();
     testUrlencodeBase64 ();
@@ -63,6 +62,7 @@ async function baseTestsInit () {
     testArraysConcat ();
     testEthMethods ();
     await testSleep ();
+    await testIo ();
 }
 
 export default baseTestsInit;
