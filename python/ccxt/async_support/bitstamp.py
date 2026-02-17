@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitstamp import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -181,7 +181,7 @@ class bitstamp(Exchange, ImplicitAPI):
                         'currencies/': 1,
                         'eur_usd/': 1,
                         'travel_rule/vasps/': 1,
-                        'funding_rate/{pair}/': 1,
+                        'funding_rate/{market_symbol}/': 1,
                         'funding_rate_history/{pair}/': 1,
                     },
                 },
@@ -2139,6 +2139,65 @@ class bitstamp(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
         return self.parse_ledger(response, currency, since, limit)
+
+    async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetch the current funding rate
+
+        https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'market_symbol': market['id'],
+        }
+        response = await self.publicGetFundingRateMarketSymbol(self.extend(request, params))
+        #
+        #     {
+        #         "funding_rate": "0.0024",
+        #         "timestamp": "1644406050",
+        #         "market": "BTC/USD-PERP",
+        #         "next_funding_time": "1644406050"
+        #     }
+        #
+        return self.parse_funding_rate(response, market)
+
+    def parse_funding_rate(self, fundingRate, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "funding_rate": "0.0024",
+        #         "timestamp": "1644406050",
+        #         "market": "BTC/USD-PERP",
+        #         "next_funding_time": "1644406050"
+        #     }
+        #
+        currentTime = self.safe_integer_product(fundingRate, 'timestamp', 1000)
+        nextFundingRateTimestamp = self.safe_integer_product(fundingRate, 'next_funding_time', 1000)
+        marketId = self.safe_string(fundingRate, 'market')
+        return {
+            'info': fundingRate,
+            'symbol': self.safe_symbol(marketId, market),
+            'markPrice': None,
+            'indexPrice': None,
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': currentTime,
+            'datetime': self.iso8601(currentTime),
+            'previousFundingRate': None,
+            'nextFundingRate': None,
+            'previousFundingTimestamp': None,
+            'nextFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'nextFundingDatetime': None,
+            'fundingRate': self.safe_number(fundingRate, 'funding_rate'),
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingRateTimestamp),
+            'interval': None,
+        }
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

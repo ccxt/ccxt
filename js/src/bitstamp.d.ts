@@ -1,5 +1,5 @@
 import Exchange from './abstract/bitstamp.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, int, LedgerEntry, DepositAddress, FundingRate } from './base/types.js';
 /**
  * @class bitstamp
  * @augments Exchange
@@ -279,6 +279,17 @@ export default class bitstamp extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<LedgerEntry[]>;
+    /**
+     * @method
+     * @name bitstamp#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingRate(fundingRate: any, market?: Market): FundingRate;
     /**
      * @method
      * @name bitstamp#fetchOpenOrders

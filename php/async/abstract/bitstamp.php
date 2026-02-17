@@ -40,8 +40,8 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function public_get_travel_rule_vasps($params = array()) {
         return $this->request('travel_rule/vasps/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_funding_rate_pair($params = array()) {
-        return $this->request('funding_rate/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function public_get_funding_rate_market_symbol($params = array()) {
+        return $this->request('funding_rate/{market_symbol}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_funding_rate_history_pair($params = array()) {
         return $this->request('funding_rate_history/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -829,8 +829,8 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     public function publicGetTravelRuleVasps($params = array()) {
         return $this->request('travel_rule/vasps/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetFundingRatePair($params = array()) {
-        return $this->request('funding_rate/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    public function publicGetFundingRateMarketSymbol($params = array()) {
+        return $this->request('funding_rate/{market_symbol}/', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetFundingRateHistoryPair($params = array()) {
         return $this->request('funding_rate_history/{pair}/', 'public', 'GET', $params, null, null, array("cost" => 1));

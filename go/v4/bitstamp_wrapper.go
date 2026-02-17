@@ -723,6 +723,34 @@ func (this *Bitstamp) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 
 /**
  * @method
+ * @name bitstamp#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Bitstamp) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
+}
+
+/**
+ * @method
  * @name bitstamp#fetchOpenOrders
  * @description fetch all unfilled currently open orders
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
@@ -1033,9 +1061,6 @@ func (this *Bitstamp) FetchFundingInterval(symbol string, options ...FetchFundin
 }
 func (this *Bitstamp) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Bitstamp) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
 }
 func (this *Bitstamp) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 	return this.exchangeTyped.FetchFundingRateHistory(options...)

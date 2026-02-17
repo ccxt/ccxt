@@ -1191,8 +1191,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        spot = self.fetch_spot_markets(params)
-        contract = self.fetch_contract_markets(params)
+        spotPromise = self.fetch_spot_markets(params)
+        contractPromise = self.fetch_contract_markets(params)
+        spot, contract = [spotPromise, contractPromise]
         return self.array_concat(spot, contract)
 
     def fetch_currencies(self, params={}) -> Currencies:

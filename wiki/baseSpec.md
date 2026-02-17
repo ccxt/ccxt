@@ -2872,6 +2872,7 @@ fetch the current funding rate
 * [bitflyer](/exchanges/bitflyer.md#fetchfundingrate)
 * [bitget](/exchanges/bitget.md#fetchfundingrate)
 * [bitmart](/exchanges/bitmart.md#fetchfundingrate)
+* [bitstamp](/exchanges/bitstamp.md#fetchfundingrate)
 * [blofin](/exchanges/blofin.md#fetchfundingrate)
 * [bydfi](/exchanges/bydfi.md#fetchfundingrate)
 * [coincatch](/exchanges/coincatch.md#fetchfundingrate)

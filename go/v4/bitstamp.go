@@ -155,19 +155,19 @@ func (this *BitstampCore) Describe() interface{} {
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
-					"ohlc/{pair}/":                 1,
-					"order_book/{pair}/":           1,
-					"ticker/":                      1,
-					"ticker_hour/{pair}/":          1,
-					"ticker/{pair}/":               1,
-					"transactions/{pair}/":         1,
-					"trading-pairs-info/":          1,
-					"markets/":                     1,
-					"currencies/":                  1,
-					"eur_usd/":                     1,
-					"travel_rule/vasps/":           1,
-					"funding_rate/{pair}/":         1,
-					"funding_rate_history/{pair}/": 1,
+					"ohlc/{pair}/":                  1,
+					"order_book/{pair}/":            1,
+					"ticker/":                       1,
+					"ticker_hour/{pair}/":           1,
+					"ticker/{pair}/":                1,
+					"transactions/{pair}/":          1,
+					"trading-pairs-info/":           1,
+					"markets/":                      1,
+					"currencies/":                   1,
+					"eur_usd/":                      1,
+					"travel_rule/vasps/":            1,
+					"funding_rate/{market_symbol}/": 1,
+					"funding_rate_history/{pair}/":  1,
 				},
 			},
 			"private": map[string]interface{}{
@@ -2581,6 +2581,83 @@ func (this *BitstampCore) FetchLedger(optionalArgs ...interface{}) <-chan interf
 
 /**
  * @method
+ * @name bitstamp#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *BitstampCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		retRes22478 := (<-this.LoadMarkets())
+		PanicOnError(retRes22478)
+		var market interface{} = this.Market(symbol)
+		var request interface{} = map[string]interface{}{
+			"market_symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//     {
+		//         "funding_rate": "0.0024",
+		//         "timestamp": "1644406050",
+		//         "market": "BTC/USD-PERP",
+		//         "next_funding_time": "1644406050"
+		//     }
+		//
+		ch <- this.ParseFundingRate(response, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitstampCore) ParseFundingRate(fundingRate interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	//     {
+	//         "funding_rate": "0.0024",
+	//         "timestamp": "1644406050",
+	//         "market": "BTC/USD-PERP",
+	//         "next_funding_time": "1644406050"
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var currentTime interface{} = this.SafeIntegerProduct(fundingRate, "timestamp", 1000)
+	var nextFundingRateTimestamp interface{} = this.SafeIntegerProduct(fundingRate, "next_funding_time", 1000)
+	var marketId interface{} = this.SafeString(fundingRate, "market")
+	return map[string]interface{}{
+		"info":                     fundingRate,
+		"symbol":                   this.SafeSymbol(marketId, market),
+		"markPrice":                nil,
+		"indexPrice":               nil,
+		"interestRate":             nil,
+		"estimatedSettlePrice":     nil,
+		"timestamp":                currentTime,
+		"datetime":                 this.Iso8601(currentTime),
+		"previousFundingRate":      nil,
+		"nextFundingRate":          nil,
+		"previousFundingTimestamp": nil,
+		"nextFundingTimestamp":     nil,
+		"previousFundingDatetime":  nil,
+		"nextFundingDatetime":      nil,
+		"fundingRate":              this.SafeNumber(fundingRate, "funding_rate"),
+		"fundingTimestamp":         nextFundingRateTimestamp,
+		"fundingDatetime":          this.Iso8601(nextFundingRateTimestamp),
+		"interval":                 nil,
+	}
+}
+
+/**
+ * @method
  * @name bitstamp#fetchOpenOrders
  * @description fetch all unfilled currently open orders
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/GetAllOpenOrders
@@ -2606,8 +2683,8 @@ func (this *BitstampCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan in
 		_ = params
 		var market interface{} = nil
 
-		retRes22518 := (<-this.LoadMarkets())
-		PanicOnError(retRes22518)
+		retRes23128 := (<-this.LoadMarkets())
+		PanicOnError(retRes23128)
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
@@ -2719,8 +2796,8 @@ func (this *BitstampCore) Withdraw(code interface{}, amount interface{}, address
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes23348 := (<-this.LoadMarkets())
-		PanicOnError(retRes23348)
+		retRes23958 := (<-this.LoadMarkets())
+		PanicOnError(retRes23958)
 		this.CheckAddress(address)
 		var request interface{} = map[string]interface{}{
 			"amount": amount,
@@ -2778,8 +2855,8 @@ func (this *BitstampCore) Transfer(code interface{}, amount interface{}, fromAcc
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23788 := (<-this.LoadMarkets())
-		PanicOnError(retRes23788)
+		retRes24398 := (<-this.LoadMarkets())
+		PanicOnError(retRes24398)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),

@@ -514,6 +514,26 @@ public partial class bitstamp
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
     /// <summary>
+    /// fetch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>

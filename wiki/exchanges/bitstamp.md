@@ -25,6 +25,7 @@
 * [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchWithdrawals](#fetchwithdrawals)
 * [fetchLedger](#fetchledger)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [withdraw](#withdraw)
@@ -484,6 +485,27 @@ fetch the history of changes, actions done by the user or operations that altere
 
 ```javascript
 bitstamp.fetchLedger ([code, since, limit, params])
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetch the current funding rate
+
+**Kind**: instance method of [<code>bitstamp</code>](#bitstamp)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+
+**See**: https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitstamp.fetchFundingRate (symbol[, params])
 ```
 
 

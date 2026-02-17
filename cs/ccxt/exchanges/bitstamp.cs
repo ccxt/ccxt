@@ -159,7 +159,7 @@ public partial class bitstamp : Exchange
                         { "currencies/", 1 },
                         { "eur_usd/", 1 },
                         { "travel_rule/vasps/", 1 },
-                        { "funding_rate/{pair}/", 1 },
+                        { "funding_rate/{market_symbol}/", 1 },
                         { "funding_rate_history/{pair}/", 1 },
                     } },
                 } },
@@ -2336,6 +2336,70 @@ public partial class bitstamp : Exchange
             currency = this.currency(code);
         }
         return this.parseLedger(response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bitstamp#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "market_symbol", getValue(market, "id") },
+        };
+        object response = await ((Task<object>)callDynamically(this, "publicGetFundingRateMarketSymbol", new object[] { this.extend(request, parameters) }));
+        //
+        //     {
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050",
+        //         "market": "BTC/USD-PERP",
+        //         "next_funding_time": "1644406050"
+        //     }
+        //
+        return this.parseFundingRate(response, market);
+    }
+
+    public override object parseFundingRate(object fundingRate, object market = null)
+    {
+        //
+        //     {
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050",
+        //         "market": "BTC/USD-PERP",
+        //         "next_funding_time": "1644406050"
+        //     }
+        //
+        object currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
+        object nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
+        object marketId = this.safeString(fundingRate, "market");
+        return new Dictionary<string, object>() {
+            { "info", fundingRate },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "markPrice", null },
+            { "indexPrice", null },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", currentTime },
+            { "datetime", this.iso8601(currentTime) },
+            { "previousFundingRate", null },
+            { "nextFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "nextFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "nextFundingDatetime", null },
+            { "fundingRate", this.safeNumber(fundingRate, "funding_rate") },
+            { "fundingTimestamp", nextFundingRateTimestamp },
+            { "fundingDatetime", this.iso8601(nextFundingRateTimestamp) },
+            { "interval", null },
+        };
     }
 
     /**

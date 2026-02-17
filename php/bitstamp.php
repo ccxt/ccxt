@@ -164,7 +164,7 @@ class bitstamp extends Exchange {
                         'currencies/' => 1,
                         'eur_usd/' => 1,
                         'travel_rule/vasps/' => 1,
-                        'funding_rate/{pair}/' => 1,
+                        'funding_rate/{market_symbol}/' => 1,
                         'funding_rate_history/{pair}/' => 1,
                     ),
                 ),
@@ -2228,6 +2228,67 @@ class bitstamp extends Exchange {
             $currency = $this->currency($code);
         }
         return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'market_symbol' => $market['id'],
+        );
+        $response = $this->publicGetFundingRateMarketSymbol ($this->extend($request, $params));
+        //
+        //     {
+        //         "funding_rate" => "0.0024",
+        //         "timestamp" => "1644406050",
+        //         "market" => "BTC/USD-PERP",
+        //         "next_funding_time" => "1644406050"
+        //     }
+        //
+        return $this->parse_funding_rate($response, $market);
+    }
+
+    public function parse_funding_rate($fundingRate, ?array $market = null): array {
+        //
+        //     {
+        //         "funding_rate" => "0.0024",
+        //         "timestamp" => "1644406050",
+        //         "market" => "BTC/USD-PERP",
+        //         "next_funding_time" => "1644406050"
+        //     }
+        //
+        $currentTime = $this->safe_integer_product($fundingRate, 'timestamp', 1000);
+        $nextFundingRateTimestamp = $this->safe_integer_product($fundingRate, 'next_funding_time', 1000);
+        $marketId = $this->safe_string($fundingRate, 'market');
+        return array(
+            'info' => $fundingRate,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $currentTime,
+            'datetime' => $this->iso8601($currentTime),
+            'previousFundingRate' => null,
+            'nextFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'nextFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'nextFundingDatetime' => null,
+            'fundingRate' => $this->safe_number($fundingRate, 'funding_rate'),
+            'fundingTimestamp' => $nextFundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'interval' => null,
+        );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

@@ -169,7 +169,7 @@ class bitstamp extends bitstamp$1["default"] {
                         'currencies/': 1,
                         'eur_usd/': 1,
                         'travel_rule/vasps/': 1,
-                        'funding_rate/{pair}/': 1,
+                        'funding_rate/{market_symbol}/': 1,
                         'funding_rate_history/{pair}/': 1,
                     },
                 },
@@ -2218,6 +2218,65 @@ class bitstamp extends bitstamp$1["default"] {
             currency = this.currency(code);
         }
         return this.parseLedger(response, currency, since, limit);
+    }
+    /**
+     * @method
+     * @name bitstamp#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market_symbol': market['id'],
+        };
+        const response = await this.publicGetFundingRateMarketSymbol(this.extend(request, params));
+        //
+        //     {
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050",
+        //         "market": "BTC/USD-PERP",
+        //         "next_funding_time": "1644406050"
+        //     }
+        //
+        return this.parseFundingRate(response, market);
+    }
+    parseFundingRate(fundingRate, market = undefined) {
+        //
+        //     {
+        //         "funding_rate": "0.0024",
+        //         "timestamp": "1644406050",
+        //         "market": "BTC/USD-PERP",
+        //         "next_funding_time": "1644406050"
+        //     }
+        //
+        const currentTime = this.safeIntegerProduct(fundingRate, 'timestamp', 1000);
+        const nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, 'next_funding_time', 1000);
+        const marketId = this.safeString(fundingRate, 'market');
+        return {
+            'info': fundingRate,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': currentTime,
+            'datetime': this.iso8601(currentTime),
+            'previousFundingRate': undefined,
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': this.safeNumber(fundingRate, 'funding_rate'),
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601(nextFundingRateTimestamp),
+            'interval': undefined,
+        };
     }
     /**
      * @method
