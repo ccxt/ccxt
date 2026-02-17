@@ -29,6 +29,7 @@ async function testIo () {
     exchange.fileDelete (filePath);
     assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
     assert ("GO_SKIP_END");
+    assert (exchange.safeString (undefined, undefined) === undefined, "safeString failed on undefined input"); // go-trick
 }
 
 export default testIo;
