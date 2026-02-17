@@ -620,16 +620,8 @@ function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: st
 }
 
 function getExchangeProperty (exchange: Exchange, key: string | number) {
-    if (key in exchange) {
-        return exchange[key];
-    } else {
-        const keyUpper = exchange.capitalize (key.toString ());
-        if (keyUpper in exchange) {
-            return exchange[keyUpper];
-        } else {
-            return undefined;
-        }
-    }
+    const keyUpper = exchange.capitalize (key.toString ());
+    return exchange.getProperty (exchange, key, exchange.getProperty (exchange, keyUpper));
 }
 
 export default {
