@@ -1274,6 +1274,7 @@ class Exchange {
             mkdir($dir, 0777, true);
         }
         file_put_contents($path, $data);
+        return true;
     }
 
     public function file_exists(string $path) {

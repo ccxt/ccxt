@@ -2,35 +2,36 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public string fileRead(string path)
+    public string fileRead(object path)
     {
-        if (!File.Exists(path))
+        if (!File.Exists(path as string))
         {
-            throw new Exception("File not found: " + path);
+            throw new Exception("File not found: " + path as string);
         }
-        return File.ReadAllText(path);
+        return File.ReadAllText(path as string);
     }
 
-    public void fileWrite(string path, string data)
+    public bool fileWrite(object path, object data)
     {
-        var directory = Path.GetDirectoryName(path);
+        var directory = Path.GetDirectoryName(path as string);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
-        File.WriteAllText(path, data);
+        File.WriteAllText(path as string, data as string);
+        return true;
     }
 
-    public bool fileExists(string path)
+    public bool fileExists(object path)
     {
-        return File.Exists(path);
+        return File.Exists(path as string);
     }
 
-    public void fileDelete(string path)
+    public void fileDelete(object path)
     {
-        if (File.Exists(path))
+        if (File.Exists(path as string))
         {
-            File.Delete(path);
+            File.Delete(path as string);
         }
     }
 
