@@ -6,8 +6,9 @@ import (
 )
 
 // fileRead reads a file and returns its contents
-func (this *Exchange) FileRead(path string, args ...interface{}) string {
-	data, err := os.ReadFile(path)
+func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
+	pathStr := path.(string)
+	data, err := os.ReadFile(pathStr)
 	if err != nil {
 		return ""
 	}
@@ -15,47 +16,53 @@ func (this *Exchange) FileRead(path string, args ...interface{}) string {
 }
 
 // fileWrite writes data to a file
-func (this *Exchange) FileWrite(path string, data string, args ...interface{}) bool {
-	dir := filepath.Dir(path)
+func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...interface{}) bool {
+	pathStr := path.(string)
+	dataStr := data.(string)
+	dir := filepath.Dir(pathStr)
 	if dir != "" && dir != "." {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return false
 		}
 	}
-	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
+	if err := os.WriteFile(pathStr, []byte(dataStr), 0644); err != nil {
 		return false
 	}
 	return true
 }
 
 // fileExists checks if a file exists
-func (this *Exchange) FileExists(path string) bool {
-	_, err := os.Stat(path)
+func (this *Exchange) FileExists(path interface{}) bool {
+	pathStr := path.(string)
+	_, err := os.Stat(pathStr)
 	return err == nil
 }
 
 // fileDelete deletes a file
-func (this *Exchange) FileDelete(path string) bool {
+func (this *Exchange) FileDelete(path interface{}) bool {
 	if !this.FileExists(path) {
 		return true
 	}
-	if err := os.Remove(path); err != nil {
+	pathStr := path.(string)
+	if err := os.Remove(pathStr); err != nil {
 		return false
 	}
 	return true
 }
 
 // directoryCreate creates a directory
-func (this *Exchange) DirectoryCreate(path string) bool {
-	if err := os.MkdirAll(path, 0755); err != nil {
+func (this *Exchange) DirectoryCreate(path interface{}) bool {
+	pathStr := path.(string)
+	if err := os.MkdirAll(pathStr, 0755); err != nil {
 		return false
 	}
 	return true
 }
 
 // directoryExists checks if a directory exists
-func (this *Exchange) DirectoryExists(path string) bool {
-	info, err := os.Stat(path)
+func (this *Exchange) DirectoryExists(path interface{}) bool {
+	pathStr := path.(string)
+	info, err := os.Stat(pathStr)
 	if err != nil {
 		return false
 	}
@@ -63,11 +70,12 @@ func (this *Exchange) DirectoryExists(path string) bool {
 }
 
 // directoryDelete deletes a directory and all its contents
-func (this *Exchange) DirectoryDelete(path string) bool {
+func (this *Exchange) DirectoryDelete(path interface{}) bool {
 	if !this.DirectoryExists(path) {
 		return true
 	}
-	if err := os.RemoveAll(path); err != nil {
+	pathStr := path.(string)
+	if err := os.RemoveAll(pathStr); err != nil {
 		return false
 	}
 	return true
