@@ -623,51 +623,93 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         response = await self.fetch_markets_from_cache(params)
         #
-        #     [
+        #    [
+        #
+        #   spot:
+        #
+        #        {
+        #            "name": "BTC/USD",
+        #            "market_symbol": "btcusd",
+        #            "base_currency": "BTC",
+        #            "base_decimals": 8,
+        #            "counter_currency": "USD",
+        #            "counter_decimals": 0,
+        #            "minimum_order_value": "10",
+        #            "trading": "Enabled",
+        #            "instant_order_counter_decimals": 2,
+        #            "instant_and_market_orders": "Enabled",
+        #            "description": "Bitcoin / U.S. dollar",
+        #            "market_type": "SPOT"
+        #        },
+        #        ...
+        #
+        #    perp:
+        #
         #         {
+        #             "name": "BTC/USD-PERP",
+        #             "market_symbol": "btcusd-perp",
+        #             "base_currency": "BTC",
+        #             "base_decimals": 5,
+        #             "counter_currency": "USD",
+        #             "counter_decimals": 0,
+        #             "minimum_order_value": "10",
+        #             "maximum_order_value": "500000.00000000",
+        #             "minimum_order_amount": "0.00001000",
+        #             "maximum_order_amount": "10.00000000",
         #             "trading": "Enabled",
-        #             "base_decimals": 8,
-        #             "url_symbol": "btcusd",
-        #             "name": "BTC/USD",
+        #             "instant_order_counter_decimals": 2,
         #             "instant_and_market_orders": "Enabled",
-        #             "minimum_order": "20.0 USD",
-        #             "counter_decimals": 2,
-        #             "description": "Bitcoin / U.S. dollar"
+        #             "description": "Bitcoin / U.S. dollar Perpetual",
+        #             "market_type": "PERPETUAL",
+        #             "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
+        #             "payoff_type": "Linear",
+        #             "contract_size": "1.00000000",
+        #             "isin": "EZHKD4DNKHY3"
         #         }
-        #     ]
         #
         result = []
         for i in range(0, len(response)):
             market = response[i]
-            name = self.safe_string(market, 'name')
-            base, quote = name.split('/')
-            baseId = base.lower()
-            quoteId = quote.lower()
-            base = self.safe_currency_code(base)
-            quote = self.safe_currency_code(quote)
-            minimumOrder = self.safe_string(market, 'minimum_order')
-            parts = minimumOrder.split(' ')
-            status = self.safe_string(market, 'trading')
+            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
+            settleId: Str = None
+            marketTypeRaw = self.safe_string(market, 'market_type')
+            symbol = base + '/' + quote
+            type: Str = None
+            subType: Str = None
+            if marketTypeRaw == 'SPOT':
+                type = 'spot'
+            elif marketTypeRaw == 'PERPETUAL':
+                type = 'swap'
+                settleId = quoteId
+                symbol = base + '/' + quote + ':' + settleId
+                payoffType = self.safe_string(market, 'payoff_type')
+                if payoffType == 'Linear':
+                    subType = 'linear'
+                elif payoffType == 'Inverse':
+                    subType = 'inverse'
+            isSpot = (type == 'spot')
             result.append({
-                'id': self.safe_string(market, 'url_symbol'),
-                'marketId': baseId + '_' + quoteId,
-                'symbol': base + '/' + quote,
+                'id': self.safe_string(market, 'market_symbol'),
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,
+                'settle': self.safe_currency_code(settleId) if settleId else None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
+                'settleId': settleId,
+                'type': type,
+                'subType': subType,
+                'spot': isSpot,
                 'margin': False,
                 'future': False,
-                'swap': False,
+                'swap': not isSpot,
                 'option': False,
-                'active': (status == 'Enabled'),
-                'contract': False,
-                'linear': None,
-                'inverse': None,
+                'active': (self.safe_string(market, 'trading') == 'Enabled'),
+                'contract': not isSpot,
+                'linear': None if isSpot else True,
+                'inverse': None if isSpot else False,
                 'contractSize': None,
                 'expiry': None,
                 'expiryDatetime': None,
@@ -683,16 +725,16 @@ class bitstamp(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'minimum_order_amount'),
+                        'max': self.safe_number(market, 'maximum_order_amount'),
                     },
                     'price': {
                         'min': None,
                         'max': None,
                     },
                     'cost': {
-                        'min': self.safe_number(parts, 0),
-                        'max': None,
+                        'min': self.safe_number(market, 'minimum_order_value'),
+                        'max': self.safe_number(market, 'maximum_order_value'),
                     },
                 },
                 'created': None,
@@ -746,7 +788,24 @@ class bitstamp(Exchange, ImplicitAPI):
         expires = self.safe_integer(options, 'expires', 1000)
         now = self.milliseconds()
         if (timestamp is None) or ((now - timestamp) > expires):
-            response = await self.publicGetTradingPairsInfo(params)
+            response = await self.publicGetMarkets(params)
+            #
+            #    [
+            #        {
+            #            "name": "BTC/USD",
+            #            "market_symbol": "btcusd",
+            #            "base_currency": "BTC",
+            #            "base_decimals": 8,
+            #            "counter_currency": "USD",
+            #            "counter_decimals": 0,
+            #            "minimum_order_value": "10",
+            #            "trading": "Enabled",
+            #            "instant_order_counter_decimals": 2,
+            #            "instant_and_market_orders": "Enabled",
+            #            "description": "Bitcoin / U.S. dollar",
+            #            "market_type": "SPOT"
+            #        },
+            #
             self.options['fetchMarkets'] = self.extend(options, {
                 'response': response,
                 'timestamp': now,
@@ -780,15 +839,12 @@ class bitstamp(Exchange, ImplicitAPI):
         result: dict = {}
         for i in range(0, len(response)):
             market = response[i]
-            name = self.safe_string(market, 'name')
-            base, quote = name.split('/')
-            baseId = base.lower()
-            quoteId = quote.lower()
-            base = self.safe_currency_code(base)
-            quote = self.safe_currency_code(quote)
+            baseId, quoteId = [self.safe_string(market, 'base_currency'), self.safe_string(market, 'counter_currency')]
+            base = self.safe_currency_code(baseId)
+            quote = self.safe_currency_code(quoteId)
             description = self.safe_string(market, 'description')
             baseDescription, quoteDescription = description.split(' / ')
-            minimumOrder = self.safe_string(market, 'minimum_order')
+            minimumOrder = self.safe_string(market, 'minimum_order_value')
             parts = minimumOrder.split(' ')
             cost = parts[0]
             if not (base in result):
@@ -1067,7 +1123,7 @@ class bitstamp(Exchange, ImplicitAPI):
             market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
         feeCurrency = market['quote']
-        priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
+        priceId = rawMarketId if (rawMarketId is not None) else market['id']
         priceString = self.safe_string(trade, priceId, priceString)
         amountString = self.safe_string(trade, market['baseId'], amountString)
         costString = self.safe_string(trade, market['quoteId'], costString)

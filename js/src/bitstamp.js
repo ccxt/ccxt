@@ -612,51 +612,97 @@ export default class bitstamp extends Exchange {
     async fetchMarkets(params = {}) {
         const response = await this.fetchMarketsFromCache(params);
         //
-        //     [
+        //    [
+        //
+        //   spot:
+        //
+        //        {
+        //            "name": "BTC/USD",
+        //            "market_symbol": "btcusd",
+        //            "base_currency": "BTC",
+        //            "base_decimals": 8,
+        //            "counter_currency": "USD",
+        //            "counter_decimals": 0,
+        //            "minimum_order_value": "10",
+        //            "trading": "Enabled",
+        //            "instant_order_counter_decimals": 2,
+        //            "instant_and_market_orders": "Enabled",
+        //            "description": "Bitcoin / U.S. dollar",
+        //            "market_type": "SPOT"
+        //        },
+        //        ...
+        //
+        //    perp:
+        //
         //         {
+        //             "name": "BTC/USD-PERP",
+        //             "market_symbol": "btcusd-perp",
+        //             "base_currency": "BTC",
+        //             "base_decimals": 5,
+        //             "counter_currency": "USD",
+        //             "counter_decimals": 0,
+        //             "minimum_order_value": "10",
+        //             "maximum_order_value": "500000.00000000",
+        //             "minimum_order_amount": "0.00001000",
+        //             "maximum_order_amount": "10.00000000",
         //             "trading": "Enabled",
-        //             "base_decimals": 8,
-        //             "url_symbol": "btcusd",
-        //             "name": "BTC/USD",
+        //             "instant_order_counter_decimals": 2,
         //             "instant_and_market_orders": "Enabled",
-        //             "minimum_order": "20.0 USD",
-        //             "counter_decimals": 2,
-        //             "description": "Bitcoin / U.S. dollar"
+        //             "description": "Bitcoin / U.S. dollar Perpetual",
+        //             "market_type": "PERPETUAL",
+        //             "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
+        //             "payoff_type": "Linear",
+        //             "contract_size": "1.00000000",
+        //             "isin": "EZHKD4DNKHY3"
         //         }
-        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const name = this.safeString(market, 'name');
-            let [base, quote] = name.split('/');
-            const baseId = base.toLowerCase();
-            const quoteId = quote.toLowerCase();
-            base = this.safeCurrencyCode(base);
-            quote = this.safeCurrencyCode(quote);
-            const minimumOrder = this.safeString(market, 'minimum_order');
-            const parts = minimumOrder.split(' ');
-            const status = this.safeString(market, 'trading');
+            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
+            let settleId = undefined;
+            const marketTypeRaw = this.safeString(market, 'market_type');
+            let symbol = base + '/' + quote;
+            let type = undefined;
+            let subType = undefined;
+            if (marketTypeRaw === 'SPOT') {
+                type = 'spot';
+            }
+            else if (marketTypeRaw === 'PERPETUAL') {
+                type = 'swap';
+                settleId = quoteId;
+                symbol = base + '/' + quote + ':' + settleId;
+                const payoffType = this.safeString(market, 'payoff_type');
+                if (payoffType === 'Linear') {
+                    subType = 'linear';
+                }
+                else if (payoffType === 'Inverse') {
+                    subType = 'inverse';
+                }
+            }
+            const isSpot = (type === 'spot');
             result.push({
-                'id': this.safeString(market, 'url_symbol'),
-                'marketId': baseId + '_' + quoteId,
-                'symbol': base + '/' + quote,
+                'id': this.safeString(market, 'market_symbol'),
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settleId ? this.safeCurrencyCode(settleId) : undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'settleId': settleId,
+                'type': type,
+                'subType': subType,
+                'spot': isSpot,
                 'margin': false,
                 'future': false,
-                'swap': false,
+                'swap': !isSpot,
                 'option': false,
-                'active': (status === 'Enabled'),
-                'contract': false,
-                'linear': undefined,
-                'inverse': undefined,
+                'active': (this.safeString(market, 'trading') === 'Enabled'),
+                'contract': !isSpot,
+                'linear': isSpot ? undefined : true,
+                'inverse': isSpot ? undefined : false,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -672,16 +718,16 @@ export default class bitstamp extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
-                        'max': undefined,
+                        'min': this.safeNumber(market, 'minimum_order_amount'),
+                        'max': this.safeNumber(market, 'maximum_order_amount'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber(parts, 0),
-                        'max': undefined,
+                        'min': this.safeNumber(market, 'minimum_order_value'),
+                        'max': this.safeNumber(market, 'maximum_order_value'),
                     },
                 },
                 'created': undefined,
@@ -737,7 +783,24 @@ export default class bitstamp extends Exchange {
         const expires = this.safeInteger(options, 'expires', 1000);
         const now = this.milliseconds();
         if ((timestamp === undefined) || ((now - timestamp) > expires)) {
-            const response = await this.publicGetTradingPairsInfo(params);
+            const response = await this.publicGetMarkets(params);
+            //
+            //    [
+            //        {
+            //            "name": "BTC/USD",
+            //            "market_symbol": "btcusd",
+            //            "base_currency": "BTC",
+            //            "base_decimals": 8,
+            //            "counter_currency": "USD",
+            //            "counter_decimals": 0,
+            //            "minimum_order_value": "10",
+            //            "trading": "Enabled",
+            //            "instant_order_counter_decimals": 2,
+            //            "instant_and_market_orders": "Enabled",
+            //            "description": "Bitcoin / U.S. dollar",
+            //            "market_type": "SPOT"
+            //        },
+            //
             this.options['fetchMarkets'] = this.extend(options, {
                 'response': response,
                 'timestamp': now,
@@ -772,15 +835,12 @@ export default class bitstamp extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
-            const name = this.safeString(market, 'name');
-            let [base, quote] = name.split('/');
-            const baseId = base.toLowerCase();
-            const quoteId = quote.toLowerCase();
-            base = this.safeCurrencyCode(base);
-            quote = this.safeCurrencyCode(quote);
+            const [baseId, quoteId] = [this.safeString(market, 'base_currency'), this.safeString(market, 'counter_currency')];
+            const base = this.safeCurrencyCode(baseId);
+            const quote = this.safeCurrencyCode(quoteId);
             const description = this.safeString(market, 'description');
             const [baseDescription, quoteDescription] = description.split(' / ');
-            const minimumOrder = this.safeString(market, 'minimum_order');
+            const minimumOrder = this.safeString(market, 'minimum_order_value');
             const parts = minimumOrder.split(' ');
             const cost = parts[0];
             if (!(base in result)) {
@@ -1074,7 +1134,7 @@ export default class bitstamp extends Exchange {
         }
         const feeCostString = this.safeString(trade, 'fee');
         const feeCurrency = market['quote'];
-        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
+        const priceId = (rawMarketId !== undefined) ? rawMarketId : market['id'];
         priceString = this.safeString(trade, priceId, priceString);
         amountString = this.safeString(trade, market['baseId'], amountString);
         costString = this.safeString(trade, market['quoteId'], costString);

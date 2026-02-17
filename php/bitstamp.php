@@ -607,51 +607,95 @@ class bitstamp extends Exchange {
          */
         $response = $this->fetch_markets_from_cache($params);
         //
-        //     array(
+        //    [
+        //
+        //   spot:
+        //
+        //        array(
+        //            "name" => "BTC/USD",
+        //            "market_symbol" => "btcusd",
+        //            "base_currency" => "BTC",
+        //            "base_decimals" => 8,
+        //            "counter_currency" => "USD",
+        //            "counter_decimals" => 0,
+        //            "minimum_order_value" => "10",
+        //            "trading" => "Enabled",
+        //            "instant_order_counter_decimals" => 2,
+        //            "instant_and_market_orders" => "Enabled",
+        //            "description" => "Bitcoin / U.S. dollar",
+        //            "market_type" => "SPOT"
+        //        ),
+        //        ...
+        //
+        //    perp:
+        //
         //         {
+        //             "name" => "BTC/USD-PERP",
+        //             "market_symbol" => "btcusd-perp",
+        //             "base_currency" => "BTC",
+        //             "base_decimals" => 5,
+        //             "counter_currency" => "USD",
+        //             "counter_decimals" => 0,
+        //             "minimum_order_value" => "10",
+        //             "maximum_order_value" => "500000.00000000",
+        //             "minimum_order_amount" => "0.00001000",
+        //             "maximum_order_amount" => "10.00000000",
         //             "trading" => "Enabled",
-        //             "base_decimals" => 8,
-        //             "url_symbol" => "btcusd",
-        //             "name" => "BTC/USD",
+        //             "instant_order_counter_decimals" => 2,
         //             "instant_and_market_orders" => "Enabled",
-        //             "minimum_order" => "20.0 USD",
-        //             "counter_decimals" => 2,
-        //             "description" => "Bitcoin / U.S. dollar"
+        //             "description" => "Bitcoin / U.S. dollar Perpetual",
+        //             "market_type" => "PERPETUAL",
+        //             "underlying_asset" => "Kaiko BTC Benchmark Reference Rate",
+        //             "payoff_type" => "Linear",
+        //             "contract_size" => "1.00000000",
+        //             "isin" => "EZHKD4DNKHY3"
         //         }
-        //     )
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
-            $name = $this->safe_string($market, 'name');
-            list($base, $quote) = explode('/', $name);
-            $baseId = strtolower($base);
-            $quoteId = strtolower($quote);
-            $base = $this->safe_currency_code($base);
-            $quote = $this->safe_currency_code($quote);
-            $minimumOrder = $this->safe_string($market, 'minimum_order');
-            $parts = explode(' ', $minimumOrder);
-            $status = $this->safe_string($market, 'trading');
+            list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $settleId = null;
+            $marketTypeRaw = $this->safe_string($market, 'market_type');
+            $symbol = $base . '/' . $quote;
+            $type = null;
+            $subType = null;
+            if ($marketTypeRaw === 'SPOT') {
+                $type = 'spot';
+            } elseif ($marketTypeRaw === 'PERPETUAL') {
+                $type = 'swap';
+                $settleId = $quoteId;
+                $symbol = $base . '/' . $quote . ':' . $settleId;
+                $payoffType = $this->safe_string($market, 'payoff_type');
+                if ($payoffType === 'Linear') {
+                    $subType = 'linear';
+                } elseif ($payoffType === 'Inverse') {
+                    $subType = 'inverse';
+                }
+            }
+            $isSpot = ($type === 'spot');
             $result[] = array(
-                'id' => $this->safe_string($market, 'url_symbol'),
-                'marketId' => $baseId . '_' . $quoteId,
-                'symbol' => $base . '/' . $quote,
+                'id' => $this->safe_string($market, 'market_symbol'),
+                'symbol' => $symbol,
                 'base' => $base,
                 'quote' => $quote,
-                'settle' => null,
+                'settle' => $settleId ? $this->safe_currency_code($settleId) : null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
+                'settleId' => $settleId,
+                'type' => $type,
+                'subType' => $subType,
+                'spot' => $isSpot,
                 'margin' => false,
                 'future' => false,
-                'swap' => false,
+                'swap' => !$isSpot,
                 'option' => false,
-                'active' => ($status === 'Enabled'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
+                'active' => ($this->safe_string($market, 'trading') === 'Enabled'),
+                'contract' => !$isSpot,
+                'linear' => $isSpot ? null : true,
+                'inverse' => $isSpot ? null : false,
                 'contractSize' => null,
                 'expiry' => null,
                 'expiryDatetime' => null,
@@ -667,16 +711,16 @@ class bitstamp extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => null,
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'minimum_order_amount'),
+                        'max' => $this->safe_number($market, 'maximum_order_amount'),
                     ),
                     'price' => array(
                         'min' => null,
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => $this->safe_number($parts, 0),
-                        'max' => null,
+                        'min' => $this->safe_number($market, 'minimum_order_value'),
+                        'max' => $this->safe_number($market, 'maximum_order_value'),
                     ),
                 ),
                 'created' => null,
@@ -734,7 +778,24 @@ class bitstamp extends Exchange {
         $expires = $this->safe_integer($options, 'expires', 1000);
         $now = $this->milliseconds();
         if (($timestamp === null) || (($now - $timestamp) > $expires)) {
-            $response = $this->publicGetTradingPairsInfo ($params);
+            $response = $this->publicGetMarkets ($params);
+            //
+            //    [
+            //        array(
+            //            "name" => "BTC/USD",
+            //            "market_symbol" => "btcusd",
+            //            "base_currency" => "BTC",
+            //            "base_decimals" => 8,
+            //            "counter_currency" => "USD",
+            //            "counter_decimals" => 0,
+            //            "minimum_order_value" => "10",
+            //            "trading" => "Enabled",
+            //            "instant_order_counter_decimals" => 2,
+            //            "instant_and_market_orders" => "Enabled",
+            //            "description" => "Bitcoin / U.S. dollar",
+            //            "market_type" => "SPOT"
+            //        ),
+            //
             $this->options['fetchMarkets'] = $this->extend($options, array(
                 'response' => $response,
                 'timestamp' => $now,
@@ -770,15 +831,12 @@ class bitstamp extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $market = $response[$i];
-            $name = $this->safe_string($market, 'name');
-            list($base, $quote) = explode('/', $name);
-            $baseId = strtolower($base);
-            $quoteId = strtolower($quote);
-            $base = $this->safe_currency_code($base);
-            $quote = $this->safe_currency_code($quote);
+            list($baseId, $quoteId) = array( $this->safe_string($market, 'base_currency'), $this->safe_string($market, 'counter_currency') );
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
             $description = $this->safe_string($market, 'description');
             list($baseDescription, $quoteDescription) = explode(' / ', $description);
-            $minimumOrder = $this->safe_string($market, 'minimum_order');
+            $minimumOrder = $this->safe_string($market, 'minimum_order_value');
             $parts = explode(' ', $minimumOrder);
             $cost = $parts[0];
             if (!(is_array($result) && array_key_exists($base, $result))) {
@@ -1079,7 +1137,7 @@ class bitstamp extends Exchange {
         }
         $feeCostString = $this->safe_string($trade, 'fee');
         $feeCurrency = $market['quote'];
-        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['marketId'];
+        $priceId = ($rawMarketId !== null) ? $rawMarketId : $market['id'];
         $priceString = $this->safe_string($trade, $priceId, $priceString);
         $amountString = $this->safe_string($trade, $market['baseId'], $amountString);
         $costString = $this->safe_string($trade, $market['quoteId'], $costString);
