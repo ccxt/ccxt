@@ -663,6 +663,8 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < allNetworks.length; j++) {
                 const networkId = allNetworks[j];
                 const networkCode = this.networkIdToCode (networkId);
+                const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
+                const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -673,12 +675,12 @@ export default class whitebit extends Exchange {
                     'precision': undefined,
                     'limits': {
                         'deposit': {
-                            'min': this.safeNumber (depositLimits, 'min', undefined),
-                            'max': this.safeNumber (depositLimits, 'max', undefined),
+                            'min': this.safeNumber (networkDepositLimits, 'min'),
+                            'max': this.safeNumber (networkDepositLimits, 'max'),
                         },
                         'withdraw': {
-                            'min': this.safeNumber (withdrawLimits, 'min', undefined),
-                            'max': this.safeNumber (withdrawLimits, 'max', undefined),
+                            'min': this.safeNumber (networkWithdrawLimits, 'min'),
+                            'max': this.safeNumber (networkWithdrawLimits, 'max'),
                         },
                     },
                 };
@@ -692,7 +694,7 @@ export default class whitebit extends Exchange {
                 'deposit': this.safeBool (currency, 'can_deposit'),
                 'withdraw': this.safeBool (currency, 'can_withdraw'),
                 'fee': undefined,
-                'networks': undefined, // todo
+                'networks': networks,
                 'type': hasProvider ? 'fiat' : 'crypto',
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'currency_precision'))),
                 'limits': {
