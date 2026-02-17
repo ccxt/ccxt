@@ -18,8 +18,11 @@ async function testSleep () {
     // Allow a small margin of error due to execution time
     const marginOfError = 20;
     const maxElapsed = sleepAmount + marginOfError;
-    assert (elapsed >= sleepAmount, 'Elapsed time ' + elapsed.toString () + 'ms is less than sleep amount ' + sleepAmount.toString () + 'ms');
-    assert (elapsed <= maxElapsed, 'Elapsed time ' + elapsed.toString () + 'ms exceeds sleep amount ' + maxElapsed.toString () + 'ms');
+    const elapsedBiggerThanSleep = elapsed >= sleepAmount;
+    const elapsedLessThanMax = elapsed <= maxElapsed;
+    assert (elapsedBiggerThanSleep, 'Elapsed time ' + elapsed.toString () + 'ms is less than sleep amount ' + sleepAmount.toString () + 'ms');
+    assert (elapsedLessThanMax, 'Elapsed time ' + elapsed.toString () + 'ms exceeds sleep amount ' + maxElapsed.toString () + 'ms');
+    return true;
 }
 
 export default testSleep;

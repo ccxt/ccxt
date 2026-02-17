@@ -4477,11 +4477,13 @@ export default class coinex extends Exchange {
             const marketId = this.safeString (info, 'market');
             market = this.safeMarket (marketId, market, undefined, 'swap');
             const maxNotional = this.safeNumber (tier, 'amount');
+            const curr = market['linear'] ? market['base'] : market['quote'];
+            const notional = minNotional;
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
-                'currency': market['linear'] ? market['base'] : market['quote'],
-                'minNotional': minNotional,
+                'currency': curr,
+                'minNotional': notional,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintenance_margin_rate'),
                 'maxLeverage': this.safeInteger (tier, 'leverage'),

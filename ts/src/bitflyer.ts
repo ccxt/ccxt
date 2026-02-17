@@ -1222,7 +1222,8 @@ export default class bitflyer extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.nonce ().toString ();
-            let auth = [ nonce, method, request ].join ('');
+            const content = [ nonce, method, request ];
+            let auth = content.join ('');
             if (Object.keys (params).length) {
                 if (method !== 'GET') {
                     body = this.json (params);

@@ -319,7 +319,7 @@ function testSafeMethods () {
     assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
-
+    // init array cache tests
     // Test cache types - ArrayCache
     const arrayCache = new ArrayCache (100);
     arrayCache.append ({ 'symbol': 'BTC/USDT', 'id': 'order1', 'price': 50000 });

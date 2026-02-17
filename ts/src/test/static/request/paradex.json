@@ -132,6 +132,7 @@
         "createOrder": [
             {   
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "limit buy order",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
@@ -146,6 +147,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "create market buy order",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
@@ -159,6 +161,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "market sell order",
                 "method": "createOrder",
                 "url": "https://api.prod.paradex.trade/v1/orders",
@@ -173,6 +176,7 @@
             {
 
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "trigger postOnly order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -191,6 +195,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "stop market order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -208,6 +213,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "reduceOnly with clientOrderId",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -226,6 +232,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "stop loss market order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -243,6 +250,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "stop loss limit order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -260,6 +268,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "take profit market order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -277,6 +286,7 @@
             },
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "take profit limit order",
                 "method": "createOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders",
@@ -296,6 +306,7 @@
         "cancelOrder": [
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "cancel order",
                 "method": "cancelOrder",
                 "url": "https://api.testnet.paradex.trade/v1/orders/1721905029980201703994490000?",
@@ -308,6 +319,7 @@
         "cancelAllOrders": [
             {
                 "disabledGO": true,
+                "disabledJava": true,
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
                 "url": "https://api.testnet.paradex.trade/v1/orders?market=SOL-USD-PERP",

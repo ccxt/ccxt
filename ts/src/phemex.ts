@@ -714,6 +714,7 @@ export default class phemex extends Exchange {
             // "1.0"
             contractSize = this.parseNumber (contractSizeString);
         }
+        const isLinear = !inverse;
         return this.safeMarketStructure ({
             'id': id,
             'symbol': base + '/' + quote + ':' + settle,
@@ -731,7 +732,7 @@ export default class phemex extends Exchange {
             'option': false,
             'active': status === 'Listed',
             'contract': true,
-            'linear': !inverse,
+            'linear': isLinear,
             'inverse': inverse,
             'taker': this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale)),
             'maker': this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale)),
@@ -4542,11 +4543,12 @@ export default class phemex extends Exchange {
         for (let i = 0; i < riskLimits.length; i++) {
             const tier = riskLimits[i];
             const maxNotional = this.safeInteger (tier, 'limit');
+            const minNotionalResponse = minNotional; // java req
             tiers.push ({
                 'tier': this.sum (i, 1),
                 'symbol': this.safeSymbol (marketId, market),
                 'currency': market['settle'],
-                'minNotional': minNotional,
+                'minNotional': minNotionalResponse,
                 'maxNotional': maxNotional,
                 'maintenanceMarginRate': this.safeString (tier, 'maintenanceMargin'),
                 'maxLeverage': undefined,

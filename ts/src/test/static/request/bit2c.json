@@ -3,6 +3,7 @@
     "skipKeys": [
         "nonce"
     ],
+    "disabledJava": true,
     "outputType": "urlencoded",
     "methods": {
         "fetchTrades": [
