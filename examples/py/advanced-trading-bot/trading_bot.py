@@ -19,6 +19,10 @@ import json
 import time
 import logging
 import sys
+import random
+
+# Global state for dry-run simulation
+_dry_run_order_state = {}
 
 # Setup logging
 def setup_logging():
@@ -30,7 +34,7 @@ def setup_logging():
 
     # Create handlers
     c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler('trading_bot.log')
+    f_handler = logging.FileHandler('trading_bot.log', encoding='utf-8')
     c_handler.setLevel(logging.INFO)
     f_handler.setLevel(logging.INFO)
 
@@ -377,7 +381,123 @@ def log_order_summary(order):
     logger.info(f"Amount:   {order.get('amount')}")
     logger.info(f"Price:    {order.get('price')}")
     logger.info(f"Status:   {order.get('status')}")
+    logger.info(f"Filled:   {order.get('filled', 0.0)}")
     logger.info("-" * 40)
+
+def fetch_order_status(exchange, order_id, symbol, dry_run=False):
+    """
+    Fetches the current status of an order.
+    Simulates status changes in dry_run mode.
+    """
+    if dry_run:
+        # Initialize state if first check
+        if order_id not in _dry_run_order_state:
+            _dry_run_order_state[order_id] = {'checks': 0, 'filled': 0.0}
+        
+        state = _dry_run_order_state[order_id]
+        state['checks'] += 1
+        
+        # Simulate progressive filling
+        if state['checks'] <= 2:
+            state['filled'] = 0.0
+        elif state['checks'] <= 4:
+            # Simulate partial fill (30% to 70%)
+            if state['filled'] == 0.0:
+                 state['filled'] = random.uniform(0.3, 0.7)
+        else:
+            state['filled'] = 1.0  # Fully filled
+        
+        logger.info("[DRY RUN] Simulating order status check")
+        
+        # Create simulated order
+        is_closed = state['filled'] >= 1.0
+        return {
+            'id': order_id,
+            'symbol': symbol,
+            'status': 'closed' if is_closed else 'open',
+            'filled': state['filled'],
+            'amount': 1.0, # Dummy total amount for simulation calculation
+            'remaining': 0.0 if is_closed else (1.0 - state['filled']),
+            'info': {'msg': 'Simulated order status'}
+        }
+        
+    try:
+        order = exchange.fetch_order(order_id, symbol)
+        fill_pct = (order.get('filled', 0) / order.get('amount', 1)) * 100
+        logger.info(f"Order Status: {order['status'].upper()} | Filled: {fill_pct:.2f}%")
+        return order
+    except ccxt.OrderNotFound:
+        logger.error(f"Order {order_id} not found.")
+        return None
+    except Exception as e:
+        logger.error(f"Error fetching order status: {e}")
+        return None
+
+def wait_for_order_fill(exchange, order_id, symbol, max_wait_seconds, check_interval=5, dry_run=False):
+    """
+    Monitors an order until it is filled or the timeout is reached.
+    """
+    start_time = time.time()
+    elapsed = 0
+    
+    logger.info(f"⏳ Monitoring order {order_id} for {max_wait_seconds} seconds...")
+    
+    try:
+        while elapsed < max_wait_seconds:
+            order = fetch_order_status(exchange, order_id, symbol, dry_run)
+            
+            if not order:
+                time.sleep(check_interval)
+                elapsed = time.time() - start_time
+                continue
+            
+            # Calculate fill percentage
+            filled = order.get('filled', 0.0)
+            amount = order.get('amount', 1.0)
+            fill_percent = (filled / amount) * 100
+            
+            logger.info(f"⏳ Waiting... {int(elapsed)}s elapsed | Fill: {fill_percent:.1f}%")
+            
+            if order['status'] == 'closed':
+                logger.info("✅ Order filled completely!")
+                return True, order
+                
+            if order['status'] == 'canceled':
+                logger.info("❌ Order was canceled.")
+                return False, order
+                
+            time.sleep(check_interval)
+            elapsed = time.time() - start_time
+            
+        logger.info("⏱️ Timeout reached. Order not filled.")
+        return False, order
+
+    except KeyboardInterrupt:
+        logger.warning("⚠️ Monitoring interrupted by user")
+        return False, None
+
+def cancel_order(exchange, order_id, symbol, dry_run=True):
+    """
+    Cancels an open order.
+    """
+    if dry_run:
+        logger.info(f"[DRY RUN] Would cancel order {order_id}")
+        return {'success': True, 'message': 'Simulated cancellation'}
+    
+    try:
+        logger.info(f"Attempting to cancel order {order_id}...")
+        exchange.cancel_order(order_id, symbol)
+        logger.info("✅ Order canceled successfully")
+        return {'success': True}
+    except ccxt.OrderNotFound:
+        logger.warning("Order already filled or canceled.")
+        return {'success': False}
+    except ccxt.ExchangeError as e:
+        logger.error(f"Exchange error canceling order: {e}")
+        return {'success': False}
+    except Exception as e:
+        logger.error(f"Unexpected error canceling order: {e}")
+        return {'success': False}
 
 def main():
     logger.info("Starting the Trading Bot...")
@@ -431,19 +551,36 @@ def main():
             
             order = place_limit_order(exchange, symbol, side, amount, price, dry_run)
             
-            # 7. Log Summary
+            # 7. Log Summary & Monitor
             if order:
                 log_order_summary(order)
                 
-                # If it was a real order, we might want to wait and check status
-                if not dry_run:
-                     logger.info("Waiting a moment to check order status...")
-                     time.sleep(2)
-                     try:
-                         updated_order = exchange.fetch_order(order['id'], symbol)
-                         log_order_summary(updated_order)
-                     except Exception as e:
-                         logger.warning(f"Could not fetch updated order status: {e}")
+                logger.info("Starting order monitoring...")
+                
+                # Get max wait time from config, default to 60s
+                max_wait = config.get('max_wait_seconds', 60)
+                
+                # Start monitoring loop
+                filled, final_order = wait_for_order_fill(
+                    exchange, 
+                    order['id'], 
+                    symbol, 
+                    max_wait,
+                    dry_run=dry_run
+                )
+                
+                if filled:
+                    logger.info("🎉 Trade completed successfully!")
+                    log_order_summary(final_order)
+                else:
+                    logger.info("Order not filled in time (or canceled), attempting cancellation...")
+                    cancel_result = cancel_order(exchange, order['id'], symbol, dry_run=dry_run)
+                    
+                    # Fetch final status one last time to be sure
+                    if final_order:
+                         final_status = final_order.get('status', 'unknown')
+                         filled_amount = final_order.get('filled', 0)
+                         logger.info(f"Final status: {final_status.upper()} (Filled: {filled_amount})")
 
     except ccxt.NetworkError as e:
         logger.error(f"Network error during trading: {e}")
