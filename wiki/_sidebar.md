@@ -1,5 +1,6 @@
 
 - [Install](Install.md)
+- [CLI](CLI.md)
 - [Examples](Examples.md)
 - [Manual](Manual.md)
 - [CCXT Pro](ccxt.pro.manual.md)
