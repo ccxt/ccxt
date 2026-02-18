@@ -10,6 +10,63 @@
         }
     },
     "methods": {
+        "fetchOrders": [
+            {
+                "description": "ensure orders are dedup when hl returns 2 orders with same id",
+                "method": "fetchOrders",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "A",
+                            "limitPx": "40.0",
+                            "sz": "1.0",
+                            "oid": "323550506865",
+                            "timestamp": "1771401340649",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "1.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1771402034835"
+                    },
+                    {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "A",
+                            "limitPx": "40.0",
+                            "sz": "1.0",
+                            "oid": 323550506865,
+                            "timestamp": 1771401340649,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "1.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1771401340649
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order",
