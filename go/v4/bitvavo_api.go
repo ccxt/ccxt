@@ -79,12 +79,44 @@ func (this *BitvavoCore) PrivateGetWithdrawalHistory(args ...interface{}) <-chan
 	return this.callEndpointAsync("privateGetWithdrawalHistory", args...)
 }
 
+func (this *BitvavoCore) PrivateGetSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubaccounts", args...)
+}
+
+func (this *BitvavoCore) PrivateGetSubaccountsTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubaccountsTransfers", args...)
+}
+
+func (this *BitvavoCore) PrivateGetSubaccountsTransfersTransferId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetSubaccountsTransfersTransferId", args...)
+}
+
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsBalance", args...)
+}
+
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsHistory", args...)
+}
+
+func (this *BitvavoCore) PrivateGetInstitutionalSubaccountsOrdersOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetInstitutionalSubaccountsOrdersOpen", args...)
+}
+
 func (this *BitvavoCore) PrivatePostOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
 func (this *BitvavoCore) PrivatePostWithdrawal(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWithdrawal", args...)
+}
+
+func (this *BitvavoCore) PrivatePostSubaccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubaccounts", args...)
+}
+
+func (this *BitvavoCore) PrivatePostSubaccountsTransfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostSubaccountsTransfers", args...)
 }
 
 func (this *BitvavoCore) PrivatePutOrder(args ...interface{}) <-chan interface{} {
@@ -97,4 +129,12 @@ func (this *BitvavoCore) PrivateDeleteOrder(args ...interface{}) <-chan interfac
 
 func (this *BitvavoCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteInstitutionalSubaccountsOrder", args...)
+}
+
+func (this *BitvavoCore) PrivateDeleteInstitutionalSubaccountsOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteInstitutionalSubaccountsOrders", args...)
 }

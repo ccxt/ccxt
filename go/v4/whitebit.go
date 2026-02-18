@@ -191,11 +191,9 @@ func (this *WhitebitCore) Describe() interface{} {
 				"margin":  "collateral",
 				"trade":   "spot",
 			},
-			"networksById": map[string]interface{}{
-				"BEP20": "BSC",
-			},
-			"defaultType": "spot",
-			"brokerId":    "ccxt",
+			"networksById": map[string]interface{}{},
+			"defaultType":  "spot",
+			"brokerId":     "ccxt",
 		},
 		"features": map[string]interface{}{
 			"default": map[string]interface{}{
@@ -339,8 +337,8 @@ func (this *WhitebitCore) FetchMarkets(optionalArgs ...interface{}) <-chan inter
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes45212 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes45212)
+			retRes45012 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes45012)
 		}
 
 		markets := (<-this.V4PublicGetMarkets())
@@ -567,6 +565,8 @@ func (this *WhitebitCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 			for j := 0; IsLessThan(j, GetArrayLength(allNetworks)); j++ {
 				var networkId interface{} = GetValue(allNetworks, j)
 				var networkCode interface{} = this.NetworkIdToCode(networkId)
+				var networkDepositLimits interface{} = this.SafeDict(depositLimits, networkId, map[string]interface{}{})
+				var networkWithdrawLimits interface{} = this.SafeDict(withdrawLimits, networkId, map[string]interface{}{})
 				AddElementToObject(networks, networkCode, map[string]interface{}{
 					"id":        networkId,
 					"network":   networkCode,
@@ -577,12 +577,12 @@ func (this *WhitebitCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 					"precision": nil,
 					"limits": map[string]interface{}{
 						"deposit": map[string]interface{}{
-							"min": this.SafeNumber(depositLimits, "min", nil),
-							"max": this.SafeNumber(depositLimits, "max", nil),
+							"min": this.SafeNumber(networkDepositLimits, "min"),
+							"max": this.SafeNumber(networkDepositLimits, "max"),
 						},
 						"withdraw": map[string]interface{}{
-							"min": this.SafeNumber(withdrawLimits, "min", nil),
-							"max": this.SafeNumber(withdrawLimits, "max", nil),
+							"min": this.SafeNumber(networkWithdrawLimits, "min"),
+							"max": this.SafeNumber(networkWithdrawLimits, "max"),
 						},
 					},
 				})
@@ -596,7 +596,7 @@ func (this *WhitebitCore) FetchCurrencies(optionalArgs ...interface{}) <-chan in
 				"deposit":   this.SafeBool(currency, "can_deposit"),
 				"withdraw":  this.SafeBool(currency, "can_withdraw"),
 				"fee":       nil,
-				"networks":  nil,
+				"networks":  networks,
 				"type":      Ternary(IsTrue(hasProvider), "fiat", "crypto"),
 				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "currency_precision"))),
 				"limits": map[string]interface{}{

@@ -184,9 +184,7 @@ public partial class whitebit : Exchange
                     { "margin", "collateral" },
                     { "trade", "spot" },
                 } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "BEP20", "BSC" },
-                } },
+                { "networksById", new Dictionary<string, object>() {} },
                 { "defaultType", "spot" },
                 { "brokerId", "ccxt" },
             } },
@@ -548,6 +546,8 @@ public partial class whitebit : Exchange
             {
                 object networkId = getValue(allNetworks, j);
                 object networkCode = this.networkIdToCode(networkId);
+                object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
+                object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
@@ -558,12 +558,12 @@ public partial class whitebit : Exchange
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(depositLimits, "min", null) },
-                            { "max", this.safeNumber(depositLimits, "max", null) },
+                            { "min", this.safeNumber(networkDepositLimits, "min") },
+                            { "max", this.safeNumber(networkDepositLimits, "max") },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(withdrawLimits, "min", null) },
-                            { "max", this.safeNumber(withdrawLimits, "max", null) },
+                            { "min", this.safeNumber(networkWithdrawLimits, "min") },
+                            { "max", this.safeNumber(networkWithdrawLimits, "max") },
                         } },
                     } },
                 };
@@ -577,7 +577,7 @@ public partial class whitebit : Exchange
                 { "deposit", this.safeBool(currency, "can_deposit") },
                 { "withdraw", this.safeBool(currency, "can_withdraw") },
                 { "fee", null },
-                { "networks", null },
+                { "networks", networks },
                 { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
                 { "limits", new Dictionary<string, object>() {

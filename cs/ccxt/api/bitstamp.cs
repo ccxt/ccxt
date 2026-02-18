@@ -66,9 +66,9 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("publicGetTravelRuleVasps",parameters);
     }
 
-    public async Task<object> publicGetFundingRatePair (object parameters = null)
+    public async Task<object> publicGetFundingRateMarketSymbol (object parameters = null)
     {
-        return await this.callAsync ("publicGetFundingRatePair",parameters);
+        return await this.callAsync ("publicGetFundingRateMarketSymbol",parameters);
     }
 
     public async Task<object> publicGetFundingRateHistoryPair (object parameters = null)

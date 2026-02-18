@@ -511,6 +511,9 @@ public partial class binance : Exchange
                         { "dci/product/list", 0.1 },
                         { "dci/product/positions", 0.1 },
                         { "dci/product/accounts", 0.1 },
+                        { "accumulator/product/list", 0.1 },
+                        { "accumulator/product/position/list", 0.1 },
+                        { "accumulator/product/sum-holding", 0.1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "asset/dust", 0.06667 },
@@ -636,6 +639,7 @@ public partial class binance : Exchange
                         { "simple-earn/locked/setRedeemOption", 5 },
                         { "dci/product/subscribe", 0.1 },
                         { "dci/product/auto_compound/edit", 0.1 },
+                        { "accumulator/product/subscribe", 0.1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "userDataStream", 0.1 },

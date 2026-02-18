@@ -13,7 +13,7 @@ class ImplicitAPI:
     public_get_currencies = publicGetCurrencies = Entry('currencies/', 'public', 'GET', {'cost': 1})
     public_get_eur_usd = publicGetEurUsd = Entry('eur_usd/', 'public', 'GET', {'cost': 1})
     public_get_travel_rule_vasps = publicGetTravelRuleVasps = Entry('travel_rule/vasps/', 'public', 'GET', {'cost': 1})
-    public_get_funding_rate_pair = publicGetFundingRatePair = Entry('funding_rate/{pair}/', 'public', 'GET', {'cost': 1})
+    public_get_funding_rate_market_symbol = publicGetFundingRateMarketSymbol = Entry('funding_rate/{market_symbol}/', 'public', 'GET', {'cost': 1})
     public_get_funding_rate_history_pair = publicGetFundingRateHistoryPair = Entry('funding_rate_history/{pair}/', 'public', 'GET', {'cost': 1})
     private_get_travel_rule_contacts = privateGetTravelRuleContacts = Entry('travel_rule/contacts/', 'private', 'GET', {'cost': 1})
     private_get_contacts_contact_uuid = privateGetContactsContactUuid = Entry('contacts/{contact_uuid}/', 'private', 'GET', {'cost': 1})

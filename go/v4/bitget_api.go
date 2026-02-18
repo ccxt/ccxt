@@ -343,6 +343,10 @@ func (this *BitgetCore) PublicUtaGetV3MarketFills(args ...interface{}) <-chan in
 	return this.callEndpointAsync("publicUtaGetV3MarketFills", args...)
 }
 
+func (this *BitgetCore) PublicUtaGetV3MarketProofOfReserves(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicUtaGetV3MarketProofOfReserves", args...)
+}
+
 func (this *BitgetCore) PublicUtaGetV3MarketOpenInterest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicUtaGetV3MarketOpenInterest", args...)
 }
@@ -381,6 +385,10 @@ func (this *BitgetCore) PublicUtaGetV3MarketPositionTier(args ...interface{}) <-
 
 func (this *BitgetCore) PublicUtaGetV3MarketOiLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicUtaGetV3MarketOiLimit", args...)
+}
+
+func (this *BitgetCore) PublicUtaGetV3MarketIndexComponents(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicUtaGetV3MarketIndexComponents", args...)
 }
 
 func (this *BitgetCore) PrivateSpotGetSpotV1WalletDepositAddress(args ...interface{}) <-chan interface{} {
@@ -505,6 +513,10 @@ func (this *BitgetCore) PrivateSpotGetV2SpotWalletDepositRecords(args ...interfa
 
 func (this *BitgetCore) PrivateSpotGetV2SpotWalletWithdrawalRecords(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotGetV2SpotWalletWithdrawalRecords", args...)
+}
+
+func (this *BitgetCore) PrivateSpotGetV2SpotAccountUpgradeStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetV2SpotAccountUpgradeStatus", args...)
 }
 
 func (this *BitgetCore) PrivateSpotPostSpotV1WalletTransfer(args ...interface{}) <-chan interface{} {
@@ -773,6 +785,10 @@ func (this *BitgetCore) PrivateSpotPostV2SpotWalletCancelWithdrawal(args ...inte
 
 func (this *BitgetCore) PrivateSpotPostV2SpotWalletModifyDepositAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateSpotPostV2SpotWalletModifyDepositAccount", args...)
+}
+
+func (this *BitgetCore) PrivateSpotPostV2SpotAccountUpgrade(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostV2SpotAccountUpgrade", args...)
 }
 
 func (this *BitgetCore) PrivateMixGetMixV1AccountAccount(args ...interface{}) <-chan interface{} {
@@ -2175,12 +2191,12 @@ func (this *BitgetCore) PrivateUtaGetV3AccountAssets(args ...interface{}) <-chan
 	return this.callEndpointAsync("privateUtaGetV3AccountAssets", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountSettings(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountFundingAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountFundingAssets", args...)
 }
 
-func (this *BitgetCore) PrivateUtaGetV3AccountDepositRecords(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
+func (this *BitgetCore) PrivateUtaGetV3AccountSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountSettings", args...)
 }
 
 func (this *BitgetCore) PrivateUtaGetV3AccountFinancialRecords(args ...interface{}) <-chan interface{} {
@@ -2199,12 +2215,72 @@ func (this *BitgetCore) PrivateUtaGetV3AccountConvertRecords(args ...interface{}
 	return this.callEndpointAsync("privateUtaGetV3AccountConvertRecords", args...)
 }
 
+func (this *BitgetCore) PrivateUtaGetV3AccountDeductInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountDeductInfo", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountFeeRate", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountSwitchStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountSwitchStatus", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountMaxTransferable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountMaxTransferable", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountOpenInterestLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountOpenInterestLimit", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountSubUnifiedAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubUnifiedAssets", args...)
+}
+
 func (this *BitgetCore) PrivateUtaGetV3AccountTransferableCoins(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaGetV3AccountTransferableCoins", args...)
 }
 
 func (this *BitgetCore) PrivateUtaGetV3AccountSubTransferRecord(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaGetV3AccountSubTransferRecord", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountDepositAddress", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubDepositAddress", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountDepositRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountDepositRecords", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountSubDepositRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountSubDepositRecords", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3AccountWithdrawalRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3AccountWithdrawalRecords", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3BrokerSubList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3BrokerSubList", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3BrokerAllSubDepositWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3BrokerAllSubDepositWithdrawal", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3BrokerCommission(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3BrokerCommission", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3BrokerQuerySubApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3BrokerQuerySubApikey", args...)
 }
 
 func (this *BitgetCore) PrivateUtaGetV3InsLoanTransfered(args ...interface{}) <-chan interface{} {
@@ -2239,12 +2315,52 @@ func (this *BitgetCore) PrivateUtaGetV3InsLoanEnsureCoinsConvert(args ...interfa
 	return this.callEndpointAsync("privateUtaGetV3InsLoanEnsureCoinsConvert", args...)
 }
 
+func (this *BitgetCore) PrivateUtaGetV3LoanCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanCoins", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanInterest", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanBorrowOngoing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanBorrowOngoing", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanBorrowHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanBorrowHistory", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanRepayHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanRepayHistory", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanPledgeRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanPledgeRateHistory", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanDebts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanDebts", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3LoanReduces(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3LoanReduces", args...)
+}
+
 func (this *BitgetCore) PrivateUtaGetV3PositionCurrentPosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaGetV3PositionCurrentPosition", args...)
 }
 
 func (this *BitgetCore) PrivateUtaGetV3PositionHistoryPosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaGetV3PositionHistoryPosition", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3PositionAdlRank(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3PositionAdlRank", args...)
+}
+
+func (this *BitgetCore) PrivateUtaGetV3TaxRecords(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaGetV3TaxRecords", args...)
 }
 
 func (this *BitgetCore) PrivateUtaGetV3TradeOrderInfo(args ...interface{}) <-chan interface{} {
@@ -2291,6 +2407,22 @@ func (this *BitgetCore) PrivateUtaPostV3AccountRepay(args ...interface{}) <-chan
 	return this.callEndpointAsync("privateUtaPostV3AccountRepay", args...)
 }
 
+func (this *BitgetCore) PrivateUtaPostV3AccountSwitchDeduct(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3AccountSwitchDeduct", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3AccountDepositAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3AccountDepositAccount", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3AccountSwitch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3AccountSwitch", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3AccountAdjustAccountMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3AccountAdjustAccountMode", args...)
+}
+
 func (this *BitgetCore) PrivateUtaPostV3AccountTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaPostV3AccountTransfer", args...)
 }
@@ -2299,12 +2431,60 @@ func (this *BitgetCore) PrivateUtaPostV3AccountSubTransfer(args ...interface{}) 
 	return this.callEndpointAsync("privateUtaPostV3AccountSubTransfer", args...)
 }
 
+func (this *BitgetCore) PrivateUtaPostV3AccountSubMasterTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3AccountSubMasterTransfer", args...)
+}
+
 func (this *BitgetCore) PrivateUtaPostV3AccountMaxOpenAvailable(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaPostV3AccountMaxOpenAvailable", args...)
 }
 
+func (this *BitgetCore) PrivateUtaPostV3AccountWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3AccountWithdrawal", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSub(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerCreateSub", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerModifySub(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerModifySub", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerSubWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerSubWithdrawal", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerSubDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerSubDepositAddress", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerCreateSubApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerCreateSubApikey", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerModifySubApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerModifySubApikey", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3BrokerDeleteSubApikey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3BrokerDeleteSubApikey", args...)
+}
+
 func (this *BitgetCore) PrivateUtaPostV3InsLoanBindUid(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaPostV3InsLoanBindUid", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3LoanBorrow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3LoanBorrow", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3LoanRepay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3LoanRepay", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3LoanRevisePledge(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3LoanRevisePledge", args...)
 }
 
 func (this *BitgetCore) PrivateUtaPostV3TradePlaceOrder(args ...interface{}) <-chan interface{} {
@@ -2349,6 +2529,10 @@ func (this *BitgetCore) PrivateUtaPostV3TradeCancelSymbolOrder(args ...interface
 
 func (this *BitgetCore) PrivateUtaPostV3TradeClosePositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateUtaPostV3TradeClosePositions", args...)
+}
+
+func (this *BitgetCore) PrivateUtaPostV3TradeCountdownCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateUtaPostV3TradeCountdownCancelAll", args...)
 }
 
 func (this *BitgetCore) PrivateUtaPostV3UserCreateSub(args ...interface{}) <-chan interface{} {

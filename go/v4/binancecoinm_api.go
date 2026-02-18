@@ -1039,6 +1039,18 @@ func (this *BinancecoinmCore) SapiGetDciProductAccounts(args ...interface{}) <-c
 	return this.callEndpointAsync("sapiGetDciProductAccounts", args...)
 }
 
+func (this *BinancecoinmCore) SapiGetAccumulatorProductList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductList", args...)
+}
+
+func (this *BinancecoinmCore) SapiGetAccumulatorProductPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductPositionList", args...)
+}
+
+func (this *BinancecoinmCore) SapiGetAccumulatorProductSumHolding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiGetAccumulatorProductSumHolding", args...)
+}
+
 func (this *BinancecoinmCore) SapiPostAssetDust(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostAssetDust", args...)
 }
@@ -1529,6 +1541,10 @@ func (this *BinancecoinmCore) SapiPostDciProductSubscribe(args ...interface{}) <
 
 func (this *BinancecoinmCore) SapiPostDciProductAutoCompoundEdit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("sapiPostDciProductAutoCompoundEdit", args...)
+}
+
+func (this *BinancecoinmCore) SapiPostAccumulatorProductSubscribe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("sapiPostAccumulatorProductSubscribe", args...)
 }
 
 func (this *BinancecoinmCore) SapiPutUserDataStream(args ...interface{}) <-chan interface{} {
