@@ -241,17 +241,18 @@ class Exchange {
         '511' => 'AuthenticationError',
     );
     public $verbose = false;
-    public $apiKey = '';
-    public $secret = '';
-    public $password = '';
-    public $login = '';
-    public $uid = '';
-    public $accountId = null;
-    public $privateKey = '';
-    public $walletAddress = '';
-    public $token = ''; // reserved for HTTP auth in some cases
 
-    public $twofa = null;
+    public $apiKey;
+    public $secret;
+    public $password;
+    public $login;
+    public $uid;
+    public $accountId;
+    public $privateKey;
+    public $walletAddress;
+    public $token; // reserved for HTTP auth in some cases
+    public $twofa;
+
     public $markets_by_id = null;
     public $currencies_by_id = null;
     public $minFundingAddressLength = 1; // used in check_address

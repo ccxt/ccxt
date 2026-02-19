@@ -84,11 +84,17 @@ public partial class Exchange
     public object urls { get; set; } = new dict();
     public object precision { get; set; } = new dict();
 
-    public string secret { get; set; }
     public string apiKey { get; set; }
+    public string secret { get; set; }
     public string password { get; set; }
     public string uid { get; set; }
     public string accountId { get; set; }
+    public string login { get; set; }
+    public string privateKey { get; set; }
+    public string walletAddress { get; set; }
+    public object token { get; set; }
+    public string twofa { get; set; }
+
     public int minFundingAddressLength { get; set; } = 1;
 
     public dict userAgents { get; set; } = new dict(){
@@ -96,12 +102,6 @@ public partial class Exchange
         {"chrome39","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"},
         {"chrome100","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"}
     };
-
-    public string twofa { get; set; }
-    public string privateKey { get; set; }
-    public string walletAddress { get; set; }
-    public object token { get; set; }
-    public string login { get; set; }
     public string proxy { get; set; }
     public string agent { get; set; }
     public object timeout { get; set; } = 10000;
@@ -234,16 +234,17 @@ public partial class Exchange
 
         // credentials initis
         this.requiredCredentials = SafeValue(extendedProperties, "requiredCredentials") as dict;
-        this.apiKey = SafeString(extendedProperties, "apiKey", "");
-        this.secret = SafeString(extendedProperties, "secret", "");
-        this.password = SafeString(extendedProperties, "password", "");
-        this.login = SafeString(extendedProperties, "login", "");
-        this.twofa = SafeString(extendedProperties, "twofa", "");
-        this.privateKey = SafeString(extendedProperties, "privateKey", "");
-        this.walletAddress = SafeString(extendedProperties, "walletAddress", "");
-        this.token = SafeString(extendedProperties, "token", "");
-        this.uid = SafeString(extendedProperties, "uid", "");
-        this.accountId = SafeString(extendedProperties, "accountId", "");
+
+        this.apiKey = SafeString(extendedProperties, "apiKey", null);
+        this.secret = SafeString(extendedProperties, "secret", null);
+        this.password = SafeString(extendedProperties, "password", null);
+        this.login = SafeString(extendedProperties, "login", null);
+        this.twofa = SafeString(extendedProperties, "twofa", null);
+        this.privateKey = SafeString(extendedProperties, "privateKey", null);
+        this.walletAddress = SafeString(extendedProperties, "walletAddress", null);
+        this.token = SafeString(extendedProperties, "token", null);
+        this.uid = SafeString(extendedProperties, "uid", null);
+        this.accountId = SafeString(extendedProperties, "accountId", null);
 
         this.userAgents = SafeValue(extendedProperties, "userAgents", userAgents) as dict;
         this.userAgent = SafeString(extendedProperties, "userAgent");

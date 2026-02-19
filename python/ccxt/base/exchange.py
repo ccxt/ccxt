@@ -264,16 +264,18 @@ class Exchange(object):
     proxies = None
 
     hostname = None  # in case of inaccessibility of the "main" domain
-    apiKey = ''
-    secret = ''
-    password = ''
-    uid = ''
+
+    apiKey = None
+    secret = None
+    password = None
+    uid = None
     accountId = None
-    login = ''
-    privateKey = ''  # a "0x"-prefixed hexstring private key for a wallet
-    walletAddress = ''  # the wallet address "0x"-prefixed hexstring
-    token = ''  # reserved for HTTP auth in some cases
+    login = None
+    privateKey = None  # a "0x"-prefixed hexstring private key for a wallet
+    walletAddress = None  # the wallet address "0x"-prefixed hexstring
+    token = None  # reserved for HTTP auth in some cases
     twofa = None
+
     markets_by_id = None
     currencies_by_id = None
 

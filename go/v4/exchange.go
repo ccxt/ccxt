@@ -105,15 +105,16 @@ type Exchange struct {
 	// type check this
 	Number interface{}
 	// keys
-	Secret        string
-	ApiKey        string
-	Password      string
-	Uid           string
-	AccountId     string
+	Secret        interface{}
+	ApiKey        interface{}
+	Password      interface{}
+	Uid           interface{}
+	AccountId     interface{}
 	Token         interface{}
-	Login         string
-	PrivateKey    string
-	WalletAddress string
+	Login         interface{}
+	PrivateKey    interface{}
+	WalletAddress interface{}
+	Twofa         interface{}
 
 	httpClient *http.Client
 
@@ -150,8 +151,6 @@ type Exchange struct {
 	ProxiesModulesLoading        chan struct{} // or something to represent a Promise/future
 
 	SubstituteCommonCurrencyCodes bool
-
-	Twofa interface{}
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp

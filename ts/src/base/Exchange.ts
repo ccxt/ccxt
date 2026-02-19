@@ -264,17 +264,17 @@ export default class Exchange {
 
     timeout: Int = 10000;  // milliseconds
     verbose: boolean = false;
-    twofa: string = undefined;  // two-factor authentication (2-FA)
 
-    apiKey: string = '';
-    secret: string = '';
-    uid: string = '';
-    accountId: string = '';
-    login: string = '';
-    password: string = '';
-    privateKey: string = '';  // a "0x"-prefixed hexstring private key for a wallet
-    walletAddress: string = '';  // a wallet address "0x"-prefixed hexstring
-    token: string = '';  // reserved for HTTP auth in some cases
+    apiKey: string;
+    secret: string;
+    uid: string;
+    login: string;
+    password: string;
+    privateKey: string;  // a "0x"-prefixed hexstring private key for a wallet
+    walletAddress: string;  // a wallet address "0x"-prefixed hexstring
+    token: string;  // reserved for HTTP auth in some cases
+    twofa: string;
+    accountId: string;
 
     balance: any = {};
     liquidations: any = undefined;
