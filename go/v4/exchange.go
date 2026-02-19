@@ -273,10 +273,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	if userOptions == nil {
 		userOptions = map[string]interface{}{}
 	}
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
-		this.SetSandboxMode(true)
-	}
-
 	// fmt.Println(this.TransformedApi)
 }
 
@@ -693,6 +689,9 @@ func (this *Exchange) Clone(object interface{}) interface{} {
 func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 	switch value.Kind() {
 	case reflect.Array, reflect.Slice:
+		// if value.IsNil() {
+		// 	return reflect.Zero(value.Type())
+		// }
 		// Create a new slice/array of the same type and length
 		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
 		for i := 0; i < value.Len(); i++ {
@@ -704,8 +703,24 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 		copy := reflect.MakeMap(value.Type())
 		for _, key := range value.MapKeys() {
 			copy.SetMapIndex(key, this.DeepCopy(value.MapIndex(key)))
+			// copy.SetMapIndex(this.DeepCopy(key), this.DeepCopy(value.MapIndex(key)))
 		}
 		return copy
+	// case reflect.Ptr:
+	// 	if value.IsNil() {
+	// 		return reflect.Zero(value.Type())
+	// 	}
+	// 	copy := reflect.New(value.Type().Elem())
+	// 	copy.Elem().Set(this.DeepCopy(value.Elem()))
+	// 	return copy
+	// case reflect.Struct:
+	// 	copy := reflect.New(value.Type()).Elem()
+	// 	for i := 0; i < value.NumField(); i++ {
+	// 		if copy.Field(i).CanSet() {
+	// 			copy.Field(i).Set(this.DeepCopy(value.Field(i)))
+	// 		}
+	// 	}
+	// 	return copy
 	default:
 		// For other types, just return the value
 		return reflect.ValueOf(value.Interface())

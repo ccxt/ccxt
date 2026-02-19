@@ -11,17 +11,12 @@ function helperTestInitThrottler () {
     });
     // todo: assert (exchange.MAX_VALUE !== undefined);
 
-    let tokenBucket = testSharedMethods.getExchangeProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
-    if (tokenBucket === undefined) {
-        tokenBucket = testSharedMethods.getExchangeProperty (exchange, 'TokenBucket');
-    }
+    const tokenBucket = testSharedMethods.getExchangeProperty (exchange, 'tokenBucket'); // trick for uncamelcase transpilation
     assert (tokenBucket !== undefined);
-    assert ('GO_SKIP_START');
     const rateLimit = testSharedMethods.getExchangeProperty (exchange, 'rateLimit');
     assert (rateLimit === 10.8);
     assert (tokenBucket['delay'] === 0.001);
     assert (tokenBucket['refillRate'] === 1 / rateLimit);
-    assert ('GO_SKIP_END');
     // fix decimal/integer issues across langs
     assert (exchange.inArray (tokenBucket['capacity'], [ 1, 1.0 ]));
     const cost = exchange.parseToNumeric (exchange.safeString2 (tokenBucket, 'cost', 'defaultCost')); // python sync, todo fix
@@ -32,21 +27,19 @@ function helperTestInitThrottler () {
     // todo: add initial tockenbtucket test
 }
 
-function helperTestSandboxState (exchange, shouldBeEnabled = true) {
+function helperTestSandboxState (exchange, isMainnet = true) {
     assert (exchange.urls !== undefined);
     assert ('test' in exchange.urls);
-    assert ('GO_SKIP_START');
     const isSandboxModeEnabled = testSharedMethods.getExchangeProperty (exchange, 'isSandboxModeEnabled');
-    if (shouldBeEnabled) {
-        assert (isSandboxModeEnabled);
-        assert (exchange.urls['api']['public'] === 'https://example.org');
-        assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
-    } else {
+    if (isMainnet) {
         assert (!isSandboxModeEnabled);
         assert (exchange.urls['api']['public'] === 'https://example.com');
-        assert (exchange.urls['test']['public'] === 'https://example.org');
+        assert (exchange.urls['test']['public'] === 'https://testnet.org');
+    } else {
+        assert (isSandboxModeEnabled);
+        assert (exchange.urls['api']['public'] === 'https://testnet.org');
+        assert (exchange.urls['apiBackup']['public'] === 'https://example.com');
     }
-    assert ('GO_SKIP_END');
 }
 
 function helperTestInitSandbox () {
@@ -61,7 +54,7 @@ function helperTestInitSandbox () {
                 'public': 'https://example.com'
             },
             'test': {
-                'public': 'https://example.org'
+                'public': 'https://testnet.org'
             },
         }
     };
@@ -69,17 +62,17 @@ function helperTestInitSandbox () {
     // CASE A: when sandbox is not enabled
     //
     const exchange3 = new ccxt.Exchange (opts);
-    helperTestSandboxState (exchange3, false);
-    exchange3.setSandboxMode (true);
     helperTestSandboxState (exchange3, true);
+    exchange3.setSandboxMode (true);
+    helperTestSandboxState (exchange3, false);
     //
     // CASE B: when sandbox is enabled
     //
     opts['options']['sandbox'] = true;
     const exchange4 = new ccxt.Exchange (opts);
-    helperTestSandboxState (exchange4, true);
-    exchange4.setSandboxMode (false);
     helperTestSandboxState (exchange4, false);
+    exchange4.setSandboxMode (false);
+    helperTestSandboxState (exchange4, true);
 }
 
 function helperTestInitMarket () {
