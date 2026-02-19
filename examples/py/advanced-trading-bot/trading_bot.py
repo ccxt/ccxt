@@ -20,6 +20,9 @@ import time
 import logging
 import sys
 import random
+import traceback
+import signal
+from functools import wraps
 
 # Global state for dry-run simulation
 _dry_run_order_state = {}
@@ -51,6 +54,76 @@ def setup_logging():
 
 logger = setup_logging()
 
+
+# Global configuration
+_config = {}
+
+def handle_exchange_error(error, context=""):
+    """
+    Centralized error handling for exchange-related exceptions.
+    Returns: (error_message, should_retry, wait_seconds)
+    """
+    error_msg = f"Error in {context}: {str(error)}"
+    
+    if isinstance(error, ccxt.NetworkError):
+        return ("Network connectivity issue. Check your internet connection.", True, 5)
+    elif isinstance(error, ccxt.ExchangeNotAvailable):
+        return ("Exchange is currently unavailable or under maintenance.", True, 5)
+    elif isinstance(error, ccxt.RequestTimeout):
+        return ("Request timed out. Retrying...", True, 3)
+    elif isinstance(error, ccxt.InsufficientFunds):
+        return ("Insufficient balance to place order.", False, 0)
+    elif isinstance(error, ccxt.InvalidOrder):
+        return (f"Invalid order parameters: {str(error)}", False, 0)
+    elif isinstance(error, ccxt.OrderNotFound):
+        return ("Order not found. It may have been filled or canceled.", False, 0)
+    elif isinstance(error, ccxt.RateLimitExceeded):
+        wait_time = _config.get('rate_limit_cooldown_seconds', 60)
+        return ("Rate limit exceeded. Waiting before retry...", True, wait_time)
+    elif isinstance(error, ccxt.AuthenticationError):
+        return ("Authentication failed. Check your API keys.", False, 0)
+    elif isinstance(error, ccxt.ExchangeError):
+        return (f"Exchange error: {str(error)}", False, 0)
+    else:
+        return (f"Unexpected error: {str(error)}", False, 0)
+
+def retry_with_backoff(max_retries=3, base_delay=2):
+    """
+    Decorator to retry functions with exponential backoff on specific errors.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            attempts = 0
+            while attempts <= max_retries:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    # Get error handling directive
+                    msg, should_retry, wait_time = handle_exchange_error(e, context=func.__name__)
+                    
+                    if should_retry and attempts < max_retries:
+                        delay = wait_time if wait_time > base_delay else base_delay * (2 ** attempts)
+                        # If specific wait time (like rate limit) is longer, use that
+                        if isinstance(e, ccxt.RateLimitExceeded):
+                            delay = wait_time
+                            
+                        logger.error(f"{msg}")
+                        logger.warning(f"Attempt {attempts+1}/{max_retries} failed: {str(e)}")
+                        logger.info(f"⏳ Waiting {delay}s before retry...")
+                        time.sleep(delay)
+                        attempts += 1
+                    else:
+                        # Log final error if we gave up or shouldn't retry
+                        if should_retry:
+                            logger.error(f"Max retries exceeded. Last error: {msg}")
+                        else:
+                            logger.error(f"{msg}")
+                        raise e  # Re-raise so caller knows it failed
+            return None
+        return wrapper
+    return decorator
+
 def load_config(config_path='config.json'):
     """
     Loads proper setting from the json file.
@@ -76,6 +149,10 @@ def load_config(config_path='config.json'):
             if missing_fields:
                 logger.error(f"Missing required fields in config: {', '.join(missing_fields)}")
                 sys.exit(1)
+            
+            # Set global config
+            global _config
+            _config = config
                 
             return config
             
@@ -136,23 +213,14 @@ def initialize_exchange(config):
         logger.error(f"Unexpected error initializing exchange: {e}")
         sys.exit(1)
 
+@retry_with_backoff(max_retries=3)
 def fetch_ticker(exchange, symbol):
     """
     Fetches the latest ticker data for a symbol.
     """
-    try:
-        ticker = exchange.fetch_ticker(symbol)
-        logger.info(f"Ticker for {symbol}: Bid={ticker['bid']}, Ask={ticker['ask']}, Last={ticker['last']}")
-        return ticker
-    except ccxt.NetworkError as e:
-        logger.error(f"Network error fetching ticker for {symbol}: {e}")
-        return None
-    except ccxt.ExchangeError as e:
-        logger.error(f"Exchange error fetching ticker for {symbol}: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Unexpected error fetching ticker: {e}")
-        return None
+    ticker = exchange.fetch_ticker(symbol)
+    logger.info(f"Ticker for {symbol}: Bid={ticker['bid']}, Ask={ticker['ask']}, Last={ticker['last']}")
+    return ticker
 
 def fetch_order_book(exchange, symbol, limit=5):
     """
@@ -190,43 +258,38 @@ def calculate_limit_price(ticker, side, offset_percent):
     logger.info(f"Calculated {side} limit price: {price} (Offset: {offset_percent}%)")
     return price
 
+
+@retry_with_backoff(max_retries=3)
 def fetch_balance(exchange):
     """
     Fetches the account balance from the exchange.
     """
-    try:
-        balance = exchange.fetch_balance()
-        
-        # Log balances for major assets
-        currencies = ['USDT', 'BTC', 'ETH']
-        log_msg = "Balances: "
-        for currency in currencies:
-            if currency in balance:
-                 total = balance[currency]['total']
-                 free = balance[currency]['free']
-                 used = balance[currency]['used']
-                 log_msg += f"{currency}: Total={total}, Free={free}, Used={used} | "
-        
-        logger.info(log_msg)
-        return balance
-        
-    except (ccxt.AuthenticationError, ccxt.ExchangeError) as e:
-        # If we are in dry_run and have no keys, return a mock balance for testing
-        # We can't easily pass 'dry_run' here without changing signature, 
-        # but we can check if keys are set on exchange.
-        if not exchange.apiKey or exchange.apiKey == 'YOUR_API_KEY':
-             logger.warning(f"Could not fetch real balance (Auth failed: {e}). Using MOCK balance for dry-run.")
-             return {
-                 'USDT': {'free': 1000.0, 'used': 0.0, 'total': 1000.0},
-                 'BTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
-                 'ETH': {'free': 0.0, 'used': 0.0, 'total': 0.0},
-                 'info': {'msg': 'Mock balance'}
-             }
-        logger.error(f"Exchange error fetching balance: {e}")
-        return None
-    except Exception as e:
-        logger.error(f"Unexpected error fetching balance: {e}")
-        return None
+    # If we are in dry_run and have no keys, we might want to return mock balance.
+    # But retry_with_backoff will run first. 
+    # To keep the mock behavior, we need to check keys before calling API.
+    if not exchange.apiKey or exchange.apiKey == 'YOUR_API_KEY':
+            logger.warning(f"Using MOCK balance for dry-run (public keys).")
+            return {
+                'USDT': {'free': 1000.0, 'used': 0.0, 'total': 1000.0},
+                'BTC': {'free': 0.0, 'used': 0.0, 'total': 0.0},
+                'ETH': {'free': 0.0, 'used': 0.0, 'total': 0.0},
+                'info': {'msg': 'Mock balance'}
+            }
+
+    balance = exchange.fetch_balance()
+    
+    # Log balances for major assets
+    currencies = ['USDT', 'BTC', 'ETH']
+    log_msg = "Balances: "
+    for currency in currencies:
+        if currency in balance:
+                total = balance[currency]['total']
+                free = balance[currency]['free']
+                used = balance[currency]['used']
+                log_msg += f"{currency}: Total={total}, Free={free}, Used={used} | "
+    
+    logger.info(log_msg)
+    return balance
 
 def check_sufficient_balance(balance, currency, required_amount):
     """
@@ -315,16 +378,23 @@ def place_limit_order(exchange, symbol, side, amount, price, dry_run=True):
         return order
 
     except ccxt.InsufficientFunds as e:
-        logger.error(f"Insufficient funds for order: {e}")
+        logger.error(f"Insufficient funds: {e}")
+        # Try to print more info if possible
+        logger.error(f"Check your account balance and open orders.")
         return None
     except ccxt.InvalidOrder as e:
         logger.error(f"Invalid order parameters: {e}")
+        return None
+    except ccxt.RateLimitExceeded as e:
+        logger.warning(f"Rate limit exceeded during order placement. Backing off...")
+        time.sleep(5) # Simple sleep, though main retry logic is better
         return None
     except ccxt.ExchangeError as e:
         logger.error(f"Exchange error during order placement: {e}")
         return None
     except Exception as e:
         logger.error(f"Unexpected error placing order: {e}")
+        logger.error(traceback.format_exc())
         return None
 
 def create_order_params(exchange, config, ticker, balance):
@@ -384,6 +454,7 @@ def log_order_summary(order):
     logger.info(f"Filled:   {order.get('filled', 0.0)}")
     logger.info("-" * 40)
 
+@retry_with_backoff(max_retries=2)
 def fetch_order_status(exchange, order_id, symbol, dry_run=False):
     """
     Fetches the current status of an order.
@@ -403,7 +474,7 @@ def fetch_order_status(exchange, order_id, symbol, dry_run=False):
         elif state['checks'] <= 4:
             # Simulate partial fill (30% to 70%)
             if state['filled'] == 0.0:
-                 state['filled'] = random.uniform(0.3, 0.7)
+                    state['filled'] = random.uniform(0.3, 0.7)
         else:
             state['filled'] = 1.0  # Fully filled
         
@@ -421,17 +492,10 @@ def fetch_order_status(exchange, order_id, symbol, dry_run=False):
             'info': {'msg': 'Simulated order status'}
         }
         
-    try:
-        order = exchange.fetch_order(order_id, symbol)
-        fill_pct = (order.get('filled', 0) / order.get('amount', 1)) * 100
-        logger.info(f"Order Status: {order['status'].upper()} | Filled: {fill_pct:.2f}%")
-        return order
-    except ccxt.OrderNotFound:
-        logger.error(f"Order {order_id} not found.")
-        return None
-    except Exception as e:
-        logger.error(f"Error fetching order status: {e}")
-        return None
+    order = exchange.fetch_order(order_id, symbol)
+    fill_pct = (order.get('filled', 0) / order.get('amount', 1)) * 100
+    logger.info(f"Order Status: {order['status'].upper()} | Filled: {fill_pct:.2f}%")
+    return order
 
 def wait_for_order_fill(exchange, order_id, symbol, max_wait_seconds, check_interval=5, dry_run=False):
     """
@@ -499,22 +563,116 @@ def cancel_order(exchange, order_id, symbol, dry_run=True):
         logger.error(f"Unexpected error canceling order: {e}")
         return {'success': False}
 
+def graceful_shutdown(exchange, logger):
+    """
+    Handles graceful shutdown by cancelling open orders.
+    """
+    print("\n")
+    logger.info("🛑 Initiating graceful shutdown...")
+    
+    try:
+        # Check for open orders
+        logger.info("Checking for open orders...")
+        open_orders = exchange.fetch_open_orders()
+        
+        if open_orders:
+            logger.warning(f"⚠️ You have {len(open_orders)} open order(s):")
+            for order in open_orders:
+                logger.info(f"  - Order ID: {order['id']} | {order['symbol']} | {order['side'].upper()} | {order['amount']} @ {order['price']}")
+            
+            # Ask user for confirmation (with timeout or default to yes/no? Prompt says ask user)
+            # In a real bot, we might just cancel. Here we ask.
+            # However, if this is a signal handler, input() might be tricky if not careful.
+            # But the requirement says: Ask user: "Cancel all orders? (yes/no): "
+            
+            choice = input("Cancel all orders? (yes/no): ").lower()
+            if choice == 'yes' or choice == 'y':
+                for order in open_orders:
+                    cancel_order(exchange, order['id'], order['symbol'], dry_run=False) # Force cancel even if dry_run config was on? 
+                    # The prompt says "If yes: cancel each order and log results". 
+                    # Note: cancel_order has a dry_run param. We should probably respect global dry_run setting, 
+                    # but if we are shutting down, maybe we want to really cancel?
+                    # The prompt implies real cancellation "Cancel all orders?". 
+                    # But for safety in this example, I'll pass dry_run based on context or assume real if user says yes.
+                    # Since global 'dry_run' isn't easily accessible here without passing it, I'll assume real cancellation is intended if orders exist.
+                    # Wait, if we are in dry_run mode, there are no real orders on exchange (except simulated ones in memory, which fetch_open_orders won't find on real exchange).
+                    # So if fetch_open_orders returns anything, it MUST be real orders (or we are in dry_run and simulating fetch_open_orders, which we aren't).
+                    # So safe to assume we should cancel.
+                    pass 
+        else:
+            logger.info("No open orders found.")
+            
+    except Exception as e:
+        logger.error(f"Error during shutdown checks: {e}")
+        logger.error("Detailed error during shutdown:")
+        logger.error(traceback.format_exc())
+    
+    logger.info("✅ Shutdown complete")
+
+def signal_handler(sig, frame):
+    """
+    Handles system signals (like Ctrl+C).
+    """
+    print("\n")
+    logger = logging.getLogger('trading_bot')
+    logger.warning("⚠️ Interrupt received (Ctrl+C)")
+    
+    # We need access to 'exchange' here. 
+    # Since signal handler signature is fixed, we might need a global variable or 
+    # handle the shutdown inside main's try-catch block for KeyboardInterrupt instead?
+    # The requirement says:
+    # "Add function: signal_handler(sig, frame) ... Call graceful_shutdown() ... sys.exit(0)"
+    
+    # Issue: 'exchange' is local to main().
+    # Solution: We can declare 'exchange' as global in main or assign it to a module-level variable.
+    # OR, better: The prompt also says in Step 8: "Wrap entire main logic in try-except-finally ... except KeyboardInterrupt: graceful_shutdown(exchange, logger)"
+    # If we catch KeyboardInterrupt in main, we effectively handle Ctrl+C there.
+    # The signal_handler might be for other signals or redundant if we catch KeyboardInterrupt.
+    # However, Step 7 explicitly asks for signal_handler REGISTERING.
+    # If we register signal_handler, it will be called on SIGINT. 
+    # If signal_handler calls sys.exit(0), main's except KeyboardInterrupt might NOT be caught? 
+    # Actually, sys.exit(0) raises SystemExit.
+    
+    # If we use signal_handler, we need access to 'exchange'.
+    # A common pattern is to have a global 'bot_instance' or similar.
+    # But for this simple script, maybe we can skip signal_handler if main catch handles it?
+    # No, I must follow prompt.
+    # "Register handler: signal.signal(signal.SIGINT, signal_handler)"
+    
+    # To pass exchange to signal_handler, I can use a global variable.
+    global exchange_instance
+    if 'exchange_instance' in globals() and exchange_instance:
+        graceful_shutdown(exchange_instance, logger)
+    else:
+        logger.info("Exiting before exchange was initialized.")
+    sys.exit(0)
+
+# Global variable to hold exchange for signal handler
+exchange_instance = None
+
 def main():
     logger.info("Starting the Trading Bot...")
     
-    # 1. Get our settings
-    config = load_config()
+    # Register signal handler for Ctrl+C
+    signal.signal(signal.SIGINT, signal_handler)
     
-    # 2. Connect to the exchange
-    exchange = initialize_exchange(config)
-    
-    # Extract other config variables
-    symbol = config.get('symbol', 'BTC/USDT')
-    amount_usd = config.get('trade_amount_usd', 10)
-    price_offset_pct = config.get('price_offset_percent', 0.1)
-    dry_run = config.get('dry_run', True)
-    
+    # Global exchange instance for signal handler
+    global exchange_instance
+
     try:
+        # 1. Get our settings
+        config = load_config()
+        
+        # 2. Connect to the exchange
+        exchange = initialize_exchange(config)
+        exchange_instance = exchange # Set global for signal handler
+        
+        # Extract other config variables
+        symbol = config.get('symbol', 'BTC/USDT')
+        amount_usd = config.get('trade_amount_usd', 10)
+        price_offset_pct = config.get('price_offset_percent', 0.1)
+        dry_run = config.get('dry_run', True)
+        
         # Verify symbol exists
         if symbol not in exchange.markets:
             logger.error(f"Symbol {symbol} not supported on {exchange.id}")
@@ -582,12 +740,19 @@ def main():
                          filled_amount = final_order.get('filled', 0)
                          logger.info(f"Final status: {final_status.upper()} (Filled: {filled_amount})")
 
-    except ccxt.NetworkError as e:
-        logger.error(f"Network error during trading: {e}")
+    except KeyboardInterrupt:
+        logger.warning("⚠️ User interrupted execution")
+        if 'exchange' in locals():
+            graceful_shutdown(exchange, logger)
     except ccxt.ExchangeError as e:
-        logger.error(f"Exchange error during trading: {e}")
+        logger.error(f"Exchange error: {e}")
+        logger.error("Please check your API keys and permissions in config.json")
     except Exception as e:
-        logger.error(f"Unexpected error in main loop: {e}")
+        logger.error("❌ Unexpected error occurred")
+        logger.error(traceback.format_exc())
+        logger.info("Please report this issue to the developer.")
+    finally:
+        logger.info("Bot execution finished")
 
 if __name__ == "__main__":
     main()
