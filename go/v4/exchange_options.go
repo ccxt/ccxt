@@ -332,22 +332,17 @@ import "sync"
 
 func (this *Exchange) initializeProperties(extendedProperties map[string]interface{}) {
 
+	// dynamic properties
+	props := []string{"apiKey", "secret", "uid", "accountId", "login", "password", "twofa", "privateKey", "walletAddress", "token"}
+	for _, key := range props {
+		this.setField(this, this.Capitalize(key), SafeString(extendedProperties, key, nil))
+	}
 	this.TransformedApi = map[string]interface{}{}
 	this.Version = SafeString(extendedProperties, "version", "").(string)
 	this.cacheLoaded = false
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
 	this.RequiredCredentials = reqCred.(map[string]interface{})
-	this.ApiKey = SafeString(extendedProperties, "apiKey", "").(string)
-	this.Secret = SafeString(extendedProperties, "secret", "").(string)
-	this.Password = SafeString(extendedProperties, "password", "").(string)
-	this.Login = SafeString(extendedProperties, "login", "").(string)
-	this.Twofa = SafeString(extendedProperties, "twofa", "").(string)
-	this.PrivateKey = SafeString(extendedProperties, "privateKey", "").(string)
-	this.WalletAddress = SafeString(extendedProperties, "walletAddress", "").(string)
-	this.Token = SafeString(extendedProperties, "token", "").(string)
-	this.Uid = SafeString(extendedProperties, "uid", "").(string)
-	this.AccountId = SafeString(extendedProperties, "accountId", "").(string)
-
+	//
 	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
 	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
 	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000).(int64)

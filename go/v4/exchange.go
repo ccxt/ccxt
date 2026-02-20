@@ -211,12 +211,7 @@ const (
 
 func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
-	if this.Options == nil {
-		this.Options = &sync.Map{} // by default sync.map is nil
-	}
-	if this.MarketsMutex == nil {
-		this.MarketsMutex = &sync.Mutex{}
-	}
+	this.Init(userConfig)
 	describeValues := this.Describe()
 	if userConfig == nil {
 		userConfig = map[string]interface{}{}
@@ -289,6 +284,19 @@ func (this *Exchange) Init(userConfig map[string]interface{}) {
 		this.MarketsMutex = &sync.Mutex{}
 	}
 	// to do
+}
+
+func (this *Exchange) setField(obj any, name string, value any) error {
+	rv := reflect.ValueOf(obj).Elem()
+	field := rv.FieldByName(name)
+	if !field.IsValid() {
+		return fmt.Errorf("no such field: %s", name)
+	}
+	if value == nil {
+		return nil // skip nil values
+	}
+	field.Set(reflect.ValueOf(value))
+	return nil
 }
 
 func NewExchange() ICoreExchange {
