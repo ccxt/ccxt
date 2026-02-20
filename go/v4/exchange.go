@@ -101,7 +101,7 @@ type Exchange struct {
 	Headers                  interface{}
 	ReturnResponseHeaders    bool
 
-	// type check this
+	// type check this.
 	Number interface{}
 	// keys
 	Secret        string
