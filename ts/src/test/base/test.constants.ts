@@ -3,7 +3,7 @@
 import assert from 'assert';
 import { ROUND, TRUNCATE, ROUND_UP, ROUND_DOWN, DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE, NO_PADDING, PAD_WITH_ZERO } from '../../base/functions/number.js';
 
-function testBaseConstants () {
+function testConstants () {
     // assert all
     assert (ROUND === 1, 'ROUND should be 1');
     assert (TRUNCATE === 0, 'TRUNCATE should be 0');
@@ -16,4 +16,4 @@ function testBaseConstants () {
     assert (PAD_WITH_ZERO === 6, 'PAD_WITH_ZERO should be 6');
 }
 
-export default testBaseConstants;
+export default testConstants;
