@@ -8,5 +8,7 @@
   "price_offset_percent": 0.1,
   "max_wait_seconds": 60,
   "rate_limit_cooldown_seconds": 60,
-  "dry_run": true
+  "dry_run": true,
+  "log_level": "INFO",
+  "log_file": "trading_bot.log"
 }

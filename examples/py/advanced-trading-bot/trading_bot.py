@@ -22,6 +22,7 @@ import sys
 import random
 import traceback
 import signal
+import argparse
 from functools import wraps
 from logging.handlers import RotatingFileHandler
 
@@ -29,32 +30,50 @@ from logging.handlers import RotatingFileHandler
 _dry_run_order_state = {}
 
 # Setup logging
-def setup_logging() -> logging.Logger:
+def setup_logging(log_level='INFO', log_file='trading_bot.log') -> logging.Logger:
     """
     Configures logging to both console and file.
     """
     logger = logging.getLogger('trading_bot')
+    
+    # Remove existing handlers to avoid duplicates
+    if logger.hasHandlers():
+        logger.handlers.clear()
+        
     logger.setLevel(logging.DEBUG)
 
     # Create handlers
     c_handler = logging.StreamHandler()
     f_handler = RotatingFileHandler(
-        'trading_bot.log',
+        log_file,
         maxBytes=5 * 1024 * 1024,
         backupCount=3,
         encoding='utf-8',
     )
 
     # Set levels
-    c_handler.setLevel(logging.INFO)
+    level_num = getattr(logging, log_level.upper(), logging.INFO)
+    c_handler.setLevel(level_num)
     f_handler.setLevel(logging.DEBUG)
 
+    class ColorFormatter(logging.Formatter):
+        COLORS = {
+            logging.ERROR: "\033[91m",   # red
+            logging.WARNING: "\033[93m", # yellow
+            logging.INFO: "\033[97m",    # white
+        }
+        RESET = "\033[0m"
+
+        def format(self, record):
+            log_fmt = f"{self.COLORS.get(record.levelno, self.RESET)}[%(asctime)s] %(levelname)s - %(message)s{self.RESET}"
+            formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
+            return formatter.format(record)
+
     # Create formatters and add it to handlers
-    console_format = logging.Formatter("[%(levelname)s] %(message)s")
     file_format = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(funcName)-20s | %(message)s"
+        "[%(asctime)s] %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     )
-    c_handler.setFormatter(console_format)
+    c_handler.setFormatter(ColorFormatter())
     f_handler.setFormatter(file_format)
 
     # Add handlers to the logger
@@ -174,6 +193,51 @@ def load_config(config_path='config.json'):
     except json.JSONDecodeError:
         logger.error(f"Error parsing '{config_path}'. Strict JSON format expected (trailing commas not allowed).")
         sys.exit(1)
+
+def validate_config(config):
+    required_fields = [
+        'exchange', 'api_key', 'secret', 'symbol', 'trade_amount_usd',
+        'order_type', 'price_offset_percent', 'max_wait_seconds', 'dry_run'
+    ]
+    for field in required_fields:
+        if field not in config:
+            raise ValueError(f"Missing required config field: {field}")
+            
+    if not isinstance(config['trade_amount_usd'], (int, float)) or config['trade_amount_usd'] <= 0:
+        raise ValueError("trade_amount_usd must be a float > 0")
+        
+    if not isinstance(config['price_offset_percent'], (int, float)) or not (0.01 <= config['price_offset_percent'] <= 5.0):
+        raise ValueError("price_offset_percent must be a float between 0.01 and 5.0")
+        
+    if not isinstance(config['max_wait_seconds'], int) or config['max_wait_seconds'] <= 0:
+        raise ValueError("max_wait_seconds must be an int > 0")
+        
+    if not isinstance(config['dry_run'], bool):
+        raise ValueError("dry_run must be a boolean")
+        
+    if "/" not in config['symbol']:
+        raise ValueError("Symbol must contain '/' (e.g., BTC/USDT)")
+        
+    return config
+
+def print_config_summary(config):
+    logger = logging.getLogger('trading_bot')
+    logger.info("════════════════════════════════════")
+    logger.info("TRADING BOT CONFIGURATION")
+    logger.info("════════════════════════════════════")
+    logger.info(f"Exchange:      {config.get('exchange')}")
+    logger.info(f"Symbol:        {config.get('symbol')}")
+    logger.info(f"Trade Amount:  ${float(config.get('trade_amount_usd')):.2f}")
+    logger.info(f"Order Type:    {config.get('order_type')}")
+    logger.info(f"Price Offset:  {config.get('price_offset_percent')}%")
+    logger.info(f"Max Wait:      {config.get('max_wait_seconds')} seconds")
+    
+    if config.get('dry_run'):
+        logger.info("Mode:          🟢 DRY RUN (SAFE)")
+    else:
+        logger.info("\033[91mMode:          🔴 LIVE TRADING (REAL MONEY)\033[0m")
+    
+    logger.info("════════════════════════════════════")
 
 def initialize_exchange(config):
     """
@@ -663,8 +727,12 @@ def signal_handler(sig, frame):
 exchange_instance = None
 
 def main():
-    logger.info("Starting the Trading Bot...")
-    
+    parser = argparse.ArgumentParser(description='Advanced Trading Bot')
+    parser.add_argument('--config', type=str, default='config.json', help='path to config file')
+    parser.add_argument('--dry-run', action='store_true', help='force dry-run mode')
+    parser.add_argument('--log-level', choices=['DEBUG', 'INFO', 'WARNING'], help='set log level')
+    args = parser.parse_args()
+
     # Register signal handler for Ctrl+C
     signal.signal(signal.SIGINT, signal_handler)
     
@@ -673,7 +741,40 @@ def main():
 
     try:
         # 1. Get our settings
-        config = load_config()
+        config = load_config(args.config)
+        
+        # Override with command line arguments
+        if args.dry_run:
+            config['dry_run'] = True
+            
+        if args.log_level:
+            config['log_level'] = args.log_level
+            
+        # Re-initialize logging with config values
+        global logger
+        logger = setup_logging(
+            log_level=config.get('log_level', 'INFO'), 
+            log_file=config.get('log_file', 'trading_bot.log')
+        )
+        
+        logger.info("Starting the Trading Bot...")
+        
+        try:
+            config = validate_config(config)
+        except ValueError as e:
+            logger.error(f"Configuration Error: {e}")
+            sys.exit(1)
+            
+        print_config_summary(config)
+        
+        if not config.get('dry_run'):
+            logger.warning("⚠️  ⚠️  ⚠️  WARNING ⚠️  ⚠️  ⚠️")
+            logger.warning("⚠️  THIS IS A LIVE TRADING MODE. REAL MONEY WILL BE USED!")
+            logger.warning("⚠️  IF YOU LOSE FUNDS, IT IS YOUR OWN RESPONSIBILITY.")
+            confirmation = input("⚠️  LIVE TRADING MODE. Type 'CONFIRM' to proceed: ")
+            if confirmation != 'CONFIRM':
+                logger.info("Confirmation failed. Exiting.")
+                sys.exit(0)
         
         # 2. Connect to the exchange
         exchange = initialize_exchange(config)
