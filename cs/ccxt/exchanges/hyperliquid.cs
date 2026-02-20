@@ -202,6 +202,9 @@ public partial class hyperliquid : Exchange
                     { "Insufficient spot balance asset", typeof(InsufficientFunds) },
                     { "Insufficient balance for withdrawal", typeof(InsufficientFunds) },
                     { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
+                    { "TWAP order value too small. Min is $1200, which is $10 per minute.", typeof(InvalidOrder) },
+                    { "TWAP was never placed, already canceled, or filled.", typeof(OrderNotFound) },
+                    { "Too many cumulative requests sent", typeof(RateLimitExceeded) },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -2161,6 +2164,91 @@ public partial class hyperliquid : Exchange
 
     /**
      * @method
+     * @name hyperliquid#createTwapOrder
+     * @description create a trade order that is executed as a TWAP order over a specified duration.
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {int} duration the duration of the TWAP order in milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> createTwapOrder(object symbol, object side, object amount, object duration, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.initializeClient();
+        object market = this.market(symbol);
+        object nonce = this.milliseconds();
+        object isBuy = (isEqual(side, "BUY"));
+        object vaultAddress = null;
+        object randomize = this.safeBool(parameters, "randomize", false);
+        parameters = this.omit(parameters, "randomize");
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        object durationMins = (Math.Floor(Double.Parse((divide(divide(duration, 1000), 60)).ToString()))); // convert from ms to minutes
+        object orderObj = new Dictionary<string, object>() {
+            { "a", this.parseToInt(getValue(market, "baseId")) },
+            { "b", isBuy },
+            { "s", this.amountToPrecision(symbol, amount) },
+            { "r", this.safeBool(parameters, "reduceOnly", false) },
+            { "m", durationMins },
+            { "t", randomize },
+        };
+        object orderAction = new Dictionary<string, object>() {
+            { "type", "twapOrder" },
+            { "twap", orderObj },
+        };
+        object signature = this.signL1Action(orderAction, nonce, vaultAddress);
+        object request = new Dictionary<string, object>() {
+            { "action", orderAction },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            parameters = this.omit(parameters, "vaultAddress");
+            ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
+        }
+        object expiresAfter = this.safeInteger(parameters, "expiresAfter");
+        if (isTrue(!isEqual(expiresAfter, null)))
+        {
+            ((IDictionary<string,object>)request)["expiresAfter"] = expiresAfter;
+            parameters = this.omit(parameters, "expiresAfter");
+        }
+        object response = await this.privatePostExchange(request);
+        // {
+        //     "status":"ok",
+        //     "response":{
+        //         "type":"twapOrder",
+        //         "data":{
+        //             "status": {
+        //                 "running":{
+        //                 "twapId":77738308
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
+        object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
+        object status = this.safeDict(data, "status", new Dictionary<string, object>() {});
+        object running = this.safeDict(status, "running", new Dictionary<string, object>() {});
+        object orderId = this.safeString(running, "twapId");
+        return this.parseOrder(new Dictionary<string, object>() {
+            { "status", "running" },
+            { "oid", orderId },
+        }, market);
+    }
+
+    /**
+     * @method
      * @name hyperliquid#createOrders
      * @description create a list of trade orders
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
@@ -2431,11 +2519,17 @@ public partial class hyperliquid : Exchange
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(this.safeBool(parameters, "twap", false)))
+        {
+            parameters = this.omit(parameters, "twap");
+            return await this.cancelTwapOrder(id, symbol, parameters);
+        }
         object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
         return this.safeDict(orders, 0);
     }
@@ -2492,6 +2586,76 @@ public partial class hyperliquid : Exchange
             }));
         }
         return orders;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#cancelTwapOrder
+     * @description cancels a running twap order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async virtual Task<object> cancelTwapOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " cancelTwapOrder() requires a symbol argument")) ;
+        }
+        object market = this.market(symbol);
+        object vaultAddress = null;
+        var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "cancelTwapOrder", "vaultAddress");
+        vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
+        parameters = ((IList<object>)vaultAddressparametersVariable)[1];
+        vaultAddress = this.formatVaultAddress(vaultAddress);
+        object action = new Dictionary<string, object>() {
+            { "type", "twapCancel" },
+            { "a", this.parseToInt(getValue(market, "baseId")) },
+            { "t", this.parseToNumeric(id) },
+        };
+        object nonce = this.milliseconds();
+        object signature = this.signL1Action(action, nonce, vaultAddress);
+        object request = new Dictionary<string, object>() {
+            { "action", action },
+            { "nonce", nonce },
+            { "signature", signature },
+        };
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            parameters = this.omit(parameters, "vaultAddress");
+            ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
+        }
+        object expiresAfter = this.safeInteger(parameters, "expiresAfter");
+        if (isTrue(!isEqual(expiresAfter, null)))
+        {
+            ((IDictionary<string,object>)request)["expiresAfter"] = expiresAfter;
+            parameters = this.omit(parameters, "expiresAfter");
+        }
+        object response = await this.privatePostExchange(request);
+        //
+        //  {
+        //     "status":"ok",
+        //     "response":{
+        //        "type":"twapCancel",
+        //        "data":{
+        //           "status": "success"
+        //        }
+        //     }
+        //  }
+        //
+        object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
+        object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
+        object status = this.safeString(data, "status");
+        return this.parseOrder(new Dictionary<string, object>() {
+            { "status", status },
+            { "oid", id },
+        }, market);
     }
 
     public virtual object cancelOrdersRequest(object ids, object symbol = null, object parameters = null)
@@ -3223,17 +3387,51 @@ public partial class hyperliquid : Exchange
         //
         //     [
         //         {
-        //             "coin": "ETH",
-        //             "limitPx": "2000.0",
-        //             "oid": 3991946565,
-        //             "origSz": "0.1",
-        //             "side": "B",
-        //             "sz": "0.1",
-        //             "timestamp": 1704346468838
+        //             "order": {
+        //                 "coin": "ETH",
+        //                 "limitPx": "2000.0",
+        //                 "oid": 3991946565,
+        //                 "origSz": "0.1",
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "timestamp": 1704346468838
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": 1704346468838
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        // Hyperliquid returns the full status history for each order,
+        // so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        object deduplicatedByOid = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(response, i);
+            object entry = this.safeDict(rawOrder, "order");
+            if (isTrue(isEqual(entry, null)))
+            {
+                entry = rawOrder;
+            }
+            object oid = this.safeString(entry, "oid");
+            if (isTrue(!isEqual(oid, null)))
+            {
+                if (!isTrue((inOp(deduplicatedByOid, oid))))
+                {
+                    ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
+                } else
+                {
+                    object existingTimestamp = this.safeInteger(getValue(deduplicatedByOid, oid), "statusTimestamp");
+                    object currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
+                    if (isTrue(isTrue(!isEqual(currentTimestamp, null)) && isTrue((isTrue(isEqual(existingTimestamp, null)) || isTrue(isGreaterThan(currentTimestamp, existingTimestamp))))))
+                    {
+                        ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
+                    }
+                }
+            }
+        }
+        object deduplicated = new List<object>(((IDictionary<string,object>)deduplicatedByOid).Values);
+        return this.parseOrders(deduplicated, market, since, limit);
     }
 
     /**
@@ -3618,6 +3816,11 @@ public partial class hyperliquid : Exchange
         if (isTrue(!isEqual(crossed, null)))
         {
             takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
+        }
+        object builderFee = this.safeString(trade, "builderFee");
+        if (isTrue(!isEqual(builderFee, null)))
+        {
+            fee = Precise.stringAdd(fee, builderFee);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
@@ -5066,6 +5269,15 @@ public partial class hyperliquid : Exchange
                 if (isTrue(!isEqual(message, null)))
                 {
                     break;
+                }
+            }
+            if (isTrue(inOp(data, "status")))
+            {
+                object errorStatus = this.safeDict(data, "status", new Dictionary<string, object>() {});
+                object errorMsg = this.safeString(errorStatus, "error");
+                if (isTrue(!isEqual(errorStatus, null)))
+                {
+                    message = errorMsg;
                 }
             }
         }

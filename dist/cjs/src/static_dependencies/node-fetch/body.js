@@ -13,7 +13,11 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var Stream__default = /*#__PURE__*/_interopDefaultLegacy(Stream);
 
-// ----------------------------------------------------------------------------
+/**
+ * Body.js
+ *
+ * Body interface provides common methods for Request and Response
+ */
 const pipeline = node_util.promisify(Stream__default["default"].pipeline);
 const INTERNALS = Symbol('Body internals');
 /**

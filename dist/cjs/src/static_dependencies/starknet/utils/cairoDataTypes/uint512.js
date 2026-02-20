@@ -6,7 +6,7 @@ var encode = require('../encode.js');
 var felt = require('./felt.js');
 var uint256 = require('./uint256.js');
 
-// ----------------------------------------------------------------------------
+/* eslint-disable no-bitwise */
 const UINT_512_MAX = (1n << 512n) - 1n;
 const UINT_512_MIN = 0n;
 const UINT_128_MIN = 0n;

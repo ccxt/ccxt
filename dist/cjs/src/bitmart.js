@@ -8,7 +8,7 @@ var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class bitmart
@@ -1182,8 +1182,9 @@ class bitmart extends bitmart$1["default"] {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference();
         }
-        const spot = await this.fetchSpotMarkets(params);
-        const contract = await this.fetchContractMarkets(params);
+        const spotPromise = this.fetchSpotMarkets(params);
+        const contractPromise = this.fetchContractMarkets(params);
+        const [spot, contract] = await Promise.all([spotPromise, contractPromise]);
         return this.arrayConcat(spot, contract);
     }
     /**

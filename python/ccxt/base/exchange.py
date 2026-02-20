@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.36'
+__version__ = '4.5.39'
 
 # -----------------------------------------------------------------------------
 
@@ -913,15 +913,19 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary_or_list, key_list):
-        isDataArray = isinstance(dictionary_or_list, list)
-        isDataDict = isinstance(dictionary_or_list, dict)
-        for key in key_list:
-            if isDataDict:
-                if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
-                    return dictionary_or_list[key]
-            elif isDataArray and not isinstance(key, str):
-                if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
-                    return dictionary_or_list[key]
+        if isinstance(dictionary_or_list, dict):
+            get = dictionary_or_list.get
+            for key in key_list:
+                value = get(key)
+                if value is not None and value != '':
+                    return value
+        elif isinstance(dictionary_or_list, list):
+            length = len(dictionary_or_list)
+            for key in key_list:
+                if isinstance(key, int) and 0 <= key < length:
+                    value = dictionary_or_list[key]
+                    if value is not None and value != '':
+                        return value
         return None
 
     @staticmethod
@@ -1765,15 +1769,15 @@ class Exchange(object):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
         if 'y' == unit:
-            scale = 60 * 60 * 24 * 365
+            scale = 31536000  # 60 * 60 * 24 * 365
         elif 'M' == unit:
-            scale = 60 * 60 * 24 * 30
+            scale = 2592000  # 60 * 60 * 24 * 30
         elif 'w' == unit:
-            scale = 60 * 60 * 24 * 7
+            scale = 604800  # 60 * 60 * 24 * 7
         elif 'd' == unit:
-            scale = 60 * 60 * 24
+            scale = 86400  # 60 * 60 * 24
         elif 'h' == unit:
-            scale = 60 * 60
+            scale = 3600  # 60 * 60
         elif 'm' == unit:
             scale = 60
         elif 's' == unit:
@@ -5547,6 +5551,9 @@ class Exchange(object):
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
+
+    def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}):
+        raise NotSupported(self.id + ' createTwapOrder() is not supported yet')
 
     def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
         raise NotSupported(self.id + ' createConvertTrade() is not supported yet')

@@ -13,7 +13,7 @@ var time = require('./functions/time.js');
 var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 /*  ------------------------------------------------------------------------ */
 
 exports.isBrowser = platform.isBrowser;

@@ -150,7 +150,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-
+		this.Last_response_headers = HeaderToMap(resp.Header)
+		this.LastResponseHeaders = HeaderToMap(resp.Header)
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {

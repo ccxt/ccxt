@@ -1753,7 +1753,8 @@ public partial class gate : ccxt.gate
         object newLiquidations = new List<object>() {};
         if (isTrue(isEqual(this.liquidations, null)))
         {
-            this.liquidations = new ArrayCacheBySymbolBySide();
+            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            this.liquidations = new ArrayCache(limit);
         }
         object cache = this.liquidations;
         for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))

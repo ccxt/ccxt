@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class btcmarkets
@@ -1331,7 +1331,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'currency_id': currency['id'],
+            'assetName': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
         if (code !== 'AUD') {

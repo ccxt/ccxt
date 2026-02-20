@@ -6,7 +6,6 @@ var _assert = require('./_assert.js');
 var hmac = require('./hmac.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 // Common prologue and epilogue for sync/async functions
 function pbkdf2Init(hash, _password, _salt, _opts) {
     _assert["default"].hash(hash);

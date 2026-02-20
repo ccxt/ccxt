@@ -2174,7 +2174,7 @@ class Transpiler {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
             const test: any = {

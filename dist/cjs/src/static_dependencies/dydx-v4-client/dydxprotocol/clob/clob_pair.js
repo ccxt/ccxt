@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 require('protobufjs/minimal.js');
 require('../../helpers.js');
 
-// ----------------------------------------------------------------------------
 /** Status of the CLOB. */
 exports.ClobPair_Status = void 0;
 (function (ClobPair_Status) {

@@ -8,7 +8,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-// ----------------------------------------------------------------------------
+//  ---------------------------------------------------------------------------
 /**
  * @class gate
  * @augments Exchange
@@ -1060,7 +1060,7 @@ class gate extends gate$1["default"] {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': errors.InvalidOrder,
+                    'INVALID_PARAM_VALUE': errors.BadRequest,
                     'INVALID_PROTOCOL': errors.BadRequest,
                     'INVALID_ARGUMENT': errors.BadRequest,
                     'INVALID_REQUEST_BODY': errors.BadRequest,
@@ -1158,7 +1158,9 @@ class gate extends gate$1["default"] {
                     'NO_CHANGE': errors.InvalidOrder,
                     'PRICE_THRESHOLD_EXCEEDED': errors.InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
-                'broad': {},
+                'broad': {
+                    'Your order size': errors.InvalidOrder, // {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
+                },
             },
         });
     }

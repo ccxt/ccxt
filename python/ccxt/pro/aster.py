@@ -758,10 +758,17 @@ class aster(ccxt.async_support.aster):
         #         "ss": 0
         #     }
         #
+        e = self.safe_string(trade, 'e')
+        isPublicTrade = (e == 'trade') or (e == 'aggTrade')
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_string_2(trade, 'L', 'p')
-        amount = self.safe_string_2(trade, 'q', 'l')
+        amount = None
+        if isPublicTrade:
+            amount = self.safe_string(trade, 'q')
+        else:
+            # private trades, amount is in 'l' field, quantity of the last filled trade
+            amount = self.safe_string(trade, 'l')
         cost = self.safe_string(trade, 'Y')
         if cost is None:
             if (price is not None) and (amount is not None):
@@ -1617,7 +1624,7 @@ class aster(ccxt.async_support.aster):
             myTrades = self.myTrades
             myTrades.append(trade)
             client.resolve(self.myTrades, messageHash)
-            messageHashSymbol = messageHash + ':' + symbol
+            messageHashSymbol = messageHash + '::' + symbol
             client.resolve(self.myTrades, messageHashSymbol)
 
     def handle_order(self, client: Client, message):

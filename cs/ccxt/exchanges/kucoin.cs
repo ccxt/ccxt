@@ -2482,7 +2482,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
             }
-            response = await ((Task<object>)callDynamically(this, "utaPrivateGetMarketOrderbook", new object[] { this.extend(request, parameters) }));
+            response = await this.utaPrivateGetMarketOrderbook(this.extend(request, parameters));
         } else if (isTrue(!isTrue(isAuthenticated) || isTrue(!isEqual(limit, null))))
         {
             if (isTrue(isEqual(level, 2)))

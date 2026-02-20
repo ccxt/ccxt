@@ -431,6 +431,11 @@ public partial class bitget : Exchange
         return await this.callAsync ("publicUtaGetV3MarketFills",parameters);
     }
 
+    public async Task<object> publicUtaGetV3MarketProofOfReserves (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketProofOfReserves",parameters);
+    }
+
     public async Task<object> publicUtaGetV3MarketOpenInterest (object parameters = null)
     {
         return await this.callAsync ("publicUtaGetV3MarketOpenInterest",parameters);
@@ -479,6 +484,11 @@ public partial class bitget : Exchange
     public async Task<object> publicUtaGetV3MarketOiLimit (object parameters = null)
     {
         return await this.callAsync ("publicUtaGetV3MarketOiLimit",parameters);
+    }
+
+    public async Task<object> publicUtaGetV3MarketIndexComponents (object parameters = null)
+    {
+        return await this.callAsync ("publicUtaGetV3MarketIndexComponents",parameters);
     }
 
     public async Task<object> privateSpotGetSpotV1WalletDepositAddress (object parameters = null)
@@ -634,6 +644,11 @@ public partial class bitget : Exchange
     public async Task<object> privateSpotGetV2SpotWalletWithdrawalRecords (object parameters = null)
     {
         return await this.callAsync ("privateSpotGetV2SpotWalletWithdrawalRecords",parameters);
+    }
+
+    public async Task<object> privateSpotGetV2SpotAccountUpgradeStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotGetV2SpotAccountUpgradeStatus",parameters);
     }
 
     public async Task<object> privateSpotPostSpotV1WalletTransfer (object parameters = null)
@@ -969,6 +984,11 @@ public partial class bitget : Exchange
     public async Task<object> privateSpotPostV2SpotWalletModifyDepositAccount (object parameters = null)
     {
         return await this.callAsync ("privateSpotPostV2SpotWalletModifyDepositAccount",parameters);
+    }
+
+    public async Task<object> privateSpotPostV2SpotAccountUpgrade (object parameters = null)
+    {
+        return await this.callAsync ("privateSpotPostV2SpotAccountUpgrade",parameters);
     }
 
     public async Task<object> privateMixGetMixV1AccountAccount (object parameters = null)
@@ -2721,14 +2741,14 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaGetV3AccountAssets",parameters);
     }
 
+    public async Task<object> privateUtaGetV3AccountFundingAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountFundingAssets",parameters);
+    }
+
     public async Task<object> privateUtaGetV3AccountSettings (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3AccountSettings",parameters);
-    }
-
-    public async Task<object> privateUtaGetV3AccountDepositRecords (object parameters = null)
-    {
-        return await this.callAsync ("privateUtaGetV3AccountDepositRecords",parameters);
     }
 
     public async Task<object> privateUtaGetV3AccountFinancialRecords (object parameters = null)
@@ -2751,6 +2771,36 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaGetV3AccountConvertRecords",parameters);
     }
 
+    public async Task<object> privateUtaGetV3AccountDeductInfo (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountDeductInfo",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountFeeRate",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountSwitchStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountSwitchStatus",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountMaxTransferable (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountMaxTransferable",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountOpenInterestLimit (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountOpenInterestLimit",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountSubUnifiedAssets (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountSubUnifiedAssets",parameters);
+    }
+
     public async Task<object> privateUtaGetV3AccountTransferableCoins (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3AccountTransferableCoins",parameters);
@@ -2759,6 +2809,51 @@ public partial class bitget : Exchange
     public async Task<object> privateUtaGetV3AccountSubTransferRecord (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3AccountSubTransferRecord",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountDepositAddress",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountSubDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountSubDepositAddress",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountDepositRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountDepositRecords",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountSubDepositRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountSubDepositRecords",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3AccountWithdrawalRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3AccountWithdrawalRecords",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3BrokerSubList (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3BrokerSubList",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3BrokerAllSubDepositWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3BrokerAllSubDepositWithdrawal",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3BrokerCommission (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3BrokerCommission",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3BrokerQuerySubApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3BrokerQuerySubApikey",parameters);
     }
 
     public async Task<object> privateUtaGetV3InsLoanTransfered (object parameters = null)
@@ -2801,6 +2896,46 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaGetV3InsLoanEnsureCoinsConvert",parameters);
     }
 
+    public async Task<object> privateUtaGetV3LoanCoins (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanCoins",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanInterest (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanInterest",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanBorrowOngoing (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanBorrowOngoing",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanBorrowHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanBorrowHistory",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanRepayHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanRepayHistory",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanPledgeRateHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanPledgeRateHistory",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanDebts (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanDebts",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3LoanReduces (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3LoanReduces",parameters);
+    }
+
     public async Task<object> privateUtaGetV3PositionCurrentPosition (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3PositionCurrentPosition",parameters);
@@ -2809,6 +2944,16 @@ public partial class bitget : Exchange
     public async Task<object> privateUtaGetV3PositionHistoryPosition (object parameters = null)
     {
         return await this.callAsync ("privateUtaGetV3PositionHistoryPosition",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3PositionAdlRank (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3PositionAdlRank",parameters);
+    }
+
+    public async Task<object> privateUtaGetV3TaxRecords (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaGetV3TaxRecords",parameters);
     }
 
     public async Task<object> privateUtaGetV3TradeOrderInfo (object parameters = null)
@@ -2866,6 +3011,26 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaPostV3AccountRepay",parameters);
     }
 
+    public async Task<object> privateUtaPostV3AccountSwitchDeduct (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountSwitchDeduct",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountDepositAccount (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountDepositAccount",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountSwitch (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountSwitch",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3AccountAdjustAccountMode (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountAdjustAccountMode",parameters);
+    }
+
     public async Task<object> privateUtaPostV3AccountTransfer (object parameters = null)
     {
         return await this.callAsync ("privateUtaPostV3AccountTransfer",parameters);
@@ -2876,14 +3041,74 @@ public partial class bitget : Exchange
         return await this.callAsync ("privateUtaPostV3AccountSubTransfer",parameters);
     }
 
+    public async Task<object> privateUtaPostV3AccountSubMasterTransfer (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountSubMasterTransfer",parameters);
+    }
+
     public async Task<object> privateUtaPostV3AccountMaxOpenAvailable (object parameters = null)
     {
         return await this.callAsync ("privateUtaPostV3AccountMaxOpenAvailable",parameters);
     }
 
+    public async Task<object> privateUtaPostV3AccountWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3AccountWithdrawal",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerCreateSub (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerCreateSub",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerModifySub (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerModifySub",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerSubWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerSubWithdrawal",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerSubDepositAddress (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerSubDepositAddress",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerCreateSubApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerCreateSubApikey",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerModifySubApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerModifySubApikey",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3BrokerDeleteSubApikey (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3BrokerDeleteSubApikey",parameters);
+    }
+
     public async Task<object> privateUtaPostV3InsLoanBindUid (object parameters = null)
     {
         return await this.callAsync ("privateUtaPostV3InsLoanBindUid",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3LoanBorrow (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3LoanBorrow",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3LoanRepay (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3LoanRepay",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3LoanRevisePledge (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3LoanRevisePledge",parameters);
     }
 
     public async Task<object> privateUtaPostV3TradePlaceOrder (object parameters = null)
@@ -2939,6 +3164,11 @@ public partial class bitget : Exchange
     public async Task<object> privateUtaPostV3TradeClosePositions (object parameters = null)
     {
         return await this.callAsync ("privateUtaPostV3TradeClosePositions",parameters);
+    }
+
+    public async Task<object> privateUtaPostV3TradeCountdownCancelAll (object parameters = null)
+    {
+        return await this.callAsync ("privateUtaPostV3TradeCountdownCancelAll",parameters);
     }
 
     public async Task<object> privateUtaPostV3UserCreateSub (object parameters = null)

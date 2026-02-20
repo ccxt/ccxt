@@ -5,7 +5,6 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var _assert = require('./_assert.js');
 var utils = require('./utils.js');
 
-// ----------------------------------------------------------------------------
 // Polyfill for Safari 14
 function setBigUint64(view, byteOffset, value, isLE) {
     if (typeof view.setBigUint64 === 'function')

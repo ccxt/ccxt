@@ -813,7 +813,8 @@ class okx extends \ccxt\async\okx {
             $liquidation = $this->parse_ws_liquidation($rawLiquidation);
             $symbol = $this->safe_string($liquidation, 'symbol');
             if ($this->liquidations === null) {
-                $this->liquidations = new ArrayCacheBySymbolBySide ();
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $this->liquidations = new ArrayCache ($limit);
             }
             $cache = $this->liquidations;
             $cache->append ($liquidation);
@@ -913,7 +914,8 @@ class okx extends \ccxt\async\okx {
             $liquidation = $this->parse_ws_my_liquidation($rawLiquidation);
             $symbol = $this->safe_string($liquidation, 'symbol');
             if ($this->liquidations === null) {
-                $this->liquidations = new ArrayCacheBySymbolBySide ();
+                $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
+                $this->liquidations = new ArrayCache ($limit);
             }
             $cache = $this->liquidations;
             $cache->append ($liquidation);
@@ -1879,7 +1881,7 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
             $position = $this->parse_position($rawPosition);
-            if ($position['contracts'] === 0) {
+            if ($position['contracts'] === 0 && $rawPosition['posSide'] === 'net') {
                 $position['side'] = 'long';
                 $shortPosition = $this->clone($position);
                 $shortPosition['side'] = 'short';
