@@ -23,34 +23,46 @@ import random
 import traceback
 import signal
 from functools import wraps
+from logging.handlers import RotatingFileHandler
 
 # Global state for dry-run simulation
 _dry_run_order_state = {}
 
 # Setup logging
-def setup_logging():
+def setup_logging() -> logging.Logger:
     """
     Configures logging to both console and file.
     """
     logger = logging.getLogger('trading_bot')
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG)
 
     # Create handlers
     c_handler = logging.StreamHandler()
-    f_handler = logging.FileHandler('trading_bot.log', encoding='utf-8')
+    f_handler = RotatingFileHandler(
+        'trading_bot.log',
+        maxBytes=5 * 1024 * 1024,
+        backupCount=3,
+        encoding='utf-8',
+    )
+
+    # Set levels
     c_handler.setLevel(logging.INFO)
-    f_handler.setLevel(logging.INFO)
+    f_handler.setLevel(logging.DEBUG)
 
     # Create formatters and add it to handlers
-    log_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    c_handler.setFormatter(log_format)
-    f_handler.setFormatter(log_format)
+    console_format = logging.Formatter("[%(levelname)s] %(message)s")
+    file_format = logging.Formatter(
+        "%(asctime)s | %(levelname)-8s | %(funcName)-20s | %(message)s"
+    )
+    c_handler.setFormatter(console_format)
+    f_handler.setFormatter(file_format)
 
     # Add handlers to the logger
     logger.addHandler(c_handler)
     logger.addHandler(f_handler)
 
     return logger
+
 
 logger = setup_logging()
 
@@ -756,3 +768,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

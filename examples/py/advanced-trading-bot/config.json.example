@@ -1,11 +1,12 @@
 {
-    "exchange": "binance",              // The exchange id from ccxt
-    "api_key": "YOUR_API_KEY",          // Your API key from the exchange
-    "secret": "YOUR_SECRET_KEY",        // Your Secret key
-    "symbol": "BTC/USDT",               // The pair you want to trade
-    "trade_amount_usd": 50,             // How much USD to spend per trade
-    "order_type": "limit",              // 'limit' or 'market'
-    "price_offset_percent": 0.1,        // Buy 0.1% below current price
-    "max_wait_seconds": 60,             // (Optional) Wait time logic
-    "dry_run": true                     // Set to false to trade real money
+  "exchange": "binance",
+  "api_key": "YOUR_API_KEY",
+  "secret": "YOUR_SECRET",
+  "symbol": "BTC/USDT",
+  "trade_amount_usd": 50,
+  "order_type": "limit",
+  "price_offset_percent": 0.1,
+  "max_wait_seconds": 60,
+  "rate_limit_cooldown_seconds": 60,
+  "dry_run": true
 }
