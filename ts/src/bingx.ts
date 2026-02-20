@@ -1777,10 +1777,10 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger2 (params, 'until', 'startTime');
+        const until = this.safeInteger2 (params, 'until', 'endTime');
         if (until !== undefined) {
             params = this.omit (params, [ 'until' ]);
-            request['startTime'] = until;
+            request['endTime'] = until;
         }
         const response = await this.swapV2PublicGetQuoteFundingRate (this.extend (request, params));
         //
