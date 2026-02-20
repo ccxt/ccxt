@@ -116,15 +116,15 @@ function helperTestProperties () {
     //
     // credentials
     //
-    assert (testSharedMethods.getExchangeProperty (exchange, 'apiKey') === '', 'apiKey should be empty string');
-    assert (exchange.secret === '', 'secret should be empty string');
-    assert (exchange.uid === '', 'uid should be empty string');
-    assert (exchange.login === '', 'login should be empty string');
-    assert (exchange.password === '', 'password should be empty string');
+    assert (testSharedMethods.getExchangeProperty (exchange, 'apiKey') === undefined, 'apiKey should be empty string');
+    assert (exchange.secret === undefined, 'secret should be empty string');
+    assert (exchange.uid === undefined, 'uid should be empty string');
+    assert (exchange.login === undefined, 'login should be empty string');
+    assert (exchange.password === undefined, 'password should be empty string');
     assert (exchange.twofa === undefined, 'twofa should be undefined');
-    assert (testSharedMethods.getExchangeProperty (exchange, 'privateKey') === '', 'privateKey should be empty string');
-    assert (testSharedMethods.getExchangeProperty (exchange, 'walletAddress') === '', 'walletAddress should be empty string');
-    assert (exchange.token === '', 'token should be empty string');
+    assert (testSharedMethods.getExchangeProperty (exchange, 'privateKey') === undefined, 'privateKey should be empty string');
+    assert (testSharedMethods.getExchangeProperty (exchange, 'walletAddress') === undefined, 'walletAddress should be empty string');
+    assert (exchange.token === undefined, 'token should be empty string');
     const requiredCredentials = {
         'apiKey': true,
         'secret': true,
