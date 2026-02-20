@@ -12,10 +12,6 @@ def inflate(data):
     return decompress(data, -MAX_WBITS)
 
 
-def inflate64(data):
-    return inflate(b64decode(data))
-
-
 def gunzip(data):
     return GzipFile('', 'rb', 9, BytesIO(data)).read().decode('utf-8')
 

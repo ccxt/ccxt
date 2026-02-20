@@ -33,7 +33,7 @@ from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.ws.functions import inflate, inflate64, gunzip
+from ccxt.async_support.base.ws.functions import inflate, gunzip
 from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
@@ -397,10 +397,6 @@ class Exchange(BaseExchange):
     @staticmethod
     def inflate(data):
         return inflate(data)
-
-    @staticmethod
-    def inflate64(data):
-        return inflate64(data)
 
     @staticmethod
     def gunzip(data):
