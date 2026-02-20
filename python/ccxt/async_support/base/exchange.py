@@ -54,15 +54,6 @@ __all__ = [
 ]
 
 # -----------------------------------------------------------------------------
-# --- PROTO BUF IMPORTS
-try:
-    from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
-    from google.protobuf.json_format import MessageToDict
-except ImportError:
-    PushDataV3ApiWrapper_pb2 = None
-    MessageToDict = None
-
-# -----------------------------------------------------------------------------
 
 
 class Exchange(BaseExchange):
@@ -588,7 +579,11 @@ class Exchange(BaseExchange):
         return format(n, 'g')
 
     def decode_proto_msg(self, data):
-        if not MessageToDict:
+        # --- PROTO BUF IMPORTS
+        try:
+            from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+            from google.protobuf.json_format import MessageToDict
+        except ImportError:
             raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
         message.ParseFromString(data)
