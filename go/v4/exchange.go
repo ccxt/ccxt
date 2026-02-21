@@ -581,6 +581,8 @@ func NewError(errType interface{}, message ...interface{}) error {
 	stack := ""
 	if len(message) > 0 {
 		msg = ToString(message[0])
+		msgParts := strings.Split(msg, "]\nStack:")
+		msg = msgParts[0]
 		if len(message) > 1 {
 			stack = ToString(message[1])
 		}
