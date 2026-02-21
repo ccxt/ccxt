@@ -663,7 +663,7 @@
                 ]
             }
         ],
-        "fetchOpenInterest": [
+        "fetchOpenInterests": [
             {
                 "description": "fetchOpenInterests with symbol",
                 "method": "fetchOpenInterests",
