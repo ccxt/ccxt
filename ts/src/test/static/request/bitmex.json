@@ -662,6 +662,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetchOpenInterests with symbol",
+                "method": "fetchOpenInterests",
+                "url": "https://www.bitmex.com/api/v1/stats",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "fetchOpenInterests no symbol",
+                "method": "fetchOpenInterests",
+                "url": "https://www.bitmex.com/api/v1/stats",
+                "input": []
+            }
         ]
     }
 }
