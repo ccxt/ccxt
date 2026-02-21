@@ -1839,11 +1839,11 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "startTime");
+        object until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
-            ((IDictionary<string,object>)request)["startTime"] = until;
+            ((IDictionary<string,object>)request)["endTime"] = until;
         }
         object response = await this.swapV2PublicGetQuoteFundingRate(this.extend(request, parameters));
         //

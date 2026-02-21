@@ -8710,9 +8710,9 @@ class htx extends Exchange {
             }
             $request = array();
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterests', $market, $params, 'linear');
             $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenInterests', $market, $params);
             $response = null;
             if ($marketType === 'future') {
                 $response = Async\await($this->contractPublicGetApiV1ContractOpenInterest ($this->extend($request, $params)));

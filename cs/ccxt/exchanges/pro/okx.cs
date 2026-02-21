@@ -837,7 +837,8 @@ public partial class okx : ccxt.okx
             object symbol = this.safeString(liquidation, "symbol");
             if (isTrue(isEqual(this.liquidations, null)))
             {
-                this.liquidations = new ArrayCacheBySymbolBySide();
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                this.liquidations = new ArrayCache(limit);
             }
             object cache = this.liquidations;
             callDynamically(cache, "append", new object[] {liquidation});
@@ -945,7 +946,8 @@ public partial class okx : ccxt.okx
             object symbol = this.safeString(liquidation, "symbol");
             if (isTrue(isEqual(this.liquidations, null)))
             {
-                this.liquidations = new ArrayCacheBySymbolBySide();
+                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                this.liquidations = new ArrayCache(limit);
             }
             object cache = this.liquidations;
             callDynamically(cache, "append", new object[] {liquidation});
@@ -1998,7 +2000,7 @@ public partial class okx : ccxt.okx
         {
             object rawPosition = getValue(data, i);
             object position = this.parsePosition(rawPosition);
-            if (isTrue(isEqual(getValue(position, "contracts"), 0)))
+            if (isTrue(isTrue(isEqual(getValue(position, "contracts"), 0)) && isTrue(isEqual(getValue(rawPosition, "posSide"), "net"))))
             {
                 ((IDictionary<string,object>)position)["side"] = "long";
                 object shortPosition = this.clone(position);

@@ -269,15 +269,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-	userOptions := this.SafeDict(userConfig, "options")
-	if userOptions == nil {
-		userOptions = map[string]interface{}{}
-	}
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
-		this.SetSandboxMode(true)
-	}
-
-	// fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {

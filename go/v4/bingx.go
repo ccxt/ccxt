@@ -1968,10 +1968,10 @@ func (this *BingxCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-ch
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
-		var until interface{} = this.SafeInteger2(params, "until", "startTime")
+		var until interface{} = this.SafeInteger2(params, "until", "endTime")
 		if IsTrue(!IsEqual(until, nil)) {
 			params = this.Omit(params, []interface{}{"until"})
-			AddElementToObject(request, "startTime", until)
+			AddElementToObject(request, "endTime", until)
 		}
 
 		response := (<-this.SwapV2PublicGetQuoteFundingRate(this.Extend(request, params)))

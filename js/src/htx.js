@@ -8789,9 +8789,9 @@ export default class htx extends Exchange {
         }
         const request = {};
         let subType = undefined;
-        [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params, 'linear');
+        [subType, params] = this.handleSubTypeAndParams('fetchOpenInterests', market, params, 'linear');
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchPositions', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('fetchOpenInterests', market, params);
         let response = undefined;
         if (marketType === 'future') {
             response = await this.contractPublicGetApiV1ContractOpenInterest(this.extend(request, params));

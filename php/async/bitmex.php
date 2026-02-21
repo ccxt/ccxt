@@ -1929,10 +1929,12 @@ class bitmex extends Exchange {
         } else {
             $filled = $cumQty;
         }
-        $execInst = $this->safe_string($order, 'execInst');
+        $execInst = $this->safe_string($order, 'execInst', '');
         $postOnly = null;
-        if ($execInst !== null) {
-            $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        $reduceOnly = null;
+        if (strlen($execInst) > 0) {
+            $postOnly = (mb_strpos($execInst, 'ParticipateDoNotInitiate') !== false);
+            $reduceOnly = ((mb_strpos($execInst, 'ReduceOnly') !== false) || (mb_strpos($execInst, 'Close') !== false));
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
         $triggerPrice = $this->safe_number($order, 'stopPx');
@@ -1948,6 +1950,7 @@ class bitmex extends Exchange {
             'type' => $this->safe_string_lower($order, 'ordType'),
             'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'timeInForce')),
             'postOnly' => $postOnly,
+            'reduceOnly' => $reduceOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => $triggerPrice,
@@ -2060,6 +2063,8 @@ class bitmex extends Exchange {
                     throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
                 }
             }
+            $postOnly = $this->safe_bool($params, 'postOnly');
+            $params = $this->omit($params, array( 'reduceOnly', 'postOnly' ));
             $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
             $qty = $this->parse_to_int($this->amount_to_precision($symbol, $amount));
             $request = array(
@@ -2069,6 +2074,17 @@ class bitmex extends Exchange {
                 'ordType' => $orderType,
                 'text' => $brokerId,
             );
+            $execInstructions = array();
+            if ($reduceOnly === true) {
+                $execInstructions[] = 'ReduceOnly';
+            }
+            if ($postOnly === true) {
+                $execInstructions[] = 'ParticipateDoNotInitiate';
+            }
+            $execInstLength = count($execInstructions);
+            if ($execInstLength > 0) {
+                $request['execInst'] = implode(',', $execInstructions);
+            }
             // support for unified trigger format
             $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
             $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');

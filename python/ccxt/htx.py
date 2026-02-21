@@ -8136,9 +8136,9 @@ class htx(Exchange, ImplicitAPI):
                 market = self.market(first)
         request: dict = {}
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'linear')
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchOpenInterests', market, params)
         response = None
         if marketType == 'future':
             response = self.contractPublicGetApiV1ContractOpenInterest(self.extend(request, params))
