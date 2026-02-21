@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, Exchang
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -76,6 +76,8 @@ export default class bitmex extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': 'emulated',
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -2984,6 +2986,72 @@ export default class bitmex extends Exchange {
         //    ]
         //
         return this.parseDepositWithdrawFees (assets, codes, 'asset');
+    }
+
+    /**
+     * @method
+     * @name bitmex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitmex.com/api-explorer/get-stats
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let response = undefined;
+        response = await this.publicGetStats (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            currency: 'XBt',
+        //            openInterest: '0',
+        //            openValue: '323890820079',
+        //            rootSymbol: 'Total',
+        //            turnover24h: '447088001322',
+        //            volume24h: '0'
+        //        }
+        //        ...
+        //    ]
+        //
+        symbols = this.marketSymbols (symbols);
+        return this.parseOpenInterests (response, symbols) as OpenInterests;
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency: 'XBt',
+        //        openInterest: '0',
+        //        openValue: '323890820079',
+        //        rootSymbol: 'Total',
+        //        turnover24h: '447088001322',
+        //        volume24h: '0'
+        //    }
+        //
+        const quoteId = this.safeString (interest, 'currency');
+        const baseId = this.safeString (interest, 'rootSymbol');
+        const quoteSymbol = this.safeCurrencyCode (quoteId);
+        const baseSymbol = this.safeCurrencyCode (baseId);
+        let symbol = baseSymbol;
+        if (quoteSymbol !== undefined) {
+            symbol = baseSymbol + '/' + quoteSymbol + ':' + quoteSymbol;
+        }
+        const openInterest = this.safeNumber (interest, 'openInterest');
+        const openValue = this.safeNumber (interest, 'openValue');
+        return this.safeOpenInterest ({
+            'info': interest,
+            'symbol': symbol,
+            'baseVolume': openInterest,  // deprecated
+            'quoteVolume': openValue,  // deprecated
+            'openInterestAmount': openInterest,
+            'openInterestValue': openValue,
+            'timestamp': undefined,
+            'datetime': undefined,
+        }, market);
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}) {
