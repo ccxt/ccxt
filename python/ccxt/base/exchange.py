@@ -1771,7 +1771,7 @@ class Exchange(object):
     def check_required_dependencies(self):
         if self.requiresEddsa:
             try:
-                import axolotl_curve25519 as eddsa
+                import axolotl_curve25519 as eddsa  # noqa: F401
             except Exception:
                 raise NotSupported(self.id + ' Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
@@ -1961,7 +1961,7 @@ class Exchange(object):
             return zklink_sdk
         except ImportError:
             raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
-    
+
     def get_zk_contract_signature_obj(self, seeds: str, params={}):
         zklink_sdk = self._load_dep_zklink_sdk()
         slotId = self.safe_string(params, 'slotId')
@@ -2048,7 +2048,7 @@ class Exchange(object):
 
     def to_dydx_long(self, num):
         return num
-    
+
     def encode_as_any(self):
         try:
             from ccxt.static_dependencies.dydx_v4_client.registry import encode_as_any
