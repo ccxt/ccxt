@@ -473,6 +473,125 @@ def place_limit_order(exchange, symbol, side, amount, price, dry_run=True):
         logger.error(traceback.format_exc())
         return None
 
+def calculate_risk_metrics(config, balance, current_price):
+    """
+    Calculates risk metrics and checks if proposed position exceeds limits.
+    """
+    portfolio_value_usd = 0.0
+    for currency, details in balance.items():
+        if isinstance(details, dict) and 'total' in details:
+            amt = details['total']
+            if currency in ['USDT', 'USD']:
+                portfolio_value_usd += amt
+            elif currency == config.get('symbol', 'BTC/USDT').split('/')[0]:
+                portfolio_value_usd += amt * current_price
+
+    max_position_percent = config.get('max_position_percent', 5.0)
+    max_position_usd = portfolio_value_usd * (max_position_percent / 100)
+    proposed_position_usd = config.get('trade_amount_usd', 10)
+    
+    is_safe = proposed_position_usd <= max_position_usd
+    position_percent = (proposed_position_usd / portfolio_value_usd) * 100 if portfolio_value_usd > 0 else 0.0
+    
+    warnings = []
+    if not is_safe:
+        warnings.append(f"Proposed position ({proposed_position_usd:.2f} USD) exceeds max ({max_position_percent}% = {max_position_usd:.2f} USD)")
+
+    metrics = {
+        'is_safe': is_safe,
+        'portfolio_value_usd': portfolio_value_usd,
+        'max_position_usd': max_position_usd,
+        'proposed_position_usd': proposed_position_usd,
+        'position_percent': position_percent,
+        'warnings': warnings
+    }
+    
+    logger.info("--- Risk Metrics ---")
+    logger.info(f"Portfolio Value: ${portfolio_value_usd:.2f}")
+    logger.info(f"Max Position ({max_position_percent}%): ${max_position_usd:.2f}")
+    logger.info(f"Proposed Position: ${proposed_position_usd:.2f} ({position_percent:.2f}%)")
+    
+    return metrics
+
+def check_market_conditions(exchange, symbol, config):
+    """
+    Checks market conditions (spread and volume).
+    """
+    ticker = fetch_ticker(exchange, symbol)
+    if not ticker or 'bid' not in ticker or 'ask' not in ticker or not ticker['bid'] or not ticker['ask']:
+        return {'is_favorable': False, 'spread_percent': 0.0, 'volume_24h_usd': 0.0, 'warnings': ['Could not fetch ticker']}
+        
+    bid = ticker['bid']
+    ask = ticker['ask']
+    spread_percent = ((ask - bid) / bid) * 100
+    max_spread_percent = config.get('max_spread_percent', 0.5)
+    
+    volume_24h_usd = ticker.get('quoteVolume')
+    if volume_24h_usd is None:  
+        base_volume = ticker.get('baseVolume')
+        last_price = ticker.get('last')
+        if base_volume and last_price:
+            volume_24h_usd = base_volume * last_price
+        else:
+            volume_24h_usd = 0.0
+
+    min_24h_volume_usd = config.get('min_24h_volume_usd', 1000000)
+    
+    warnings = []
+    if spread_percent > max_spread_percent:
+        warnings.append(f"Low liquidity warning: Spread is {spread_percent:.3f}%, which is > max allowed {max_spread_percent}%")
+    if volume_24h_usd < min_24h_volume_usd:
+        warnings.append(f"Inactive market warning: 24h Volume is ${volume_24h_usd:.2f}, which is < min allowed ${min_24h_volume_usd:.2f}")
+        
+    is_favorable = len(warnings) == 0
+    
+    metrics = {
+        'is_favorable': is_favorable,
+        'spread_percent': spread_percent,
+        'volume_24h_usd': volume_24h_usd,
+        'warnings': warnings
+    }
+    
+    if not is_favorable:
+        for w in warnings:
+            logger.warning(w)
+            
+    return metrics
+
+def confirm_trade(side, amount, price, symbol, dry_run):
+    """
+    Prints a confirmation summary and prompts the user if live trading.
+    """
+    total_cost = amount * price
+    mode_text = "🟢 DRY RUN (SAFE)" if dry_run else "🔴 LIVE TRADING (REAL MONEY)"
+    
+    print("═══════════════════════════════════════")
+    print("         TRADE CONFIRMATION")
+    print("═══════════════════════════════════════")
+    print(f"Symbol:      {symbol}")
+    print(f"Side:        {side.upper()}")
+    base_currency = symbol.split('/')[0] if '/' in symbol else symbol
+    print(f"Amount:      {amount} {base_currency}")
+    print(f"Price:       ${price:,.2f}")
+    print(f"Total Cost:  ${total_cost:,.2f}")
+    print(f"Mode:        {mode_text}")
+    print("═══════════════════════════════════════")
+    
+    if dry_run:
+        return True
+        
+    print("⚠️  LIVE TRADING MODE - REAL MONEY AT RISK")
+    print("⚠️  This trade will execute on the exchange")
+    print("⚠️  Make sure you understand the risks")
+    user_input = input("Type 'CONFIRM' to proceed: ").strip()
+    
+    if user_input == 'CONFIRM':
+        logger.info("User confirmed trade.")
+        return True
+    else:
+        logger.info(f"User failed confirmation (input was '{user_input}').")
+        return False
+
 def create_order_params(exchange, config, ticker, balance):
     """
     Calculates and validates order parameters (side, amount, price).
@@ -768,13 +887,10 @@ def main():
         print_config_summary(config)
         
         if not config.get('dry_run'):
-            logger.warning("⚠️  ⚠️  ⚠️  WARNING ⚠️  ⚠️  ⚠️")
-            logger.warning("⚠️  THIS IS A LIVE TRADING MODE. REAL MONEY WILL BE USED!")
-            logger.warning("⚠️  IF YOU LOSE FUNDS, IT IS YOUR OWN RESPONSIBILITY.")
-            confirmation = input("⚠️  LIVE TRADING MODE. Type 'CONFIRM' to proceed: ")
-            if confirmation != 'CONFIRM':
-                logger.info("Confirmation failed. Exiting.")
-                sys.exit(0)
+            print("⚠️  WARNING: DRY RUN MODE IS DISABLED")
+            print("⚠️  WARNING: THIS BOT WILL PLACE REAL ORDERS")
+            print("⚠️  WARNING: YOU COULD LOSE REAL MONEY")
+            time.sleep(2)
         
         # 2. Connect to the exchange
         exchange = initialize_exchange(config)
@@ -810,6 +926,28 @@ def main():
         start_order_execution = False
         if order_params:
             side, amount, price = order_params
+            
+            # a) Calculate risk metrics
+            risk_metrics = calculate_risk_metrics(config, balance, ticker['last'])
+            if not risk_metrics['is_safe']:
+                for w in risk_metrics['warnings']:
+                    logger.error(w)
+                print("❌ Trade blocked due to risk limits")
+                return
+            
+            # b) Check market conditions
+            market_cond = check_market_conditions(exchange, symbol, config)
+            if not market_cond['is_favorable']:
+                for w in market_cond['warnings']:
+                    logger.warning(w)
+                if input("Market conditions not ideal. Continue anyway? (yes/no): ").strip().lower() != 'yes':
+                    return
+            
+            # c) Confirm trade
+            if not confirm_trade(side, amount, price, symbol, config.get('dry_run', True)):
+                logger.info("Trade cancelled by user")
+                return
+                
             start_order_execution = True
         else:
             logger.warning("Could not generate valid order parameters.")

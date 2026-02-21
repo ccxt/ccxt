@@ -6,6 +6,9 @@
   "trade_amount_usd": 50,
   "order_type": "limit",
   "price_offset_percent": 0.1,
+  "max_position_percent": 5.0, // Maximum % of portfolio for single trade
+  "max_spread_percent": 0.5, // Maximum acceptable bid-ask spread %
+  "min_24h_volume_usd": 1000000, // Minimum 24h trading volume in USD
   "max_wait_seconds": 60,
   "rate_limit_cooldown_seconds": 60,
   "dry_run": true,
