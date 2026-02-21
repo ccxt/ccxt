@@ -245,7 +245,7 @@
             {
                 "description": "Swap orders",
                 "method": "fetchOrders",
-                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT",
+                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -253,7 +253,7 @@
             {
                 "description": "Swap orders with until",
                 "method": "fetchOrders",
-                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1704067200000&end_time=1709251200000&page_size=10",
+                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1704067200000&end_time=1709251200000&page_size=10",
                 "input": [
                     "LTC/USDT:USDT",
                     1704067200000,
@@ -266,7 +266,7 @@
             {
                 "description": "Swap orders with until only",
                 "method": "fetchOrders",
-                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1701475200001&end_time=1709251200000&page_size=10",
+                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?symbol=LTC_USDT&start_time=1701475200001&end_time=1709251200000&page_size=10",
                 "input": [
                     "LTC/USDT:USDT",
                     null,
@@ -290,7 +290,7 @@
             {
                 "description": "Swap order",
                 "method": "fetchOrder",
-                "url": "https://contract.mexc.com/api/v1/private/order/get/129402018493145088?symbol=LTC_USDT",
+                "url": "https://api.mexc.com/api/v1/private/order/get/129402018493145088?symbol=LTC_USDT",
                 "input": [
                     "129402018493145088",
                     "LTC/USDT:USDT"
@@ -324,7 +324,7 @@
             {
                 "description": "Swap private trades",
                 "method": "fetchMyTrades",
-                "url": "https://contract.mexc.com/api/v1/private/order/list/order_deals?end_time=1707233637999&page_size=5&start_time=1699457638000&symbol=LTC_USDT",
+                "url": "https://api.mexc.com/api/v1/private/order/list/order_deals?end_time=1707233637999&page_size=5&start_time=1699457638000&symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT",
                     1699457638000,
@@ -351,7 +351,7 @@
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?states=2&symbol=LTC_USDT",
+                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?states=2&symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -361,7 +361,7 @@
             {
                 "description": "Swap closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://contract.mexc.com/api/v1/private/order/list/history_orders?states=3&symbol=LTC_USDT",
+                "url": "https://api.mexc.com/api/v1/private/order/list/history_orders?states=3&symbol=LTC_USDT",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -371,7 +371,7 @@
             {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",
-                "url": "https://contract.mexc.com/api/v1/private/order/cancel_all",
+                "url": "https://api.mexc.com/api/v1/private/order/cancel_all",
                 "input": [
                     "LTC/USDT:USDT"
                 ],
@@ -400,7 +400,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://contract.mexc.com/api/v1/private/account/assets",
+                "url": "https://api.mexc.com/api/v1/private/account/assets",
                 "input": [
                     {
                         "type": "swap"
@@ -410,7 +410,7 @@
             {
                 "description": "Fetch margin Balance",
                 "method": "fetchBalance",
-                "url": "https://contract.mexc.com/api/v3/margin/isolated/account?symbols=LTCUSDT&timestamp=1702286807873&recvWindow=5000&signature=2b21c126e2146b3f9edbde3fde5a8a60a8c192af9087b4d5eb8997bdc7bbbe5f",
+                "url": "https://api.mexc.com/api/v3/margin/isolated/account?symbols=LTCUSDT&timestamp=1702286807873&recvWindow=5000&signature=2b21c126e2146b3f9edbde3fde5a8a60a8c192af9087b4d5eb8997bdc7bbbe5f",
                 "input": [
                     {
                         "type": "margin",
@@ -423,7 +423,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://contract.mexc.com/api/v1/private/position/open_positions",
+                "url": "https://api.mexc.com/api/v1/private/position/open_positions",
                 "input": [
                     [
                         "LTC/USDT:USDT"
@@ -451,7 +451,7 @@
             {
                 "description": "set linear position mode to dual side",
                 "method": "setPositionMode",
-                "url": "https://contract.mexc.com/api/v1/private/position/change_position_mode",
+                "url": "https://api.mexc.com/api/v1/private/position/change_position_mode",
                 "input": [
                     true,
                     "LTC/USDT:USDT"
@@ -566,7 +566,7 @@
             {
                 "description": "swap fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://contract.mexc.com/api/v1/contract/deals/BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/contract/deals/BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -576,7 +576,7 @@
             {
                 "description": "fetchOHLCV with until param for swap",
                 "method": "fetchOHLCV",
-                "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764810000",
+                "url": "https://api.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764810000",
                 "input": [
                     "ETH/USDT:USDT",
                     "1m",
@@ -591,7 +591,7 @@
             {
                 "description": "fetchOHLCV with limit and until param for swap",
                 "method": "fetchOHLCV",
-                "url": "https://contract.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764929820",
+                "url": "https://api.mexc.com/api/v1/contract/kline/ETH_USDT?interval=Min1&end=1764930000&start=1764929820",
                 "input": [
                     "ETH/USDT:USDT",
                     "1m",
@@ -690,7 +690,7 @@
             {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://contract.mexc.com/api/v1/contract/kline/BTC_USDT?interval=Min1",
+                "url": "https://api.mexc.com/api/v1/contract/kline/BTC_USDT?interval=Min1",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -721,7 +721,7 @@
             {
                 "description": "Swap fetch leverage",
                 "method": "fetchLeverage",
-                "url": "https://contract.mexc.com/api/v1/private/position/leverage?symbol=BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/private/position/leverage?symbol=BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -747,7 +747,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://contract.mexc.com/api/v1/contract/depth/BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/contract/depth/BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -757,7 +757,7 @@
             {
                 "description": "Swap ticker",
                 "method": "fetchTicker",
-                "url": "https://contract.mexc.com/api/v1/contract/ticker?symbol=BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/contract/ticker?symbol=BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -786,7 +786,7 @@
             {
                 "description": "swap tickers",
                 "method": "fetchTickers",
-                "url": "https://contract.mexc.com/api/v1/contract/ticker",
+                "url": "https://api.mexc.com/api/v1/contract/ticker",
                 "input": [
                     [
                         "BTC/USDT:USDT",
@@ -812,7 +812,7 @@
             {
                 "description": "fundingRateHistory",
                 "method": "fetchFundingRateHistory",
-                "url": "https://contract.mexc.com/api/v1/contract/funding_rate/history?symbol=BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/contract/funding_rate/history?symbol=BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -822,7 +822,7 @@
             {
                 "description": "fundingRate",
                 "method": "fetchFundingRate",
-                "url": "https://contract.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -832,13 +832,13 @@
             {
                 "description": "with no arguments",
                 "method": "fetchPositionsHistory",
-                "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions",
+                "url": "https://api.mexc.com/api/v1/private/position/list/history_positions",
                 "input": []
             },
             {
                 "description": "with symbol and limit argument",
                 "method": "fetchPositionsHistory",
-                "url": "https://contract.mexc.com/api/v1/private/position/list/history_positions?page_size=5&symbol=SOL_USDT",
+                "url": "https://api.mexc.com/api/v1/private/position/list/history_positions?page_size=5&symbol=SOL_USDT",
                 "input": [
                     [
                         "SOL/USDT:USDT"
@@ -884,7 +884,7 @@
             {
                 "description": "Set isolated leverage",
                 "method": "setMarginMode",
-                "url": "https://contract.mexc.com/api/v1/private/position/change_leverage",
+                "url": "https://api.mexc.com/api/v1/private/position/change_leverage",
                 "input": [
                   "isolated",
                   "ADA/USDT:USDT",
@@ -898,7 +898,7 @@
             {
                 "description": "Set cross leverage",
                 "method": "setMarginMode",
-                "url": "https://contract.mexc.com/api/v1/private/position/change_leverage",
+                "url": "https://api.mexc.com/api/v1/private/position/change_leverage",
                 "input": [
                   "cross",
                   "ADA/USDT:USDT",
@@ -914,7 +914,7 @@
             {
                 "description": "linear swap fetch the funding interval",
                 "method": "fetchFundingInterval",
-                "url": "https://contract.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
+                "url": "https://api.mexc.com/api/v1/contract/funding_rate/BTC_USDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]

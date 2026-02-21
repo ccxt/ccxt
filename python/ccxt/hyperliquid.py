@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.decimal_to_precision import ROUND
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES
 from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS
@@ -221,6 +222,9 @@ class hyperliquid(Exchange, ImplicitAPI):
                     'Insufficient spot balance asset': InsufficientFunds,
                     'Insufficient balance for withdrawal': InsufficientFunds,
                     'Insufficient balance for token transfer': InsufficientFunds,
+                    'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
+                    'TWAP was never placed, already canceled, or filled.': OrderNotFound,
+                    'Too many cumulative requests sent': RateLimitExceeded,  # {"status":"err","response":"Too many cumulative requests sent(37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1360,6 +1364,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             'datetime': None,
             'previousClose': self.safe_number(ticker, 'prevDayPx'),
             'close': self.safe_number(ticker, 'midPx'),
+            'last': self.safe_number(ticker, 'price'),
             'bid': self.safe_number(bidAsk, 0),
             'ask': self.safe_number(bidAsk, 1),
             'quoteVolume': self.safe_number(ticker, 'dayNtlVlm'),
@@ -1657,6 +1662,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         return self.sign_user_signed_action(messageTypes, message)
 
+    def build_user_abstraction_sig(self, message):
+        messageTypes: dict = {
+            'HyperliquidTransaction:UserSetAbstraction': [
+                {'name': 'hyperliquidChain', 'type': 'string'},
+                {'name': 'user', 'type': 'address'},
+                {'name': 'abstraction', 'type': 'string'},
+                {'name': 'nonce', 'type': 'uint64'},
+            ],
+        }
+        return self.sign_user_signed_action(messageTypes, message)
+
     def build_approve_builder_fee_sig(self, message):
         messageTypes: dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
@@ -1748,25 +1764,37 @@ class hyperliquid(Exchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
 
-    def enable_user_dex_abstraction(self, enabled: bool, params={}):
+    def set_user_abstraction(self, abstraction: str, params={}):
+        """
+        set user abstraction mode
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+
+        :param str abstraction: one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+        :param dict [params]:
+        :param str [params.type]: 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+        :returns: dictionary response from the exchange
+        """
         userAddress = None
-        userAddress, params = self.handle_public_address('enableUserDexAbstraction', params)
+        userAddress, params = self.handle_public_address('setUserAbstraction', params)
         nonce = self.milliseconds()
         isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        type = self.safe_string(params, 'type', 'userSetAbstraction')
+        params = self.omit(params, 'type')
         payload: dict = {
             'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
             'user': userAddress,
-            'enabled': enabled,
+            'abstraction': abstraction,
             'nonce': nonce,
         }
-        sig = self.build_user_dex_abstraction_sig(payload)
+        sig = self.build_user_abstraction_sig(payload)
         action = {
             'hyperliquidChain': payload['hyperliquidChain'],
             'signatureChainId': '0x66eee',
-            'enabled': payload['enabled'],
+            'abstraction': payload['abstraction'],
             'user': payload['user'],
             'nonce': nonce,
-            'type': 'userDexAbstraction',
+            'type': type,
         }
         request: dict = {
             'action': action,
@@ -1783,6 +1811,72 @@ class hyperliquid(Exchange, ImplicitAPI):
         # }
         #
         return self.privatePostExchange(request)
+
+    def enable_user_dex_abstraction(self, enabled: bool, params={}):
+        """
+        If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+ @param enabled
+ @param params
+        :param str [params.type]: 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+        :returns: dictionary response from the exchange
+        """
+        userAddress = None
+        userAddress, params = self.handle_public_address('enableUserDexAbstraction', params)
+        nonce = self.milliseconds()
+        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        type = self.safe_string(params, 'type', 'userDexAbstraction')
+        params = self.omit(params, 'type')
+        payload: dict = {
+            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+            'user': userAddress,
+            'enabled': enabled,
+            'nonce': nonce,
+        }
+        sig = self.build_user_dex_abstraction_sig(payload)
+        action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'enabled': payload['enabled'],
+            'user': payload['user'],
+            'nonce': nonce,
+            'type': type,
+        }
+        request: dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': None,
+        }
+        #
+        # {
+        #     "status": "ok",
+        #     "response": {
+        #         "type": "default"
+        #     }
+        # }
+        #
+        return self.privatePostExchange(request)
+
+    def set_agent_abstraction(self, abstraction: str, params={}):
+        """
+        set agent abstraction mode
+        :param str abstraction: one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+        :param dict [params]:
+        :returns: dictionary response from the exchange
+        """
+        nonce = self.milliseconds()
+        request: dict = {
+            'nonce': nonce,
+        }
+        action: dict = {
+            'type': 'agentSetAbstraction',
+            'abstraction': abstraction,
+        }
+        signature = self.sign_l1_action(action, nonce)
+        request['action'] = action
+        request['signature'] = signature
+        response = self.privatePostExchange(self.extend(request, params))
+        return response
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -1810,6 +1904,78 @@ class hyperliquid(Exchange, ImplicitAPI):
         order, globalParams = self.parse_create_edit_order_args(None, symbol, type, side, amount, price, params)
         orders = self.create_orders([order], globalParams)
         return orders[0]
+
+    def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
+        """
+        create a trade order that is executed TWAP order over a specified duration.
+        :param str symbol: unified symbol of the market to create an order in
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param int duration: the duration of the TWAP order in milliseconds
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param bool [params.randomize]: whether to randomize the time intervals of the TWAP order slices(default is False, meaning equal intervals)
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param int [params.expiresAfter]: time in ms after which the twap order expires
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        self.load_markets()
+        self.initialize_client()
+        market = self.market(symbol)
+        nonce = self.milliseconds()
+        isBuy = (side == 'BUY')
+        vaultAddress = None
+        randomize = self.safe_bool(params, 'randomize', False)
+        params = self.omit(params, 'randomize')
+        vaultAddress, params = self.handle_option_and_params(params, 'createOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
+        durationMins = int(math.floor(duration / 1000 / 60))  # convert from ms to minutes
+        orderObj: dict = {
+            'a': self.parse_to_int(market['baseId']),
+            'b': isBuy,
+            's': self.amount_to_precision(symbol, amount),
+            'r': self.safe_bool(params, 'reduceOnly', False),
+            'm': durationMins,
+            't': randomize,
+        }
+        orderAction: dict = {
+            'type': 'twapOrder',
+            'twap': orderObj,
+        }
+        signature = self.sign_l1_action(orderAction, nonce, vaultAddress)
+        request: dict = {
+            'action': orderAction,
+            'nonce': nonce,
+            'signature': signature,
+            # 'vaultAddress': vaultAddress,
+        }
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
+        expiresAfter = self.safe_integer(params, 'expiresAfter')
+        if expiresAfter is not None:
+            request['expiresAfter'] = expiresAfter
+            params = self.omit(params, 'expiresAfter')
+        response = self.privatePostExchange(request)
+        # {
+        #     "status":"ok",
+        #     "response":{
+        #         "type":"twapOrder",
+        #         "data":{
+        #             "status": {
+        #                 "running":{
+        #                 "twapId":77738308
+        #                 }
+        #             }
+        #         }
+        #     }
+        # }
+        responseObj = self.safe_dict(response, 'response', {})
+        data = self.safe_dict(responseObj, 'data', {})
+        status = self.safe_dict(data, 'status', {})
+        running = self.safe_dict(status, 'running', {})
+        orderId = self.safe_string(running, 'twapId')
+        return self.parse_order({'status': 'running', 'oid': orderId}, market)
 
     def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -2023,8 +2189,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
         :param str [params.vaultAddress]: the vault address for order
         :param str [params.subAccountAddress]: sub account user address
+        :param boolean [params.twap]: whether the order to cancel is a twap order,(default is False)
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
+        if self.safe_bool(params, 'twap', False):
+            params = self.omit(params, 'twap')
+            return self.cancel_twap_order(id, symbol, params)
         orders = self.cancel_orders([id], symbol, params)
         return self.safe_dict(orders, 0)
 
@@ -2074,6 +2244,63 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'status': status,
             }))
         return orders
+
+    def cancel_twap_order(self, id: str, symbol: Str = None, params={}):
+        """
+        cancels a running twap order
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.expiresAfter]: time in ms after which the twap order expires
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelTwapOrder() requires a symbol argument')
+        market = self.market(symbol)
+        vaultAddress = None
+        vaultAddress, params = self.handle_option_and_params(params, 'cancelTwapOrder', 'vaultAddress')
+        vaultAddress = self.format_vault_address(vaultAddress)
+        action: dict = {
+            'type': 'twapCancel',
+            'a': self.parse_to_int(market['baseId']),
+            't': self.parse_to_numeric(id),
+        }
+        nonce = self.milliseconds()
+        signature = self.sign_l1_action(action, nonce, vaultAddress)
+        request: dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+            # 'vaultAddress': vaultAddress,
+        }
+        if vaultAddress is not None:
+            params = self.omit(params, 'vaultAddress')
+            request['vaultAddress'] = vaultAddress
+        expiresAfter = self.safe_integer(params, 'expiresAfter')
+        if expiresAfter is not None:
+            request['expiresAfter'] = expiresAfter
+            params = self.omit(params, 'expiresAfter')
+        response = self.privatePostExchange(request)
+        #
+        #  {
+        #     "status":"ok",
+        #     "response":{
+        #        "type":"twapCancel",
+        #        "data":{
+        #           "status": "success"
+        #        }
+        #     }
+        #  }
+        #
+        responseObj = self.safe_dict(response, 'response', {})
+        data = self.safe_dict(responseObj, 'data', {})
+        status = self.safe_string(data, 'status')
+        return self.parse_order({'status': status, 'oid': id}, market)
 
     def cancel_orders_request(self, ids: List[str], symbol: Str = None, params={}) -> dict:
         """
@@ -2660,17 +2887,40 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "coin": "ETH",
-        #             "limitPx": "2000.0",
-        #             "oid": 3991946565,
-        #             "origSz": "0.1",
-        #             "side": "B",
-        #             "sz": "0.1",
-        #             "timestamp": 1704346468838
+        #             "order": {
+        #                 "coin": "ETH",
+        #                 "limitPx": "2000.0",
+        #                 "oid": 3991946565,
+        #                 "origSz": "0.1",
+        #                 "side": "B",
+        #                 "sz": "0.1",
+        #                 "timestamp": 1704346468838
+        #             },
+        #             "status": "open",
+        #             "statusTimestamp": 1704346468838
         #         }
         #     ]
         #
-        return self.parse_orders(response, market, since, limit)
+        # Hyperliquid returns the full status history for each order,
+        # so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        # Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        deduplicatedByOid: dict = {}
+        for i in range(0, len(response)):
+            rawOrder = response[i]
+            entry = self.safe_dict(rawOrder, 'order')
+            if entry is None:
+                entry = rawOrder
+            oid = self.safe_string(entry, 'oid')
+            if oid is not None:
+                if not (oid in deduplicatedByOid):
+                    deduplicatedByOid[oid] = rawOrder
+                else:
+                    existingTimestamp = self.safe_integer(deduplicatedByOid[oid], 'statusTimestamp')
+                    currentTimestamp = self.safe_integer(rawOrder, 'statusTimestamp')
+                    if currentTimestamp is not None and (existingTimestamp is None or currentTimestamp > existingTimestamp):
+                        deduplicatedByOid[oid] = rawOrder
+        deduplicated = list(deduplicatedByOid.values())
+        return self.parse_orders(deduplicated, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -3004,6 +3254,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         crossed = self.safe_bool(trade, 'crossed')
         if crossed is not None:
             takerOrMaker = 'taker' if crossed else 'maker'
+        builderFee = self.safe_string(trade, 'builderFee')
+        if builderFee is not None:
+            fee = Precise.string_add(fee, builderFee)
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -4187,6 +4440,11 @@ class hyperliquid(Exchange, ImplicitAPI):
                 message = self.safe_string(statuses[i], 'error')
                 if message is not None:
                     break
+            if 'status' in data:
+                errorStatus = self.safe_dict(data, 'status', {})
+                errorMsg = self.safe_string(errorStatus, 'error')
+                if errorStatus is not None:
+                    message = errorMsg
         feedback = self.id + ' ' + body
         nonEmptyMessage = ((message is not None) and (message != ''))
         if nonEmptyMessage:

@@ -105,7 +105,6 @@ var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
-var probit = require('./src/probit.js');
 var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var toobit = require('./src/toobit.js');
@@ -190,7 +189,6 @@ var p2b$1 = require('./src/pro/p2b.js');
 var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
-var probit$1 = require('./src/pro/probit.js');
 var toobit$1 = require('./src/pro/toobit.js');
 var upbit$1 = require('./src/pro/upbit.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
@@ -200,7 +198,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.34';
+const version = '4.5.39';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alp': alp["default"],
@@ -300,7 +298,6 @@ const exchanges = {
     'paymium': paymium["default"],
     'phemex': phemex["default"],
     'poloniex': poloniex["default"],
-    'probit': probit["default"],
     'timex': timex["default"],
     'tokocrypto': tokocrypto["default"],
     'toobit': toobit["default"],
@@ -387,7 +384,6 @@ const pro = {
     'paradex': paradex$1["default"],
     'phemex': phemex$1["default"],
     'poloniex': poloniex$1["default"],
-    'probit': probit$1["default"],
     'toobit': toobit$1["default"],
     'upbit': upbit$1["default"],
     'whitebit': whitebit$1["default"],
@@ -543,7 +539,6 @@ exports.paradex = paradex["default"];
 exports.paymium = paymium["default"];
 exports.phemex = phemex["default"];
 exports.poloniex = poloniex["default"];
-exports.probit = probit["default"];
 exports.timex = timex["default"];
 exports.tokocrypto = tokocrypto["default"];
 exports.toobit = toobit["default"];

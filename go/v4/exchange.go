@@ -91,6 +91,8 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_response_headers    interface{}
+	LastResponseHeaders      interface{}
 	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
@@ -162,12 +164,12 @@ type Exchange struct {
 	Orders         interface{} // *ArrayCache  // cache object, not a map
 	MyTrades       interface{} // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   *sync.Map
+	Liquidations   interface{} // *ArrayCacheBySymbolBySide
 	FundingRates   interface{}
 	Bidsasks       *sync.Map
 	TriggerOrders  interface{} // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations *sync.Map
+	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
 
@@ -267,15 +269,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-	userOptions := this.SafeDict(userConfig, "options")
-	if userOptions == nil {
-		userOptions = map[string]interface{}{}
-	}
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
-		this.SetSandboxMode(true)
-	}
-
-	// fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {

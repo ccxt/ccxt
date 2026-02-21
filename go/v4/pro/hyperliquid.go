@@ -440,6 +440,7 @@ func  (this *HyperliquidCore) HandleOrderBook(client interface{}, message interf
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *HyperliquidCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
@@ -475,6 +476,7 @@ func  (this *HyperliquidCore) WatchTicker(symbol interface{}, optionalArgs ...in
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -488,15 +490,19 @@ func  (this *HyperliquidCore) WatchTickers(optionalArgs ...interface{}) <- chan 
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3488 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3488)
+            retRes3508 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3508)
             symbols = this.MarketSymbols(symbols, nil, true)
             var messageHash interface{} = "tickers"
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+            var channel interface{} = "webData2"
+            channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", channel)
+            channel = ccxt.GetValue(channelparamsVariable,0)
+            params = ccxt.GetValue(channelparamsVariable,1)
             var request interface{} = map[string]interface{} {
                 "method": "subscribe",
                 "subscription": map[string]interface{} {
-                    "type": "webData2",
+                    "type": channel,
                     "user": "0x0000000000000000000000000000000000000000",
                 },
             }
@@ -537,6 +543,7 @@ func  (this *HyperliquidCore) WatchTickers(optionalArgs ...interface{}) <- chan 
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *HyperliquidCore) UnWatchTickers(optionalArgs ...interface{}) <- chan interface{} {
@@ -549,23 +556,27 @@ func  (this *HyperliquidCore) UnWatchTickers(optionalArgs ...interface{}) <- cha
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes3918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3918)
+            retRes3968 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3968)
             symbols = this.MarketSymbols(symbols, nil, true)
             var subMessageHash interface{} = "tickers"
+            var channel interface{} = "webData2"
+            channelparamsVariable := this.HandleOptionAndParams(params, "unWatchTickers", "channel", channel)
+            channel = ccxt.GetValue(channelparamsVariable,0)
+            params = ccxt.GetValue(channelparamsVariable,1)
             var messageHash interface{} = ccxt.Add("unsubscribe:", subMessageHash)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
             var request interface{} = map[string]interface{} {
                 "method": "unsubscribe",
                 "subscription": map[string]interface{} {
-                    "type": "webData2",
+                    "type": channel,
                     "user": "0x0000000000000000000000000000000000000000",
                 },
             }
         
-                retRes40315 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-                ccxt.PanicOnError(retRes40315)
-                ch <- retRes40315
+                retRes41015 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+                ccxt.PanicOnError(retRes41015)
+                ch <- retRes41015
                 return nil
         
             }()
@@ -601,8 +612,8 @@ func  (this *HyperliquidCore) WatchMyTrades(optionalArgs ...interface{}) <- chan
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
             params = ccxt.GetValue(userAddressparamsVariable,1)
         
-            retRes4218 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4218)
+            retRes4288 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4288)
             var messageHash interface{} = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
@@ -650,8 +661,8 @@ func  (this *HyperliquidCore) UnWatchMyTrades(optionalArgs ...interface{}) <- ch
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes4548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4548)
+            retRes4618 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes4618)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")))
             }
@@ -670,9 +681,9 @@ func  (this *HyperliquidCore) UnWatchMyTrades(optionalArgs ...interface{}) <- ch
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes47015 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes47015)
-                ch <- retRes47015
+                retRes47715 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes47715)
+                ch <- retRes47715
                 return nil
         
             }()
@@ -755,7 +766,11 @@ func  (this *HyperliquidCore) HandleWsTickers(client interface{}, message interf
                 }, market)
                 ccxt.AddElementToObject(this.Tickers, symbol, ticker)
             }
-            var messageHash interface{} = ccxt.Add("tickers:", this.SafeString(data, "dex"))
+            var messageHash interface{} = "tickers"
+            var dexMessage interface{} = this.SafeString(data, "dex")
+            if ccxt.IsTrue(!ccxt.IsEqual(dexMessage, nil)) {
+                messageHash = ccxt.Add(messageHash, ccxt.Add(":", dexMessage))
+            }
             client.(ccxt.ClientInterface).Resolve(this.Tickers, messageHash)
             return true
         }
@@ -877,8 +892,8 @@ func  (this *HyperliquidCore) WatchTrades(symbol interface{}, optionalArgs ...in
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes6658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6658)
+            retRes6768 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6768)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash interface{} = ccxt.Add("trade:", symbol)
@@ -921,8 +936,8 @@ func  (this *HyperliquidCore) UnWatchTrades(symbol interface{}, optionalArgs ...
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6958 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6958)
+            retRes7068 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7068)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var subMessageHash interface{} = ccxt.Add("trade:", symbol)
@@ -937,9 +952,9 @@ func  (this *HyperliquidCore) UnWatchTrades(symbol interface{}, optionalArgs ...
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes70915 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes70915)
-                ch <- retRes70915
+                retRes72015 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes72015)
+                ch <- retRes72015
                 return nil
         
             }()
@@ -1076,8 +1091,8 @@ func  (this *HyperliquidCore) WatchOHLCV(symbol interface{}, optionalArgs ...int
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes8278 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8278)
+            retRes8388 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8388)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -1124,8 +1139,8 @@ func  (this *HyperliquidCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...i
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes8598 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8598)
+            retRes8708 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8708)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -1141,9 +1156,9 @@ func  (this *HyperliquidCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...i
             var messagehash interface{} = ccxt.Add("unsubscribe:", subMessageHash)
             var message interface{} = this.Extend(request, params)
         
-                retRes87415 :=  (<-this.Watch(url, messagehash, message, messagehash))
-                ccxt.PanicOnError(retRes87415)
-                ch <- retRes87415
+                retRes88515 :=  (<-this.Watch(url, messagehash, message, messagehash))
+                ccxt.PanicOnError(retRes88515)
+                ch <- retRes88515
                 return nil
         
             }()
@@ -1228,8 +1243,8 @@ func  (this *HyperliquidCore) WatchOrders(optionalArgs ...interface{}) <- chan i
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9458 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9458)
+            retRes9568 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9568)
             var userAddress interface{} = nil
             userAddressparamsVariable := this.HandlePublicAddress("watchOrders", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
@@ -1283,8 +1298,8 @@ func  (this *HyperliquidCore) UnWatchOrders(optionalArgs ...interface{}) <- chan
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9828)
+            retRes9938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9938)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")))
             }
@@ -1303,9 +1318,9 @@ func  (this *HyperliquidCore) UnWatchOrders(optionalArgs ...interface{}) <- chan
             }
             var message interface{} = this.Extend(request, params)
         
-                retRes99815 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes99815)
-                ch <- retRes99815
+                retRes100915 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes100915)
+                ch <- retRes100915
                 return nil
         
             }()

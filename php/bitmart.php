@@ -1181,8 +1181,9 @@ class bitmart extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $spot = $this->fetch_spot_markets($params);
-        $contract = $this->fetch_contract_markets($params);
+        $spotPromise = $this->fetch_spot_markets($params);
+        $contractPromise = $this->fetch_contract_markets($params);
+        list($spot, $contract) = array( $spotPromise, $contractPromise );
         return $this->array_concat($spot, $contract);
     }
 

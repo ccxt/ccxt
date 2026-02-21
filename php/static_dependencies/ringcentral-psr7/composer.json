@@ -16,7 +16,7 @@
         "psr/http-message": "~1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.0"
+        "phpunit/phpunit": "^8.5.52"
     },
     "provide": {
         "psr/http-message-implementation": "1.0"

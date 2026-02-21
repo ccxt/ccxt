@@ -366,7 +366,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1,
+                        'v5/account/transaction-log': 1.66,  # 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
@@ -562,6 +562,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
+                        'v5/account/set-limit-px-action': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -2823,7 +2824,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, 200)
         if limit is None:
             limit = 200
         request: dict = {
@@ -2834,6 +2835,7 @@ class bybit(Exchange, ImplicitAPI):
             'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
+        fundingTimeFrameMins = self.safe_integer(market['info'], 'fundingInterval')
         symbol = market['symbol']
         request['symbol'] = market['id']
         type = None
@@ -2852,7 +2854,9 @@ class bybit(Exchange, ImplicitAPI):
             if since is not None:
                 # end time is required when since is not empty
                 fundingInterval = 60 * 60 * 8 * 1000
-                request['endTime'] = since + limit * fundingInterval
+                if fundingTimeFrameMins is not None:
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000
+                request['endTime'] = self.sum(since, limit * fundingInterval)
         response = await self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {
@@ -4010,10 +4014,13 @@ class bybit(Exchange, ImplicitAPI):
                             tpslModeTp = 'Partial'
                         else:
                             tpslModeTp = 'Full'
-                if tpslModeSl != tpslModeTp:
+                if isTakeProfitOrder and isStopLossOrder and tpslModeSl != tpslModeTp:
                     raise InvalidOrder(self.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination')
-                request['tpslMode'] = tpslModeSl  # same
-                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice'])
+                if tpslModeSl is not None:
+                    request['tpslMode'] = tpslModeSl
+                else:
+                    request['tpslMode'] = tpslModeTp
+                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint'])
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
@@ -6483,7 +6490,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'notional': self.parse_number(notional),
             'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'realizedPnl': self.safe_number(position, 'closedPnl'),
+            'realizedPnl': self.safe_number_2(position, 'curRealisedPnl', 'closedPnl'),
             'contracts': self.parse_number(size),  # in USD for inverse swaps
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': self.parse_number(marginRatio),

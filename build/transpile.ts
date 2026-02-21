@@ -127,6 +127,7 @@ class Transpiler {
             [ /\.safeList2/g, '.safe_list_2'],
             [ /\.safeIntegerProduct2/g, '.safe_integer_product_2'],
             [ /\.safeNumberOmitZero/g, '.safe_number_omit_zero'],
+            [ /\.exceptionMessage/g, '.exception_message'],
             [ /\.fetchOHLCVS/g, '.fetch_ohlcvs'],
             [ /\.fetchOHLCVWs/g, '.fetch_ohlcvws'],
             [ /\.parseOHLCVS/g, '.parse_ohlcvs'],
@@ -2173,7 +2174,7 @@ class Transpiler {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
             const test: any = {

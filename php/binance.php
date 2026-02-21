@@ -532,6 +532,10 @@ class binance extends Exchange {
                         'dci/product/list' => 0.1,
                         'dci/product/positions' => 0.1,
                         'dci/product/accounts' => 0.1,
+                        // Discount Buy
+                        'accumulator/product/list' => 0.1,
+                        'accumulator/product/position/list' => 0.1,
+                        'accumulator/product/sum-holding' => 0.1,
                     ),
                     'post' => array(
                         'asset/dust' => 0.06667, // Weight(UID) => 10 => cost = 0.006667 * 10 = 0.06667
@@ -573,6 +577,7 @@ class binance extends Exchange {
                         'managed-subaccount/withdraw' => 0.1,
                         'userDataStream' => 0.1,
                         'userDataStream/isolated' => 0.1,
+                        'userListenToken' => 0.1,
                         'futures/transfer' => 0.1,
                         // lending
                         'lending/customizedFixed/purchase' => 0.1,
@@ -669,6 +674,8 @@ class binance extends Exchange {
                         // convert
                         'dci/product/subscribe' => 0.1,
                         'dci/product/auto_compound/edit' => 0.1,
+                        // discount buy
+                        'accumulator/product/subscribe' => 0.1,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -4673,7 +4680,7 @@ class binance extends Exchange {
         // binance docs say that the default $limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 $candles won't work right
         $defaultLimit = 500;
-        $maxLimit = 1500;
+        $maxLimit = 1000;
         $price = $this->safe_string($params, 'price');
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'price', 'until' ));
@@ -11995,7 +12002,7 @@ class binance extends Exchange {
                 throw new AuthenticationError($this->id . ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
+        $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey') || ($path === 'userListenToken');
         if ($userDataStream) {
             if ($this->apiKey) {
                 // v1 special case for $userDataStream

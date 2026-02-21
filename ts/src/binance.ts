@@ -540,6 +540,10 @@ export default class binance extends Exchange {
                         'dci/product/list': 0.1,
                         'dci/product/positions': 0.1,
                         'dci/product/accounts': 0.1,
+                        // Discount Buy
+                        'accumulator/product/list': 0.1,
+                        'accumulator/product/position/list': 0.1,
+                        'accumulator/product/sum-holding': 0.1,
                     },
                     'post': {
                         'asset/dust': 0.06667, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -581,6 +585,7 @@ export default class binance extends Exchange {
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
+                        'userListenToken': 0.1,
                         'futures/transfer': 0.1,
                         // lending
                         'lending/customizedFixed/purchase': 0.1,
@@ -677,6 +682,8 @@ export default class binance extends Exchange {
                         // convert
                         'dci/product/subscribe': 0.1,
                         'dci/product/auto_compound/edit': 0.1,
+                        // discount buy
+                        'accumulator/product/subscribe': 0.1,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -4681,7 +4688,7 @@ export default class binance extends Exchange {
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
         const defaultLimit = 500;
-        const maxLimit = 1500;
+        const maxLimit = 1000;
         const price = this.safeString (params, 'price');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
@@ -12006,7 +12013,7 @@ export default class binance extends Exchange {
                 throw new AuthenticationError (this.id + ' historicalTrades endpoint requires `apiKey` credential');
             }
         }
-        const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
+        const userDataStream = (path === 'userDataStream') || (path === 'listenKey') || (path === 'userListenToken');
         if (userDataStream) {
             if (this.apiKey) {
                 // v1 special case for userDataStream

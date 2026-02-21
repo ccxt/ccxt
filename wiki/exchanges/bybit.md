@@ -2708,7 +2708,7 @@ watch the public liquidations of a trading pair
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation  
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

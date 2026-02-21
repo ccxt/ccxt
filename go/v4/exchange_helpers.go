@@ -760,9 +760,6 @@ func IsEqual(a, b interface{}) bool {
 	if a == nil && b == nil {
 		return true
 	}
-	if a == nil || b == nil {
-		return false
-	}
 
 	if (a == true && b == false) || (a == false && b == true) {
 		return false
@@ -815,6 +812,10 @@ func IsEqual(a, b interface{}) bool {
 		}
 	}
 
+	if a == nil || b == nil {
+		return false
+	}
+
 	// If types don't match or aren't handled, return false
 	return false
 
@@ -861,6 +862,8 @@ func ToFloat64(v interface{}) float64 {
 		if err == nil {
 			return result
 		}
+		// result could be changed
+		result = math.NaN()
 	}
 	return result
 }

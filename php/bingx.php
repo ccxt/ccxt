@@ -1772,10 +1772,10 @@ class bingx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $until = $this->safe_integer_2($params, 'until', 'startTime');
+        $until = $this->safe_integer_2($params, 'until', 'endTime');
         if ($until !== null) {
             $params = $this->omit($params, array( 'until' ));
-            $request['startTime'] = $until;
+            $request['endTime'] = $until;
         }
         $response = $this->swapV2PublicGetQuoteFundingRate ($this->extend($request, $params));
         //

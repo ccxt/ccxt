@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.34';
+const version = '4.5.39';
 
 (Exchange as any).ccxtVersion = version
 
@@ -143,7 +143,6 @@ import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
-import probit from  './src/probit.js'
 import timex from  './src/timex.js'
 import tokocrypto from  './src/tokocrypto.js'
 import toobit from  './src/toobit.js'
@@ -231,7 +230,6 @@ import p2bPro from  './src/pro/p2b.js'
 import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
-import probitPro from  './src/pro/probit.js'
 import toobitPro from  './src/pro/toobit.js'
 import upbitPro from  './src/pro/upbit.js'
 import whitebitPro from  './src/pro/whitebit.js'
@@ -337,7 +335,6 @@ const exchanges = {
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
-    'probit':                 probit,
     'timex':                  timex,
     'tokocrypto':             tokocrypto,
     'toobit':                 toobit,
@@ -425,7 +422,6 @@ const pro = {
     'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
-    'probit':                 probitPro,
     'toobit':                 toobitPro,
     'upbit':                  upbitPro,
     'whitebit':               whitebitPro,
@@ -673,7 +669,6 @@ export {
     paymium,
     phemex,
     poloniex,
-    probit,
     timex,
     tokocrypto,
     toobit,

@@ -758,10 +758,17 @@ class aster(ccxt.async_support.aster):
         #         "ss": 0
         #     }
         #
+        e = self.safe_string(trade, 'e')
+        isPublicTrade = (e == 'trade') or (e == 'aggTrade')
         id = self.safe_string_2(trade, 't', 'a')
         timestamp = self.safe_integer(trade, 'T')
         price = self.safe_string_2(trade, 'L', 'p')
-        amount = self.safe_string_2(trade, 'q', 'l')
+        amount = None
+        if isPublicTrade:
+            amount = self.safe_string(trade, 'q')
+        else:
+            # private trades, amount is in 'l' field, quantity of the last filled trade
+            amount = self.safe_string(trade, 'l')
         cost = self.safe_string(trade, 'Y')
         if cost is None:
             if (price is not None) and (amount is not None):
@@ -1414,22 +1421,24 @@ class aster(ccxt.async_support.aster):
         #     }
         #
         messageHash = 'positions'
+        if self.positions is None:
+            self.positions = ArrayCacheBySymbolBySide()
+        cache = self.positions
+        data = self.safe_dict(message, 'a', {})
+        rawPositions = self.safe_list(data, 'P', [])
+        newPositions = []
+        for i in range(0, len(rawPositions)):
+            rawPosition = rawPositions[i]
+            position = self.parse_ws_position(rawPosition)
+            timestamp = self.safe_integer(message, 'E')
+            position['timestamp'] = timestamp
+            position['datetime'] = self.iso8601(timestamp)
+            newPositions.append(position)
+            cache.append(position)
         messageHashes = self.find_message_hashes(client, messageHash)
         if not self.is_empty(messageHashes):
-            if self.positions is None:
-                self.positions = ArrayCacheBySymbolBySide()
-            cache = self.positions
-            data = self.safe_dict(message, 'a', {})
-            rawPositions = self.safe_list(data, 'P', [])
-            newPositions = []
-            for i in range(0, len(rawPositions)):
-                rawPosition = rawPositions[i]
-                position = self.parse_ws_position(rawPosition)
-                timestamp = self.safe_integer(message, 'E')
-                position['timestamp'] = timestamp
-                position['datetime'] = self.iso8601(timestamp)
-                newPositions.append(position)
-                cache.append(position)
+            for i in range(0, len(newPositions)):
+                position = newPositions[i]
                 symbol = position['symbol']
                 symbolMessageHash = messageHash + '::' + symbol
                 client.resolve(position, symbolMessageHash)
@@ -1615,7 +1624,7 @@ class aster(ccxt.async_support.aster):
             myTrades = self.myTrades
             myTrades.append(trade)
             client.resolve(self.myTrades, messageHash)
-            messageHashSymbol = messageHash + ':' + symbol
+            messageHashSymbol = messageHash + '::' + symbol
             client.resolve(self.myTrades, messageHashSymbol)
 
     def handle_order(self, client: Client, message):
@@ -1694,17 +1703,17 @@ class aster(ccxt.async_support.aster):
         #     }
         #
         messageHash = 'orders'
+        market = self.get_market_from_order(client, message)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        cache = self.orders
+        parsed = self.parse_ws_order(message, market)
+        symbol = market['symbol']
+        cache.append(parsed)
         messageHashes = self.find_message_hashes(client, messageHash)
         if not self.is_empty(messageHashes):
-            market = self.get_market_from_order(client, message)
-            if self.orders is None:
-                limit = self.safe_integer(self.options, 'ordersLimit', 1000)
-                self.orders = ArrayCacheBySymbolById(limit)
-            cache = self.orders
-            parsed = self.parse_ws_order(message, market)
-            symbol = market['symbol']
             symbolMessageHash = messageHash + '::' + symbol
-            cache.append(parsed)
             client.resolve(cache, symbolMessageHash)
             client.resolve(cache, messageHash)
 

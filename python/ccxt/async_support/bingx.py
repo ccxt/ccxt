@@ -1732,10 +1732,10 @@ class bingx(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        until = self.safe_integer_2(params, 'until', 'startTime')
+        until = self.safe_integer_2(params, 'until', 'endTime')
         if until is not None:
             params = self.omit(params, ['until'])
-            request['startTime'] = until
+            request['endTime'] = until
         response = await self.swapV2PublicGetQuoteFundingRate(self.extend(request, params))
         #
         #    {

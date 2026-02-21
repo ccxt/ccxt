@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hyperliquid.js';
-import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NotSupported, InvalidOrder, OrderNotFound, BadRequest, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES, TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
@@ -213,6 +213,9 @@ export default class hyperliquid extends Exchange {
                     'Insufficient spot balance asset': InsufficientFunds,
                     'Insufficient balance for withdrawal': InsufficientFunds,
                     'Insufficient balance for token transfer': InsufficientFunds,
+                    'TWAP order value too small. Min is $1200, which is $10 per minute.': InvalidOrder,
+                    'TWAP was never placed, already canceled, or filled.': OrderNotFound,
+                    'Too many cumulative requests sent': RateLimitExceeded, // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1418,6 +1421,7 @@ export default class hyperliquid extends Exchange {
             'datetime': undefined,
             'previousClose': this.safeNumber (ticker, 'prevDayPx'),
             'close': this.safeNumber (ticker, 'midPx'),
+            'last': this.safeNumber (ticker, 'price'),
             'bid': this.safeNumber (bidAsk, 0),
             'ask': this.safeNumber (bidAsk, 1),
             'quoteVolume': this.safeNumber (ticker, 'dayNtlVlm'),
@@ -1740,6 +1744,18 @@ export default class hyperliquid extends Exchange {
         return this.signUserSignedAction (messageTypes, message);
     }
 
+    buildUserAbstractionSig (message) {
+        const messageTypes: Dict = {
+            'HyperliquidTransaction:UserSetAbstraction': [
+                { 'name': 'hyperliquidChain', 'type': 'string' },
+                { 'name': 'user', 'type': 'address' },
+                { 'name': 'abstraction', 'type': 'string' },
+                { 'name': 'nonce', 'type': 'uint64' },
+            ],
+        };
+        return this.signUserSignedAction (messageTypes, message);
+    }
+
     buildApproveBuilderFeeSig (message) {
         const messageTypes: Dict = {
             'HyperliquidTransaction:ApproveBuilderFee': [
@@ -1842,25 +1858,37 @@ export default class hyperliquid extends Exchange {
         return true;
     }
 
-    async enableUserDexAbstraction (enabled: boolean, params = {}) {
+    /**
+     * @method
+     * @name hyperliquid#setUserAbstraction
+     * @description set user abstraction mode
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-abstraction
+     * @param {string} abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+     * @param {object} [params]
+     * @param {string} [params.type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    async setUserAbstraction (abstraction: string, params = {}) {
         let userAddress = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
+        [ userAddress, params ] = this.handlePublicAddress ('setUserAbstraction', params);
         const nonce = this.milliseconds ();
         const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const type = this.safeString (params, 'type', 'userSetAbstraction');
+        params = this.omit (params, 'type');
         const payload: Dict = {
             'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
             'user': userAddress,
-            'enabled': enabled,
+            'abstraction': abstraction,
             'nonce': nonce,
         };
-        const sig = this.buildUserDexAbstractionSig (payload);
+        const sig = this.buildUserAbstractionSig (payload);
         const action = {
             'hyperliquidChain': payload['hyperliquidChain'],
             'signatureChainId': '0x66eee',
-            'enabled': payload['enabled'],
+            'abstraction': payload['abstraction'],
             'user': payload['user'],
             'nonce': nonce,
-            'type': 'userDexAbstraction',
+            'type': type,
         };
         const request: Dict = {
             'action': action,
@@ -1877,6 +1905,78 @@ export default class hyperliquid extends Exchange {
         // }
         //
         return await this.privatePostExchange (request);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#enableUserDexAbstraction
+     * @description If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+     * @param enabled
+     * @param params
+     * @param {string} [params.type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+     * @returns dictionary response from the exchange
+     */
+    async enableUserDexAbstraction (enabled: boolean, params = {}) {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('enableUserDexAbstraction', params);
+        const nonce = this.milliseconds ();
+        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const type = this.safeString (params, 'type', 'userDexAbstraction');
+        params = this.omit (params, 'type');
+        const payload: Dict = {
+            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+            'user': userAddress,
+            'enabled': enabled,
+            'nonce': nonce,
+        };
+        const sig = this.buildUserDexAbstractionSig (payload);
+        const action = {
+            'hyperliquidChain': payload['hyperliquidChain'],
+            'signatureChainId': '0x66eee',
+            'enabled': payload['enabled'],
+            'user': payload['user'],
+            'nonce': nonce,
+            'type': type,
+        };
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': sig,
+            'vaultAddress': undefined,
+        };
+        //
+        // {
+        //     "status": "ok",
+        //     "response": {
+        //         "type": "default"
+        //     }
+        // }
+        //
+        return await this.privatePostExchange (request);
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#setAgentAbstraction
+     * @description set agent abstraction mode
+     * @param {string} abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+     * @param {object} [params]
+     * @returns dictionary response from the exchange
+     */
+    async setAgentAbstraction (abstraction: string, params = {}) {
+        const nonce = this.milliseconds ();
+        const request: Dict = {
+            'nonce': nonce,
+        };
+        const action: Dict = {
+            'type': 'agentSetAbstraction',
+            'abstraction': abstraction,
+        };
+        const signature = this.signL1Action (action, nonce);
+        request['action'] = action;
+        request['signature'] = signature;
+        const response = await this.privatePostExchange (this.extend (request, params));
+        return response;
     }
 
     /**
@@ -1905,6 +2005,83 @@ export default class hyperliquid extends Exchange {
         const [ order, globalParams ] = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order as any ], globalParams);
         return orders[0];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#createTwapOrder
+     * @description create a trade order that is executed as a TWAP order over a specified duration.
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {int} duration the duration of the TWAP order in milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        await this.initializeClient ();
+        const market = this.market (symbol);
+        const nonce = this.milliseconds ();
+        const isBuy = (side === 'BUY');
+        let vaultAddress = undefined;
+        const randomize = this.safeBool (params, 'randomize', false);
+        params = this.omit (params, 'randomize');
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'createOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
+        const durationMins = Math.floor (duration / 1000 / 60); // convert from ms to minutes
+        const orderObj: Dict = {
+            'a': this.parseToInt (market['baseId']),
+            'b': isBuy,
+            's': this.amountToPrecision (symbol, amount),
+            'r': this.safeBool (params, 'reduceOnly', false),
+            'm': durationMins,
+            't': randomize,
+        };
+        const orderAction: Dict = {
+            'type': 'twapOrder',
+            'twap': orderObj,
+        };
+        const signature = this.signL1Action (orderAction, nonce, vaultAddress);
+        const request: Dict = {
+            'action': orderAction,
+            'nonce': nonce,
+            'signature': signature,
+            // 'vaultAddress': vaultAddress,
+        };
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const expiresAfter = this.safeInteger (params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            request['expiresAfter'] = expiresAfter;
+            params = this.omit (params, 'expiresAfter');
+        }
+        const response = await this.privatePostExchange (request);
+        // {
+        //     "status":"ok",
+        //     "response":{
+        //         "type":"twapOrder",
+        //         "data":{
+        //             "status": {
+        //                 "running":{
+        //                 "twapId":77738308
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        const responseObj = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseObj, 'data', {});
+        const status = this.safeDict (data, 'status', {});
+        const running = this.safeDict (status, 'running', {});
+        const orderId = this.safeString (running, 'twapId');
+        return this.parseOrder ({ 'status': 'running', 'oid': orderId }, market);
     }
 
     /**
@@ -2143,9 +2320,14 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
      * @param {string} [params.vaultAddress] the vault address for order
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        if (this.safeBool (params, 'twap', false)) {
+            params = this.omit (params, 'twap');
+            return await this.cancelTwapOrder (id, symbol, params);
+        }
         const orders = await this.cancelOrders ([ id ], symbol, params);
         return this.safeDict (orders, 0) as Order;
     }
@@ -2198,6 +2380,67 @@ export default class hyperliquid extends Exchange {
             }));
         }
         return orders as Order[];
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#cancelTwapOrder
+     * @description cancels a running twap order
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+     * @param {string} [params.vaultAddress] the vault address for order
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelTwapOrder (id: string, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelTwapOrder() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        let vaultAddress = undefined;
+        [ vaultAddress, params ] = this.handleOptionAndParams (params, 'cancelTwapOrder', 'vaultAddress');
+        vaultAddress = this.formatVaultAddress (vaultAddress);
+        const action: Dict = {
+            'type': 'twapCancel',
+            'a': this.parseToInt (market['baseId']),
+            't': this.parseToNumeric (id),
+        };
+        const nonce = this.milliseconds ();
+        const signature = this.signL1Action (action, nonce, vaultAddress);
+        const request: Dict = {
+            'action': action,
+            'nonce': nonce,
+            'signature': signature,
+            // 'vaultAddress': vaultAddress,
+        };
+        if (vaultAddress !== undefined) {
+            params = this.omit (params, 'vaultAddress');
+            request['vaultAddress'] = vaultAddress;
+        }
+        const expiresAfter = this.safeInteger (params, 'expiresAfter');
+        if (expiresAfter !== undefined) {
+            request['expiresAfter'] = expiresAfter;
+            params = this.omit (params, 'expiresAfter');
+        }
+        const response = await this.privatePostExchange (request);
+        //
+        //  {
+        //     "status":"ok",
+        //     "response":{
+        //        "type":"twapCancel",
+        //        "data":{
+        //           "status": "success"
+        //        }
+        //     }
+        //  }
+        //
+        const responseObj = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseObj, 'data', {});
+        const status = this.safeString (data, 'status');
+        return this.parseOrder ({ 'status': status, 'oid': id }, market);
     }
 
     cancelOrdersRequest (ids: string[], symbol: Str = undefined, params = {}): Dict {
@@ -2848,17 +3091,45 @@ export default class hyperliquid extends Exchange {
         //
         //     [
         //         {
-        //             "coin": "ETH",
-        //             "limitPx": "2000.0",
-        //             "oid": 3991946565,
-        //             "origSz": "0.1",
-        //             "side": "B",
-        //             "sz": "0.1",
-        //             "timestamp": 1704346468838
+        //             "order": {
+        //                 "coin": "ETH",
+        //                 "limitPx": "2000.0",
+        //                 "oid": 3991946565,
+        //                 "origSz": "0.1",
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "timestamp": 1704346468838
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": 1704346468838
         //         }
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        // Hyperliquid returns the full status history for each order,
+        // so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        const deduplicatedByOid: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const rawOrder = response[i];
+            let entry = this.safeDict (rawOrder, 'order');
+            if (entry === undefined) {
+                entry = rawOrder;
+            }
+            const oid = this.safeString (entry, 'oid');
+            if (oid !== undefined) {
+                if (!(oid in deduplicatedByOid)) {
+                    deduplicatedByOid[oid] = rawOrder;
+                } else {
+                    const existingTimestamp = this.safeInteger (deduplicatedByOid[oid], 'statusTimestamp');
+                    const currentTimestamp = this.safeInteger (rawOrder, 'statusTimestamp');
+                    if (currentTimestamp !== undefined && (existingTimestamp === undefined || currentTimestamp > existingTimestamp)) {
+                        deduplicatedByOid[oid] = rawOrder;
+                    }
+                }
+            }
+        }
+        const deduplicated = Object.values (deduplicatedByOid);
+        return this.parseOrders (deduplicated, market, since, limit);
     }
 
     /**
@@ -3208,11 +3479,15 @@ export default class hyperliquid extends Exchange {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
-        const fee = this.safeString (trade, 'fee');
+        let fee = this.safeString (trade, 'fee');
         let takerOrMaker = undefined;
         const crossed = this.safeBool (trade, 'crossed');
         if (crossed !== undefined) {
             takerOrMaker = crossed ? 'taker' : 'maker';
+        }
+        const builderFee = this.safeString (trade, 'builderFee');
+        if (builderFee !== undefined) {
+            fee = Precise.stringAdd (fee, builderFee);
         }
         return this.safeTrade ({
             'info': trade,
@@ -4511,6 +4786,13 @@ export default class hyperliquid extends Exchange {
                 message = this.safeString (statuses[i], 'error');
                 if (message !== undefined) {
                     break;
+                }
+            }
+            if ('status' in data) {
+                const errorStatus = this.safeDict (data, 'status', {});
+                const errorMsg = this.safeString (errorStatus, 'error');
+                if (errorStatus !== undefined) {
+                    message = errorMsg;
                 }
             }
         }

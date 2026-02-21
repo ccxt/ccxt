@@ -1741,6 +1741,7 @@ func (this *KrakenfuturesCore) FetchOrder(id interface{}, optionalArgs ...interf
  * @param {int} [since] Timestamp (ms) of earliest order.
  * @param {int} [limit] How many orders to return.
  * @param {object} [params] Exchange specific parameters
+ * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenfuturesCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
@@ -1757,8 +1758,8 @@ func (this *KrakenfuturesCore) FetchClosedOrders(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes15218 := (<-this.LoadMarkets())
-		PanicOnError(retRes15218)
+		retRes15228 := (<-this.LoadMarkets())
+		PanicOnError(retRes15228)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1770,15 +1771,24 @@ func (this *KrakenfuturesCore) FetchClosedOrders(optionalArgs ...interface{}) <-
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "from", since)
 		}
+		var isTrigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
+		var response interface{} = nil
+		if IsTrue(isTrigger) {
+			params = this.Omit(params, []interface{}{"trigger", "stop"})
 
-		response := (<-this.HistoryGetOrders(this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.HistoryGetTriggers(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.HistoryGetOrders(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 		var allOrders interface{} = this.SafeList(response, "elements", []interface{}{})
 		var closedOrders interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(allOrders)); i++ {
 			var order interface{} = GetValue(allOrders, i)
 			var event interface{} = this.SafeDict(order, "event", map[string]interface{}{})
-			var orderPlaced interface{} = this.SafeDict(event, "OrderPlaced")
+			var orderPlaced interface{} = this.SafeDict2(event, "OrderPlaced", "OrderTriggerActivated")
 			if IsTrue(!IsEqual(orderPlaced, nil)) {
 				var innerOrder interface{} = this.SafeDict(orderPlaced, "order", map[string]interface{}{})
 				var filled interface{} = this.SafeString(innerOrder, "filled")
@@ -1805,6 +1815,7 @@ func (this *KrakenfuturesCore) FetchClosedOrders(optionalArgs ...interface{}) <-
  * @param {int} [since] Timestamp (ms) of earliest order.
  * @param {int} [limit] How many orders to return.
  * @param {object} [params] Exchange specific parameters
+ * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenfuturesCore) FetchCanceledOrders(optionalArgs ...interface{}) <-chan interface{} {
@@ -1821,8 +1832,8 @@ func (this *KrakenfuturesCore) FetchCanceledOrders(optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes15648 := (<-this.LoadMarkets())
-		PanicOnError(retRes15648)
+		retRes15738 := (<-this.LoadMarkets())
+		PanicOnError(retRes15738)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -1834,19 +1845,29 @@ func (this *KrakenfuturesCore) FetchCanceledOrders(optionalArgs ...interface{}) 
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "from", since)
 		}
+		var response interface{} = nil
+		var isTrigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
+		if IsTrue(isTrigger) {
+			params = this.Omit(params, []interface{}{"trigger", "stop"})
 
-		response := (<-this.HistoryGetOrders(this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.HistoryGetTriggers(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.HistoryGetOrders(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 		var allOrders interface{} = this.SafeList(response, "elements", []interface{}{})
 		var canceledAndRejected interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(allOrders)); i++ {
 			var order interface{} = GetValue(allOrders, i)
 			var event interface{} = this.SafeDict(order, "event", map[string]interface{}{})
-			var orderPlaced interface{} = this.SafeDict(event, "OrderPlaced")
+			var isCancelledTriggerOrder interface{} = (InOp(event, "OrderTriggerCancelled"))
+			var orderPlaced interface{} = this.SafeDict2(event, "OrderPlaced", "OrderTriggerCancelled")
 			if IsTrue(!IsEqual(orderPlaced, nil)) {
 				var innerOrder interface{} = this.SafeDict(orderPlaced, "order", map[string]interface{}{})
 				var filled interface{} = this.SafeString(innerOrder, "filled")
-				if IsTrue(IsEqual(filled, "0")) {
+				if IsTrue(IsTrue(IsEqual(filled, "0")) || IsTrue(isCancelledTriggerOrder)) {
 					AddElementToObject(innerOrder, "status", "canceled") // status not available in the response
 					AppendToArray(&canceledAndRejected, innerOrder)
 				}
@@ -1936,6 +1957,12 @@ func (this *KrakenfuturesCore) ParseOrderStatus(status interface{}) interface{} 
 		"notFound":                   "rejected",
 		"untouched":                  "open",
 		"partiallyFilled":            "open",
+		"ENTERED_BOOK":               "open",
+		"FULLY_EXECUTED":             "closed",
+		"CANCELLED":                  "canceled",
+		"TRIGGER_PLACED":             "open",
+		"PARTIALLY_FILLED":           "open",
+		"UNTOUCHED":                  "open",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -2174,8 +2201,74 @@ func (this *KrakenfuturesCore) ParseOrder(order interface{}, optionalArgs ...int
 	//     status: 'closed'
 	//   }
 	//
+	// order: {
+	//     type: 'ORDER',
+	//     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+	//     cliOrdId: null,
+	//     symbol: 'PF_LTCUSD',
+	//     side: 'buy',
+	//     quantity: '0.1',
+	//     filled: '0',
+	//     limitPrice: '40',
+	//     reduceOnly: false,
+	//     timestamp: '2026-02-13T12:09:03.738Z',
+	//     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+	// },
+	//     status: 'ENTERED_BOOK',
+	//     updateReason: null,
+	//     error: null
+	// }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
+	var orderDictFromFetchOrder interface{} = this.SafeDict(order, "order")
+	if IsTrue(!IsEqual(orderDictFromFetchOrder, nil)) {
+		// order: {
+		//     type: 'ORDER',
+		//     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+		//     cliOrdId: null,
+		//     symbol: 'PF_LTCUSD',
+		//     side: 'buy',
+		//     quantity: '0.1',
+		//     filled: '0',
+		//     limitPrice: '40',
+		//     reduceOnly: false,
+		//     timestamp: '2026-02-13T12:09:03.738Z',
+		//     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+		// },
+		//     status: 'ENTERED_BOOK',
+		//     updateReason: null,
+		//     error: null
+		//
+		var datetime interface{} = this.SafeString(orderDictFromFetchOrder, "timestamp")
+		var innerStatus interface{} = this.SafeString(order, "status")
+		return this.SafeOrder(map[string]interface{}{
+			"info":                order,
+			"id":                  this.SafeString(orderDictFromFetchOrder, "orderId"),
+			"clientOrderId":       this.SafeStringN(orderDictFromFetchOrder, []interface{}{"cliOrdId"}),
+			"timestamp":           this.Parse8601(datetime),
+			"datetime":            datetime,
+			"lastTradeTimestamp":  nil,
+			"lastUpdateTimestamp": this.Parse8601(this.SafeString(orderDictFromFetchOrder, "lastUpdateTimestamp")),
+			"symbol":              this.SafeSymbol(this.SafeString(orderDictFromFetchOrder, "symbol"), market),
+			"type":                nil,
+			"timeInForce":         nil,
+			"postOnly":            nil,
+			"reduceOnly":          this.SafeBool(orderDictFromFetchOrder, "reduceOnly"),
+			"side":                this.SafeString(orderDictFromFetchOrder, "side"),
+			"price":               this.SafeString(orderDictFromFetchOrder, "limitPrice"),
+			"triggerPrice":        nil,
+			"amount":              this.SafeString(orderDictFromFetchOrder, "quantity"),
+			"cost":                nil,
+			"average":             nil,
+			"filled":              this.SafeString(orderDictFromFetchOrder, "filled"),
+			"remaining":           nil,
+			"status":              this.ParseOrderStatus(innerStatus),
+			"fee":                 nil,
+			"fees":                nil,
+			"trades":              nil,
+		})
+	}
 	var orderEvents interface{} = this.SafeValue(order, "orderEvents", []interface{}{})
 	var errorStatus interface{} = this.SafeString(order, "status")
 	var orderEventsLength interface{} = GetArrayLength(orderEvents)
@@ -2355,8 +2448,8 @@ func (this *KrakenfuturesCore) FetchMyTrades(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20758 := (<-this.LoadMarkets())
-		PanicOnError(retRes20758)
+		retRes21648 := (<-this.LoadMarkets())
+		PanicOnError(retRes21648)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2411,8 +2504,8 @@ func (this *KrakenfuturesCore) FetchBalance(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21168 := (<-this.LoadMarkets())
-		PanicOnError(retRes21168)
+		retRes22058 := (<-this.LoadMarkets())
+		PanicOnError(retRes22058)
 		var typeVar interface{} = this.SafeString2(params, "type", "account")
 		var symbol interface{} = this.SafeString(params, "symbol")
 		params = this.Omit(params, []interface{}{"type", "account", "symbol"})
@@ -2649,8 +2742,8 @@ func (this *KrakenfuturesCore) FetchFundingRates(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes23388 := (<-this.LoadMarkets())
-		PanicOnError(retRes23388)
+		retRes24278 := (<-this.LoadMarkets())
+		PanicOnError(retRes24278)
 		var marketIds interface{} = this.MarketIds(symbols)
 
 		response := (<-this.PublicGetTickers(params))
@@ -2699,7 +2792,7 @@ func (this *KrakenfuturesCore) ParseFundingRate(ticker interface{}, optionalArgs
 	//         "fundingRate": -0.000000756414717067,
 	//         "fundingRatePrediction": 0.000000195218676,
 	//         "suspended": false,
-	//         "indexPrice": 0.043392,
+	//         "indexPrice": 0.043391,
 	//         "postOnly": false,
 	//         "change24h": -0.46
 	//     }
@@ -2714,14 +2807,14 @@ func (this *KrakenfuturesCore) ParseFundingRate(ticker interface{}, optionalArgs
 	var fundingRateResult interface{} = Precise.StringDiv(fundingRateString, markPriceString)
 	var nextFundingRateString interface{} = this.SafeString(ticker, "fundingRatePrediction")
 	var nextFundingRateResult interface{} = Precise.StringDiv(nextFundingRateString, markPriceString)
-	if IsTrue(IsGreaterThan(fundingRateResult, "0.25")) {
+	if IsTrue(Precise.StringGt(fundingRateResult, "0.25")) {
 		fundingRateResult = "0.25"
-	} else if IsTrue(IsGreaterThan(fundingRateResult, "-0.25")) {
+	} else if IsTrue(Precise.StringLt(fundingRateResult, "-0.25")) {
 		fundingRateResult = "-0.25"
 	}
-	if IsTrue(IsGreaterThan(nextFundingRateResult, "0.25")) {
+	if IsTrue(Precise.StringGt(nextFundingRateResult, "0.25")) {
 		nextFundingRateResult = "0.25"
-	} else if IsTrue(IsGreaterThan(nextFundingRateResult, "-0.25")) {
+	} else if IsTrue(Precise.StringLt(nextFundingRateResult, "-0.25")) {
 		nextFundingRateResult = "-0.25"
 	}
 	return map[string]interface{}{
@@ -2774,8 +2867,8 @@ func (this *KrakenfuturesCore) FetchFundingRateHistory(optionalArgs ...interface
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes24418 := (<-this.LoadMarkets())
-		PanicOnError(retRes24418)
+		retRes25308 := (<-this.LoadMarkets())
+		PanicOnError(retRes25308)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadRequest(Add(this.Id, " fetchFundingRateHistory() supports swap contracts only")))
@@ -2839,8 +2932,8 @@ func (this *KrakenfuturesCore) FetchPositions(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24898 := (<-this.LoadMarkets())
-		PanicOnError(retRes24898)
+		retRes25788 := (<-this.LoadMarkets())
+		PanicOnError(retRes25788)
 		var request interface{} = map[string]interface{}{}
 
 		response := (<-this.PrivateGetOpenpositions(request))
@@ -2959,8 +3052,8 @@ func (this *KrakenfuturesCore) FetchLeverageTiers(optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25888 := (<-this.LoadMarkets())
-		PanicOnError(retRes25888)
+		retRes26778 := (<-this.LoadMarkets())
+		PanicOnError(retRes26778)
 
 		response := (<-this.PublicGetInstruments(params))
 		PanicOnError(response)
@@ -3068,7 +3161,7 @@ func (this *KrakenfuturesCore) ParseMarketLeverageTiers(info interface{}, option
 	for i := 0; IsLessThan(i, GetArrayLength(marginLevels)); i++ {
 		var tier interface{} = GetValue(marginLevels, i)
 		var initialMargin interface{} = this.SafeString(tier, "initialMargin")
-		var minNotional interface{} = this.SafeNumber(tier, "numNonContractUnits")
+		var minNotional interface{} = this.SafeNumber2(tier, "numNonContractUnits", "contracts")
 		if IsTrue(!IsEqual(i, 0)) {
 			var tiersLength interface{} = GetArrayLength(tiers)
 			var previousTier interface{} = GetValue(tiers, Subtract(tiersLength, 1))
@@ -3155,9 +3248,9 @@ func (this *KrakenfuturesCore) TransferOut(code interface{}, amount interface{},
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes276815 := (<-this.Transfer(code, amount, "future", "spot", params))
-		PanicOnError(retRes276815)
-		ch <- retRes276815
+		retRes285715 := (<-this.Transfer(code, amount, "future", "spot", params))
+		PanicOnError(retRes285715)
+		ch <- retRes285715
 		return nil
 
 	}()
@@ -3185,8 +3278,8 @@ func (this *KrakenfuturesCore) Transfer(code interface{}, amount interface{}, fr
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27858 := (<-this.LoadMarkets())
-		PanicOnError(retRes27858)
+		retRes28748 := (<-this.LoadMarkets())
+		PanicOnError(retRes28748)
 		var currency interface{} = this.Currency(code)
 		if IsTrue(IsEqual(fromAccount, "spot")) {
 			panic(BadRequest(Add(this.Id, " transfer does not yet support transfers from spot")))
@@ -3253,19 +3346,19 @@ func (this *KrakenfuturesCore) SetLeverage(leverage interface{}, optionalArgs ..
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes28348 := (<-this.LoadMarkets())
-		PanicOnError(retRes28348)
+		retRes29238 := (<-this.LoadMarkets())
+		PanicOnError(retRes29238)
 		var request interface{} = map[string]interface{}{
 			"maxLeverage": leverage,
 			"symbol":      ToUpper(this.MarketId(symbol)),
 		}
 
-		retRes284215 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
-		PanicOnError(retRes284215)
+		retRes293115 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
+		PanicOnError(retRes293115)
 		//
 		// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 		//
-		ch <- retRes284215
+		ch <- retRes293115
 		return nil
 
 	}()
@@ -3291,8 +3384,8 @@ func (this *KrakenfuturesCore) FetchLeverages(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes28558 := (<-this.LoadMarkets())
-		PanicOnError(retRes28558)
+		retRes29448 := (<-this.LoadMarkets())
+		PanicOnError(retRes29448)
 
 		response := (<-this.PrivateGetLeveragepreferences(params))
 		PanicOnError(response)
@@ -3337,8 +3430,8 @@ func (this *KrakenfuturesCore) FetchLeverage(symbol interface{}, optionalArgs ..
 			panic(ArgumentsRequired(Add(this.Id, " fetchLeverage() requires a symbol argument")))
 		}
 
-		retRes28868 := (<-this.LoadMarkets())
-		PanicOnError(retRes28868)
+		retRes29758 := (<-this.LoadMarkets())
+		PanicOnError(retRes29758)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": ToUpper(this.MarketId(symbol)),

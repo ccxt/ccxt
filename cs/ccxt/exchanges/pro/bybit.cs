@@ -1806,7 +1806,7 @@ public partial class bybit : ccxt.bybit
      * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -1823,7 +1823,7 @@ public partial class bybit : ccxt.bybit
         object url = await this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
         object method = null;
-        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "liquidation");
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object messageHash = add("liquidations::", symbol);
@@ -1877,14 +1877,13 @@ public partial class bybit : ccxt.bybit
                 object market = this.safeMarket(marketId, null, "", "contract");
                 object symbol = getValue(market, "symbol");
                 object liquidation = this.parseWsLiquidation(rawLiquidation, market);
-                object liquidations = this.safeValue(this.liquidations, symbol);
-                if (isTrue(isEqual(liquidations, null)))
+                if (isTrue(isEqual(this.liquidations, null)))
                 {
                     object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-                    liquidations = new ArrayCache(limit);
+                    this.liquidations = new ArrayCache(limit);
                 }
-                callDynamically(liquidations, "append", new object[] {liquidation});
-                ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+                object cache = this.liquidations;
+                callDynamically(cache, "append", new object[] {liquidation});
                 callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
                 callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
             }
@@ -1895,14 +1894,13 @@ public partial class bybit : ccxt.bybit
             object market = this.safeMarket(marketId, null, "", "contract");
             object symbol = getValue(market, "symbol");
             object liquidation = this.parseWsLiquidation(rawLiquidation, market);
-            object liquidations = this.safeValue(this.liquidations, symbol);
-            if (isTrue(isEqual(liquidations, null)))
+            if (isTrue(isEqual(this.liquidations, null)))
             {
                 object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-                liquidations = new ArrayCache(limit);
+                this.liquidations = new ArrayCache(limit);
             }
-            callDynamically(liquidations, "append", new object[] {liquidation});
-            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
+            object cache = this.liquidations;
+            callDynamically(cache, "append", new object[] {liquidation});
             callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, "liquidations"});
             callDynamically(client as WebSocketClient, "resolve", new object[] {new List<object>() {liquidation}, add("liquidations::", symbol)});
         }

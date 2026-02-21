@@ -432,6 +432,49 @@ public partial class hyperliquid
         return new Order(res);
     }
     /// <summary>
+    /// create a trade order that is executed as a TWAP order over a specified duration.
+    /// </summary>
+    /// <remarks>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.randomize</term>
+    /// <description>
+    /// bool : whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// bool : true or false whether the order is reduce-only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.expiresAfter</term>
+    /// <description>
+    /// int : time in ms after which the twap order expires
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateTwapOrder(string symbol, string side, double amount, double duration, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createTwapOrder(symbol, side, amount, duration, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
@@ -501,6 +544,12 @@ public partial class hyperliquid
     /// string : sub account user address
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.twap</term>
+    /// <description>
+    /// boolean : whether the order to cancel is a twap order, (default is false)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -547,6 +596,38 @@ public partial class hyperliquid
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// cancels a running twap order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.expiresAfter</term>
+    /// <description>
+    /// int : time in ms after which the twap order expires
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vaultAddress</term>
+    /// <description>
+    /// string : the vault address for order
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelTwapOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelTwapOrder(id, symbol, parameters);
+        return new Order(res);
     }
     /// <summary>
     /// build the request payload for cancelling multiple orders

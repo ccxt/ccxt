@@ -2738,6 +2738,30 @@ binance.ensureUserDataStreamWsSubscribeSignature (marketType, [undefined])
 ```
 
 
+<a name="ensureUserDataStreamWsSubscribeListenToken" id="ensureuserdatastreamwssubscribelistentoken"></a>
+
+### ensureUserDataStreamWsSubscribeListenToken{docsify-ignore}
+subscribes to user data stream using listenToken (for margin)
+
+**Kind**: instance property of [<code>binance</code>](#binance)  
+**Returns**: Promise<void>
+
+**See**: [Binance User Data Stream Documentation](https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream)  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marketType | <code>string</code> | Yes | the market type (e.g., 'margin') |
+| params | <code>object</code> | Yes | extra parameters specific to the request |
+| params.symbol | <code>string</code> | No | required for isolated margin |
+| params.isIsolated | <code>boolean</code> | No | whether it is isolated margin |
+| params.validity | <code>number</code> | No | validity in milliseconds, default 24 hours, max 24 hours |
+
+
+```javascript
+binance.ensureUserDataStreamWsSubscribeListenToken (marketType, params[])
+```
+
+
 <a name="watchLiquidations" id="watchliquidations"></a>
 
 ### watchLiquidations{docsify-ignore}
