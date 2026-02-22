@@ -3,6 +3,105 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate from uta",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "nextFundingRate": 0.000004,
+                        "fundingTime": 1771776000000,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "nextFundingRate": 0.000004,
+                        "fundingTime": 1771776000000,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.000004,
+                    "fundingTimestamp": 1771776000000,
+                    "fundingDatetime": "2026-02-22T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
+            },
+            {
+                "description": "fetch funding rate from futures",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": false
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1771747200000,
+                        "value": 0.000004,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1771776000000
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": ".ETHUSDTMFPI8H",
+                        "granularity": 28800000,
+                        "timePoint": 1771747200000,
+                        "value": 0.000004,
+                        "dailyInterestRate": 0.0003,
+                        "fundingRateCap": 0.00375,
+                        "fundingRateFloor": -0.00375,
+                        "period": 1,
+                        "fundingTime": 1771776000000
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": 0.0003,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.000004,
+                    "fundingTimestamp": 1771776000000,
+                    "fundingDatetime": "2026-02-22T16:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ],
         "fetchTradingFee": [
             {
                 "description": "fetch trading fee for spot market",
