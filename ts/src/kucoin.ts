@@ -7529,7 +7529,7 @@ export default class kucoin extends Exchange {
         if ((symbol !== undefined) || marketType !== 'spot') {
             market = this.market (symbol);
             if (market['contract']) {
-                return this.setContractLeverage (leverage, symbol, params);
+                return await this.setContractLeverage (leverage, symbol, params);
             }
         }
         let marginMode: Str = undefined;
