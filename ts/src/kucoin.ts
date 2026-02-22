@@ -3329,15 +3329,15 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createOrder
      * @description Create an order on the exchange
-     * @see https://docs.kucoin.com/spot#place-a-new-order
-     * @see https://docs.kucoin.com/spot#place-a-new-order-2
-     * @see https://docs.kucoin.com/spot#place-a-margin-order
-     * @see https://docs.kucoin.com/spot-hf/#place-hf-order
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
-     * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -3363,13 +3363,12 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createSpotOrder
      * @description helper method for creating spot orders
-     * @see https://docs.kucoin.com/spot#place-a-new-order
-     * @see https://docs.kucoin.com/spot#place-a-new-order-2
-     * @see https://docs.kucoin.com/spot#place-a-margin-order
-     * @see https://docs.kucoin.com/spot-hf/#place-hf-order
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
-     * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-sync
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -3531,8 +3530,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createContractOrder
      * @description helper method for creating contract orders
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-take-profit-and-stop-loss-order#http-request
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -3714,7 +3714,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createMarketOrderWithCost
      * @description create a market order by providing the symbol, side and cost
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
@@ -3733,7 +3734,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createMarketBuyOrderWithCost
      * @description create a market buy order by providing the symbol and cost
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3748,7 +3750,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createMarketSellOrderWithCost
      * @description create a market sell order by providing the symbol and cost
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3763,10 +3766,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createOrders
      * @description create a list of trade orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * Check createSpotOrders() and createContractOrders() for more details on the extra parameters that can be used in params
@@ -3801,9 +3802,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createSpotOrders
      * @description helper method for creating spot orders in batch
-     * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-add-orders-sync
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @param {bool} [params.hf] false, // true for hf orders
@@ -3891,7 +3892,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#createContractOrders
      * @description helper method for creating contract orders in batch
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/place-multiple-orders
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/batch-add-orders
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3941,7 +3942,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#editOrder
      * @description edit an order, kucoin currently only supports the modification of HF orders
-     * @see https://docs.kucoin.com/spot-hf/#modify-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/modify-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type not used
@@ -3987,14 +3988,14 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#cancelOrder
      * @description cancels an open order
-     * @see https://docs.kucoin.com/spot#cancel-an-order
-     * @see https://docs.kucoin.com/spot#cancel-an-order-2
-     * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
-     * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
-     * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
-     * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4022,14 +4023,12 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#cancelSpotOrder
      * @description helper method for cancelling spot orders
-     * @see https://docs.kucoin.com/spot#cancel-an-order
-     * @see https://docs.kucoin.com/spot#cancel-an-order-2
-     * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid
-     * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
-     * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
-     * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
-     * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-orderld-sync
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4143,7 +4142,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#cancelContractOrder
      * @description helper method for cancelling contract orders
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-futures-order-by-orderid
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4185,11 +4185,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#cancelAllOrders
      * @description cancel all open orders
-     * @see https://docs.kucoin.com/spot#cancel-all-orders
-     * @see https://docs.kucoin.com/spot#cancel-orders
-     * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
@@ -4215,9 +4215,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#cancelAllSpotOrders
      * @description helper method for cancelling all spot orders
-     * @see https://docs.kucoin.com/spot#cancel-all-orders
-     * @see https://docs.kucoin.com/spot#cancel-orders
-     * @see https://docs.kucoin.com/spot-hf/#cancel-all-hf-orders-by-symbol
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
@@ -4262,8 +4262,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#cancelAllContractOrders
      * @description helper method for cancelling all contract orders
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-limit-orders
-     * @see https://www.kucoin.com/docs/rest/futures-trading/orders/cancel-multiple-futures-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.trigger] When true, all the trigger orders will be cancelled
@@ -4301,12 +4301,11 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchOrdersByStatus
      * @description fetches a list of orders placed on the exchange
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
-     * @see https://docs.kucoin.com/futures/#get-order-list
-     * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
      * @param {string} symbol unified symbol for the market to retrieve orders from
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
@@ -4342,10 +4341,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchSpotOrdersByStatus
      * @description fetch a list of spot orders
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
      * @param {string} status *not used for stop orders* 'open' or 'closed'
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest order
@@ -4464,8 +4462,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchContractOrdersByStatus
      * @description fetches a list of contract orders placed on the exchange
-     * @see https://docs.kucoin.com/futures/#get-order-list
-     * @see https://docs.kucoin.com/futures/#get-untriggered-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
      * @param {string} symbol unified symbol for the market to retrieve orders from
      * @param {int} [since] timestamp in ms of the earliest order to retrieve
@@ -4576,10 +4574,10 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4607,10 +4605,10 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://docs.kucoin.com/spot#list-orders
-     * @see https://docs.kucoin.com/spot#list-stop-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-active-hf-orders
-     * @see https://docs.kucoin.com/spot-hf/#obtain-list-of-filled-hf-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -4640,13 +4638,12 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.kucoin.com/spot#get-an-order
-     * @see https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
-     * @see https://docs.kucoin.com/spot#get-single-order-info
-     * @see https://docs.kucoin.com/spot#get-single-order-by-clientoid
-     * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
-     * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
-     * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4674,12 +4671,10 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchSpotOrder
      * @description fetch a spot order
-     * @see https://docs.kucoin.com/spot#get-an-order
-     * @see https://docs.kucoin.com/spot#get-single-active-order-by-clientoid
-     * @see https://docs.kucoin.com/spot#get-single-order-info
-     * @see https://docs.kucoin.com/spot#get-single-order-by-clientoid
-     * @see https://docs.kucoin.com/spot-hf/#details-of-a-single-hf-order
-     * @see https://docs.kucoin.com/spot-hf/#obtain-details-of-a-single-hf-order-using-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
      * @param {string} id Order id
      * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
      * @param {object} [params] exchange specific parameters
@@ -4746,7 +4741,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchContractOrder
      * @description fetc contract order
-     * @see https://docs.kucoin.com/futures/#get-details-of-a-single-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/get-stop-order-by-clientoid
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
