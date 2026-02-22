@@ -845,6 +845,16 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "Swap private trades",
+                "method": "fetchMyTrades",
+                "url": "https://api-futures.kucoin.com/api/v1/fills?symbol=LTCUSDTM&startAt=1699457638000&pageSize=5",
+                "input": [
+                    "LTC/USDT:USDT",
+                    1699457638000,
+                    5
+                ]
+            },
+            {
                 "description": "fetch trades with limit",
                 "method": "fetchMyTrades",
                 "url": "https://api.kucoin.com/api/v1/hf/fills?symbol=LTC-USDT&limit=5",
