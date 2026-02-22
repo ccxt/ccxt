@@ -6197,9 +6197,10 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-list-spot-margin-trade_hf
-     * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-margin
-     * @see https://www.kucoin.com/docs/rest/funding/funding-overview/get-account-detail-isolated-margin
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-detail-spot
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
@@ -6213,14 +6214,14 @@ export default class kucoin extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
-        const requestedType = this.safeString (params, 'type', defaultType);
-        const accountsByType = this.safeDict (this.options, 'accountsByType');
+        let requestedType = 'spot';
+        [ requestedType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, requestedType);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         let type = this.safeString (accountsByType, requestedType, requestedType);
+        params = this.omit (params, 'type');
         if (type === 'contract') {
             return await this.fetchContractBalance (params);
         }
-        params = this.omit (params, 'type');
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
         if (hf && (type !== 'main')) {
@@ -6565,7 +6566,19 @@ export default class kucoin extends Exchange {
         //     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
         // }
         //
-        const timestamp = this.safeInteger (transfer, 'createdAt');
+        // ledger entry from contracts API
+        //     {
+        //         "time": 1771765696000,
+        //         "type": "TransferIn",
+        //         "amount": 10.0,
+        //         "fee": 0.0,
+        //         "accountEquity": 54.53821148,
+        //         "status": "Completed",
+        //         "remark": "Transferred from Trading Account",
+        //         "offset": 71904927,
+        //         "currency": "USDT"
+        //     }
+        const timestamp = this.safeInteger2 (transfer, 'createdAt', 'time');
         const currencyId = this.safeString (transfer, 'currency');
         const rawStatus = this.safeString (transfer, 'status');
         const bizType = this.safeString (transfer, 'bizType');
@@ -6654,6 +6667,24 @@ export default class kucoin extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    parseLedgerDirection (direction) {
+        const directions: Dict = {
+            'in': 'in',
+            'out': 'out',
+            'TransferIn': 'in',
+            'TransferOut': 'out',
+        };
+        return this.safeString (directions, direction, direction);
+    }
+
+    parseLedgerStatus (status) {
+        const statuses: Dict = {
+            'Completed': 'ok',
+            'Pending': 'pending',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseLedgerEntry (item: Dict, currency: Currency = undefined): LedgerEntry {
         //
         //     {
@@ -6669,19 +6700,38 @@ export default class kucoin extends Exchange {
         //         "context": "{\"borrowerUserId\":\"601ad03e50dc810006d242ea\",\"loanRepayDetailNo\":\"611a1e7cc913d000066cf7ec\"}" //Business core parameters
         //     }
         //
+        // ledger entry from contracts API
+        //     {
+        //         "time": 1771765696000,
+        //         "type": "TransferIn",
+        //         "amount": 10.0,
+        //         "fee": 0.0,
+        //         "accountEquity": 54.53821148,
+        //         "status": "Completed",
+        //         "remark": "Transferred from Trading Account",
+        //         "offset": 71904927,
+        //         "currency": "USDT"
+        //     }
+        //
         const id = this.safeString (item, 'id');
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         currency = this.safeCurrency (currencyId, currency);
-        const amount = this.safeNumber (item, 'amount');
+        const amount = this.safeString (item, 'amount');
         const balanceAfter = undefined;
         // const balanceAfter = this.safeNumber (item, 'balance'); only returns zero string
         const bizType = this.safeString (item, 'bizType');
         const type = this.parseLedgerEntryType (bizType);
-        const direction = this.safeString (item, 'direction');
-        const timestamp = this.safeInteger (item, 'createdAt');
+        const direction = this.safeString2 (item, 'direction', 'type');
+        let account = this.safeString (item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
+        let timestamp = this.safeInteger (item, 'createdAt');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (item, 'time');
+            if (timestamp !== undefined) {
+                account = 'CONTRACT'; // contract ledger entries do not have an accountType field, so we set it to CONTRACT if the time field is present
+            }
+        }
         const datetime = this.iso8601 (timestamp);
-        const account = this.safeString (item, 'accountType'); // MAIN, TRADE, MARGIN, or CONTRACT
         const context = this.safeString (item, 'context'); // contains other information about the ledger entry
         //
         // withdrawal transaction
@@ -6713,27 +6763,28 @@ export default class kucoin extends Exchange {
             }
         }
         let fee = undefined;
-        const feeCost = this.safeString (item, 'fee');
+        const feeCost = this.omitZero (this.safeString (item, 'fee'));
         let feeCurrency = undefined;
-        if (feeCost !== '0') {
+        if (feeCost !== undefined) {
             feeCurrency = code;
             fee = { 'cost': this.parseNumber (feeCost), 'currency': feeCurrency };
         }
+        const status = this.safeString (item, 'status');
         return this.safeLedgerEntry ({
             'info': item,
             'id': id,
-            'direction': direction,
+            'direction': this.parseLedgerDirection (direction),
             'account': account,
             'referenceId': referenceId,
             'referenceAccount': account,
             'type': type,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (Precise.stringAbs (amount)),
             'timestamp': timestamp,
             'datetime': datetime,
             'before': undefined,
-            'after': balanceAfter, // undefined
-            'status': undefined,
+            'after': balanceAfter,
+            'status': this.parseLedgerStatus (status),
             'fee': fee,
         }, currency) as LedgerEntry;
     }
@@ -6742,13 +6793,15 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-spot-margin
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-trade_hf
-     * @see https://www.kucoin.com/docs/rest/account/basic-info/get-account-ledgers-margin_hf
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-tradehf
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-marginhf
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-futures
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -6783,6 +6836,10 @@ export default class kucoin extends Exchange {
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, type);
+        const accountsByType = this.safeDict (this.options, 'accountsByType');
+        type = this.safeString (accountsByType, type, type);
         let response = undefined;
         if (hf) {
             if (marginMode !== undefined) {
@@ -6790,6 +6847,29 @@ export default class kucoin extends Exchange {
             } else {
                 response = await this.privateGetHfAccountsLedgers (this.extend (request, params));
             }
+        } else if (type === 'contract') {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "dataList": [
+            //                 {
+            //                     "time": 1771765696000,
+            //                     "type": "TransferIn",
+            //                     "amount": 10.0,
+            //                     "fee": 0.0,
+            //                     "accountEquity": 54.53821148,
+            //                     "status": "Completed",
+            //                     "remark": "Transferred from Trading Account",
+            //                     "offset": 71904927,
+            //                     "currency": "USDT"
+            //                 }
+            //             ],
+            //             "hasMore": false
+            //         }
+            //     }
+            //
+            response = await this.futuresPrivateGetTransactionHistory (this.extend (request, params));
         } else {
             response = await this.privateGetAccountsLedgers (this.extend (request, params));
         }
@@ -6835,7 +6915,7 @@ export default class kucoin extends Exchange {
             return this.parseLedger (dataList, currency, since, limit);
         }
         const data = this.safeDict (response, 'data');
-        const items = this.safeList (data, 'items', []);
+        const items = this.safeList2 (data, 'items', 'dataList', []);
         return this.parseLedger (items, currency, since, limit);
     }
 
