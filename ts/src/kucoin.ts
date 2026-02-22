@@ -386,6 +386,7 @@ export default class kucoin extends Exchange {
                         'orders/byClientOid': 7.5, // 5FW
                         'fills': 7.5, // 5FW
                         'recentFills': 4.5, // 3FW
+                        'trade-fees': 7.5,
                         'openOrderStatistics': 15, // 10FW
                         'position': 3, // 2FW
                         'positions': 3, // 2FW
@@ -5778,30 +5779,48 @@ export default class kucoin extends Exchange {
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbols': market['id'],
-        };
-        const response = await this.privateGetTradeFees (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //           {
-        //             "symbol": "BTC-USDT",
-        //             "takerFeeRate": "0.001",
-        //             "makerFeeRate": "0.001"
-        //           }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        const first = this.safeDict (data, 0);
-        const marketId = this.safeString (first, 'symbol');
+        const request: Dict = {};
+        let response = undefined;
+        let entry: Dict = undefined;
+        if (market['spot']) {
+            request['symbols'] = market['id'];
+            response = await this.privateGetTradeFees (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //           {
+            //             "symbol": "BTC-USDT",
+            //             "takerFeeRate": "0.001",
+            //             "makerFeeRate": "0.001"
+            //           }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data', []);
+            entry = this.safeDict (data, 0);
+        } else {
+            request['symbol'] = market['id'];
+            response = await this.futuresPrivateGetTradeFees (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "symbol": "ETHUSDTM",
+            //             "takerFeeRate": "0.0006",
+            //             "makerFeeRate": "0.0002",
+            //             "feeTaxRate": "0"
+            //         }
+            //     }
+            //
+            entry = this.safeDict (response, 'data');
+        }
+        const marketId = this.safeString (entry, 'symbol');
         return {
             'info': response,
             'symbol': this.safeSymbol (marketId, market),
-            'maker': this.safeNumber (first, 'makerFeeRate'),
-            'taker': this.safeNumber (first, 'takerFeeRate'),
+            'maker': this.safeNumber (entry, 'makerFeeRate'),
+            'taker': this.safeNumber (entry, 'takerFeeRate'),
             'percentage': true,
             'tierBased': true,
         };
