@@ -559,6 +559,93 @@
         ],
         "fetchMyTrades": [
             {
+                "description": "fethc swap trade",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 50,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "symbol": "LTCUSDTM",
+                                "tradeId": "1694909144276",
+                                "orderId": "114607169852157954",
+                                "side": "buy",
+                                "liquidity": "taker",
+                                "forceTaker": false,
+                                "price": "72.5",
+                                "size": 1,
+                                "value": "7.25",
+                                "feeRate": "0.0006",
+                                "fixFee": "0",
+                                "feeCurrency": "USDT",
+                                "stop": "",
+                                "tradeTime": 1700137680617000000,
+                                "fee": "0.00435",
+                                "settleCurrency": "USDT",
+                                "orderType": "market",
+                                "tradeType": "trade",
+                                "createdAt": 1700137680654
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "LTCUSDTM",
+                            "tradeId": "1694909144276",
+                            "orderId": "114607169852157954",
+                            "side": "buy",
+                            "liquidity": "taker",
+                            "forceTaker": false,
+                            "price": "72.5",
+                            "size": 1,
+                            "value": "7.25",
+                            "feeRate": "0.0006",
+                            "fixFee": "0",
+                            "feeCurrency": "USDT",
+                            "stop": "",
+                            "tradeTime": 1700137680617000000,
+                            "fee": "0.00435",
+                            "settleCurrency": "USDT",
+                            "orderType": "market",
+                            "tradeType": "trade",
+                            "createdAt": 1700137680654
+                        },
+                        "id": "1694909144276",
+                        "order": "114607169852157954",
+                        "timestamp": 1700137680654,
+                        "datetime": "2023-11-16T12:28:00.654Z",
+                        "symbol": "LTC/USDT:USDT",
+                        "type": "market",
+                        "takerOrMaker": "taker",
+                        "side": "buy",
+                        "price": 72.5,
+                        "amount": 1,
+                        "cost": 7.25,
+                        "fee": {
+                            "cost": 0.00435,
+                            "currency": "USDT",
+                            "rate": 0.0006
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00435,
+                                "currency": "USDT",
+                                "rate": 0.0006
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
                 "description": "Fetch spot trade",
                 "method": "fetchMyTrades",
                 "input": [
