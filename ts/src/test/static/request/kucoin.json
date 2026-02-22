@@ -11,6 +11,40 @@
     "options": {
     },
     "methods": {
+        "fetchFundingInterval": [
+            {
+                "description": "fetch funding interval",
+                "method": "fetchFundingInterval",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-rate/ETHUSDTM/current",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate from uta",
+                "method": "fetchFundingRate",
+                "url": "https://api.kucoin.com/api/ua/v1/market/funding-rate?symbol=ETHUSDTM",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch funding rate from futures",
+                "method": "fetchFundingRate",
+                "url": "https://api-futures.kucoin.com/api/v1/funding-rate/ETHUSDTM/current",
+                "input": [
+                    "ETH/USDT:USDT",
+                    {
+                        "uta": false
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchOrdersByStatus": [
             {
                 "description": "Fetch open swap orders",
@@ -1163,6 +1197,14 @@
         ],
         "fetchOrderBook": [
             {
+                "description": "swap orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api-futures.kucoin.com/api/v1/level2/depth20?symbol=XBTUSDTM",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
                 "description": "fetch depth 100 order book for swap",
                 "method": "fetchOrderBook",
                 "url": "https://api-futures.kucoin.com/api/v1/level2/depth100?symbol=XBTUSDTM",
@@ -1366,7 +1408,20 @@
         ],
         "setLeverage": [
             {
-                "description": "isolated",
+                "description": "linear swap - cross",
+                "method": "setLeverage",
+                "url": "https://api-futures.kucoin.com/api/v2/changeCrossUserLeverage",
+                "input": [
+                  4,
+                  "BTC/USDT:USDT",
+                  {
+                    "marginMode": "cross"
+                  }
+                ],
+                "output": "{\"symbol\":\"XBTUSDTM\",\"leverage\":\"4\"}"
+            },
+            {
+                "description": "spot isolated",
                 "method": "setLeverage",
                 "url": "https://api.kucoin.com/api/v3/position/update-user-leverage",
                 "input": [
@@ -1379,7 +1434,7 @@
                 "output": "{\"symbol\":\"BTC-USDT\",\"leverage\":\"4\",\"isIsolated\":true}"
             },
             {
-                "description": "cross",
+                "description": "spot cross",
                 "method": "setLeverage",
                 "url": "https://api.kucoin.com/api/v3/position/update-user-leverage",
                 "input": [
