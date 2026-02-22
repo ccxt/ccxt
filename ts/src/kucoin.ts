@@ -67,6 +67,7 @@ export default class kucoin extends Exchange {
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
@@ -7589,11 +7590,26 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#fetchFundingInterval
+     * @description fetch the current funding rate interval
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
+        return await this.fetchFundingRate (symbol, this.extend (params, { 'uta': false }));
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchFundingRate
      * @description fetch the current funding rate
      * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to true
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
@@ -7602,25 +7618,48 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.utaGetMarketFundingRate (this.extend (request, params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "symbol": ".XBTUSDTMFPI8H",
-        //             "nextFundingRate": 7.4E-5,
-        //             "fundingTime": 1762444800000,
-        //             "fundingRateCap": 0.003,
-        //             "fundingRateFloor": -0.003
-        //         }
-        //     }
-        //
+        let uta = true; // for backward compatibility, dafult endpoint is uta
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'uta', uta);
+        let response = undefined;
+        if (uta) {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "symbol": ".XBTUSDTMFPI8H",
+            //             "nextFundingRate": 7.4E-5,
+            //             "fundingTime": 1762444800000,
+            //             "fundingRateCap": 0.003,
+            //             "fundingRateFloor": -0.003
+            //         }
+            //     }
+            //
+            response = await this.utaGetMarketFundingRate (this.extend (request, params));
+        } else {
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "symbol": ".ETHUSDTMFPI8H",
+            //             "granularity": 28800000,
+            //             "timePoint": 1771747200000,
+            //             "value": 3.0E-6,
+            //             "dailyInterestRate": 3.0E-4,
+            //             "fundingRateCap": 0.00375,
+            //             "fundingRateFloor": -0.00375,
+            //             "period": 1,
+            //             "fundingTime": 1771776000000
+            //         }
+            //     }
+            //
+            response = await this.futuresPublicGetFundingRateSymbolCurrent (this.extend (request, params));
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseFundingRate (data, market);
     }
 
     parseFundingRate (data, market: Market = undefined): FundingRate {
-        //
+        // uta
         //     {
         //         "symbol": ".XBTUSDTMFPI8H",
         //         "nextFundingRate": 7.4E-5,
@@ -7629,28 +7668,52 @@ export default class kucoin extends Exchange {
         //         "fundingRateFloor": -0.003
         //     }
         //
-        const fundingTimestamp = this.safeInteger (data, 'fundingTime');
+        // futures
+        //     {
+        //         "symbol": ".ETHUSDTMFPI8H",
+        //         "granularity": 28800000,
+        //         "timePoint": 1771747200000,
+        //         "value": 3.0E-6,
+        //         "dailyInterestRate": 3.0E-4,
+        //         "fundingRateCap": 0.00375,
+        //         "fundingRateFloor": -0.00375,
+        //         "period": 1,
+        //         "fundingTime": 1771776000000
+        //     }
+        //
+        const fundingTimestamp = this.safeInteger2 (data, 'fundingTime', 'timePoint');
         const marketId = this.safeString (data, 'symbol');
         return {
             'info': data,
             'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
             'markPrice': undefined,
             'indexPrice': undefined,
-            'interestRate': undefined,
+            'interestRate': this.safeNumber (data, 'dailyInterestRate'),
             'estimatedSettlePrice': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'fundingRate': this.safeNumber (data, 'nextFundingRate'),
+            'fundingRate': this.safeNumber2 (data, 'nextFundingRate', 'value'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601 (fundingTimestamp),
-            'nextFundingRate': undefined,
+            'nextFundingRate': this.safeNumber (data, 'predictedValue'),
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
-            'interval': undefined,
+            'interval': this.parseFundingInterval (this.safeString (data, 'granularity')),
         } as FundingRate;
+    }
+
+    parseFundingInterval (interval) {
+        const intervals: Dict = {
+            '3600000': '1h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString (intervals, interval, interval);
     }
 
     /**
