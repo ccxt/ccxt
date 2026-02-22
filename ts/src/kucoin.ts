@@ -5141,12 +5141,13 @@ export default class kucoin extends Exchange {
      * @name kucoin#fetchOrderTrades
      * @description fetch all the trades made from a single order
      * @see https://docs.kucoin.com/#list-fills
-     * @see https://docs.kucoin.com/spot-hf/#transaction-details
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -5159,9 +5160,38 @@ export default class kucoin extends Exchange {
     /**
      * @method
      * @name kucoin#fetchMyTrades
-     * @see https://docs.kucoin.com/#list-fills
-     * @see https://docs.kucoin.com/spot-hf/#transaction-details
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
      * @description fetch all trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * Check fetchMySpotTrades() and fetchMyContractTrades() for more details on the extra parameters that can be used in params
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let marketType = 'spot';
+        if (symbol === undefined) {
+            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params, marketType);
+        } else {
+            const market = this.market (symbol);
+            marketType = market['type'];
+        }
+        if (marketType === 'spot') {
+            return await this.fetchMySpotTrades (symbol, since, limit, params);
+        } else {
+            return await this.fetchMyContractTrades (symbol, since, limit, params);
+        }
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchMySpotTrades
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+     * @description fetch all spot trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -5171,7 +5201,7 @@ export default class kucoin extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMySpotTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
@@ -5271,6 +5301,85 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#fetchMyContractTrades
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+     * @description fetch all contract trades made by the user
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trades structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] End time in ms
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    async fetchMyContractTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
+        }
+        let request: Dict = {
+            // orderId (String) [optional] Fills for a specific order (other parameters can be ignored if specified)
+            // symbol (String) [optional] Symbol of the contract
+            // side (String) [optional] buy or sell
+            // type (String) [optional] limit, market, limit_stop or market_stop
+            // startAt (long) [optional] Start time (millisecond)
+            // endAt (long) [optional] End time (millisecond)
+        };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = Math.min (1000, limit);
+        }
+        [ request, params ] = this.handleUntilOption ('endAt', request, params);
+        const response = await this.futuresPrivateGetFills (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //          "currentPage": 1,
+        //          "pageSize": 1,
+        //          "totalNum": 251915,
+        //          "totalPage": 251915,
+        //          "items": [
+        //              {
+        //                  "symbol": "XBTUSDM",  // Ticker symbol of the contract
+        //                  "tradeId": "5ce24c1f0c19fc3c58edc47c",  // Trade ID
+        //                  "orderId": "5ce24c16b210233c36ee321d",  // Order ID
+        //                  "side": "sell",  // Transaction side
+        //                  "liquidity": "taker",  // Liquidity- taker or maker
+        //                  "price": "8302",  // Filled price
+        //                  "size": 10,  // Filled amount
+        //                  "value": "0.001204529",  // Order value
+        //                  "feeRate": "0.0005",  // Floating fees
+        //                  "fixFee": "0.00000006",  // Fixed fees
+        //                  "feeCurrency": "XBT",  // Charging currency
+        //                  "stop": "",  // A mark to the stop order type
+        //                  "fee": "0.0000012022",  // Transaction fee
+        //                  "orderType": "limit",  // Order type
+        //                  "tradeType": "trade",  // Trade type (trade, liquidation, ADL or settlement)
+        //                  "createdAt": 1558334496000,  // Time the order created
+        //                  "settleCurrency": "XBT", // settlement currency
+        //                  "tradeTime": 1558334496000000000 // trade time in nanosecond
+        //              }
+        //            ]
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const trades = this.safeList (data, 'items', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
@@ -5350,6 +5459,16 @@ export default class kucoin extends Exchange {
     }
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        if ((market === undefined) || (market['spot'])) {
+            return this.parseSpotOrUtaTrade (trade, market);
+        } else {
+            return this.parseContractTrade (trade, market);
+        }
+    }
+
+    parseSpotOrUtaTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -5474,6 +5593,141 @@ export default class kucoin extends Exchange {
             type = undefined;
         }
         const costString = this.safeString2 (trade, 'funds', 'dealValue');
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'order': orderId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': type,
+            'takerOrMaker': takerOrMaker,
+            'side': side,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
+            'fee': fee,
+        }, market);
+    }
+
+    parseContractTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "sequence": 32114961,
+        //         "side": "buy",
+        //         "size": 39,
+        //         "price": "4001.6500000000",
+        //         "takerOrderId": "61c20742f172110001e0ebe4",
+        //         "makerOrderId": "61c2073fcfc88100010fcb5d",
+        //         "tradeId": "61c2074277a0c473e69029b8",
+        //         "ts": 1640105794099993896   // filled time
+        //     }
+        //
+        // fetchMyTrades (private) v2
+        //
+        //     {
+        //         "symbol":"BTC-USDT",
+        //         "tradeId":"5c35c02709e4f67d5266954e",
+        //         "orderId":"5c35c02703aa673ceec2a168",
+        //         "counterOrderId":"5c1ab46003aa676e487fa8e3",
+        //         "side":"buy",
+        //         "liquidity":"taker",
+        //         "forceTaker":true,
+        //         "price":"0.083",
+        //         "size":"0.8424304",
+        //         "funds":"0.0699217232",
+        //         "fee":"0",
+        //         "feeRate":"0",
+        //         "feeCurrency":"USDT",
+        //         "stop":"",
+        //         "type":"limit",
+        //         "createdAt":1547026472000
+        //     }
+        //
+        // fetchMyTrades (private) v1
+        //
+        //    {
+        //        "symbol":"DOGEUSDTM",
+        //        "tradeId":"620ec41a96bab27b5f4ced56",
+        //        "orderId":"620ec41a0d1d8a0001560bd0",
+        //        "side":"sell",
+        //        "liquidity":"taker",
+        //        "forceTaker":true,
+        //        "price":"0.13969",
+        //        "size":1,
+        //        "value":"13.969",
+        //        "feeRate":"0.0006",
+        //        "fixFee":"0",
+        //        "feeCurrency":"USDT",
+        //        "stop":"",
+        //        "tradeTime":1645134874858018058,
+        //        "fee":"0.0083814",
+        //        "settleCurrency":"USDT",
+        //        "orderType":"market",
+        //        "tradeType":"trade",
+        //        "createdAt":1645134874858
+        //    }
+        //
+        // watchTrades
+        //
+        //    {
+        //        "makerUserId": "62286a4d720edf0001e81961",
+        //        "symbol": "ADAUSDTM",
+        //        "sequence": 41320766,
+        //        "side": "sell",
+        //        "size": 2,
+        //        "price": 0.35904,
+        //        "takerOrderId": "636dd9da9857ba00010cfa44",
+        //        "makerOrderId": "636dd9c8df149d0001e62bc8",
+        //        "takerUserId": "6180be22b6ab210001fa3371",
+        //        "tradeId": "636dd9da0000d400d477eca7",
+        //        "ts": 1668143578987357700
+        //    }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market, '-');
+        const id = this.safeString2 (trade, 'tradeId', 'id');
+        const orderId = this.safeString (trade, 'orderId');
+        const takerOrMaker = this.safeString (trade, 'liquidity');
+        let timestamp = this.safeInteger (trade, 'ts');
+        if (timestamp !== undefined) {
+            timestamp = this.parseToInt (timestamp / 1000000);
+        } else {
+            timestamp = this.safeInteger (trade, 'createdAt');
+            // if it's a historical v1 trade, the exchange returns timestamp in seconds
+            if (('dealValue' in trade) && (timestamp !== undefined)) {
+                timestamp = timestamp * 1000;
+            }
+        }
+        const priceString = this.safeString2 (trade, 'price', 'dealPrice');
+        const amountString = this.safeString2 (trade, 'size', 'amount');
+        const side = this.safeString (trade, 'side');
+        let fee = undefined;
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
+            const feeCurrencyId = this.safeString (trade, 'feeCurrency');
+            let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            if (feeCurrency === undefined) {
+                feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
+            }
+            fee = {
+                'cost': feeCostString,
+                'currency': feeCurrency,
+                'rate': this.safeString (trade, 'feeRate'),
+            };
+        }
+        let type = this.safeString2 (trade, 'type', 'orderType');
+        if (type === 'match') {
+            type = undefined;
+        }
+        let costString = this.safeString2 (trade, 'funds', 'value');
+        if (costString === undefined) {
+            const contractSize = this.safeString (market, 'contractSize');
+            const contractCost = Precise.stringMul (priceString, amountString);
+            costString = Precise.stringMul (contractCost, contractSize);
+        }
         return this.safeTrade ({
             'info': trade,
             'id': id,
