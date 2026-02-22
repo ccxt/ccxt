@@ -760,6 +760,9 @@ export default class kucoin extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'fetchBalance': {
+                    'code': 'USDT', // for contract endpoint
+                },
                 'timeframes': {
                     'swap': {
                         '1m': 1,
@@ -5771,7 +5774,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
+     * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-spot-margin
+     * @see https://www.kucoin.com/docs-new/rest/account-info/trade-fee/get-actual-fee-futures
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -5830,7 +5834,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#withdraw
      * @description make a withdrawal
-     * @see https://www.kucoin.com/docs/rest/funding/withdrawals/apply-withdraw-v3-
+     * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/withdraw-v3
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
@@ -6009,6 +6013,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchDeposits
      * @description fetch all deposits made to an account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
      * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
      * @see https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
      * @param {string} code unified currency code
@@ -6094,6 +6099,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchWithdrawals
      * @description fetch all withdrawals made from an account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
      * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
      * @see https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
      * @param {string} code unified currency code
@@ -6211,6 +6217,9 @@ export default class kucoin extends Exchange {
         const requestedType = this.safeString (params, 'type', defaultType);
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         let type = this.safeString (accountsByType, requestedType, requestedType);
+        if (type === 'contract') {
+            return await this.fetchContractBalance (params);
+        }
         params = this.omit (params, 'type');
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
@@ -6365,6 +6374,57 @@ export default class kucoin extends Exchange {
             returnType = this.safeBalance (result);
         }
         return returnType as Balances;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchContractBalance
+     * @description query for balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-futures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {object} [params.code] the unified currency code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async fetchContractBalance (params = {}): Promise<Balances> {
+        await this.loadMarkets ();
+        // only fetches one balance at a time
+        let defaultCode = this.safeString (this.options, 'code');
+        const fetchBalanceOptions = this.safeValue (this.options, 'fetchBalance', {});
+        defaultCode = this.safeString (fetchBalanceOptions, 'code', defaultCode);
+        const code = this.safeString (params, 'code', defaultCode);
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const response = await this.futuresPrivateGetAccountOverview (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "accountEquity": 0.00005,
+        //             "unrealisedPNL": 0,
+        //             "marginBalance": 0.00005,
+        //             "positionMargin": 0,
+        //             "orderMargin": 0,
+        //             "frozenFunds": 0,
+        //             "availableBalance": 0.00005,
+        //             "currency": "XBT"
+        //         }
+        //     }
+        //
+        const result: Dict = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const data = this.safeValue (response, 'data');
+        const currencyId = this.safeString (data, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        const account = this.account ();
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['total'] = this.safeString (data, 'accountEquity');
+        result[currencyCode] = account;
+        return this.safeBalance (result);
     }
 
     /**
