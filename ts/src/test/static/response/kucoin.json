@@ -3,6 +3,74 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee for spot market",
+                "method": "fetchTradingFee",
+                "input": [
+                    "ETH/USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "ETH-USDT",
+                            "takerFeeRate": "0.001",
+                            "makerFeeRate": "0.001"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": [
+                            {
+                                "symbol": "ETH-USDT",
+                                "takerFeeRate": "0.001",
+                                "makerFeeRate": "0.001"
+                            }
+                        ]
+                    },
+                    "symbol": "ETH/USDT",
+                    "maker": 0.001,
+                    "taker": 0.001,
+                    "percentage": true,
+                    "tierBased": true
+                }
+            },
+            {
+                "description": "fetch trading fee for swap market",
+                "method": "fetchTradingFee",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "symbol": "ETHUSDTM",
+                        "takerFeeRate": "0.0006",
+                        "makerFeeRate": "0.0002",
+                        "feeTaxRate": "0"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "symbol": "ETHUSDTM",
+                            "takerFeeRate": "0.0006",
+                            "makerFeeRate": "0.0002",
+                            "feeTaxRate": "0"
+                        }
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "maker": 0.0002,
+                    "taker": 0.0006,
+                    "percentage": true,
+                    "tierBased": true
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "linear swap create limit buy order",
@@ -970,6 +1038,104 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetch contract ledger",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "dataList": [
+                            {
+                                "time": 1771766332000,
+                                "type": "TransferOut",
+                                "amount": -10,
+                                "fee": 0,
+                                "accountEquity": 44.53821148,
+                                "status": "Completed",
+                                "remark": "USDT",
+                                "offset": 71904943,
+                                "currency": "USDT"
+                            },
+                            {
+                                "time": 1771765696000,
+                                "type": "TransferIn",
+                                "amount": 10,
+                                "fee": 0,
+                                "accountEquity": 54.53821148,
+                                "status": "Completed",
+                                "remark": "Transferred from Trading Account",
+                                "offset": 71904927,
+                                "currency": "USDT"
+                            }
+                        ],
+                        "hasMore": false
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1771765696000,
+                        "datetime": "2026-02-22T13:08:16.000Z",
+                        "direction": "in",
+                        "account": "CONTRACT",
+                        "referenceId": null,
+                        "referenceAccount": "CONTRACT",
+                        "type": null,
+                        "currency": "USDT",
+                        "amount": 10,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "time": 1771765696000,
+                            "type": "TransferIn",
+                            "amount": 10,
+                            "fee": 0,
+                            "accountEquity": 54.53821148,
+                            "status": "Completed",
+                            "remark": "Transferred from Trading Account",
+                            "offset": 71904927,
+                            "currency": "USDT"
+                        }
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1771766332000,
+                        "datetime": "2026-02-22T13:18:52.000Z",
+                        "direction": "out",
+                        "account": "CONTRACT",
+                        "referenceId": null,
+                        "referenceAccount": "CONTRACT",
+                        "type": null,
+                        "currency": "USDT",
+                        "amount": 10,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": null,
+                        "info": {
+                            "time": 1771766332000,
+                            "type": "TransferOut",
+                            "amount": -10,
+                            "fee": 0,
+                            "accountEquity": 44.53821148,
+                            "status": "Completed",
+                            "remark": "USDT",
+                            "offset": 71904943,
+                            "currency": "USDT"
+                        }
+                    }
+                ]
+            },
+            {
                 "description": "fetch usdt ledger",
                 "method": "fetchLedger",
                 "input": [],
@@ -1258,7 +1424,61 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetchTrades",
+                "description": "public swap trades",
+                "disabledGO": true,
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "sequence": 1738233312958,
+                            "contractId": 101,
+                            "tradeId": "1738233312958",
+                            "makerOrderId": "157346964386611200",
+                            "takerOrderId": "157346998754742272",
+                            "ts": 1710327649901000000,
+                            "size": 1,
+                            "price": "73266.7",
+                            "side": "sell"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "sequence": 1738233312958,
+                            "contractId": 101,
+                            "tradeId": "1738233312958",
+                            "makerOrderId": "157346964386611200",
+                            "takerOrderId": "157346998754742272",
+                            "ts": 1710327649901000000,
+                            "size": 1,
+                            "price": "73266.7",
+                            "side": "sell"
+                        },
+                        "id": "1738233312958",
+                        "order": null,
+                        "timestamp": 1710327649901,
+                        "datetime": "2024-03-13T11:00:49.901Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "takerOrMaker": null,
+                        "side": "sell",
+                        "price": 73266.7,
+                        "amount": 1,
+                        "cost": 73.2667,
+                        "fee": {"cost": null, "currency": null },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "fetchTrades for spot",
                 "method": "fetchTrades",
                 "disabledGO": true,
                 "input": [
@@ -1679,6 +1899,65 @@
             }
         ],
         "fetchBalance": [
+            {
+                "description": "fetch swap balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "accountEquity": 44.53821148,
+                        "unrealisedPNL": 0,
+                        "marginBalance": 44.53821148,
+                        "positionMargin": 0,
+                        "orderMargin": 0,
+                        "frozenFunds": 0,
+                        "availableBalance": 44.53821148,
+                        "availableMargin": 44.53821148,
+                        "currency": "USDT",
+                        "riskRatio": 0,
+                        "maxWithdrawAmount": 44.53821148
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200000",
+                        "data": {
+                            "accountEquity": 44.53821148,
+                            "unrealisedPNL": 0,
+                            "marginBalance": 44.53821148,
+                            "positionMargin": 0,
+                            "orderMargin": 0,
+                            "frozenFunds": 0,
+                            "availableBalance": 44.53821148,
+                            "availableMargin": 44.53821148,
+                            "currency": "USDT",
+                            "riskRatio": 0,
+                            "maxWithdrawAmount": 44.53821148
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "USDT": {
+                        "free": 44.53821148,
+                        "used": 0,
+                        "total": 44.53821148
+                    },
+                    "free": {
+                        "USDT": 44.53821148
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 44.53821148
+                    }
+                }
+            },
             {
                 "description": "fetch balance",
                 "method": "fetchBalance",
