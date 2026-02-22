@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, Str, Transaction, Ticker, OrderBook, OrderRequest, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, DepositAddress, BorrowInterest, FundingRate } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, Str, Transaction, Ticker, OrderBook, OrderRequest, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, Leverage, DepositAddress, BorrowInterest, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -422,6 +422,7 @@ export default class kucoin extends Exchange {
                         'copy-trade/position/switchPositionMode': 3, // 2FW
                         // ws
                         'bullet-private': 15, // 10FW
+                        'changeCrossUserLeverage': 15,
                     },
                     'delete': {
                         'orders/{orderId}': 1.5, // 1FW
@@ -869,8 +870,21 @@ export default class kucoin extends Exchange {
                         },
                     },
                     'futuresPrivate': {
+                        'GET': {
+                            'getMaxOpenSize': 'v2',
+                            'getCrossUserLeverage': 'v2',
+                            'position/getMarginMode': 'v2',
+                        },
                         'POST': {
-                            'transfer-out': 'v3',
+                            'transfer-out': 'v2',
+                            'changeCrossUserLeverage': 'v2',
+                            'position/changeMarginMode': 'v2',
+                            'position/switchPositionMode': 'v2',
+                        },
+                    },
+                    'futuresPublic': {
+                        'GET': {
+                            'level3/snapshot': 'v2',
                         },
                     },
                 },
@@ -6970,8 +6984,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchBorrowInterest
      * @description fetch the interest owed by the user for borrowing currency for margin trading
-     * @see https://docs.kucoin.com/#get-repay-record
-     * @see https://docs.kucoin.com/#query-isolated-margin-account-info
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-cross-margin
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-isolated-margin
      * @param {string} [code] unified currency code
      * @param {string} [symbol] unified market symbol, required for isolated margin
      * @param {int} [since] the earliest time in ms to fetch borrrow interest for
@@ -7155,7 +7169,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchBorrowRateHistories
      * @description retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
      * @param {string[]|undefined} codes list of unified currency codes, default is undefined
      * @param {int} [since] timestamp in ms of the earliest borrowRate, default is undefined
      * @param {int} [limit] max number of borrow rate prices to return, default is undefined
@@ -7209,7 +7223,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchBorrowRateHistory
      * @description retrieves a history of a currencies borrow interest rate at specific time slots
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/get-interest-history
      * @param {string} code unified currency code
      * @param {int} [since] timestamp for the earliest borrow rate
      * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
@@ -7297,7 +7311,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#borrowCrossMargin
      * @description create a loan to borrow margin
-     * @see https://docs.kucoin.com/#1-margin-borrowing
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoints
@@ -7333,7 +7347,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#borrowIsolatedMargin
      * @description create a loan to borrow margin
-     * @see https://docs.kucoin.com/#1-margin-borrowing
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/borrow
      * @param {string} symbol unified market symbol, required for isolated margin
      * @param {string} code unified currency code of the currency to borrow
      * @param {float} amount the amount to borrow
@@ -7373,7 +7387,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#repayCrossMargin
      * @description repay borrowed margin and interest
-     * @see https://docs.kucoin.com/#2-repayment
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoints
@@ -7407,7 +7421,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#repayIsolatedMargin
      * @description repay borrowed margin and interest
-     * @see https://docs.kucoin.com/#2-repayment
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/repay
      * @param {string} symbol unified market symbol
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
@@ -7499,7 +7513,8 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#setLeverage
      * @description set the level of leverage for a market
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/debit/modify-leverage
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
      * @param {int } [leverage] New leverage multiplier. Must be greater than 1 and up to two decimal places, and cannot be less than the user's current debt leverage or greater than the system's maximum leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -7513,7 +7528,7 @@ export default class kucoin extends Exchange {
         if ((symbol !== undefined) || marketType !== 'spot') {
             market = this.market (symbol);
             if (market['contract']) {
-                throw new NotSupported (this.id + ' setLeverage currently supports only spot margin');
+                return this.setContractLeverage (leverage, symbol, params);
             }
         }
         let marginMode: Str = undefined;
@@ -7531,6 +7546,45 @@ export default class kucoin extends Exchange {
         request['leverage'] = leverage.toString ();
         request['isIsolated'] = (marginMode === 'isolated');
         return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name kucoin#setContractLeverage
+     * @description set the level of leverage for a market
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/modify-cross-margin-leverage
+     * @param {float} leverage the rate of leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setContractLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
+        if (marginMode !== 'cross') {
+            throw new NotSupported (this.id + ' setLeverage() currently supports only params["marginMode"] = "cross" for contracts');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'leverage': leverage.toString (),
+        };
+        const response = await this.futuresPrivatePostChangeCrossUserLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": true
+        //    }
+        //
+        const leverageNum = this.safeInteger (response, 'leverage');
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': leverageNum,
+            'shortLeverage': leverageNum,
+        } as Leverage;
     }
 
     /**
