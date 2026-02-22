@@ -767,6 +767,26 @@
         ],
         "fetchBalance": [
             {
+                "description": "fetch margin balance",
+                "method": "fetchBalance",
+                "url": "https://api.kucoin.com/api/v1/margin/account",
+                "input": [
+                    {
+                        "type": "margin"
+                    }
+                ]
+            },
+            {
+                "description": "fetch contract balance",
+                "method": "fetchBalance",
+                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ]
+            },
+            {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
                 "url": "https://api.kucoin.com/api/v1/accounts?type=trade",
@@ -825,7 +845,7 @@
                     "hf": true
                   }
                 ]
-              }
+            }
         ],
         "fetchDeposits": [
             {
@@ -974,6 +994,20 @@
         ],
         "fetchLedger": [
             {
+                "description": "fetch contract ledger",
+                "method": "fetchLedger",
+                "url": "https://api-futures.kucoin.com/api/v1/transaction-history",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",
                 "url": "https://api.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
@@ -1097,11 +1131,11 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetch trades",
+                "description": "swap fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.kucoin.com/api/v1/market/histories?symbol=BTC-USDT",
+                "url": "https://api-futures.kucoin.com/api/v1/trade/history?symbol=XBTUSDTM",
                 "input": [
-                    "BTC/USDT"
+                    "BTC/USDT:USDT"
                 ]
             },
             {
@@ -1225,7 +1259,16 @@
         ],
         "fetchTradingFee": [
             {
-                "description": "fetch trading fee",
+                "description": "fetch trading fee for swap market",
+                "method": "fetchTradingFee",
+                "url": "https://api-futures.kucoin.com/api/v1/trade-fees?symbol=ETHUSDTM",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch trading fee for spot market",
                 "method": "fetchTradingFee",
                 "url": "https://api.kucoin.com/api/v1/trade-fees?symbols=BTC-USDT",
                 "input": [
