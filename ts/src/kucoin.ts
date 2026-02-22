@@ -5382,8 +5382,9 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://www.kucoin.com/docs/rest/spot-trading/market-data/get-trade-histories
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-trade-history
      * @see https://www.kucoin.com/docs-new/rest/ua/get-trades
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-trade-history
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -5408,9 +5409,9 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'uta', false);
         let response = undefined;
         let trades = undefined;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
         if (uta) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTrades', market, params);
             if (type === 'spot') {
                 request['tradeType'] = 'SPOT';
             } else {
@@ -5437,7 +5438,7 @@ export default class kucoin extends Exchange {
             //
             const data = this.safeDict (response, 'data', {});
             trades = this.safeList (data, 'list', []);
-        } else {
+        } else if (type === 'spot') {
             response = await this.publicGetMarketHistories (this.extend (request, params));
             //
             //     {
@@ -5452,6 +5453,26 @@ export default class kucoin extends Exchange {
             //             }
             //         ]
             //     }
+            //
+            trades = this.safeList (response, 'data', []);
+        } else {
+            response = await this.futuresPublicGetTradeHistory (this.extend (request, params));
+            //
+            //      {
+            //          "code": "200000",
+            //          "data": [
+            //              {
+            //                  "sequence": 32114961,
+            //                  "side": "buy",
+            //                  "size": 39,
+            //                  "price": "4001.6500000000",
+            //                  "takerOrderId": "61c20742f172110001e0ebe4",
+            //                  "makerOrderId": "61c2073fcfc88100010fcb5d",
+            //                  "tradeId": "61c2074277a0c473e69029b8",
+            //                  "ts": 1640105794099993896   // filled time
+            //              }
+            //          ]
+            //      }
             //
             trades = this.safeList (response, 'data', []);
         }
