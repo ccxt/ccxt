@@ -402,6 +402,40 @@ func (this *Hyperliquid) CreateOrder(symbol string, typeVar string, side string,
 
 /**
  * @method
+ * @name hyperliquid#createTwapOrder
+ * @description create a trade order that is executed as a TWAP order over a specified duration.
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {int} duration the duration of the TWAP order in milliseconds
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.randomize] whether to randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
+
+	opts := CreateTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateTwapOrder(symbol, side, amount, duration, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
  * @name hyperliquid#createOrders
  * @description create a list of trade orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
@@ -440,6 +474,7 @@ func (this *Hyperliquid) CreateOrders(orders []OrderRequest, options ...CreateOr
  * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
  * @param {string} [params.vaultAddress] the vault address for order
  * @param {string} [params.subAccountAddress] sub account user address
+ * @param {boolean} [params.twap] whether the order to cancel is a twap order, (default is false)
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -502,6 +537,42 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
 		return nil, CreateReturnError(res)
 	}
 	return NewOrderArray(res), nil
+}
+
+/**
+ * @method
+ * @name hyperliquid#cancelTwapOrder
+ * @description cancels a running twap order
+ * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.expiresAfter] time in ms after which the twap order expires
+ * @param {string} [params.vaultAddress] the vault address for order
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Hyperliquid) CancelTwapOrder(id string, options ...CancelTwapOrderOptions) (Order, error) {
+
+	opts := CancelTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CancelTwapOrder(id, symbol, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
 }
 
 /**

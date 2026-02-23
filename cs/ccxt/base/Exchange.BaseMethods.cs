@@ -1436,7 +1436,14 @@ public partial class Exchange
     public async virtual Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        if (isTrue(getValue(this.has, "fetchOpenInterests")))
+        {
+            object openInterests = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
+            return this.safeDict(openInterests, symbol);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        }
     }
 
     public async virtual Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
@@ -5067,6 +5074,12 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createOrder() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createTwapOrder(object symbol, object side, object amount, object duration, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createTwapOrder() is not supported yet")) ;
     }
 
     public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)

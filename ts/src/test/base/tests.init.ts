@@ -1,5 +1,5 @@
 
-// AUTO_TRANSPILE_ENABLED
+
 
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
@@ -20,6 +20,7 @@ import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
+import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
@@ -28,10 +29,13 @@ import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
+import testKeysort from './test.keysort.js';
 import testCapitalize from './test.capitalize.js';
+import testConstants from './test.constants.js';
 
 async function baseTestsInit () {
     testLanguageSpecific ();
+    testConstants ();
     testAfterConstructor ();
     testExtend ();
     testDeepExtend ();
@@ -55,9 +59,11 @@ async function baseTestsInit () {
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
     testParsePrecision ();
+    testPrecisionFromString ();
     testExtractParams ();
     testArraysConcat ();
     testEthMethods ();
+    testKeysort ();
     await testSleep ();
 }
 

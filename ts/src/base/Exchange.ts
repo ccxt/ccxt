@@ -2,8 +2,8 @@
 
 import * as functions from './functions.js';
 import {
-    keys as keysFunc,
-    values as valuesFunc,
+    // keys as keysFunc,
+    // values as valuesFunc,
     // inArray as inArrayFunc,
     vwap as vwapFunc,
 } from './functions.js';
@@ -434,8 +434,6 @@ export default class Exchange {
     deepExtend = deepExtend;
     deepExtendSafe = deepExtend;
     isNode = isNode;
-    keys = keysFunc;
-    values = valuesFunc;
     extend = extend;
     clone = clone;
     flatten = flatten;
@@ -3146,7 +3144,12 @@ export default class Exchange {
     }
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
-        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests ([ symbol ], params);
+            return this.safeDict (openInterests, symbol) as OpenInterest;
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
 
     async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
@@ -6072,6 +6075,10 @@ export default class Exchange {
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
+    }
+
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createTwapOrder() is not supported yet');
     }
 
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {

@@ -6,7 +6,9 @@
 
 // ----------------------------------------------------------------------------
 import * as functions from './functions.js';
-import { keys as keysFunc, values as valuesFunc, 
+import { 
+// keys as keysFunc,
+// values as valuesFunc,
 // inArray as inArrayFunc,
 vwap as vwapFunc, } from './functions.js';
 // import exceptions from "./errors.js"
@@ -168,8 +170,6 @@ export default class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = keysFunc;
-        this.values = valuesFunc;
         this.extend = extend;
         this.clone = clone;
         this.flatten = flatten;
@@ -2681,7 +2681,13 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -5490,6 +5496,9 @@ export default class Exchange {
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrder() is not supported yet');
+    }
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        throw new NotSupported(this.id + ' createTwapOrder() is not supported yet');
     }
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
         throw new NotSupported(this.id + ' createConvertTrade() is not supported yet');

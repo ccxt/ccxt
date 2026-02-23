@@ -7720,7 +7720,7 @@ func (this *BybitCore) ParsePosition(position interface{}, optionalArgs ...inter
 		"notional":                    this.ParseNumber(notional),
 		"leverage":                    this.ParseNumber(leverage),
 		"unrealizedPnl":               this.ParseNumber(unrealisedPnl),
-		"realizedPnl":                 this.SafeNumber(position, "closedPnl"),
+		"realizedPnl":                 this.SafeNumber2(position, "curRealisedPnl", "closedPnl"),
 		"contracts":                   this.ParseNumber(size),
 		"contractSize":                this.SafeNumber(market, "contractSize"),
 		"marginRatio":                 this.ParseNumber(marginRatio),

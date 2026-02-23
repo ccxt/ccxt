@@ -6935,7 +6935,7 @@ class bybit extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
-            'realizedPnl' => $this->safe_number($position, 'closedPnl'),
+            'realizedPnl' => $this->safe_number_2($position, 'curRealisedPnl', 'closedPnl'),
             'contracts' => $this->parse_number($size), // in USD for inverse swaps
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),

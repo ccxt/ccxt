@@ -299,6 +299,76 @@ public partial class bitstamp
         return new Order(res);
     }
     /// <summary>
+    /// edit a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified symbol of the market to create an order in
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : 'market', 'limit' or 'stop_limit'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>side</term>
+    /// <description>
+    /// string : 'buy' or 'sell'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much of the currency you want to trade in units of the base currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price for the order, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// string : the price to trigger a stop order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : for crypto trading either 'gtc' or 'ioc' can be used
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : a unique identifier for the order, automatically generated if not sent
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// cancels an open order
     /// </summary>
     /// <remarks>
@@ -398,6 +468,58 @@ public partial class bitstamp
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetches historical funding rate prices
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest funding rate to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest funding rate
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
     /// <summary>
     /// fetch history of deposits and withdrawals
@@ -512,6 +634,26 @@ public partial class bitstamp
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+    }
+    /// <summary>
+    /// fetch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingRate(symbol, parameters);
+        return new FundingRate(res);
     }
     /// <summary>
     /// fetch all unfilled currently open orders

@@ -48,3 +48,4 @@ try
 trrigger!
 go!!!
 build
+go
