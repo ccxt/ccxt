@@ -690,6 +690,27 @@
                 "url": "https://www.bitmex.com/api/v1/stats",
                 "input": []
             }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "Fetch Settlement History",
+                "method": "fetchSettlementHistory",
+                "url": "https://www.bitmex.com/api/v1/settlement",
+                "input": []
+            },
+            {
+                "description": "Fetch Settlement History with since, limit and until",
+                "method": "fetchSettlementHistory",
+                "url": "https://www.bitmex.com/api/v1/settlement?startTime=2015-05-01T12%3A00%3A00.000Z&count=2&endTime=2015-05-01T12%3A00%3A00.000Z",
+                "input": [
+                    null,
+                    1430481600000,
+                    2,
+                    {
+                       "until": 1430568000000
+                    }
+                ]
+            }
         ]
     }
 }
