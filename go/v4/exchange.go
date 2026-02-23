@@ -186,7 +186,7 @@ type Exchange struct {
 	WsClientsMu sync.Mutex
 	Balance     interface{}
 	Positions   interface{}
-	Clients     interface{}
+	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
 
