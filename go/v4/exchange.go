@@ -186,7 +186,7 @@ type Exchange struct {
 	WsClientsMu sync.Mutex
 	Balance     interface{}
 	Positions   interface{}
-	Clients     map[string]interface{}
+	Clients     interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
 
@@ -233,10 +233,12 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	limit := 10000
 	// Initialize WebSocket data structures with thread-safe sync.Map
-	this.Trades = make(map[string]*ArrayCache)
+	// this.Trades = make(map[string]*ArrayCache)
+	this.Trades = &sync.Map{}
 	this.Tickers = &sync.Map{}
 	this.Orderbooks = &sync.Map{}
-	this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	this.Ohlcvs = &sync.Map{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
@@ -244,7 +246,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]interface{})
-	this.Balance = make(map[string]interface{})
+	// this.Balance = make(map[string]interface{})
+	this.Balance = &sync.Map{}
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
@@ -252,7 +255,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
 	this.Currencies = &sync.Map{}
-	this.FundingRates = make(map[string]interface{})
+	// this.FundingRates = make(map[string]interface{})
+	this.FundingRates = &sync.Map{}
 	this.Bidsasks = &sync.Map{}
 	this.ProxyDictionaries = make(map[string]interface{})
 	this.AccountsById = make(map[string]interface{})
