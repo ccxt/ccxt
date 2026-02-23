@@ -165,7 +165,7 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
-    fileRead, fileWrite, fileExists, fileDelete,
+    fileRead, fileWrite, fileExists, getTempDir,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
@@ -533,14 +533,10 @@ export default class Exchange {
     packb = packb;
     urlencodeBase64 = urlencodeBase64;
     // io
-    // @ts-ignore
     fileRead = fileRead;
-    // @ts-ignore
     fileWrite = fileWrite;
-    // @ts-ignore
     fileExists = fileExists;
-    // @ts-ignore
-    fileDelete = fileDelete;
+    getTempDir = getTempDir;
 
     constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions);

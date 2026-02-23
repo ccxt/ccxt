@@ -14,7 +14,9 @@ async function testIo () {
     const ms = exchange.milliseconds ();
     const fileName = 'ccxt-test-io-' + ms.toString ();
     // upper tmp dir
-    const filePath = '../../../../../../../../../../../../tmp/' + fileName;
+    const tempDir = exchange.getTempDir ();
+    assert (tempDir !== undefined && tempDir !== '', "temp dir should not be empty");
+    const filePath = tempDir + fileName; // '../../../../../../../../../../../../tmp/' + fileName;
     const fileContent: string = 'hello world';
     assert (exchange.fileWrite (filePath, fileContent), "can not write file " + filePath);
     assert (exchange.fileExists (filePath), "file does not exist: " + filePath);

@@ -504,6 +504,7 @@ class Exchange(object):
         :param str encoding: File encoding (default: 'utf-8')
         :returns str|None: File contents as string, or None on error
         """
+        self._ensure_ccxt_file(path)
         try:
             with open(path, 'r', encoding=encoding) as file:
                 return file.read()
@@ -518,22 +519,10 @@ class Exchange(object):
         :param str encoding: File encoding (default: 'utf-8')
         :returns bool: True if successful, False otherwise
         """
+        self._ensure_ccxt_file(path)
         try:
             with open(path, 'w', encoding=encoding) as file:
                 file.write(data)
-            return True
-        except Exception:
-            return False
-
-    def file_delete(self, path: str):
-        """
-        Delete file (synchronous)
-        :param str path: File path to delete
-        :returns bool: True if successful, False otherwise
-        """
-        try:
-            import os
-            os.remove(path)
             return True
         except Exception:
             return False
@@ -544,61 +533,36 @@ class Exchange(object):
         :param str path: File path to check
         :returns bool: True if file exists, False otherwise
         """
+        self._ensure_ccxt_file(path)
         try:
             import os
             return os.path.isfile(path)
         except Exception:
             return False
 
-    def dir_read(self, path: str):
+    def _get_temp_dir(self):
         """
-        Read directory contents (synchronous)
-        :param str path: Directory path to read
-        :returns list|None: List of filenames in the directory, or None on error
+        Get system temporary directory
+        :returns str|None: Temporary directory path with trailing slash, or None
         """
         try:
+            import tempfile
             import os
-            return os.listdir(path)
+            return os.path.join(tempfile.gettempdir(), '')
         except Exception:
             return None
 
-    def directory_create(self, path: str):
+    def _ensure_ccxt_file(self, path):
         """
-        Create directory (synchronous)
-        :param str path: Directory path to create
-        :returns bool: True if successful, False otherwise
+        Check if file belongs to CCXT temp files, so users are ensure it has no access elsewhere
+        :param str path: File path to check
+        :raise: Exception: invalid file path
         """
-        try:
-            import os
-            os.makedirs(path, exist_ok=True)
-            return True
-        except Exception:
-            return False
-
-    def directory_delete(self, path: str):
-        """
-        Delete directory (synchronous)
-        :param str path: Directory path to delete
-        :returns bool: True if successful, False otherwise
-        """
-        try:
-            import os
-            os.rmdir(path)
-            return True
-        except Exception:
-            return False
-
-    def directory_exists(self, path: str):
-        """
-        Check if directory exists (synchronous)
-        :param str path: Directory path to check
-        :returns bool: True if directory exists, False otherwise
-        """
-        try:
-            import os
-            return os.path.isdir(path)
-        except Exception:
-            return False
+        temp_dir = self._get_temp_dir()
+        if temp_dir is None:
+            return
+        if temp_dir not in path or 'ccxt' not in path:
+            raise Exception('invalid file path')
 
     @staticmethod
     def gzip_deflate(response, text):
