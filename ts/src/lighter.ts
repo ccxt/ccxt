@@ -364,7 +364,7 @@ export default class lighter extends Exchange {
             if (walletAddress === undefined) {
                 throw new ArgumentsRequired (this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddrrss to fetch accountIndex');
             }
-            const res = await this.publicGetAccountsByL1Address ({ "l1_address": walletAddress });
+            const res = await this.publicGetAccountsByL1Address ({ 'l1_address': walletAddress });
             //
             // {
             //     "code": 200,
@@ -2039,8 +2039,6 @@ export default class lighter extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        let toAccountIndex = undefined;
-        [ toAccountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
         let apiKeyIndex = undefined;
         [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
@@ -2049,6 +2047,8 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'transfer', 'accountIndex', 'account_index');
+        let toAccountIndex = undefined;
+        [ toAccountIndex, params ] = this.handleOptionAndParams2 (params, 'transfer', 'toAccountIndex', 'to_account_index', accountIndex);
         const currency = this.currency (code);
         if (currency['code'] === 'USDC') {
             amount = this.parseToInt (Precise.stringMul (this.pow ('10', '6'), this.currencyToPrecision (code, amount)));
