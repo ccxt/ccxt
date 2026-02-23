@@ -540,7 +540,7 @@ class Exchange(object):
         except Exception:
             return False
 
-    def _get_temp_dir(self):
+    def get_temp_dir(self):
         """
         Get system temporary directory
         :returns str|None: Temporary directory path with trailing slash, or None
@@ -558,7 +558,7 @@ class Exchange(object):
         :param str path: File path to check
         :raise: Exception: invalid file path
         """
-        temp_dir = self._get_temp_dir()
+        temp_dir = self.get_temp_dir()
         if temp_dir is None:
             return
         if temp_dir not in path or 'ccxt' not in path:
