@@ -39,7 +39,7 @@ from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType
 
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.asymmetric import padding, ed25519
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
@@ -1585,9 +1585,6 @@ class Exchange(object):
 
     @staticmethod
     def eddsa(request, secret, curve='ed25519', url_encode=False):
-        # imports
-        from cryptography.hazmat.primitives.asymmetric import ed25519
-        #
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
         private_key = ed25519.Ed25519PrivateKey.from_private_bytes(secret) if len(secret) == 32 else load_pem_private_key(secret, None)
