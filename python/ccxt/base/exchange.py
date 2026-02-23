@@ -44,6 +44,12 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
 
+# ecdsa signing
+from ccxt.static_dependencies import ecdsa
+from ccxt.static_dependencies import keccak
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'Exchange',
 ]
@@ -1238,7 +1244,6 @@ class Exchange(object):
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
         if algorithm == 'keccak':
-            from ccxt.static_dependencies import keccak
             binary = bytes(keccak.SHA3(request))
         else:
             h = hashlib.new(algorithm, request)
@@ -1357,7 +1362,6 @@ class Exchange(object):
 
     @staticmethod
     def eth_get_address_from_private_key(private_key):
-        from ccxt.static_dependencies import keccak
         import coincurve
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
@@ -1473,7 +1477,6 @@ class Exchange(object):
             If coincurve is not available or fails for SECP256K1, the method automatically
             falls back to the standard ecdsa implementation.
         """
-        from ccxt.static_dependencies import ecdsa
         # your welcome - frosty00
         algorithms = {
             'p192': [ecdsa.NIST192p, 'sha256'],
