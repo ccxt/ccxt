@@ -739,13 +739,42 @@ func WithWatchFundingRateParams(params map[string]interface{}) WatchFundingRateO
 
 
 type WatchFundingRatesOptionsStruct struct {
+    Symbols *[]string
     Params *map[string]interface{}
 }
 
 type WatchFundingRatesOptions func(opts *WatchFundingRatesOptionsStruct)
 
+func WithWatchFundingRatesSymbols(symbols []string) WatchFundingRatesOptions {
+    return func(opts *WatchFundingRatesOptionsStruct) {
+        opts.Symbols = &symbols
+    }
+}
+
+
 func WithWatchFundingRatesParams(params map[string]interface{}) WatchFundingRatesOptions {
     return func(opts *WatchFundingRatesOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type UnWatchFundingRatesOptionsStruct struct {
+    Symbols *[]string
+    Params *map[string]interface{}
+}
+
+type UnWatchFundingRatesOptions func(opts *UnWatchFundingRatesOptionsStruct)
+
+func WithUnWatchFundingRatesSymbols(symbols []string) UnWatchFundingRatesOptions {
+    return func(opts *UnWatchFundingRatesOptionsStruct) {
+        opts.Symbols = &symbols
+    }
+}
+
+
+func WithUnWatchFundingRatesParams(params map[string]interface{}) UnWatchFundingRatesOptions {
+    return func(opts *UnWatchFundingRatesOptionsStruct) {
         opts.Params = &params
     }
 }
@@ -2133,6 +2162,19 @@ func WithUnWatchTickersParams(params map[string]interface{}) UnWatchTickersOptio
 }
 
 
+type UnWatchFundingRateOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type UnWatchFundingRateOptions func(opts *UnWatchFundingRateOptionsStruct)
+
+func WithUnWatchFundingRateParams(params map[string]interface{}) UnWatchFundingRateOptions {
+    return func(opts *UnWatchFundingRateOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
 type FetchOrderOptionsStruct struct {
     Symbol *string
     Params *map[string]interface{}
@@ -2359,6 +2401,53 @@ func WithFetchPositionModeSymbol(symbol string) FetchPositionModeOptions {
 
 func WithFetchPositionModeParams(params map[string]interface{}) FetchPositionModeOptions {
     return func(opts *FetchPositionModeOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchADLRankOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type FetchADLRankOptions func(opts *FetchADLRankOptionsStruct)
+
+func WithFetchADLRankParams(params map[string]interface{}) FetchADLRankOptions {
+    return func(opts *FetchADLRankOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchPositionsADLRankOptionsStruct struct {
+    Symbols *[]string
+    Params *map[string]interface{}
+}
+
+type FetchPositionsADLRankOptions func(opts *FetchPositionsADLRankOptionsStruct)
+
+func WithFetchPositionsADLRankSymbols(symbols []string) FetchPositionsADLRankOptions {
+    return func(opts *FetchPositionsADLRankOptionsStruct) {
+        opts.Symbols = &symbols
+    }
+}
+
+
+func WithFetchPositionsADLRankParams(params map[string]interface{}) FetchPositionsADLRankOptions {
+    return func(opts *FetchPositionsADLRankOptionsStruct) {
+        opts.Params = &params
+    }
+}
+
+
+type FetchPositionADLRankOptionsStruct struct {
+    Params *map[string]interface{}
+}
+
+type FetchPositionADLRankOptions func(opts *FetchPositionADLRankOptionsStruct)
+
+func WithFetchPositionADLRankParams(params map[string]interface{}) FetchPositionADLRankOptions {
+    return func(opts *FetchPositionADLRankOptionsStruct) {
         opts.Params = &params
     }
 }

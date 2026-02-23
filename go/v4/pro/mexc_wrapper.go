@@ -346,6 +346,60 @@ func (this *Mexc) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
 }
 /**
  * @method
+ * @name mexc#watchFundingRate
+ * @description watch the current funding rate
+ * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Mexc) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRateOptions) (ccxt.FundingRate, error) {
+
+    opts := ccxt.WatchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchFundingRate(symbol, params)
+    if ccxt.IsError(res) {
+        return ccxt.FundingRate{}, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewFundingRate(res), nil
+}
+/**
+ * @method
+ * @name mexc#unWatchFundingRate
+ * @description unWatches the current funding rate for a symbol
+ * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Mexc) UnWatchFundingRate(symbol string, options ...ccxt.UnWatchFundingRateOptions) (interface{}, error) {
+
+    opts := ccxt.UnWatchFundingRateOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.UnWatchFundingRate(symbol, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return res, nil
+}
+/**
+ * @method
  * @name mexc#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @param {string} symbol unified symbol of the market to fetch the ticker for

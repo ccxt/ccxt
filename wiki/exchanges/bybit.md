@@ -85,6 +85,7 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [fetchMarginMode](#fetchmarginmode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -2062,6 +2063,27 @@ bybit.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
 ```
 
 
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/position#response-parameters  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchPositionsADLRank ([symbols, params])
+```
+
+
 <a name="fetchMarginMode" id="fetchmarginmode"></a>
 
 ### fetchMarginMode{docsify-ignore}
@@ -2708,7 +2730,7 @@ watch the public liquidations of a trading pair
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - an array of [liquidation structures](https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure)
 
-**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation  
+**See**: https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

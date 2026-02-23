@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -111,8 +111,10 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -2384,6 +2386,89 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         return await self.privatePostAccountSetPositionMode(self.extend(request, params))
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://docs.blofin.com/index.html#get-positions
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = await self.privateGetAccountPositions(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "positionId": "756786",
+        #                 "instId": "BTC-USDT",
+        #                 "instType": "SWAP",
+        #                 "marginMode": "cross",
+        #                 "positionSide": "net",
+        #                 "adl": "1",
+        #                 "positions": "0.1",
+        #                 "availablePositions": "0.1",
+        #                 "averagePrice": "88564.9",
+        #                 "markPrice": "88546.3696492756",
+        #                 "marginRatio": "822.305183525552961566",
+        #                 "liquidationPrice": "",
+        #                 "unrealizedPnl": "-0.00185303507244",
+        #                 "unrealizedPnlRatio": "-0.000627687178252332",
+        #                 "initialMargin": "2.951545654975853333",
+        #                 "maintenanceMargin": "0.02656391089478268",
+        #                 "createTime": "1767169876207",
+        #                 "updateTime": "1767169876207",
+        #                 "leverage": "3"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_adl_ranks(data, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "positionId": "756786",
+        #         "instId": "BTC-USDT",
+        #         "instType": "SWAP",
+        #         "marginMode": "cross",
+        #         "positionSide": "net",
+        #         "adl": "1",
+        #         "positions": "0.1",
+        #         "availablePositions": "0.1",
+        #         "averagePrice": "88564.9",
+        #         "markPrice": "88546.3696492756",
+        #         "marginRatio": "822.305183525552961566",
+        #         "liquidationPrice": "",
+        #         "unrealizedPnl": "-0.00185303507244",
+        #         "unrealizedPnlRatio": "-0.000627687178252332",
+        #         "initialMargin": "2.951545654975853333",
+        #         "maintenanceMargin": "0.02656391089478268",
+        #         "createTime": "1767169876207",
+        #         "updateTime": "1767169876207",
+        #         "leverage": "3"
+        #     }
+        #
+        marketId = self.safe_string(info, 'instId')
+        timestamp = self.safe_integer_omit_zero(info, 'createTime')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adl'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

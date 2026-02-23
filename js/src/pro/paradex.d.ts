@@ -1,5 +1,5 @@
 import paradexRest from '../paradex.js';
-import type { Int, Str, Trade, Order, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, Trade, Order, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): any;
@@ -65,6 +65,28 @@ export default class paradex extends paradexRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
     handleTicker(client: Client, message: any): any;
+    /**
+     * @method
+     * @name paradex#watchFundingRate
+     * @description watch the current funding rate for a symbol
+     * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    /**
+     * @method
+     * @name paradex#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    handleFundingRate(client: Client, message: any): void;
+    parseFundingRateWs(contract: any, market?: Market): FundingRate;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;
 }

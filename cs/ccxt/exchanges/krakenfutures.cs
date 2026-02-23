@@ -1752,6 +1752,10 @@ public partial class krakenfutures : Exchange
             { "partiallyFilled", "open" },
             { "ENTERED_BOOK", "open" },
             { "FULLY_EXECUTED", "closed" },
+            { "CANCELLED", "canceled" },
+            { "TRIGGER_PLACED", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "UNTOUCHED", "open" },
         };
         return this.safeString(statuses, status, status);
     }

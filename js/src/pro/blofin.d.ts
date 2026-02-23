@@ -1,5 +1,5 @@
 import blofinRest from '../blofin.js';
-import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position } from '../base/types.js';
+import type { Int, Market, Trade, OrderBook, Strings, Ticker, Tickers, OHLCV, Balances, Str, Order, Position, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class blofin extends blofinRest {
     describe(): any;
@@ -169,6 +169,17 @@ export default class blofin extends blofinRest {
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: Market): Position;
+    /**
+     * @method
+     * @name blofin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.blofin.com/index.html#ws-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    handleFundingRate(client: Client, message: any): void;
     watchMultipleWrapper(isPublic: boolean, channelName: string, callerMethodName: string, symbolsArray?: any[], params?: {}): Promise<any>;
     getSubscriptionRequest(args: any): {
         op: string;

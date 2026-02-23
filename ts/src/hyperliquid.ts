@@ -3091,17 +3091,45 @@ export default class hyperliquid extends Exchange {
         //
         //     [
         //         {
-        //             "coin": "ETH",
-        //             "limitPx": "2000.0",
-        //             "oid": 3991946565,
-        //             "origSz": "0.1",
-        //             "side": "B",
-        //             "sz": "0.1",
-        //             "timestamp": 1704346468838
+        //             "order": {
+        //                 "coin": "ETH",
+        //                 "limitPx": "2000.0",
+        //                 "oid": 3991946565,
+        //                 "origSz": "0.1",
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "timestamp": 1704346468838
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": 1704346468838
         //         }
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        // Hyperliquid returns the full status history for each order,
+        // so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        const deduplicatedByOid: Dict = {};
+        for (let i = 0; i < response.length; i++) {
+            const rawOrder = response[i];
+            let entry = this.safeDict (rawOrder, 'order');
+            if (entry === undefined) {
+                entry = rawOrder;
+            }
+            const oid = this.safeString (entry, 'oid');
+            if (oid !== undefined) {
+                if (!(oid in deduplicatedByOid)) {
+                    deduplicatedByOid[oid] = rawOrder;
+                } else {
+                    const existingTimestamp = this.safeInteger (deduplicatedByOid[oid], 'statusTimestamp');
+                    const currentTimestamp = this.safeInteger (rawOrder, 'statusTimestamp');
+                    if (currentTimestamp !== undefined && (existingTimestamp === undefined || currentTimestamp > existingTimestamp)) {
+                        deduplicatedByOid[oid] = rawOrder;
+                    }
+                }
+            }
+        }
+        const deduplicated = Object.values (deduplicatedByOid);
+        return this.parseOrders (deduplicated, market, since, limit);
     }
 
     /**

@@ -1640,7 +1640,7 @@ func  (this *BtcmarketsCore) Withdraw(code interface{}, amount interface{}, addr
             PanicOnError(retRes13558)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
-                "currency_id": GetValue(currency, "id"),
+                "assetName": GetValue(currency, "id"),
                 "amount": this.CurrencyToPrecision(code, amount),
             }
             if IsTrue(!IsEqual(code, "AUD")) {

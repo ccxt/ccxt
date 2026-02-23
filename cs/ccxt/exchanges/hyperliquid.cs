@@ -3387,17 +3387,51 @@ public partial class hyperliquid : Exchange
         //
         //     [
         //         {
-        //             "coin": "ETH",
-        //             "limitPx": "2000.0",
-        //             "oid": 3991946565,
-        //             "origSz": "0.1",
-        //             "side": "B",
-        //             "sz": "0.1",
-        //             "timestamp": 1704346468838
+        //             "order": {
+        //                 "coin": "ETH",
+        //                 "limitPx": "2000.0",
+        //                 "oid": 3991946565,
+        //                 "origSz": "0.1",
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "timestamp": 1704346468838
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": 1704346468838
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        // Hyperliquid returns the full status history for each order,
+        // so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        object deduplicatedByOid = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(response, i);
+            object entry = this.safeDict(rawOrder, "order");
+            if (isTrue(isEqual(entry, null)))
+            {
+                entry = rawOrder;
+            }
+            object oid = this.safeString(entry, "oid");
+            if (isTrue(!isEqual(oid, null)))
+            {
+                if (!isTrue((inOp(deduplicatedByOid, oid))))
+                {
+                    ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
+                } else
+                {
+                    object existingTimestamp = this.safeInteger(getValue(deduplicatedByOid, oid), "statusTimestamp");
+                    object currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
+                    if (isTrue(isTrue(!isEqual(currentTimestamp, null)) && isTrue((isTrue(isEqual(existingTimestamp, null)) || isTrue(isGreaterThan(currentTimestamp, existingTimestamp))))))
+                    {
+                        ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
+                    }
+                }
+            }
+        }
+        object deduplicated = new List<object>(((IDictionary<string,object>)deduplicatedByOid).Values);
+        return this.parseOrders(deduplicated, market, since, limit);
     }
 
     /**

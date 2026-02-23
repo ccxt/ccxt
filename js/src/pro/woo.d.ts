@@ -1,5 +1,5 @@
 import wooRest from '../woo.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class woo extends wooRest {
     describe(): any;
@@ -210,6 +210,17 @@ export default class woo extends wooRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: any, message: any): void;
+    /**
+     * @method
+     * @name woo#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.woox.io/#estfundingrate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    handleFundingRate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleUnSubscription(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;

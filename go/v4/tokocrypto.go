@@ -35,6 +35,8 @@ func  (this *TokocryptoCore) Describe() interface{}  {
             "cancelAllOrders": false,
             "cancelOrder": true,
             "cancelOrders": nil,
+            "closeAllPositions": false,
+            "closePosition": false,
             "createDepositAddress": false,
             "createMarketBuyOrderWithCost": true,
             "createMarketOrderWithCost": false,
@@ -42,9 +44,12 @@ func  (this *TokocryptoCore) Describe() interface{}  {
             "createOrder": true,
             "createReduceOnlyOrder": nil,
             "createStopLimitOrder": true,
+            "createStopLossOrder": false,
             "createStopMarketOrder": true,
             "createStopOrder": true,
+            "createTakeProfitOrder": false,
             "fetchAccounts": false,
+            "fetchAllGreeks": false,
             "fetchBalance": true,
             "fetchBidsAsks": true,
             "fetchBorrowInterest": nil,
@@ -63,9 +68,12 @@ func  (this *TokocryptoCore) Describe() interface{}  {
             "fetchDeposits": true,
             "fetchDepositsWithdrawals": false,
             "fetchFundingHistory": false,
+            "fetchFundingInterval": false,
+            "fetchFundingIntervals": false,
             "fetchFundingRate": false,
             "fetchFundingRateHistory": false,
             "fetchFundingRates": false,
+            "fetchGreeks": false,
             "fetchIndexOHLCV": false,
             "fetchIsolatedBorrowRate": false,
             "fetchIsolatedBorrowRates": false,
@@ -73,23 +81,36 @@ func  (this *TokocryptoCore) Describe() interface{}  {
             "fetchLedger": nil,
             "fetchLeverage": false,
             "fetchLeverageTiers": false,
+            "fetchLongShortRatio": false,
+            "fetchLongShortRatioHistory": false,
             "fetchMarketLeverageTiers": "emulated",
             "fetchMarkets": true,
             "fetchMarkOHLCV": false,
+            "fetchMarkPrice": false,
+            "fetchMarkPrices": false,
+            "fetchMySettlementHistory": false,
             "fetchMyTrades": true,
             "fetchOHLCV": true,
             "fetchOpenInterestHistory": false,
+            "fetchOpenInterests": false,
             "fetchOpenOrder": false,
             "fetchOpenOrders": true,
+            "fetchOption": false,
+            "fetchOptionChain": false,
             "fetchOrder": true,
             "fetchOrderBook": true,
             "fetchOrderBooks": false,
             "fetchOrders": true,
             "fetchOrderTrades": false,
             "fetchPosition": false,
+            "fetchPositionHistory": false,
+            "fetchPositionMode": false,
             "fetchPositions": false,
+            "fetchPositionsForSymbol": false,
+            "fetchPositionsHistory": false,
             "fetchPositionsRisk": false,
             "fetchPremiumIndexOHLCV": false,
+            "fetchSettlementHistory": false,
             "fetchStatus": false,
             "fetchTicker": false,
             "fetchTickers": false,
@@ -102,6 +123,8 @@ func  (this *TokocryptoCore) Describe() interface{}  {
             "fetchTransactionFees": false,
             "fetchTransactions": false,
             "fetchTransfers": false,
+            "fetchUnderlyingAssets": false,
+            "fetchVolatilityHistory": false,
             "fetchWithdrawal": false,
             "fetchWithdrawals": true,
             "fetchWithdrawalWhitelist": false,
@@ -778,8 +801,8 @@ func  (this *TokocryptoCore) FetchMarkets(optionalArgs ...interface{}) <- chan i
             //
             if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
         
-                retRes75112 := (<-this.LoadTimeDifference())
-                PanicOnError(retRes75112)
+                retRes77412 := (<-this.LoadTimeDifference())
+                PanicOnError(retRes77412)
             }
             var data interface{} = this.SafeValue(response, "data", map[string]interface{} {})
             var list interface{} = this.SafeValue(data, "list", []interface{}{})
@@ -921,8 +944,8 @@ func  (this *TokocryptoCore) FetchOrderBook(symbol interface{}, optionalArgs ...
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes8808 := (<-this.LoadMarkets())
-            PanicOnError(retRes8808)
+            retRes9038 := (<-this.LoadMarkets())
+            PanicOnError(retRes9038)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {}
             if IsTrue(!IsEqual(limit, nil)) {
@@ -1151,8 +1174,8 @@ func  (this *TokocryptoCore) FetchTrades(symbol interface{}, optionalArgs ...int
             params := GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes10898 := (<-this.LoadMarkets())
-            PanicOnError(retRes10898)
+            retRes11128 := (<-this.LoadMarkets())
+            PanicOnError(retRes11128)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": this.GetMarketIdByType(market),
@@ -1356,8 +1379,8 @@ func  (this *TokocryptoCore) FetchTickers(optionalArgs ...interface{}) <- chan i
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes12778 := (<-this.LoadMarkets())
-            PanicOnError(retRes12778)
+            retRes13008 := (<-this.LoadMarkets())
+            PanicOnError(retRes13008)
         
             response:= (<-this.BinanceGetTicker24hr(params))
             PanicOnError(response)
@@ -1391,8 +1414,8 @@ func  (this *TokocryptoCore) FetchTicker(symbol interface{}, optionalArgs ...int
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes12998 := (<-this.LoadMarkets())
-            PanicOnError(retRes12998)
+            retRes13228 := (<-this.LoadMarkets())
+            PanicOnError(retRes13228)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": Add(GetValue(market, "baseId"), GetValue(market, "quoteId")),
@@ -1432,8 +1455,8 @@ func  (this *TokocryptoCore) FetchBidsAsks(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes13228 := (<-this.LoadMarkets())
-            PanicOnError(retRes13228)
+            retRes13458 := (<-this.LoadMarkets())
+            PanicOnError(retRes13458)
         
             response:= (<-this.BinanceGetTickerBookTicker(params))
             PanicOnError(response)
@@ -1511,8 +1534,8 @@ func  (this *TokocryptoCore) FetchOHLCV(symbol interface{}, optionalArgs ...inte
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes13878 := (<-this.LoadMarkets())
-            PanicOnError(retRes13878)
+            retRes14108 := (<-this.LoadMarkets())
+            PanicOnError(retRes14108)
             var market interface{} = this.Market(symbol)
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
@@ -1582,8 +1605,8 @@ func  (this *TokocryptoCore) FetchBalance(optionalArgs ...interface{}) <- chan i
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes14428 := (<-this.LoadMarkets())
-            PanicOnError(retRes14428)
+            retRes14658 := (<-this.LoadMarkets())
+            PanicOnError(retRes14658)
             var defaultType interface{} = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
             var typeVar interface{} = this.SafeString(params, "type", defaultType)
             var defaultMarginMode interface{} = this.SafeString2(this.Options, "marginMode", "defaultMarginMode")
@@ -1854,8 +1877,8 @@ func  (this *TokocryptoCore) CreateOrder(symbol interface{}, typeVar interface{}
             params := GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes16968 := (<-this.LoadMarkets())
-            PanicOnError(retRes16968)
+            retRes17198 := (<-this.LoadMarkets())
+            PanicOnError(retRes17198)
             var market interface{} = this.Market(symbol)
             var clientOrderId interface{} = this.SafeString2(params, "clientOrderId", "clientId")
             var postOnly interface{} = this.SafeBool(params, "postOnly", false)
@@ -2119,8 +2142,8 @@ func  (this *TokocryptoCore) FetchOrders(optionalArgs ...interface{}) <- chan in
                 panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
             }
         
-            retRes19258 := (<-this.LoadMarkets())
-            PanicOnError(retRes19258)
+            retRes19488 := (<-this.LoadMarkets())
+            PanicOnError(retRes19488)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -2204,9 +2227,9 @@ func  (this *TokocryptoCore) FetchOpenOrders(optionalArgs ...interface{}) <- cha
                 "type": 1,
             } // -1 = all, 1 = open, 2 = closed
         
-                retRes199515 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes199515)
-                ch <- retRes199515
+                retRes201815 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes201815)
+                ch <- retRes201815
                 return nil
         
             }()
@@ -2240,9 +2263,9 @@ func  (this *TokocryptoCore) FetchClosedOrders(optionalArgs ...interface{}) <- c
                 "type": 2,
             } // -1 = all, 1 = open, 2 = closed
         
-                retRes201115 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-                PanicOnError(retRes201115)
-                ch <- retRes201115
+                retRes203415 :=  (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+                PanicOnError(retRes203415)
+                ch <- retRes203415
                 return nil
         
             }()
@@ -2336,8 +2359,8 @@ func  (this *TokocryptoCore) FetchMyTrades(optionalArgs ...interface{}) <- chan 
                 panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
             }
         
-            retRes20758 := (<-this.LoadMarkets())
-            PanicOnError(retRes20758)
+            retRes20988 := (<-this.LoadMarkets())
+            PanicOnError(retRes20988)
             var market interface{} = this.Market(symbol)
             var request interface{} = map[string]interface{} {
                 "symbol": GetValue(market, "id"),
@@ -2407,8 +2430,8 @@ func  (this *TokocryptoCore) FetchDepositAddress(code interface{}, optionalArgs 
                     params := GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes21328 := (<-this.LoadMarkets())
-            PanicOnError(retRes21328)
+            retRes21558 := (<-this.LoadMarkets())
+            PanicOnError(retRes21558)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {
                 "asset": GetValue(currency, "id"),
@@ -2486,8 +2509,8 @@ func  (this *TokocryptoCore) FetchDeposits(optionalArgs ...interface{}) <- chan 
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes21928 := (<-this.LoadMarkets())
-            PanicOnError(retRes21928)
+            retRes22158 := (<-this.LoadMarkets())
+            PanicOnError(retRes22158)
             var currency interface{} = nil
             var request interface{} = map[string]interface{} {}
             var until interface{} = this.SafeInteger(params, "until")
@@ -2567,8 +2590,8 @@ func  (this *TokocryptoCore) FetchWithdrawals(optionalArgs ...interface{}) <- ch
             params := GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes22538 := (<-this.LoadMarkets())
-            PanicOnError(retRes22538)
+            retRes22768 := (<-this.LoadMarkets())
+            PanicOnError(retRes22768)
             var request interface{} = map[string]interface{} {}
             var currency interface{} = nil
             if IsTrue(!IsEqual(code, nil)) {
@@ -2783,8 +2806,8 @@ func  (this *TokocryptoCore) Withdraw(code interface{}, amount interface{}, addr
             tag = GetValue(tagparamsVariable,0);
             params = GetValue(tagparamsVariable,1)
         
-            retRes24498 := (<-this.LoadMarkets())
-            PanicOnError(retRes24498)
+            retRes24728 := (<-this.LoadMarkets())
+            PanicOnError(retRes24728)
             this.CheckAddress(address)
             var currency interface{} = this.Currency(code)
             var request interface{} = map[string]interface{} {

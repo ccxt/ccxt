@@ -1306,6 +1306,29 @@ func (this *Phemex) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
     }
     return NewConversionArray(res), nil
 }
+func (this *Phemex) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+    opts := FetchPositionsADLRankOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionsADLRank(symbols, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewADLArray(res), nil
+}
 // missing typed methods from base
 //nolint
 func (this *Phemex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }

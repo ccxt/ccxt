@@ -2887,17 +2887,40 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "coin": "ETH",
-        #             "limitPx": "2000.0",
-        #             "oid": 3991946565,
-        #             "origSz": "0.1",
-        #             "side": "B",
-        #             "sz": "0.1",
-        #             "timestamp": 1704346468838
+        #             "order": {
+        #                 "coin": "ETH",
+        #                 "limitPx": "2000.0",
+        #                 "oid": 3991946565,
+        #                 "origSz": "0.1",
+        #                 "side": "B",
+        #                 "sz": "0.1",
+        #                 "timestamp": 1704346468838
+        #             },
+        #             "status": "open",
+        #             "statusTimestamp": 1704346468838
         #         }
         #     ]
         #
-        return self.parse_orders(response, market, since, limit)
+        # Hyperliquid returns the full status history for each order,
+        # so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        # Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        deduplicatedByOid: dict = {}
+        for i in range(0, len(response)):
+            rawOrder = response[i]
+            entry = self.safe_dict(rawOrder, 'order')
+            if entry is None:
+                entry = rawOrder
+            oid = self.safe_string(entry, 'oid')
+            if oid is not None:
+                if not (oid in deduplicatedByOid):
+                    deduplicatedByOid[oid] = rawOrder
+                else:
+                    existingTimestamp = self.safe_integer(deduplicatedByOid[oid], 'statusTimestamp')
+                    currentTimestamp = self.safe_integer(rawOrder, 'statusTimestamp')
+                    if currentTimestamp is not None and (existingTimestamp is None or currentTimestamp > existingTimestamp):
+                        deduplicatedByOid[oid] = rawOrder
+        deduplicated = list(deduplicatedByOid.values())
+        return self.parse_orders(deduplicated, market, since, limit)
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

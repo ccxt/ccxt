@@ -5,7 +5,7 @@ import { ExchangeError, AuthenticationError, NotSupported } from '../base/errors
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Bool, FundingRate } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -16,6 +16,8 @@ export default class woo extends wooRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -1427,6 +1429,48 @@ export default class woo extends wooRest {
         client.resolve (this.balance, 'balance');
     }
 
+    /**
+     * @method
+     * @name woo#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://docs.woox.io/#estfundingrate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = market['id'] + '@estfundingrate';
+        const request: Dict = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        return await this.watchPublic (topic, message);
+    }
+
+    handleFundingRate (client: Client, message) {
+        //
+        //     {
+        //         "topic": "PERP_BTC_USDT@estfundingrate",
+        //         "ts": 1771484159016,
+        //         "data": {
+        //             "symbol": "PERP_BTC_USDT",
+        //             "fundingRate": 0.0001,
+        //             "fundingTs": 1771488000000
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const fundingRate = this.parseFundingRate (data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = this.safeString (message, 'topic');
+        client.resolve (fundingRate, messageHash);
+    }
+
     handleErrorMessage (client: Client, message): Bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
@@ -1503,6 +1547,7 @@ export default class woo extends wooRest {
             'balance': this.handleBalance,
             'position': this.handlePositions,
             'bbos': this.handleBidAsk,
+            'estfundingrate': this.handleFundingRate,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);

@@ -117,6 +117,8 @@ export default class bybit extends Exchange {
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': true,
                 'fetchPositionsHistory': true,
@@ -9437,6 +9439,139 @@ export default class bybit extends Exchange {
             'datetime': this.iso8601(timestamp),
             'timeframe': undefined,
             'longShortRatio': this.parseToNumeric(Precise.stringDiv(longString, shortString)),
+        };
+    }
+    /**
+     * @method
+     * @name bybit#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://bybit-exchange.github.io/docs/v5/position#response-parameters
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired(this.id + ' fetchPositionsADLRank() requires a symbols argument');
+        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const market = this.getMarketFromSymbols(symbols);
+        const request = {};
+        if (market !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [type, params] = this.getBybitType('fetchPositionsADLRank', market, params);
+        request['category'] = type;
+        const response = await this.privateGetV5PositionList(this.extend(request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "nextPageCursor": "BTCUSDT%2C1767085496112%2C0",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "leverage": "",
+        //                     "autoAddMargin": 0,
+        //                     "avgPrice": "177489.6",
+        //                     "liqPrice": "",
+        //                     "riskLimitValue": "",
+        //                     "takeProfit": "",
+        //                     "positionValue": "1774.896",
+        //                     "isReduceOnly": false,
+        //                     "positionIMByMp": "",
+        //                     "tpslMode": "Full",
+        //                     "riskId": 0,
+        //                     "trailingStop": "0",
+        //                     "unrealisedPnl": "-3.016",
+        //                     "markPrice": "177188",
+        //                     "adlRankIndicator": 2,
+        //                     "cumRealisedPnl": "-9782.391468",
+        //                     "positionMM": "",
+        //                     "createdTime": "1699928551230",
+        //                     "positionIdx": 0,
+        //                     "positionIM": "",
+        //                     "positionMMByMp": "",
+        //                     "seq": 9558506126,
+        //                     "updatedTime": "1767085496112",
+        //                     "side": "Buy",
+        //                     "bustPrice": "",
+        //                     "positionBalance": "",
+        //                     "leverageSysUpdatedTime": "",
+        //                     "curRealisedPnl": "-0.9761928",
+        //                     "size": "0.01",
+        //                     "positionStatus": "Normal",
+        //                     "mmrSysUpdatedTime": "",
+        //                     "stopLoss": "",
+        //                     "tradeMode": 0,
+        //                     "sessionAvgPrice": ""
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1767085741416
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        const ranks = this.safeList(result, 'list', []);
+        return this.parseADLRanks(ranks, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "leverage": "",
+        //         "autoAddMargin": 0,
+        //         "avgPrice": "177489.6",
+        //         "liqPrice": "",
+        //         "riskLimitValue": "",
+        //         "takeProfit": "",
+        //         "positionValue": "1774.896",
+        //         "isReduceOnly": false,
+        //         "positionIMByMp": "",
+        //         "tpslMode": "Full",
+        //         "riskId": 0,
+        //         "trailingStop": "0",
+        //         "unrealisedPnl": "-3.016",
+        //         "markPrice": "177188",
+        //         "adlRankIndicator": 2,
+        //         "cumRealisedPnl": "-9782.391468",
+        //         "positionMM": "",
+        //         "createdTime": "1699928551230",
+        //         "positionIdx": 0,
+        //         "positionIM": "",
+        //         "positionMMByMp": "",
+        //         "seq": 9558506126,
+        //         "updatedTime": "1767085496112",
+        //         "side": "Buy",
+        //         "bustPrice": "",
+        //         "positionBalance": "",
+        //         "leverageSysUpdatedTime": "",
+        //         "curRealisedPnl": "-0.9761928",
+        //         "size": "0.01",
+        //         "positionStatus": "Normal",
+        //         "mmrSysUpdatedTime": "",
+        //         "stopLoss": "",
+        //         "tradeMode": 0,
+        //         "sessionAvgPrice": ""
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        const timestamp = this.safeInteger(info, 'updatedTime');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger(info, 'adlRankIndicator'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
         };
     }
     /**
