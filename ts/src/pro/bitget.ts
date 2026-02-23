@@ -75,28 +75,10 @@ export default class bitget extends bitgetRest {
                     '1d': '1D',
                     '1w': '1W',
                 },
-                'watchOrderBook': {
-                    'checksum': true,
-                },
                 'watchTrades': {
-                    'uta': false,
                     'ignoreDuplicates': true,
                 },
-                'watchTradesForSymbols': {
-                    'uta': false,
-                },
-                'watchTicker': {
-                    'uta': false,
-                },
-                'watchTickers': {
-                    'uta': false,
-                },
-                'watchOrderBooks': {
-                    'uta': false,
-                },
-                'watchOrderBookForSymbols': {
-                    'uta': false,
-                },
+                'uta': false,
             },
             'streaming': {
                 'ping': this.ping,
