@@ -3,6 +3,377 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchPositionMode": [
+            {
+                "description": "fetch positions mode",
+                "method": "fetchPositionMode",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "positionMode": 1
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positionMode": 1
+                    },
+                    "hedged": true
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "add margin to position",
+                "method": "addMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1,
+                    {
+                        "positionSide": "LONG"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "id": "600000000001280749",
+                        "symbol": "ETHUSDTM",
+                        "autoDeposit": false,
+                        "maintMarginReq": 0.005,
+                        "riskLimit": 500000,
+                        "realLeverage": 0.86,
+                        "crossMode": false,
+                        "delevPercentage": 0.74,
+                        "openingTimestamp": 1771839565643,
+                        "currentTimestamp": 1771839619931,
+                        "currentQty": 1,
+                        "currentCost": 19.0779,
+                        "currentComm": 0.01144674,
+                        "unrealisedCost": 19.0779,
+                        "realisedGrossCost": 0,
+                        "realisedCost": 0.01144674,
+                        "isOpen": true,
+                        "markPrice": 1907.29,
+                        "markValue": 19.0729,
+                        "posCost": 19.0779,
+                        "posCross": 3,
+                        "posInit": 19.0779,
+                        "posComm": 0,
+                        "posLoss": 0,
+                        "posMargin": 22.0779,
+                        "posMaint": 0.10680824,
+                        "maintMargin": 22.0729,
+                        "realisedGrossPnl": 0,
+                        "realisedPnl": -0.01144674,
+                        "unrealisedPnl": -0.005,
+                        "unrealisedPnlPcnt": -0.0003,
+                        "unrealisedRoePcnt": -0.0003,
+                        "avgEntryPrice": 1907.79,
+                        "liquidationPrice": 0.01,
+                        "bankruptPrice": 0.01,
+                        "settleCurrency": "USDT"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "id": "600000000001280749",
+                        "symbol": "ETHUSDTM",
+                        "autoDeposit": false,
+                        "maintMarginReq": 0.005,
+                        "riskLimit": 500000,
+                        "realLeverage": 0.86,
+                        "crossMode": false,
+                        "delevPercentage": 0.74,
+                        "openingTimestamp": 1771839565643,
+                        "currentTimestamp": 1771839619931,
+                        "currentQty": 1,
+                        "currentCost": 19.0779,
+                        "currentComm": 0.01144674,
+                        "unrealisedCost": 19.0779,
+                        "realisedGrossCost": 0,
+                        "realisedCost": 0.01144674,
+                        "isOpen": true,
+                        "markPrice": 1907.29,
+                        "markValue": 19.0729,
+                        "posCost": 19.0779,
+                        "posCross": 3,
+                        "posInit": 19.0779,
+                        "posComm": 0,
+                        "posLoss": 0,
+                        "posMargin": 22.0779,
+                        "posMaint": 0.10680824,
+                        "maintMargin": 22.0729,
+                        "realisedGrossPnl": 0,
+                        "realisedPnl": -0.01144674,
+                        "unrealisedPnl": -0.005,
+                        "unrealisedPnlPcnt": -0.0003,
+                        "unrealisedRoePcnt": -0.0003,
+                        "avgEntryPrice": 1907.79,
+                        "liquidationPrice": 0.01,
+                        "bankruptPrice": 0.01,
+                        "settleCurrency": "USDT"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "marginMode": "isolated",
+                    "amount": "1",
+                    "total": null,
+                    "code": "USDT",
+                    "status": null,
+                    "timestamp": 1771839619931,
+                    "datetime": "2026-02-23T09:40:19.931Z",
+                    "direction": "in"
+                }
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch linear swap margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                  "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                  "code": "200000",
+                  "data": {
+                    "symbol": "XBTUSDTM",
+                    "marginMode": "ISOLATED"
+                  }
+                },
+                "parsedResponse": {
+                  "info": {
+                    "symbol": "XBTUSDTM",
+                    "marginMode": "ISOLATED"
+                  },
+                  "symbol": "BTC/USDT:USDT",
+                  "marginMode": "isolated"
+                }
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch positions history",
+                "method": "fetchPositionsHistory",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "currentPage": 1,
+                        "pageSize": 200,
+                        "totalNum": 1,
+                        "totalPage": 1,
+                        "items": [
+                            {
+                                "closeId": "600000000216837555",
+                                "userId": "64f99aced178640001306e6e",
+                                "symbol": "XBTUSDTM",
+                                "settleCurrency": "USDT",
+                                "leverage": "20.0",
+                                "type": "CLOSE_LONG",
+                                "pnl": "-0.38591034",
+                                "realisedGrossCost": "0.2697",
+                                "realisedGrossCostNew": "0.2697",
+                                "withdrawPnl": "0.0",
+                                "tradeFee": "0.11621034",
+                                "fundingFee": "0.0",
+                                "openTime": 1768481882915,
+                                "closeTime": 1768484213995,
+                                "openPrice": "96976.8",
+                                "closePrice": "96707.1",
+                                "marginMode": "CROSS",
+                                "tax": "0.0",
+                                "roe": "-0.0786444445",
+                                "liquidAmount": null,
+                                "liquidPrice": null,
+                                "side": "LONG",
+                                "positionSide": "LONG",
+                                "unHoldMargin": "0.0",
+                                "closeCost": "-96.7071",
+                                "seqOffset": 1382304011348
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "closeId": "600000000216837555",
+                            "userId": "64f99aced178640001306e6e",
+                            "symbol": "XBTUSDTM",
+                            "settleCurrency": "USDT",
+                            "leverage": "20.0",
+                            "type": "CLOSE_LONG",
+                            "pnl": "-0.38591034",
+                            "realisedGrossCost": "0.2697",
+                            "realisedGrossCostNew": "0.2697",
+                            "withdrawPnl": "0.0",
+                            "tradeFee": "0.11621034",
+                            "fundingFee": "0.0",
+                            "openTime": 1768481882915,
+                            "closeTime": 1768484213995,
+                            "openPrice": "96976.8",
+                            "closePrice": "96707.1",
+                            "marginMode": "CROSS",
+                            "tax": "0.0",
+                            "roe": "-0.0786444445",
+                            "liquidAmount": null,
+                            "liquidPrice": null,
+                            "side": "LONG",
+                            "positionSide": "LONG",
+                            "unHoldMargin": "0.0",
+                            "closeCost": "-96.7071",
+                            "seqOffset": 1382304011348
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": 1768484213995,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 96976.8,
+                        "notional": null,
+                        "leverage": 20,
+                        "unrealizedPnl": null,
+                        "contracts": null,
+                        "contractSize": 0.001,
+                        "realizedPnl": -0.38591034,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "long",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "id": "600000000001280729",
+                            "symbol": "ETHUSDTM",
+                            "crossMode": true,
+                            "maintMarginReq": 0.0050000243,
+                            "delevPercentage": 0.81,
+                            "openingTimestamp": 1771835369248,
+                            "currentTimestamp": 1771835540695,
+                            "currentQty": 2,
+                            "currentCost": 37.6481,
+                            "currentComm": 0.02258886,
+                            "unrealisedCost": 37.6481,
+                            "realisedGrossCost": 0,
+                            "realisedCost": 0.02258886,
+                            "isOpen": true,
+                            "markPrice": 1883.29,
+                            "markValue": 37.6658,
+                            "posCost": 37.6481,
+                            "posInit": 12.5493666655,
+                            "posMargin": 12.5552666655,
+                            "posMaint": 0.1883299153,
+                            "realisedGrossPnl": 0,
+                            "realisedPnl": -0.02258886,
+                            "unrealisedPnl": 0.0177,
+                            "unrealisedPnlPcnt": 0.0005,
+                            "unrealisedRoePcnt": 0.0014,
+                            "avgEntryPrice": 1882.41,
+                            "liquidationPrice": 0.01,
+                            "bankruptPrice": 0.01,
+                            "settleCurrency": "USDT",
+                            "isInverse": false,
+                            "maintainMargin": 0.0050000243,
+                            "marginMode": "CROSS",
+                            "positionSide": "LONG",
+                            "leverage": 3,
+                            "dealComm": -0.02258886,
+                            "fundingFee": 0,
+                            "tax": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "600000000001280729",
+                            "symbol": "ETHUSDTM",
+                            "crossMode": true,
+                            "maintMarginReq": 0.0050000243,
+                            "delevPercentage": 0.81,
+                            "openingTimestamp": 1771835369248,
+                            "currentTimestamp": 1771835540695,
+                            "currentQty": 2,
+                            "currentCost": 37.6481,
+                            "currentComm": 0.02258886,
+                            "unrealisedCost": 37.6481,
+                            "realisedGrossCost": 0,
+                            "realisedCost": 0.02258886,
+                            "isOpen": true,
+                            "markPrice": 1883.29,
+                            "markValue": 37.6658,
+                            "posCost": 37.6481,
+                            "posInit": 12.5493666655,
+                            "posMargin": 12.5552666655,
+                            "posMaint": 0.1883299153,
+                            "realisedGrossPnl": 0,
+                            "realisedPnl": -0.02258886,
+                            "unrealisedPnl": 0.0177,
+                            "unrealisedPnlPcnt": 0.0005,
+                            "unrealisedRoePcnt": 0.0014,
+                            "avgEntryPrice": 1882.41,
+                            "liquidationPrice": 0.01,
+                            "bankruptPrice": 0.01,
+                            "settleCurrency": "USDT",
+                            "isInverse": false,
+                            "maintainMargin": 0.0050000243,
+                            "marginMode": "CROSS",
+                            "positionSide": "LONG",
+                            "leverage": 3,
+                            "dealComm": -0.02258886,
+                            "fundingFee": 0,
+                            "tax": 0
+                        },
+                        "id": "600000000001280729",
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": 1771835540695,
+                        "datetime": "2026-02-23T08:32:20.695Z",
+                        "lastUpdateTimestamp": null,
+                        "initialMargin": 12.5493666655,
+                        "initialMarginPercentage": 0.3333333333023446,
+                        "maintenanceMargin": 0.1883299153,
+                        "maintenanceMarginPercentage": 0.0050000243,
+                        "entryPrice": 1882.41,
+                        "notional": 37.6481,
+                        "leverage": 3,
+                        "unrealizedPnl": 0.0177,
+                        "contracts": 2,
+                        "contractSize": 0.01,
+                        "realizedPnl": -0.02258886,
+                        "marginRatio": null,
+                        "liquidationPrice": 0.01,
+                        "markPrice": 1883.29,
+                        "lastPrice": null,
+                        "collateral": null,
+                        "marginMode": "cross",
+                        "side": "long",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null
+                    }
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch funding rate from uta",
