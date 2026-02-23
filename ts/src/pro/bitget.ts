@@ -573,8 +573,8 @@ export default class bitget extends bitgetRest {
         }
         let instType = undefined;
         let messageHash = undefined;
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'unWatchOHLCV', 'uta', false);
+        const values = this.handleOptionAndParams (params, 'watchOHLCV', 'uta', false);
+        const uta: Bool = values[0];
         [ instType, params ] = this.getInstType ('watchOHLCV', market, uta, params);
         const args: Dict = {
             'instType': instType,
@@ -1080,8 +1080,8 @@ export default class bitget extends bitgetRest {
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        let uta: Bool = undefined;
-        [ uta, params ] = this.handleOptionAndParams (params, 'unWatchTrades', 'uta', false);
+        const values = this.handleOptionAndParams (params, 'watchTrades', 'uta', false);
+        const uta: Bool = values[0];
         const channelTopic = uta ? 'publicTrade' : 'trade';
         return await this.unWatchChannel (symbol, channelTopic, 'trade', 'watchTrades', params);
     }
