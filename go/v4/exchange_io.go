@@ -38,45 +38,50 @@ func (this *Exchange) FileExists(path interface{}) bool {
 	return err == nil
 }
 
-// fileDelete deletes a file
-func (this *Exchange) FileDelete(path interface{}) bool {
-	if !this.FileExists(path) {
-		return true
-	}
-	pathStr := path.(string)
-	if err := os.Remove(pathStr); err != nil {
-		return false
-	}
-	return true
-}
+// // fileDelete deletes a file
+// func (this *Exchange) FileDelete(path interface{}) bool {
+// 	if !this.FileExists(path) {
+// 		return true
+// 	}
+// 	pathStr := path.(string)
+// 	if err := os.Remove(pathStr); err != nil {
+// 		return false
+// 	}
+// 	return true
+// }
 
-// directoryCreate creates a directory
-func (this *Exchange) DirectoryCreate(path interface{}) bool {
-	pathStr := path.(string)
-	if err := os.MkdirAll(pathStr, 0755); err != nil {
-		return false
-	}
-	return true
-}
+// // directoryCreate creates a directory
+// func (this *Exchange) DirectoryCreate(path interface{}) bool {
+// 	pathStr := path.(string)
+// 	if err := os.MkdirAll(pathStr, 0755); err != nil {
+// 		return false
+// 	}
+// 	return true
+// }
 
-// directoryExists checks if a directory exists
-func (this *Exchange) DirectoryExists(path interface{}) bool {
-	pathStr := path.(string)
-	info, err := os.Stat(pathStr)
-	if err != nil {
-		return false
-	}
-	return info.IsDir()
-}
+// // directoryExists checks if a directory exists
+// func (this *Exchange) DirectoryExists(path interface{}) bool {
+// 	pathStr := path.(string)
+// 	info, err := os.Stat(pathStr)
+// 	if err != nil {
+// 		return false
+// 	}
+// 	return info.IsDir()
+// }
 
-// directoryDelete deletes a directory and all its contents
-func (this *Exchange) DirectoryDelete(path interface{}) bool {
-	if !this.DirectoryExists(path) {
-		return true
-	}
-	pathStr := path.(string)
-	if err := os.RemoveAll(pathStr); err != nil {
-		return false
-	}
-	return true
+// // directoryDelete deletes a directory and all its contents
+// func (this *Exchange) DirectoryDelete(path interface{}) bool {
+// 	if !this.DirectoryExists(path) {
+// 		return true
+// 	}
+// 	pathStr := path.(string)
+// 	if err := os.RemoveAll(pathStr); err != nil {
+// 		return false
+// 	}
+// 	return true
+// }
+
+// GetTempDir returns the temporary directory
+func (this *Exchange) GetTempDir() string {
+	return os.TempDir() + string(filepath.Separator)
 }

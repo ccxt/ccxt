@@ -20,8 +20,9 @@ async function testIo () {
     assert (exchange.fileExists (filePath), "file does not exist: " + filePath);
     const readContent = exchange.fileRead (filePath);
     assert (readContent === fileContent, "file content mismatch. Expected: " + fileContent + ", got: " + readContent);
-    exchange.fileDelete (filePath);
-    assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
+    // delete methods removed atm
+    // exchange.fileDelete (filePath);
+    // assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
 }
 
 export default testIo;

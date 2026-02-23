@@ -4,27 +4,7 @@ import { isNode } from './platform.js';
 
 /*  ------------------------------------------------------------------------ */
 
-let fsModule: any = null;
 let fsSyncModule: any = null;
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Initialize file system module (Node.js only)
- * Uses dynamic import to prevent bundling in browser builds
- */
-export async function initFileSystemAsync () {
-    if (isNode && fsModule === null) {
-        try {
-            // Dynamic import with webpackIgnore to prevent bundling
-            fsModule = await import(/* webpackIgnore: true */ 'node:fs/promises');
-        } catch (e) {
-            // Silent fail in browser or if fs is unavailable
-            fsModule = null;
-        }
-    }
-    return fsModule;
-}
 
 /*  ------------------------------------------------------------------------ */
 
@@ -48,84 +28,6 @@ export async function initFileSystem () {
 if (isNode) {
     // Pre-initialize synchronous fs module for sync methods
     initFileSystem();
-}
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Read file contents (Node.js only)
- * @param path File path to read
- * @param encoding File encoding (default: 'utf8')
- * @returns File contents as string, or undefined in browser
- */
-export async function readFileAsync (path: string, encoding: BufferEncoding = 'utf8'): Promise<string | undefined> {
-    if (!isNode) {
-        return undefined;
-    }
-    const fs = await initFileSystemAsync();
-    if (fs) {
-        return await fs.readFile(path, encoding);
-    }
-    return undefined;
-}
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Write file contents (Node.js only)
- * @param path File path to write
- * @param data Data to write
- * @param encoding File encoding (default: 'utf8')
- */
-export async function writeFileAsync (path: string, data: string, encoding: BufferEncoding = 'utf8'): Promise<void> {
-    if (!isNode) {
-        return;
-    }
-    const fs = await initFileSystemAsync();
-    if (fs) {
-        await fs.writeFile(path, data, encoding);
-    }
-}
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Check if file exists (Node.js only)
- * @param path File path to check
- * @returns true if file exists, false otherwise
- */
-export async function fileExistsAsync (path: string): Promise<boolean> {
-    if (!isNode) {
-        return false;
-    }
-    const fs = await initFileSystemAsync();
-    if (fs) {
-        try {
-            await fs.access(path);
-            return true;
-        } catch (e) {
-            return false;
-        }
-    }
-    return false;
-}
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Read directory contents (Node.js only)
- * @param path Directory path to read
- * @returns Array of file/directory names, or empty array in browser
- */
-export async function readDir (path: string): Promise<string[]> {
-    if (!isNode) {
-        return [];
-    }
-    const fs = await initFileSystemAsync();
-    if (fs) {
-        return await fs.readdir(path);
-    }
-    return [];
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -199,132 +101,93 @@ export function fileExists (path: string): boolean {
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+// /*  ------------------------------------------------------------------------ */
 
-/**
- * Read directory contents synchronously (Node.js only)
- * @param path Directory path to read
- * @returns Array of file/directory names, or empty array in browser
- */
-export function readDirSync (path: string): string[] {
-    if (!isNode) {
-        return [];
-    }
-    if (fsSyncModule === null) {
-        // Sync module not initialized yet
-        return [];
-    }
-    try {
-        return fsSyncModule.readdirSync(path);
-    } catch (e) {
-        return [];
-    }
-}
+// /**
+//  * Delete file synchronously (Node.js only)
+//  * @param path File path to delete
+//  */
+// export function fileDelete (path: string): void {
+//     if (!isNode) {
+//         return;
+//     }
+//     if (fsSyncModule === null) {
+//         // Sync module not initialized yet
+//         return;
+//     }
+//     try {
+//         fsSyncModule.unlinkSync(path);
+//     } catch (e) {
+//         // Silent fail if file doesn't exist or can't be deleted
+//     }
+// }
 
-/*  ------------------------------------------------------------------------ */
+// /*  ------------------------------------------------------------------------ */
 
-/**
- * Delete file (Node.js only)
- * @param path File path to delete
- */
-export async function deleteFileAsync (path: string): Promise<void> {
-    if (!isNode) {
-        return;
-    }
-    const fs = await initFileSystem();
-    if (fs) {
-        try {
-            await fs.unlink(path);
-        } catch (e) {
-            // Silent fail if file doesn't exist or can't be deleted
-        }
-    }
-}
+// /**
+//  * Check if directory exists synchronously (Node.js only)
+//  * @param path Directory path to check
+//  * @returns true if directory exists, false otherwise
+//  */
+// export function directoryExists (path: string): boolean {
+//     if (!isNode) {
+//         return false;
+//     }
+//     if (fsSyncModule === null) {
+//         // Sync module not initialized yet
+//         return false;
+//     }
+//     try {
+//         return fsSyncModule.existsSync(path) && fsSyncModule.statSync(path).isDirectory();
+//     } catch (e) {
+//         return false;
+//     }
+// }
 
-/*  ------------------------------------------------------------------------ */
+// /*  ------------------------------------------------------------------------ */
 
-/**
- * Delete file synchronously (Node.js only)
- * @param path File path to delete
- */
-export function fileDelete (path: string): void {
-    if (!isNode) {
-        return;
-    }
-    if (fsSyncModule === null) {
-        // Sync module not initialized yet
-        return;
-    }
-    try {
-        fsSyncModule.unlinkSync(path);
-    } catch (e) {
-        // Silent fail if file doesn't exist or can't be deleted
-    }
-}
+// /**
+//  * Create directory synchronously (Node.js only)
+//  * @param path Directory path to create
+//  * @returns true if directory was created, false otherwise
+//  */
+// export function directoryCreate (path: string): boolean {
+//     if (!isNode) {
+//         return false;
+//     }
+//     if (fsSyncModule === null) {
+//         // Sync module not initialized yet
+//         return false;
+//     }
+//     try {
+//         // recursive: true is like mkdir -p
+//         fsSyncModule.mkdirSync(path, { recursive: true });
+//         return true;
+//     } catch (e) {
+//         return false;
+//     }
+// }
 
-/*  ------------------------------------------------------------------------ */
+// /*  ------------------------------------------------------------------------ */
 
-/**
- * Create directory (Node.js only)
- * @param path Directory path to create
- * @param options Options for directory creation (recursive: true by default)
- */
-export async function directoryCreateAsync (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
-    if (!isNode) {
-        return;
-    }
-    const fs = await initFileSystem();
-    if (fs) {
-        try {
-            await fs.mkdir(path, options);
-        } catch (e) {
-            // Silent fail if directory already exists or can't be created
-        }
-    }
-}
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Check if directory exists (Node.js only)
- * @param path Directory path to check
- * @returns true if directory exists, false otherwise
- */
-export async function directoryExistsAsync (path: string): Promise<boolean> {
-    if (!isNode) {
-        return false;
-    }
-    const fs = await initFileSystem();
-    if (fs) {
-        try {
-            const stats = await fs.stat(path);
-            return stats.isDirectory();
-        } catch (e) {
-            return false;
-        }
-    }
-    return false;
-}
-
-/*  ------------------------------------------------------------------------ */
-
-/**
- * Delete directory (Node.js only)
- * @param path Directory path to delete
- * @param options Options for directory deletion (recursive: true by default)
- */
-export async function directoryDeleteAsync (path: string, options: { recursive?: boolean } = { recursive: true }): Promise<void> {
-    if (!isNode) {
-        return;
-    }
-    const fs = await initFileSystem();
-    if (fs) {
-        try {
-            await fs.rm(path, options);
-        } catch (e) {
-            // Silent fail if directory doesn't exist or can't be deleted
-        }
-    }
-}
-
-/*  ------------------------------------------------------------------------ */
+// /**
+//  * Delete directory synchronously (Node.js only)
+//  * @param path Directory path to delete
+//  * @returns true if directory was deleted, false otherwise
+//  */
+// export function directoryDelete (path: string): boolean {
+//     if (!isNode) {
+//         return false;
+//     }
+//     if (fsSyncModule === null) {
+//         // Sync module not initialized yet
+//         return false;
+//     }
+//     try {
+//         // recursive: true force deletes (like rm -rf)
+//         fsSyncModule.rmSync(path, { recursive: true, force: true });
+//         return true;
+//     } catch (e) {
+//         return false;
+//     }
+// }
