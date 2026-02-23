@@ -943,6 +943,7 @@ export default class kucoin extends Exchange {
                     'swap': 'contract',
                     'mining': 'pool',
                     'hf': 'trade_hf',
+                    'contract': 'contract',
                 },
                 'networks': {
                     'BRC20': 'btc',
@@ -1328,7 +1329,7 @@ export default class kucoin extends Exchange {
         let type = 'spot';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
-        if (type !== 'spot') {
+        if ((type !== 'spot') && (type !== 'margin')) {
             //
             //    {
             //        "code": "200000",
@@ -1386,7 +1387,7 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
-        } else if (type !== 'spot') {
+        } else if ((type !== 'spot') && (type !== 'margin')) {
             response = await this.futuresPublicGetStatus (params);
             //
             //    {
@@ -2633,7 +2634,7 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
-        } else if (type === 'swap') {
+        } else if ((type !== 'spot') && (type !== 'margin')) {
             return await this.fetchContractTickers (symbols, params);
         } else {
             response = await this.publicGetMarketAllTickers (params);
@@ -2761,7 +2762,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchMarkPrices
      * @description fetches the mark price for multiple markets
-     * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/market-data/get-mark-price-list
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -2830,7 +2831,7 @@ export default class kucoin extends Exchange {
             const data = this.safeDict (response, 'data', {});
             const resultList = this.safeList (data, 'list', []);
             result = this.safeDict (resultList, 0, {});
-        } else if (type === 'swap') {
+        } else if (market['contract']) {
             response = await this.futuresPublicGetTicker (this.extend (request, params));
             //
             //    {
@@ -2898,10 +2899,8 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkPrice', market, params, type);
         let response = undefined;
-        if (type === 'swap') {
+        if (market['contract']) {
             response = await this.futuresPublicGetMarkPriceSymbolCurrent (this.extend (request, params));
             const data = this.safeDict (response, 'data', {});
             return this.parseTicker (data, market);
@@ -2974,7 +2973,7 @@ export default class kucoin extends Exchange {
         let denominator = 1000;
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
-        const isFutures = (market['swap'] && (!uta));
+        const isFutures = (market['contract'] && (!uta));
         if (isFutures) {
             // for futures
             maxLimit = 200;
@@ -3078,7 +3077,7 @@ export default class kucoin extends Exchange {
     /**
      * @method
      * @name kucoin#createDepositAddress
-     * @see https://www.kucoin.com/docs/rest/funding/deposit/create-deposit-address-v3-
+     * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/add-deposit-address-v3
      * @description create a currency deposit address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3120,7 +3119,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://docs.kucoin.com/#get-deposit-addresses-v2
+     * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
@@ -3179,7 +3178,7 @@ export default class kucoin extends Exchange {
     /**
      * @method
      * @name kucoin#fetchDepositAddressesByNetwork
-     * @see https://docs.kucoin.com/#get-deposit-addresses-v2
+     * @see https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3272,7 +3271,7 @@ export default class kucoin extends Exchange {
             //         }
             //     }
             //
-        } else if (type === 'swap') {
+        } else if ((type !== 'spot') && (type !== 'margin')) {
             if (level !== 2 && level !== undefined) {
                 throw new BadRequest (this.id + ' fetchOrderBook() can only return level 2');
             }
@@ -6066,6 +6065,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -7555,7 +7555,7 @@ export default class kucoin extends Exchange {
         let market = undefined;
         let marketType: Str = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
-        if ((symbol !== undefined) || marketType !== 'spot') {
+        if ((symbol !== undefined) || ((marketType !== 'spot') && (marketType !== 'margin'))) {
             market = this.market (symbol);
             if (market['contract']) {
                 return await this.setContractLeverage (leverage, symbol, params);
