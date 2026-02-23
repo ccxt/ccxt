@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/gmocoin.js';
-import { ExchangeError, AuthenticationError, ArgumentsRequired, BadRequest, OrderNotFound, InsufficientFunds, InvalidOrder, PermissionDenied } from './base/errors.js';
+import { ExchangeError, AuthenticationError, ArgumentsRequired, OrderNotFound, InsufficientFunds, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Tickers, Trade, int } from './base/types.js';
@@ -1008,8 +1008,8 @@ export default class gmocoin extends Exchange {
         const data = this.safeValue (response, 'messages', []);
         const first = this.safeDict (data, 0, {});
         const errorCode = this.safeString (first, 'message_code');
-        const errorMessage = this.safeString (first, 'message_string');
-        const feedback = this.id + ' ' + body;
+        const errorMessage = this.safeString (first, 'message_string', '');
+        const feedback = this.id + ' ' + errorMessage + ' ' + body;
         this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
         throw new ExchangeError (feedback);
     }
