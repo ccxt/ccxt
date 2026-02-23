@@ -89,11 +89,6 @@ from decimal import Decimal
 import urllib.parse as _urlencode
 from typing import Any, List
 
-from cryptography.hazmat import backends
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-
 # -----------------------------------------------------------------------------
 
 class SafeJSONEncoder(json.JSONEncoder):
