@@ -1270,7 +1270,19 @@ class Exchange {
         return $token . '.' . static::urlencode_base64($signature);
     }
 
+    public function get_temp_dir() {
+        return sys_get_temp_dir();
+    }
+
+    public function ensure_ccxt_file(string $path) {
+        $temp_dir = $this->get_temp_dir();
+        if ((strpos($path, $temp_dir) === false) || (strpos($path, 'ccxt') === false)) {
+            throw new \Exception("invalid file path");
+        }
+    }
+
     public function file_read(string $path) {
+        $this->ensure_ccxt_file($path);
         if (!file_exists($path)) {
             throw new \Exception("File not found: $path");
         }
@@ -1278,6 +1290,7 @@ class Exchange {
     }
 
     public function file_write(string $path, string $data) {
+        $this->ensure_ccxt_file($path);
         $dir = dirname($path);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
@@ -1287,38 +1300,8 @@ class Exchange {
     }
 
     public function file_exists(string $path) {
+        $this->ensure_ccxt_file($path);
         return file_exists($path);
-    }
-
-    public function file_delete(string $path) {
-        if (file_exists($path)) {
-            unlink($path);
-        }
-    }
-
-    public function directory_create(string $path) {
-        if (!is_dir($path)) {
-            mkdir($path, 0777, true);
-        }
-    }
-
-    public function directory_exists(string $path) {
-        return is_dir($path);
-    }
-
-    public function directory_delete(string $path) {
-        if (is_dir($path)) {
-            $files = array_diff(scandir($path), array('.', '..'));
-            foreach ($files as $file) {
-                $filePath = $path . DIRECTORY_SEPARATOR . $file;
-                if (is_dir($filePath)) {
-                    $this->directory_delete($filePath);
-                } else {
-                    unlink($filePath);
-                }
-            }
-            rmdir($path);
-        }
     }
 
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {

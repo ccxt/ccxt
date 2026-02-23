@@ -3,10 +3,12 @@ package ccxt
 import (
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // fileRead reads a file and returns its contents
 func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
+	this.EnsureCcxtFile(path)
 	pathStr := path.(string)
 	data, err := os.ReadFile(pathStr)
 	if err != nil {
@@ -17,6 +19,7 @@ func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
 
 // fileWrite writes data to a file
 func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...interface{}) bool {
+	this.EnsureCcxtFile(path)
 	pathStr := path.(string)
 	dataStr := data.(string)
 	dir := filepath.Dir(pathStr)
@@ -33,53 +36,20 @@ func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...inte
 
 // fileExists checks if a file exists
 func (this *Exchange) FileExists(path interface{}) bool {
+	this.EnsureCcxtFile(path)
 	pathStr := path.(string)
 	_, err := os.Stat(pathStr)
 	return err == nil
 }
 
-// // fileDelete deletes a file
-// func (this *Exchange) FileDelete(path interface{}) bool {
-// 	if !this.FileExists(path) {
-// 		return true
-// 	}
-// 	pathStr := path.(string)
-// 	if err := os.Remove(pathStr); err != nil {
-// 		return false
-// 	}
-// 	return true
-// }
-
-// // directoryCreate creates a directory
-// func (this *Exchange) DirectoryCreate(path interface{}) bool {
-// 	pathStr := path.(string)
-// 	if err := os.MkdirAll(pathStr, 0755); err != nil {
-// 		return false
-// 	}
-// 	return true
-// }
-
-// // directoryExists checks if a directory exists
-// func (this *Exchange) DirectoryExists(path interface{}) bool {
-// 	pathStr := path.(string)
-// 	info, err := os.Stat(pathStr)
-// 	if err != nil {
-// 		return false
-// 	}
-// 	return info.IsDir()
-// }
-
-// // directoryDelete deletes a directory and all its contents
-// func (this *Exchange) DirectoryDelete(path interface{}) bool {
-// 	if !this.DirectoryExists(path) {
-// 		return true
-// 	}
-// 	pathStr := path.(string)
-// 	if err := os.RemoveAll(pathStr); err != nil {
-// 		return false
-// 	}
-// 	return true
-// }
+// EnsureCcxtFile ensures the file path is ccxt file, so users would be safeguarded
+func (this *Exchange) EnsureCcxtFile(path interface{}) {
+	pathStr := path.(string)
+	tempDir := this.GetTempDir()
+	if !strings.Contains(pathStr, tempDir) || !strings.Contains(pathStr, "ccxt") {
+		panic("invalid file path")
+	}
+}
 
 // GetTempDir returns the temporary directory
 func (this *Exchange) GetTempDir() string {
