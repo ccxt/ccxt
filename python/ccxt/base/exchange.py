@@ -82,6 +82,11 @@ from decimal import Decimal
 import urllib.parse as _urlencode
 from typing import Any, List
 
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
 # -----------------------------------------------------------------------------
 
 class SafeJSONEncoder(json.JSONEncoder):
@@ -1328,12 +1333,6 @@ class Exchange(object):
 
     @staticmethod
     def rsa(request, secret, alg='sha256'):
-        # imports
-        from cryptography.hazmat import backends
-        from cryptography.hazmat.primitives import hashes
-        from cryptography.hazmat.primitives.asymmetric import padding
-        from cryptography.hazmat.primitives.serialization import load_pem_private_key
-        #
         algorithms = {
             "sha256": hashes.SHA256(),
             "sha384": hashes.SHA384(),
@@ -1583,7 +1582,6 @@ class Exchange(object):
     def eddsa(request, secret, curve='ed25519', url_encode=False):
         # imports
         from cryptography.hazmat.primitives.asymmetric import ed25519
-        from cryptography.hazmat.primitives.serialization import load_pem_private_key
         #
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
