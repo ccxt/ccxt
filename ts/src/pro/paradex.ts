@@ -479,10 +479,15 @@ export default class paradex extends paradexRest {
             },
         };
         const messageHashes = [];
-        if (Array.isArray (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const messageHash = channel + '.' + symbols[i];
-                messageHashes.push (messageHash);
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const messageHash = channel + '.' + symbols[i];
+                    messageHashes.push (messageHash);
+                }
+            } else {
+                messageHashes.push (channel); // if an empty array is passed, subscribe to all funding rates
             }
         } else {
             messageHashes.push (channel);

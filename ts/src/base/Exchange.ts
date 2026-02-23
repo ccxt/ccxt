@@ -3058,7 +3058,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
     }
 
-    async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+    async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchFundingRates() is not supported yet');
     }
 
