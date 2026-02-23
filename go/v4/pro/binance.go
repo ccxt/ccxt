@@ -440,7 +440,7 @@ func  (this *BinanceCore) ParseWsLiquidation(liquidation interface{}, optionalAr
     //        "c":"TEST",                 // ccxt.Client ccxt.Order Id
     //          // special client order id:
     //          // starts with "autoclose-": liquidation order
-    //          // "adl_autoclose": ADL auto close order
+    //          // "adl_autoclose": ccxt.ADL auto close order
     //          // "settlement_autoclose-": settlement order for delisting or delivery
     //        "S":"SELL",                 // Side
     //        "o":"TRAILING_STOP_MARKET", // ccxt.Order Type
@@ -601,7 +601,7 @@ func  (this *BinanceCore) HandleMyLiquidation(client interface{}, message interf
     //        "c":"TEST",                 // ccxt.Client ccxt.Order Id
     //          // special client order id:
     //          // starts with "autoclose-": liquidation order
-    //          // "adl_autoclose": ADL auto close order
+    //          // "adl_autoclose": ccxt.ADL auto close order
     //          // "settlement_autoclose-": settlement order for delisting or delivery
     //        "S":"SELL",                 // Side
     //        "o":"TRAILING_STOP_MARKET", // ccxt.Order Type
@@ -4712,7 +4712,7 @@ func  (this *BinanceCore) ParseWsOrder(order interface{}, optionalArgs ...interf
     //         "c":"TEST",                    // ccxt.Client ccxt.Order Id
     //                                        // special client order id:
     //                                        // starts with "autoclose-": liquidation order
-    //                                        // "adl_autoclose": ADL auto close order
+    //                                        // "adl_autoclose": ccxt.ADL auto close order
     //         "S":"SELL",                    // Side
     //         "o":"TRAILING_STOP_MARKET",    // ccxt.Order Type
     //         "f":"GTC",                     // Time in Force
@@ -4889,7 +4889,7 @@ func  (this *BinanceCore) HandleOrderUpdate(client interface{}, message interfac
     //             "c":"TEST",                     // ccxt.Client ccxt.Order Id
     //                                             // special client order id:
     //                                             // starts with "autoclose-": liquidation order
-    //                                             // "adl_autoclose": ADL auto close order
+    //                                             // "adl_autoclose": ccxt.ADL auto close order
     //             "S":"SELL",                     // Side
     //             "o":"TRAILING_STOP_MARKET",     // ccxt.Order Type
     //             "f":"GTC",                      // Time in Force

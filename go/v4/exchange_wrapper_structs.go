@@ -2136,6 +2136,49 @@ func WithFetchPositionModeParams(params map[string]interface{}) FetchPositionMod
 	}
 }
 
+type FetchADLRankOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchADLRankOptions func(opts *FetchADLRankOptionsStruct)
+
+func WithFetchADLRankParams(params map[string]interface{}) FetchADLRankOptions {
+	return func(opts *FetchADLRankOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchPositionsADLRankOptionsStruct struct {
+	Symbols *[]string
+	Params  *map[string]interface{}
+}
+
+type FetchPositionsADLRankOptions func(opts *FetchPositionsADLRankOptionsStruct)
+
+func WithFetchPositionsADLRankSymbols(symbols []string) FetchPositionsADLRankOptions {
+	return func(opts *FetchPositionsADLRankOptionsStruct) {
+		opts.Symbols = &symbols
+	}
+}
+
+func WithFetchPositionsADLRankParams(params map[string]interface{}) FetchPositionsADLRankOptions {
+	return func(opts *FetchPositionsADLRankOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchPositionADLRankOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchPositionADLRankOptions func(opts *FetchPositionADLRankOptionsStruct)
+
+func WithFetchPositionADLRankParams(params map[string]interface{}) FetchPositionADLRankOptions {
+	return func(opts *FetchPositionADLRankOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type CreateTrailingAmountOrderOptionsStruct struct {
 	Price                *float64
 	TrailingAmount       *float64

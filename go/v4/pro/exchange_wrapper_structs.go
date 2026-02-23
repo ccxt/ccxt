@@ -555,6 +555,19 @@ type FetchPositionModeOptions = ccxt.FetchPositionModeOptions
 var WithFetchPositionModeSymbol = ccxt.WithFetchPositionModeSymbol
 var WithFetchPositionModeParams = ccxt.WithFetchPositionModeParams
 
+type FetchADLRankOptionsStruct = ccxt.FetchADLRankOptionsStruct
+type FetchADLRankOptions = ccxt.FetchADLRankOptions
+var WithFetchADLRankParams = ccxt.WithFetchADLRankParams
+
+type FetchPositionsADLRankOptionsStruct = ccxt.FetchPositionsADLRankOptionsStruct
+type FetchPositionsADLRankOptions = ccxt.FetchPositionsADLRankOptions
+var WithFetchPositionsADLRankSymbols = ccxt.WithFetchPositionsADLRankSymbols
+var WithFetchPositionsADLRankParams = ccxt.WithFetchPositionsADLRankParams
+
+type FetchPositionADLRankOptionsStruct = ccxt.FetchPositionADLRankOptionsStruct
+type FetchPositionADLRankOptions = ccxt.FetchPositionADLRankOptions
+var WithFetchPositionADLRankParams = ccxt.WithFetchPositionADLRankParams
+
 type CreateTrailingAmountOrderOptionsStruct = ccxt.CreateTrailingAmountOrderOptionsStruct
 type CreateTrailingAmountOrderOptions = ccxt.CreateTrailingAmountOrderOptions
 var WithCreateTrailingAmountOrderPrice = ccxt.WithCreateTrailingAmountOrderPrice

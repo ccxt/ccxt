@@ -67,6 +67,8 @@ func (this *DeltaCore) Describe() interface{} {
 			"fetchOrder":                     true,
 			"fetchOrderBook":                 true,
 			"fetchPosition":                  true,
+			"fetchPositionADLRank":           true,
+			"fetchPositionsADLRank":          true,
 			"fetchPositionMode":              false,
 			"fetchPositions":                 true,
 			"fetchPremiumIndexOHLCV":         false,
@@ -1125,8 +1127,8 @@ func (this *DeltaCore) FetchTicker(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes11258 := (<-this.LoadMarkets())
-		PanicOnError(retRes11258)
+		retRes11278 := (<-this.LoadMarkets())
+		PanicOnError(retRes11278)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1286,8 +1288,8 @@ func (this *DeltaCore) FetchTickers(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12698 := (<-this.LoadMarkets())
-		PanicOnError(retRes12698)
+		retRes12718 := (<-this.LoadMarkets())
+		PanicOnError(retRes12718)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetTickers(params))
@@ -1457,8 +1459,8 @@ func (this *DeltaCore) FetchOrderBook(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14238 := (<-this.LoadMarkets())
-		PanicOnError(retRes14238)
+		retRes14258 := (<-this.LoadMarkets())
+		PanicOnError(retRes14258)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1620,8 +1622,8 @@ func (this *DeltaCore) FetchTrades(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes15668 := (<-this.LoadMarkets())
-		PanicOnError(retRes15668)
+		retRes15688 := (<-this.LoadMarkets())
+		PanicOnError(retRes15688)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1695,8 +1697,8 @@ func (this *DeltaCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16268 := (<-this.LoadMarkets())
-		PanicOnError(retRes16268)
+		retRes16288 := (<-this.LoadMarkets())
+		PanicOnError(retRes16288)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1782,8 +1784,8 @@ func (this *DeltaCore) FetchBalance(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes16978 := (<-this.LoadMarkets())
-		PanicOnError(retRes16978)
+		retRes16998 := (<-this.LoadMarkets())
+		PanicOnError(retRes16998)
 
 		response := (<-this.PrivateGetWalletBalances(params))
 		PanicOnError(response)
@@ -1833,8 +1835,8 @@ func (this *DeltaCore) FetchPosition(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17338 := (<-this.LoadMarkets())
-		PanicOnError(retRes17338)
+		retRes17358 := (<-this.LoadMarkets())
+		PanicOnError(retRes17358)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"product_id": GetValue(market, "numericId"),
@@ -1880,8 +1882,8 @@ func (this *DeltaCore) FetchPositions(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes17638 := (<-this.LoadMarkets())
-		PanicOnError(retRes17638)
+		retRes17658 := (<-this.LoadMarkets())
+		PanicOnError(retRes17658)
 
 		response := (<-this.PrivateGetPositionsMargined(params))
 		PanicOnError(response)
@@ -2139,8 +2141,8 @@ func (this *DeltaCore) CreateOrder(symbol interface{}, typeVar interface{}, side
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes20048 := (<-this.LoadMarkets())
-		PanicOnError(retRes20048)
+		retRes20068 := (<-this.LoadMarkets())
+		PanicOnError(retRes20068)
 		var orderType interface{} = Add(typeVar, "_order")
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
@@ -2236,8 +2238,8 @@ func (this *DeltaCore) EditOrder(id interface{}, symbol interface{}, typeVar int
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes20878 := (<-this.LoadMarkets())
-		PanicOnError(retRes20878)
+		retRes20898 := (<-this.LoadMarkets())
+		PanicOnError(retRes20898)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"id":         ParseInt(id),
@@ -2301,8 +2303,8 @@ func (this *DeltaCore) CancelOrder(id interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 		}
 
-		retRes21378 := (<-this.LoadMarkets())
-		PanicOnError(retRes21378)
+		retRes21398 := (<-this.LoadMarkets())
+		PanicOnError(retRes21398)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"id":         ParseInt(id),
@@ -2378,8 +2380,8 @@ func (this *DeltaCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes21978 := (<-this.LoadMarkets())
-		PanicOnError(retRes21978)
+		retRes21998 := (<-this.LoadMarkets())
+		PanicOnError(retRes21998)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"product_id": GetValue(market, "numericId"),
@@ -2423,8 +2425,8 @@ func (this *DeltaCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22318 := (<-this.LoadMarkets())
-		PanicOnError(retRes22318)
+		retRes22338 := (<-this.LoadMarkets())
+		PanicOnError(retRes22338)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -2502,9 +2504,9 @@ func (this *DeltaCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes228715 := (<-this.FetchOrdersWithMethod("privateGetOrders", symbol, since, limit, params))
-		PanicOnError(retRes228715)
-		ch <- retRes228715
+		retRes228915 := (<-this.FetchOrdersWithMethod("privateGetOrders", symbol, since, limit, params))
+		PanicOnError(retRes228915)
+		ch <- retRes228915
 		return nil
 
 	}()
@@ -2536,9 +2538,9 @@ func (this *DeltaCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes230215 := (<-this.FetchOrdersWithMethod("privateGetOrdersHistory", symbol, since, limit, params))
-		PanicOnError(retRes230215)
-		ch <- retRes230215
+		retRes230415 := (<-this.FetchOrdersWithMethod("privateGetOrdersHistory", symbol, since, limit, params))
+		PanicOnError(retRes230415)
+		ch <- retRes230415
 		return nil
 
 	}()
@@ -2558,8 +2560,8 @@ func (this *DeltaCore) FetchOrdersWithMethod(method interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23068 := (<-this.LoadMarkets())
-		PanicOnError(retRes23068)
+		retRes23088 := (<-this.LoadMarkets())
+		PanicOnError(retRes23088)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2639,8 +2641,8 @@ func (this *DeltaCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23738 := (<-this.LoadMarkets())
-		PanicOnError(retRes23738)
+		retRes23758 := (<-this.LoadMarkets())
+		PanicOnError(retRes23758)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2735,8 +2737,8 @@ func (this *DeltaCore) FetchLedger(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24568 := (<-this.LoadMarkets())
-		PanicOnError(retRes24568)
+		retRes24588 := (<-this.LoadMarkets())
+		PanicOnError(retRes24588)
 		var request interface{} = map[string]interface{}{}
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2866,8 +2868,8 @@ func (this *DeltaCore) FetchDepositAddress(code interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes25818 := (<-this.LoadMarkets())
-		PanicOnError(retRes25818)
+		retRes25838 := (<-this.LoadMarkets())
+		PanicOnError(retRes25838)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"asset_symbol": GetValue(currency, "id"),
@@ -2952,8 +2954,8 @@ func (this *DeltaCore) FetchFundingRate(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes26518 := (<-this.LoadMarkets())
-		PanicOnError(retRes26518)
+		retRes26538 := (<-this.LoadMarkets())
+		PanicOnError(retRes26538)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -3037,8 +3039,8 @@ func (this *DeltaCore) FetchFundingRates(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes27198 := (<-this.LoadMarkets())
-		PanicOnError(retRes27198)
+		retRes27218 := (<-this.LoadMarkets())
+		PanicOnError(retRes27218)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{
 			"contract_types": "perpetual_futures",
@@ -3190,9 +3192,9 @@ func (this *DeltaCore) AddMargin(symbol interface{}, amount interface{}, optiona
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes285615 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes285615)
-		ch <- retRes285615
+		retRes285815 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+		PanicOnError(retRes285815)
+		ch <- retRes285815
 		return nil
 
 	}()
@@ -3217,9 +3219,9 @@ func (this *DeltaCore) ReduceMargin(symbol interface{}, amount interface{}, opti
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes287015 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes287015)
-		ch <- retRes287015
+		retRes287215 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+		PanicOnError(retRes287215)
+		ch <- retRes287215
 		return nil
 
 	}()
@@ -3233,8 +3235,8 @@ func (this *DeltaCore) ModifyMarginHelper(symbol interface{}, amount interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28748 := (<-this.LoadMarkets())
-		PanicOnError(retRes28748)
+		retRes28768 := (<-this.LoadMarkets())
+		PanicOnError(retRes28768)
 		var market interface{} = this.Market(symbol)
 		amount = ToString(amount)
 		if IsTrue(IsEqual(typeVar, "reduce")) {
@@ -3334,8 +3336,8 @@ func (this *DeltaCore) FetchOpenInterest(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes29598 := (<-this.LoadMarkets())
-		PanicOnError(retRes29598)
+		retRes29618 := (<-this.LoadMarkets())
+		PanicOnError(retRes29618)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -3489,8 +3491,8 @@ func (this *DeltaCore) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes30988 := (<-this.LoadMarkets())
-		PanicOnError(retRes30988)
+		retRes31008 := (<-this.LoadMarkets())
+		PanicOnError(retRes31008)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"product_id": GetValue(market, "numericId"),
@@ -3556,16 +3558,16 @@ func (this *DeltaCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes31478 := (<-this.LoadMarkets())
-		PanicOnError(retRes31478)
+		retRes31498 := (<-this.LoadMarkets())
+		PanicOnError(retRes31498)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"product_id": GetValue(market, "numericId"),
 			"leverage":   leverage,
 		}
 
-		retRes316415 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
-		PanicOnError(retRes316415)
+		retRes316615 := (<-this.PrivatePostProductsProductIdOrdersLeverage(this.Extend(request, params)))
+		PanicOnError(retRes316615)
 		//
 		//     {
 		//         "result": {
@@ -3577,7 +3579,7 @@ func (this *DeltaCore) SetLeverage(leverage interface{}, optionalArgs ...interfa
 		//         "success": true
 		//     }
 		//
-		ch <- retRes316415
+		ch <- retRes316615
 		return nil
 
 	}()
@@ -3609,8 +3611,8 @@ func (this *DeltaCore) FetchSettlementHistory(optionalArgs ...interface{}) <-cha
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes31798 := (<-this.LoadMarkets())
-		PanicOnError(retRes31798)
+		retRes31818 := (<-this.LoadMarkets())
+		PanicOnError(retRes31818)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3781,8 +3783,8 @@ func (this *DeltaCore) FetchGreeks(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes33388 := (<-this.LoadMarkets())
-		PanicOnError(retRes33388)
+		retRes33408 := (<-this.LoadMarkets())
+		PanicOnError(retRes33408)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3947,8 +3949,8 @@ func (this *DeltaCore) CloseAllPositions(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes34888 := (<-this.LoadMarkets())
-		PanicOnError(retRes34888)
+		retRes34908 := (<-this.LoadMarkets())
+		PanicOnError(retRes34908)
 		var request interface{} = map[string]interface{}{
 			"close_all_portfolio": true,
 			"close_all_isolated":  true,
@@ -3985,8 +3987,8 @@ func (this *DeltaCore) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes35128 := (<-this.LoadMarkets())
-		PanicOnError(retRes35128)
+		retRes35148 := (<-this.LoadMarkets())
+		PanicOnError(retRes35148)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4096,8 +4098,8 @@ func (this *DeltaCore) FetchOption(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes36078 := (<-this.LoadMarkets())
-		PanicOnError(retRes36078)
+		retRes36098 := (<-this.LoadMarkets())
+		PanicOnError(retRes36098)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -4241,6 +4243,391 @@ func (this *DeltaCore) ParseOption(chain interface{}, optionalArgs ...interface{
 		"percentage":        nil,
 		"baseVolume":        this.SafeNumber(chain, "volume"),
 		"quoteVolume":       nil,
+	}
+}
+
+/**
+ * @method
+ * @name delta#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://docs.delta.exchange/#get-margined-positions
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *DeltaCore) FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes37568 := (<-this.LoadMarkets())
+		PanicOnError(retRes37568)
+		symbols = this.MarketSymbols(symbols, nil, true, true, true)
+
+		response := (<-this.PrivateGetPositionsMargined(params))
+		PanicOnError(response)
+		//
+		//     {
+		//         "result":
+		//             [
+		//                 {
+		//                     "adl_level": null,
+		//                     "auto_topup": false,
+		//                     "bankruptcy_price": "88618.22667",
+		//                     "commission": "0.03797924",
+		//                     "created_at": "2026-01-14T11:24:35.801586Z",
+		//                     "entry_price": "94948.1",
+		//                     "liquidation_price": "89092.96717",
+		//                     "margin": "6.32987333",
+		//                     "margin_mode": "isolated",
+		//                     "mark_price": "94942.90888022",
+		//                     "product": {
+		//                         "trading_status": "operational",
+		//                         "short_description": null,
+		//                         "quoting_asset": {
+		//                             "base_withdrawal_fee": "0.000000000000000000",
+		//                             "id": 4,
+		//                             "interest_credit": false,
+		//                             "interest_slabs": null,
+		//                             "kyc_deposit_limit": "0.000000000000000000",
+		//                             "kyc_withdrawal_limit": "0.000000000000000000",
+		//                             "min_withdrawal_amount": "0.000000000000000000",
+		//                             "minimum_precision": 2,
+		//                             "name": "Tether",
+		//                             "networks": [],
+		//                             "precision": 8,
+		//                             "sort_priority": null,
+		//                             "symbol": "USDT",
+		//                             "variable_withdrawal_fee": "0.000000000000000000"
+		//                         },
+		//                         "symbol": "BTCUSDT",
+		//                         "taker_commission_rate": "0.0004",
+		//                         "maintenance_margin_scaling_factor": "0",
+		//                         "spot_index": {
+		//                             "config": {
+		//                                 "impact_size": {
+		//                                     "max_impact_size": 150000,
+		//                                     "min_impact_size": 5000,
+		//                                     "step_value": 5000
+		//                                 },
+		//                                 "quoting_asset": "USDT",
+		//                                 "service_id": 1,
+		//                                 "underlying_asset": "BTC"
+		//                             },
+		//                             "constituent_exchanges": [
+		//                                 {
+		//                                     "exchange": "binance",
+		//                                     "health_interval": 3000,
+		//                                     "health_priority": 1,
+		//                                     "weight": 1
+		//                                 },
+		//                                 {
+		//                                     "exchange": "gateio",
+		//                                     "health_interval": 3000,
+		//                                     "health_priority": 3,
+		//                                     "weight": 1
+		//                                 },
+		//                                 {
+		//                                     "exchange": "bybit",
+		//                                     "health_interval": 3000,
+		//                                     "health_priority": 2,
+		//                                     "weight": 1
+		//                                 }
+		//                             ],
+		//                             "constituent_indices": null,
+		//                             "description": "BTC Spot",
+		//                             "health_interval": 300,
+		//                             "id": 2,
+		//                             "impact_size": "1.000000000000000000",
+		//                             "index_type": "spot_pair",
+		//                             "is_composite": false,
+		//                             "price_method": "ltp",
+		//                             "quoting_asset_id": 4,
+		//                             "symbol": ".DEXBTUSDT",
+		//                             "tick_size": "0.100000000000000000",
+		//                             "underlying_asset_id": 2
+		//                         },
+		//                         "liquidation_penalty_factor": "1",
+		//                         "auction_start_time": "2025-12-22T12:18:52Z",
+		//                         "is_quanto": false,
+		//                         "state": "live",
+		//                         "id": 84,
+		//                         "settling_asset": {
+		//                             "base_withdrawal_fee": "0.000000000000000000",
+		//                             "id": 4,
+		//                             "interest_credit": false,
+		//                             "interest_slabs": null,
+		//                             "kyc_deposit_limit": "0.000000000000000000",
+		//                             "kyc_withdrawal_limit": "0.000000000000000000",
+		//                             "min_withdrawal_amount": "0.000000000000000000",
+		//                             "minimum_precision": 2,
+		//                             "name": "Tether",
+		//                             "networks": [],
+		//                             "precision": 8,
+		//                             "sort_priority": null,
+		//                             "symbol": "USDT",
+		//                             "variable_withdrawal_fee": "0.000000000000000000"
+		//                         },
+		//                         "tick_size": "0.1",
+		//                         "impact_size": 4000,
+		//                         "insurance_fund_margin_contribution": "5",
+		//                         "maker_commission_rate": "0.0002",
+		//                         "ui_config": {
+		//                             "default_trading_view_candle": "15",
+		//                             "leverage_slider_values": [1,2,3,5,10,50,100],
+		//                             "price_clubbing_values": [0.1,1,10,50],
+		//                             "show_bracket_orders": false,
+		//                             "sort_priority": 1
+		//                         },
+		//                         "annualized_funding": "0",
+		//                         "strike_price": null,
+		//                         "price_band": "100",
+		//                         "funding_method": "mark_price",
+		//                         "contract_value": "0.001",
+		//                         "auction_finish_time": null,
+		//                         "product_specs": {
+		//                             "vol_expiry_time": 172800
+		//                         },
+		//                         "launch_time": "2020-04-20T08:37:05Z",
+		//                         "basis_factor_max_limit": "1000",
+		//                         "initial_margin": "1",
+		//                         "notional_type": "vanilla",
+		//                         "contract_unit_currency": "BTC",
+		//                         "disruption_reason": null,
+		//                         "underlying_asset": {
+		//                             "base_withdrawal_fee": "0.000000000000000000",
+		//                             "id": 2,
+		//                             "interest_credit": false,
+		//                             "interest_slabs": null,
+		//                             "kyc_deposit_limit": "0.000000000000000000",
+		//                             "kyc_withdrawal_limit": "0.000000000000000000",
+		//                             "min_withdrawal_amount": "0.000000000000000000",
+		//                             "minimum_precision": 4,
+		//                             "name": "Bitcoin",
+		//                             "networks": [],
+		//                             "precision": 8,
+		//                             "sort_priority": 1,
+		//                             "symbol": "BTC",
+		//                             "variable_withdrawal_fee": "0.000000000000000000"
+		//                         },
+		//                         "initial_margin_scaling_factor": "0",
+		//                         "position_size_limit": 10000000,
+		//                         "max_leverage_notional": "10000",
+		//                         "settlement_price": null,
+		//                         "barrier_price": null,
+		//                         "maintenance_margin": "0.5",
+		//                         "default_leverage": "50.000000000000000000",
+		//                         "settlement_time": null,
+		//                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+		//                         "contract_type": "perpetual_futures"
+		//                     },
+		//                     "product_id": 84,
+		//                     "product_symbol": "BTCUSDT",
+		//                     "realized_cashflow": "0.000000000000000000",
+		//                     "realized_funding": "0",
+		//                     "realized_holding_cost": "0",
+		//                     "realized_pnl": "0",
+		//                     "size": 1,
+		//                     "unrealized_pnl": "-0.00519112",
+		//                     "updated_at": "2026-01-14T11:24:35.801586Z",
+		//                     "user_id": 30084879
+		//                 }
+		//             ],
+		//         "success": true
+		//     }
+		//
+		var result interface{} = this.SafeList(response, "result", []interface{}{})
+
+		ch <- this.ParseADLRanks(result, symbols)
+		return nil
+
+	}()
+	return ch
+}
+func (this *DeltaCore) ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	// fetchPositionsADLRank
+	//
+	//     {
+	//         "adl_level": null,
+	//         "auto_topup": false,
+	//         "bankruptcy_price": "88618.22667",
+	//         "commission": "0.03797924",
+	//         "created_at": "2026-01-14T11:24:35.801586Z",
+	//         "entry_price": "94948.1",
+	//         "liquidation_price": "89092.96717",
+	//         "margin": "6.32987333",
+	//         "margin_mode": "isolated",
+	//         "mark_price": "94942.90888022",
+	//         "product": {
+	//             "trading_status": "operational",
+	//             "short_description": null,
+	//             "quoting_asset": {
+	//                 "base_withdrawal_fee": "0.000000000000000000",
+	//                 "id": 4,
+	//                 "interest_credit": false,
+	//                 "interest_slabs": null,
+	//                 "kyc_deposit_limit": "0.000000000000000000",
+	//                 "kyc_withdrawal_limit": "0.000000000000000000",
+	//                 "min_withdrawal_amount": "0.000000000000000000",
+	//                 "minimum_precision": 2,
+	//                 "name": "Tether",
+	//                 "networks": [],
+	//                 "precision": 8,
+	//                 "sort_priority": null,
+	//                 "symbol": "USDT",
+	//                 "variable_withdrawal_fee": "0.000000000000000000"
+	//             },
+	//             "symbol": "BTCUSDT",
+	//             "taker_commission_rate": "0.0004",
+	//             "maintenance_margin_scaling_factor": "0",
+	//             "spot_index": {
+	//                 "config": {
+	//                     "impact_size": {
+	//                         "max_impact_size": 150000,
+	//                         "min_impact_size": 5000,
+	//                         "step_value": 5000
+	//                     },
+	//                     "quoting_asset": "USDT",
+	//                     "service_id": 1,
+	//                     "underlying_asset": "BTC"
+	//                 },
+	//                 "constituent_exchanges": [
+	//                     {
+	//                         "exchange": "binance",
+	//                         "health_interval": 3000,
+	//                         "health_priority": 1,
+	//                         "weight": 1
+	//                     },
+	//                     {
+	//                         "exchange": "gateio",
+	//                         "health_interval": 3000,
+	//                         "health_priority": 3,
+	//                         "weight": 1
+	//                     },
+	//                     {
+	//                         "exchange": "bybit",
+	//                         "health_interval": 3000,
+	//                         "health_priority": 2,
+	//                         "weight": 1
+	//                     }
+	//                 ],
+	//                 "constituent_indices": null,
+	//                 "description": "BTC Spot",
+	//                 "health_interval": 300,
+	//                 "id": 2,
+	//                 "impact_size": "1.000000000000000000",
+	//                 "index_type": "spot_pair",
+	//                 "is_composite": false,
+	//                 "price_method": "ltp",
+	//                 "quoting_asset_id": 4,
+	//                 "symbol": ".DEXBTUSDT",
+	//                 "tick_size": "0.100000000000000000",
+	//                 "underlying_asset_id": 2
+	//             },
+	//             "liquidation_penalty_factor": "1",
+	//             "auction_start_time": "2025-12-22T12:18:52Z",
+	//             "is_quanto": false,
+	//             "state": "live",
+	//             "id": 84,
+	//             "settling_asset": {
+	//                 "base_withdrawal_fee": "0.000000000000000000",
+	//                 "id": 4,
+	//                 "interest_credit": false,
+	//                 "interest_slabs": null,
+	//                 "kyc_deposit_limit": "0.000000000000000000",
+	//                 "kyc_withdrawal_limit": "0.000000000000000000",
+	//                 "min_withdrawal_amount": "0.000000000000000000",
+	//                 "minimum_precision": 2,
+	//                 "name": "Tether",
+	//                 "networks": [],
+	//                 "precision": 8,
+	//                 "sort_priority": null,
+	//                 "symbol": "USDT",
+	//                 "variable_withdrawal_fee": "0.000000000000000000"
+	//             },
+	//             "tick_size": "0.1",
+	//             "impact_size": 4000,
+	//             "insurance_fund_margin_contribution": "5",
+	//             "maker_commission_rate": "0.0002",
+	//             "ui_config": {
+	//                 "default_trading_view_candle": "15",
+	//                 "leverage_slider_values": [1,2,3,5,10,50,100],
+	//                 "price_clubbing_values": [0.1,1,10,50],
+	//                 "show_bracket_orders": false,
+	//                 "sort_priority": 1
+	//             },
+	//             "annualized_funding": "0",
+	//             "strike_price": null,
+	//             "price_band": "100",
+	//             "funding_method": "mark_price",
+	//             "contract_value": "0.001",
+	//             "auction_finish_time": null,
+	//             "product_specs": {
+	//                 "vol_expiry_time": 172800
+	//             },
+	//             "launch_time": "2020-04-20T08:37:05Z",
+	//             "basis_factor_max_limit": "1000",
+	//             "initial_margin": "1",
+	//             "notional_type": "vanilla",
+	//             "contract_unit_currency": "BTC",
+	//             "disruption_reason": null,
+	//             "underlying_asset": {
+	//                 "base_withdrawal_fee": "0.000000000000000000",
+	//                 "id": 2,
+	//                 "interest_credit": false,
+	//                 "interest_slabs": null,
+	//                 "kyc_deposit_limit": "0.000000000000000000",
+	//                 "kyc_withdrawal_limit": "0.000000000000000000",
+	//                 "min_withdrawal_amount": "0.000000000000000000",
+	//                 "minimum_precision": 4,
+	//                 "name": "Bitcoin",
+	//                 "networks": [],
+	//                 "precision": 8,
+	//                 "sort_priority": 1,
+	//                 "symbol": "BTC",
+	//                 "variable_withdrawal_fee": "0.000000000000000000"
+	//             },
+	//             "initial_margin_scaling_factor": "0",
+	//             "position_size_limit": 10000000,
+	//             "max_leverage_notional": "10000",
+	//             "settlement_price": null,
+	//             "barrier_price": null,
+	//             "maintenance_margin": "0.5",
+	//             "default_leverage": "50.000000000000000000",
+	//             "settlement_time": null,
+	//             "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+	//             "contract_type": "perpetual_futures"
+	//         },
+	//         "product_id": 84,
+	//         "product_symbol": "BTCUSDT",
+	//         "realized_cashflow": "0.000000000000000000",
+	//         "realized_funding": "0",
+	//         "realized_holding_cost": "0",
+	//         "realized_pnl": "0",
+	//         "size": 1,
+	//         "unrealized_pnl": "-0.00519112",
+	//         "updated_at": "2026-01-14T11:24:35.801586Z",
+	//         "user_id": 30084879
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId interface{} = this.SafeString(info, "product_symbol")
+	var datetime interface{} = this.SafeString(info, "created_at")
+	return map[string]interface{}{
+		"info":       info,
+		"symbol":     this.SafeSymbol(marketId, market, nil, "contract"),
+		"rank":       this.SafeInteger(info, "adl_level"),
+		"rating":     nil,
+		"percentage": nil,
+		"timestamp":  this.Parse8601(datetime),
+		"datetime":   datetime,
 	}
 }
 func (this *DeltaCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
