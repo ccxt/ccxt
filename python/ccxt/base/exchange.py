@@ -37,6 +37,13 @@ from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType
 
 # -----------------------------------------------------------------------------
 
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+
+# -----------------------------------------------------------------------------
+
 __all__ = [
     'Exchange',
 ]
