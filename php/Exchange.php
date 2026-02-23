@@ -1271,7 +1271,7 @@ class Exchange {
     }
 
     public function get_temp_dir() {
-        return sys_get_temp_dir();
+        return sys_get_temp_dir() . DIRECTORY_SEPARATOR;
     }
 
     public function ensure_ccxt_file(string $path) {
