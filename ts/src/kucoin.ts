@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/kucoin.js';
-import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, InvalidNonce, NotSupported, BadRequest, AuthenticationError, BadSymbol, RateLimitExceeded, PermissionDenied, InvalidAddress, ArgumentsRequired, RestrictedLocation } from './base/errors.js';
+import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OrderNotFound, PermissionDenied, RateLimitExceeded, RestrictedLocation } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, Str, Transaction, Ticker, OrderBook, OrderRequest, Tickers, Strings, Currency, Market, Num, Account, Dict, Bool, TradingFeeInterface, Currencies, int, LedgerEntry, Leverage, DepositAddress, BorrowInterest, FundingRate } from './base/types.js';
+import type { Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -33,12 +33,14 @@ export default class kucoin extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': true,
                 'borrowCrossMargin': true,
                 'borrowIsolatedMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'closeAllPositions': false,
-                'closePosition': false,
+                'closePosition': true,
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': true,
@@ -66,7 +68,7 @@ export default class kucoin extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': true,
                 'fetchDepositWithdrawFees': true,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingInterval': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -78,8 +80,8 @@ export default class kucoin extends Exchange {
                 'fetchLedger': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
-                'fetchMarginMode': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarginMode': true,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMarkPrice': true,
@@ -94,9 +96,11 @@ export default class kucoin extends Exchange {
                 'fetchOrderBooks': false,
                 'fetchOrdersByStatus': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
-                'fetchPositionMode': false,
-                'fetchPositionsHistory': false,
+                'fetchPositionMode': true,
+                'fetchPositions': true,
+                'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -111,8 +115,8 @@ export default class kucoin extends Exchange {
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
-                'setMarginMode': false,
-                'setPositionMode': false,
+                'setMarginMode': true,
+                'setPositionMode': true,
                 'signIn': false,
                 'transfer': true,
                 'withdraw': true,
@@ -365,6 +369,9 @@ export default class kucoin extends Exchange {
                         'status': 6, // 4PW
                         // ?
                         'level2/message/query': 1.3953,
+                        'contracts/risk-limit/{symbol}': 3,
+                        'level3/message/query': 3, // deprecated，level3/snapshot is suggested
+                        'level3/snapshot': 3, // v2
                     },
                     'post': {
                         // ws
@@ -396,6 +403,17 @@ export default class kucoin extends Exchange {
                         'funding-history': 7.5, // 5FW
                         'copy-trade/futures/get-max-open-size': 6, // 4FW
                         'copy-trade/futures/position/margin/max-withdraw-margin': 15, // 10FW
+                        'history-positions': 7.5,
+                        'position/getMarginMode': 7.5,
+                        'position/getPositionMode': 7.5,
+                        'deposit-address': 7.5,
+                        'deposit-list': 7.5,
+                        'withdrawals/quotas': 7.5,
+                        'withdrawal-list': 7.5,
+                        'sub/api-key': 7.5,
+                        'trade-statistics': 7.5,
+                        'getMaxOpenSize': 7.5,
+                        'getCrossUserLeverage': 7.5,
                     },
                     'post': {
                         // funding
@@ -424,6 +442,11 @@ export default class kucoin extends Exchange {
                         // ws
                         'bullet-private': 15, // 10FW
                         'changeCrossUserLeverage': 15,
+                        'withdrawals': 7.5,
+                        'sub/api-key': 7.5,
+                        'sub/api-key/update': 7.5,
+                        'position/changeMarginMode': 7.5,
+                        'position/switchPositionMode': 7.5,
                     },
                     'delete': {
                         'orders/{orderId}': 1.5, // 1FW
@@ -432,11 +455,16 @@ export default class kucoin extends Exchange {
                         'stopOrders': 22.5, // 15FW
                         'copy-trade/futures/orders': 1.5, // 1FW
                         'copy-trade/futures/orders/client-order': 1.5, // 1FW
+                        'orders/multi-cancel': 30,
+                        'withdrawals/{withdrawalId}': 7.5,
+                        'cancel/transfer-out': 7.5,
+                        'sub/api-key': 7.5,
                     },
                 },
                 'webExchange': {
                     'get': {
                         'currency/currency/chain-info': 1, // this is temporary from webApi
+                        'contract/{symbol}/funding-rates': 1,
                     },
                 },
                 'broker': {
@@ -875,6 +903,7 @@ export default class kucoin extends Exchange {
                             'getMaxOpenSize': 'v2',
                             'getCrossUserLeverage': 'v2',
                             'position/getMarginMode': 'v2',
+                            'position/getPositionMode': 'v2',
                         },
                         'POST': {
                             'transfer-out': 'v2',
@@ -7818,6 +7847,850 @@ export default class kucoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         };
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/funding-fees/get-private-funding-history
+     * @param {string} symbol unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        if (limit !== undefined) {
+            // * Since is ignored if limit is defined
+            request['maxCount'] = limit;
+        }
+        const response = await this.futuresPrivateGetFundingHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "dataList": [
+        //                {
+        //                    "id": 239471298749817,
+        //                    "symbol": "ETHUSDTM",
+        //                    "timePoint": 1638532800000,
+        //                    "fundingRate": 0.000100,
+        //                    "markPrice": 4612.8300000000,
+        //                    "positionQty": 12,
+        //                    "positionCost": 553.5396000000,
+        //                    "funding": -0.0553539600,
+        //                    "settleCurrency": "USDT"
+        //                },
+        //                ...
+        //            ],
+        //            "hasMore": true
+        //        }
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        const dataList = this.safeList (data, 'dataList', []);
+        const fees = [];
+        for (let i = 0; i < dataList.length; i++) {
+            const listItem = dataList[i];
+            const timestamp = this.safeInteger (listItem, 'timePoint');
+            fees.push ({
+                'info': listItem,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (this.safeString (listItem, 'settleCurrency')),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'id': this.safeNumber (listItem, 'id'),
+                'amount': this.safeNumber (listItem, 'funding'),
+                'fundingRate': this.safeNumber (listItem, 'fundingRate'),
+                'markPrice': this.safeNumber (listItem, 'markPrice'),
+                'positionQty': this.safeNumber (listItem, 'positionQty'),
+                'positionCost': this.safeNumber (listItem, 'positionCost'),
+            });
+        }
+        return fees as FundingHistory[];
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchPosition
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-details
+     * @description fetch data on an open position
+     * @param {string} symbol unified market symbol of the market the position is held in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPosition (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "id": "6505ee6eaff4070001f651c4",
+        //            "symbol": "XBTUSDTM",
+        //            "autoDeposit": false,
+        //            "maintMarginReq": 0,
+        //            "riskLimit": 200,
+        //            "realLeverage": 0.0,
+        //            "crossMode": false,
+        //            "delevPercentage": 0.0,
+        //            "currentTimestamp": 1694887534594,
+        //            "currentQty": 0,
+        //            "currentCost": 0.0,
+        //            "currentComm": 0.0,
+        //            "unrealisedCost": 0.0,
+        //            "realisedGrossCost": 0.0,
+        //            "realisedCost": 0.0,
+        //            "isOpen": false,
+        //            "markPrice": 26611.71,
+        //            "markValue": 0.0,
+        //            "posCost": 0.0,
+        //            "posCross": 0,
+        //            "posInit": 0.0,
+        //            "posComm": 0.0,
+        //            "posLoss": 0.0,
+        //            "posMargin": 0.0,
+        //            "posMaint": 0.0,
+        //            "maintMargin": 0.0,
+        //            "realisedGrossPnl": 0.0,
+        //            "realisedPnl": 0.0,
+        //            "unrealisedPnl": 0.0,
+        //            "unrealisedPnlPcnt": 0,
+        //            "unrealisedRoePcnt": 0,
+        //            "avgEntryPrice": 0.0,
+        //            "liquidationPrice": 0.0,
+        //            "bankruptPrice": 0.0,
+        //            "settleCurrency": "USDT",
+        //            "maintainMargin": 0,
+        //            "riskLimitLevel": 1
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parsePosition (data, market);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchPositions
+     * @description fetch all open positions
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        const response = await this.futuresPrivateGetPositions (params);
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "id": "615ba79f83a3410001cde321",
+        //                "symbol": "ETHUSDTM",
+        //                "autoDeposit": false,
+        //                "maintMarginReq": 0.005,
+        //                "riskLimit": 1000000,
+        //                "realLeverage": 18.61,
+        //                "crossMode": false,
+        //                "delevPercentage": 0.86,
+        //                "openingTimestamp": 1638563515618,
+        //                "currentTimestamp": 1638576872774,
+        //                "currentQty": 2,
+        //                "currentCost": 83.64200000,
+        //                "currentComm": 0.05018520,
+        //                "unrealisedCost": 83.64200000,
+        //                "realisedGrossCost": 0.00000000,
+        //                "realisedCost": 0.05018520,
+        //                "isOpen": true,
+        //                "markPrice": 4225.01,
+        //                "markValue": 84.50020000,
+        //                "posCost": 83.64200000,
+        //                "posCross": 0.0000000000,
+        //                "posInit": 3.63660870,
+        //                "posComm": 0.05236717,
+        //                "posLoss": 0.00000000,
+        //                "posMargin": 3.68897586,
+        //                "posMaint": 0.50637594,
+        //                "maintMargin": 4.54717586,
+        //                "realisedGrossPnl": 0.00000000,
+        //                "realisedPnl": -0.05018520,
+        //                "unrealisedPnl": 0.85820000,
+        //                "unrealisedPnlPcnt": 0.0103,
+        //                "unrealisedRoePcnt": 0.2360,
+        //                "avgEntryPrice": 4182.10,
+        //                "liquidationPrice": 4023.00,
+        //                "bankruptPrice": 4000.25,
+        //                "settleCurrency": "USDT",
+        //                "isInverse": false
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeList (response, 'data');
+        return this.parsePositions (data, symbols);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchPositionsHistory
+     * @description fetches historical positions
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-positions-history
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch position history for
+     * @param {int} [limit] the maximum number of entries to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] closing end time
+     * @param {int} [params.pageId] page id
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        await this.loadMarkets ();
+        if (limit === undefined) {
+            limit = 200;
+        }
+        const request: Dict = {
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['from'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            params = this.omit (params, 'until');
+            request['to'] = until;
+        }
+        const response = await this.futuresPrivateGetHistoryPositions (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "code": "200",
+        //     "msg": "success",
+        //     "retry": false,
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 10,
+        //         "totalNum": 25,
+        //         "totalPage": 3,
+        //         "items": [
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data');
+        const items = this.safeList (data, 'items', []);
+        return this.parsePositions (items, symbols);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined) {
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "id": "615ba79f83a3410001cde321",         // Position ID
+        //                "symbol": "ETHUSDTM",                     // Symbol
+        //                "autoDeposit": false,                     // Auto deposit margin or not
+        //                "maintMarginReq": 0.005,                  // Maintenance margin requirement
+        //                "riskLimit": 1000000,                     // Risk limit
+        //                "realLeverage": 25.92,                    // Leverage of the order
+        //                "crossMode": false,                       // Cross mode or not
+        //                "delevPercentage": 0.76,                  // ADL ranking percentile
+        //                "openingTimestamp": 1638578546031,        // Open time
+        //                "currentTimestamp": 1638578563580,        // Current timestamp
+        //                "currentQty": 2,                          // Current postion quantity
+        //                "currentCost": 83.787,                    // Current postion value
+        //                "currentComm": 0.0167574,                 // Current commission
+        //                "unrealisedCost": 83.787,                 // Unrealised value
+        //                "realisedGrossCost": 0.0,                 // Accumulated realised gross profit value
+        //                "realisedCost": 0.0167574,                // Current realised position value
+        //                "isOpen": true,                           // Opened position or not
+        //                "markPrice": 4183.38,                     // Mark price
+        //                "markValue": 83.6676,                     // Mark value
+        //                "posCost": 83.787,                        // Position value
+        //                "posCross": 0.0,                          // added margin
+        //                "posInit": 3.35148,                       // Leverage margin
+        //                "posComm": 0.05228309,                    // Bankruptcy cost
+        //                "posLoss": 0.0,                           // Funding fees paid out
+        //                "posMargin": 3.40376309,                  // Position margin
+        //                "posMaint": 0.50707892,                   // Maintenance margin
+        //                "maintMargin": 3.28436309,                // Position margin
+        //                "realisedGrossPnl": 0.0,                  // Accumulated realised gross profit value
+        //                "realisedPnl": -0.0167574,                // Realised profit and loss
+        //                "unrealisedPnl": -0.1194,                 // Unrealised profit and loss
+        //                "unrealisedPnlPcnt": -0.0014,             // Profit-loss ratio of the position
+        //                "unrealisedRoePcnt": -0.0356,             // Rate of return on investment
+        //                "avgEntryPrice": 4189.35,                 // Average entry price
+        //                "liquidationPrice": 4044.55,              // Liquidation price
+        //                "bankruptPrice": 4021.75,                 // Bankruptcy price
+        //                "settleCurrency": "USDT",                 // Currency used to clear and settle the trades
+        //                "isInverse": false
+        //            }
+        //        ]
+        //    }
+        // position history
+        //             {
+        //                 "closeId": "300000000000000030",
+        //                 "positionId": "300000000000000009",
+        //                 "uid": 99996908309485,
+        //                 "userId": "6527d4fc8c7f3d0001f40f5f",
+        //                 "symbol": "XBTUSDM",
+        //                 "settleCurrency": "XBT",
+        //                 "leverage": "0.0",
+        //                 "type": "LIQUID_LONG",
+        //                 "side": null,
+        //                 "closeSize": null,
+        //                 "pnl": "-1.0000003793999999",
+        //                 "realisedGrossCost": "0.9993849748999999",
+        //                 "withdrawPnl": "0.0",
+        //                 "roe": null,
+        //                 "tradeFee": "0.0006154045",
+        //                 "fundingFee": "0.0",
+        //                 "openTime": 1713785751181,
+        //                 "closeTime": 1713785752784,
+        //                 "openPrice": null,
+        //                 "closePrice": null
+        //             }
+        //
+        const symbol = this.safeString (position, 'symbol');
+        market = this.safeMarket (symbol, market);
+        const timestamp = this.safeInteger (position, 'currentTimestamp');
+        const size = this.safeString (position, 'currentQty');
+        let side = undefined;
+        const type = this.safeStringLower (position, 'type');
+        if (size !== undefined) {
+            if (Precise.stringGt (size, '0')) {
+                side = 'long';
+            } else if (Precise.stringLt (size, '0')) {
+                side = 'short';
+            }
+        } else if (type !== undefined) {
+            if (type.indexOf ('long') > -1) {
+                side = 'long';
+            } else {
+                side = 'short';
+            }
+        }
+        const notional = Precise.stringAbs (this.safeString (position, 'posCost'));
+        const initialMargin = this.safeString (position, 'posInit');
+        const initialMarginPercentage = Precise.stringDiv (initialMargin, notional);
+        // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const crossMode = this.safeValue (position, 'crossMode');
+        // currently crossMode is always set to false and only isolated positions are supported
+        let marginMode = undefined;
+        if (crossMode !== undefined) {
+            marginMode = crossMode ? 'cross' : 'isolated';
+        }
+        return this.safePosition ({
+            'info': position,
+            'id': this.safeString2 (position, 'id', 'positionId'),
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': this.safeInteger (position, 'closeTime'),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (initialMarginPercentage),
+            'maintenanceMargin': this.safeNumber (position, 'posMaint'),
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maintMarginReq'),
+            'entryPrice': this.safeNumber2 (position, 'avgEntryPrice', 'openPrice'),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber2 (position, 'realLeverage', 'leverage'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (Precise.stringAbs (size)),
+            'contractSize': this.safeValue (market, 'contractSize'),
+            'realizedPnl': this.safeNumber2 (position, 'realisedPnl', 'pnl'),
+            'marginRatio': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': undefined,
+            'collateral': this.safeNumber (position, 'maintMargin'),
+            'marginMode': marginMode,
+            'side': side,
+            'percentage': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
+    }
+
+    /**
+     * @method
+     * @name kucoin#cancelOrders
+     * @description cancel multiple orders for contract markets
+     * @see https://www.kucoin.com/docs-new/3470241e0
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.clientOrderIds] client order ids
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
+        // contract markets only
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const ordersRequests = [];
+        const clientOrderIds = this.safeList2 (params, 'clientOrderIds', 'clientOids', []);
+        params = this.omit (params, [ 'clientOrderIds', 'clientOids' ]);
+        let useClientorderId = false;
+        for (let i = 0; i < clientOrderIds.length; i++) {
+            useClientorderId = true;
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument when cancelling by clientOrderIds');
+            }
+            ordersRequests.push ({
+                'symbol': market['id'],
+                'clientOid': this.safeString (clientOrderIds, i),
+            });
+        }
+        for (let i = 0; i < ids.length; i++) {
+            ordersRequests.push (ids[i]);
+        }
+        const requestKey = useClientorderId ? 'clientOidsList' : 'orderIdsList';
+        const request: Dict = {};
+        request[requestKey] = ordersRequests;
+        const response = await this.futuresPrivateDeleteOrdersMultiCancel (this.extend (request, params));
+        //
+        //   {
+        //       "code": "200000",
+        //       "data":
+        //       [
+        //           {
+        //               "orderId": "80465574458560512",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           },
+        //           {
+        //               "orderId": "80465575289094144",
+        //               "clientOid": null,
+        //               "code": "200",
+        //               "msg": "success"
+        //           }
+        //       ]
+        //   }
+        //
+        const orders = this.safeList (response, 'data', []);
+        return this.parseOrders (orders, market);
+    }
+
+    /**
+     * @method
+     * @name kucoin#addMargin
+     * @description add margin
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/add-isolated-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const uuid = this.uuid ();
+        const request: Dict = {
+            'symbol': market['id'],
+            'margin': this.amountToPrecision (symbol, amount),
+            'bizNo': uuid,
+        };
+        const response = await this.futuresPrivatePostPositionMarginDepositMargin (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "id": "62311d26064e8f00013f2c6d",
+        //            "symbol": "XRPUSDTM",
+        //            "autoDeposit": false,
+        //            "maintMarginReq": 0.01,
+        //            "riskLimit": 200000,
+        //            "realLeverage": 0.88,
+        //            "crossMode": false,
+        //            "delevPercentage": 0.4,
+        //            "openingTimestamp": 1647385894798,
+        //            "currentTimestamp": 1647414510672,
+        //            "currentQty": -1,
+        //            "currentCost": -7.658,
+        //            "currentComm": 0.0053561,
+        //            "unrealisedCost": -7.658,
+        //            "realisedGrossCost": 0,
+        //            "realisedCost": 0.0053561,
+        //            "isOpen": true,
+        //            "markPrice": 0.7635,
+        //            "markValue": -7.635,
+        //            "posCost": -7.658,
+        //            "posCross": 1.00016084,
+        //            "posInit": 7.658,
+        //            "posComm": 0.00979006,
+        //            "posLoss": 0,
+        //            "posMargin": 8.6679509,
+        //            "posMaint": 0.08637006,
+        //            "maintMargin": 8.6909509,
+        //            "realisedGrossPnl": 0,
+        //            "realisedPnl": -0.0038335,
+        //            "unrealisedPnl": 0.023,
+        //            "unrealisedPnlPcnt": 0.003,
+        //            "unrealisedRoePcnt": 0.003,
+        //            "avgEntryPrice": 0.7658,
+        //            "liquidationPrice": 1.6239,
+        //            "bankruptPrice": 1.6317,
+        //            "settleCurrency": "USDT"
+        //        }
+        //    }
+        //
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.extend (this.parseMarginModification (data, market), {
+            'amount': this.amountToPrecision (symbol, amount),
+            'direction': 'in',
+        });
+    }
+
+    parseMarginModification (info, market: Market = undefined): MarginModification {
+        //
+        //    {
+        //        "id": "62311d26064e8f00013f2c6d",
+        //        "symbol": "XRPUSDTM",
+        //        "autoDeposit": false,
+        //        "maintMarginReq": 0.01,
+        //        "riskLimit": 200000,
+        //        "realLeverage": 0.88,
+        //        "crossMode": false,
+        //        "delevPercentage": 0.4,
+        //        "openingTimestamp": 1647385894798,
+        //        "currentTimestamp": 1647414510672,
+        //        "currentQty": -1,
+        //        "currentCost": -7.658,
+        //        "currentComm": 0.0053561,
+        //        "unrealisedCost": -7.658,
+        //        "realisedGrossCost": 0,
+        //        "realisedCost": 0.0053561,
+        //        "isOpen": true,
+        //        "markPrice": 0.7635,
+        //        "markValue": -7.635,
+        //        "posCost": -7.658,
+        //        "posCross": 1.00016084,
+        //        "posInit": 7.658,
+        //        "posComm": 0.00979006,
+        //        "posLoss": 0,
+        //        "posMargin": 8.6679509,
+        //        "posMaint": 0.08637006,
+        //        "maintMargin": 8.6909509,
+        //        "realisedGrossPnl": 0,
+        //        "realisedPnl": -0.0038335,
+        //        "unrealisedPnl": 0.023,
+        //        "unrealisedPnlPcnt": 0.003,
+        //        "unrealisedRoePcnt": 0.003,
+        //        "avgEntryPrice": 0.7658,
+        //        "liquidationPrice": 1.6239,
+        //        "bankruptPrice": 1.6317,
+        //        "settleCurrency": "USDT"
+        //    }
+        //
+        //    {
+        //        "code":"200000",
+        //        "msg":"Position does not exist"
+        //    }
+        //
+        const id = this.safeString (info, 'id');
+        market = this.safeMarket (id, market);
+        const currencyId = this.safeString (info, 'settleCurrency');
+        const crossMode = this.safeValue (info, 'crossMode');
+        const mode = crossMode ? 'cross' : 'isolated';
+        const marketId = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (info, 'currentTimestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market),
+            'type': undefined,
+            'marginMode': mode,
+            'amount': undefined,
+            'total': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'status': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchMarginMode
+     * @description fetches the margin mode of a trading pair
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-margin-mode
+     * @param {string} symbol unified symbol of the market to fetch the margin mode for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+     */
+    async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetPositionGetMarginMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "symbol": "XBTUSDTM",
+        //             "marginMode": "ISOLATED"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market);
+    }
+
+    parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        let marginType = this.safeString (marginMode, 'marginMode');
+        marginType = (marginType === 'ISOLATED') ? 'isolated' : 'cross';
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': marginType,
+        } as MarginMode;
+    }
+
+    /**
+     * @method
+     * @name kucoin#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-margin-mode
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
+        }
+        this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'marginMode': marginMode.toUpperCase (),
+        };
+        const response = await this.futuresPrivatePostPositionChangeMarginMode (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "marginMode": "ISOLATED"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseMarginMode (data, market) as any;
+    }
+
+    /**
+     * @method
+     * @name kucoin#setPositionMode
+     * @description set hedged to true or false for a market
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
+     * @param {bool} hedged set to true to use two way position
+     * @param {string} [symbol] not used by bybit setPositionMode ()
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a response from the exchange
+     */
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        await this.loadMarkets ();
+        const posMode = hedged ? '1' : '0';
+        const request: Dict = {
+            'positionMode': posMode,
+        };
+        const response = await this.futuresPrivatePostPositionSwitchPositionMode (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "positionMode": 1
+        //         }
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchPositionMode
+     * @description fetchs the position mode, hedged or one way
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-mode
+     * @param {string} [symbol] unified symbol of the market to fetch the position mode for (not used in blofin fetchPositionMode)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an object detailing whether the market is in hedged or one-way mode
+     */
+    async fetchPositionMode (symbol: Str = undefined, params = {}) {
+        const response = await this.futuresPrivateGetPositionGetPositionMode (params);
+        const data = this.safeDict (response, 'data', {});
+        const positionMode = this.safeInteger (data, 'positionMode');
+        return {
+            'info': data,
+            'hedged': positionMode === 1,
+        };
+    }
+
+    /**
+     * @method
+     * @name kucoin#closePosition
+     * @description closes open positions for a market
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side not used by kucoin closePositions
+     * @param {object} [params] extra parameters specific to the okx api endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let clientOrderId = this.safeString (params, 'clientOrderId');
+        const testOrder = this.safeBool (params, 'test', false);
+        params = this.omit (params, [ 'test', 'clientOrderId' ]);
+        if (clientOrderId === undefined) {
+            clientOrderId = this.numberToString (this.nonce ());
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+            'closeOrder': true,
+            'clientOid': clientOrderId,
+            'type': 'market',
+        };
+        let response = undefined;
+        if (testOrder) {
+            response = await this.futuresPrivatePostOrdersTest (this.extend (request, params));
+        } else {
+            response = await this.futuresPrivatePostOrders (this.extend (request, params));
+        }
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-isolated-margin-risk-limit
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    async fetchMarketLeverageTiers (symbol: string, params = {}): Promise<LeverageTier[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports contract markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPublicGetContractsRiskLimitSymbol (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "symbol": "ETHUSDTM",
+        //                "level": 1,
+        //                "maxRiskLimit": 300000,
+        //                "minRiskLimit": 0,
+        //                "maxLeverage": 100,
+        //                "initialMargin": 0.0100000000,
+        //                "maintainMargin": 0.0050000000
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market: Market = undefined): LeverageTier[] {
+        /**
+         * @ignore
+         * @method
+         * @name kucoin#parseMarketLeverageTiers
+         * @param {object} info Exchange market response for 1 market
+         * @param {object} market CCXT market
+         */
+        //
+        //    {
+        //        "symbol": "ETHUSDTM",
+        //        "level": 1,
+        //        "maxRiskLimit": 300000,
+        //        "minRiskLimit": 0,
+        //        "maxLeverage": 100,
+        //        "initialMargin": 0.0100000000,
+        //        "maintainMargin": 0.0050000000
+        //    }
+        //
+        const tiers = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = info[i];
+            const marketId = this.safeString (tier, 'symbol');
+            tiers.push ({
+                'tier': this.safeNumber (tier, 'level'),
+                'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+                'currency': market['base'],
+                'minNotional': this.safeNumber (tier, 'minRiskLimit'),
+                'maxNotional': this.safeNumber (tier, 'maxRiskLimit'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintainMargin'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers as LeverageTier[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
