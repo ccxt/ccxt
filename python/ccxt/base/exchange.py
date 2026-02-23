@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.36'
+__version__ = '4.5.39'
 
 # -----------------------------------------------------------------------------
 
@@ -454,7 +454,7 @@ class Exchange(object):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
+                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
                 camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
@@ -913,15 +913,19 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary_or_list, key_list):
-        isDataArray = isinstance(dictionary_or_list, list)
-        isDataDict = isinstance(dictionary_or_list, dict)
-        for key in key_list:
-            if isDataDict:
-                if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
-                    return dictionary_or_list[key]
-            elif isDataArray and not isinstance(key, str):
-                if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
-                    return dictionary_or_list[key]
+        if isinstance(dictionary_or_list, dict):
+            get = dictionary_or_list.get
+            for key in key_list:
+                value = get(key)
+                if value is not None and value != '':
+                    return value
+        elif isinstance(dictionary_or_list, list):
+            length = len(dictionary_or_list)
+            for key in key_list:
+                if isinstance(key, int) and 0 <= key < length:
+                    value = dictionary_or_list[key]
+                    if value is not None and value != '':
+                        return value
         return None
 
     @staticmethod
@@ -983,7 +987,7 @@ class Exchange(object):
 
     @staticmethod
     def keysort(dictionary):
-        return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+        return dict(sorted(dictionary.items()))
 
     @staticmethod
     def sort(array):
@@ -991,16 +995,13 @@ class Exchange(object):
 
     @staticmethod
     def extend(*args):
-        if args is not None:
-            result = None
-            if type(args[0]) is collections.OrderedDict:
-                result = collections.OrderedDict()
-            else:
-                result = {}
-            for arg in args:
-                result.update(arg)
-            return result
-        return {}
+        if not args:
+            return {}
+        # after dropping 3.7 py, we can use result = {}
+        result = collections.OrderedDict() if type(args[0]) is collections.OrderedDict else {}
+        for arg in args:
+            result.update(arg)
+        return result
 
     @staticmethod
     def deep_extend(*args, _all_dicts=False):
@@ -1056,7 +1057,6 @@ class Exchange(object):
     def groupBy(array, key):
         return Exchange.group_by(array, key)
 
-
     @staticmethod
     def index_by_safe(array, key):
         return Exchange.index_by(array, key)  # wrapper for go
@@ -1064,13 +1064,19 @@ class Exchange(object):
     @staticmethod
     def index_by(array, key):
         result = {}
-        if type(array) is dict:
-            array = Exchange.keysort(array).values()
-        is_int_key = isinstance(key, int)
-        for element in array:
-            if ((is_int_key and (key < len(element))) or (key in element)) and (element[key] is not None):
-                k = element[key]
-                result[k] = element
+        if isinstance(array, dict):
+            array = dict(sorted(array.items())).values()
+        if isinstance(key, int):
+            for element in array:
+                if key < len(element):
+                    k = element[key]
+                    if k is not None:
+                        result[k] = element
+        else:
+            for element in array:
+                k = element.get(key)
+                if k is not None:
+                    result[k] = element
         return result
 
     @staticmethod
@@ -1172,7 +1178,11 @@ class Exchange(object):
 
     @staticmethod
     def sum(*args):
-        return sum([arg for arg in args if isinstance(arg, (float, int))])
+        total = 0
+        for arg in args:
+            if isinstance(arg, (int, float)):
+                total += arg
+        return total
 
     @staticmethod
     def ordered(array):
@@ -1765,15 +1775,15 @@ class Exchange(object):
         amount = int(timeframe[0:-1])
         unit = timeframe[-1]
         if 'y' == unit:
-            scale = 60 * 60 * 24 * 365
+            scale = 31536000  # 60 * 60 * 24 * 365
         elif 'M' == unit:
-            scale = 60 * 60 * 24 * 30
+            scale = 2592000  # 60 * 60 * 24 * 30
         elif 'w' == unit:
-            scale = 60 * 60 * 24 * 7
+            scale = 604800  # 60 * 60 * 24 * 7
         elif 'd' == unit:
-            scale = 60 * 60 * 24
+            scale = 86400  # 60 * 60 * 24
         elif 'h' == unit:
-            scale = 60 * 60
+            scale = 3600  # 60 * 60
         elif 'm' == unit:
             scale = 60
         elif 's' == unit:
@@ -2286,6 +2296,7 @@ class Exchange(object):
                 'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
+                'fetchADLRank': None,
                 'fetchBalance': True,
                 'fetchBalanceWs': None,
                 'fetchBidsAsks': None,
@@ -2371,6 +2382,8 @@ class Exchange(object):
                 'fetchOrderTrades': None,
                 'fetchOrderWs': None,
                 'fetchPosition': None,
+                'fetchPositionADLRank': None,
+                'fetchPositionsADLRank': None,
                 'fetchPositionHistory': None,
                 'fetchPositionsHistory': None,
                 'fetchPositionWs': None,
@@ -3179,7 +3192,11 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     def fetch_open_interest(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+        if self.has['fetchOpenInterests']:
+            openInterests = self.fetch_open_interests([symbol], params)
+            return self.safe_dict(openInterests, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     def fetch_open_interests(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
@@ -4808,6 +4825,18 @@ class Exchange(object):
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    def parse_adl_rank(self, info: dict, market: Market = None):
+        raise NotSupported(self.id + ' parseADLRank() is not supported yet')
+
+    def parse_adl_ranks(self, ranks: List[Any], symbols: List[str] = None, params={}):
+        symbols = self.market_symbols(symbols)
+        ranks = self.to_array(ranks)
+        result = []
+        for i in range(0, len(ranks)):
+            rank = self.extend(self.parse_adl_rank(ranks[i], None), params)
+            result.append(rank)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+
     def parse_accounts(self, accounts: List[Any], params={}):
         accounts = self.to_array(accounts)
         result = []
@@ -5548,6 +5577,9 @@ class Exchange(object):
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}):
+        raise NotSupported(self.id + ' createTwapOrder() is not supported yet')
+
     def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
         raise NotSupported(self.id + ' createConvertTrade() is not supported yet')
 
@@ -5559,6 +5591,26 @@ class Exchange(object):
 
     def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
+
+    def fetch_adl_rank(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchADLRank() is not supported yet')
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
+
+    def fetch_position_adl_rank(self, symbol: str, params={}):
+        if self.has['fetchPositionsADLRank']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            ranks = self.fetch_positions_adl_rank([symbol], params)
+            rank = self.safe_dict(ranks, 0)
+            if rank is None:
+                raise NullResponse(self.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol)
+            else:
+                return rank
+        else:
+            raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
 
     def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
@@ -6973,6 +7025,13 @@ class Exchange(object):
         """
  @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
+        """
+        return self.filter_by_array(objects, key, values, indexed)
+
+    def filter_by_array_adl_ranks(self, objects, key: IndexType, values=None, indexed=True):
+        """
+ @ignore
+        Typed wrapper for filterByArray that returns a list of ADL Ranks
         """
         return self.filter_by_array(objects, key, values, indexed)
 

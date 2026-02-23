@@ -98,6 +98,8 @@ public partial class htx : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionADLRank", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
                 { "fetchPositionsHistory", false },
@@ -8951,11 +8953,11 @@ public partial class htx : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters, "linear");
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenInterests", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
@@ -9925,5 +9927,159 @@ public partial class htx : Exchange
             response = await this.contractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(this.extend(request, parameters));
         }
         return response;
+    }
+
+    /**
+     * @method
+     * @name htx#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = null;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
+        }
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositionsADLRank", parameters, "cross");
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositionsADLRank", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(isEqual(marketType, "spot")))
+        {
+            marketType = "future";
+        }
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            if (isTrue(isEqual(marginMode, "isolated")))
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapPositionInfo(parameters);
+            } else if (isTrue(isEqual(marginMode, "cross")))
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(parameters);
+            } else
+            {
+                throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() not support this market type")) ;
+            }
+        } else
+        {
+            if (isTrue(isEqual(marketType, "future")))
+            {
+                response = await this.contractPrivatePostApiV1ContractPositionInfo(parameters);
+            } else if (isTrue(isEqual(marketType, "swap")))
+            {
+                response = await this.contractPrivatePostSwapApiV1SwapPositionInfo(parameters);
+            } else
+            {
+                throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() not support this market type")) ;
+            }
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseADLRanks(data, symbols);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchPositionADLRank linear swap and future
+        //
+        //     {
+        //         "symbol": "BTC",
+        //         "contract_code": "BTC-USDT",
+        //         "volume": 1.000000000000000000,
+        //         "available": 1.000000000000000000,
+        //         "frozen": 0E-18,
+        //         "cost_open": 96039.700000000000000000,
+        //         "cost_hold": 96039.700000000000000000,
+        //         "profit_unreal": 0.000600000000000000,
+        //         "profit_rate": 0.000006247416432995,
+        //         "lever_rate": 1,
+        //         "position_margin": 96.040300000000000000,
+        //         "direction": "buy",
+        //         "profit": 0.000600000000000000,
+        //         "last_price": 96040.3,
+        //         "margin_asset": "USDT",
+        //         "margin_mode": "cross",
+        //         "margin_account": "USDT",
+        //         "contract_type": "swap",
+        //         "pair": "BTC-USDT",
+        //         "business_type": "swap",
+        //         "trade_partition":"USDT",
+        //         "position_mode": "single_side",
+        //         "store_time": "2023-10-08 20:05:06",
+        //         "liquidation_price": null,
+        //         "market_closing_slippage": null,
+        //         "risk_rate": 249.274066168760049797,
+        //         "new_risk_rate": 0.003995619743220614,
+        //         "risk_rate_percent": 0.003995619743220614,
+        //         "withdraw_available": null,
+        //         "open_adl": 1,
+        //         "adl_risk_percent": 3,
+        //         "tp_trigger_price": null,
+        //         "sl_trigger_price": null,
+        //         "tp_order_id": null,
+        //         "sl_order_id": null,
+        //         "tp_trigger_type": null,
+        //         "sl_trigger_type": null,
+        //         "adjust_value": null
+        //     }
+        //
+        // fetchPositionADLRank inverse
+        //
+        //     {
+        //         "symbol": "THETA"
+        //         "contract_code": "THETA-USD"
+        //         "volume": 20
+        //         "available": 20
+        //         "frozen": 0
+        //         "cost_open": 0.6048347107438017
+        //         "cost_hold": 0.65931
+        //         "profit_unreal": -10.5257562398811
+        //         "profit_rate": 1.0158596753357925
+        //         "lever_rate": 20
+        //         "position_margin": 15.693659761456372
+        //         "direction": "buy"
+        //         "profit": 16.795657677889032
+        //         "last_price": 0.6372
+        //         "adl_risk_percent": "3"
+        //         "liq_px": "112"
+        //         "new_risk_rate": ""
+        //         "trade_partition": ""
+        //     }
+        //
+        object marketId = this.safeString(info, "contract_code");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", this.safeInteger(info, "adl_risk_percent") },
+            { "rating", null },
+            { "percentage", null },
+            { "timestamp", null },
+            { "datetime", null },
+        };
     }
 }

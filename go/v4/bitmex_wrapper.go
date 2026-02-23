@@ -1078,6 +1078,39 @@ func (this *Bitmex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 
 /**
  * @method
+ * @name bitmex#fetchOpenInterests
+ * @description Retrieves the open interest for a list of symbols
+ * @see https://docs.bitmex.com/api-explorer/get-stats
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Bitmex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterests(symbols, params)
+	if IsError(res) {
+		return OpenInterests{}, CreateReturnError(res)
+	}
+	return NewOpenInterests(res), nil
+}
+
+/**
+ * @method
  * @name bitmex#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
  * @see https://www.bitmex.com/api/explorer/#!/Liquidation/Liquidation_get
@@ -1338,9 +1371,6 @@ func (this *Bitmex) FetchOpenInterest(symbol string, options ...FetchOpenInteres
 }
 func (this *Bitmex) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Bitmex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
 }
 func (this *Bitmex) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 	return this.exchangeTyped.FetchOption(symbol, options...)

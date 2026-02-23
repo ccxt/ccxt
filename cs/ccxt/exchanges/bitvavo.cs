@@ -177,10 +177,21 @@ public partial class bitvavo : Exchange
                         { "deposit", 1 },
                         { "depositHistory", 5 },
                         { "withdrawalHistory", 5 },
+                        { "subaccounts", 5 },
+                        { "subaccounts/transfers", 5 },
+                        { "subaccounts/transfers/{transferId}", 5 },
+                        { "institutional/subaccounts/balance", 5 },
+                        { "institutional/subaccounts/history", 5 },
+                        { "institutional/subaccounts/orders/open", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noMarket", 25 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "order", 1 },
                         { "withdrawal", 1 },
+                        { "subaccounts", 5 },
+                        { "subaccounts/transfers", 5 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "order", 1 },
@@ -188,6 +199,8 @@ public partial class bitvavo : Exchange
                     { "delete", new Dictionary<string, object>() {
                         { "order", 1 },
                         { "orders", 1 },
+                        { "institutional/subaccounts/order", 1 },
+                        { "institutional/subaccounts/orders", 1 },
                     } },
                 } },
             } },

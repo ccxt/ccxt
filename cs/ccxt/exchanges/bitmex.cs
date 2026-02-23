@@ -62,11 +62,15 @@ public partial class bitmex : Exchange
                 { "fetchMyLiquidations", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", "emulated" },
+                { "fetchOpenInterests", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionADLRank", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionHistory", false },
                 { "fetchPositions", true },
                 { "fetchPositionsHistory", false },
@@ -1983,11 +1987,13 @@ public partial class bitmex : Exchange
         {
             filled = cumQty;
         }
-        object execInst = this.safeString(order, "execInst");
+        object execInst = this.safeString(order, "execInst", "");
         object postOnly = null;
-        if (isTrue(!isEqual(execInst, null)))
+        object reduceOnly = null;
+        if (isTrue(isGreaterThan(((string)execInst).Length, 0)))
         {
-            postOnly = (isEqual(execInst, "ParticipateDoNotInitiate"));
+            postOnly = (isGreaterThanOrEqual(getIndexOf(execInst, "ParticipateDoNotInitiate"), 0));
+            reduceOnly = (isTrue((isGreaterThanOrEqual(getIndexOf(execInst, "ReduceOnly"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(execInst, "Close"), 0))));
         }
         object timestamp = this.parse8601(this.safeString(order, "timestamp"));
         object triggerPrice = this.safeNumber(order, "stopPx");
@@ -2003,6 +2009,7 @@ public partial class bitmex : Exchange
             { "type", this.safeStringLower(order, "ordType") },
             { "timeInForce", this.parseTimeInForce(this.safeString(order, "timeInForce")) },
             { "postOnly", postOnly },
+            { "reduceOnly", reduceOnly },
             { "side", this.safeStringLower(order, "side") },
             { "price", this.safeString(order, "price") },
             { "triggerPrice", triggerPrice },
@@ -2125,6 +2132,8 @@ public partial class bitmex : Exchange
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() does not support reduceOnly for "), getValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
+        object postOnly = this.safeBool(parameters, "postOnly");
+        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "postOnly"});
         object brokerId = this.safeString(this.options, "brokerId", "CCXT");
         object qty = this.parseToInt(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
@@ -2134,6 +2143,20 @@ public partial class bitmex : Exchange
             { "ordType", orderType },
             { "text", brokerId },
         };
+        object execInstructions = new List<object>() {};
+        if (isTrue(isEqual(reduceOnly, true)))
+        {
+            ((IList<object>)execInstructions).Add("ReduceOnly");
+        }
+        if (isTrue(isEqual(postOnly, true)))
+        {
+            ((IList<object>)execInstructions).Add("ParticipateDoNotInitiate");
+        }
+        object execInstLength = getArrayLength(execInstructions);
+        if (isTrue(isGreaterThan(execInstLength, 0)))
+        {
+            ((IDictionary<string,object>)request)["execInst"] = String.Join(",", ((IList<object>)execInstructions).ToArray());
+        }
         // support for unified trigger format
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
@@ -3171,6 +3194,76 @@ public partial class bitmex : Exchange
         return this.parseDepositWithdrawFees(assets, codes, "asset");
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitmex.com/api-explorer/get-stats
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {};
+        object response = null;
+        response = await this.publicGetStats(this.extend(request, parameters));
+        //
+        //    [
+        //        {
+        //            currency: 'XBt',
+        //            openInterest: '0',
+        //            openValue: '323890820079',
+        //            rootSymbol: 'Total',
+        //            turnover24h: '447088001322',
+        //            volume24h: '0'
+        //        }
+        //        ...
+        //    ]
+        //
+        symbols = this.marketSymbols(symbols);
+        return this.parseOpenInterests(response, symbols);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency: 'XBt',
+        //        openInterest: '0',
+        //        openValue: '323890820079',
+        //        rootSymbol: 'Total',
+        //        turnover24h: '447088001322',
+        //        volume24h: '0'
+        //    }
+        //
+        object quoteId = this.safeString(interest, "currency");
+        object baseId = this.safeString(interest, "rootSymbol");
+        object quoteSymbol = this.safeCurrencyCode(quoteId);
+        object baseSymbol = this.safeCurrencyCode(baseId);
+        object symbol = baseSymbol;
+        if (isTrue(!isEqual(quoteSymbol, null)))
+        {
+            symbol = add(add(add(add(baseSymbol, "/"), quoteSymbol), ":"), quoteSymbol);
+        }
+        object openInterest = this.safeNumber(interest, "openInterest");
+        object openValue = this.safeNumber(interest, "openValue");
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", symbol },
+            { "baseVolume", openInterest },
+            { "quoteVolume", openValue },
+            { "openInterestAmount", openInterest },
+            { "openInterestValue", openValue },
+            { "timestamp", null },
+            { "datetime", null },
+        }, market);
+    }
+
     public override object calculateRateLimiterCost(object api, object method, object path, object parameters, object config = null)
     {
         config ??= new Dictionary<string, object>();
@@ -3268,6 +3361,271 @@ public partial class bitmex : Exchange
             { "timestamp", null },
             { "datetime", null },
         });
+    }
+
+    /**
+     * @method
+     * @name bitmex#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object response = await this.privateGetPosition(parameters);
+        //
+        //     [
+        //         {
+        //             "account": 395724,
+        //             "symbol": "XBTUSDT",
+        //             "strategy": "OneWay",
+        //             "currency": "USDt",
+        //             "underlying": "XBT",
+        //             "quoteCurrency": "USDT",
+        //             "commission": 0.0005,
+        //             "initMarginReq": 0.01,
+        //             "maintMarginReq": 0.005,
+        //             "riskLimit": 1000000000000,
+        //             "leverage": 100,
+        //             "crossMargin": true,
+        //             "deleveragePercentile": 1,
+        //             "rebalancedPnl": -4319,
+        //             "prevRealisedPnl": 0,
+        //             "prevUnrealisedPnl": null,
+        //             "openingQty": null,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "currentQty": 100,
+        //             "currentCost": 8639330,
+        //             "currentComm": 0,
+        //             "realisedCost": 0,
+        //             "unrealisedCost": 8639330,
+        //             "grossOpenPremium": 0,
+        //             "isOpen": true,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "riskValue": 8863692,
+        //             "homeNotional": 0.0001,
+        //             "foreignNotional": -8.863692,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posComm": 0,
+        //             "posLoss": 0,
+        //             "posMargin": 44061,
+        //             "posMaint": 44061,
+        //             "posInit": 0,
+        //             "initMargin": 0,
+        //             "maintMargin": 44061,
+        //             "realisedPnl": 0,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "breakEvenPrice": 86436.5,
+        //             "marginCallPrice": null,
+        //             "liquidationPrice": 0,
+        //             "bankruptPrice": 0,
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "positionReport": {
+        //                 "account": 395724,
+        //                 "avgCostPrice": 86393.3,
+        //                 "avgEntryPrice": 86393.3,
+        //                 "bankruptPrice": 0,
+        //                 "breakEvenPrice": 86436.5,
+        //                 "commission": 0.0005,
+        //                 "crossMargin": true,
+        //                 "currency": "USDt",
+        //                 "currentComm": 0,
+        //                 "currentCost": 8639330,
+        //                 "currentQty": 100,
+        //                 "deleveragePercentile": 1,
+        //                 "foreignNotional": -8.863692,
+        //                 "grossOpenPremium": 0,
+        //                 "homeNotional": 0.0001,
+        //                 "initMargin": 0,
+        //                 "initMarginReq": 0.01,
+        //                 "isOpen": true,
+        //                 "leverage": 100,
+        //                 "liquidationPrice": 0,
+        //                 "maintMargin": 44061,
+        //                 "maintMarginReq": 0.005,
+        //                 "markPrice": 88636.92,
+        //                 "markValue": 8863692,
+        //                 "openOrderBuyCost": 0,
+        //                 "openOrderBuyPremium": 0,
+        //                 "openOrderBuyQty": 0,
+        //                 "openOrderRealisedPnl": 0,
+        //                 "openOrderSellCost": 0,
+        //                 "openOrderSellPremium": 0,
+        //                 "openOrderSellQty": 0,
+        //                 "posComm": 0,
+        //                 "posCost": 8639330,
+        //                 "posCross": 0,
+        //                 "posInit": 0,
+        //                 "posLoss": 0,
+        //                 "posMaint": 44061,
+        //                 "posMargin": 44061,
+        //                 "prevRealisedPnl": 0,
+        //                 "quoteCurrency": "USDT",
+        //                 "realisedCost": 0,
+        //                 "realisedPnl": 0,
+        //                 "rebalancedPnl": -4319,
+        //                 "riskLimit": 1000000000000,
+        //                 "riskValue": 8863692,
+        //                 "strategy": "OneWay",
+        //                 "symbol": "XBTUSDT",
+        //                 "timestamp": "2025-12-31T07:55:50.505Z",
+        //                 "underlying": "XBT",
+        //                 "unrealisedCost": 8639330,
+        //                 "unrealisedPnl": 224362,
+        //                 "unrealisedPnlPcnt": 0.026,
+        //                 "unrealisedRoePcnt": 2.597
+        //             }
+        //         }
+        //     ]
+        //
+        return this.parseADLRanks(response, symbols);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "account": 395724,
+        //         "symbol": "XBTUSDT",
+        //         "strategy": "OneWay",
+        //         "currency": "USDt",
+        //         "underlying": "XBT",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.0005,
+        //         "initMarginReq": 0.01,
+        //         "maintMarginReq": 0.005,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 100,
+        //         "crossMargin": true,
+        //         "deleveragePercentile": 1,
+        //         "rebalancedPnl": -4319,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": null,
+        //         "openingQty": null,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "currentQty": 100,
+        //         "currentCost": 8639330,
+        //         "currentComm": 0,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 8639330,
+        //         "grossOpenPremium": 0,
+        //         "isOpen": true,
+        //         "markPrice": 88636.92,
+        //         "markValue": 8863692,
+        //         "riskValue": 8863692,
+        //         "homeNotional": 0.0001,
+        //         "foreignNotional": -8.863692,
+        //         "posCost": 8639330,
+        //         "posCross": 0,
+        //         "posComm": 0,
+        //         "posLoss": 0,
+        //         "posMargin": 44061,
+        //         "posMaint": 44061,
+        //         "posInit": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 44061,
+        //         "realisedPnl": 0,
+        //         "unrealisedPnl": 224362,
+        //         "unrealisedPnlPcnt": 0.026,
+        //         "unrealisedRoePcnt": 2.597,
+        //         "avgCostPrice": 86393.3,
+        //         "avgEntryPrice": 86393.3,
+        //         "breakEvenPrice": 86436.5,
+        //         "marginCallPrice": null,
+        //         "liquidationPrice": 0,
+        //         "bankruptPrice": 0,
+        //         "timestamp": "2025-12-31T07:55:50.505Z",
+        //         "positionReport": {
+        //             "account": 395724,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "bankruptPrice": 0,
+        //             "breakEvenPrice": 86436.5,
+        //             "commission": 0.0005,
+        //             "crossMargin": true,
+        //             "currency": "USDt",
+        //             "currentComm": 0,
+        //             "currentCost": 8639330,
+        //             "currentQty": 100,
+        //             "deleveragePercentile": 1,
+        //             "foreignNotional": -8.863692,
+        //             "grossOpenPremium": 0,
+        //             "homeNotional": 0.0001,
+        //             "initMargin": 0,
+        //             "initMarginReq": 0.01,
+        //             "isOpen": true,
+        //             "leverage": 100,
+        //             "liquidationPrice": 0,
+        //             "maintMargin": 44061,
+        //             "maintMarginReq": 0.005,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderRealisedPnl": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "posComm": 0,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posInit": 0,
+        //             "posLoss": 0,
+        //             "posMaint": 44061,
+        //             "posMargin": 44061,
+        //             "prevRealisedPnl": 0,
+        //             "quoteCurrency": "USDT",
+        //             "realisedCost": 0,
+        //             "realisedPnl": 0,
+        //             "rebalancedPnl": -4319,
+        //             "riskLimit": 1000000000000,
+        //             "riskValue": 8863692,
+        //             "strategy": "OneWay",
+        //             "symbol": "XBTUSDT",
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "underlying": "XBT",
+        //             "unrealisedCost": 8639330,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597
+        //         }
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object datetime = this.safeString(info, "timestamp");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", this.safeInteger(info, "deleveragePercentile") },
+            { "rating", null },
+            { "percentage", null },
+            { "timestamp", this.parse8601(datetime) },
+            { "datetime", datetime },
+        };
     }
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)

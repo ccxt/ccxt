@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmex import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
+from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, Leverages, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -85,13 +85,17 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchMyLiquidations': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': 'emulated',
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': False,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -1819,10 +1823,12 @@ class bitmex(Exchange, ImplicitAPI):
             filled = Precise.string_div(cumQty, average)
         else:
             filled = cumQty
-        execInst = self.safe_string(order, 'execInst')
+        execInst = self.safe_string(order, 'execInst', '')
         postOnly = None
-        if execInst is not None:
-            postOnly = (execInst == 'ParticipateDoNotInitiate')
+        reduceOnly = None
+        if len(execInst) > 0:
+            postOnly = (execInst.find('ParticipateDoNotInitiate') >= 0)
+            reduceOnly = ((execInst.find('ReduceOnly') >= 0) or (execInst.find('Close') >= 0))
         timestamp = self.parse8601(self.safe_string(order, 'timestamp'))
         triggerPrice = self.safe_number(order, 'stopPx')
         remaining = self.safe_string(order, 'leavesQty')
@@ -1837,6 +1843,7 @@ class bitmex(Exchange, ImplicitAPI):
             'type': self.safe_string_lower(order, 'ordType'),
             'timeInForce': self.parse_time_in_force(self.safe_string(order, 'timeInForce')),
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': self.safe_string_lower(order, 'side'),
             'price': self.safe_string(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -1938,6 +1945,8 @@ class bitmex(Exchange, ImplicitAPI):
         if reduceOnly is not None:
             if (not market['swap']) and (not market['future']):
                 raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only')
+        postOnly = self.safe_bool(params, 'postOnly')
+        params = self.omit(params, ['reduceOnly', 'postOnly'])
         brokerId = self.safe_string(self.options, 'brokerId', 'CCXT')
         qty = self.parse_to_int(self.amount_to_precision(symbol, amount))
         request: dict = {
@@ -1947,6 +1956,14 @@ class bitmex(Exchange, ImplicitAPI):
             'ordType': orderType,
             'text': brokerId,
         }
+        execInstructions = []
+        if reduceOnly is True:
+            execInstructions.append('ReduceOnly')
+        if postOnly is True:
+            execInstructions.append('ParticipateDoNotInitiate')
+        execInstLength = len(execInstructions)
+        if execInstLength > 0:
+            request['execInst'] = ','.join(execInstructions)
         # support for unified trigger format
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         trailingAmount = self.safe_string_2(params, 'trailingAmount', 'pegOffsetValue')
@@ -2817,6 +2834,69 @@ class bitmex(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_withdraw_fees(assets, codes, 'asset')
 
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://docs.bitmex.com/api-explorer/get-stats
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        response = None
+        response = await self.publicGetStats(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            currency: 'XBt',
+        #            openInterest: '0',
+        #            openValue: '323890820079',
+        #            rootSymbol: 'Total',
+        #            turnover24h: '447088001322',
+        #            volume24h: '0'
+        #        }
+        #        ...
+        #    ]
+        #
+        symbols = self.market_symbols(symbols)
+        return self.parse_open_interests(response, symbols)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        # fetchOpenInterest
+        #
+        #    {
+        #        currency: 'XBt',
+        #        openInterest: '0',
+        #        openValue: '323890820079',
+        #        rootSymbol: 'Total',
+        #        turnover24h: '447088001322',
+        #        volume24h: '0'
+        #    }
+        #
+        quoteId = self.safe_string(interest, 'currency')
+        baseId = self.safe_string(interest, 'rootSymbol')
+        quoteSymbol = self.safe_currency_code(quoteId)
+        baseSymbol = self.safe_currency_code(baseId)
+        symbol = baseSymbol
+        if quoteSymbol is not None:
+            symbol = baseSymbol + '/' + quoteSymbol + ':' + quoteSymbol
+        openInterest = self.safe_number(interest, 'openInterest')
+        openValue = self.safe_number(interest, 'openValue')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': symbol,
+            'baseVolume': openInterest,  # deprecated
+            'quoteVolume': openValue,  # deprecated
+            'openInterestAmount': openInterest,
+            'openInterestValue': openValue,
+            'timestamp': None,
+            'datetime': None,
+        }, market)
+
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         isAuthenticated = self.check_required_credentials(False)
         cost = self.safe_value(config, 'cost', 1)
@@ -2892,6 +2972,266 @@ class bitmex(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         })
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://www.bitmex.com/api/explorer/#not /Position/Position_get
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an `auto de leverage structure <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = await self.privateGetPosition(params)
+        #
+        #     [
+        #         {
+        #             "account": 395724,
+        #             "symbol": "XBTUSDT",
+        #             "strategy": "OneWay",
+        #             "currency": "USDt",
+        #             "underlying": "XBT",
+        #             "quoteCurrency": "USDT",
+        #             "commission": 0.0005,
+        #             "initMarginReq": 0.01,
+        #             "maintMarginReq": 0.005,
+        #             "riskLimit": 1000000000000,
+        #             "leverage": 100,
+        #             "crossMargin": True,
+        #             "deleveragePercentile": 1,
+        #             "rebalancedPnl": -4319,
+        #             "prevRealisedPnl": 0,
+        #             "prevUnrealisedPnl": null,
+        #             "openingQty": null,
+        #             "openOrderBuyQty": 0,
+        #             "openOrderBuyCost": 0,
+        #             "openOrderBuyPremium": 0,
+        #             "openOrderSellQty": 0,
+        #             "openOrderSellCost": 0,
+        #             "openOrderSellPremium": 0,
+        #             "currentQty": 100,
+        #             "currentCost": 8639330,
+        #             "currentComm": 0,
+        #             "realisedCost": 0,
+        #             "unrealisedCost": 8639330,
+        #             "grossOpenPremium": 0,
+        #             "isOpen": True,
+        #             "markPrice": 88636.92,
+        #             "markValue": 8863692,
+        #             "riskValue": 8863692,
+        #             "homeNotional": 0.0001,
+        #             "foreignNotional": -8.863692,
+        #             "posCost": 8639330,
+        #             "posCross": 0,
+        #             "posComm": 0,
+        #             "posLoss": 0,
+        #             "posMargin": 44061,
+        #             "posMaint": 44061,
+        #             "posInit": 0,
+        #             "initMargin": 0,
+        #             "maintMargin": 44061,
+        #             "realisedPnl": 0,
+        #             "unrealisedPnl": 224362,
+        #             "unrealisedPnlPcnt": 0.026,
+        #             "unrealisedRoePcnt": 2.597,
+        #             "avgCostPrice": 86393.3,
+        #             "avgEntryPrice": 86393.3,
+        #             "breakEvenPrice": 86436.5,
+        #             "marginCallPrice": null,
+        #             "liquidationPrice": 0,
+        #             "bankruptPrice": 0,
+        #             "timestamp": "2025-12-31T07:55:50.505Z",
+        #             "positionReport": {
+        #                 "account": 395724,
+        #                 "avgCostPrice": 86393.3,
+        #                 "avgEntryPrice": 86393.3,
+        #                 "bankruptPrice": 0,
+        #                 "breakEvenPrice": 86436.5,
+        #                 "commission": 0.0005,
+        #                 "crossMargin": True,
+        #                 "currency": "USDt",
+        #                 "currentComm": 0,
+        #                 "currentCost": 8639330,
+        #                 "currentQty": 100,
+        #                 "deleveragePercentile": 1,
+        #                 "foreignNotional": -8.863692,
+        #                 "grossOpenPremium": 0,
+        #                 "homeNotional": 0.0001,
+        #                 "initMargin": 0,
+        #                 "initMarginReq": 0.01,
+        #                 "isOpen": True,
+        #                 "leverage": 100,
+        #                 "liquidationPrice": 0,
+        #                 "maintMargin": 44061,
+        #                 "maintMarginReq": 0.005,
+        #                 "markPrice": 88636.92,
+        #                 "markValue": 8863692,
+        #                 "openOrderBuyCost": 0,
+        #                 "openOrderBuyPremium": 0,
+        #                 "openOrderBuyQty": 0,
+        #                 "openOrderRealisedPnl": 0,
+        #                 "openOrderSellCost": 0,
+        #                 "openOrderSellPremium": 0,
+        #                 "openOrderSellQty": 0,
+        #                 "posComm": 0,
+        #                 "posCost": 8639330,
+        #                 "posCross": 0,
+        #                 "posInit": 0,
+        #                 "posLoss": 0,
+        #                 "posMaint": 44061,
+        #                 "posMargin": 44061,
+        #                 "prevRealisedPnl": 0,
+        #                 "quoteCurrency": "USDT",
+        #                 "realisedCost": 0,
+        #                 "realisedPnl": 0,
+        #                 "rebalancedPnl": -4319,
+        #                 "riskLimit": 1000000000000,
+        #                 "riskValue": 8863692,
+        #                 "strategy": "OneWay",
+        #                 "symbol": "XBTUSDT",
+        #                 "timestamp": "2025-12-31T07:55:50.505Z",
+        #                 "underlying": "XBT",
+        #                 "unrealisedCost": 8639330,
+        #                 "unrealisedPnl": 224362,
+        #                 "unrealisedPnlPcnt": 0.026,
+        #                 "unrealisedRoePcnt": 2.597
+        #             }
+        #         }
+        #     ]
+        #
+        return self.parse_adl_ranks(response, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "account": 395724,
+        #         "symbol": "XBTUSDT",
+        #         "strategy": "OneWay",
+        #         "currency": "USDt",
+        #         "underlying": "XBT",
+        #         "quoteCurrency": "USDT",
+        #         "commission": 0.0005,
+        #         "initMarginReq": 0.01,
+        #         "maintMarginReq": 0.005,
+        #         "riskLimit": 1000000000000,
+        #         "leverage": 100,
+        #         "crossMargin": True,
+        #         "deleveragePercentile": 1,
+        #         "rebalancedPnl": -4319,
+        #         "prevRealisedPnl": 0,
+        #         "prevUnrealisedPnl": null,
+        #         "openingQty": null,
+        #         "openOrderBuyQty": 0,
+        #         "openOrderBuyCost": 0,
+        #         "openOrderBuyPremium": 0,
+        #         "openOrderSellQty": 0,
+        #         "openOrderSellCost": 0,
+        #         "openOrderSellPremium": 0,
+        #         "currentQty": 100,
+        #         "currentCost": 8639330,
+        #         "currentComm": 0,
+        #         "realisedCost": 0,
+        #         "unrealisedCost": 8639330,
+        #         "grossOpenPremium": 0,
+        #         "isOpen": True,
+        #         "markPrice": 88636.92,
+        #         "markValue": 8863692,
+        #         "riskValue": 8863692,
+        #         "homeNotional": 0.0001,
+        #         "foreignNotional": -8.863692,
+        #         "posCost": 8639330,
+        #         "posCross": 0,
+        #         "posComm": 0,
+        #         "posLoss": 0,
+        #         "posMargin": 44061,
+        #         "posMaint": 44061,
+        #         "posInit": 0,
+        #         "initMargin": 0,
+        #         "maintMargin": 44061,
+        #         "realisedPnl": 0,
+        #         "unrealisedPnl": 224362,
+        #         "unrealisedPnlPcnt": 0.026,
+        #         "unrealisedRoePcnt": 2.597,
+        #         "avgCostPrice": 86393.3,
+        #         "avgEntryPrice": 86393.3,
+        #         "breakEvenPrice": 86436.5,
+        #         "marginCallPrice": null,
+        #         "liquidationPrice": 0,
+        #         "bankruptPrice": 0,
+        #         "timestamp": "2025-12-31T07:55:50.505Z",
+        #         "positionReport": {
+        #             "account": 395724,
+        #             "avgCostPrice": 86393.3,
+        #             "avgEntryPrice": 86393.3,
+        #             "bankruptPrice": 0,
+        #             "breakEvenPrice": 86436.5,
+        #             "commission": 0.0005,
+        #             "crossMargin": True,
+        #             "currency": "USDt",
+        #             "currentComm": 0,
+        #             "currentCost": 8639330,
+        #             "currentQty": 100,
+        #             "deleveragePercentile": 1,
+        #             "foreignNotional": -8.863692,
+        #             "grossOpenPremium": 0,
+        #             "homeNotional": 0.0001,
+        #             "initMargin": 0,
+        #             "initMarginReq": 0.01,
+        #             "isOpen": True,
+        #             "leverage": 100,
+        #             "liquidationPrice": 0,
+        #             "maintMargin": 44061,
+        #             "maintMarginReq": 0.005,
+        #             "markPrice": 88636.92,
+        #             "markValue": 8863692,
+        #             "openOrderBuyCost": 0,
+        #             "openOrderBuyPremium": 0,
+        #             "openOrderBuyQty": 0,
+        #             "openOrderRealisedPnl": 0,
+        #             "openOrderSellCost": 0,
+        #             "openOrderSellPremium": 0,
+        #             "openOrderSellQty": 0,
+        #             "posComm": 0,
+        #             "posCost": 8639330,
+        #             "posCross": 0,
+        #             "posInit": 0,
+        #             "posLoss": 0,
+        #             "posMaint": 44061,
+        #             "posMargin": 44061,
+        #             "prevRealisedPnl": 0,
+        #             "quoteCurrency": "USDT",
+        #             "realisedCost": 0,
+        #             "realisedPnl": 0,
+        #             "rebalancedPnl": -4319,
+        #             "riskLimit": 1000000000000,
+        #             "riskValue": 8863692,
+        #             "strategy": "OneWay",
+        #             "symbol": "XBTUSDT",
+        #             "timestamp": "2025-12-31T07:55:50.505Z",
+        #             "underlying": "XBT",
+        #             "unrealisedCost": 8639330,
+        #             "unrealisedPnl": 224362,
+        #             "unrealisedPnlPcnt": 0.026,
+        #             "unrealisedRoePcnt": 2.597
+        #         }
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        datetime = self.safe_string(info, 'timestamp')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'deleveragePercentile'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
+        }
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

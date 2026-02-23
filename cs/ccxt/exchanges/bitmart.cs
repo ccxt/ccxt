@@ -1099,8 +1099,11 @@ public partial class bitmart : Exchange
         {
             await this.loadTimeDifference();
         }
-        object spot = await this.fetchSpotMarkets(parameters);
-        object contract = await this.fetchContractMarkets(parameters);
+        object spotPromise = this.fetchSpotMarkets(parameters);
+        object contractPromise = this.fetchContractMarkets(parameters);
+        var spotcontractVariable = await promiseAll(new List<object>() {spotPromise, contractPromise});
+        var spot = ((IList<object>) spotcontractVariable)[0];
+        var contract = ((IList<object>) spotcontractVariable)[1];
         return this.arrayConcat(spot, contract);
     }
 

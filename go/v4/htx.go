@@ -9572,11 +9572,11 @@ func (this *HtxCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan inte
 		}
 		var request interface{} = map[string]interface{}{}
 		var subType interface{} = nil
-		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", market, params, "linear")
+		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
 		var marketType interface{} = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPositions", market, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenInterests", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var response interface{} = nil

@@ -38,11 +38,14 @@ include_once __DIR__ . '/test_parse_precision.php';
 include_once __DIR__ . '/test_arrays_concat.php';
 include_once __DIR__ . '/test_sleep.php';
 include_once __DIR__ . '/test_eth_methods.php';
+include_once __DIR__ . '/test_keysort.php';
 include_once __DIR__ . '/test_capitalize.php';
+include_once __DIR__ . '/test_constants.php';
 
 function base_tests_init() {
     return Async\async(function () {
         test_language_specific();
+        test_constants();
         test_after_constructor();
         test_extend();
         test_deep_extend();
@@ -70,6 +73,7 @@ function base_tests_init() {
         test_extract_params();
         test_arrays_concat();
         test_eth_methods();
+        test_keysort();
         Async\await(test_sleep());
     }) ();
 }

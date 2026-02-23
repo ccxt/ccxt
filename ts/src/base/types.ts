@@ -569,6 +569,16 @@ export interface LongShortRatio {
     longShortRatio: number,
 }
 
+export interface ADL {
+    info: any;
+    symbol: string;
+    rank?: Int;
+    rating?: Str;
+    percentage?: number;
+    timestamp?: Int;
+    datetime?: Str;
+}
+
 export interface MarginModification {
     'info': any,
     'symbol': string,

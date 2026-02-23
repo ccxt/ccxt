@@ -758,7 +758,8 @@ class okx extends okx$1["default"] {
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
             if (this.liquidations === undefined) {
-                this.liquidations = new Cache.ArrayCacheBySymbolBySide();
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
             const cache = this.liquidations;
             cache.append(liquidation);
@@ -855,7 +856,8 @@ class okx extends okx$1["default"] {
             const liquidation = this.parseWsMyLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
             if (this.liquidations === undefined) {
-                this.liquidations = new Cache.ArrayCacheBySymbolBySide();
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new Cache.ArrayCache(limit);
             }
             const cache = this.liquidations;
             cache.append(liquidation);
@@ -1791,7 +1793,7 @@ class okx extends okx$1["default"] {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (position['contracts'] === 0) {
+            if (position['contracts'] === 0 && rawPosition['posSide'] === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';

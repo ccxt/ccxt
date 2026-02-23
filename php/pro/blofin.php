@@ -118,7 +118,8 @@ class blofin extends \ccxt\async\blofin {
                 $firstSymbol = $this->safe_string($firstMarket, 'symbol');
                 $limit = $trades->getLimit ($firstSymbol, $limit);
             }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            $result = $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+            return $this->sort_by($result, 'timestamp'); // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
         }) ();
     }
 

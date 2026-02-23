@@ -57,6 +57,7 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchConvertCurrencies](#fetchconvertcurrencies)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchOrderBook](#watchorderbook)
 * [unWatchOrderBook](#unwatchorderbook)
 * [watchTicker](#watchticker)
@@ -1327,6 +1328,27 @@ fetches all available currencies that can be converted
 
 ```javascript
 woo.fetchConvertCurrencies ([params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>woo</code>](#woo)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://docs.woox.io/#get-all-position-info-new  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+woo.fetchPositionsADLRank ([symbols, params])
 ```
 
 

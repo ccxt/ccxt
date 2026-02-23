@@ -2854,6 +2854,73 @@
                     "shortLeverage": 10
                 }
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "positions": [
+                            {
+                            "symbol": "PERP_BTC_USDT",
+                            "holding": "0.001",
+                            "pendingLongQty": "0",
+                            "pendingShortQty": "0",
+                            "settlePrice": "90732",
+                            "averageOpenPrice": "90732",
+                            "pnl24H": "-0.001",
+                            "fee24H": "0.1360115",
+                            "markPrice": "90735.85463143",
+                            "estLiqPrice": "0",
+                            "timestamp": "1768049379264",
+                            "adlQuantile": "3",
+                            "positionSide": "BOTH",
+                            "marginMode": "CROSS",
+                            "isolatedMarginToken": "",
+                            "isolatedMarginAmount": "0",
+                            "isolatedFrozenLong": "0",
+                            "isolatedFrozenShort": "0",
+                            "leverage": "10"
+                            }
+                        ]
+                    },
+                    "timestamp": "1768049665167"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "PERP_BTC_USDT",
+                        "holding": "0.001",
+                        "pendingLongQty": "0",
+                        "pendingShortQty": "0",
+                        "settlePrice": "90732",
+                        "averageOpenPrice": "90732",
+                        "pnl24H": "-0.001",
+                        "fee24H": "0.1360115",
+                        "markPrice": "90735.85463143",
+                        "estLiqPrice": "0",
+                        "timestamp": "1768049379264",
+                        "adlQuantile": "3",
+                        "positionSide": "BOTH",
+                        "marginMode": "CROSS",
+                        "isolatedMarginToken": "",
+                        "isolatedMarginAmount": "0",
+                        "isolatedFrozenLong": "0",
+                        "isolatedFrozenShort": "0",
+                        "leverage": "10"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 3,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": 1768049379264,
+                    "datetime": "2026-01-10T12:49:39.264Z"
+                }
+            }
         ]
     }
 }

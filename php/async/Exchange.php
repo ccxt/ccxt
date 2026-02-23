@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.5.36';
+$version = '4.5.39';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.36';
+    const VERSION = '4.5.39';
 
     public $browser;
     public $marketsLoading = null;
@@ -468,6 +468,7 @@ class Exchange extends \ccxt\Exchange {
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
+                'fetchADLRank' => null,
                 'fetchBalance' => true,
                 'fetchBalanceWs' => null,
                 'fetchBidsAsks' => null,
@@ -553,6 +554,8 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
                 'fetchPosition' => null,
+                'fetchPositionADLRank' => null,
+                'fetchPositionsADLRank' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
                 'fetchPositionWs' => null,
@@ -1547,7 +1550,14 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_open_interest(string $symbol, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchOpenInterests']) {
+                $openInterests = Async\await($this->fetch_open_interests(array( $symbol ), $params));
+                return $this->safe_dict($openInterests, $symbol);
+            } else {
+                throw new NotSupported($this->id . ' fetchOpenInterest() is not supported yet');
+            }
+        }) ();
     }
 
     public function fetch_open_interests(?array $symbols = null, $params = array ()) {
@@ -3515,6 +3525,21 @@ class Exchange extends \ccxt\Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
+    public function parse_adl_rank(array $info, ?array $market = null) {
+        throw new NotSupported($this->id . ' parseADLRank() is not supported yet');
+    }
+
+    public function parse_adl_ranks(array $ranks, ?array $symbols = null, $params = array ()) {
+        $symbols = $this->market_symbols($symbols);
+        $ranks = $this->to_array($ranks);
+        $result = array();
+        for ($i = 0; $i < count($ranks); $i++) {
+            $rank = $this->extend($this->parse_adl_rank($ranks[$i], null), $params);
+            $result[] = $rank;
+        }
+        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+    }
+
     public function parse_accounts(array $accounts, $params = array ()) {
         $accounts = $this->to_array($accounts);
         $result = array();
@@ -4495,6 +4520,10 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' createOrder() is not supported yet');
     }
 
+    public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array ()) {
+        throw new NotSupported($this->id . ' createTwapOrder() is not supported yet');
+    }
+
     public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()) {
         throw new NotSupported($this->id . ' createConvertTrade() is not supported yet');
     }
@@ -4509,6 +4538,33 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_position_mode(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchPositionMode() is not supported yet');
+    }
+
+    public function fetch_adl_rank(string $symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchADLRank() is not supported yet');
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
+    }
+
+    public function fetch_position_adl_rank(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchPositionsADLRank']) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $ranks = Async\await($this->fetch_positions_adl_rank(array( $symbol ), $params));
+                $rank = $this->safe_dict($ranks, 0);
+                if ($rank === null) {
+                    throw new NullResponse($this->id . ' fetchPositionsADLRank() could not find a $rank for ' . $symbol);
+                } else {
+                    return $rank;
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
+            }
+        }) ();
     }
 
     public function create_trailing_amount_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array ()) {
@@ -6344,6 +6400,14 @@ class Exchange extends \ccxt\Exchange {
         /**
          * @ignore
          * Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function filter_by_array_adl_ranks($objects, int|string $key, $values = null, $indexed = true) {
+        /**
+         * @ignore
+         * Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }

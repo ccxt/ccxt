@@ -81,6 +81,8 @@ public partial class kucoinfutures : kucoin
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", true },
+                { "fetchPositionADLRank", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", true },
@@ -3625,6 +3627,130 @@ public partial class kucoinfutures : kucoin
             { "marginMode", null },
             { "longLeverage", leverageNum },
             { "shortLeverage", leverageNum },
+        };
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object response = await this.futuresPrivateGetPositions(parameters);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "id": "600000000001260912",
+        //                 "symbol": "XBTUSDTM",
+        //                 "crossMode": true,
+        //                 "maintMarginReq": 0.0040000133,
+        //                 "delevPercentage": 0.0,
+        //                 "openingTimestamp": 1768481882915,
+        //                 "currentTimestamp": 1768481897988,
+        //                 "currentQty": 1,
+        //                 "currentCost": 96.9768,
+        //                 "currentComm": 0.05818608,
+        //                 "unrealisedCost": 96.9768,
+        //                 "realisedGrossCost": 0.0,
+        //                 "realisedCost": 0.05818608,
+        //                 "isOpen": true,
+        //                 "markPrice": 96985.6,
+        //                 "markValue": 96.9856,
+        //                 "posCost": 96.9768,
+        //                 "posInit": 4.84884,
+        //                 "posMargin": 4.84928,
+        //                 "posMaint": 0.38794369,
+        //                 "realisedGrossPnl": 0.0,
+        //                 "realisedPnl": -0.05818608,
+        //                 "unrealisedPnl": 0.0088,
+        //                 "unrealisedPnlPcnt": 1.0E-4,
+        //                 "unrealisedRoePcnt": 0.0018,
+        //                 "avgEntryPrice": 96976.8,
+        //                 "liquidationPrice": 52351.69,
+        //                 "bankruptPrice": 52110.87,
+        //                 "settleCurrency": "USDT",
+        //                 "isInverse": false,
+        //                 "maintainMargin": 0.0040000133,
+        //                 "marginMode": "CROSS",
+        //                 "positionSide": "LONG",
+        //                 "leverage": 20,
+        //                 "dealComm": -0.05818608,
+        //                 "fundingFee": 0,
+        //                 "tax": 0
+        //             }
+        //         ]
+        //     }
+        //
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseADLRanks(data, symbols);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "id": "600000000001260912",
+        //         "symbol": "XBTUSDTM",
+        //         "crossMode": true,
+        //         "maintMarginReq": 0.0040000133,
+        //         "delevPercentage": 0.0,
+        //         "openingTimestamp": 1768481882915,
+        //         "currentTimestamp": 1768481897988,
+        //         "currentQty": 1,
+        //         "currentCost": 96.9768,
+        //         "currentComm": 0.05818608,
+        //         "unrealisedCost": 96.9768,
+        //         "realisedGrossCost": 0.0,
+        //         "realisedCost": 0.05818608,
+        //         "isOpen": true,
+        //         "markPrice": 96985.6,
+        //         "markValue": 96.9856,
+        //         "posCost": 96.9768,
+        //         "posInit": 4.84884,
+        //         "posMargin": 4.84928,
+        //         "posMaint": 0.38794369,
+        //         "realisedGrossPnl": 0.0,
+        //         "realisedPnl": -0.05818608,
+        //         "unrealisedPnl": 0.0088,
+        //         "unrealisedPnlPcnt": 1.0E-4,
+        //         "unrealisedRoePcnt": 0.0018,
+        //         "avgEntryPrice": 96976.8,
+        //         "liquidationPrice": 52351.69,
+        //         "bankruptPrice": 52110.87,
+        //         "settleCurrency": "USDT",
+        //         "isInverse": false,
+        //         "maintainMargin": 0.0040000133,
+        //         "marginMode": "CROSS",
+        //         "positionSide": "LONG",
+        //         "leverage": 20,
+        //         "dealComm": -0.05818608,
+        //         "fundingFee": 0,
+        //         "tax": 0
+        //     }
+        //
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeInteger(info, "openingTimestamp");
+        object percentage = this.safeString(info, "delevPercentage");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", null },
+            { "rating", null },
+            { "percentage", this.parseNumber(Precise.stringMul(percentage, "100")) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 }

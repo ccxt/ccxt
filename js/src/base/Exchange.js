@@ -6,7 +6,9 @@
 
 // ----------------------------------------------------------------------------
 import * as functions from './functions.js';
-import { keys as keysFunc, values as valuesFunc, 
+import { 
+// keys as keysFunc,
+// values as valuesFunc,
 // inArray as inArrayFunc,
 vwap as vwapFunc, } from './functions.js';
 // import exceptions from "./errors.js"
@@ -168,8 +170,6 @@ export default class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = keysFunc;
-        this.values = valuesFunc;
         this.extend = extend;
         this.clone = clone;
         this.flatten = flatten;
@@ -1691,6 +1691,7 @@ export default class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -1776,6 +1777,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -2681,7 +2684,13 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -4621,6 +4630,19 @@ export default class Exchange {
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    parseADLRank(info, market = undefined) {
+        throw new NotSupported(this.id + ' parseADLRank() is not supported yet');
+    }
+    parseADLRanks(ranks, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols(symbols);
+        ranks = this.toArray(ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend(this.parseADLRank(ranks[i], undefined), params);
+            result.push(rank);
+        }
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+    }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
         const result = [];
@@ -5505,6 +5527,30 @@ export default class Exchange {
     }
     async fetchPositionMode(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchPositionMode() is not supported yet');
+    }
+    async fetchADLRank(symbol, params = {}) {
+        throw new NotSupported(this.id + ' fetchADLRank() is not supported yet');
+    }
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+    async fetchPositionADLRank(symbol, params = {}) {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank([symbol], params);
+            const rank = this.safeDict(ranks, 0);
+            if (rank === undefined) {
+                throw new NullResponse(this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            }
+            else {
+                return rank;
+            }
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
     async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
@@ -7163,6 +7209,14 @@ export default class Exchange {
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    filterByArrayADLRanks(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
         return this.filterByArray(objects, key, values, indexed);
     }

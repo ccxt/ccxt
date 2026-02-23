@@ -93,6 +93,7 @@ public partial class Exchange
                 { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
+                { "fetchADLRank", null },
                 { "fetchBalance", true },
                 { "fetchBalanceWs", null },
                 { "fetchBidsAsks", null },
@@ -178,6 +179,8 @@ public partial class Exchange
                 { "fetchOrderTrades", null },
                 { "fetchOrderWs", null },
                 { "fetchPosition", null },
+                { "fetchPositionADLRank", null },
+                { "fetchPositionsADLRank", null },
                 { "fetchPositionHistory", null },
                 { "fetchPositionsHistory", null },
                 { "fetchPositionWs", null },
@@ -1436,7 +1439,14 @@ public partial class Exchange
     public async virtual Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        if (isTrue(getValue(this.has, "fetchOpenInterests")))
+        {
+            object openInterests = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
+            return this.safeDict(openInterests, symbol);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        }
     }
 
     public async virtual Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
@@ -3832,6 +3842,25 @@ public partial class Exchange
         return this.filterByArrayPositions(result, "symbol", symbols, false);
     }
 
+    public virtual object parseADLRank(object info, object market = null)
+    {
+        throw new NotSupported ((string)add(this.id, " parseADLRank() is not supported yet")) ;
+    }
+
+    public virtual object parseADLRanks(object ranks, object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        symbols = this.marketSymbols(symbols);
+        ranks = this.toArray(ranks);
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
+        {
+            object rank = this.extend(this.parseADLRank(getValue(ranks, i), null), parameters);
+            ((IList<object>)result).Add(rank);
+        }
+        return this.filterByArrayPositions(result, "symbol", symbols, false);
+    }
+
     public virtual object parseAccounts(object accounts, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5097,6 +5126,41 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositionMode() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchADLRank(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchADLRank() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionADLRank(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchPositionsADLRank")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object ranks = await this.fetchPositionsADLRank(new List<object>() {symbol}, parameters);
+            object rank = this.safeDict(ranks, 0);
+            if (isTrue(isEqual(rank, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchPositionsADLRank() could not find a rank for "), symbol)) ;
+            } else
+            {
+                return rank;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
+        }
     }
 
     public async virtual Task<object> createTrailingAmountOrder(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
@@ -7357,6 +7421,17 @@ public partial class Exchange
         * @ignore
         * @method
         * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+        */
+        indexed ??= true;
+        return this.filterByArray(objects, key, values, indexed);
+    }
+
+    public virtual object filterByArrayADLRanks(object objects, object key, object values = null, object indexed = null)
+    {
+        /**
+        * @ignore
+        * @method
+        * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
         */
         indexed ??= true;
         return this.filterByArray(objects, key, values, indexed);

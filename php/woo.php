@@ -89,9 +89,11 @@ class woo extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -4235,6 +4237,94 @@ class woo extends Exchange {
             );
         }
         return $result;
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://docs.woox.io/#get-all-position-info-new
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $response = $this->v3PrivateGetFuturesPositions ($params);
+        //
+        //     {
+        //         "success" => true,
+        //         "data" => array(
+        //             "positions" => array(
+        //                 array(
+        //                     "symbol" => "PERP_BTC_USDT",
+        //                     "holding" => "0.001",
+        //                     "pendingLongQty" => "0",
+        //                     "pendingShortQty" => "0",
+        //                     "settlePrice" => "90732",
+        //                     "averageOpenPrice" => "90732",
+        //                     "pnl24H" => "-0.001",
+        //                     "fee24H" => "0.1360115",
+        //                     "markPrice" => "90736",
+        //                     "estLiqPrice" => "0",
+        //                     "timestamp" => 1768049379264,
+        //                     "adlQuantile" => 3,
+        //                     "positionSide" => "BOTH",
+        //                     "marginMode" => "CROSS",
+        //                     "isolatedMarginToken" => "",
+        //                     "isolatedMarginAmount" => "0",
+        //                     "isolatedFrozenLong" => "0",
+        //                     "isolatedFrozenShort" => "0",
+        //                     "leverage" => 10
+        //                 ),
+        //             )
+        //         ),
+        //         "timestamp" => 1768049428472
+        //     }
+        //
+        $result = $this->safe_dict($response, 'data', array());
+        $positions = $this->safe_list($result, 'positions', array());
+        return $this->parse_adl_ranks($positions, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDT",
+        //         "holding" => "0.001",
+        //         "pendingLongQty" => "0",
+        //         "pendingShortQty" => "0",
+        //         "settlePrice" => "90732",
+        //         "averageOpenPrice" => "90732",
+        //         "pnl24H" => "-0.001",
+        //         "fee24H" => "0.1360115",
+        //         "markPrice" => "90736",
+        //         "estLiqPrice" => "0",
+        //         "timestamp" => 1768049379264,
+        //         "adlQuantile" => 3,
+        //         "positionSide" => "BOTH",
+        //         "marginMode" => "CROSS",
+        //         "isolatedMarginToken" => "",
+        //         "isolatedMarginAmount" => "0",
+        //         "isolatedFrozenLong" => "0",
+        //         "isolatedFrozenShort" => "0",
+        //         "leverage" => 10
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer($info, 'timestamp');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_number($info, 'adlQuantile'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function default_network_code_for_currency($code) {
