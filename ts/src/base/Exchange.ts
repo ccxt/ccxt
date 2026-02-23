@@ -3058,6 +3058,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
     }
 
+    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
+    }
+
+
     async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
         return await this.watchFundingRates (symbols, params);
     }
@@ -6017,6 +6022,10 @@ export default class Exchange {
 
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchTickers() is not supported yet');
+    }
+
+    async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchFundingRate() is not supported yet');
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
