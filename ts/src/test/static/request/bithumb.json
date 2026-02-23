@@ -3,20 +3,28 @@
     "skipKeys": [],
     "outputType": "urlencoded",
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.bithumb.com/v1/market/all",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://api.bithumb.com/info/balance",
+                "url": "https://api.bithumb.com/v1/accounts",
                 "input": [],
-                "output": "endpoint=%2Finfo%2Fbalance&currency=ALL"
+                "output": ""
             }
         ],
         "fetchOrderBook": [
             {
                 "description": "fetchOrderBook",
                 "method": "fetchOrderBook",
-                "url": "https://api.bithumb.com/public/orderbook/BTC_KRW?count=5",
+                "url": "https://api.bithumb.com/v1/orderbook?markets=KRW-BTC",
                 "input": [
                     "BTC/KRW",
                     5
@@ -27,7 +35,7 @@
             {
                 "description": "fetchTicker",
                 "method": "fetchTicker",
-                "url": "https://api.bithumb.com/public/ticker/BTC_KRW",
+                "url": "https://api.bithumb.com/v1/ticker?markets=KRW-BTC",
                 "input": [
                     "BTC/KRW"
                 ]
@@ -37,7 +45,7 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://api.bithumb.com/public/candlestick/BTC_KRW/1m",
+                "url": "https://api.bithumb.com/v1/candles/minutes/1?market=KRW-BTC&count=5",
                 "input": [
                     "BTC/KRW",
                     "1m",
@@ -50,7 +58,7 @@
             {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
-                "url": "https://api.bithumb.com/public/transaction_history/BTC_KRW?count=5",
+                "url": "https://api.bithumb.com/v1/trades/ticks?market=KRW-BTC&count=5",
                 "input": [
                     "BTC/KRW",
                     null,
@@ -62,53 +70,50 @@
             {
                 "description": "createOrder",
                 "method": "createOrder",
-                "url": "https://api.bithumb.com/trade/market_buy",
+                "url": "https://api.bithumb.com/v1/orders",
                 "input": [
                     "BTC/KRW",
-                    "market",
+                    "limit",
                     "buy",
                     0.01,
-                    67734000
+                    67000000
                 ],
-                "output": "endpoint=%2Ftrade%2Fmarket_buy&order_currency=BTC&payment_currency=KRW&units=0.01"
+                "output": "{\"market\":\"KRW-BTC\",\"side\":\"bid\",\"volume\":\"0.01\",\"ord_type\":\"limit\",\"price\":\"67000000\"}"
             }
         ],
         "fetchOrder": [
             {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
-                "url": "https://api.bithumb.com/info/order_detail",
+                "url": "https://api.bithumb.com/v1/order?uuid=1429500241523",
                 "input": [
                     "1429500241523",
                     "BTC/KRW"
                 ],
-                "output": "endpoint=%2Finfo%2Forder_detail&order_id=1429500241523&count=1&order_currency=BTC&payment_currency=KRW"
+                "output": ""
             }
         ],
         "fetchOpenOrders": [
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.bithumb.com/info/orders",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC",
                 "input": [
                     "BTC/KRW"
                 ],
-                "output": "endpoint=%2Finfo%2Forders&count=100&order_currency=BTC&payment_currency=KRW"
+                "output": ""
             }
         ],
         "cancelOrder": [
             {
                 "description": "cancelOrder",
                 "method": "cancelOrder",
-                "url": "https://api.bithumb.com/trade/cancel",
+                "url": "https://api.bithumb.com/v1/order?uuid=1429500241523",
                 "input": [
                     "1429500241523",
-                    "BTC/KRW",
-                    {
-                        "side": "buy"
-                    }
+                    "BTC/KRW"
                 ],
-                "output": "endpoint=%2Ftrade%2Fcancel&order_id=1429500241523&type=bid&order_currency=BTC&payment_currency=KRW"
+                "output": ""
             }
         ]
     }
