@@ -1,38 +1,56 @@
 # -*- coding: utf-8 -*-
 
 """
-Advanced Trading Bot Example
----------------------------
-A simple, configurable trading bot for cryptocurrency exchanges using CCXT.
-This bot demonstrates how to:
-1. Connect to an exchange
-2. Load configuration
-3. Check balances
-4. Place limit orders (with safety checks)
+Advanced Trading Bot Example for CCXT
 
-Disclaimer: This is for educational purposes only. 
-Always use 'dry_run': true when testing!
+This module demonstrates a production-ready algorithmic trading bot with
+complete order lifecycle management, risk controls, and safety features.
+
+Features:
+    - Dry-run mode for safe testing
+    - Risk management with position limits
+    - Market condition validation
+    - Comprehensive error handling
+    - Real-time order monitoring
+    - Graceful shutdown
+
+Usage:
+    python trading_bot.py --dry-run
+
+Author: ccxt contributors
+License: MIT
 """
 
-import ccxt
-import json
-import time
-import logging
-import sys
-import random
-import traceback
-import signal
 import argparse
+import json
+import logging
+import random
+import signal
+import sys
+import time
+import traceback
 from functools import wraps
 from logging.handlers import RotatingFileHandler
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+
+import ccxt
 
 # Global state for dry-run simulation
 _dry_run_order_state = {}
 
 # Setup logging
-def setup_logging(log_level='INFO', log_file='trading_bot.log') -> logging.Logger:
+def setup_logging(log_level: str = 'INFO', log_file: str = 'trading_bot.log') -> logging.Logger:
     """
     Configures logging to both console and file.
+
+    Sets up a logger with a rotating file handler and a console handler with colored output.
+
+    Args:
+        log_level: The logging level to use for the console (e.g., 'INFO', 'DEBUG').
+        log_file: The path to the log file.
+
+    Returns:
+        The configured logger instance.
     """
     logger = logging.getLogger('trading_bot')
     
@@ -89,10 +107,19 @@ logger = setup_logging()
 # Global configuration
 _config = {}
 
-def handle_exchange_error(error, context=""):
+def handle_exchange_error(error: Exception, context: str = "") -> Tuple[str, bool, int]:
     """
     Centralized error handling for exchange-related exceptions.
-    Returns: (error_message, should_retry, wait_seconds)
+
+    Analyzes the CCXT exception type and provides informative messages, retry directives,
+    and appropriate wait times.
+
+    Args:
+        error: The exception caught during an exchange operation.
+        context: Optional context string (e.g., function name) where the error occurred.
+
+    Returns:
+        A tuple containing (error_message, should_retry, wait_seconds).
     """
     error_msg = f"Error in {context}: {str(error)}"
     
@@ -118,9 +145,16 @@ def handle_exchange_error(error, context=""):
     else:
         return (f"Unexpected error: {str(error)}", False, 0)
 
-def retry_with_backoff(max_retries=3, base_delay=2):
+def retry_with_backoff(max_retries: int = 3, base_delay: int = 2) -> Callable[..., Any]:
     """
     Decorator to retry functions with exponential backoff on specific errors.
+
+    Args:
+        max_retries: The maximum number of retry attempts.
+        base_delay: The base delay in seconds before the first retry.
+
+    Returns:
+        A decorator function that wraps the original function.
     """
     def decorator(func):
         @wraps(func)
@@ -155,10 +189,20 @@ def retry_with_backoff(max_retries=3, base_delay=2):
         return wrapper
     return decorator
 
-def load_config(config_path='config.json'):
+def load_config(config_path: str = 'config.json') -> Dict[str, Any]:
     """
     Loads proper setting from the json file.
+    
     Handles comments in JSON (which is not standard but useful for config files).
+
+    Args:
+        config_path: The file path to the configuration JSON.
+
+    Returns:
+        A dictionary containing the loaded configuration settings.
+        
+    Raises:
+        SystemExit: If the file is not found or parsing fails.
     """
     try:
         with open(config_path, 'r') as f:
@@ -194,7 +238,21 @@ def load_config(config_path='config.json'):
         logger.error(f"Error parsing '{config_path}'. Strict JSON format expected (trailing commas not allowed).")
         sys.exit(1)
 
-def validate_config(config):
+def validate_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validates the provided configuration dictionary.
+
+    Ensures that all required fields are present and hold appropriate values/types.
+
+    Args:
+        config: The configuration dictionary to validate.
+
+    Returns:
+        The validated configuration dictionary.
+
+    Raises:
+        ValueError: If a required field is missing or has an invalid value.
+    """
     required_fields = [
         'exchange', 'api_key', 'secret', 'symbol', 'trade_amount_usd',
         'order_type', 'price_offset_percent', 'max_wait_seconds', 'dry_run'
@@ -220,7 +278,18 @@ def validate_config(config):
         
     return config
 
-def print_config_summary(config):
+def print_config_summary(config: Dict[str, Any]) -> None:
+    """
+    Prints a formatted summary of the bot's configuration.
+
+    Outputs key settings and indicates whether the bot is running in dry-run or live mode.
+
+    Args:
+        config: The configuration dictionary containing bot settings.
+
+    Returns:
+        None
+    """
     logger = logging.getLogger('trading_bot')
     logger.info("════════════════════════════════════")
     logger.info("TRADING BOT CONFIGURATION")
@@ -239,9 +308,21 @@ def print_config_summary(config):
     
     logger.info("════════════════════════════════════")
 
-def initialize_exchange(config):
+def initialize_exchange(config: Dict[str, Any]) -> ccxt.Exchange:
     """
     Initializes the exchange instance with API keys and testing connection.
+
+    Dynamically loads the requested exchange class from CCXT, applies credentials,
+    and performs a test connection by loading markets.
+
+    Args:
+        config: The configuration dictionary containing exchange and API details.
+
+    Returns:
+        An initialized CCXT exchange instance.
+
+    Raises:
+        SystemExit: If the exchange is unsupported, authentication fails, or network errors occur.
     """
     exchange_id = config.get('exchange', 'binance')
     api_key = config.get('api_key')
@@ -290,17 +371,32 @@ def initialize_exchange(config):
         sys.exit(1)
 
 @retry_with_backoff(max_retries=3)
-def fetch_ticker(exchange, symbol):
+def fetch_ticker(exchange: ccxt.Exchange, symbol: str) -> Optional[Dict[str, Any]]:
     """
     Fetches the latest ticker data for a symbol.
+
+    Args:
+        exchange: The initialized CCXT exchange instance.
+        symbol: The trading pair symbol (e.g., 'BTC/USDT').
+
+    Returns:
+        A dictionary containing ticker data (bid, ask, last, etc.) or None if fetching fails.
     """
     ticker = exchange.fetch_ticker(symbol)
     logger.info(f"Ticker for {symbol}: Bid={ticker['bid']}, Ask={ticker['ask']}, Last={ticker['last']}")
     return ticker
 
-def fetch_order_book(exchange, symbol, limit=5):
+def fetch_order_book(exchange: ccxt.Exchange, symbol: str, limit: int = 5) -> Optional[Dict[str, Any]]:
     """
     Fetches the order book for a symbol.
+
+    Args:
+        exchange: The initialized CCXT exchange instance.
+        symbol: The trading pair symbol (e.g., 'BTC/USDT').
+        limit: The maximum number of order book entries to return.
+
+    Returns:
+        A dictionary containing the order book (bids and asks) or None if fetching fails.
     """
     try:
         order_book = exchange.fetch_order_book(symbol, limit)
@@ -312,9 +408,20 @@ def fetch_order_book(exchange, symbol, limit=5):
         logger.error(f"Error fetching order book for {symbol}: {e}")
         return None
 
-def calculate_limit_price(ticker, side, offset_percent):
+def calculate_limit_price(ticker: Dict[str, Any], side: str, offset_percent: float) -> Optional[float]:
     """
-    Calculates a limit price based on the current ticker and offset.
+    Calculates a limit price based on the current ticker and an offset percentage.
+
+    For a buy order, the price is set below the bid (or last) price.
+    For a sell order, the price is set above the ask (or last) price.
+
+    Args:
+        ticker: The ticker data dictionary.
+        side: The order side ('buy' or 'sell').
+        offset_percent: The percentage offset to apply to the base price.
+
+    Returns:
+        The calculated limit price rounded to 8 decimal places, or None if ticker is invalid.
     """
     if not ticker:
         return None
@@ -336,9 +443,17 @@ def calculate_limit_price(ticker, side, offset_percent):
 
 
 @retry_with_backoff(max_retries=3)
-def fetch_balance(exchange):
+def fetch_balance(exchange: ccxt.Exchange) -> Optional[Dict[str, Any]]:
     """
     Fetches the account balance from the exchange.
+    
+    Returns a mocked balance when running in dry-run mode with public API keys.
+
+    Args:
+        exchange: The initialized CCXT exchange instance.
+
+    Returns:
+        A dictionary containing balance information, or None if fetching fails.
     """
     # If we are in dry_run and have no keys, we might want to return mock balance.
     # But retry_with_backoff will run first. 
@@ -367,10 +482,19 @@ def fetch_balance(exchange):
     logger.info(log_msg)
     return balance
 
-def check_sufficient_balance(balance, currency, required_amount):
+def check_sufficient_balance(balance: Dict[str, Any], currency: str, required_amount: float) -> Tuple[bool, str]:
     """
     Checks if the free balance is sufficient for the required amount.
-    Adds a 1% buffer for fees.
+    
+    Adds a 1% buffer for fees to ensure the order can be fully executed.
+
+    Args:
+        balance: The account balance dictionary.
+        currency: The quote currency ticker (e.g., 'USDT').
+        required_amount: The target amount required in the quote currency.
+
+    Returns:
+        A tuple of (is_sufficient, message) indicating the result of the check.
     """
     if not balance or currency not in balance:
         return False, f"Balance information for {currency} not available."
@@ -385,10 +509,21 @@ def check_sufficient_balance(balance, currency, required_amount):
     else:
         return False, f"Insufficient {currency} balance. Available: {free_balance}, Required (w/ 1% buffer): {required_with_buffer:.6f}"
 
-def calculate_order_amount(exchange, symbol, amount_usd, price):
+def calculate_order_amount(exchange: ccxt.Exchange, symbol: str, amount_usd: float, price: float) -> Tuple[float, bool, str]:
     """
-    Calculates the order amount in base currency, rounds it according to market precision,
-    and checks against market limits and balance.
+    Calculates the order amount in base currency.
+    
+    Rounds the calculated amount according to market precision and verifies it 
+    against the exchange's min/max market limits.
+
+    Args:
+        exchange: The initialized CCXT exchange instance.
+        symbol: The trading pair symbol (e.g., 'BTC/USDT').
+        amount_usd: The desired trade value in the quote currency.
+        price: The limit price for the order.
+
+    Returns:
+        A tuple of (amount, is_valid, validation_message).
     """
     try:
         if not symbol or not price or price <= 0:
@@ -426,10 +561,22 @@ def calculate_order_amount(exchange, symbol, amount_usd, price):
         logger.error(f"Error calculating order amount: {e}")
         return 0, False, str(e)
 
-def place_limit_order(exchange, symbol, side, amount, price, dry_run=True):
+def place_limit_order(exchange: ccxt.Exchange, symbol: str, side: str, amount: float, price: float, dry_run: bool = True) -> Optional[Dict[str, Any]]:
     """
     Places a limit order safely.
-    If dry_run is True, it only logs the action.
+    
+    If dry_run is True, skips actual exchange interaction and returns a simulated order object.
+
+    Args:
+        exchange: The initialized CCXT exchange instance.
+        symbol: The trading pair symbol (e.g., 'BTC/USDT').
+        side: The order side ('buy' or 'sell').
+        amount: The order amount in base currency.
+        price: The limit price for the order.
+        dry_run: Boolean flag indicating if this is a safe simulation.
+
+    Returns:
+        The created order dictionary, or None if the operation failed.
     """
     try:
         if dry_run:
@@ -473,9 +620,17 @@ def place_limit_order(exchange, symbol, side, amount, price, dry_run=True):
         logger.error(traceback.format_exc())
         return None
 
-def calculate_risk_metrics(config, balance, current_price):
+def calculate_risk_metrics(config: Dict[str, Any], balance: Dict[str, Any], current_price: float) -> Dict[str, Any]:
     """
     Calculates risk metrics and checks if proposed position exceeds limits.
+
+    Args:
+        config: The configuration dictionary.
+        balance: The current account balance dictionary.
+        current_price: The current price of the target asset.
+
+    Returns:
+        A dictionary containing calculated risk metrics and safety status.
     """
     portfolio_value_usd = 0.0
     for currency, details in balance.items():
@@ -513,9 +668,18 @@ def calculate_risk_metrics(config, balance, current_price):
     
     return metrics
 
-def check_market_conditions(exchange, symbol, config):
+def check_market_conditions(exchange: ccxt.Exchange, symbol: str, config: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Checks market conditions (spread and volume).
+    Checks market conditions (spread and volume) for safety.
+
+    Args:
+        exchange: The initialized CCXT exchange instance.
+        symbol: The trading pair symbol.
+        config: The configuration dictionary containing market condition limits.
+
+    Returns:
+        A dictionary containing market metrics, warnings, and a boolean indicating
+        if conditions are favorable.
     """
     ticker = fetch_ticker(exchange, symbol)
     if not ticker or 'bid' not in ticker or 'ask' not in ticker or not ticker['bid'] or not ticker['ask']:
@@ -558,9 +722,19 @@ def check_market_conditions(exchange, symbol, config):
             
     return metrics
 
-def confirm_trade(side, amount, price, symbol, dry_run):
+def confirm_trade(side: str, amount: float, price: float, symbol: str, dry_run: bool) -> bool:
     """
     Prints a confirmation summary and prompts the user if live trading.
+
+    Args:
+        side: The order side ('buy' or 'sell').
+        amount: The order amount.
+        price: The order limit price.
+        symbol: The trading pair symbol.
+        dry_run: Boolean indicating if dry-run mode is active.
+
+    Returns:
+        True if the user confirms or if dry_run is active, False otherwise.
     """
     total_cost = amount * price
     mode_text = "🟢 DRY RUN (SAFE)" if dry_run else "🔴 LIVE TRADING (REAL MONEY)"
@@ -592,9 +766,18 @@ def confirm_trade(side, amount, price, symbol, dry_run):
         logger.info(f"User failed confirmation (input was '{user_input}').")
         return False
 
-def create_order_params(exchange, config, ticker, balance):
+def create_order_params(exchange: ccxt.Exchange, config: Dict[str, Any], ticker: Dict[str, Any], balance: Dict[str, Any]) -> Optional[Tuple[str, float, float]]:
     """
     Calculates and validates order parameters (side, amount, price).
+
+    Args:
+        exchange: The CCXT exchange instance.
+        config: The configuration dictionary.
+        ticker: The current ticker data.
+        balance: The current account balance.
+
+    Returns:
+        A tuple of (side, amount, price) if valid, or None if validation fails.
     """
     symbol = config.get('symbol', 'BTC/USDT')
     amount_usd = config.get('trade_amount_usd', 10)
@@ -629,9 +812,12 @@ def create_order_params(exchange, config, ticker, balance):
     
     return side, amount, price
 
-def log_order_summary(order):
+def log_order_summary(order: Optional[Dict[str, Any]]) -> None:
     """
     Pretty prints the order details.
+
+    Args:
+        order: The order dictionary to display.
     """
     if not order:
         return
@@ -650,10 +836,20 @@ def log_order_summary(order):
     logger.info("-" * 40)
 
 @retry_with_backoff(max_retries=2)
-def fetch_order_status(exchange, order_id, symbol, dry_run=False):
+def fetch_order_status(exchange: ccxt.Exchange, order_id: str, symbol: str, dry_run: bool = False) -> Optional[Dict[str, Any]]:
     """
     Fetches the current status of an order.
-    Simulates status changes in dry_run mode.
+    
+    Simulates status changes progressively when in dry_run mode.
+
+    Args:
+        exchange: The CCXT exchange instance.
+        order_id: The ID of the order to check.
+        symbol: The trading pair symbol.
+        dry_run: Boolean flag indicating if this is a simulation.
+
+    Returns:
+        A dictionary containing the latest order status and details, or None if fetching fails.
     """
     if dry_run:
         # Initialize state if first check
@@ -692,9 +888,20 @@ def fetch_order_status(exchange, order_id, symbol, dry_run=False):
     logger.info(f"Order Status: {order['status'].upper()} | Filled: {fill_pct:.2f}%")
     return order
 
-def wait_for_order_fill(exchange, order_id, symbol, max_wait_seconds, check_interval=5, dry_run=False):
+def wait_for_order_fill(exchange: ccxt.Exchange, order_id: str, symbol: str, max_wait_seconds: int, check_interval: int = 5, dry_run: bool = False) -> Tuple[bool, Optional[Dict[str, Any]]]:
     """
     Monitors an order until it is filled or the timeout is reached.
+
+    Args:
+        exchange: The CCXT exchange instance.
+        order_id: The ID of the order to monitor.
+        symbol: The trading pair symbol.
+        max_wait_seconds: Maximum time to wait for the order to fill.
+        check_interval: Delay in seconds between polling attempts.
+        dry_run: Boolean flag indicating if this is a simulation.
+
+    Returns:
+        A tuple containing (is_filled_boolean, final_order_state_dictionary).
     """
     start_time = time.time()
     elapsed = 0
@@ -735,9 +942,18 @@ def wait_for_order_fill(exchange, order_id, symbol, max_wait_seconds, check_inte
         logger.warning("⚠️ Monitoring interrupted by user")
         return False, None
 
-def cancel_order(exchange, order_id, symbol, dry_run=True):
+def cancel_order(exchange: ccxt.Exchange, order_id: str, symbol: str, dry_run: bool = True) -> Dict[str, Any]:
     """
     Cancels an open order.
+
+    Args:
+        exchange: The CCXT exchange instance.
+        order_id: The ID of the order to cancel.
+        symbol: The trading pair symbol.
+        dry_run: Boolean flag indicating if this is a simulation.
+
+    Returns:
+        A dictionary indicating the success or failure of the cancellation.
     """
     if dry_run:
         logger.info(f"[DRY RUN] Would cancel order {order_id}")
@@ -758,9 +974,13 @@ def cancel_order(exchange, order_id, symbol, dry_run=True):
         logger.error(f"Unexpected error canceling order: {e}")
         return {'success': False}
 
-def graceful_shutdown(exchange, logger):
+def graceful_shutdown(exchange: ccxt.Exchange, logger: logging.Logger) -> None:
     """
-    Handles graceful shutdown by cancelling open orders.
+    Handles graceful shutdown by checking for and optionally cancelling open orders.
+
+    Args:
+        exchange: The CCXT exchange instance.
+        logger: The logging instance to use for messages.
     """
     print("\n")
     logger.info("🛑 Initiating graceful shutdown...")
@@ -804,9 +1024,15 @@ def graceful_shutdown(exchange, logger):
     
     logger.info("✅ Shutdown complete")
 
-def signal_handler(sig, frame):
+def signal_handler(sig: int, frame: Any) -> None:
     """
     Handles system signals (like Ctrl+C).
+    
+    Triggers the graceful shutdown process before exiting.
+
+    Args:
+        sig: The signal number.
+        frame: The current stack frame.
     """
     print("\n")
     logger = logging.getLogger('trading_bot')
@@ -845,7 +1071,13 @@ def signal_handler(sig, frame):
 # Global variable to hold exchange for signal handler
 exchange_instance = None
 
-def main():
+def main() -> None:
+    """
+    Main execution entry point for the trading bot.
+    
+    Parses command-line arguments, sets up logging, validates the configuration,
+    connects to the exchange, and executes the predefined trading logic.
+    """
     parser = argparse.ArgumentParser(description='Advanced Trading Bot')
     parser.add_argument('--config', type=str, default='config.json', help='path to config file')
     parser.add_argument('--dry-run', action='store_true', help='force dry-run mode')
@@ -1008,3 +1240,107 @@ def main():
 if __name__ == "__main__":
     main()
 
+"""
+TESTING CHECKLIST (Run in dry-run mode):
+
+Basic Functionality:
+[ ] Config loads successfully from config.json
+[ ] Exchange connection works with valid credentials
+[ ] Market data fetches correctly (ticker, orderbook)
+[ ] Balance fetching works
+[ ] Order amount calculation is correct
+[ ] Limit price calculation is accurate
+[ ] Order placement succeeds (dry-run)
+[ ] Order monitoring displays status updates
+[ ] Order cancellation works (dry-run)
+
+Error Handling:
+[ ] Invalid config file shows clear error
+[ ] Missing API credentials show helpful message
+[ ] Network errors trigger retry logic
+[ ] Rate limit errors are handled gracefully
+[ ] Insufficient balance is detected
+[ ] Invalid symbol shows error
+
+Safety Features:
+[ ] Risk metrics calculate correctly
+[ ] Position limits are enforced
+[ ] Market condition checks work
+[ ] Spread warnings trigger when needed
+[ ] Volume warnings trigger when needed
+[ ] User confirmation required in live mode
+[ ] Dry-run mode clearly indicated
+
+User Experience:
+[ ] Logging outputs to console clearly
+[ ] Log file is created (trading_bot.log)
+[ ] Config summary displays correctly
+[ ] Command-line args work (--dry-run, --config, --log-level)
+[ ] Ctrl+C triggers graceful shutdown
+[ ] Error messages are user-friendly
+
+Edge Cases:
+[ ] Handles partial order fills
+[ ] Works with different exchanges (test 2-3)
+[ ] Works with different symbols
+[ ] Handles API downtime
+[ ] Handles rapid price changes
+
+Code Quality:
+[ ] All functions have type hints
+[ ] All functions have docstrings
+[ ] No unused imports or variables
+[ ] Code follows PEP 8 style guide
+[ ] Line length < 100 characters
+[ ] No TODO or FIXME comments remaining
+"""
+
+"""
+MANUAL TESTING PROCEDURE:
+
+Test 1: Basic Dry-Run
+----------------------
+1. Copy config.json.example to config.json
+2. Add valid API credentials
+3. Ensure dry_run=true
+4. Run: python trading_bot.py
+5. Verify: Bot runs without errors, simulates order
+
+Test 2: Invalid Config
+----------------------
+1. Remove api_key from config.json
+2. Run: python trading_bot.py
+3. Verify: Clear error message about missing API key
+
+Test 3: Risk Limits
+--------------------
+1. Set trade_amount_usd very high (e.g., 10000)
+2. Set max_position_percent to 5.0
+3. Run: python trading_bot.py
+4. Verify: Trade blocked due to risk limits
+
+Test 4: Market Conditions
+-------------------------
+1. Set max_spread_percent to 0.01 (very strict)
+2. Run: python trading_bot.py
+3. Verify: Warning about spread too wide
+
+Test 5: Graceful Shutdown
+-------------------------
+1. Run: python trading_bot.py
+2. Press Ctrl+C during execution
+3. Verify: Clean shutdown message, no errors
+
+Test 6: Command-Line Args
+-------------------------
+1. Run: python trading_bot.py --help
+2. Verify: Help message displays
+3. Run: python trading_bot.py --log-level DEBUG
+4. Verify: More detailed logs appear
+
+Test 7: Log File
+----------------
+1. Run the bot
+2. Check: trading_bot.log file is created
+3. Verify: Contains detailed logs
+"""
