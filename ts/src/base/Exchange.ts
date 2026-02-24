@@ -2634,7 +2634,7 @@ export default class Exchange {
             const cacheFilePath = this.marketsCacheFilePath ();
             if (this.fileExists (cacheFilePath)) {
                 const content = this.fileRead (cacheFilePath);
-                if (content !== undefined && content !== '' && content != '{}') {
+                if (content !== undefined && content !== '' && content !== '{}') {
                     const values = JSON.parse (content);
                     // if not expired
                     const expirationMs = this.marketsCacheMinutes * 60 * 1000; // milliseconds
@@ -2650,7 +2650,7 @@ export default class Exchange {
     marketsCacheSave (markets, currencies: Dict = undefined) {
         // only write if user has enabled caching
         if (this.marketsCacheMinutes > 0) {
-            const cacheFile = this.marketsCacheFilePath();
+            const cacheFile = this.marketsCacheFilePath ();
             const values = {
                 'saveTimestamp': this.milliseconds (),
                 'markets': markets,
