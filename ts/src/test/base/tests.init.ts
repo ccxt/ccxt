@@ -19,6 +19,7 @@ import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
+import testClone from './test.clone.js';
 import testFilterBy from './test.filterBy.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
@@ -61,6 +62,7 @@ async function baseTestsInit () {
     testParsePrecision ();
     testPrecisionFromString ();
     testExtractParams ();
+    testClone ();
     testArraysConcat ();
     testEthMethods ();
     testKeysort ();
