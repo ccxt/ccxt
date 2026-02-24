@@ -204,7 +204,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+     * @see https://www.kucoin.com/docs-new/3470063w0
+     * @see https://www.kucoin.com/docs-new/3470081w0
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -230,7 +231,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+     * @see https://www.kucoin.com/docs-new/3470063w0
+     * @see https://www.kucoin.com/docs-new/3470081w0
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -266,11 +268,13 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#watchTickers
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
+     * @see https://www.kucoin.com/docs-new/3470063w0
+     * @see https://www.kucoin.com/docs-new/3470064w0
+     * @see https://www.kucoin.com/docs-new/3470081w0
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.spotMethod] *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+     * @param {string} [params.method] *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -288,7 +292,7 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             method = '/contractMarket/ticker';
         } else {
-            [ method, params ] = this.handleOptionAndParams (params, 'watchTickers', 'spotMethod', method);
+            [ method, params ] = this.handleOptionAndParams2 (params, 'watchTickers', 'method', 'spotMethod', method);
         }
         const messageHashes = [];
         const topics = [];
@@ -459,7 +463,8 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#watchBidsAsks
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+     * @see https://www.kucoin.com/docs-new/3470067w0
+     * @see https://www.kucoin.com/docs-new/3470080w0
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -467,7 +472,7 @@ export default class kucoin extends kucoinRest {
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true);
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbols);
         const channelName = (firstMarket['contract']) ? '/contractMarket/tickerV2:' : '/spotMarket/level1:';
         const ticker = await this.watchMultiHelper ('watchBidsAsks', channelName, symbols, params);
@@ -587,7 +592,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+     * @see https://www.kucoin.com/docs-new/3470071w0
+     * @see https://www.kucoin.com/docs-new/3470086w0
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -597,11 +603,13 @@ export default class kucoin extends kucoinRest {
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
+        const isFuturesMethod = market['contract'];
+        const url = await this.negotiate (false, isFuturesMethod);
         const period = this.safeString (this.timeframes, timeframe, timeframe);
-        const topic = '/market/candles:' + market['id'] + '_' + period;
+        const channelName = isFuturesMethod ? '/contractMarket/limitCandle:' : '/market/candles:';
+        const topic = channelName + market['id'] + '_' + period;
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         const ohlcv = await this.subscribe (url, messageHash, topic, params);
         if (this.newUpdates) {
@@ -622,19 +630,26 @@ export default class kucoin extends kucoinRest {
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
-        const url = await this.negotiate (false);
         const market = this.market (symbol);
         symbol = market['symbol'];
+        const isFuturesMethod = market['contract'];
+        const url = await this.negotiate (false, isFuturesMethod);
+        const channelName = isFuturesMethod ? '/contractMarket/limitCandle:' : '/market/candles:';
         const period = this.safeString (this.timeframes, timeframe, timeframe);
-        const topic = '/market/candles:' + market['id'] + '_' + period;
+        const topic = channelName + market['id'] + '_' + period;
         const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
         const subMessageHash = 'candles:' + symbol + ':' + timeframe;
+        const symbolAndTimeframe = [ symbol, timeframe ];
         const subscription = {
-            'messageHashes': [ messageHash ],
-            'subMessageHashes': [ subMessageHash ],
+            // we have to add the topic to the messageHashes and subMessageHashes
+            // because handleSubscriptionStatus needs them to remove the subscription from the client
+            // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
+            'messageHashes': [ messageHash, topic ],
+            'subMessageHashes': [ subMessageHash, topic ],
             'topic': 'ohlcv',
             'unsubscribe': true,
             'symbols': [ symbol ],
+            'symbolsAndTimeframes': [ symbolAndTimeframe ],
         };
         return await this.unSubscribe (url, messageHash, topic, messageHash, params, subscription);
     }
@@ -660,6 +675,26 @@ export default class kucoin extends kucoinRest {
         //         "type": "message"
         //     }
         //
+        // futures
+        //    {
+        //        "topic":"/contractMarket/limitCandle:LTCUSDTM_1min",
+        //        "type":"message",
+        //        "data":{
+        //            "symbol":"LTCUSDTM",
+        //            "candles":[
+        //                "1715470980",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "81.38",
+        //                "61.0", - Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        //                "61"
+        //            ],
+        //            "time":1715470994801
+        //        },
+        //        "subject":"candle.stick"
+        //    }
+        //
         const data = this.safeValue (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const candles = this.safeValue (data, 'candles', []);
@@ -678,8 +713,17 @@ export default class kucoin extends kucoinRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const ohlcv = this.parseOHLCV (candles, market);
-        stored.append (ohlcv);
+        const isContractMarket = (topic.indexOf ('contractMarket') >= 0);
+        const baseVolumeIndex = isContractMarket ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
+        const parsed = [
+            this.safeInteger (candles, 0),
+            this.safeNumber (candles, 1),
+            this.safeNumber (candles, 2),
+            this.safeNumber (candles, 3),
+            this.safeNumber (candles, 4),
+            this.safeNumber (candles, baseVolumeIndex),
+        ];
+        stored.append (parsed);
         client.resolve (stored, messageHash);
     }
 
@@ -1599,6 +1643,7 @@ export default class kucoin extends kucoinRest {
             // futures messages
             'ticker': this.handleTicker,
             'tickerV2': this.handleBidAsk,
+            'candle.stick': this.handleOHLCV,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
