@@ -68,8 +68,11 @@ export default class delta extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOption': true,
                 'fetchOptionChain': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
@@ -146,6 +149,8 @@ export default class delta extends Exchange {
                 'private': {
                     'get': [
                         'orders',
+                        'orders/{order_id}',
+                        'orders/client_order_id/{client_oid}',
                         'products/{product_id}/orders/leverage',
                         'positions/margined',
                         'positions',
@@ -159,8 +164,8 @@ export default class delta extends Exchange {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'heartbeat',
                         'deposits/address',
-                        'orders/leverage',
                     ],
                     'post': [
                         'orders',
@@ -170,6 +175,8 @@ export default class delta extends Exchange {
                         'positions/change_margin',
                         'positions/close_all',
                         'wallets/sub_account_balance_transfer',
+                        'heartbeat/create',
+                        'heartbeat',
                         'orders/cancel_after',
                         'orders/leverage',
                     ],
@@ -216,6 +223,7 @@ export default class delta extends Exchange {
                     },
                 },
             },
+            'userAgent': this.userAgents['chrome39'],
             'options': {
                 'networks': {
                     'TRC20': 'TRC20(TRON)',
@@ -429,7 +437,7 @@ export default class delta extends Exchange {
      * @name delta#fetchStatus
      * @description the latest known information on the availability of the exchange API
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetSettings(params);
@@ -923,9 +931,9 @@ export default class delta extends Exchange {
                 'inverse': spot ? undefined : !linear,
                 'taker': this.safeNumber(market, 'taker_commission_rate'),
                 'maker': this.safeNumber(market, 'maker_commission_rate'),
-                'contractSize': contractSize,
+                'contractSize': spot ? undefined : contractSize,
                 'expiry': expiry,
-                'expiryDatetime': expiryDatetime,
+                'expiryDatetime': this.iso8601(expiry),
                 'strike': this.parseNumber(strike),
                 'optionType': optionType,
                 'precision': {
@@ -1109,7 +1117,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1252,7 +1260,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-tickers-for-products
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1405,7 +1413,7 @@ export default class delta extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1547,7 +1555,7 @@ export default class delta extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1677,7 +1685,7 @@ export default class delta extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.delta.exchange/#get-wallet-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -1712,7 +1720,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-position
      * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         await this.loadMarkets();
@@ -1741,7 +1749,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-margined-positions
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1885,9 +1893,40 @@ export default class delta extends Exchange {
         //         "user_id":22142
         //     }
         //
+        // fetchOrder
+        //
+        //     {
+        //         "id": 123,
+        //         "user_id": 453671,
+        //         "size": 10,
+        //         "unfilled_size": 2,
+        //         "side": "buy",
+        //         "order_type": "limit_order",
+        //         "limit_price": "59000",
+        //         "stop_order_type": "stop_loss_order",
+        //         "stop_price": "55000",
+        //         "paid_commission": "0.5432",
+        //         "commission": "0.5432",
+        //         "reduce_only": false,
+        //         "client_order_id": "my_signal_34521712",
+        //         "state": "open",
+        //         "created_at": "1725865012000000",
+        //         "product_id": 27,
+        //         "product_symbol": "BTCUSD"
+        //     }
+        //
         const id = this.safeString(order, 'id');
         const clientOrderId = this.safeString(order, 'client_order_id');
-        const timestamp = this.parse8601(this.safeString(order, 'created_at'));
+        const createdAt = this.safeString(order, 'created_at');
+        let timestamp = undefined;
+        if (createdAt !== undefined) {
+            if (createdAt.indexOf('-') >= 0) {
+                timestamp = this.parse8601(createdAt);
+            }
+            else {
+                timestamp = this.safeIntegerProduct(order, 'created_at', 0.001);
+            }
+        }
         const marketId = this.safeString(order, 'product_id');
         const marketsByNumericId = this.safeDict(this.options, 'marketsByNumericId', {});
         market = this.safeValue(marketsByNumericId, marketId, market);
@@ -1895,7 +1934,9 @@ export default class delta extends Exchange {
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const side = this.safeString(order, 'side');
         let type = this.safeString(order, 'order_type');
-        type = type.replace('_order', '');
+        if (type !== undefined) {
+            type = type.replace('_order', '');
+        }
         const price = this.safeString(order, 'limit_price');
         const amount = this.safeString(order, 'size');
         const remaining = this.safeString(order, 'unfilled_size');
@@ -1947,7 +1988,7 @@ export default class delta extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.reduceOnly] *contract only* indicates if this order is to reduce the size of a position
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2029,7 +2070,7 @@ export default class delta extends Exchange {
      * @param {float} amount how much of the currency you want to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2075,7 +2116,7 @@ export default class delta extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -2134,7 +2175,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#cancel-all-open-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -2162,6 +2203,63 @@ export default class delta extends Exchange {
     }
     /**
      * @method
+     * @name delta#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.delta.exchange/#get-order-by-id
+     * @see https://docs.delta.exchange/#get-order-by-client-oid
+     * @param {string} id the order id
+     * @param {string} [symbol] unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id of the order
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrder(id, symbol = undefined, params = {}) {
+        await this.loadMarkets();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
+        const clientOrderId = this.safeStringN(params, ['clientOrderId', 'client_oid', 'clientOid']);
+        params = this.omit(params, ['clientOrderId', 'client_oid', 'clientOid']);
+        const request = {};
+        let response = undefined;
+        if (clientOrderId !== undefined) {
+            request['client_oid'] = clientOrderId;
+            response = await this.privateGetOrdersClientOrderIdClientOid(this.extend(request, params));
+        }
+        else {
+            request['order_id'] = id;
+            response = await this.privateGetOrdersOrderId(this.extend(request, params));
+        }
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "id": 123,
+        //             "user_id": 453671,
+        //             "size": 10,
+        //             "unfilled_size": 2,
+        //             "side": "buy",
+        //             "order_type": "limit_order",
+        //             "limit_price": "59000",
+        //             "stop_order_type": "stop_loss_order",
+        //             "stop_price": "55000",
+        //             "paid_commission": "0.5432",
+        //             "commission": "0.5432",
+        //             "reduce_only": false,
+        //             "client_order_id": "my_signal_34521712",
+        //             "state": "open",
+        //             "created_at": "1725865012000000",
+        //             "product_id": 27,
+        //             "product_symbol": "BTCUSD"
+        //         }
+        //     }
+        //
+        const result = this.safeDict(response, 'result', {});
+        return this.parseOrder(result, market);
+    }
+    /**
+     * @method
      * @name delta#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://docs.delta.exchange/#get-active-orders
@@ -2169,7 +2267,7 @@ export default class delta extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersWithMethod('privateGetOrders', symbol, since, limit, params);
@@ -2183,7 +2281,7 @@ export default class delta extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersWithMethod('privateGetOrdersHistory', symbol, since, limit, params);
@@ -2253,7 +2351,7 @@ export default class delta extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2335,7 +2433,7 @@ export default class delta extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2458,7 +2556,7 @@ export default class delta extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] unified network code
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
@@ -2526,7 +2624,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
         await this.loadMarkets();
@@ -2593,7 +2691,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-tickers-for-products
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -2728,7 +2826,7 @@ export default class delta extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'add', params);
@@ -2741,7 +2839,7 @@ export default class delta extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
@@ -2827,7 +2925,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
@@ -2964,7 +3062,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-order-leverage
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();
@@ -3042,7 +3140,7 @@ export default class delta extends Exchange {
      * @param {int} [since] timestamp in ms
      * @param {int} [limit] number of records
      * @param {object} [params] exchange specific params
-     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -3198,7 +3296,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
         await this.loadMarkets();
@@ -3346,7 +3444,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#close-all-positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.user_id] the users id
-     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} A list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closeAllPositions(params = {}) {
         await this.loadMarkets();
@@ -3369,7 +3467,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-user
      * @param {string} symbol unified symbol of the market to fetch the margin mode for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
         await this.loadMarkets();
@@ -3462,7 +3560,7 @@ export default class delta extends Exchange {
      * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
         await this.loadMarkets();
@@ -3598,6 +3696,371 @@ export default class delta extends Exchange {
             'percentage': undefined,
             'baseVolume': this.safeNumber(chain, 'volume'),
             'quoteVolume': undefined,
+        };
+    }
+    /**
+     * @method
+     * @name delta#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://docs.delta.exchange/#get-margined-positions
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const response = await this.privateGetPositionsMargined(params);
+        //
+        //     {
+        //         "result":
+        //             [
+        //                 {
+        //                     "adl_level": null,
+        //                     "auto_topup": false,
+        //                     "bankruptcy_price": "88618.22667",
+        //                     "commission": "0.03797924",
+        //                     "created_at": "2026-01-14T11:24:35.801586Z",
+        //                     "entry_price": "94948.1",
+        //                     "liquidation_price": "89092.96717",
+        //                     "margin": "6.32987333",
+        //                     "margin_mode": "isolated",
+        //                     "mark_price": "94942.90888022",
+        //                     "product": {
+        //                         "trading_status": "operational",
+        //                         "short_description": null,
+        //                         "quoting_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 4,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 2,
+        //                             "name": "Tether",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": null,
+        //                             "symbol": "USDT",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "symbol": "BTCUSDT",
+        //                         "taker_commission_rate": "0.0004",
+        //                         "maintenance_margin_scaling_factor": "0",
+        //                         "spot_index": {
+        //                             "config": {
+        //                                 "impact_size": {
+        //                                     "max_impact_size": 150000,
+        //                                     "min_impact_size": 5000,
+        //                                     "step_value": 5000
+        //                                 },
+        //                                 "quoting_asset": "USDT",
+        //                                 "service_id": 1,
+        //                                 "underlying_asset": "BTC"
+        //                             },
+        //                             "constituent_exchanges": [
+        //                                 {
+        //                                     "exchange": "binance",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 1,
+        //                                     "weight": 1
+        //                                 },
+        //                                 {
+        //                                     "exchange": "gateio",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 3,
+        //                                     "weight": 1
+        //                                 },
+        //                                 {
+        //                                     "exchange": "bybit",
+        //                                     "health_interval": 3000,
+        //                                     "health_priority": 2,
+        //                                     "weight": 1
+        //                                 }
+        //                             ],
+        //                             "constituent_indices": null,
+        //                             "description": "BTC Spot",
+        //                             "health_interval": 300,
+        //                             "id": 2,
+        //                             "impact_size": "1.000000000000000000",
+        //                             "index_type": "spot_pair",
+        //                             "is_composite": false,
+        //                             "price_method": "ltp",
+        //                             "quoting_asset_id": 4,
+        //                             "symbol": ".DEXBTUSDT",
+        //                             "tick_size": "0.100000000000000000",
+        //                             "underlying_asset_id": 2
+        //                         },
+        //                         "liquidation_penalty_factor": "1",
+        //                         "auction_start_time": "2025-12-22T12:18:52Z",
+        //                         "is_quanto": false,
+        //                         "state": "live",
+        //                         "id": 84,
+        //                         "settling_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 4,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 2,
+        //                             "name": "Tether",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": null,
+        //                             "symbol": "USDT",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "tick_size": "0.1",
+        //                         "impact_size": 4000,
+        //                         "insurance_fund_margin_contribution": "5",
+        //                         "maker_commission_rate": "0.0002",
+        //                         "ui_config": {
+        //                             "default_trading_view_candle": "15",
+        //                             "leverage_slider_values": [1,2,3,5,10,50,100],
+        //                             "price_clubbing_values": [0.1,1,10,50],
+        //                             "show_bracket_orders": false,
+        //                             "sort_priority": 1
+        //                         },
+        //                         "annualized_funding": "0",
+        //                         "strike_price": null,
+        //                         "price_band": "100",
+        //                         "funding_method": "mark_price",
+        //                         "contract_value": "0.001",
+        //                         "auction_finish_time": null,
+        //                         "product_specs": {
+        //                             "vol_expiry_time": 172800
+        //                         },
+        //                         "launch_time": "2020-04-20T08:37:05Z",
+        //                         "basis_factor_max_limit": "1000",
+        //                         "initial_margin": "1",
+        //                         "notional_type": "vanilla",
+        //                         "contract_unit_currency": "BTC",
+        //                         "disruption_reason": null,
+        //                         "underlying_asset": {
+        //                             "base_withdrawal_fee": "0.000000000000000000",
+        //                             "id": 2,
+        //                             "interest_credit": false,
+        //                             "interest_slabs": null,
+        //                             "kyc_deposit_limit": "0.000000000000000000",
+        //                             "kyc_withdrawal_limit": "0.000000000000000000",
+        //                             "min_withdrawal_amount": "0.000000000000000000",
+        //                             "minimum_precision": 4,
+        //                             "name": "Bitcoin",
+        //                             "networks": [],
+        //                             "precision": 8,
+        //                             "sort_priority": 1,
+        //                             "symbol": "BTC",
+        //                             "variable_withdrawal_fee": "0.000000000000000000"
+        //                         },
+        //                         "initial_margin_scaling_factor": "0",
+        //                         "position_size_limit": 10000000,
+        //                         "max_leverage_notional": "10000",
+        //                         "settlement_price": null,
+        //                         "barrier_price": null,
+        //                         "maintenance_margin": "0.5",
+        //                         "default_leverage": "50.000000000000000000",
+        //                         "settlement_time": null,
+        //                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //                         "contract_type": "perpetual_futures"
+        //                     },
+        //                     "product_id": 84,
+        //                     "product_symbol": "BTCUSDT",
+        //                     "realized_cashflow": "0.000000000000000000",
+        //                     "realized_funding": "0",
+        //                     "realized_holding_cost": "0",
+        //                     "realized_pnl": "0",
+        //                     "size": 1,
+        //                     "unrealized_pnl": "-0.00519112",
+        //                     "updated_at": "2026-01-14T11:24:35.801586Z",
+        //                     "user_id": 30084879
+        //                 }
+        //             ],
+        //         "success": true
+        //     }
+        //
+        const result = this.safeList(response, 'result', []);
+        return this.parseADLRanks(result, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "adl_level": null,
+        //         "auto_topup": false,
+        //         "bankruptcy_price": "88618.22667",
+        //         "commission": "0.03797924",
+        //         "created_at": "2026-01-14T11:24:35.801586Z",
+        //         "entry_price": "94948.1",
+        //         "liquidation_price": "89092.96717",
+        //         "margin": "6.32987333",
+        //         "margin_mode": "isolated",
+        //         "mark_price": "94942.90888022",
+        //         "product": {
+        //             "trading_status": "operational",
+        //             "short_description": null,
+        //             "quoting_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 4,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 2,
+        //                 "name": "Tether",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": null,
+        //                 "symbol": "USDT",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "symbol": "BTCUSDT",
+        //             "taker_commission_rate": "0.0004",
+        //             "maintenance_margin_scaling_factor": "0",
+        //             "spot_index": {
+        //                 "config": {
+        //                     "impact_size": {
+        //                         "max_impact_size": 150000,
+        //                         "min_impact_size": 5000,
+        //                         "step_value": 5000
+        //                     },
+        //                     "quoting_asset": "USDT",
+        //                     "service_id": 1,
+        //                     "underlying_asset": "BTC"
+        //                 },
+        //                 "constituent_exchanges": [
+        //                     {
+        //                         "exchange": "binance",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 1,
+        //                         "weight": 1
+        //                     },
+        //                     {
+        //                         "exchange": "gateio",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 3,
+        //                         "weight": 1
+        //                     },
+        //                     {
+        //                         "exchange": "bybit",
+        //                         "health_interval": 3000,
+        //                         "health_priority": 2,
+        //                         "weight": 1
+        //                     }
+        //                 ],
+        //                 "constituent_indices": null,
+        //                 "description": "BTC Spot",
+        //                 "health_interval": 300,
+        //                 "id": 2,
+        //                 "impact_size": "1.000000000000000000",
+        //                 "index_type": "spot_pair",
+        //                 "is_composite": false,
+        //                 "price_method": "ltp",
+        //                 "quoting_asset_id": 4,
+        //                 "symbol": ".DEXBTUSDT",
+        //                 "tick_size": "0.100000000000000000",
+        //                 "underlying_asset_id": 2
+        //             },
+        //             "liquidation_penalty_factor": "1",
+        //             "auction_start_time": "2025-12-22T12:18:52Z",
+        //             "is_quanto": false,
+        //             "state": "live",
+        //             "id": 84,
+        //             "settling_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 4,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 2,
+        //                 "name": "Tether",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": null,
+        //                 "symbol": "USDT",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "tick_size": "0.1",
+        //             "impact_size": 4000,
+        //             "insurance_fund_margin_contribution": "5",
+        //             "maker_commission_rate": "0.0002",
+        //             "ui_config": {
+        //                 "default_trading_view_candle": "15",
+        //                 "leverage_slider_values": [1,2,3,5,10,50,100],
+        //                 "price_clubbing_values": [0.1,1,10,50],
+        //                 "show_bracket_orders": false,
+        //                 "sort_priority": 1
+        //             },
+        //             "annualized_funding": "0",
+        //             "strike_price": null,
+        //             "price_band": "100",
+        //             "funding_method": "mark_price",
+        //             "contract_value": "0.001",
+        //             "auction_finish_time": null,
+        //             "product_specs": {
+        //                 "vol_expiry_time": 172800
+        //             },
+        //             "launch_time": "2020-04-20T08:37:05Z",
+        //             "basis_factor_max_limit": "1000",
+        //             "initial_margin": "1",
+        //             "notional_type": "vanilla",
+        //             "contract_unit_currency": "BTC",
+        //             "disruption_reason": null,
+        //             "underlying_asset": {
+        //                 "base_withdrawal_fee": "0.000000000000000000",
+        //                 "id": 2,
+        //                 "interest_credit": false,
+        //                 "interest_slabs": null,
+        //                 "kyc_deposit_limit": "0.000000000000000000",
+        //                 "kyc_withdrawal_limit": "0.000000000000000000",
+        //                 "min_withdrawal_amount": "0.000000000000000000",
+        //                 "minimum_precision": 4,
+        //                 "name": "Bitcoin",
+        //                 "networks": [],
+        //                 "precision": 8,
+        //                 "sort_priority": 1,
+        //                 "symbol": "BTC",
+        //                 "variable_withdrawal_fee": "0.000000000000000000"
+        //             },
+        //             "initial_margin_scaling_factor": "0",
+        //             "position_size_limit": 10000000,
+        //             "max_leverage_notional": "10000",
+        //             "settlement_price": null,
+        //             "barrier_price": null,
+        //             "maintenance_margin": "0.5",
+        //             "default_leverage": "50.000000000000000000",
+        //             "settlement_time": null,
+        //             "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //             "contract_type": "perpetual_futures"
+        //         },
+        //         "product_id": 84,
+        //         "product_symbol": "BTCUSDT",
+        //         "realized_cashflow": "0.000000000000000000",
+        //         "realized_funding": "0",
+        //         "realized_holding_cost": "0",
+        //         "realized_pnl": "0",
+        //         "size": 1,
+        //         "unrealized_pnl": "-0.00519112",
+        //         "updated_at": "2026-01-14T11:24:35.801586Z",
+        //         "user_id": 30084879
+        //     }
+        //
+        const marketId = this.safeString(info, 'product_symbol');
+        const datetime = this.safeString(info, 'created_at');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger(info, 'adl_level'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': this.parse8601(datetime),
+            'datetime': datetime,
         };
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

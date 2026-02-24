@@ -1,16 +1,25 @@
 package ccxt
 
 type Bitmart struct {
-   *bitmart
-   Core *bitmart
+   *BitmartCore
+   Core *BitmartCore
+   exchangeTyped *ExchangeTyped
 }
 
-func NewBitmart(userConfig map[string]interface{}) Bitmart {
-   p := &bitmart{}
+func NewBitmart(userConfig map[string]interface{}) *Bitmart {
+   p := NewBitmartCore()
    p.Init(userConfig)
-   return Bitmart{
-       bitmart: p,
+   return &Bitmart{
+       BitmartCore: p,
        Core:  p,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
+   }
+}
+func NewBitmartFromCore(core *BitmartCore) *Bitmart {
+   return &Bitmart{
+       BitmartCore: core,
+       Core:  core,
+       exchangeTyped: NewExchangeTyped(&core.Exchange),
    }
 }
 
@@ -39,7 +48,7 @@ func (this *Bitmart) FetchTime(params ...interface{}) ( int64, error) {
  * @description the latest known information on the availability of the exchange API
  * @see https://developer-pro.bitmart.com/en/spot/#get-system-service-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Bitmart) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
     res := <- this.Core.FetchStatus(params...)
@@ -101,7 +110,7 @@ func (this *Bitmart) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network code of the currency
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
 
@@ -129,7 +138,7 @@ func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactio
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network code of the currency
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
 
@@ -147,7 +156,7 @@ func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDeposi
     if IsError(res) {
         return map[string]interface{}{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return (res).(map[string]interface{}), nil
 }
 /**
  * @method
@@ -157,7 +166,7 @@ func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDeposi
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -185,7 +194,7 @@ func (this *Bitmart) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Bitmart) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -219,7 +228,7 @@ func (this *Bitmart) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Bitmart) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -253,7 +262,7 @@ func (this *Bitmart) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum number of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Bitmart) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -343,7 +352,8 @@ func (this *Bitmart) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.marginMode] *spot* whether to fetch trades for margin orders or spot orders, defaults to spot orders (only isolated margin orders are supported)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bitmart) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -388,7 +398,8 @@ func (this *Bitmart) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Bitmart) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -432,7 +443,7 @@ func (this *Bitmart) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance-keyed
  * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated-keyed
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Bitmart) FetchBalance(params ...interface{}) (Balances, error) {
     res := <- this.Core.FetchBalance(params...)
@@ -448,7 +459,7 @@ func (this *Bitmart) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://developer-pro.bitmart.com/en/spot/#get-actual-trade-fee-rate-keyed
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Bitmart) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -476,7 +487,7 @@ func (this *Bitmart) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -526,7 +537,8 @@ func (this *Bitmart) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
  * @param {string} [params.stopLossPrice] *swap only* the price to trigger a stop-loss order
  * @param {string} [params.takeProfitPrice] *swap only* the price to trigger a take-profit order
  * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -558,7 +570,8 @@ func (this *Bitmart) CreateOrder(symbol string, typeVar string, side string, amo
  * @see https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -593,9 +606,9 @@ func (this *Bitmart) CreateOrders(orders []OrderRequest, options ...CreateOrders
  * @param {string} [params.clientOrderId] *spot only* the client order id of the order to cancel
  * @param {boolean} [params.trigger] *swap only* whether the order is a trigger order
  * @param {boolean} [params.trailing] *swap only* whether the order is a stop order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
+func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
     opts := CancelOrderOptionsStruct{}
 
@@ -614,9 +627,9 @@ func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (map[
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return Order{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrder(res), nil
 }
 /**
  * @method
@@ -627,7 +640,7 @@ func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (map[
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
@@ -661,9 +674,9 @@ func (this *Bitmart) CancelOrders(ids []string, options ...CancelOrdersOptions) 
  * @param {string} symbol unified market symbol of the market to cancel orders in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.side] *spot only* 'buy' or 'sell'
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bitmart) CancelAllOrders(options ...CancelAllOrdersOptions) (map[string]interface{}, error) {
+func (this *Bitmart) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
     opts := CancelAllOrdersOptionsStruct{}
 
@@ -682,9 +695,9 @@ func (this *Bitmart) CancelAllOrders(options ...CancelAllOrdersOptions) (map[str
     }
     res := <- this.Core.CancelAllOrders(symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return nil, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrderArray(res), nil
 }
 func (this *Bitmart) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
@@ -737,7 +750,8 @@ func (this *Bitmart) FetchOrdersByStatus(status interface{}, options ...FetchOrd
  * @param {string} [params.orderType] *swap only* 'limit', 'market', or 'trailing'
  * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch trailing orders
  * @param {boolean} [params.trigger] *swap only* set to true if you want to fetch trigger orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -784,7 +798,8 @@ func (this *Bitmart) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest entry
  * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated', for margin trading
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -827,7 +842,7 @@ func (this *Bitmart) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {int} [since] timestamp in ms of the earliest order, default is undefined
  * @param {int} [limit] max number of orders to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
@@ -875,7 +890,8 @@ func (this *Bitmart) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
  * @param {string} [params.clientOrderId] *spot* fetch the order by client order id instead of order id
  * @param {string} [params.orderType] *swap only* 'limit', 'market', 'liquidate', 'bankruptcy', 'adl' or 'trailing'
  * @param {boolean} [params.trailing] *swap only* set to true if you want to fetch a trailing order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @param {string} [params.stpMode] self-trade prevention only for spot, defaults to none, ['none', 'cancel_maker', 'cancel_taker', 'cancel_both']
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -907,7 +923,7 @@ func (this *Bitmart) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @see https://developer-pro.bitmart.com/en/spot/#deposit-address-keyed
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Bitmart) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -938,7 +954,7 @@ func (this *Bitmart) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the network name for this withdrawal
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1004,7 +1020,7 @@ func (this *Bitmart) FetchTransactionsByType(typeVar interface{}, options ...Fet
  * @param {string} id deposit id
  * @param {string} code not used by bitmart fetchDeposit ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchDeposit(id string, options ...FetchDepositOptions) (Transaction, error) {
 
@@ -1038,7 +1054,7 @@ func (this *Bitmart) FetchDeposit(id string, options ...FetchDepositOptions) (Tr
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1081,7 +1097,7 @@ func (this *Bitmart) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {string} id withdrawal id
  * @param {string} code not used by bitmart.fetchWithdrawal
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchWithdrawal(id string, options ...FetchWithdrawalOptions) (Transaction, error) {
 
@@ -1115,7 +1131,7 @@ func (this *Bitmart) FetchWithdrawal(id string, options ...FetchWithdrawalOption
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Bitmart) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1183,7 +1199,7 @@ func (this *Bitmart) FetchIsolatedBorrowRate(symbol string, options ...FetchIsol
  * @description fetch the borrow interest rates of all currencies, currently only works for isolated margin
  * @see https://developer-pro.bitmart.com/en/spot/#get-trading-pair-borrowing-rate-and-amount-keyed
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+ * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
 func (this *Bitmart) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
     res := <- this.Core.FetchIsolatedBorrowRates(params...)
@@ -1203,7 +1219,7 @@ func (this *Bitmart) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBo
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitmart) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1234,7 +1250,7 @@ func (this *Bitmart) Transfer(code string, amount float64, fromAccount string, t
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.page] the required number of pages, default is 1, max is 1000
  * @param {int} [params.until] the latest time in ms to fetch transfers for
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Bitmart) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -1279,7 +1295,7 @@ func (this *Bitmart) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @param {int} [since] the earliest time in ms to fetch borrrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *Bitmart) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -1326,7 +1342,7 @@ func (this *Bitmart) FetchBorrowInterest(options ...FetchBorrowInterestOptions) 
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Bitmart) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -1387,7 +1403,7 @@ func (this *Bitmart) SetLeverage(leverage int64, options ...SetLeverageOptions) 
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Bitmart) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1416,7 +1432,7 @@ func (this *Bitmart) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @param {int} [since] not sent to exchange api, exchange api always returns the most recent data, only used to filter exchange response
  * @param {int} [limit] the maximum amount of funding rate structures to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Bitmart) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1458,7 +1474,7 @@ func (this *Bitmart) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-keyed
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitmart) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1486,7 +1502,7 @@ func (this *Bitmart) FetchPosition(symbol string, options ...FetchPositionOption
  * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-v2-keyed
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Bitmart) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1521,7 +1537,7 @@ func (this *Bitmart) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the bitmart api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Bitmart) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1579,7 +1595,7 @@ func (this *Bitmart) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @param {string} [params.clientOrderId] client order id of the order
  * @param {int} [params.price_type] *swap only* 1: last price, 2: fair price, default is 1
  * @param {int} [params.plan_category] *swap tp/sl only* 1: tp/sl, 2: position tp/sl, default is 1
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Bitmart) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -1619,7 +1635,7 @@ func (this *Bitmart) EditOrder(id string, symbol string, typeVar string, side st
  * @param {int} [limit] max number of ledger entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
- * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Bitmart) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1664,7 +1680,7 @@ func (this *Bitmart) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
  * @param {int} [limit] the number of entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch funding history for
- * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Bitmart) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1792,3 +1808,167 @@ func (this *Bitmart) FetchPositionMode(options ...FetchPositionModeOptions) (map
     }
     return res.(map[string]interface{}), nil
 }
+// missing typed methods from base
+//nolint
+func (this *Bitmart) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Bitmart) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
+func (this *Bitmart) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
+func (this *Bitmart) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Bitmart) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
+func (this *Bitmart) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
+func (this *Bitmart) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
+func (this *Bitmart) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)}
+func (this *Bitmart) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)}
+func (this *Bitmart) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)}
+func (this *Bitmart) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)}
+func (this *Bitmart) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)}
+func (this *Bitmart) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)}
+func (this *Bitmart) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)}
+func (this *Bitmart) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)}
+func (this *Bitmart) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Bitmart) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)}
+func (this *Bitmart) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)}
+func (this *Bitmart) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
+func (this *Bitmart) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
+func (this *Bitmart) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
+func (this *Bitmart) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
+func (this *Bitmart) FetchAccounts(params ...interface{}) ([]Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
+func (this *Bitmart) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
+func (this *Bitmart) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
+func (this *Bitmart) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Bitmart) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
+func (this *Bitmart) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Bitmart) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
+func (this *Bitmart) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
+func (this *Bitmart) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
+func (this *Bitmart) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
+func (this *Bitmart) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Bitmart) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
+func (this *Bitmart) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
+func (this *Bitmart) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
+func (this *Bitmart) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
+func (this *Bitmart) FetchFreeBalance(params ...interface{}) (Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Bitmart) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
+func (this *Bitmart) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
+func (this *Bitmart) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingRates(options...)}
+func (this *Bitmart) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
+func (this *Bitmart) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
+func (this *Bitmart) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
+func (this *Bitmart) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
+func (this *Bitmart) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {return this.exchangeTyped.FetchLeverage(symbol, options...)}
+func (this *Bitmart) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {return this.exchangeTyped.FetchLeverages(options...)}
+func (this *Bitmart) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {return this.exchangeTyped.FetchLeverageTiers(options...)}
+func (this *Bitmart) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.FetchLiquidations(symbol, options...)}
+func (this *Bitmart) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatio(symbol, options...)}
+func (this *Bitmart) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatioHistory(options...)}
+func (this *Bitmart) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)}
+func (this *Bitmart) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
+func (this *Bitmart) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
+func (this *Bitmart) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
+func (this *Bitmart) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
+func (this *Bitmart) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
+func (this *Bitmart) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
+func (this *Bitmart) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)}
+func (this *Bitmart) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {return this.exchangeTyped.FetchOpenInterests(options...)}
+func (this *Bitmart) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
+func (this *Bitmart) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
+func (this *Bitmart) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Bitmart) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
+func (this *Bitmart) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {return this.exchangeTyped.FetchOrders(options...)}
+func (this *Bitmart) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
+func (this *Bitmart) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Bitmart) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
+func (this *Bitmart) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
+func (this *Bitmart) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
+func (this *Bitmart) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
+func (this *Bitmart) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
+func (this *Bitmart) FetchTradingFees(params ...interface{}) (TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
+func (this *Bitmart) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Bitmart) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Bitmart) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
+func (this *Bitmart) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
+func (this *Bitmart) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
+func (this *Bitmart) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Bitmart) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
+func (this *Bitmart) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
+func (this *Bitmart) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {return this.exchangeTyped.CancelOrderWs(id, options...)}
+func (this *Bitmart) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)}
+func (this *Bitmart) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)}
+func (this *Bitmart) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)}
+func (this *Bitmart) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)}
+func (this *Bitmart) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)}
+func (this *Bitmart) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)}
+func (this *Bitmart) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)}
+func (this *Bitmart) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CreateOrdersWs(orders, options...)}
+func (this *Bitmart) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Bitmart) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)}
+func (this *Bitmart) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Bitmart) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)}
+func (this *Bitmart) FetchBalanceWs(params ...interface{}) (Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Bitmart) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
+func (this *Bitmart) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Bitmart) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
+func (this *Bitmart) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
+func (this *Bitmart) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
+func (this *Bitmart) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {return this.exchangeTyped.FetchOrderBookWs(symbol, options...)}
+func (this *Bitmart) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)}
+func (this *Bitmart) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersWs(options...)}
+func (this *Bitmart) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {return this.exchangeTyped.FetchOrderWs(id, options...)}
+func (this *Bitmart) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)}
+func (this *Bitmart) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsWs(options...)}
+func (this *Bitmart) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionWs(symbol, options...)}
+func (this *Bitmart) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
+func (this *Bitmart) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
+func (this *Bitmart) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
+func (this *Bitmart) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Bitmart) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Bitmart) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Bitmart) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Bitmart) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Bitmart) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Bitmart) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Bitmart) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Bitmart) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Bitmart) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Bitmart) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Bitmart) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Bitmart) WatchBalance(params ...interface{}) (Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
+func (this *Bitmart) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
+func (this *Bitmart) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
+func (this *Bitmart) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
+func (this *Bitmart) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
+func (this *Bitmart) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
+func (this *Bitmart) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
+func (this *Bitmart) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
+func (this *Bitmart) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
+func (this *Bitmart) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Bitmart) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBook(symbol, options...)}
+func (this *Bitmart) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
+func (this *Bitmart) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {return this.exchangeTyped.WatchOrders(options...)}
+func (this *Bitmart) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
+func (this *Bitmart) WatchPosition(options ...WatchPositionOptions) (Position, error) {return this.exchangeTyped.WatchPosition(options...)}
+func (this *Bitmart) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {return this.exchangeTyped.WatchPositions(options...)}
+func (this *Bitmart) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {return this.exchangeTyped.WatchTicker(symbol, options...)}
+func (this *Bitmart) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
+func (this *Bitmart) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchTrades(symbol, options...)}
+func (this *Bitmart) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
+func (this *Bitmart) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

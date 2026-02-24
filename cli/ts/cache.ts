@@ -23,13 +23,20 @@ const defaultConfig = {
  */
 function getCacheDirectory () {
     const homeDir = os.homedir ();
+    let cachePath = '';
     if (process.platform === 'win32') {
-        return path.join (process.env.LOCALAPPDATA || path.join (homeDir, 'AppData', 'Local'), 'ccxt-cli', 'cache');
+        cachePath = path.join (process.env.LOCALAPPDATA || path.join (homeDir, 'AppData', 'Local'), 'ccxt-cli', 'cache');
     } else if (process.platform === 'darwin') {  // macOS
-        return path.join (homeDir, 'Library', 'Caches', 'ccxt-cli');
+        cachePath = path.join (homeDir, 'Library', 'Caches', 'ccxt-cli');
     } else {  // Linux & Others
-        return path.join (process.env.XDG_CACHE_HOME || path.join (homeDir, '.cache'), 'ccxt-cli');
+        cachePath = path.join (process.env.XDG_CACHE_HOME || path.join (homeDir, '.cache'), 'ccxt-cli');
     }
+    if (!fs.existsSync (cachePath)) {
+        fs.mkdirSync (cachePath, {
+            'recursive': true,
+        });
+    }
+    return cachePath;
 }
 
 function getCachePathForHelp () {

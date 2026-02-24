@@ -1,16 +1,25 @@
 package ccxt
 
 type Deribit struct {
-   *deribit
-   Core *deribit
+   *DeribitCore
+   Core *DeribitCore
+   exchangeTyped *ExchangeTyped
 }
 
-func NewDeribit(userConfig map[string]interface{}) Deribit {
-   p := &deribit{}
+func NewDeribit(userConfig map[string]interface{}) *Deribit {
+   p := NewDeribitCore()
    p.Init(userConfig)
-   return Deribit{
-       deribit: p,
+   return &Deribit{
+       DeribitCore: p,
        Core:  p,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
+   }
+}
+func NewDeribitFromCore(core *DeribitCore) *Deribit {
+   return &Deribit{
+       DeribitCore: core,
+       Core:  core,
+       exchangeTyped: NewExchangeTyped(&core.Exchange),
    }
 }
 
@@ -54,7 +63,7 @@ func (this *Deribit) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @description the latest known information on the availability of the exchange API
  * @see https://docs.deribit.com/#public-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Deribit) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
     res := <- this.Core.FetchStatus(params...)
@@ -69,7 +78,7 @@ func (this *Deribit) FetchStatus(params ...interface{}) (map[string]interface{},
  * @description fetch all the accounts associated with a profile
  * @see https://docs.deribit.com/#private-get_subaccounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Deribit) FetchAccounts(params ...interface{}) ([]Account, error) {
     res := <- this.Core.FetchAccounts(params...)
@@ -102,7 +111,7 @@ func (this *Deribit) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @see https://docs.deribit.com/#private-get_account_summaries
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] unified currency code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Deribit) FetchBalance(params ...interface{}) (Balances, error) {
     res := <- this.Core.FetchBalance(params...)
@@ -118,7 +127,7 @@ func (this *Deribit) FetchBalance(params ...interface{}) (Balances, error) {
  * @see https://docs.deribit.com/#private-create_deposit_address
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {
 
@@ -145,7 +154,7 @@ func (this *Deribit) CreateDepositAddress(code string, options ...CreateDepositA
  * @see https://docs.deribit.com/#private-get_current_deposit_address
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Deribit) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -172,7 +181,7 @@ func (this *Deribit) FetchDepositAddress(code string, options ...FetchDepositAdd
  * @see https://docs.deribit.com/#public-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Deribit) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -200,7 +209,7 @@ func (this *Deribit) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.code] *required* the currency code to fetch the tickers for, eg. 'BTC', 'ETH'
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Deribit) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -283,7 +292,7 @@ func (this *Deribit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Deribit) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -319,7 +328,7 @@ func (this *Deribit) FetchTrades(symbol string, options ...FetchTradesOptions) (
  * @description fetch the trading fees for multiple markets
  * @see https://docs.deribit.com/#private-get_account_summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Deribit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
     res := <- this.Core.FetchTradingFees(params...)
@@ -336,7 +345,7 @@ func (this *Deribit) FetchTradingFees(params ...interface{}) (TradingFees, error
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Deribit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -369,7 +378,7 @@ func (this *Deribit) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -408,7 +417,7 @@ func (this *Deribit) FetchOrder(id string, options ...FetchOrderOptions) (Order,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.trigger] the trigger type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
  * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -446,7 +455,7 @@ func (this *Deribit) CreateOrder(symbol string, typeVar string, side string, amo
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -484,7 +493,7 @@ func (this *Deribit) EditOrder(id string, symbol string, typeVar string, side st
  * @param {string} id order id
  * @param {string} symbol not used by deribit cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -517,7 +526,7 @@ func (this *Deribit) CancelOrder(id string, options ...CancelOrderOptions) (Orde
  * @see https://docs.deribit.com/#private-cancel_all_by_instrument
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -552,7 +561,7 @@ func (this *Deribit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -597,7 +606,7 @@ func (this *Deribit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Deribit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -642,7 +651,7 @@ func (this *Deribit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Deribit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -689,7 +698,7 @@ func (this *Deribit) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Deribit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -733,7 +742,7 @@ func (this *Deribit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -777,7 +786,7 @@ func (this *Deribit) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -819,7 +828,7 @@ func (this *Deribit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
  * @see https://docs.deribit.com/#private-get_position
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Deribit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -849,7 +858,7 @@ func (this *Deribit) FetchPosition(symbol string, options ...FetchPositionOption
  * @param {string} [params.currency] currency code filter for positions
  * @param {string} [params.kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
  * @param {int} [params.subaccount_id] the user id for the subaccount
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Deribit) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -881,7 +890,7 @@ func (this *Deribit) FetchPositions(options ...FetchPositionsOptions) ([]Positio
  * @see https://docs.deribit.com/#public-get_historical_volatility
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/#/?id=volatility-structure}
+ * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
  */
 func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatilityHistoryOptions) ([]map[string]interface{}, error) {
 
@@ -910,7 +919,7 @@ func (this *Deribit) FetchVolatilityHistory(code string, options ...FetchVolatil
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Deribit) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -956,7 +965,7 @@ func (this *Deribit) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Deribit) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -986,7 +995,7 @@ func (this *Deribit) Transfer(code string, amount float64, fromAccount string, t
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Deribit) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1018,7 +1027,7 @@ func (this *Deribit) Withdraw(code string, amount float64, address string, optio
  * @see https://docs.deribit.com/#public-get_currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Deribit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 
@@ -1041,7 +1050,7 @@ func (this *Deribit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
     if IsError(res) {
         return map[string]interface{}{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return (res).(map[string]interface{}), nil
 }
 /**
  * @method
@@ -1052,7 +1061,7 @@ func (this *Deribit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFee
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.start_timestamp] fetch funding rate starting from this timestamp
  * @param {int} [params.end_timestamp] fetch funding rate ending at this timestamp
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Deribit) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1083,7 +1092,7 @@ func (this *Deribit) FetchFundingRate(symbol string, options ...FetchFundingRate
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] fetch funding rate ending at this timestamp
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Deribit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1128,7 +1137,7 @@ func (this *Deribit) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the deribit api endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Deribit) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1167,7 +1176,7 @@ func (this *Deribit) FetchLiquidations(symbol string, options ...FetchLiquidatio
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the deribit api endpoint
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Deribit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {
 
@@ -1209,7 +1218,7 @@ func (this *Deribit) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
  * @see https://docs.deribit.com/#public-ticker
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *Deribit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {
 
@@ -1236,7 +1245,7 @@ func (this *Deribit) FetchGreeks(symbol string, options ...FetchGreeksOptions) (
  * @see https://docs.deribit.com/#public-get_book_summary_by_instrument
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Deribit) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 
@@ -1263,7 +1272,7 @@ func (this *Deribit) FetchOption(symbol string, options ...FetchOptionOptions) (
  * @see https://docs.deribit.com/#public-get_book_summary_by_currency
  * @param {string} code base currency to fetch an option chain for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 
@@ -1283,3 +1292,199 @@ func (this *Deribit) FetchOptionChain(code string, options ...FetchOptionChainOp
     }
     return NewOptionChain(res), nil
 }
+/**
+ * @method
+ * @name deribit#fetchOpenInterest
+ * @description Retrieves the open interest of a symbol
+ * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Deribit) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
+
+    opts := FetchOpenInterestOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchOpenInterest(symbol, params)
+    if IsError(res) {
+        return OpenInterest{}, CreateReturnError(res)
+    }
+    return NewOpenInterest(res), nil
+}
+// missing typed methods from base
+//nolint
+func (this *Deribit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Deribit) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
+func (this *Deribit) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
+func (this *Deribit) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)}
+func (this *Deribit) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Deribit) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
+func (this *Deribit) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
+func (this *Deribit) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)}
+func (this *Deribit) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)}
+func (this *Deribit) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)}
+func (this *Deribit) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)}
+func (this *Deribit) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrderWithCost(symbol, cost, options...)}
+func (this *Deribit) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)}
+func (this *Deribit) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)}
+func (this *Deribit) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)}
+func (this *Deribit) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)}
+func (this *Deribit) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {return this.exchangeTyped.CreateOrders(orders, options...)}
+func (this *Deribit) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Deribit) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)}
+func (this *Deribit) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {return this.exchangeTyped.CreateTrailingPercentOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)}
+func (this *Deribit) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
+func (this *Deribit) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
+func (this *Deribit) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
+func (this *Deribit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
+func (this *Deribit) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
+func (this *Deribit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
+func (this *Deribit) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
+func (this *Deribit) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Deribit) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
+func (this *Deribit) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Deribit) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
+func (this *Deribit) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
+func (this *Deribit) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
+func (this *Deribit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
+func (this *Deribit) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Deribit) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
+func (this *Deribit) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
+func (this *Deribit) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
+func (this *Deribit) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Deribit) FetchFreeBalance(params ...interface{}) (Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Deribit) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {return this.exchangeTyped.FetchFundingHistory(options...)}
+func (this *Deribit) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
+func (this *Deribit) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
+func (this *Deribit) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingRates(options...)}
+func (this *Deribit) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
+func (this *Deribit) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
+func (this *Deribit) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
+func (this *Deribit) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
+func (this *Deribit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {return this.exchangeTyped.FetchLedger(options...)}
+func (this *Deribit) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
+func (this *Deribit) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {return this.exchangeTyped.FetchLeverage(symbol, options...)}
+func (this *Deribit) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {return this.exchangeTyped.FetchLeverages(options...)}
+func (this *Deribit) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {return this.exchangeTyped.FetchLeverageTiers(options...)}
+func (this *Deribit) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatio(symbol, options...)}
+func (this *Deribit) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatioHistory(options...)}
+func (this *Deribit) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)}
+func (this *Deribit) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
+func (this *Deribit) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
+func (this *Deribit) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
+func (this *Deribit) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
+func (this *Deribit) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
+func (this *Deribit) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
+func (this *Deribit) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)}
+func (this *Deribit) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {return this.exchangeTyped.FetchOpenInterests(options...)}
+func (this *Deribit) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Deribit) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
+func (this *Deribit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {return this.exchangeTyped.FetchOrders(options...)}
+func (this *Deribit) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
+func (this *Deribit) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Deribit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
+func (this *Deribit) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Deribit) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
+func (this *Deribit) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
+func (this *Deribit) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
+func (this *Deribit) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
+func (this *Deribit) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {return this.exchangeTyped.FetchTradingFee(symbol, options...)}
+func (this *Deribit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Deribit) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Deribit) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Deribit) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
+func (this *Deribit) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
+func (this *Deribit) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
+func (this *Deribit) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Deribit) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetPositionMode(hedged, options...)}
+func (this *Deribit) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
+func (this *Deribit) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
+func (this *Deribit) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {return this.exchangeTyped.CancelOrderWs(id, options...)}
+func (this *Deribit) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)}
+func (this *Deribit) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)}
+func (this *Deribit) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)}
+func (this *Deribit) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)}
+func (this *Deribit) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)}
+func (this *Deribit) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)}
+func (this *Deribit) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)}
+func (this *Deribit) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CreateOrdersWs(orders, options...)}
+func (this *Deribit) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Deribit) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)}
+func (this *Deribit) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Deribit) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)}
+func (this *Deribit) FetchBalanceWs(params ...interface{}) (Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Deribit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
+func (this *Deribit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Deribit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
+func (this *Deribit) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
+func (this *Deribit) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
+func (this *Deribit) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {return this.exchangeTyped.FetchOrderBookWs(symbol, options...)}
+func (this *Deribit) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)}
+func (this *Deribit) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersWs(options...)}
+func (this *Deribit) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {return this.exchangeTyped.FetchOrderWs(id, options...)}
+func (this *Deribit) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)}
+func (this *Deribit) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsWs(options...)}
+func (this *Deribit) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionWs(symbol, options...)}
+func (this *Deribit) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
+func (this *Deribit) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
+func (this *Deribit) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
+func (this *Deribit) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Deribit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Deribit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Deribit) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Deribit) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Deribit) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Deribit) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Deribit) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Deribit) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Deribit) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Deribit) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Deribit) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Deribit) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Deribit) WatchBalance(params ...interface{}) (Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
+func (this *Deribit) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
+func (this *Deribit) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
+func (this *Deribit) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
+func (this *Deribit) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
+func (this *Deribit) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
+func (this *Deribit) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
+func (this *Deribit) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
+func (this *Deribit) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
+func (this *Deribit) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Deribit) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBook(symbol, options...)}
+func (this *Deribit) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
+func (this *Deribit) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {return this.exchangeTyped.WatchOrders(options...)}
+func (this *Deribit) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
+func (this *Deribit) WatchPosition(options ...WatchPositionOptions) (Position, error) {return this.exchangeTyped.WatchPosition(options...)}
+func (this *Deribit) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {return this.exchangeTyped.WatchPositions(options...)}
+func (this *Deribit) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {return this.exchangeTyped.WatchTicker(symbol, options...)}
+func (this *Deribit) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
+func (this *Deribit) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchTrades(symbol, options...)}
+func (this *Deribit) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
+func (this *Deribit) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtPro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
 const (
@@ -50,7 +51,23 @@ func InvalidProxySettings(v ...interface{}) error {
 	return ccxt.InvalidProxySettings(v)
 }
 
-func SetFetchResponse(exchange ccxt.IExchange, response interface{}) ccxt.IExchange {
+func ArgumentsRequired(v ...interface{}) error {
+	return ccxt.ArgumentsRequired(v)
+}
+
+func InvalidNonce(v ...interface{}) error {
+	return ccxt.InvalidNonce(v)
+}
+
+func Error(v ...interface{}) error {
+	return ccxt.NewError(v)
+}
+
+func NetworkError(v ...interface{}) error {
+	return ccxt.NetworkError(v)
+}
+
+func SetFetchResponse(exchange ccxt.ICoreExchange, response interface{}) ccxt.ICoreExchange {
 	exchange.SetFetchResponse(response)
 	return exchange
 }
@@ -357,7 +374,7 @@ func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}
 				}
 			}
 		}()
-		exchangeType := exchange.(ccxt.IExchange)
+		exchangeType := exchange.(ccxt.ICoreExchange)
 		exchangeType.WarmUpCache()
 		res := <-CallInternalMethod(exchangeType.GetCache(), exchange, methodName2.(string), arg...)
 		PanicOnError(res)
@@ -405,7 +422,7 @@ func ExitScript(code interface{}) {
 
 // getExchangeProp function to retrieve a property from exchange
 func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...interface{}) interface{} {
-	exchange := exchange2.(ccxt.IExchange)
+	exchange := exchange2.(ccxt.ICoreExchange)
 	res := exchange.GetProperty(exchange, prop2)
 	if res != nil {
 		return res
@@ -418,7 +435,7 @@ func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...i
 
 // setExchangeProp function to set a property on exchange
 func SetExchangeProp(exchange2 interface{}, prop2 interface{}, value interface{}) {
-	exchange := exchange2.(ccxt.IExchange)
+	exchange := exchange2.(ccxt.ICoreExchange)
 	exchange.SetProperty(exchange, value, value)
 }
 
@@ -428,16 +445,25 @@ func UnCamelCase(str string) string {
 }
 
 // initExchange function to initialize an exchange (stub)
-func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.IExchange {
+func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.ICoreExchange {
 	var exchangeOptions interface{} = nil
+	var ws bool = false
 	if len(options) > 0 {
 		exchangeOptions = options[0]
+		ws = SafeValue(options, 1, false).(bool)
 	}
 	if exchangeOptions == nil {
 		exchangeOptions = make(map[string]interface{})
 	}
-	instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
-	if success == false {
+	var instance ccxt.ICoreExchange
+	var success bool = true
+	if ws {
+		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	} else {
+		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	}
+	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	if !success {
 		return nil
 	}
 	globalSettings := SafeValue(options, 0, map[string]interface{}{}).(map[string]interface{})
@@ -491,8 +517,11 @@ func GetTestFiles(properties2 interface{}, ws bool) <-chan map[string]interface{
 		// 		// }
 		// 	}
 		// }
-
-		ch <- FunctionsMap
+		if ws {
+			ch <- WsFunctionsMap
+		} else {
+			ch <- FunctionsMap
+		}
 	}()
 	return ch
 }

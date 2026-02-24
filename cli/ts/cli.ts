@@ -24,7 +24,8 @@ try {
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
         local = true;
     } catch (ee) {
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first');
+        log.error (ee);
+        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
         process.exit (1);
     }
 }
@@ -58,6 +59,7 @@ interface CLIOptions {
     refreshMarkets?: boolean;
     testnet?: boolean;
     sandbox?: boolean;
+    demo?: boolean;
     signIn?: boolean;
     spot?: boolean;
     swap?: boolean;
@@ -69,7 +71,6 @@ interface CLIOptions {
     raw?: boolean;
     noKeys?: boolean;
     i?: boolean;
-    history?: boolean;
     name?: string;
     param?: any;
     config?: any;
@@ -113,13 +114,13 @@ program
 program
     .option ('--verbose', 'enables the verbose mode')
     .option ('--sandbox', 'enables the sandbox mode')
+    .option ('--demo', 'enables the demo mode')
     .option ('--no-keys', 'does not set any apiKeys even if detected')
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .option ('--raw', 'keeps the output pristine without extra logs or formatting')
     .option ('--clipboard', 'Copies the result to clipboard automatically.')
     .option ('--signIn', 'calls the signIn() method if available')
     .option ('--cache-markets', 'forces markets caching')
-    .option ('--history', 'prints the history of executed commands')
     .option ('--no-load-markets', 'skips markets loading')
     .option ('--no-table', 'does not prettify the results')
     .option ('--spot', 'sets defaultType as spot')
@@ -129,11 +130,13 @@ program
     .option ('--poll', 'will repeat the call continously')
     .option ('--i', 'iteractive mode, keeps the session opened')
     .option ('--iso8601')
+    .option ('--refresh-markets', 'forces markets refresh')
     .option ('--cors');
 
 // dev related options, docs not needed
 program.addOption (new Option ('--debug').hideHelp ());
 program.addOption (new Option ('--testnet').hideHelp ());
+// program.addOption (new Option ('--demo').hideHelp ());
 program.addOption (new Option ('--no-send').hideHelp ());
 program.addOption (new Option ('--request').hideHelp ());
 program.addOption (new Option ('--table').hideHelp ());

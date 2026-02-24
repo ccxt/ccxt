@@ -72,20 +72,20 @@
                         },
                         {
                             "currency_code": "USDT",
-                            "network_code": "eth",
+                            "network_code": "arbitrum",
                             "can_withdraw": true,
                             "can_deposit": true,
-                            "min_withdraw": "10.00000000",
+                            "min_withdraw": "1.00000000",
                             "max_withdraw": "1000000.00000000",
                             "max_deposit": "1000000.00000000",
                             "min_deposit": "1.00000000"
                         },
                         {
                             "currency_code": "USDT",
-                            "network_code": "arbitrum",
+                            "network_code": "eth",
                             "can_withdraw": true,
                             "can_deposit": true,
-                            "min_withdraw": "1.00000000",
+                            "min_withdraw": "10.00000000",
                             "max_withdraw": "1000000.00000000",
                             "max_deposit": "1000000.00000000",
                             "min_deposit": "1.00000000"
@@ -237,20 +237,20 @@
                             },
                             {
                                 "currency_code": "USDT",
-                                "network_code": "eth",
+                                "network_code": "arbitrum",
                                 "can_withdraw": true,
                                 "can_deposit": true,
-                                "min_withdraw": "10.00000000",
+                                "min_withdraw": "1.00000000",
                                 "max_withdraw": "1000000.00000000",
                                 "max_deposit": "1000000.00000000",
                                 "min_deposit": "1.00000000"
                             },
                             {
                                 "currency_code": "USDT",
-                                "network_code": "arbitrum",
+                                "network_code": "eth",
                                 "can_withdraw": true,
                                 "can_deposit": true,
-                                "min_withdraw": "1.00000000",
+                                "min_withdraw": "10.00000000",
                                 "max_withdraw": "1000000.00000000",
                                 "max_deposit": "1000000.00000000",
                                 "min_deposit": "1.00000000"
@@ -522,35 +522,6 @@
                                     "min_deposit": "0.50000000"
                                 }
                             },
-                            "ERC20": {
-                                "id": "eth",
-                                "network": "ERC20",
-                                "limits": {
-                                    "withdraw": {
-                                        "min": 10,
-                                        "max": 1000000
-                                    },
-                                    "deposit": {
-                                        "min": 1,
-                                        "max": 1000000
-                                    }
-                                },
-                                "active": true,
-                                "deposit": true,
-                                "withdraw": true,
-                                "fee": null,
-                                "precision": null,
-                                "info": {
-                                    "currency_code": "USDT",
-                                    "network_code": "eth",
-                                    "can_withdraw": true,
-                                    "can_deposit": true,
-                                    "min_withdraw": "10.00000000",
-                                    "max_withdraw": "1000000.00000000",
-                                    "max_deposit": "1000000.00000000",
-                                    "min_deposit": "1.00000000"
-                                }
-                            },
                             "ARB": {
                                 "id": "arbitrum",
                                 "network": "ARB",
@@ -575,6 +546,35 @@
                                     "can_withdraw": true,
                                     "can_deposit": true,
                                     "min_withdraw": "1.00000000",
+                                    "max_withdraw": "1000000.00000000",
+                                    "max_deposit": "1000000.00000000",
+                                    "min_deposit": "1.00000000"
+                                }
+                            },
+                            "ERC20": {
+                                "id": "eth",
+                                "network": "ERC20",
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 10,
+                                        "max": 1000000
+                                    },
+                                    "deposit": {
+                                        "min": 1,
+                                        "max": 1000000
+                                    }
+                                },
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": null,
+                                "precision": null,
+                                "info": {
+                                    "currency_code": "USDT",
+                                    "network_code": "eth",
+                                    "can_withdraw": true,
+                                    "can_deposit": true,
+                                    "min_withdraw": "10.00000000",
                                     "max_withdraw": "1000000.00000000",
                                     "max_deposit": "1000000.00000000",
                                     "min_deposit": "1.00000000"
@@ -3801,6 +3801,7 @@
         "cancelOrder": [
             {
                 "description": "Cancel order",
+                "disabled": true,
                 "method": "cancelOrder",
                 "input": [
                     "01JNECDY55FDVWN81XRMRNCTXG"

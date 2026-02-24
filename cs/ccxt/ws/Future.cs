@@ -38,7 +38,24 @@ public partial class Exchange
 
         public void reject(object data)
         {
-            var exception = (data is Exception) ? data as System.Exception : new Exception(data.ToString()); 
+            // var callSite = new System.Diagnostics.StackTrace(1, true).GetFrame(0);
+            // var msg = (callSite?.GetFileName() ?? "Unknown" ) + " " + (callSite?.GetFileLineNumber() ?? 0) + " " + (callSite?.GetMethod()?.Name ?? "Unknown");
+            // System.Diagnostics.Debug.WriteLine($"Future.reject called with: {data} (Type: {data?.GetType().Name ?? "null"})" + " ::: " + msg);
+            
+            Exception exception;
+            
+            if (data is Exception ex)
+            {
+                exception = ex;
+            }
+            else if (data == null)
+            {
+                exception = new Exception("Future rejected with null data");
+            }
+            else
+            {
+                exception = new Exception($"Future rejected: {data?.ToString() ?? "null"} (Type: {data?.GetType().Name ?? "null"})\n");
+            }
             this.tcs.SetException(exception);
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;

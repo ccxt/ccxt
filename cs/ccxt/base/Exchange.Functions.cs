@@ -17,7 +17,7 @@ public partial class Exchange
 
     public dict keysort(object parameters2)
     {
-        var parameters = (dict)parameters2;
+        var parameters = (IDictionary<string, object>)parameters2;
         var keys = new List<string>(parameters.Keys);
         keys.Sort();
         var outDict = new dict();
@@ -26,6 +26,34 @@ public partial class Exchange
             outDict.Add(key, parameters[key]);
         }
         return outDict;
+    }
+
+    public List<string> sort(object inputListObj)
+    {
+        var sortedList = new List<string>();
+
+        if (inputListObj is IList<string> stringList)
+        {
+            sortedList.AddRange(stringList);
+        }
+        else if (inputListObj is IList<object> objectList)
+        {
+            foreach (var item in objectList)
+            {
+                if (item is string str)
+                {
+                    sortedList.Add(str);
+                }
+            }
+        }
+        else
+        {
+            // Unsupported type; return empty list
+            return sortedList;
+        }
+
+        sortedList.Sort();
+        return sortedList;
     }
 
 
@@ -115,6 +143,19 @@ public partial class Exchange
         //     return (List<string>)a;
         // }
 
+        if (a is IDictionary<string, object>)
+        {
+            // var b = (Dictionary<string, object>)a;
+            var b2 = (IDictionary<string, object>)a;
+            var outList2 = new List<object>();
+            var keys2 = new List<string>(((IDictionary<string, object>)a).Keys);
+            foreach (string key in keys2)
+            {
+                outList2.Add(b2[key]);
+            }
+            return outList2;
+        }
+
         var b = (dict)a;
         var outList = new List<object>();
         var keys = new List<string>(((dict)a).Keys);
@@ -154,10 +195,41 @@ public partial class Exchange
         return null;
     }
 
+    // public List<object> aggregate(object bidasks)
+    // {
+    //     var outList = new List<object>();
+    //     return outList; // stub to override
+    // }
+
     public List<object> aggregate(object bidasks)
     {
-        var outList = new List<object>();
-        return outList; // stub to override
+        var result = new Dictionary<double, double>();
+
+        if (bidasks is IList<object> list)
+        {
+            foreach (var entry in list)
+            {
+                if (entry is IList<object> pair && pair.Count >= 2)
+                {
+                    double price = Convert.ToDouble(pair[0]);
+                    double volume = Convert.ToDouble(pair[1]);
+
+                    if (volume > 0)
+                    {
+                        if (!result.ContainsKey(price))
+                        {
+                            result[price] = 0;
+                        }
+                        result[price] += volume;
+                    }
+                }
+            }
+        }
+
+        var res = result
+            .Select(kv => new List<object> { kv.Key, kv.Value })
+            .ToList();
+        return res.Select(x => (object)x).ToList();
     }
 
     // public List<object> filterByValueSinceLimit(object aa, object key, object value, object since, object limit, object timestamp = null, object tail = null)
@@ -217,16 +289,8 @@ public partial class Exchange
 
     public bool isJsonEncodedObject(object str)
     {
-        var str2 = (string)str;
-        if (str2 != null && (str2.StartsWith("{") || str2.StartsWith("[")))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-
+        var str2 = str as string;
+        return str2 != null && (str2.StartsWith("{") || str2.StartsWith("["));
     }
 
     public string json(object obj)

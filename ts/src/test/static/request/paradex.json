@@ -12,6 +12,17 @@
         "authToken": "token"
     },
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.prod.paradex.trade/v1/funding/data?market=BTC-USD-PERP&page_size=1000",
+                "input": [
+                    "BTC/USD:USDC"
+                ],
+                "output": null
+            }
+        ],
         "fetchTime": [
             {
                 "description": "fetchTime",
@@ -37,6 +48,21 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "mark ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.prod.paradex.trade/v1/markets/klines?resolution=60&symbol=BTC-USD-PERP&price_kind=mark&end_at=1764326287714&start_at=1763962687715",
+                "input": [
+                    "BTC/USD:USDC",
+                    "1h",
+                    null,
+                    null,
+                    {
+                        "price": "mark"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
@@ -423,6 +449,14 @@
                 "input": [
                   "BTC/USD:USDC-117000-P"
                 ]
+            }
+        ],
+        "fetchAllGreeks": [
+            {
+                "description": "fetch greeks for all markets",
+                "method": "fetchAllGreeks",
+                "url": "https://api.prod.paradex.trade/v1/markets/summary?market=ALL",
+                "input": []
             }
         ]
     }

@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestTradingFee(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, symbol interface{}, entry interface{})  {
+    func TestTradingFee(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, symbol interface{}, entry interface{})  {
         var format interface{} = map[string]interface{} {
             "info": map[string]interface{} {},
             "symbol": "ETH/BTC",

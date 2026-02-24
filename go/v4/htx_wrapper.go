@@ -1,16 +1,25 @@
 package ccxt
 
 type Htx struct {
-   *htx
-   Core *htx
+   *HtxCore
+   Core *HtxCore
+   exchangeTyped *ExchangeTyped
 }
 
-func NewHtx(userConfig map[string]interface{}) Htx {
-   p := &htx{}
+func NewHtx(userConfig map[string]interface{}) *Htx {
+   p := NewHtxCore()
    p.Init(userConfig)
-   return Htx{
-       htx: p,
+   return &Htx{
+       HtxCore: p,
        Core:  p,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
+   }
+}
+func NewHtxFromCore(core *HtxCore) *Htx {
+   return &Htx{
+       HtxCore: core,
+       Core:  core,
+       exchangeTyped: NewExchangeTyped(&core.Exchange),
    }
 }
 
@@ -28,7 +37,7 @@ func NewHtx(userConfig map[string]interface{}) Htx {
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  // contractPublicGetHeartbeat
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Htx) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
     res := <- this.Core.FetchStatus(params...)
@@ -60,7 +69,7 @@ func (this *Htx) FetchTime(params ...interface{}) ( int64, error) {
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Htx) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 
@@ -190,7 +199,7 @@ func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, op
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-market-data-overview
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Htx) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -220,7 +229,7 @@ func (this *Htx) FetchTicker(symbol string, options ...FetchTickerOptions) (Tick
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Htx) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 
@@ -290,7 +299,7 @@ func (this *Htx) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices,
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Htx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -326,7 +335,7 @@ func (this *Htx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Htx) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -407,7 +416,7 @@ func (this *Htx) FetchSpotOrderTrades(id string, options ...FetchSpotOrderTrades
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Htx) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -454,7 +463,7 @@ func (this *Htx) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Htx) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -540,7 +549,7 @@ func (this *Htx) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
  * @description fetch all the accounts associated with a profile
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Htx) FetchAccounts(params ...interface{}) ([]Account, error) {
     res := <- this.Core.FetchAccounts(params...)
@@ -558,7 +567,7 @@ func (this *Htx) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @param {string} [marginMode] 'cross' or 'isolated'
  * @param {string} [symbol] unified ccxt market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Htx) FetchAccountIdByType(typeVar string, options ...FetchAccountIdByTypeOptions) (map[string]interface{}, error) {
 
@@ -606,6 +615,7 @@ func (this *Htx) FetchCurrencies(params ...interface{}) (Currencies, error) {
 /**
  * @method
  * @name htx#fetchBalance
+ * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
@@ -613,10 +623,12 @@ func (this *Htx) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
- * @description query for balance and get the amount of funds available for trading or funds locked in orders
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [params.unified] provide this parameter if you have a recent account with unified cross+isolated margin account
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @param {string} [params.subType] linear or future
+ * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+ * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Htx) FetchBalance(params ...interface{}) (Balances, error) {
     res := <- this.Core.FetchBalance(params...)
@@ -638,7 +650,7 @@ func (this *Htx) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -846,7 +858,7 @@ func (this *Htx) FetchClosedContractOrders(options ...FetchClosedContractOrdersO
  * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -897,7 +909,7 @@ func (this *Htx) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -946,7 +958,7 @@ func (this *Htx) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
  * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
  * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
  * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -989,7 +1001,7 @@ func (this *Htx) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -1021,7 +1033,7 @@ func (this *Htx) CreateMarketBuyOrderWithCost(symbol string, cost float64, optio
  * @param {float} trailingPercent the percent to trail away from the current market price
  * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
 
@@ -1128,7 +1140,7 @@ func (this *Htx) CreateSpotOrderRequest(symbol string, typeVar string, side stri
  * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
  * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
  * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -1164,7 +1176,7 @@ func (this *Htx) CreateOrder(symbol string, typeVar string, side string, amount 
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Htx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {
 
@@ -1194,9 +1206,9 @@ func (this *Htx) CreateOrders(orders []OrderRequest, options ...CreateOrdersOpti
  * @param {boolean} [params.trigger] *contract only* if the order is a trigger trigger order or not
  * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
  * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
+func (this *Htx) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
     opts := CancelOrderOptionsStruct{}
 
@@ -1215,9 +1227,9 @@ func (this *Htx) CancelOrder(id string, options ...CancelOrderOptions) (map[stri
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return Order{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrder(res), nil
 }
 /**
  * @method
@@ -1228,9 +1240,9 @@ func (this *Htx) CancelOrder(id string, options ...CancelOrderOptions) (map[stri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
  * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) CancelOrders(ids interface{}, options ...CancelOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Htx) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
 
     opts := CancelOrdersOptionsStruct{}
 
@@ -1251,7 +1263,7 @@ func (this *Htx) CancelOrders(ids interface{}, options ...CancelOrdersOptions) (
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
-    return res.([]map[string]interface{}), nil
+    return NewOrderArray(res), nil
 }
 /**
  * @method
@@ -1262,9 +1274,9 @@ func (this *Htx) CancelOrders(ids interface{}, options ...CancelOrdersOptions) (
  * @param {boolean} [params.trigger] *contract only* if the orders are trigger trigger orders or not
  * @param {boolean} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
  * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel all trailing orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Htx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Htx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
     opts := CancelAllOrdersOptionsStruct{}
 
@@ -1285,7 +1297,7 @@ func (this *Htx) CancelAllOrders(options ...CancelAllOrdersOptions) ([]map[strin
     if IsError(res) {
         return nil, CreateReturnError(res)
     }
-    return res.([]map[string]interface{}), nil
+    return NewOrderArray(res), nil
 }
 /**
  * @method
@@ -1321,7 +1333,7 @@ func (this *Htx) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersA
  * @description fetch a dictionary of addresses for a currency, indexed by network
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
 
@@ -1348,7 +1360,7 @@ func (this *Htx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Htx) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -1405,7 +1417,7 @@ func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAdd
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Htx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -1449,7 +1461,7 @@ func (this *Htx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, 
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Htx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1494,7 +1506,7 @@ func (this *Htx) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Htx) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1537,7 +1549,7 @@ func (this *Htx) Withdraw(code string, amount float64, address string, options .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.symbol] used for isolated margin transfer
  * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Htx) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1563,7 +1575,7 @@ func (this *Htx) Transfer(code string, amount float64, fromAccount string, toAcc
  * @description fetch the borrow interest rates of all currencies
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
+ * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
 func (this *Htx) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
     res := <- this.Core.FetchIsolatedBorrowRates(params...)
@@ -1583,7 +1595,7 @@ func (this *Htx) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrow
  * @param {int} [limit] not used by huobi, but filtered internally by ccxt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Htx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1626,7 +1638,7 @@ func (this *Htx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptio
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Htx) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1654,7 +1666,7 @@ func (this *Htx) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Htx) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -1690,7 +1702,7 @@ func (this *Htx) FetchFundingRates(options ...FetchFundingRatesOptions) (Funding
  * @param {int} [since] the earliest time in ms to fetch borrrow interest for
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *Htx) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 
@@ -1741,7 +1753,7 @@ func (this *Htx) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]B
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Htx) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1825,7 +1837,7 @@ func (this *Htx) SetLeverage(leverage int64, options ...SetLeverageOptions) (map
  * @param {string} [params.subType] 'linear' or 'inverse'
  * @param {string} [params.type] *inverse only* 'future', or 'swap'
  * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Htx) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -1860,7 +1872,7 @@ func (this *Htx) FetchPositions(options ...FetchPositionsOptions) ([]Position, e
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Htx) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
@@ -1891,7 +1903,7 @@ func (this *Htx) FetchPosition(symbol string, options ...FetchPositionOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Htx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -1932,7 +1944,7 @@ func (this *Htx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
  * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *Htx) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {
 
@@ -1971,7 +1983,7 @@ func (this *Htx) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Lever
  * @param {object} [params] Exchange specific parameters
  * @param {int} [params.amount_type] *required* Open interest unit. 1-cont，2-cryptocurrency
  * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
- * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Htx) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 
@@ -2015,7 +2027,7 @@ func (this *Htx) FetchOpenInterestHistory(symbol string, options ...FetchOpenInt
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
  * @param {string[]} [symbols] a list of unified CCXT market symbols
  * @param {object} [params] exchange specific parameters
- * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Htx) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
 
@@ -2049,7 +2061,7 @@ func (this *Htx) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenI
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *Htx) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {
 
@@ -2083,7 +2095,7 @@ func (this *Htx) FetchOpenInterest(symbol string, options ...FetchOpenInterestOp
  * @param {int} [params.until] timestamp in ms, value range = start_time -> current time，default = current time
  * @param {int} [params.page_index] page index, default page 1 if not filled
  * @param {int} [params.code] unified currency code, can be used when symbol is undefined
- * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
 func (this *Htx) FetchSettlementHistory(options ...FetchSettlementHistoryOptions) ([]map[string]interface{}, error) {
 
@@ -2125,7 +2137,7 @@ func (this *Htx) FetchSettlementHistory(options ...FetchSettlementHistoryOptions
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-currencies-v2
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *Htx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
 
@@ -2148,7 +2160,7 @@ func (this *Htx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOpt
     if IsError(res) {
         return map[string]interface{}{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return (res).(map[string]interface{}), nil
 }
 /**
  * @method
@@ -2163,7 +2175,7 @@ func (this *Htx) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOpt
  * @param {object} [params] exchange specific parameters for the huobi api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
  * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *Htx) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {
 
@@ -2228,3 +2240,196 @@ func (this *Htx) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
     }
     return res.(map[string]interface{}), nil
 }
+/**
+ * @method
+ * @name htx#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *Htx) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+    opts := FetchPositionsADLRankOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionsADLRank(symbols, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewADLArray(res), nil
+}
+// missing typed methods from base
+//nolint
+func (this *Htx) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Htx) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
+func (this *Htx) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Htx) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
+func (this *Htx) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {return this.exchangeTyped.CreateConvertTrade(id, fromCode, toCode, options...)}
+func (this *Htx) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
+func (this *Htx) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)}
+func (this *Htx) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)}
+func (this *Htx) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)}
+func (this *Htx) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)}
+func (this *Htx) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)}
+func (this *Htx) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)}
+func (this *Htx) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)}
+func (this *Htx) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWithCost(symbol, cost, options...)}
+func (this *Htx) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Htx) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)}
+func (this *Htx) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)}
+func (this *Htx) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)}
+func (this *Htx) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
+func (this *Htx) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
+func (this *Htx) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)}
+func (this *Htx) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
+func (this *Htx) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
+func (this *Htx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
+func (this *Htx) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
+func (this *Htx) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Htx) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
+func (this *Htx) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
+func (this *Htx) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
+func (this *Htx) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
+func (this *Htx) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {return this.exchangeTyped.FetchConvertTradeHistory(options...)}
+func (this *Htx) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
+func (this *Htx) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Htx) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
+func (this *Htx) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchDepositsWithdrawals(options...)}
+func (this *Htx) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Htx) FetchFreeBalance(params ...interface{}) (Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Htx) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {return this.exchangeTyped.FetchFundingInterval(symbol, options...)}
+func (this *Htx) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
+func (this *Htx) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
+func (this *Htx) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
+func (this *Htx) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
+func (this *Htx) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
+func (this *Htx) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {return this.exchangeTyped.FetchLeverage(symbol, options...)}
+func (this *Htx) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {return this.exchangeTyped.FetchLeverages(options...)}
+func (this *Htx) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatio(symbol, options...)}
+func (this *Htx) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatioHistory(options...)}
+func (this *Htx) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)}
+func (this *Htx) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
+func (this *Htx) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
+func (this *Htx) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
+func (this *Htx) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
+func (this *Htx) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
+func (this *Htx) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
+func (this *Htx) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.FetchMyLiquidations(options...)}
+func (this *Htx) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
+func (this *Htx) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
+func (this *Htx) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Htx) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
+func (this *Htx) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
+func (this *Htx) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Htx) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
+func (this *Htx) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Htx) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
+func (this *Htx) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
+func (this *Htx) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
+func (this *Htx) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
+func (this *Htx) FetchTradingFees(params ...interface{}) (TradingFees, error) {return this.exchangeTyped.FetchTradingFees(params...)}
+func (this *Htx) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Htx) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Htx) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
+func (this *Htx) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
+func (this *Htx) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {return this.exchangeTyped.FetchTransfers(options...)}
+func (this *Htx) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
+func (this *Htx) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Htx) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
+func (this *Htx) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
+func (this *Htx) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {return this.exchangeTyped.CancelOrderWs(id, options...)}
+func (this *Htx) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)}
+func (this *Htx) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)}
+func (this *Htx) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)}
+func (this *Htx) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)}
+func (this *Htx) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)}
+func (this *Htx) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)}
+func (this *Htx) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)}
+func (this *Htx) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CreateOrdersWs(orders, options...)}
+func (this *Htx) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Htx) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)}
+func (this *Htx) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Htx) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)}
+func (this *Htx) FetchBalanceWs(params ...interface{}) (Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Htx) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
+func (this *Htx) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Htx) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
+func (this *Htx) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
+func (this *Htx) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
+func (this *Htx) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {return this.exchangeTyped.FetchOrderBookWs(symbol, options...)}
+func (this *Htx) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)}
+func (this *Htx) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersWs(options...)}
+func (this *Htx) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {return this.exchangeTyped.FetchOrderWs(id, options...)}
+func (this *Htx) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)}
+func (this *Htx) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsWs(options...)}
+func (this *Htx) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionWs(symbol, options...)}
+func (this *Htx) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
+func (this *Htx) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
+func (this *Htx) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
+func (this *Htx) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Htx) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Htx) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Htx) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Htx) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Htx) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Htx) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Htx) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Htx) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Htx) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Htx) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Htx) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Htx) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Htx) WatchBalance(params ...interface{}) (Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
+func (this *Htx) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
+func (this *Htx) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
+func (this *Htx) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
+func (this *Htx) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
+func (this *Htx) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
+func (this *Htx) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
+func (this *Htx) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
+func (this *Htx) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
+func (this *Htx) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Htx) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBook(symbol, options...)}
+func (this *Htx) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
+func (this *Htx) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {return this.exchangeTyped.WatchOrders(options...)}
+func (this *Htx) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
+func (this *Htx) WatchPosition(options ...WatchPositionOptions) (Position, error) {return this.exchangeTyped.WatchPosition(options...)}
+func (this *Htx) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {return this.exchangeTyped.WatchPositions(options...)}
+func (this *Htx) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {return this.exchangeTyped.WatchTicker(symbol, options...)}
+func (this *Htx) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
+func (this *Htx) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchTrades(symbol, options...)}
+func (this *Htx) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
+func (this *Htx) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

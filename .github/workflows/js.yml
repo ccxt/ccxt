@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - name: Print vars
       run: |
@@ -69,6 +69,9 @@ jobs:
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
+    - name: Build JS Docs
+      if: env.important_modified == 'true'
+      run: npm run build-docs
     - name: Pre-transpile and transpile TS (Simplified)
       if: env.important_modified == 'false'
       run: npm run pre-transpile-js-simple
@@ -176,6 +179,9 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: 🔎 Check Runner IP
+        run: curl https://api.ipify.org
+        continue-on-error: true
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --js

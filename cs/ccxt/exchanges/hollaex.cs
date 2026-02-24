@@ -245,6 +245,7 @@ public partial class hollaex : Exchange
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "broad", new Dictionary<string, object>() {
+                    { "API request is expired", typeof(InvalidNonce) },
                     { "Invalid token", typeof(AuthenticationError) },
                     { "Order not found", typeof(OrderNotFound) },
                     { "Insufficient balance", typeof(InsufficientFunds) },
@@ -557,7 +558,7 @@ public partial class hollaex : Exchange
      * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
      * @param {int} [limit] not used by hollaex fetchOrderBooks ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbol
+     * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
     public async override Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
@@ -585,7 +586,7 @@ public partial class hollaex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -627,7 +628,7 @@ public partial class hollaex : Exchange
      * @see https://apidocs.hollaex.com/#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -659,7 +660,7 @@ public partial class hollaex : Exchange
      * @see https://apidocs.hollaex.com/#tickers
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -768,7 +769,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -816,7 +817,8 @@ public partial class hollaex : Exchange
         //      "price":0.147411,
         //      "timestamp":"2022-01-26T17:53:34.650Z",
         //      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        //      "fee":0.01031877,"fee_coin":"usdt"
+        //      "fee":0.01031877,
+        //      "fee_coin":"usdt"
         //  }
         //
         object marketId = this.safeString(trade, "symbol");
@@ -829,12 +831,13 @@ public partial class hollaex : Exchange
         object priceString = this.safeString(trade, "price");
         object amountString = this.safeString(trade, "size");
         object feeCostString = this.safeString(trade, "fee");
+        object feeCoin = this.safeString(trade, "fee_coin");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeCurrencyCode(feeCoin) },
             };
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -860,7 +863,7 @@ public partial class hollaex : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://apidocs.hollaex.com/#tiers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
@@ -926,7 +929,7 @@ public partial class hollaex : Exchange
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch (max 500)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -941,21 +944,32 @@ public partial class hollaex : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
         };
+        object paginate = false;
+        object maxLimit = 500;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", paginate);
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
+        }
         object until = this.safeInteger(parameters, "until");
-        object end = this.seconds();
-        if (isTrue(!isEqual(until, null)))
+        object timeDelta = multiply(multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
+        object start = since;
+        object now = this.milliseconds();
+        if (isTrue(isTrue(isEqual(until, null)) && isTrue(isEqual(start, null))))
         {
-            end = this.parseToInt(divide(until, 1000));
+            until = now;
+            start = subtract(until, timeDelta);
+        } else if (isTrue(isEqual(until, null)))
+        {
+            until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        } else if (isTrue(isEqual(start, null)))
+        {
+            start = subtract(until, timeDelta);
         }
-        object defaultSpan = 2592000; // 30 days
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
-        } else
-        {
-            ((IDictionary<string,object>)request)["from"] = subtract(end, defaultSpan);
-        }
-        ((IDictionary<string,object>)request)["to"] = end;
+        ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(start, 1000)); // convert to seconds
+        ((IDictionary<string,object>)request)["to"] = this.parseToInt(divide(until, 1000)); // convert to seconds
         parameters = this.omit(parameters, "until");
         object response = await this.publicGetChart(this.extend(request, parameters));
         //
@@ -1017,7 +1031,7 @@ public partial class hollaex : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.hollaex.com/#get-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -1047,7 +1061,7 @@ public partial class hollaex : Exchange
      * @param {string} id order id
      * @param {string} symbol not used by hollaex fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1093,7 +1107,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1113,7 +1127,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1132,7 +1146,7 @@ public partial class hollaex : Exchange
      * @param {string} id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1181,7 +1195,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1327,18 +1341,17 @@ public partial class hollaex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        object convertedAmount = parseFloat(this.amountToPrecision(symbol, amount));
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", side },
-            { "size", this.normalizeNumberIfNeeded(convertedAmount) },
+            { "size", this.amountToPrecision(symbol, amount) },
             { "type", type },
         };
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
@@ -1348,12 +1361,11 @@ public partial class hollaex : Exchange
         object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))
         {
-            object convertedPrice = parseFloat(this.priceToPrecision(symbol, price));
-            ((IDictionary<string,object>)request)["price"] = this.normalizeNumberIfNeeded(convertedPrice);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["stop"] = this.normalizeNumberIfNeeded(parseFloat(this.priceToPrecision(symbol, triggerPrice)));
+            ((IDictionary<string,object>)request)["stop"] = this.priceToPrecision(symbol, triggerPrice);
         }
         if (isTrue(postOnly))
         {
@@ -1397,7 +1409,7 @@ public partial class hollaex : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
@@ -1430,7 +1442,7 @@ public partial class hollaex : Exchange
      * @see https://apidocs.hollaex.com/#cancel-all-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
@@ -1472,7 +1484,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1553,7 +1565,7 @@ public partial class hollaex : Exchange
      * @see https://apidocs.hollaex.com/#get-user
      * @param {string[]|undefined} codes list of unified currency codes, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddresses(object codes = null, object parameters = null)
     {
@@ -1621,7 +1633,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1678,7 +1690,7 @@ public partial class hollaex : Exchange
      * @param {string} id withdrawal id
      * @param {string} code unified currency code of the currency withdrawn, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
@@ -1731,7 +1743,7 @@ public partial class hollaex : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1896,7 +1908,7 @@ public partial class hollaex : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -2019,7 +2031,7 @@ public partial class hollaex : Exchange
      * @see https://apidocs.hollaex.com/#constants
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -2062,15 +2074,6 @@ public partial class hollaex : Exchange
         //
         object coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
         return this.parseDepositWithdrawFees(coins, codes, "symbol");
-    }
-
-    public virtual object normalizeNumberIfNeeded(object number)
-    {
-        if (isTrue(this.isRoundNumber(number)))
-        {
-            number = parseInt(number);
-        }
-        return number;
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

@@ -1,4 +1,5 @@
 namespace ccxt;
+
 using System.Security.Cryptography;
 using System.Text;
 
@@ -205,9 +206,27 @@ public partial class Exchange
         return binaryToHex(buff);
     }
 
-    public string binaryToBase64(byte[] buff) => BinaryToBase64(buff);
+    public static string Base64ToBase64Url(string base64, bool stripPadding = true)
+    {
+        string base64Url = base64.Replace('+', '-').Replace('/', '_');
+
+        if (stripPadding)
+        {
+            base64Url = base64Url.TrimEnd('=');
+        }
+
+        return base64Url;
+    }
+
+    public string binaryToBase64(object buff2)
+    {
+        var buff = (byte[])buff2;
+        return BinaryToBase64(buff);
+    }
 
     public static string BinaryToBase64(byte[] buff) => Convert.ToBase64String(buff);
+
+
 
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 
@@ -238,7 +257,7 @@ public partial class Exchange
         return packer.Pack(data);
     }
 
-    public string rawencode(object paramaters1)
+    public string rawencode(object paramaters1, object sort = null)
     {
         var paramaters = (dict)paramaters1;
         var keys = new List<string>(((dict)paramaters).Keys);

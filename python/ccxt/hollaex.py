@@ -15,6 +15,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NetworkError
+from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -262,6 +263,7 @@ class hollaex(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'broad': {
+                    'API request is expired': InvalidNonce,
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
@@ -563,7 +565,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str[]|None symbols: not used by hollaex fetchOrderBooks()
         :param int [limit]: not used by hollaex fetchOrderBooks()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
+        :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
         response = self.publicGetOrderbooks(params)
@@ -586,7 +588,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -625,7 +627,7 @@ class hollaex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -654,7 +656,7 @@ class hollaex(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -753,7 +755,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -796,7 +798,8 @@ class hollaex(Exchange, ImplicitAPI):
         #      "price":0.147411,
         #      "timestamp":"2022-01-26T17:53:34.650Z",
         #      "order_id":"cba78ecb-4187-4da2-9d2f-c259aa693b5a",
-        #      "fee":0.01031877,"fee_coin":"usdt"
+        #      "fee":0.01031877,
+        #      "fee_coin":"usdt"
         #  }
         #
         marketId = self.safe_string(trade, 'symbol')
@@ -809,11 +812,12 @@ class hollaex(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'size')
         feeCostString = self.safe_string(trade, 'fee')
+        feeCoin = self.safe_string(trade, 'fee_coin')
         fee = None
         if feeCostString is not None:
             fee = {
                 'cost': feeCostString,
-                'currency': market['quote'],
+                'currency': self.safe_currency_code(feeCoin),
             }
         return self.safe_trade({
             'info': trade,
@@ -838,7 +842,7 @@ class hollaex(Exchange, ImplicitAPI):
         https://apidocs.hollaex.com/#tiers
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         self.load_markets()
         response = self.publicGetTiers(params)
@@ -890,7 +894,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
         return result
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         hollaex has large gaps between candles, so it's recommended to specify since
 
@@ -899,7 +903,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -910,16 +914,24 @@ class hollaex(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
         }
+        paginate = False
+        maxLimit = 500
+        paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', paginate)
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit)
         until = self.safe_integer(params, 'until')
-        end = self.seconds()
-        if until is not None:
-            end = self.parse_to_int(until / 1000)
-        defaultSpan = 2592000  # 30 days
-        if since is not None:
-            request['from'] = self.parse_to_int(since / 1000)
-        else:
-            request['from'] = end - defaultSpan
-        request['to'] = end
+        timeDelta = self.parse_timeframe(timeframe) * maxLimit * 1000
+        start = since
+        now = self.milliseconds()
+        if until is None and start is None:
+            until = now
+            start = until - timeDelta
+        elif until is None:
+            until = now  # the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+        elif start is None:
+            start = until - timeDelta
+        request['from'] = self.parse_to_int(start / 1000)  # convert to seconds
+        request['to'] = self.parse_to_int(until / 1000)  # convert to seconds
         params = self.omit(params, 'until')
         response = self.publicGetChart(self.extend(request, params))
         #
@@ -982,7 +994,7 @@ class hollaex(Exchange, ImplicitAPI):
         https://apidocs.hollaex.com/#get-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetUserBalance(params)
@@ -1009,7 +1021,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by hollaex fetchOpenOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1052,7 +1064,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'open': True,
@@ -1069,7 +1081,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'open': False,
@@ -1085,7 +1097,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str id:
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1129,7 +1141,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -1273,15 +1285,14 @@ class hollaex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        convertedAmount = float(self.amount_to_precision(symbol, amount))
         request: dict = {
             'symbol': market['id'],
             'side': side,
-            'size': self.normalize_number_if_needed(convertedAmount),
+            'size': self.amount_to_precision(symbol, amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
             # 'meta': {},  # other options such
@@ -1292,10 +1303,9 @@ class hollaex(Exchange, ImplicitAPI):
         isMarketOrder = type == 'market'
         postOnly = self.is_post_only(isMarketOrder, exchangeSpecificParam, params)
         if not isMarketOrder:
-            convertedPrice = float(self.price_to_precision(symbol, price))
-            request['price'] = self.normalize_number_if_needed(convertedPrice)
+            request['price'] = self.price_to_precision(symbol, price)
         if triggerPrice is not None:
-            request['stop'] = self.normalize_number_if_needed(float(self.price_to_precision(symbol, triggerPrice)))
+            request['stop'] = self.price_to_precision(symbol, triggerPrice)
         if postOnly:
             request['meta'] = {'post_only': True}
         params = self.omit(params, ['postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stop'])
@@ -1334,7 +1344,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1364,7 +1374,7 @@ class hollaex(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -1401,7 +1411,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1477,7 +1487,7 @@ class hollaex(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         network = self.safe_string(params, 'network')
@@ -1542,7 +1552,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1598,7 +1608,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str id: withdrawal id
         :param str code: unified currency code of the currency withdrawn, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1646,7 +1656,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1788,7 +1798,7 @@ class hollaex(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -1799,7 +1809,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
@@ -1902,7 +1912,7 @@ class hollaex(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         response = self.publicGetConstants(params)
         #
@@ -1942,11 +1952,6 @@ class hollaex(Exchange, ImplicitAPI):
         #
         coins = self.safe_dict(response, 'coins', {})
         return self.parse_deposit_withdraw_fees(coins, codes, 'symbol')
-
-    def normalize_number_if_needed(self, number):
-        if self.is_round_number(number):
-            number = int(number)
-        return number
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         query = self.omit(params, self.extract_params(path))

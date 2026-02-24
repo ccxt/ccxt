@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestCurrency(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
+    func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, entry interface{})  {
         var format interface{} = map[string]interface{} {
             "id": "btc",
             "code": "BTC",
@@ -37,13 +37,13 @@ import "github.com/ccxt/ccxt/go/v4"
             AssertInArray(exchange, skippedProperties, method, entry, "type", []interface{}{"fiat", "crypto", "leveraged", "other", nil}) // todo: remove undefined
             // only require "deposit" & "withdraw" values, when currency is not fiat, or when it's fiat, but not skipped
             if IsTrue(IsTrue(!IsEqual(currencyType, "crypto")) && IsTrue((InOp(skippedProperties, "depositForNonCrypto")))) {
-                AppendToArray(&emptyAllowedFor,"deposit")
+                AppendToArray(&emptyAllowedFor, "deposit")
             }
             if IsTrue(IsTrue(!IsEqual(currencyType, "crypto")) && IsTrue((InOp(skippedProperties, "withdrawForNonCrypto")))) {
-                AppendToArray(&emptyAllowedFor,"withdraw")
+                AppendToArray(&emptyAllowedFor, "withdraw")
             }
             if IsTrue(IsTrue(IsEqual(currencyType, "leveraged")) || IsTrue(IsEqual(currencyType, "other"))) {
-                AppendToArray(&emptyAllowedFor,"precision")
+                AppendToArray(&emptyAllowedFor, "precision")
             }
         }
         //
@@ -55,8 +55,35 @@ import "github.com/ccxt/ccxt/go/v4"
         if IsTrue(IsTrue(IsEqual(networkKeysLength, 0)) && IsTrue((InOp(skippedProperties, "skipCurrenciesWithoutNetworks")))) {
             return
         }
-        //
-        AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+        
+            {
+                 func() (ret_ interface{}) {
+        		    defer func() {
+                        if e := recover(); e != nil {
+                            if e == "break" {
+                                return
+                            }
+                            ret_ = func() interface{} {
+                                // catch block:
+                                        var message interface{} = exchange.ExceptionMessage(e)
+                // check structure if key is numeric, not string
+                if IsTrue(IsGreaterThanOrEqual(GetIndexOf(message, "\"id\" key"), 0)) {
+                    // @ts-ignore
+                    AddElementToObject(format, "id", 123)
+                    AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+                } else {
+                    Assert(IsEqual(message, ""), message)
+                }
+                                return nil
+                            }()
+                        }
+                    }()
+        		    // try block:
+                            AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
+        		    return nil
+        	    }()
+            
+                }
         //
         CheckPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision")
         AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0")

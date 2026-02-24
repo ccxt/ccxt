@@ -26,6 +26,7 @@ class Argv(object):
     table = False
     verbose = False
     sandbox = False
+    demo = False
     testnet = False
     test = False
     nonce = None
@@ -41,6 +42,7 @@ class Argv(object):
     args = []
     no_keys = False
     raw = False
+    no_load_markets = False
 
 
 argv = Argv()
@@ -52,6 +54,7 @@ parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--debug', action='store_true', help='enable debug output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--demo', action='store_true', help='enable demo mode')
 parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--spot', action='store_true', help='enable spot markets')
@@ -61,6 +64,7 @@ parser.add_argument('--option', action='store_true', help='enable option markets
 parser.add_argument('--signIn', action='store_true', help='sign in')
 parser.add_argument('--no-keys', action='store_true', help='don t load keys')
 parser.add_argument('--raw', action='store_true', help='raw output')
+parser.add_argument('--no-load-markets', action='store_true', help='no load markets')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -201,16 +205,19 @@ async def main():
 
     if argv.testnet or argv.sandbox or argv.test:
         exchange.set_sandbox_mode(True)
+    elif argv.demo:
+        exchange.enable_demo_trading(True)
 
     if argv.verbose and argv.debug:
         exchange.verbose = argv.verbose
 
-    markets_path = '.cache/' + exchange.id + '-markets.json'
-    if os.path.exists(markets_path):
-        with open(markets_path, 'r') as f:
-            exchange.markets = json.load(f)
-    else:
-        await exchange.load_markets()
+    if not argv.no_load_markets:
+        markets_path = '.cache/' + exchange.id + '-markets.json'
+        if os.path.exists(markets_path):
+            with open(markets_path, 'r') as f:
+                exchange.markets = json.load(f)
+        else:
+            await exchange.load_markets()
 
     exchange.verbose = argv.verbose  # now set verbose mode
 

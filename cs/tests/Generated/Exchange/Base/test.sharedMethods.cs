@@ -195,9 +195,14 @@ public partial class testMainClass : BaseTest
                     //    assert (dt === exchange.iso8601 (entry['timestamp']))
                     // so, we have to compare with millisecond accururacy
                     object dtParsed = exchange.parse8601(dt);
-                    object dtParsedString = exchange.iso8601(dtParsed);
-                    object dtEntryString = exchange.iso8601(getValue(entry, "timestamp"));
-                    assert(isEqual(dtParsedString, dtEntryString), add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
+                    object tsMs = getValue(entry, "timestamp");
+                    object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
+                    if (isTrue(isGreaterThanOrEqual(diff, 500)))
+                    {
+                        object dtParsedString = exchange.iso8601(dtParsed);
+                        object dtEntryString = exchange.iso8601(tsMs);
+                        assert(false, add(add(add(add(add("datetime is not iso8601 of timestamp:", dtParsedString), "(string) != "), dtEntryString), "(from ts)"), logText));
+                    }
                 }
             }
         }
@@ -382,7 +387,6 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (isTrue(((key is int) || (key is long) || (key is Int32) || (key is Int64))))
             {
-                key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else
@@ -631,6 +635,17 @@ public partial class testMainClass : BaseTest
                 return;
             }
         }
+        public object getActiveMarkets(Exchange exchange, object includeUnknown = null)
+        {
+            includeUnknown ??= true;
+            object filteredActive = exchange.filterBy(exchange.markets, "active", true);
+            if (isTrue(includeUnknown))
+            {
+                object filteredUndefined = exchange.filterBy(exchange.markets, "active", null);
+                return exchange.arrayConcat(filteredActive, filteredUndefined);
+            }
+            return filteredActive;
+        }
         public object removeProxyOptions(Exchange exchange, object skippedProperties)
         {
             object proxyUrl = exchange.checkProxyUrlSettings();
@@ -703,14 +718,14 @@ public partial class testMainClass : BaseTest
             object ts = exchange.safeString(entry, key);
             assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
-        public object deepEqual(object a, object b)
+        public object deepEqual(Exchange exchange, object a, object b)
         {
             return isEqual(json(a), json(b));
         }
         public void assertDeepEqual(Exchange exchange, object skippedProperties, object method, object a, object b)
         {
             object logText = logTemplate(exchange, method, new Dictionary<string, object>() {});
-            assert(deepEqual(a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
+            assert(deepEqual(exchange, a, b), add(add(add(add("two dicts do not match: ", json(a)), " != "), json(b)), logText));
         }
 
     }

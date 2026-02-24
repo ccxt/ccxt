@@ -11,7 +11,7 @@ import {
 import { Future } from './Future.js';
 
 // eslint-disable-next-line no-restricted-globals
-const WebSocketPlatform = isNode || !selfIsDefined() ? WebSocket : self.WebSocket;
+const WebSocketPlatform = isNode || !selfIsDefined () ? WebSocket : self.WebSocket;
 
 export default class WsClient extends Client {
 
@@ -29,10 +29,27 @@ export default class WsClient extends Client {
         }
         this.connectionStarted = milliseconds ()
         this.setConnectionTimeout ()
+
+        const connectionHeaders = {};
+        if (this.cookies !== undefined) {
+            let cookieStr = '';
+            const cookiesKeys = Object.keys (this.cookies);
+            for (let i = 0; i < cookiesKeys.length; i++) {
+                const key = cookiesKeys[i];
+                const value = this.cookies[key];
+                cookieStr += key + '=' + value;
+                if (i < cookiesKeys.length - 1) {
+                    cookieStr += '; ';
+                }
+            }
+            connectionHeaders['Cookie'] = cookieStr;
+            this.options['headers'] = Object.assign (this.options['headers'] || {}, connectionHeaders);
+        }
         if (isNode) {
             this.connection = new WebSocketPlatform (this.url, this.protocols, this.options)
         } else {
             this.connection = new WebSocketPlatform (this.url, this.protocols)
+            this.connection.binaryType = "arraybuffer"; // for browsers not to use blob by default
         }
 
         this.connection.onopen = this.onOpen.bind (this)

@@ -4,6 +4,7 @@ interface Exchange {
     spotPublicGetCurrencyPairs(params?: {}): Promise<implicitReturnType>;
     spotPublicGetAccuracy(params?: {}): Promise<implicitReturnType>;
     spotPublicGetUsdToCny(params?: {}): Promise<implicitReturnType>;
+    spotPublicGetAssetConfigs(params?: {}): Promise<implicitReturnType>;
     spotPublicGetWithdrawConfigs(params?: {}): Promise<implicitReturnType>;
     spotPublicGetTimestamp(params?: {}): Promise<implicitReturnType>;
     spotPublicGetTicker24hr(params?: {}): Promise<implicitReturnType>;

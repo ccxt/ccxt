@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Currency, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -111,8 +111,10 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -591,7 +593,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -692,7 +694,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -713,7 +715,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -733,7 +735,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -812,7 +814,7 @@ class blofin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: *only applies to publicGetMarketHistoryTrades* default False, when True will automatically paginate by calling self endpoint multiple times
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         paginate = False
@@ -856,7 +858,7 @@ class blofin(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 6),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -901,10 +903,11 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :param int [params.until]: timestamp in ms of the latest funding rate to fetch
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -912,7 +915,7 @@ class blofin(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
+            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
         market = self.market(symbol)
         request: dict = {
             'instId': market['id'],
@@ -921,6 +924,10 @@ class blofin(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            request['after'] = until
+            params = self.omit(params, 'until')
         response = await self.publicGetMarketFundingRateHistory(self.extend(request, params))
         rates = []
         data = self.safe_list(response, 'data', [])
@@ -978,7 +985,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1116,7 +1123,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.accountType]: the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         accountType = None
@@ -1166,15 +1173,15 @@ class blofin(Exchange, ImplicitAPI):
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
         params = self.omit(params, ['stopLoss', 'takeProfit', 'hedged'])
-        isStopLoss = stopLoss is not None
-        isTakeProfit = takeProfit is not None
-        if isStopLoss or isTakeProfit:
-            if isStopLoss:
+        hasStopLoss = stopLoss is not None
+        hasTakeProfit = takeProfit is not None
+        if hasStopLoss or hasTakeProfit:
+            if hasStopLoss:
                 slTriggerPrice = self.safe_string_2(stopLoss, 'triggerPrice', 'stopPrice')
                 request['slTriggerPrice'] = self.price_to_precision(symbol, slTriggerPrice)
                 slOrderPrice = self.safe_string(stopLoss, 'price', '-1')
                 request['slOrderPrice'] = self.price_to_precision(symbol, slOrderPrice)
-            if isTakeProfit:
+            if hasTakeProfit:
                 tpTriggerPrice = self.safe_string_2(takeProfit, 'triggerPrice', 'stopPrice')
                 request['tpTriggerPrice'] = self.price_to_precision(symbol, tpTriggerPrice)
                 tpPrice = self.safe_string(takeProfit, 'price', '-1')
@@ -1250,11 +1257,13 @@ class blofin(Exchange, ImplicitAPI):
         elif type == 'ioc':
             timeInForce = 'IOC'
             type = 'limit'
+        elif type == 'conditional':
+            type = 'trigger'
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
         symbol = self.safe_symbol(marketId, market, '-')
         filled = self.safe_string(order, 'filledSize')
-        price = self.safe_string_2(order, 'px', 'price')
+        price = self.safe_string_n(order, ['px', 'price', 'orderPrice'])
         average = self.safe_string(order, 'averagePrice')
         status = self.parse_order_status(self.safe_string(order, 'state'))
         feeCostString = self.safe_string(order, 'fee')
@@ -1342,7 +1351,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: stop loss order price(if not provided the order will be a market order)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1352,25 +1361,26 @@ class blofin(Exchange, ImplicitAPI):
         method, params = self.handle_option_and_params(params, 'createOrder', 'method', 'privatePostTradeOrder')
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
-        isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
+        hasTriggerPrice = self.safe_string(params, 'triggerPrice') is not None
         isType2Order = (isStopLossPriceDefined or isTakeProfitPriceDefined)
         response = None
         reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly is not None:
             params['reduceOnly'] = 'true' if reduceOnly else 'false'
-        if tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order:
+        isTpslOrder = tpsl or (method == 'privatePostTradeOrderTpsl') or isType2Order
+        isTriggerOrder = hasTriggerPrice or (method == 'privatePostTradeOrderAlgo')
+        if isTpslOrder:
             tpslRequest = self.create_tpsl_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderTpsl(tpslRequest)
-        elif isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+        elif isTriggerOrder:
             triggerRequest = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrderAlgo(triggerRequest)
         else:
             request = self.create_order_request(symbol, type, side, amount, price, params)
             response = await self.privatePostTradeOrder(request)
-        if isTriggerOrder or (method == 'privatePostTradeOrderAlgo'):
+        if isTpslOrder or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
-            triggerOrder = self.parse_order(dataDict, market)
-            return triggerOrder
+            return self.parse_order(dataDict, market)
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
         order = self.parse_order(first, market)
@@ -1422,7 +1432,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if cancelling a trigger/conditional
         :param boolean [params.tpsl]: True if cancelling a tpsl order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1465,7 +1475,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -1498,7 +1508,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1541,7 +1551,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: Timestamp in ms of the latest time to retrieve trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1573,7 +1583,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1607,7 +1617,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1642,7 +1652,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -1806,7 +1816,7 @@ class blofin(Exchange, ImplicitAPI):
         else:
             return ids
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1816,7 +1826,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/trigger order
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
         if symbol is None:
@@ -1876,7 +1886,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from(funding, swap, copy_trading, earn)
         :param str toAccount: account to transfer to(funding, swap, copy_trading, earn)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -1916,7 +1926,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.instType]: MARGIN, SWAP, FUTURES, OPTION
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1939,7 +1949,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.instType]: MARGIN, SWAP, FUTURES, OPTION
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2064,7 +2074,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str[] symbols: a list of unified market symbols, required on blofin
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
-        :returns dict: a list of `leverage structures <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
         await self.load_markets()
         if symbols is None:
@@ -2114,7 +2124,7 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated'
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         await self.load_markets()
         marginMode = None
@@ -2154,7 +2164,7 @@ class blofin(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -2203,7 +2213,7 @@ class blofin(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param boolean [params.autoCxl]: whether any pending orders for closing out needs to be automatically canceled when close position via a market order. False or True, the default is False
         :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2232,7 +2242,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if fetching trigger or conditional orders
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2269,7 +2279,7 @@ class blofin(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2376,6 +2386,89 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         return await self.privatePostAccountSetPositionMode(self.extend(request, params))
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://docs.blofin.com/index.html#get-positions
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = await self.privateGetAccountPositions(params)
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "positionId": "756786",
+        #                 "instId": "BTC-USDT",
+        #                 "instType": "SWAP",
+        #                 "marginMode": "cross",
+        #                 "positionSide": "net",
+        #                 "adl": "1",
+        #                 "positions": "0.1",
+        #                 "availablePositions": "0.1",
+        #                 "averagePrice": "88564.9",
+        #                 "markPrice": "88546.3696492756",
+        #                 "marginRatio": "822.305183525552961566",
+        #                 "liquidationPrice": "",
+        #                 "unrealizedPnl": "-0.00185303507244",
+        #                 "unrealizedPnlRatio": "-0.000627687178252332",
+        #                 "initialMargin": "2.951545654975853333",
+        #                 "maintenanceMargin": "0.02656391089478268",
+        #                 "createTime": "1767169876207",
+        #                 "updateTime": "1767169876207",
+        #                 "leverage": "3"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_adl_ranks(data, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "positionId": "756786",
+        #         "instId": "BTC-USDT",
+        #         "instType": "SWAP",
+        #         "marginMode": "cross",
+        #         "positionSide": "net",
+        #         "adl": "1",
+        #         "positions": "0.1",
+        #         "availablePositions": "0.1",
+        #         "averagePrice": "88564.9",
+        #         "markPrice": "88546.3696492756",
+        #         "marginRatio": "822.305183525552961566",
+        #         "liquidationPrice": "",
+        #         "unrealizedPnl": "-0.00185303507244",
+        #         "unrealizedPnlRatio": "-0.000627687178252332",
+        #         "initialMargin": "2.951545654975853333",
+        #         "maintenanceMargin": "0.02656391089478268",
+        #         "createTime": "1767169876207",
+        #         "updateTime": "1767169876207",
+        #         "leverage": "3"
+        #     }
+        #
+        marketId = self.safe_string(info, 'instId')
+        timestamp = self.safe_integer_omit_zero(info, 'createTime')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adl'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:

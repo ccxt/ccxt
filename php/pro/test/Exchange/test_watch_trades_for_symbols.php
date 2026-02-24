@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbols) {
@@ -19,6 +18,7 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
         $ends = $now + 15000;
         while ($now < $ends) {
             $response = null;
+            $success = true;
             try {
                 $response = Async\await($exchange->watch_trades_for_symbols($symbols));
             } catch(\Throwable $e) {
@@ -26,20 +26,22 @@ function test_watch_trades_for_symbols($exchange, $skipped_properties, $symbols)
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
             }
-            assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
-            $now = $exchange->milliseconds();
-            $symbol = null;
-            for ($i = 0; $i < count($response); $i++) {
-                $trade = $response[$i];
-                $symbol = $trade['symbol'];
-                test_trade($exchange, $skipped_properties, $method, $trade, $symbol, $now);
-                assert_in_array($exchange, $skipped_properties, $method, $trade, 'symbol', $symbols);
-            }
-            if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
-                assert_timestamp_order($exchange, $method, $symbol, $response);
+            if ($success === true) {
+                assert(gettype($response) === 'array' && array_is_list($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an array. ' . $exchange->json($response));
+                $now = $exchange->milliseconds();
+                $symbol = null;
+                for ($i = 0; $i < count($response); $i++) {
+                    $trade = $response[$i];
+                    $symbol = $trade['symbol'];
+                    test_trade($exchange, $skipped_properties, $method, $trade, $symbol, $now);
+                    assert_in_array($exchange, $skipped_properties, $method, $trade, 'symbol', $symbols);
+                }
+                if (!(is_array($skipped_properties) && array_key_exists('timestamp', $skipped_properties))) {
+                    assert_timestamp_order($exchange, $method, $symbol, $response);
+                }
             }
         }
+        return true;
     }) ();
 }

@@ -21,6 +21,10 @@ public partial class bitfinex : ccxt.bitfinex
                 { "watchBalance", true },
                 { "watchOHLCV", true },
                 { "watchOrders", true },
+                { "unWatchTicker", true },
+                { "unWatchTrades", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOrderBook", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -59,15 +63,47 @@ public partial class bitfinex : ccxt.bitfinex
             { "checksum", false },
         });
         object checksum = this.safeBool(this.options, "checksum", true);
-        if (isTrue(isTrue(isTrue(checksum) && !isTrue(getValue(getValue(((WebSocketClient)client).subscriptions, messageHash), "checksum"))) && isTrue((isEqual(channel, "book")))))
+        if (isTrue(isTrue(checksum) && isTrue((isEqual(channel, "book")))))
         {
-            ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
-            await client.send(new Dictionary<string, object>() {
-                { "event", "conf" },
-                { "flags", 131072 },
-            });
+            object sub = getValue(((WebSocketClient)client).subscriptions, messageHash);
+            if (isTrue(isTrue(sub) && !isTrue(getValue(sub, "checksum"))))
+            {
+                ((IDictionary<string,object>)getValue(((WebSocketClient)client).subscriptions, messageHash))["checksum"] = true;
+                await client.send(new Dictionary<string, object>() {
+                    { "event", "conf" },
+                    { "flags", 131072 },
+                });
+            }
         }
         return result;
+    }
+
+    public async virtual Task<object> unSubscribe(object channel, object topic, object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object marketId = getValue(market, "id");
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        var client = this.client(url);
+        object subMessageHash = add(add(channel, ":"), marketId);
+        object messageHash = add(add(add("unsubscribe:", channel), ":"), marketId);
+        object unSubTopic = add(add(add(add("unsubscribe", ":"), topic), ":"), symbol);
+        object channelId = this.safeString(((WebSocketClient)client).subscriptions, unSubTopic);
+        object request = new Dictionary<string, object>() {
+            { "event", "unsubscribe" },
+            { "chanId", channelId },
+        };
+        object unSubChanMsg = add("unsubscribe:", channelId);
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)unSubChanMsg] = subMessageHash;
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", new List<object>() {messageHash} },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+            { "topic", topic },
+            { "unsubscribe", true },
+            { "symbols", new List<object>() {symbol} },
+        };
+        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
     public async virtual Task<object> subscribePrivate(object messageHash)
@@ -113,6 +149,46 @@ public partial class bitfinex : ccxt.bitfinex
             limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+    }
+
+    /**
+     * @method
+     * @name bitfinex#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {bool} true if successfully unsubscribed, false otherwise
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object interval = this.safeString(this.timeframes, timeframe, timeframe);
+        object channel = "candles";
+        object subMessageHash = add(add(add(add(channel, ":"), interval), ":"), getValue(market, "id"));
+        object messageHash = add("unsubscribe:", subMessageHash);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        var client = this.client(url);
+        object subId = add(add(add("unsubscribe:trade:", interval), ":"), getValue(market, "id")); // trade here because we use the key
+        object channelId = this.safeString(((WebSocketClient)client).subscriptions, subId);
+        object request = new Dictionary<string, object>() {
+            { "event", "unsubscribe" },
+            { "chanId", channelId },
+        };
+        object unSubChanMsg = add("unsubscribe:", channelId);
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)unSubChanMsg] = subMessageHash;
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", new List<object>() {messageHash} },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+            { "topic", "ohlcv" },
+            { "unsubscribe", true },
+            { "symbols", new List<object>() {symbol} },
+        };
+        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, subscription);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message, object subscription)
@@ -211,7 +287,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -226,13 +302,27 @@ public partial class bitfinex : ccxt.bitfinex
 
     /**
      * @method
+     * @name bitfinex#unWatchTrades
+     * @description unWatches the list of most recent trades for a particular symbol
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
+     */
+    public async override Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unSubscribe("trades", "trades", symbol, parameters);
+    }
+
+    /**
+     * @method
      * @name bitfinex#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -258,12 +348,26 @@ public partial class bitfinex : ccxt.bitfinex
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.subscribe("ticker", symbol, parameters);
+    }
+
+    /**
+     * @method
+     * @name bitfinex#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unSubscribe("ticker", "ticker", symbol, parameters);
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message, object subscription = null)
@@ -574,7 +678,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -770,7 +874,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -915,6 +1019,32 @@ public partial class bitfinex : ccxt.bitfinex
         return message;
     }
 
+    public virtual object handleUnsubscriptionStatus(WebSocketClient client, object message)
+    {
+        //
+        // {
+        //     "event": "unsubscribed",
+        //     "status": "OK",
+        //     "chanId": CHANNEL_ID
+        // }
+        //
+        object channelId = this.safeString(message, "chanId");
+        object unSubChannel = add("unsubscribe:", channelId);
+        object subMessageHash = this.safeString(((WebSocketClient)client).subscriptions, unSubChannel);
+        object subscription = this.safeDict(((WebSocketClient)client).subscriptions, add("unsubscribe:", subMessageHash));
+        ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)unSubChannel);
+        object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object messageHash = getValue(messageHashes, i);
+            object subHash = getValue(subMessageHashes, i);
+            this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
+        }
+        this.cleanCache(subscription);
+        return true;
+    }
+
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
     {
         //
@@ -929,8 +1059,39 @@ public partial class bitfinex : ccxt.bitfinex
         //         "pair": "BTCUSD"
         //     }
         //
+        //   {
+        //       event: 'subscribed',
+        //       channel: 'candles',
+        //       chanId: 128306,
+        //       key: 'trade:1m:tBTCUST'
+        //  }
+        //
         object channelId = this.safeString(message, "chanId");
         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)channelId] = message;
+        // store the opposite direction too for unWatch
+        object mappings = new Dictionary<string, object>() {
+            { "book", "orderbook" },
+            { "candles", "ohlcv" },
+            { "ticker", "ticker" },
+            { "trades", "trades" },
+        };
+        object unifiedChannel = this.safeString(mappings, this.safeString(message, "channel"));
+        if (isTrue(inOp(message, "key")))
+        {
+            // handle ohlcv differently because the message is different
+            object key = this.safeString(message, "key");
+            object subKeyId = add("unsubscribe:", key);
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subKeyId] = channelId;
+        } else
+        {
+            object marketId = this.safeString(message, "symbol");
+            object symbol = this.safeSymbol(marketId);
+            if (isTrue(!isEqual(unifiedChannel, null)))
+            {
+                object subId = add(add(add("unsubscribe:", unifiedChannel), ":"), symbol);
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subId] = channelId;
+            }
+        }
         return message;
     }
 
@@ -940,7 +1101,7 @@ public partial class bitfinex : ccxt.bitfinex
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -990,7 +1151,7 @@ public partial class bitfinex : ccxt.bitfinex
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1270,6 +1431,7 @@ public partial class bitfinex : ccxt.bitfinex
                 object methods = new Dictionary<string, object>() {
                     { "info", this.handleSystemStatus },
                     { "subscribed", this.handleSubscriptionStatus },
+                    { "unsubscribed", this.handleUnsubscriptionStatus },
                     { "auth", this.handleAuthenticationMessage },
                 };
                 object method = this.safeValue(methods, eventVar);

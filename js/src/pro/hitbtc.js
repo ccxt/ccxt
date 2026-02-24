@@ -88,7 +88,7 @@ export default class hitbtc extends hitbtcRest {
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const timestamp = this.milliseconds();
@@ -209,7 +209,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const options = this.safeValue(this.options, 'watchOrderBook');
@@ -315,7 +315,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'ticker/{speed}' (default), or 'ticker/price/{speed}'
      * @param {string} [params.speed] '1s' (default), or '3s'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         const ticker = await this.watchTickers([symbol], params);
@@ -484,7 +484,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'orderbook/top/{speed}' or 'orderbook/top/{speed}/batch (default)'
      * @param {string} [params.speed] '100ms' (default) or '500ms' or '1000ms'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -564,7 +564,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1046,7 +1046,7 @@ export default class hitbtc extends hitbtcRest {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
-     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -1116,7 +1116,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
      * @param {bool} [params.margin] true for canceling a margin order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1151,7 +1151,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
      * @param {bool} [params.margin] true for canceling margin orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -1186,7 +1186,7 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported
      * @param {bool} [params.margin] true for fetching open margin orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrdersWs(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();

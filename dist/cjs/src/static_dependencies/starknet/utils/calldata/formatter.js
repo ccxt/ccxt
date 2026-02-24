@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var num = require('../num.js');
 var shortString = require('../shortString.js');
 
@@ -64,4 +66,4 @@ function formatter(data, type, sameType) {
     }, {});
 }
 
-module.exports = formatter;
+exports["default"] = formatter;

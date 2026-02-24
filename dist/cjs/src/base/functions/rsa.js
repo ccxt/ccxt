@@ -7,6 +7,7 @@ var index = require('../../static_dependencies/scure-base/index.js');
 var encode = require('./encode.js');
 var crypto = require('./crypto.js');
 var p256 = require('../../static_dependencies/noble-curves/p256.js');
+var ed25519 = require('../../static_dependencies/noble-curves/ed25519.js');
 
 // ----------------------------------------------------------------------------
 function rsa(request, secret, hash) {
@@ -28,7 +29,7 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
     }
     const encodedHeader = encode.urlencodeBase64(JSON.stringify(header));
     const encodedData = encode.urlencodeBase64(JSON.stringify(request));
-    const token = [encodedHeader, encodedData].join('.');
+    let token = [encodedHeader, encodedData].join('.');
     const algoType = alg.slice(0, 2);
     let signature = undefined;
     if (algoType === 'HS') {
@@ -43,7 +44,19 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
         const s = signedHash.s.padStart(64, '0');
         signature = encode.urlencodeBase64(encode.base16ToBinary(r + s));
     }
+    else if (algoType === 'ED') {
+        const base64str = crypto.eddsa(toHex(token), secret, ed25519.ed25519);
+        // we need urlencoded64 not base64
+        signature = encode.base64ToBase64Url(base64str);
+    }
     return [token, signature].join('.');
+}
+function toHex(str) {
+    var result = '';
+    for (var i = 0; i < str.length; i++) {
+        result += str.charCodeAt(i).toString(16);
+    }
+    return result;
 }
 
 exports.jwt = jwt;

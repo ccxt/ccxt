@@ -2,6 +2,69 @@
     "exchange": "latoken",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "status": "CURRENCY_STATUS_ACTIVE",
+                        "type": "CURRENCY_TYPE_CRYPTO",
+                        "name": "Tether USD",
+                        "tag": "USDT",
+                        "description": "",
+                        "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+                        "decimals": "6",
+                        "created": "1572912000000",
+                        "tier": "1",
+                        "assetClass": "ASSET_CLASS_UNKNOWN",
+                        "minTransferAmount": "0"
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                            "status": "CURRENCY_STATUS_ACTIVE",
+                            "type": "CURRENCY_TYPE_CRYPTO",
+                            "name": "Tether USD",
+                            "tag": "USDT",
+                            "description": "",
+                            "logo": "https://s2.coinmarketcap.com/static/img/coins/64x64/825.png",
+                            "decimals": "6",
+                            "created": "1572912000000",
+                            "tier": "1",
+                            "assetClass": "ASSET_CLASS_UNKNOWN",
+                            "minTransferAmount": "0"
+                        },
+                        "id": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "Tether USD",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": 0,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -90,13 +153,13 @@
                     "ask": 73371.68,
                     "askVolume": 0.0638319,
                     "vwap": 71700.1587049924,
-                    "open": null,
+                    "open": 72178.8785046729,
                     "close": 73369.83,
                     "last": 73369.83,
                     "previousClose": null,
-                    "change": null,
+                    "change": 1190.9514953271027,
                     "percentage": 1.65,
-                    "average": null,
+                    "average": 72774.35,
                     "baseVolume": 9295.3774718,
                     "quoteVolume": 666480039.950871,
                     "markPrice":  null,

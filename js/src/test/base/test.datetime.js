@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 import { ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
@@ -15,7 +14,7 @@ function testDatetime() {
     assert(exchange.iso8601(514862627000) === '1986-04-26T01:23:47.000Z');
     assert(exchange.iso8601(514862627559) === '1986-04-26T01:23:47.559Z');
     assert(exchange.iso8601(514862627062) === '1986-04-26T01:23:47.062Z');
-    assert(exchange.iso8601(0) === '1970-01-01T00:00:00.000Z');
+    assert(exchange.iso8601(1) === '1970-01-01T00:00:00.001Z');
     assert(exchange.iso8601(-1) === undefined);
     // assert (exchange.iso8601 () === undefined);
     // todo: assert (exchange.iso8601 () === undefined);

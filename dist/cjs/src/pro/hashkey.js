@@ -1,11 +1,13 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hashkey$1 = require('../hashkey.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class hashkey extends hashkey$1 {
+class hashkey extends hashkey$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -170,7 +172,7 @@ class hashkey extends hashkey$1 {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.binary] true or false - default false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -226,7 +228,7 @@ class hashkey extends hashkey$1 {
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.binary] true or false - default false
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -293,7 +295,7 @@ class hashkey extends hashkey$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -359,7 +361,7 @@ class hashkey extends hashkey$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -478,7 +480,7 @@ class hashkey extends hashkey$1 {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -688,7 +690,7 @@ class hashkey extends hashkey$1 {
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         const listenKey = await this.authenticate();
@@ -728,9 +730,11 @@ class hashkey extends hashkey$1 {
         const response = await this.fetchBalance({ 'type': type });
         this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve();
-        client.resolve(this.balance[type], 'balance:' + type);
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance[type], 'balance:' + type);
+        }
     }
     handleBalance(client, message) {
         //
@@ -839,4 +843,4 @@ class hashkey extends hashkey$1 {
     }
 }
 
-module.exports = hashkey;
+exports["default"] = hashkey;

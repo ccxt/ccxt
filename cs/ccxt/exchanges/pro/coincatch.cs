@@ -105,7 +105,7 @@ public partial class coincatch : ccxt.coincatch
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         var client = this.client(url);
         object messageHash = "authenticated";
-        var future = client.future(messageHash);
+        var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
@@ -268,7 +268,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.instType] the type of the instrument to fetch the ticker for, 'SP' for spot markets, 'MC' for futures markets (default is 'SP')
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -297,7 +297,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {any} status of the unwatch request
      */
-    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -311,7 +311,7 @@ public partial class coincatch : ccxt.coincatch
      * @see https://coincatch.github.io/github.io/en/mix/#tickers-channel
      * @param {string[]} symbols unified symbol of the market to watch the tickers for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -512,9 +512,9 @@ public partial class coincatch : ccxt.coincatch
      * @param {string} symbol unified symbol of the market to unwatch the ohlcv for
      * @param timeframe
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
-    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -600,7 +600,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -616,7 +616,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -640,7 +640,7 @@ public partial class coincatch : ccxt.coincatch
      * @param symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -788,7 +788,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -805,7 +805,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -937,7 +937,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] 'spot' or 'swap' (default is 'spot')
      * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -1036,7 +1036,7 @@ public partial class coincatch : ccxt.coincatch
      * @param {string} [params.type] 'spot' or 'swap'
      * @param {string} [params.instType] *swap only* 'umcbl' or 'dmcbl' (default is 'umcbl')
      * @param {bool} [params.trigger] *swap only* whether to watch trigger orders (default is false)
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {

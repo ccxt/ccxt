@@ -59,6 +59,7 @@
                     "USDT",
                     5,
                     "Xoz7xtobD2Rm8aYXH6VHmE4rnePTXevbHcWQ3RRo3adC",
+                    null,
                     {
                         "network": "SOL"
                     }
@@ -67,6 +68,18 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "order with non ascii symbol",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",
+                "input": [
+                    "人生K线/USDT:USDT",
+                    "market",
+                    "buy",
+                    100
+                ],
+                "output": "{\"contract\":\"人生K线_USDT\",\"size\":100,\"price\":\"0\",\"tif\":\"ioc\"}"
+            },
             {
                 "description": "Spot limit buy order",
                 "method": "createOrder",
@@ -569,6 +582,15 @@
         ],
         "fetchClosedOrders": [
             {
+                "description": "request with non ascii symbol",
+                "method": "fetchClosedOrders",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/orders?contract=%E4%BA%BA%E7%94%9FK%E7%BA%BF_USDT&status=finished",
+                "input": [
+                    "人生K线/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://api.gateio.ws/api/v4/spot/orders?account=spot&currency_pair=LTC_USDT&status=finished",
@@ -908,6 +930,20 @@
         ],
         "fetchDeposits": [
             {
+                "description": "fetchDeposits with since and until",
+                "method": "fetchDeposits",
+                "url": "https://api.gateio.ws/api/v4/wallet/deposits?from=1721692800&to=1722297600",
+                "input": [
+                    null,
+                    1721692800000,
+                    null,
+                    {
+                        "until": 1722297600000
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
                 "url": "https://api.gateio.ws/api/v4/wallet/deposits",
@@ -915,6 +951,20 @@
             }
         ],
         "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals with since and until",
+                "method": "fetchWithdrawals",
+                "url": "https://api.gateio.ws/api/v4/wallet/withdrawals?from=1721692800&to=1722297600",
+                "input": [
+                    null,
+                    1721692800000,
+                    null,
+                    {
+                        "until": 1722297600000
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
@@ -1515,6 +1565,19 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel trigger swap order",
+                "method": "cancelOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders/2007048638370418688?contract=LTC_USDT",
+                "input": [
+                    "2007048638370418688",
+                    "LTC/USDT:USDT",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Cancel Order - spot",
                 "method": "cancelOrder",

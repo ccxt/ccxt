@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch swap ticker",
+                "method": "fetchTicker",
+                "url": "https://fapi.xt.com/future/market/v1/public/q/agg-ticker?symbol=river_usdt",
+                "input": [
+                    "RIVER/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "setMarginMode": [
             {
                 "description": "set margin mode isolated",
@@ -152,7 +163,7 @@
             {
                 "description": "swap open orders no symbol",
                 "method": "fetchOpenOrders",
-                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=NEW",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=UNFINISHED",
                 "input": [
                     null,
                     null,
@@ -174,7 +185,7 @@
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=NEW&symbol=ltc_usdt",
+                "url": "https://fapi.xt.com/future/trade/v1/order/list?state=UNFINISHED&symbol=ltc_usdt",
                 "input": [
                     "LTC/USDT:USDT"
                 ]

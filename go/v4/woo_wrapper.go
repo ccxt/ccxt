@@ -1,16 +1,25 @@
 package ccxt
 
 type Woo struct {
-   *woo
-   Core *woo
+   *WooCore
+   Core *WooCore
+   exchangeTyped *ExchangeTyped
 }
 
-func NewWoo(userConfig map[string]interface{}) Woo {
-   p := &woo{}
+func NewWoo(userConfig map[string]interface{}) *Woo {
+   p := NewWooCore()
    p.Init(userConfig)
-   return Woo{
-       woo: p,
+   return &Woo{
+       WooCore: p,
        Core:  p,
+       exchangeTyped: NewExchangeTyped(&p.Exchange),
+   }
+}
+func NewWooFromCore(core *WooCore) *Woo {
+   return &Woo{
+       WooCore: core,
+       Core:  core,
+       exchangeTyped: NewExchangeTyped(&core.Exchange),
    }
 }
 
@@ -22,9 +31,9 @@ func NewWoo(userConfig map[string]interface{}) Woo {
  * @method
  * @name woo#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://docs.woox.io/#get-system-maintenance-status-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *Woo) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
     res := <- this.Core.FetchStatus(params...)
@@ -37,7 +46,7 @@ func (this *Woo) FetchStatus(params ...interface{}) (map[string]interface{}, err
  * @method
  * @name woo#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://docs.woox.io/#get-system-maintenance-status-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/systemInfo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -52,7 +61,7 @@ func (this *Woo) FetchTime(params ...interface{}) ( int64, error) {
  * @method
  * @name woo#fetchMarkets
  * @description retrieves data on all markets for woo
- * @see https://docs.woox.io/#exchange-information
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/instruments
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -67,12 +76,12 @@ func (this *Woo) FetchMarkets(params ...interface{}) ([]MarketInterface, error) 
  * @method
  * @name woo#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.woox.io/#market-trades-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Woo) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -104,11 +113,40 @@ func (this *Woo) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
 }
 /**
  * @method
+ * @name woo#fetchTradingFee
+ * @description fetch the trading fees for a market
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_tradingFee
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trading fees in a portfolio margin account
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Woo) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+    opts := FetchTradingFeeOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchTradingFee(symbol, params)
+    if IsError(res) {
+        return TradingFeeInterface{}, CreateReturnError(res)
+    }
+    return NewTradingFeeInterface(res), nil
+}
+/**
+ * @method
  * @name woo#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://docs.woox.io/#get-account-information-new
+ * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *Woo) FetchTradingFees(params ...interface{}) (TradingFees, error) {
     res := <- this.Core.FetchTradingFees(params...)
@@ -140,7 +178,7 @@ func (this *Woo) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) CreateMarketBuyOrderWithCost(symbol string, cost float64, options ...CreateMarketBuyOrderWithCostOptions) (Order, error) {
 
@@ -168,7 +206,7 @@ func (this *Woo) CreateMarketBuyOrderWithCost(symbol string, cost float64, optio
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) CreateMarketSellOrderWithCost(symbol string, cost float64, options ...CreateMarketSellOrderWithCostOptions) (Order, error) {
 
@@ -201,7 +239,7 @@ func (this *Woo) CreateMarketSellOrderWithCost(symbol string, cost float64, opti
  * @param {float} trailingAmount the quote amount to trail away from the current market price
  * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
 
@@ -249,7 +287,7 @@ func (this *Woo) CreateTrailingAmountOrder(symbol string, typeVar string, side s
  * @param {float} trailingPercent the percent to trail away from the current market price
  * @param {float} trailingTriggerPrice the price to activate a trailing order, default uses the price argument
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) CreateTrailingPercentOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderOptions) (Order, error) {
 
@@ -288,8 +326,8 @@ func (this *Woo) CreateTrailingPercentOrder(symbol string, typeVar string, side 
  * @method
  * @name woo#createOrder
  * @description create a trade order
- * @see https://docs.woox.io/#send-order
- * @see https://docs.woox.io/#send-algo-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/post_algo_order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -308,7 +346,7 @@ func (this *Woo) CreateTrailingPercentOrder(symbol string, typeVar string, side 
  * @param {string} [params.trailingPercent] the percent to trail away from the current market price
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
  * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -354,7 +392,7 @@ func (this *Woo) CreateOrder(symbol string, typeVar string, side string, amount 
  * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
  * @param {string} [params.trailingPercent] the percent to trail away from the current market price
  * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
 
@@ -387,17 +425,16 @@ func (this *Woo) EditOrder(id string, symbol string, typeVar string, side string
 /**
  * @method
  * @name woo#cancelOrder
- * @see https://docs.woox.io/#cancel-algo-order
- * @see https://docs.woox.io/#cancel-order
- * @see https://docs.woox.io/#cancel-order-by-client_order_id
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_order
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (map[string]interface{}, error) {
+func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
     opts := CancelOrderOptionsStruct{}
 
@@ -416,23 +453,22 @@ func (this *Woo) CancelOrder(id string, options ...CancelOrderOptions) (map[stri
     }
     res := <- this.Core.CancelOrder(id, symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return Order{}, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrder(res), nil
 }
 /**
  * @method
  * @name woo#cancelAllOrders
- * @see https://docs.woox.io/#cancel-all-pending-orders
- * @see https://docs.woox.io/#cancel-orders
- * @see https://docs.woox.io/#cancel-all-pending-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
  * @description cancel all open orders in a market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Woo) CancelAllOrders(options ...CancelAllOrdersOptions) (map[string]interface{}, error) {
+func (this *Woo) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
     opts := CancelAllOrdersOptionsStruct{}
 
@@ -451,20 +487,20 @@ func (this *Woo) CancelAllOrders(options ...CancelAllOrdersOptions) (map[string]
     }
     res := <- this.Core.CancelAllOrders(symbol, params)
     if IsError(res) {
-        return map[string]interface{}{}, CreateReturnError(res)
+        return nil, CreateReturnError(res)
     }
-    return res.(map[string]interface{}), nil
+    return NewOrderArray(res), nil
 }
 /**
  * @method
  * @name woo#cancelAllOrdersAfter
  * @description dead man's switch, cancel all orders after the given timeout
- * @see https://docs.woox.io/#cancel-all-after
+ * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_after
  * @param {number} timeout time in milliseconds, 0 represents cancel the timer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) ([]Order, error) {
+func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
 
     opts := CancelAllOrdersAfterOptionsStruct{}
 
@@ -478,21 +514,21 @@ func (this *Woo) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersA
     }
     res := <- this.Core.CancelAllOrdersAfter(timeout, params)
     if IsError(res) {
-        return nil, CreateReturnError(res)
+        return map[string]interface{}{}, CreateReturnError(res)
     }
-    return NewOrderArray(res), nil
+    return res.(map[string]interface{}), nil
 }
 /**
  * @method
  * @name woo#fetchOrder
- * @see https://docs.woox.io/#get-algo-order
- * @see https://docs.woox.io/#get-order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_order
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_order
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -521,8 +557,8 @@ func (this *Woo) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
  * @method
  * @name woo#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.woox.io/#get-orders
- * @see https://docs.woox.io/#get-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -530,9 +566,8 @@ func (this *Woo) FetchOrder(id string, options ...FetchOrderOptions) (Order, err
  * @param {boolean} [params.trigger] whether the order is a trigger/algo order
  * @param {boolean} [params.isTriggered] whether the order has been triggered (false by default)
  * @param {string} [params.side] 'buy' or 'sell'
- * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -571,8 +606,8 @@ func (this *Woo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @method
  * @name woo#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.woox.io/#get-orders
- * @see https://docs.woox.io/#get-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -582,7 +617,7 @@ func (this *Woo) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -621,8 +656,8 @@ func (this *Woo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
  * @method
  * @name woo#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://docs.woox.io/#get-orders
- * @see https://docs.woox.io/#get-algo-orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_orders
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_algo_orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -632,7 +667,7 @@ func (this *Woo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
  * @param {string} [params.side] 'buy' or 'sell'
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Woo) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 
@@ -671,11 +706,11 @@ func (this *Woo) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
  * @method
  * @name woo#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.woox.io/#orderbook-snapshot-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/orderbook
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *Woo) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -703,14 +738,14 @@ func (this *Woo) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
 /**
  * @method
  * @name woo#fetchOHLCV
- * @see https://docs.woox.io/#kline-public
- * @see https://docs.woox.io/#kline-historical-data-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/klineHistory
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms)))
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *Woo) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLCV, error) {
@@ -756,7 +791,7 @@ func (this *Woo) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Woo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 
@@ -795,13 +830,13 @@ func (this *Woo) FetchOrderTrades(id string, options ...FetchOrderTradesOptions)
  * @method
  * @name woo#fetchMyTrades
  * @description fetch all trades made by the user
- * @see https://docs.woox.io/#get-trade-history
+ * @see https://developer.woox.io/api-reference/endpoint/trading/get_transactions
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Woo) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -840,9 +875,10 @@ func (this *Woo) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error)
  * @method
  * @name woo#fetchAccounts
  * @description fetch all the accounts associated with a profile
- * @see https://docs.woox.io/#get-assets-of-subaccounts
+ * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+ * @see https://developer.woox.io/api-reference/endpoint/account/sub_accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *Woo) FetchAccounts(params ...interface{}) ([]Account, error) {
     res := <- this.Core.FetchAccounts(params...)
@@ -857,7 +893,7 @@ func (this *Woo) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.woox.io/#get-current-holding-get-balance-new
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Woo) FetchBalance(params ...interface{}) (Balances, error) {
     res := <- this.Core.FetchBalance(params...)
@@ -870,10 +906,10 @@ func (this *Woo) FetchBalance(params ...interface{}) (Balances, error) {
  * @method
  * @name woo#fetchDepositAddress
  * @description fetch the deposit address for a currency associated with this account
- * @see https://docs.woox.io/#get-token-deposit-address
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_deposit
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *Woo) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
 
@@ -897,12 +933,12 @@ func (this *Woo) FetchDepositAddress(code string, options ...FetchDepositAddress
  * @method
  * @name woo#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Woo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -941,12 +977,12 @@ func (this *Woo) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
  * @method
  * @name woo#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woo) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -985,12 +1021,12 @@ func (this *Woo) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, 
  * @method
  * @name woo#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woo) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1029,12 +1065,12 @@ func (this *Woo) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
  * @method
  * @name woo#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://docs.woox.io/#get-asset-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_wallet_history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woo) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 
@@ -1079,7 +1115,7 @@ func (this *Woo) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOpt
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Woo) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -1103,13 +1139,13 @@ func (this *Woo) Transfer(code string, amount float64, fromAccount string, toAcc
  * @method
  * @name woo#fetchTransfers
  * @description fetch a history of internal transfers made on an account
- * @see https://docs.woox.io/#get-transfer-history
+ * @see https://developer.woox.io/api-reference/endpoint/assets/get_transfer_history
  * @param {string} code unified currency code of the currency transferred
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Woo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -1148,13 +1184,13 @@ func (this *Woo) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEnt
  * @method
  * @name woo#withdraw
  * @description make a withdrawal
- * @see https://docs.woox.io/#token-withdraw
+ * @see https://docs.woox.io/#token-withdraw-v3
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Woo) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -1183,13 +1219,13 @@ func (this *Woo) Withdraw(code string, amount float64, address string, options .
  * @method
  * @name woo#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://docs.woox.io/#get-funding-fee-history
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_fundingFee_history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Woo) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -1228,10 +1264,10 @@ func (this *Woo) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]F
  * @method
  * @name woo#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Woo) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
 
@@ -1255,10 +1291,10 @@ func (this *Woo) FetchFundingInterval(symbol string, options ...FetchFundingInte
  * @method
  * @name woo#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://docs.woox.io/#get-predicted-funding-rate-for-one-market-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *Woo) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
 
@@ -1282,10 +1318,10 @@ func (this *Woo) FetchFundingRate(symbol string, options ...FetchFundingRateOpti
  * @method
  * @name woo#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://docs.woox.io/#get-predicted-funding-rate-for-all-markets-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *Woo) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 
@@ -1314,14 +1350,14 @@ func (this *Woo) FetchFundingRates(options ...FetchFundingRatesOptions) (Funding
  * @method
  * @name woo#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://docs.woox.io/#get-funding-rate-history-for-one-market-public
+ * @see https://developer.woox.io/api-reference/endpoint/public_data/fundingRateHistory
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Woo) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -1360,7 +1396,7 @@ func (this *Woo) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptio
  * @method
  * @name woo#setPositionMode
  * @description set hedged to true or false for a market
- * @see https://docs.woox.io/#update-position-mode
+ * @see https://developer.woox.io/api-reference/endpoint/futures/position_mode
  * @param {bool} hedged set to true to use HEDGE_MODE, false for ONE_WAY
  * @param {string} symbol not used by woo setPositionMode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1393,12 +1429,13 @@ func (this *Woo) SetPositionMode(hedged bool, options ...SetPositionModeOptions)
  * @method
  * @name woo#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://docs.woox.io/#get-account-information-new
+ * @see https://developer.woox.io/api-reference/endpoint/account/get_account_info
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
- * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *Woo) FetchLeverage(symbol string, options ...FetchLeverageOptions) (Leverage, error) {
 
@@ -1422,13 +1459,13 @@ func (this *Woo) FetchLeverage(symbol string, options ...FetchLeverageOptions) (
  * @method
  * @name woo#setLeverage
  * @description set the level of leverage for a market
- * @see https://docs.woox.io/#update-leverage-setting
- * @see https://docs.woox.io/#update-futures-leverage-setting
+ * @see https://developer.woox.io/api-reference/endpoint/spot_margin/set_leverage
+ * @see https://developer.woox.io/api-reference/endpoint/futures/set_leverage
  * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
  * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
- * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+ * @param {string} [params.positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
  * @returns {object} response from the exchange
  */
 func (this *Woo) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
@@ -1454,6 +1491,15 @@ func (this *Woo) SetLeverage(leverage int64, options ...SetLeverageOptions) (map
     }
     return res.(map[string]interface{}), nil
 }
+/**
+ * @method
+ * @name woo#fetchPosition
+ * @description fetch data on an open position
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
+ * @param {string} symbol unified market symbol of the market the position is held in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+ */
 func (this *Woo) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
 
     opts := FetchPositionOptionsStruct{}
@@ -1472,6 +1518,15 @@ func (this *Woo) FetchPosition(symbol string, options ...FetchPositionOptions) (
     }
     return NewPosition(res), nil
 }
+/**
+ * @method
+ * @name woo#fetchPositions
+ * @description fetch all open positions
+ * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+ */
 func (this *Woo) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
     opts := FetchPositionsOptionsStruct{}
@@ -1504,7 +1559,7 @@ func (this *Woo) FetchPositions(options ...FetchPositionsOptions) ([]Position, e
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Woo) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
 
@@ -1539,7 +1594,7 @@ func (this *Woo) FetchConvertQuote(fromCode string, toCode string, options ...Fe
  * @param {string} toCode the currency that you want to buy and convert into
  * @param {float} [amount] how much you want to trade in units of the from currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Woo) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
@@ -1572,7 +1627,7 @@ func (this *Woo) CreateConvertTrade(id string, fromCode string, toCode string, o
  * @param {string} id the id of the trade that you want to fetch
  * @param {string} [code] the unified currency code of the conversion trade
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Woo) FetchConvertTrade(id string, options ...FetchConvertTradeOptions) (Conversion, error) {
 
@@ -1607,7 +1662,7 @@ func (this *Woo) FetchConvertTrade(id string, options ...FetchConvertTradeOption
  * @param {int} [limit] the maximum number of conversion structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest conversion to fetch
- * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}
+ * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *Woo) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOptions) ([]Conversion, error) {
 
@@ -1657,3 +1712,195 @@ func (this *Woo) FetchConvertCurrencies(params ...interface{}) (Currencies, erro
     }
     return NewCurrencies(res), nil
 }
+/**
+ * @method
+ * @name woo#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://docs.woox.io/#get-all-position-info-new
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *Woo) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+    opts := FetchPositionsADLRankOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.FetchPositionsADLRank(symbols, params)
+    if IsError(res) {
+        return nil, CreateReturnError(res)
+    }
+    return NewADLArray(res), nil
+}
+// missing typed methods from base
+//nolint
+func (this *Woo) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
+func (this *Woo) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {return this.exchangeTyped.CancelOrders(ids, options...)}
+func (this *Woo) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)}
+func (this *Woo) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.CancelOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Woo) CancelOrdersForSymbols(orders []CancellationRequest, options ...CancelOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersForSymbols(orders, options...)}
+func (this *Woo) CreateDepositAddress(code string, options ...CreateDepositAddressOptions) (DepositAddress, error) {return this.exchangeTyped.CreateDepositAddress(code, options...)}
+func (this *Woo) CreateLimitBuyOrder(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrder(symbol, amount, price, options...)}
+func (this *Woo) CreateLimitOrder(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrder(symbol, side, amount, price, options...)}
+func (this *Woo) CreateLimitSellOrder(symbol string, amount float64, price float64, options ...CreateLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrder(symbol, amount, price, options...)}
+func (this *Woo) CreateMarketBuyOrder(symbol string, amount float64, options ...CreateMarketBuyOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrder(symbol, amount, options...)}
+func (this *Woo) CreateMarketOrder(symbol string, side string, amount float64, options ...CreateMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrder(symbol, side, amount, options...)}
+func (this *Woo) CreateMarketOrderWithCost(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCost(symbol, side, cost, options...)}
+func (this *Woo) CreateMarketSellOrder(symbol string, amount float64, options ...CreateMarketSellOrderOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrder(symbol, amount, options...)}
+func (this *Woo) CreateOrders(orders []OrderRequest, options ...CreateOrdersOptions) ([]Order, error) {return this.exchangeTyped.CreateOrders(orders, options...)}
+func (this *Woo) CreateOrderWithTakeProfitAndStopLoss(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLoss(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreatePostOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateReduceOnlyOrder(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrder(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateStopLimitOrder(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrder(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Woo) CreateStopLossOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrder(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateStopMarketOrder(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrder(symbol, side, amount, triggerPrice, options...)}
+func (this *Woo) CreateStopOrder(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderOptions) (Order, error) {return this.exchangeTyped.CreateStopOrder(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateTakeProfitOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrder(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateTriggerOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrder(symbol, typeVar, side, amount, options...)}
+func (this *Woo) EditLimitBuyOrder(id string, symbol string, amount float64, options ...EditLimitBuyOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitBuyOrder(id, symbol, amount, options...)}
+func (this *Woo) EditLimitOrder(id string, symbol string, side string, amount float64, options ...EditLimitOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitOrder(id, symbol, side, amount, options...)}
+func (this *Woo) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)}
+func (this *Woo) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)}
+func (this *Woo) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
+func (this *Woo) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
+func (this *Woo) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
+func (this *Woo) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
+func (this *Woo) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
+func (this *Woo) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
+func (this *Woo) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {return this.exchangeTyped.FetchCrossBorrowRate(code, options...)}
+func (this *Woo) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {return this.exchangeTyped.FetchCrossBorrowRates(params...)}
+func (this *Woo) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddresses(options...)}
+func (this *Woo) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)}
+func (this *Woo) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)}
+func (this *Woo) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositWithdrawFees(options...)}
+func (this *Woo) FetchFreeBalance(params ...interface{}) (Balance, error) {return this.exchangeTyped.FetchFreeBalance(params...)}
+func (this *Woo) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {return this.exchangeTyped.FetchFundingIntervals(options...)}
+func (this *Woo) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Greeks, error) {return this.exchangeTyped.FetchGreeks(symbol, options...)}
+func (this *Woo) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)}
+func (this *Woo) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)}
+func (this *Woo) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {return this.exchangeTyped.FetchIsolatedBorrowRates(params...)}
+func (this *Woo) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {return this.exchangeTyped.FetchLastPrices(options...)}
+func (this *Woo) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {return this.exchangeTyped.FetchLedgerEntry(id, options...)}
+func (this *Woo) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, error) {return this.exchangeTyped.FetchLeverages(options...)}
+func (this *Woo) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (LeverageTiers, error) {return this.exchangeTyped.FetchLeverageTiers(options...)}
+func (this *Woo) FetchLiquidations(symbol string, options ...FetchLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.FetchLiquidations(symbol, options...)}
+func (this *Woo) FetchLongShortRatio(symbol string, options ...FetchLongShortRatioOptions) (LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatio(symbol, options...)}
+func (this *Woo) FetchLongShortRatioHistory(options ...FetchLongShortRatioHistoryOptions) ([]LongShortRatio, error) {return this.exchangeTyped.FetchLongShortRatioHistory(options...)}
+func (this *Woo) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmentHistoryOptions) ([]MarginModification, error) {return this.exchangeTyped.FetchMarginAdjustmentHistory(options...)}
+func (this *Woo) FetchMarginMode(symbol string, options ...FetchMarginModeOptions) (MarginMode, error) {return this.exchangeTyped.FetchMarginMode(symbol, options...)}
+func (this *Woo) FetchMarginModes(options ...FetchMarginModesOptions) (MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
+func (this *Woo) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
+func (this *Woo) FetchMarkOHLCV(symbol string, options ...FetchMarkOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
+func (this *Woo) FetchMarkPrice(symbol string, options ...FetchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
+func (this *Woo) FetchMarkPrices(options ...FetchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
+func (this *Woo) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.FetchMyLiquidations(options...)}
+func (this *Woo) FetchOpenInterest(symbol string, options ...FetchOpenInterestOptions) (OpenInterest, error) {return this.exchangeTyped.FetchOpenInterest(symbol, options...)}
+func (this *Woo) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)}
+func (this *Woo) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {return this.exchangeTyped.FetchOpenInterests(options...)}
+func (this *Woo) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {return this.exchangeTyped.FetchOption(symbol, options...)}
+func (this *Woo) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {return this.exchangeTyped.FetchOptionChain(code, options...)}
+func (this *Woo) FetchOrderWithClientOrderId(clientOrderId string, options ...FetchOrderWithClientOrderIdOptions) (Order, error) {return this.exchangeTyped.FetchOrderWithClientOrderId(clientOrderId, options...)}
+func (this *Woo) FetchOrderBooks(options ...FetchOrderBooksOptions) (OrderBooks, error) {return this.exchangeTyped.FetchOrderBooks(options...)}
+func (this *Woo) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {return this.exchangeTyped.FetchOrderStatus(id, options...)}
+func (this *Woo) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {return this.exchangeTyped.FetchPaymentMethods(params...)}
+func (this *Woo) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
+func (this *Woo) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchPositionMode(options...)}
+func (this *Woo) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
+func (this *Woo) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
+func (this *Woo) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
+func (this *Woo) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
+func (this *Woo) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {return this.exchangeTyped.FetchTicker(symbol, options...)}
+func (this *Woo) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {return this.exchangeTyped.FetchTickers(options...)}
+func (this *Woo) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTradingLimits(options...)}
+func (this *Woo) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFee(code, options...)}
+func (this *Woo) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchTransactionFees(options...)}
+func (this *Woo) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {return this.exchangeTyped.FetchTransactions(options...)}
+func (this *Woo) FetchTransfer(id string, options ...FetchTransferOptions) (TransferEntry, error) {return this.exchangeTyped.FetchTransfer(id, options...)}
+func (this *Woo) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {return this.exchangeTyped.SetMargin(symbol, amount, options...)}
+func (this *Woo) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {return this.exchangeTyped.SetMarginMode(marginMode, options...)}
+func (this *Woo) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelAllOrdersWs(options...)}
+func (this *Woo) CancelOrdersWs(ids []string, options ...CancelOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CancelOrdersWs(ids, options...)}
+func (this *Woo) CancelOrderWs(id string, options ...CancelOrderWsOptions) (Order, error) {return this.exchangeTyped.CancelOrderWs(id, options...)}
+func (this *Woo) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...CreateLimitBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)}
+func (this *Woo) CreateLimitOrderWs(symbol string, side string, amount float64, price float64, options ...CreateLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitOrderWs(symbol, side, amount, price, options...)}
+func (this *Woo) CreateLimitSellOrderWs(symbol string, amount float64, price float64, options ...CreateLimitSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateLimitSellOrderWs(symbol, amount, price, options...)}
+func (this *Woo) CreateMarketBuyOrderWs(symbol string, amount float64, options ...CreateMarketBuyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketBuyOrderWs(symbol, amount, options...)}
+func (this *Woo) CreateMarketOrderWithCostWs(symbol string, side string, cost float64, options ...CreateMarketOrderWithCostWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWithCostWs(symbol, side, cost, options...)}
+func (this *Woo) CreateMarketOrderWs(symbol string, side string, amount float64, options ...CreateMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketOrderWs(symbol, side, amount, options...)}
+func (this *Woo) CreateMarketSellOrderWs(symbol string, amount float64, options ...CreateMarketSellOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateMarketSellOrderWs(symbol, amount, options...)}
+func (this *Woo) CreateOrdersWs(orders []OrderRequest, options ...CreateOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.CreateOrdersWs(orders, options...)}
+func (this *Woo) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWithTakeProfitAndStopLossWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreatePostOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateReduceOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateReduceOnlyOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateReduceOnlyOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateStopLimitOrderWs(symbol string, side string, amount float64, price float64, triggerPrice float64, options ...CreateStopLimitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLimitOrderWs(symbol, side, amount, price, triggerPrice, options...)}
+func (this *Woo) CreateStopLossOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopLossOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopLossOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateStopMarketOrderWs(symbol string, side string, amount float64, triggerPrice float64, options ...CreateStopMarketOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopMarketOrderWs(symbol, side, amount, triggerPrice, options...)}
+func (this *Woo) CreateStopOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateStopOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateStopOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateTakeProfitOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTakeProfitOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTakeProfitOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateTrailingAmountOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingAmountOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateTrailingPercentOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingPercentOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTrailingPercentOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) CreateTriggerOrderWs(symbol string, typeVar string, side string, amount float64, options ...CreateTriggerOrderWsOptions) (Order, error) {return this.exchangeTyped.CreateTriggerOrderWs(symbol, typeVar, side, amount, options...)}
+func (this *Woo) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)}
+func (this *Woo) FetchBalanceWs(params ...interface{}) (Balances, error) {return this.exchangeTyped.FetchBalanceWs(params...)}
+func (this *Woo) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchClosedOrdersWs(options...)}
+func (this *Woo) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
+func (this *Woo) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchMyTradesWs(options...)}
+func (this *Woo) FetchOHLCVWs(symbol string, options ...FetchOHLCVWsOptions) ([]OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
+func (this *Woo) FetchOpenOrdersWs(options ...FetchOpenOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOpenOrdersWs(options...)}
+func (this *Woo) FetchOrderBookWs(symbol string, options ...FetchOrderBookWsOptions) (OrderBook, error) {return this.exchangeTyped.FetchOrderBookWs(symbol, options...)}
+func (this *Woo) FetchOrdersByStatusWs(status string, options ...FetchOrdersByStatusWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)}
+func (this *Woo) FetchOrdersWs(options ...FetchOrdersWsOptions) ([]Order, error) {return this.exchangeTyped.FetchOrdersWs(options...)}
+func (this *Woo) FetchOrderWs(id string, options ...FetchOrderWsOptions) (Order, error) {return this.exchangeTyped.FetchOrderWs(id, options...)}
+func (this *Woo) FetchPositionsForSymbolWs(symbol string, options ...FetchPositionsForSymbolWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)}
+func (this *Woo) FetchPositionsWs(options ...FetchPositionsWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionsWs(options...)}
+func (this *Woo) FetchPositionWs(symbol string, options ...FetchPositionWsOptions) ([]Position, error) {return this.exchangeTyped.FetchPositionWs(symbol, options...)}
+func (this *Woo) FetchTickersWs(options ...FetchTickersWsOptions) (Tickers, error) {return this.exchangeTyped.FetchTickersWs(options...)}
+func (this *Woo) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (Ticker, error) {return this.exchangeTyped.FetchTickerWs(symbol, options...)}
+func (this *Woo) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {return this.exchangeTyped.FetchTradesWs(symbol, options...)}
+func (this *Woo) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
+func (this *Woo) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
+func (this *Woo) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
+func (this *Woo) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchMyTrades(options...)}
+func (this *Woo) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCV(symbol, options...)}
+func (this *Woo) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Woo) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBook(symbol, options...)}
+func (this *Woo) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)}
+func (this *Woo) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchOrders(options...)}
+func (this *Woo) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTicker(symbol, options...)}
+func (this *Woo) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTickers(options...)}
+func (this *Woo) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
+func (this *Woo) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
+func (this *Woo) WatchBalance(params ...interface{}) (Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
+func (this *Woo) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
+func (this *Woo) WatchLiquidations(symbol string, options ...WatchLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
+func (this *Woo) WatchMarkPrice(symbol string, options ...WatchMarkPriceOptions) (Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
+func (this *Woo) WatchMarkPrices(options ...WatchMarkPricesOptions) (Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
+func (this *Woo) WatchMyLiquidations(symbol string, options ...WatchMyLiquidationsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
+func (this *Woo) WatchMyLiquidationsForSymbols(symbols []string, options ...WatchMyLiquidationsForSymbolsOptions) ([]Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
+func (this *Woo) WatchMyTrades(options ...WatchMyTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchMyTrades(options...)}
+func (this *Woo) WatchOHLCV(symbol string, options ...WatchOHLCVOptions) ([]OHLCV, error) {return this.exchangeTyped.WatchOHLCV(symbol, options...)}
+func (this *Woo) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...WatchOHLCVForSymbolsOptions) (map[string]map[string][]OHLCV, error) {return this.exchangeTyped.WatchOHLCVForSymbols(symbolsAndTimeframes, options...)}
+func (this *Woo) WatchOrderBook(symbol string, options ...WatchOrderBookOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBook(symbol, options...)}
+func (this *Woo) WatchOrderBookForSymbols(symbols []string, options ...WatchOrderBookForSymbolsOptions) (OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
+func (this *Woo) WatchOrders(options ...WatchOrdersOptions) ([]Order, error) {return this.exchangeTyped.WatchOrders(options...)}
+func (this *Woo) WatchOrdersForSymbols(symbols []string, options ...WatchOrdersForSymbolsOptions) ([]Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
+func (this *Woo) WatchPosition(options ...WatchPositionOptions) (Position, error) {return this.exchangeTyped.WatchPosition(options...)}
+func (this *Woo) WatchPositions(options ...WatchPositionsOptions) ([]Position, error) {return this.exchangeTyped.WatchPositions(options...)}
+func (this *Woo) WatchTicker(symbol string, options ...WatchTickerOptions) (Ticker, error) {return this.exchangeTyped.WatchTicker(symbol, options...)}
+func (this *Woo) WatchTickers(options ...WatchTickersOptions) (Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
+func (this *Woo) WatchTrades(symbol string, options ...WatchTradesOptions) ([]Trade, error) {return this.exchangeTyped.WatchTrades(symbol, options...)}
+func (this *Woo) WatchTradesForSymbols(symbols []string, options ...WatchTradesForSymbolsOptions) ([]Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
+func (this *Woo) WithdrawWs(code string, amount float64, address string, options ...WithdrawWsOptions) (Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

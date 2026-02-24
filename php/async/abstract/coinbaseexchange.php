@@ -145,8 +145,44 @@ abstract class coinbaseexchange extends \ccxt\async\Exchange {
     public function private_get_conversions_conversion_id($params = array()) {
         return $this->request('conversions/{conversion_id}', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_conversions($params = array()) {
+        return $this->request('conversions', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_conversions_fees($params = array()) {
         return $this->request('conversions/fees', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_lending_overview($params = array()) {
+        return $this->request('loans/lending-overview', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_lending_overview_xm($params = array()) {
+        return $this->request('loans/lending-overview-xm', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_loan_preview($params = array()) {
+        return $this->request('loans/loan-preview', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_loan_preview_xm($params = array()) {
+        return $this->request('loans/loan-preview-xm', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_repayment_preview($params = array()) {
+        return $this->request('loans/repayment-preview', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_repayment_preview_xm($params = array()) {
+        return $this->request('loans/repayment-preview-xm', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_interest_loan_id($params = array()) {
+        return $this->request('loans/interest/{loan_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_interest_history_loan_id($params = array()) {
+        return $this->request('loans/interest/history/{loan_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_interest($params = array()) {
+        return $this->request('loans/interest', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans_assets($params = array()) {
+        return $this->request('loans/assets', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_loans($params = array()) {
+        return $this->request('loans', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_conversions($params = array()) {
         return $this->request('conversions', 'private', 'POST', $params, null, null, array());
@@ -189,6 +225,15 @@ abstract class coinbaseexchange extends \ccxt\async\Exchange {
     }
     public function private_post_withdrawals_payment_method($params = array()) {
         return $this->request('withdrawals/payment-method', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_loans_open($params = array()) {
+        return $this->request('loans/open', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_loans_repay_interest($params = array()) {
+        return $this->request('loans/repay-interest', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_loans_repay_principal($params = array()) {
+        return $this->request('loans/repay-principal', 'private', 'POST', $params, null, null, array());
     }
     public function private_delete_orders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array());
@@ -337,8 +382,44 @@ abstract class coinbaseexchange extends \ccxt\async\Exchange {
     public function privateGetConversionsConversionId($params = array()) {
         return $this->request('conversions/{conversion_id}', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetConversions($params = array()) {
+        return $this->request('conversions', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetConversionsFees($params = array()) {
         return $this->request('conversions/fees', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansLendingOverview($params = array()) {
+        return $this->request('loans/lending-overview', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansLendingOverviewXm($params = array()) {
+        return $this->request('loans/lending-overview-xm', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansLoanPreview($params = array()) {
+        return $this->request('loans/loan-preview', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansLoanPreviewXm($params = array()) {
+        return $this->request('loans/loan-preview-xm', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansRepaymentPreview($params = array()) {
+        return $this->request('loans/repayment-preview', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansRepaymentPreviewXm($params = array()) {
+        return $this->request('loans/repayment-preview-xm', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansInterestLoanId($params = array()) {
+        return $this->request('loans/interest/{loan_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansInterestHistoryLoanId($params = array()) {
+        return $this->request('loans/interest/history/{loan_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansInterest($params = array()) {
+        return $this->request('loans/interest', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoansAssets($params = array()) {
+        return $this->request('loans/assets', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetLoans($params = array()) {
+        return $this->request('loans', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostConversions($params = array()) {
         return $this->request('conversions', 'private', 'POST', $params, null, null, array());
@@ -381,6 +462,15 @@ abstract class coinbaseexchange extends \ccxt\async\Exchange {
     }
     public function privatePostWithdrawalsPaymentMethod($params = array()) {
         return $this->request('withdrawals/payment-method', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostLoansOpen($params = array()) {
+        return $this->request('loans/open', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostLoansRepayInterest($params = array()) {
+        return $this->request('loans/repay-interest', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostLoansRepayPrincipal($params = array()) {
+        return $this->request('loans/repay-principal', 'private', 'POST', $params, null, null, array());
     }
     public function privateDeleteOrders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array());

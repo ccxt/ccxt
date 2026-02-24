@@ -6,6 +6,15 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.latoken.com/v2/currency",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOrders": [
             {
                 "description": "Spot orders",

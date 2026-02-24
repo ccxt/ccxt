@@ -77,6 +77,7 @@ class ImplicitAPI:
     v3_private_get_brokerage_intx_positions_portfolio_uuid_symbol = v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol = Entry('brokerage/intx/positions/{portfolio_uuid}/{symbol}', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_brokerage_payment_methods = v3PrivateGetBrokeragePaymentMethods = Entry('brokerage/payment_methods', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_get_brokerage_payment_methods_payment_method_id = v3PrivateGetBrokeragePaymentMethodsPaymentMethodId = Entry('brokerage/payment_methods/{payment_method_id}', ['v3', 'private'], 'GET', {'cost': 1})
+    v3_private_get_brokerage_key_permissions = v3PrivateGetBrokerageKeyPermissions = Entry('brokerage/key_permissions', ['v3', 'private'], 'GET', {'cost': 1})
     v3_private_post_brokerage_orders = v3PrivatePostBrokerageOrders = Entry('brokerage/orders', ['v3', 'private'], 'POST', {'cost': 1})
     v3_private_post_brokerage_orders_batch_cancel = v3PrivatePostBrokerageOrdersBatchCancel = Entry('brokerage/orders/batch_cancel', ['v3', 'private'], 'POST', {'cost': 1})
     v3_private_post_brokerage_orders_edit = v3PrivatePostBrokerageOrdersEdit = Entry('brokerage/orders/edit', ['v3', 'private'], 'POST', {'cost': 1})

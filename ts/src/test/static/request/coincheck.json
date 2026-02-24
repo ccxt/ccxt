@@ -1,0 +1,21 @@
+{
+    "exchange": "coincheck",
+    "outputType": "both",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "Spot limit buy order",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/exchange/orders",
+                "input": [
+                  "BTC/JPY",
+                  "limit",
+                  "buy",
+                  0.0001,
+                  25000
+                ],
+                "output": "amount=0.0001&order_type=buy&pair=btc_jpy&rate=25000"
+            }
+        ]
+    }
+}

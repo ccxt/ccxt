@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_trade.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -18,6 +17,7 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
         while ($now < $ends) {
+            $success = true;
             $response = null;
             try {
                 $response = Async\await($exchange->watch_my_trades($symbol));
@@ -26,14 +26,18 @@ function test_watch_my_trades($exchange, $skipped_properties, $symbol) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
-            $now = $exchange->milliseconds();
-            for ($i = 0; $i < count($response); $i++) {
-                test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+            if ($success === true) {
+                assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
+                $now = $exchange->milliseconds();
+                for ($i = 0; $i < count($response); $i++) {
+                    test_trade($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                }
+                assert_timestamp_order($exchange, $method, $symbol, $response);
             }
-            assert_timestamp_order($exchange, $method, $symbol, $response);
         }
+        return true;
     }) ();
 }

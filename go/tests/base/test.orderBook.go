@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestOrderBook(exchange ccxt.IExchange, skippedProperties interface{}, method interface{}, orderbook interface{}, symbol interface{})  {
+    func TestOrderBook(exchange ccxt.ICoreExchange, skippedProperties interface{}, method interface{}, orderbook interface{}, symbol interface{})  {
         var format interface{} = map[string]interface{} {
             "symbol": "ETH/BTC",
             "asks": []interface{}{[]interface{}{exchange.ParseNumber("1.24"), exchange.ParseNumber("0.453")}, []interface{}{exchange.ParseNumber("1.25"), exchange.ParseNumber("0.157")}},

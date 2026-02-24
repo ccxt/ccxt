@@ -1,0 +1,704 @@
+{
+    "exchange": "aster",
+    "skipKeys": [
+        "timestamp",
+        "recvWindow",
+        "signature"
+    ],
+    "options": {
+        "leverageBrackets":{"BTC/USDT:USDT":[["0","0.004"],["50000","0.005"],["250000","0.01"],["3000000","0.025"],["20000000","0.05"],["40000000","0.1"],["100000000","0.125"],["120000000","0.15"],["200000000","0.25"],["300000000","0.5"]],"ETH/USDT:USDT":[["0","0.005"],["100000","0.0065"],["250000","0.01"],["2000000","0.02"],["15000000","0.05"],["30000000","0.1"],["60000000","0.125"],["80000000","0.15"],["100000000","0.25"],["150000000","0.5"]],"LTC/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"ADA/USDT:USDT":[["0","0.0065"],["10000","0.01"],["50000","0.02"],["250000","0.05"],["1000000","0.1"],["2000000","0.125"],["5000000","0.15"],["10000000","0.25"]],"BTC/USD:BTC":[["0","0.004"],["5","0.005"],["10","0.01"],["20","0.025"],["50","0.05"],["100","0.1"],["200","0.125"],["400","0.15"],["1000","0.25"],["1500","0.5"]]}
+    },
+    "outputType": "urlencoded",
+    "methods": {
+        "createOrder": [
+            {
+                "description": "market buy trigger  order",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "ASTER/USDT",
+                    "market",
+                    "buy",
+                    9.996,
+                    null,
+                    {
+                        "triggerPrice": 0.9
+                    }
+                ],
+                "output": "timestamp=1767869133664&symbol=ASTERUSDT&side=BUY&type=STOP_MARKET&quantity=9.99&stopPrice=0.9&recvWindow=10000&signature=b57d40b5492c14d3caf9fc6160b9ebf2ab8022b618e4358c913e8dbfd7cca47a"
+            },
+            {
+                "description": "market sell order",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "ASTER/USDT",
+                    "market",
+                    "sell",
+                    9.996
+                ],
+                "output": "timestamp=1767869080826&symbol=ASTERUSDT&side=SELL&type=MARKET&quantity=9.99&recvWindow=10000&signature=9394fb3567bca1f40f63742342494b988ad5e18af804bd71f4418e1ea61c1d92"
+            },
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "ASTER/USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "timestamp=1767869058417&symbol=ASTERUSDT&side=BUY&type=MARKET&quantity=10&recvWindow=10000&signature=1219d72552019cbabe68725089bc8b958d23b2d6d6bcc0e689fde4188420c6c3"
+            },
+            {
+                "description": "create swap limit trigger order",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.7,
+                    {
+                        "triggerPrice": 0.8
+                    }
+                ],
+                "output": "timestamp=1767868923180&symbol=ASTERUSDT&side=BUY&type=STOP&quantity=10&price=0.7&stopPrice=0.8&recvWindow=10000&signature=9b38bd66a95cd70317de92b140cfd48dfbe37a4e5d161dbbaa9908ce138a163d"
+            },
+            {
+                "description": "limit sell  order",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "limit",
+                    "sell",
+                    10,
+                    1
+                ],
+                "output": "timestamp=1767868883088&symbol=ASTERUSDT&side=SELL&type=LIMIT&quantity=10&price=1&timeInForce=GTC&recvWindow=10000&signature=32fca6ddc645ba59e93ccd78b42aaaf32a7a713369a55024fa84f783b6818b0c"
+            },
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.7
+                ],
+                "output": "timestamp=1767868843413&symbol=ASTERUSDT&side=BUY&type=LIMIT&quantity=10&price=0.7&timeInForce=GTC&recvWindow=10000&signature=80af081d316dab34dfb77326e2da301e691cbcfc12152b01718d92b0359c580c"
+            },
+            {
+                "description": "swap market sell",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "market",
+                    "sell",
+                    10
+                ],
+                "output": "timestamp=1767868817663&symbol=ASTERUSDT&side=SELL&type=MARKET&quantity=10&recvWindow=10000&signature=13cf3a76954f868ae7d5aa06078a0d97f460e0e1f10b04337dde17e91c34b40b"
+            },
+            {
+                "description": "swap market buy",
+                "method": "createOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "ASTER/USDT:USDT",
+                    "market",
+                    "buy",
+                    10
+                ],
+                "output": "timestamp=1767868777769&symbol=ASTERUSDT&side=BUY&type=MARKET&quantity=10&recvWindow=10000&signature=40c0b7671e378e18c03b4e744cac91309b175e427733fe621321b938ddd0a8ba"
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://fapi.asterdex.com/fapi/v1/time",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV - spot",
+                "method": "fetchOHLCV",
+                "url": "https://sapi.asterdex.com/api/v1/klines?symbol=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT",
+                    "5m",
+                    1749806347909,
+                    1
+                ]
+            },
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.asterdex.com/fapi/v1/klines?symbol=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1
+                ]
+            },
+            {
+                "description": "fetchOHLCV - mark",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.asterdex.com/fapi/v1/markPriceKlines?symbol=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1,
+                    {
+                        "price": "mark"
+                    }
+                ]
+            },
+            {
+                "description": "fetchOHLCV - index",
+                "method": "fetchOHLCV",
+                "url": "https://fapi.asterdex.com/fapi/v1/indexPriceKlines?pair=BTCUSDT&startTime=1749806347909&limit=1&interval=5m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "5m",
+                    1749806347909,
+                    1,
+                    {
+                        "price": "index"
+                    }
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades - spot",
+                "method": "fetchTrades",
+                "url": "https://sapi.asterdex.com/api/v1/trades?symbol=BTCUSDT&limit=1",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    1
+                ]
+            },
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://fapi.asterdex.com/fapi/v1/trades?symbol=BTCUSDT&limit=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades - spot",
+                "method": "fetchMyTrades",
+                "url": "https://sapi.asterdex.com/api/v1/userTrades?symbol=BTCUSDT&startTime=1750400269888&limit=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT",
+                    1750400269888,
+                    1
+                ]
+            },
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "url": "https://fapi.asterdex.com/fapi/v1/userTrades?symbol=BTCUSDT&startTime=1750400269888&limit=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1750400269888,
+                    1
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook - spot",
+                "method": "fetchOrderBook",
+                "url": "https://sapi.asterdex.com/api/v1/depth?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT",
+                    5
+                ]
+            },
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://fapi.asterdex.com/fapi/v1/depth?symbol=BTCUSDT&limit=5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory",
+                "method": "fetchFundingRateHistory",
+                "url": "https://fapi.asterdex.com/fapi/v1/fundingRate?symbol=BTCUSDT&limit=1",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker - spot",
+                "method": "fetchTicker",
+                "url": "https://sapi.asterdex.com/api/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://fapi.asterdex.com/fapi/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://sapi.asterdex.com/api/v1/ticker/24hr",
+                "input": [
+                    [
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://fapi.asterdex.com/fapi/v1/ticker/24hr",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate",
+                "method": "fetchFundingRate",
+                "url": "https://fapi.asterdex.com/fapi/v1/premiumIndex?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://fapi.asterdex.com/fapi/v1/premiumIndex",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingIntervals": [
+            {
+                "description": "fetchFundingIntervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://fapi.asterdex.com/fapi/v1/fundingInfo",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance - spot",
+                "method": "fetchBalance",
+                "url": "https://sapi.asterdex.com/api/v1/account?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            },
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://fapi.asterdex.com/fapi/v4/account?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    {
+                        "subType": "linear"
+                    }
+                ]
+            }
+        ],
+        "fetchPositionMode": [
+            {
+                "description": "fetchPositionMode",
+                "method": "fetchPositionMode",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionSide/dual?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            }
+        ],
+        "setPositionMode": [
+            {
+                "description": "setPositionMode",
+                "method": "setPositionMode",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionSide/dual",
+                "input": [
+                    true
+                ],
+                "output": "dualSidePosition=true&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee - spot",
+                "method": "fetchTradingFee",
+                "url": "https://sapi.asterdex.com/api/v1/commissionRate?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://fapi.asterdex.com/fapi/v1/commissionRate?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder - spot",
+                "method": "fetchOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order?orderId=1917641&symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    1917641,
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order?orderId=1917641&symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    1917641,
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrder": [
+            {
+                "description": "fetchOpenOrder",
+                "method": "fetchOpenOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/openOrder?orderId=1917641&symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    1917641,
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders- spot",
+                "method": "fetchOrders",
+                "url": "https://sapi.asterdex.com/api/v1/allOrders?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/allOrders?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders - spot",
+                "method": "fetchOpenOrders",
+                "url": "https://sapi.asterdex.com/api/v1/openOrders?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/openOrders?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetchLeverage",
+                "method": "fetchLeverage",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLeverages": [
+            {
+                "description": "fetchLeverages",
+                "method": "fetchLeverages",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetchMarginMode",
+                "method": "fetchMarginMode",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchMarginModes": [
+            {
+                "description": "fetchMarginModes",
+                "method": "fetchMarginModes",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchMarginAdjustmentHistory": [
+            {
+                "description": "fetchMarginAdjustmentHistory",
+                "method": "fetchMarginAdjustmentHistory",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionMargin/history?symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "addMargin",
+                "method": "addMargin",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    3
+                ],
+                "output": "symbol=BTCUSDT&amount=3&type=1&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "reduceMargin",
+                "method": "reduceMargin",
+                "url": "https://fapi.asterdex.com/fapi/v1/positionMargin",
+                "input": [
+                    "BTC/USDT:USDT",
+                    3
+                ],
+                "output": "symbol=BTCUSDT&amount=3&type=2&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders - spot",
+                "method": "cancelAllOrders",
+                "url": "https://sapi.asterdex.com/api/v1/allOpenOrders",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "output": "symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            },
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/allOpenOrders",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel trigger roder",
+                "method": "cancelOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "2117364602",
+                    "ASTER/USDT:USDT"
+                ],
+                "output": "timestamp=1767869003080&symbol=ASTERUSDT&orderId=2117364602&recvWindow=10000&signature=7f3b030b7bd160fb557b910f91ee140b200f34df565ed4f717dabcea231a1580"
+            },
+            {
+                "description": "cancelOrder - spot",
+                "method": "cancelOrder",
+                "url": "https://sapi.asterdex.com/api/v1/order",
+                "input": [
+                    "123",
+                    "BTC/USDT"
+                ],
+                "output": "symbol=BTCUSDT&orderId=123&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            },
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "123",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&orderId=123&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            },
+            {
+                "description": "cancelOrder by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://fapi.asterdex.com/fapi/v1/order",
+                "input": [
+                    "",
+                    "BTC/USDT:USDT",
+                    {
+                        "origClientOrderId": "123"
+                    }
+                ],
+                "output": "symbol=BTCUSDT&origClientOrderId=123&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/batchOrders",
+                "input": [
+                    [
+                        "123",
+                        "456"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&orderidlist=%5B123%2C456%5D&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            },
+            {
+                "description": "cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://fapi.asterdex.com/fapi/v1/batchOrders",
+                "input": [
+                    [],
+                    "BTC/USDT:USDT",
+                    {
+                        "origClientOrderIdList": [
+                            "123",
+                            "456"
+                        ]
+                    }
+                ],
+                "output": "symbol=BTCUSDT&origclientorderidlist=%5B123%2C456%5D&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "setMarginMode",
+                "method": "setMarginMode",
+                "url": "https://fapi.asterdex.com/fapi/v1/marginType",
+                "input": [
+                    "cross",
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&marginType=CROSSED&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage",
+                "method": "setLeverage",
+                "url": "https://fapi.asterdex.com/fapi/v1/leverage",
+                "input": [
+                    21,
+                    "BTC/USDT:USDT"
+                ],
+                "output": "symbol=BTCUSDT&leverage=21&timestamp=timestamp&recvWindow=recvWindow&signature=signature"
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "url": "https://fapi.asterdex.com/fapi/v1/income?symbol=BTCUSDT&incomeType=FUNDING_FEE&timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "url": "https://fapi.asterdex.com/fapi/v1/income?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            }
+        ],
+        "fetchPositionsRisk": [
+            {
+                "description": "fetchPositionsRisk",
+                "method": "fetchPositionsRisk",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=1767869777606&recvWindow=10000&signature=035d145486fc591b8a0ee07f80d62f4e23f4f18dece49891e423999f5eb2eefd",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://fapi.asterdex.com/fapi/v2/positionRisk?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": []
+            },
+            {
+                "description": "fetchPositions - account",
+                "method": "fetchPositions",
+                "url": "https://fapi.asterdex.com/fapi/v4/account?timestamp=timestamp&recvWindow=recvWindow&signature=signature",
+                "input": [
+                    null,
+                    {
+                        "method": "account"
+                    }
+                ]
+            }
+        ]
+    }
+}

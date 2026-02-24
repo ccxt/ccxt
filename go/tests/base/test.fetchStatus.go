@@ -5,7 +5,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-    func TestFetchStatus(exchange ccxt.IExchange, skippedProperties interface{}) <- chan interface{} {
+    func TestFetchStatus(exchange ccxt.ICoreExchange, skippedProperties interface{}) <- chan interface{} {
                 ch := make(chan interface{})
                 go func() interface{} {
                     defer close(ch)

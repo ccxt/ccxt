@@ -548,6 +548,18 @@
         ],
         "fetchOHLCV": [
             {
+                "description": "non ascii symbol test",
+                "disabledCS": true,
+                "disabledGO": true,
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/%E7%B4%A2%E6%8B%89%E6%8B%89_USDT/candles?interval=HOUR_1",
+                "input": [
+                    "索拉拉/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
+            {
                 "description": "linear",
                 "method": "fetchOHLCV",
                 "url": "https://api.poloniex.com/v3/market/candles?symbol=BTC_USDT_PERP&interval=MINUTE_1",

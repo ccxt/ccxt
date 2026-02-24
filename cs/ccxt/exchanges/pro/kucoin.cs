@@ -30,6 +30,11 @@ public partial class kucoin : ccxt.kucoin
                 { "watchOrderBookForSymbols", true },
                 { "watchBalance", true },
                 { "watchOHLCV", true },
+                { "unWatchTicker", true },
+                { "unWatchOHLCV", true },
+                { "unWatchOrderBook", true },
+                { "unWatchTrades", true },
+                { "unWatchhTradesForSymbols", true },
             } },
             { "options", new Dictionary<string, object>() {
                 { "tradesLimit", 1000 },
@@ -56,17 +61,17 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         object connectId = ((bool) isTrue(privateChannel)) ? "private" : "public";
         object urls = this.safeValue(this.options, "urls", new Dictionary<string, object>() {});
-        object spawaned = this.safeValue(urls, connectId);
-        if (isTrue(!isEqual(spawaned, null)))
+        var future = this.safeValue(urls, connectId);
+        if (isTrue(!isEqual(future, null)))
         {
-            return await (spawaned as Exchange.Future);
+            return await (future as Exchange.Future);
         }
         // we store an awaitable to the url
         // so that multiple calls don't asynchronously
         // fetch different urls and overwrite each other
         ((IDictionary<string,object>)urls)[(string)connectId] = this.spawn(this.negotiateHelper, new object[] { privateChannel, parameters});
         ((IDictionary<string,object>)this.options)["urls"] = urls;
-        var future = getValue(urls, connectId);
+        future = getValue(urls, connectId);
         return await (future as Exchange.Future);
     }
 
@@ -109,8 +114,10 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -131,6 +138,12 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)requestId] = subscriptionHash;
         }
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
+    }
+
+    public async virtual Task<object> unSubscribe(object url, object messageHash, object topic, object subscriptionHash, object parameters = null, object subscription = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.unSubscribeMultiple(url, new List<object>() {messageHash}, topic, new List<object>() {subscriptionHash}, parameters, subscription);
     }
 
     public async virtual Task<object> subscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object parameters = null, object subscription = null)
@@ -190,7 +203,7 @@ public partial class kucoin : ccxt.kucoin
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
@@ -209,13 +222,46 @@ public partial class kucoin : ccxt.kucoin
 
     /**
      * @method
+     * @name kucoin#unWatchTicker
+     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public async override Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object url = await this.negotiate(false);
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "method", "/market/snapshot");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object topic = add(add(method, ":"), getValue(market, "id"));
+        object messageHash = add("unsubscribe:ticker:", symbol);
+        object subMessageHash = add("ticker:", symbol);
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", new List<object>() {messageHash} },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+            { "topic", "trades" },
+            { "unsubscribe", true },
+            { "symbols", new List<object>() {symbol} },
+        };
+        return await this.unSubscribe(url, messageHash, topic, subMessageHash, parameters, subscription);
+    }
+
+    /**
+     * @method
      * @name kucoin#watchTickers
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
@@ -356,7 +402,7 @@ public partial class kucoin : ccxt.kucoin
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -479,6 +525,38 @@ public partial class kucoin : ccxt.kucoin
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    /**
+     * @method
+     * @name kucoin#unWatchOHLCV
+     * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object url = await this.negotiate(false);
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
+        object period = this.safeString(this.timeframes, timeframe, timeframe);
+        object topic = add(add(add("/market/candles:", getValue(market, "id")), "_"), period);
+        object messageHash = add(add(add("unsubscribe:candles:", symbol), ":"), timeframe);
+        object subMessageHash = add(add(add("candles:", symbol), ":"), timeframe);
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", new List<object>() {messageHash} },
+            { "subMessageHashes", new List<object>() {subMessageHash} },
+            { "topic", "ohlcv" },
+            { "unsubscribe", true },
+            { "symbols", new List<object>() {symbol} },
+        };
+        return await this.unSubscribe(url, messageHash, topic, messageHash, parameters, subscription);
+    }
+
     public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
@@ -534,7 +612,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -551,7 +629,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
@@ -592,7 +670,7 @@ public partial class kucoin : ccxt.kucoin
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
      * @param {string} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
@@ -627,7 +705,7 @@ public partial class kucoin : ccxt.kucoin
      * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
@@ -683,7 +761,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -717,7 +795,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -737,7 +815,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -800,7 +878,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -1067,7 +1145,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] trigger orders are watched if true
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1227,7 +1305,7 @@ public partial class kucoin : ccxt.kucoin
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
         object cachedOrders = ((bool) isTrue(isTriggerOrder)) ? this.triggerOrders : this.orders;
-        object orders = this.safeValue((cachedOrders as ArrayCacheBySymbolById).hashmap, symbol, new Dictionary<string, object>() {});
+        object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
         object order = this.safeValue(orders, orderId);
         if (isTrue(!isEqual(order, null)))
         {
@@ -1253,7 +1331,7 @@ public partial class kucoin : ccxt.kucoin
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1415,7 +1493,7 @@ public partial class kucoin : ccxt.kucoin
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
@@ -1551,7 +1629,7 @@ public partial class kucoin : ccxt.kucoin
         client.lastPong = this.milliseconds();
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, object message)
+    public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1571,7 +1649,8 @@ public partial class kucoin : ccxt.kucoin
             }
             ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
         }
-        this.handleErrors(null, null, client.url, null, null, data, message, null, null);
+        this.handleErrors(1, "", client.url, "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
+        return false;
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -5,7 +5,7 @@ export declare type Strings = string[] | undefined;
 export declare type Num = number | undefined;
 export declare type Bool = boolean | undefined;
 export declare type IndexType = number | string;
-export declare type OrderSide = 'buy' | 'sell' | string;
+export declare type OrderSide = 'buy' | 'sell' | string | undefined;
 export declare type OrderType = 'limit' | 'market' | string;
 export declare type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
 export declare type SubType = 'linear' | 'inverse' | undefined;
@@ -212,9 +212,7 @@ export interface CurrencyInterface {
             max?: Num;
         };
     };
-    networks: {
-        string: any;
-    };
+    networks: Dictionary<any>;
     info: any;
 }
 export interface Balance {
@@ -409,6 +407,9 @@ export interface Liquidation {
     price: number;
     baseValue?: number;
     quoteValue?: number;
+    contracts?: number;
+    contractSize?: number;
+    side?: OrderSide;
 }
 export interface OrderRequest {
     symbol: string;
@@ -514,6 +515,15 @@ export interface LongShortRatio {
     datetime?: string;
     timeframe?: string;
     longShortRatio: number;
+}
+export interface ADL {
+    info: any;
+    symbol: string;
+    rank?: Int;
+    rating?: Str;
+    percentage?: number;
+    timestamp?: Int;
+    datetime?: Str;
 }
 export interface MarginModification {
     'info': any;

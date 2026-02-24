@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -191,24 +192,27 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              *
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
             Async\await($this->load_markets());
             return Async\await($this->subscribe('RISK', array( $symbol ), $params));
         }) ();
     }
 
-    public function watch_funding_rates(array $symbols, $params = array ()): PromiseInterface {
+    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watch the funding rate for multiple markets
              *
              * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
              *
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]} $symbols a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
+            }
             Async\await($this->load_markets());
             $fundingRate = Async\await($this->subscribe_multiple('RISK', $symbols, $params));
             $symbol = $this->safe_string($fundingRate, 'symbol');
@@ -231,7 +235,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $channel = null;
@@ -263,7 +267,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {string[]} [$symbols] unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             $channel = null;
@@ -461,7 +465,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         ));
     }
 
-    public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, close price, and the volume of a $market
@@ -538,7 +542,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -552,7 +556,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true, true);
@@ -638,7 +642,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         }) ();
@@ -654,7 +658,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {string[]} $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
             return Async\await($this->subscribe_multiple('LEVEL2', $symbols, $params));
@@ -794,7 +798,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $client->resolve ($fundingRate, $channel . '::' . $fundingRate['symbol']);
     }
 
-    public function handle_error_message(Client $client, $message) {
+    public function handle_error_message(Client $client, $message): Bool {
         //
         //    {
         //        $message => 'Failed to subscribe',

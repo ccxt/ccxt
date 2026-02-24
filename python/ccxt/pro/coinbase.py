@@ -37,6 +37,11 @@ class coinbase(ccxt.async_support.coinbase):
                 'watchTickers': True,
                 'watchTrades': True,
                 'watchTradesForSymbols': True,
+                'unWatchTicker': True,
+                'unWatchTickers': True,
+                'unWatchTrades': True,
+                'unWatchOrders': True,
+                'unWatchTradesForSymbols': True,
             },
             'urls': {
                 'api': {
@@ -93,6 +98,60 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch(url, messageHash, subscribe, messageHash)
 
+    async def un_subscribe(self, topic: str, name: str, isPrivate: bool, symbol=None):
+        """
+ @ignore
+        unSubscribes to a websocket channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+
+        :param str topic: unified topic
+        :param str name: the name of the channel
+        :param boolean isPrivate: whether the channel is private or not
+        :param str [symbol]: unified market symbol
+        :returns dict: subscription to a websocket channel
+        """
+        await self.load_markets()
+        if self.safe_bool(self.options, 'unSubscriptionPending', False):
+            raise ExchangeError(self.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions')
+        self.options['unSubscriptionPending'] = True
+        market = None
+        watchMessageHash = name
+        unWatchMessageHash = 'unsubscribe:' + name
+        productIds = []
+        if isinstance(symbol, list):
+            symbols = self.market_symbols(symbol)
+            marketIds = self.market_ids(symbols)
+            productIds = marketIds
+            watchMessageHash = watchMessageHash + '::' + ','.join(symbol)
+            unWatchMessageHash = unWatchMessageHash + '::' + ','.join(symbol)
+        elif symbol is not None:
+            market = self.market(symbol)
+            watchMessageHash = name + '::' + symbol
+            unWatchMessageHash = unWatchMessageHash + '::' + symbol
+            productIds = [market['id']]
+        url = self.urls['api']['ws']
+        # '{"type": "unsubscribe", "product_ids": ["BTC-USD", "ETH-USD"], "channel": "ticker"}'
+        message = {
+            'type': 'unsubscribe',
+            'product_ids': productIds,
+            'channel': name,
+        }
+        subscription = {
+            'messageHashes': [unWatchMessageHash],
+            'subMessageHashes': [watchMessageHash],
+            'topic': topic,
+            'unsubscribe': True,
+            'symbols': [symbol],
+        }
+        if isPrivate:
+            message = self.extend(message, self.create_ws_auth(name, productIds))
+        self.options['unSubscription'] = subscription
+        res = await self.watch(url, unWatchMessageHash, message, unWatchMessageHash, subscription)
+        self.options['unSubscriptionPending'] = False
+        self.options['unSubscription'] = None
+        return res
+
     async def subscribe_multiple(self, name: str, isPrivate: bool, symbols: Strings = None, params={}):
         """
  @ignore
@@ -126,6 +185,56 @@ class coinbase(ccxt.async_support.coinbase):
             subscribe = self.extend(subscribe, self.create_ws_auth(name, productIds))
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
+    async def un_subscribe_multiple(self, topic: str, name: str, isPrivate: bool, symbols: Strings = None, params={}):
+        """
+ @ignore
+        unsubscribes to a websocket channel
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-overview#subscribe
+
+        :param str topic: unified topic
+        :param str name: the name of the channel
+        :param boolean isPrivate: whether the channel is private or not
+        :param str[] [symbols]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: subscription to a websocket channel
+        """
+        if self.safe_bool(self.options, 'unSubscriptionPending', False):
+            raise ExchangeError(self.id + ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions')
+        self.options['unSubscriptionPending'] = True
+        await self.load_markets()
+        productIds = []
+        watchMessageHashes = []
+        unWatchMessageHashes = []
+        symbols = self.market_symbols(symbols, None, False)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            marketId = market['id']
+            productIds.append(marketId)
+            watchMessageHashes.append(name + '::' + symbol)
+            unWatchMessageHashes.append('unsubscribe:' + name + '::' + symbol)
+        url = self.urls['api']['ws']
+        message = {
+            'type': 'unsubscribe',
+            'product_ids': productIds,
+            'channel': name,
+        }
+        if isPrivate:
+            message = self.extend(message, self.create_ws_auth(name, productIds))
+        subscription = {
+            'messageHashes': unWatchMessageHashes,
+            'subMessageHashes': watchMessageHashes,
+            'topic': topic,
+            'unsubscribe': True,
+            'symbols': symbols,
+        }
+        self.options['unSubscription'] = subscription
+        res = await self.watch_multiple(url, unWatchMessageHashes, message, unWatchMessageHashes, subscription)
+        self.options['unSubscriptionPending'] = False
+        self.options['unSubscription'] = None
+        return res
+
     def create_ws_auth(self, name: str, productIds: List[str]):
         subscribe: dict = {}
         timestamp = self.number_to_string(self.seconds())
@@ -158,10 +267,25 @@ class coinbase(ccxt.async_support.coinbase):
 
         :param str [symbol]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        await self.load_markets()
         name = 'ticker'
         return await self.subscribe(name, False, symbol, params)
+
+    async def un_watch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        stops watching a price ticker
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-channel
+
+        :param str [symbol]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        name = 'ticker'
+        return await self.un_subscribe('ticker', name, False, symbol)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
@@ -171,8 +295,9 @@ class coinbase(ccxt.async_support.coinbase):
 
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
+        await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         name = 'ticker_batch'
@@ -183,6 +308,21 @@ class coinbase(ccxt.async_support.coinbase):
             tickers[symbol] = ticker
             return tickers
         return self.tickers
+
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+        """
+        stop watching
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#ticker-batch-channel
+
+        :param str[] [symbols]: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        if symbols is None:
+            symbols = self.symbols
+        return await self.un_subscribe_multiple('ticker', 'ticker_batch', False, symbols)
 
     def handle_tickers(self, client, message):
         #
@@ -352,7 +492,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         symbol = self.symbol(symbol)
@@ -361,6 +501,20 @@ class coinbase(ccxt.async_support.coinbase):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        stops watching the list of most recent trades for a particular symbol
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        await self.load_markets()
+        name = 'market_trades'
+        return await self.un_subscribe('trades', name, False, symbol)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
@@ -372,7 +526,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         name = 'market_trades'
@@ -382,6 +536,20 @@ class coinbase(ccxt.async_support.coinbase):
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        get the list of most recent trades for a particular symbol
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
+
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
+        """
+        await self.load_markets()
+        name = 'market_trades'
+        return await self.un_subscribe_multiple('trades', name, False, symbols, params)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -393,7 +561,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         name = 'user'
@@ -401,6 +569,20 @@ class coinbase(ccxt.async_support.coinbase):
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
+
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> Any:
+        """
+        stops watching information on multiple orders made by the user
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#user-channel
+
+        :param str [symbol]: unified market symbol of the market orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        await self.load_markets()
+        name = 'user'
+        return await self.un_subscribe('orders', name, True, self.symbol(symbol))
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -411,7 +593,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         name = 'level2'
@@ -419,6 +601,21 @@ class coinbase(ccxt.async_support.coinbase):
         symbol = market['symbol']
         orderbook = await self.subscribe(name, False, symbol, params)
         return orderbook.limit()
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        stops watching information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+
+        https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#level2-channel
+
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
+        name = 'level2'
+        return await self.un_subscribe('orderbook', name, False, symbol)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -429,7 +626,7 @@ class coinbase(ccxt.async_support.coinbase):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         name = 'level2'
@@ -553,8 +750,9 @@ class coinbase(ccxt.async_support.coinbase):
         id = self.safe_string(order, 'order_id')
         clientOrderId = self.safe_string(order, 'client_order_id')
         marketId = self.safe_string(order, 'product_id')
-        datetime = self.safe_string(order, 'time')
+        datetime = self.safe_string_2(order, 'time', 'creation_time')
         market = self.safe_market(marketId, market)
+        stopPrice = self.safe_string(order, 'stop_price')
         return self.safe_order({
             'info': order,
             'symbol': self.safe_string(market, 'symbol'),
@@ -566,16 +764,16 @@ class coinbase(ccxt.async_support.coinbase):
             'type': self.safe_string(order, 'order_type'),
             'timeInForce': None,
             'postOnly': None,
-            'side': self.safe_string(order, 'side'),
-            'price': None,
-            'stopPrice': None,
-            'triggerPrice': None,
-            'amount': None,
-            'cost': None,
+            'side': self.safe_string_lower_2(order, 'side', 'order_side'),
+            'price': self.safe_string(order, 'limit_price'),
+            'stopPrice': stopPrice,
+            'triggerPrice': stopPrice,
+            'amount': self.safe_string(order, 'cumulative_quantity'),
+            'cost': self.omit_zero(self.safe_string(order, 'filled_value')),
             'average': self.safe_string(order, 'avg_price'),
             'filled': self.safe_string(order, 'cumulative_quantity'),
             'remaining': self.safe_string(order, 'leaves_quantity'),
-            'status': self.safe_string_lower(order, 'status'),
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'fee': {
                 'amount': self.safe_string(order, 'total_fees'),
                 'currency': self.safe_string(market, 'quote'),
@@ -664,6 +862,29 @@ class coinbase(ccxt.async_support.coinbase):
         #         ]
         #     }
         #
+        #
+        #      {
+        #        channel: 'subscriptions',
+        #        client_id: '',
+        #        timestamp: '2025-09-15T17:02:49.90120868Z',
+        #        sequence_num: 3,
+        #        events: [{subscriptions: {}}]
+        #      }
+        #
+        events = self.safe_list(message, 'events', [])
+        firstEvent = self.safe_value(events, 0, {})
+        isUnsub = ('subscriptions' in firstEvent)
+        subKeys = list(firstEvent['subscriptions'].keys())
+        subKeysLength = len(subKeys)
+        if isUnsub and subKeysLength == 0:
+            unSubObject = self.safe_dict(self.options, 'unSubscription', {})
+            messageHashes = self.safe_list(unSubObject, 'messageHashes', [])
+            subMessageHashes = self.safe_list(unSubObject, 'subMessageHashes', [])
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                subHash = subMessageHashes[i]
+                self.clean_unsubscription(client, subHash, messageHash)
+            self.clean_cache(unSubObject)
         return message
 
     def handle_heartbeats(self, client, message):

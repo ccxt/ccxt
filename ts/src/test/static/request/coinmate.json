@@ -3,6 +3,14 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://coinmate.io/api/system/time",
+                "input": []
+            }
+        ],
         "fetchTicker": [
             {
                 "description": "fetchTicker",

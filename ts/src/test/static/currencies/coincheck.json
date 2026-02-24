@@ -1,0 +1,52 @@
+{
+    "BTC": {
+        "info": null,
+        "id": "btc",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "JPY": {
+        "info": null,
+        "id": "jpy",
+        "numericId": null,
+        "code": "JPY",
+        "precision": 1e-8,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    }
+}
