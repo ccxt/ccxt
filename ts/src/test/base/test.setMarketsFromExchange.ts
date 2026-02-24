@@ -5,6 +5,8 @@ import ccxt, { Exchange } from "../../../ccxt.js";
 
 async function testSetMarketsFromExchange () {
 
+    const methodName = 'setMarketsFromExchange';
+
     const emptyExchange = new ccxt.Exchange ({
         'id': 'sample0',
     });
@@ -52,10 +54,15 @@ async function testSetMarketsFromExchange () {
     exchange2.setMarketsFromExchange (exchange1);
 
     // Verify shared markets work
-    assert (testSharedMethods.deepEqual (emptyExchange, exchange1.symbols, exchange2.symbols), 'Symbols should be available after market sharing');
-    assert (testSharedMethods.deepEqual (emptyExchange, exchange1.currencies, exchange2.currencies), 'currencies dont match');
-    assert (testSharedMethods.deepEqual (emptyExchange, exchange1.codes, exchange2.codes), 'codes dont match');
-    // TODO: add rest of assertions
+    const neededProps = [ 'symbols', 'currencies', 'codes', 'markets', 'ids', 'markets_by_id', 'currencies_by_id', 'baseCurrencies', 'quoteCurrencies' ];
+    for (let i = 0; i < neededProps.length; i++) {
+        testSharedMethods.assertDeepEqual (emptyExchange, {}, methodName, emptyExchange.getProperty (exchange1, neededProps[i]), emptyExchange.getProperty (exchange2, neededProps[i]));
+    }
+
+    // Verify that modifying one exchange's markets modifies the other
+    // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
+    // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
+
 
     // Test 2: loadMarkets on shared markets should not make API call and be very fast
     const startTime = emptyExchange.milliseconds ();
