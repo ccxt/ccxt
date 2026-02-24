@@ -475,7 +475,11 @@ export default class kucoin extends kucoinRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        const channelName = (firstMarket['contract']) ? '/contractMarket/tickerV2:' : '/spotMarket/level1:';
+        const isFuturesMethod = firstMarket['contract'];
+        let channelName = '/spotMarket/level1:';
+        if (isFuturesMethod) {
+            channelName = '/contractMarket/tickerV2:';
+        }
         const ticker = await this.watchMultiHelper ('watchBidsAsks', channelName, symbols, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
@@ -609,7 +613,10 @@ export default class kucoin extends kucoinRest {
         const isFuturesMethod = market['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
         const period = this.safeString (this.timeframes, timeframe, timeframe);
-        const channelName = isFuturesMethod ? '/contractMarket/limitCandle:' : '/market/candles:';
+        let channelName = '/market/candles:';
+        if (isFuturesMethod) {
+            channelName = '/contractMarket/limitCandle:';
+        }
         const topic = channelName + market['id'] + '_' + period;
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         const ohlcv = await this.subscribe (url, messageHash, topic, params);
@@ -636,7 +643,10 @@ export default class kucoin extends kucoinRest {
         symbol = market['symbol'];
         const isFuturesMethod = market['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
-        const channelName = isFuturesMethod ? '/contractMarket/limitCandle:' : '/market/candles:';
+        let channelName = '/market/candles:';
+        if (isFuturesMethod) {
+            channelName = '/contractMarket/limitCandle:';
+        }
         const period = this.safeString (this.timeframes, timeframe, timeframe);
         const topic = channelName + market['id'] + '_' + period;
         const messageHash = 'unsubscribe:candles:' + symbol + ':' + timeframe;
@@ -770,7 +780,10 @@ export default class kucoin extends kucoinRest {
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes = [];
         const subscriptionHashes = [];
-        const channelName = isFuturesMethod ? '/contractMarket/execution:' : '/market/match:';
+        let channelName = '/market/match:';
+        if (isFuturesMethod) {
+            channelName = '/contractMarket/execution:';
+        }
         const topic = channelName + marketIds.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -806,7 +819,10 @@ export default class kucoin extends kucoinRest {
         const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes = [];
         const subscriptionHashes = [];
-        const channelName = isFuturesMethod ? '/contractMarket/execution:' : '/market/match:';
+        let channelName = '/market/match:';
+        if (isFuturesMethod) {
+            channelName = '/contractMarket/execution:';
+        }
         const topic = channelName + marketIds.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
