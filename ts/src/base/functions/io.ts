@@ -20,31 +20,19 @@ export async function initFileSystem () {
             try {
                 // Dynamic import with webpackIgnore to prevent bundling
                 fsSyncModule = await import (/* webpackIgnore: true */ 'node:fs');
-            } catch (e) {
-                // Silent fail in browser or if fs is unavailable
-                fsSyncModule = null;
-            }
+            } catch (e) { } // Silent fail in browser or if fs is unavailable
         }
         if (osSyncModule === null) {
             try {
                 osSyncModule = await import (/* webpackIgnore: true */ 'node:os');
-            } catch (e) {
-                osSyncModule = null;
-            }
+            } catch (e) { } // Silent fail in browser or if os is unavailable
         }
         if (pathSyncModule === null) {
             try {
                 pathSyncModule = await import(/* webpackIgnore: true */ 'node:path');
-            } catch (e) {
-                pathSyncModule = null;
-            }
+            } catch (e) { } // Silent fail in browser or if path is unavailable
         }
     }
-    return {
-        fs: fsSyncModule,
-        os: osSyncModule,
-        path: pathSyncModule,
-    };
 }
 
 if (isNode) {
@@ -59,10 +47,7 @@ if (isNode) {
  * @returns Temporary directory path with trailing slash, or undefined
  */
 export function getTempDir (): string | undefined {
-    if (!isNode) {
-        return undefined;
-    }
-    if (osSyncModule === null) {
+    if (!isNode || osSyncModule === null) {
         return undefined;
     }
     try {
@@ -93,10 +78,7 @@ function ensureCcxtFile (path: string) {
  * @returns File contents as string, or undefined in browser
  */
 export function fileRead (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
-    if (!isNode) {
-        return undefined;
-    }
-    if (fsSyncModule === null) {
+    if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
     }
@@ -117,11 +99,7 @@ export function fileRead (path: string, encoding: BufferEncoding = 'utf8'): stri
  * @param encoding File encoding (default: 'utf8')
  */
 export function fileWrite (path: string, data: string, encoding: BufferEncoding = 'utf8'): boolean {
-    if (!isNode) {
-        return !isNode; // return true in non-Node environments to indicate success (no-op)
-    }
-    if (fsSyncModule === null) {
-        // Sync module not initialized yet
+    if (!isNode || fsSyncModule === null) {
         return false;
     }
     ensureCcxtFile (path);
@@ -142,10 +120,7 @@ export function fileWrite (path: string, data: string, encoding: BufferEncoding 
  * @returns true if file exists, false otherwise
  */
 export function fileExists (path: string): boolean {
-    if (!isNode) {
-        return false;
-    }
-    if (fsSyncModule === null) {
+    if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return false;
     }
@@ -159,4 +134,4 @@ export function fileExists (path: string): boolean {
 }
 
 
-// we don't have `fileDelete` or other deletion methods, to ensure nothing is deleted by mistake
+// we don't have `fileDelete` or other deletion methods
