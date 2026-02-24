@@ -622,7 +622,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
+     * @see https://www.kucoin.com/docs-new/3470071w0
+     * @see https://www.kucoin.com/docs-new/3470086w0
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -731,7 +732,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @see https://www.kucoin.com/docs-new/3470072w0
+     * @see https://www.kucoin.com/docs-new/3470084w0
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -746,7 +748,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @see https://www.kucoin.com/docs-new/3470072w0
+     * @see https://www.kucoin.com/docs-new/3470084w0
      * @param {string[]} symbols
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -759,17 +762,20 @@ export default class kucoin extends kucoinRest {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isFuturesMethod = firstMarket['contract'];
         const marketIds = this.marketIds (symbols);
-        const url = await this.negotiate (false);
+        const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes = [];
         const subscriptionHashes = [];
-        const topic = '/market/match:' + marketIds.join (',');
+        const channelName = isFuturesMethod ? '/contractMarket/execution:' : '/market/match:';
+        const topic = channelName + marketIds.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('trades:' + symbol);
             const marketId = marketIds[i];
-            subscriptionHashes.push ('/market/match:' + marketId);
+            subscriptionHashes.push (channelName + marketId);
         }
         const trades = await this.subscribeMultiple (url, messageHashes, topic, subscriptionHashes, params);
         if (this.newUpdates) {
@@ -784,24 +790,33 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#unWatchTradesForSymbols
      * @description unWatches trades stream
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @see https://www.kucoin.com/docs-new/3470072w0
+     * @see https://www.kucoin.com/docs-new/3470084w0
      * @param {string} symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
-        const url = await this.negotiate (false);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isFuturesMethod = firstMarket['contract'];
+        const url = await this.negotiate (false, isFuturesMethod);
         const messageHashes = [];
         const subscriptionHashes = [];
-        const topic = '/market/match:' + marketIds.join (',');
+        const channelName = isFuturesMethod ? '/contractMarket/execution:' : '/market/match:';
+        const topic = channelName + marketIds.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('unsubscribe:trades:' + symbol);
             subscriptionHashes.push ('trades:' + symbol);
         }
+        // we have to add the topic to the messageHashes and subMessageHashes
+        // because handleSubscriptionStatus needs them to remove the subscription from the client
+        // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
+        messageHashes.push (topic);
+        subscriptionHashes.push (topic);
         const subscription = {
             'messageHashes': messageHashes,
             'subMessageHashes': subscriptionHashes,
@@ -816,7 +831,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#unWatchTrades
      * @description unWatches trades stream
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+     * @see https://www.kucoin.com/docs-new/3470072w0
+     * @see https://www.kucoin.com/docs-new/3470084w0
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
@@ -846,17 +862,19 @@ export default class kucoin extends kucoinRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const trade = this.parseTrade (data);
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const trade = this.parseTrade (data, market);
         const symbol = trade['symbol'];
         const messageHash = 'trades:' + symbol;
-        let trades = this.safeValue (this.trades, symbol);
-        if (trades === undefined) {
+        if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCache (limit);
-            this.trades[symbol] = trades;
+            const stored = new ArrayCache (limit);
+            this.trades[symbol] = stored;
         }
-        trades.append (trade);
-        client.resolve (trades, messageHash);
+        const cache = this.trades[symbol];
+        cache.append (trade);
+        client.resolve (cache, messageHash);
     }
 
     /**
@@ -1644,6 +1662,7 @@ export default class kucoin extends kucoinRest {
             'ticker': this.handleTicker,
             'tickerV2': this.handleBidAsk,
             'candle.stick': this.handleOHLCV,
+            'match': this.handleTrade,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
