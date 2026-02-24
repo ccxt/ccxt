@@ -738,22 +738,11 @@ public partial class Exchange
         }
         else if (value2 is System.Collections.IDictionary)
         {
-
             IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(value2);
-            var keys = dict.Keys;
-            foreach (var key2 in keys)
+            var strKey = key.ToString();
+            if (dict.ContainsKey(strKey))
             {
-                if (key2 == null)
-                    continue;
-                var dictKey = key2.ToString();
-                if (dict.ContainsKey(dictKey))
-                {
-                    var returnValue = dict[dictKey];
-                    if (returnValue == null || returnValue.ToString().Length == 0)
-                        continue;
-
-                    return returnValue;
-                }
+                return dict[strKey];
             }
             return null;
         }
