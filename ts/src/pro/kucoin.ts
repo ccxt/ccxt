@@ -46,7 +46,8 @@ export default class kucoin extends kucoinRest {
                 'watchOrderBook': {
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
-                    'method': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
+                    'spotMethod': '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
+                    'contractMethod': '/contractMarket/level2', // '/contractMarket/level2Depth5' or '/contractMarket/level2Depth20'
                 },
                 'watchMyTrades': {
                     'method': '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
@@ -930,15 +931,16 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#watchOrderBookForSymbols
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -954,11 +956,19 @@ export default class kucoin extends kucoinRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const marketIds = this.marketIds (symbols);
-        const url = await this.negotiate (false);
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', '/market/level2');
-        if ((limit === 5) || (limit === 50)) {
-            method = '/spotMarket/level2Depth' + limit.toString ();
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isFuturesMethod = firstMarket['contract'];
+        const url = await this.negotiate (false, isFuturesMethod);
+        let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
+        const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        [ method, params ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', method);
+        if (method.indexOf ('Depth') === -1) {
+            if ((limit === 5) || (limit === 50)) {
+                if (!isFuturesMethod) {
+                    method = '/spotMarket/level2';
+                }
+                method += 'Depth' + limit.toString ();
+            }
         }
         const topic = method + ':' + marketIds.join (',');
         const messageHashes = [];
@@ -970,7 +980,7 @@ export default class kucoin extends kucoinRest {
             subscriptionHashes.push (method + ':' + marketId);
         }
         let subscription = {};
-        if (method === '/market/level2') { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
+        if ((method === '/market/level2') || (method === '/contractMarket/level2')) { // other streams return the entire orderbook, so we don't need to fetch the snapshot through REST
             subscription = {
                 'method': this.handleOrderBookSubscription,
                 'symbols': symbols,
@@ -984,27 +994,37 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#unWatchOrderBookForSymbols
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+     * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
         const limit = this.safeInteger (params, 'limit');
         params = this.omit (params, 'limit');
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false);
+        symbols = this.marketSymbols (symbols, undefined, false, true);
         const marketIds = this.marketIds (symbols);
-        const url = await this.negotiate (false);
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', '/market/level2');
-        if ((limit === 5) || (limit === 50)) {
-            method = '/spotMarket/level2Depth' + limit.toString ();
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const isFuturesMethod = firstMarket['contract'];
+        const url = await this.negotiate (false, isFuturesMethod);
+        let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
+        const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        [ method, params ] = this.handleOptionAndParams2 (params, 'watchOrderBook', optionName, 'method', method);
+        if (method.indexOf ('Depth') === -1) {
+            if ((limit === 5) || (limit === 50)) {
+                if (!isFuturesMethod) {
+                    method = '/spotMarket/level2';
+                }
+                method += 'Depth' + limit.toString ();
+            }
         }
         const topic = method + ':' + marketIds.join (',');
         const messageHashes = [];
@@ -1014,6 +1034,11 @@ export default class kucoin extends kucoinRest {
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
             subscriptionHashes.push ('orderbook:' + symbol);
         }
+        // we have to add the topic to the messageHashes and subMessageHashes
+        // because handleSubscriptionStatus needs them to remove the subscription from the client
+        // without them subscription would never be removed and re-subscribe would fail because of duplicate subscriptionHash
+        messageHashes.push (topic);
+        subscriptionHashes.push (topic);
         const subscription = {
             'messageHashes': messageHashes,
             'symbols': symbols,
@@ -1066,7 +1091,6 @@ export default class kucoin extends kucoinRest {
         //     }
         //
         const data = this.safeValue (message, 'data');
-        const subject = this.safeString (message, 'subject');
         const topic = this.safeString (message, 'topic');
         const topicParts = topic.split (':');
         const topicSymbol = this.safeString (topicParts, 1);
@@ -1075,7 +1099,7 @@ export default class kucoin extends kucoinRest {
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const messageHash = 'orderbook:' + symbol;
         // let orderbook = this.safeDict (this.orderbooks, symbol);
-        if (subject === 'level2') {
+        if (topic.indexOf ('Depth') >= 0) {
             if (!(symbol in this.orderbooks)) {
                 this.orderbooks[symbol] = this.orderBook ();
             } else {
@@ -1125,8 +1149,8 @@ export default class kucoin extends kucoinRest {
         }
         for (let i = 0; i < cache.length; i++) {
             const delta = cache[i];
-            const deltaStart = this.safeInteger (delta, 'sequenceStart');
-            const deltaEnd = this.safeInteger (delta, 'sequenceEnd');
+            const deltaStart = this.safeInteger2 (delta, 'sequenceStart', 'sequence');
+            const deltaEnd = this.safeInteger2 (delta, 'sequenceEnd', 'timestamp'); // todo check
             if ((nonce >= deltaStart - 1) && (nonce < deltaEnd)) {
                 return i;
             }
@@ -1136,16 +1160,32 @@ export default class kucoin extends kucoinRest {
 
     handleDelta (orderbook, delta) {
         const timestamp = this.safeInteger2 (delta, 'time', 'timestamp');
-        orderbook['nonce'] = this.safeInteger (delta, 'sequenceEnd', timestamp);
+        orderbook['nonce'] = this.safeInteger2 (delta, 'sequenceEnd', 'sequence', timestamp);
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
-        const changes = this.safeValue (delta, 'changes', delta);
-        const bids = this.safeValue (changes, 'bids', []);
-        const asks = this.safeValue (changes, 'asks', []);
+        const change = this.safeString (delta, 'change');
         const storedBids = orderbook['bids'];
         const storedAsks = orderbook['asks'];
-        this.handleBidAsks (storedBids, bids);
-        this.handleBidAsks (storedAsks, asks);
+        if (change !== undefined) {
+            // handling futures orderbook update
+            const splitChange = change.split (',');
+            const price = this.safeNumber (splitChange, 0);
+            const side = this.safeString (splitChange, 1);
+            const quantity = this.safeNumber (splitChange, 2);
+            const type = (side === 'buy') ? 'bids' : 'asks';
+            const value = [ price, quantity ];
+            if (type === 'bids') {
+                storedBids.storeArray (value);
+            } else {
+                storedAsks.storeArray (value);
+            }
+        } else {
+            const changes = this.safeDict (delta, 'changes', delta);
+            const bids = this.safeValue (changes, 'bids', []);
+            const asks = this.safeValue (changes, 'asks', []);
+            this.handleBidAsks (storedBids, bids);
+            this.handleBidAsks (storedAsks, asks);
+        }
     }
 
     handleBidAsks (bookSide, bidAsks) {
