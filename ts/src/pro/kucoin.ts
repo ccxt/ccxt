@@ -2,9 +2,9 @@
 //  ---------------------------------------------------------------------------
 
 import kucoinRest from '../kucoin.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict, Bool } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1159,7 +1159,7 @@ export default class kucoin extends kucoinRest {
     getCacheIndex (orderbook, cache) {
         const firstDelta = this.safeValue (cache, 0);
         const nonce = this.safeInteger (orderbook, 'nonce');
-        const firstDeltaStart = this.safeInteger (firstDelta, 'sequenceStart');
+        const firstDeltaStart = this.safeInteger2 (firstDelta, 'sequenceStart', 'sequence');
         if (nonce < firstDeltaStart - 1) {
             return -1;
         }
