@@ -355,7 +355,6 @@ export default class Exchange {
     rollingWindowSize: number = 0.0;  // set to 0.0 to use leaky bucket rate limiter
     rateLimiterAlgorithm: string = 'leakyBucket';
 
-    marketsCache = {}
     httpExceptions: Dictionary<any> = undefined;
 
     limits: {
