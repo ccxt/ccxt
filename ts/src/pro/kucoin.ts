@@ -452,7 +452,8 @@ export default class kucoin extends kucoinRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        client.resolve (ticker, this.getMessageHash ('ticker', market['symbol']));
+        const messageHash = 'ticker:' + market['symbol'];
+        client.resolve (ticker, messageHash);
     }
 
     /**
@@ -465,7 +466,11 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        const ticker = await this.watchMultiHelper ('watchBidsAsks', '/spotMarket/level1:', symbols, params);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const firstMarket = this.getMarketFromSymbols (symbols);
+        const channelName = (firstMarket['contract']) ? '/contractMarket/tickerV2:' : '/spotMarket/level1:';
+        const ticker = await this.watchMultiHelper ('watchBidsAsks', channelName, symbols, params);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[ticker['symbol']] = ticker;
@@ -516,6 +521,20 @@ export default class kucoin extends kucoinRest {
         //         subject: 'level1'
         //     }
         //
+        // futures
+        // {
+        //   "subject": "tickerV2",
+        //   "topic": "/contractMarket/tickerV2:XBTUSDM",
+        //   "data": {
+        //     "symbol": "XBTUSDM", //Market of the symbol
+        //     "bestBidSize": 795, // Best bid size
+        //     "bestBidPrice": 3200.0, // Best bid
+        //     "bestAskPrice": 3600.0, // Best ask
+        //     "bestAskSize": 284, // Best ask size
+        //     "ts": 1553846081210004941 // Filled time - nanosecond
+        //   }
+        // }
+        //
         const parsedTicker = this.parseWsBidAsk (message);
         const symbol = parsedTicker['symbol'];
         this.bidsasks[symbol] = parsedTicker;
@@ -525,24 +544,43 @@ export default class kucoin extends kucoinRest {
 
     parseWsBidAsk (ticker, market = undefined) {
         const topic = this.safeString (ticker, 'topic');
-        const parts = topic.split (':');
-        const marketId = parts[1];
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
-        const data = this.safeDict (ticker, 'data', {});
-        const ask = this.safeList (data, 'asks', []);
-        const bid = this.safeList (data, 'bids', []);
-        const timestamp = this.safeInteger (data, 'timestamp');
-        return this.safeTicker ({
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'ask': this.safeNumber (ask, 0),
-            'askVolume': this.safeNumber (ask, 1),
-            'bid': this.safeNumber (bid, 0),
-            'bidVolume': this.safeNumber (bid, 1),
-            'info': ticker,
-        }, market);
+        if (topic.indexOf ('contractMarket') < 0) {
+            const parts = topic.split (':');
+            const marketId = parts[1];
+            market = this.safeMarket (marketId, market);
+            const symbol = this.safeString (market, 'symbol');
+            const data = this.safeDict (ticker, 'data', {});
+            const ask = this.safeList (data, 'asks', []);
+            const bid = this.safeList (data, 'bids', []);
+            const timestamp = this.safeInteger (data, 'timestamp');
+            return this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'ask': this.safeNumber (ask, 0),
+                'askVolume': this.safeNumber (ask, 1),
+                'bid': this.safeNumber (bid, 0),
+                'bidVolume': this.safeNumber (bid, 1),
+                'info': ticker,
+            }, market);
+        } else {
+            // futures
+            const data = this.safeDict (ticker, 'data', {});
+            const marketId = this.safeString (data, 'symbol');
+            market = this.safeMarket (marketId, market);
+            const symbol = this.safeString (market, 'symbol');
+            const timestamp = this.safeIntegerProduct (data, 'ts', 0.000001);
+            return this.safeTicker ({
+                'symbol': symbol,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'ask': this.safeNumber (data, 'bestAskPrice'),
+                'askVolume': this.safeNumber (data, 'bestAskSize'),
+                'bid': this.safeNumber (data, 'bestBidPrice'),
+                'bidVolume': this.safeNumber (data, 'bestBidSize'),
+                'info': ticker,
+            }, market);
+        }
     }
 
     /**
@@ -1560,7 +1598,7 @@ export default class kucoin extends kucoinRest {
             '/spot/tradeFills': this.handleMyTrade,
             // futures messages
             'ticker': this.handleTicker,
-            'tickerV2': this.handleTicker,
+            'tickerV2': this.handleBidAsk,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
