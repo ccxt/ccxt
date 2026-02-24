@@ -235,6 +235,7 @@ export default class Exchange {
     };
 
     headers: Dictionary<string> = {};
+    marketsCacheMinutes: number = 0;
     returnResponseHeaders: boolean = false;
     origin: string = '*';  // CORS origin
     MAX_VALUE: number = Number.MAX_VALUE;
@@ -1093,69 +1094,6 @@ export default class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    // ######## cache ########
-    fsImported = undefined;
-    osImported = undefined;
-
-    async loadModulesForCache () {
-        if (this.fsImported === undefined) {
-            try {
-                this.fsImported = await import (/* webpackIgnore: true */'node:fs');
-            } catch (e) {
-                throw new NotSupported (this.id + ' - markets cache is supported only in backend apps like node/deno/etc but not in browser apps');
-            }
-        }
-        if (this.osImported === undefined) {
-            try {
-                this.osImported = await import (/* webpackIgnore: true */'node:os');
-            } catch (e) {
-                throw new NotSupported (this.id + ' - markets cache is supported only in backend apps like node/deno/etc but not in browser apps');
-            }
-        }
-    }
-
-    marketsCacheFilePath () {
-        const location = this.safeString (this.marketsCache, 'path', this.osImported.tmpdir() + '/ccxt_' + this.id + '_loaded_markets_cache.json');
-        return location;
-    }
-
-    async marketsCacheGet () {
-        const expiration = this.safeInteger (this.marketsCache, 'expiration', 0); // seconds
-        // only check if user has enabled caching
-        if (expiration) {
-            await this.loadModulesForCache ();
-            const cacheFile = this.marketsCacheFilePath();
-            if (this.fsImported.existsSync (cacheFile)) {
-                const content = await this.fsImported.readFileSync (cacheFile, 'utf8');
-                if (content) {
-                    const values = JSON.parse(content);
-                    if (values) {
-                        if ((this.milliseconds () - values.timestamp) <= expiration * 1000) {
-                            return [ values.markets, values.currencies ];
-                        }
-                    }
-                }
-            }
-        }
-        return [ undefined, undefined ];
-    }
-
-    async marketsCacheSave (markets, currencies, params = {}) {
-        const expiration = this.safeInteger (this.marketsCache, 'expiration', 0); // seconds
-        // only write if user has enabled caching
-        if (expiration) {
-            await this.loadModulesForCache ();
-            const cacheFile = this.marketsCacheFilePath();
-            const values = {
-                'timestamp': this.milliseconds (),
-                'markets': markets,
-                'currencies': currencies,
-            };
-            // write cache file
-            await this.fsImported.writeFileSync (cacheFile, JSON.stringify (values), 'utf8');
-        }
-    }
-
     async loadMarketsHelper (reload = false, params = {}) {
         if (!reload && this.markets) {
             if (!this.markets_by_id) {
@@ -1163,7 +1101,7 @@ export default class Exchange {
             }
             return this.markets;
         }
-        let [ markets,currencies ] = await this.marketsCacheGet ();
+        let [ markets, currencies ] = this.marketsCacheRead ();
         if (markets !== undefined) {
             return this.setMarkets (markets, currencies);
         }
@@ -1177,7 +1115,7 @@ export default class Exchange {
             delete this.options['cachedCurrencies'];
         }
         // write new cache
-        await this.marketsCacheSave (markets, currencies, params);
+        this.marketsCacheSave (markets, currencies);
         return this.setMarkets (markets, currencies);
     }
 
@@ -2684,6 +2622,43 @@ export default class Exchange {
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+    }
+
+    marketsCacheFilePath () {
+        return this.getTempDir () + 'ccxt_' + this.id + '_loaded_markets_cache.json';
+    }
+
+    marketsCacheRead () {
+        // only write if user has enabled caching
+        if (this.marketsCacheMinutes > 0) {
+            const cacheFilePath = this.marketsCacheFilePath ();
+            if (this.fileExists (cacheFilePath)) {
+                const content = this.fileRead (cacheFilePath);
+                if (content !== undefined && content !== '' && content != '{}') {
+                    const values = JSON.parse (content);
+                    // if not expired
+                    const expirationMs = this.marketsCacheMinutes * 60 * 1000; // milliseconds
+                    if ((this.milliseconds () < values['saveTimestamp'] + expirationMs)) {
+                        return [ values['markets'], values['currencies'] ];
+                    }
+                }
+            }
+        }
+        return [ undefined, undefined ];
+    }
+
+    marketsCacheSave (markets, currencies: Dict = undefined) {
+        // only write if user has enabled caching
+        if (this.marketsCacheMinutes > 0) {
+            const cacheFile = this.marketsCacheFilePath();
+            const values = {
+                'saveTimestamp': this.milliseconds (),
+                'markets': markets,
+                'currencies': currencies,
+            };
+            // write cache file
+            this.fileWrite (cacheFile, this.json (values));
         }
     }
 
