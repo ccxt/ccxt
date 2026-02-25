@@ -89,8 +89,9 @@ class binance(ccxt.async_support.binance):
                         'margin': 'wss://stream.testnet.binance.vision/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate': 'wss://nbstream.binance.com/eoptions/ws',
+                        'option': 'wss://fstream.binancefuture.com/public/stream',
+                        'optionMarket': 'wss://fstream.binancefuture.com/market/stream',
+                        'optionPrivate': 'wss://fstream.binancefuture.com/public/stream',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -104,8 +105,9 @@ class binance(ccxt.async_support.binance):
                         'margin': 'wss://demo-stream.binance.com/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate': 'wss://nbstream.binance.com/eoptions/ws',
+                        'option': 'wss://fstream.binance.com/public/stream',
+                        'optionMarket': 'wss://fstream.binance.com/market/stream',
+                        'optionPrivate': 'wss://fstream.binance.com/public/stream',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -119,8 +121,9 @@ class binance(ccxt.async_support.binance):
                         'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
-                        'option': 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate': 'wss://nbstream.binance.com/eoptions/ws',
+                        'option': 'wss://fstream.binance.com/public/stream',
+                        'optionMarket': 'wss://fstream.binance.com/market/stream',
+                        'optionPrivate': 'wss://fstream.binance.com/public/stream',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
@@ -142,6 +145,7 @@ class binance(ccxt.async_support.binance):
                     'future': 50,  # max 200
                     'delivery': 50,  # max 200
                     'option': 50,  # max 200
+                    'optionMarket': 50,  # max 200
                 },
                 'subscriptionLimitByStream': {
                     'spot': 200,
@@ -149,6 +153,7 @@ class binance(ccxt.async_support.binance):
                     'future': 200,
                     'delivery': 200,
                     'option': 200,
+                    'optionMarket': 200,
                 },
                 'streamBySubscriptionsHash': self.create_safe_dictionary(),
                 'streamIndex': -1,
@@ -1943,7 +1948,8 @@ class binance(ccxt.async_support.binance):
         elif marketType == 'spot':
             rawMarketType = marketType
         elif marketType == 'option':
-            rawMarketType = 'option'
+            # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+            rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
         else:
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
         if isMarkPrice and not self.in_array(marketType, ['swap', 'future', 'option']):
@@ -4499,6 +4505,11 @@ class binance(ccxt.async_support.binance):
             client.reject(message, accountType)
 
     def handle_message(self, client: Client, message):
+        # eOptions combined stream endpoints(/public/stream, /market/stream) wrap events as:
+        #   {"stream": "<streamName>", "data": {"e": "...", ...}}
+        streamWrapper = self.safe_string(message, 'stream')
+        if streamWrapper is not None:
+            message = self.safe_dict(message, 'data', message)
         # handle WebSocketAPI
         eventMsg = self.safe_dict(message, 'event')
         if eventMsg is not None:

@@ -87,8 +87,9 @@ export default class binance extends binanceRest {
                         'margin': 'wss://stream.testnet.binance.vision/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate': 'wss://nbstream.binance.com/eoptions/ws',
+                        'option': 'wss://fstream.binancefuture.com/public/stream',
+                        'optionMarket': 'wss://fstream.binancefuture.com/market/stream',
+                        'optionPrivate': 'wss://fstream.binancefuture.com/public/stream',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -102,8 +103,9 @@ export default class binance extends binanceRest {
                         'margin': 'wss://demo-stream.binance.com/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate': 'wss://nbstream.binance.com/eoptions/ws',
+                        'option': 'wss://fstream.binance.com/public/stream',
+                        'optionMarket': 'wss://fstream.binance.com/market/stream',
+                        'optionPrivate': 'wss://fstream.binance.com/public/stream',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -117,8 +119,9 @@ export default class binance extends binanceRest {
                         'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
-                        'option': 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate': 'wss://nbstream.binance.com/eoptions/ws',
+                        'option': 'wss://fstream.binance.com/public/stream',
+                        'optionMarket': 'wss://fstream.binance.com/market/stream',
+                        'optionPrivate': 'wss://fstream.binance.com/public/stream',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
@@ -140,6 +143,7 @@ export default class binance extends binanceRest {
                     'future': 50, // max 200
                     'delivery': 50, // max 200
                     'option': 50, // max 200
+                    'optionMarket': 50, // max 200
                 },
                 'subscriptionLimitByStream': {
                     'spot': 200,
@@ -147,6 +151,7 @@ export default class binance extends binanceRest {
                     'future': 200,
                     'delivery': 200,
                     'option': 200,
+                    'optionMarket': 200,
                 },
                 'streamBySubscriptionsHash': this.createSafeDictionary (),
                 'streamIndex': -1,
@@ -2087,7 +2092,8 @@ export default class binance extends binanceRest {
         } else if (marketType === 'spot') {
             rawMarketType = marketType;
         } else if (marketType === 'option') {
-            rawMarketType = 'option';
+            // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+            rawMarketType = (isOptionMarkPrice) ? 'optionMarket' : 'option';
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }
@@ -4890,6 +4896,12 @@ export default class binance extends binanceRest {
     }
 
     handleMessage (client: Client, message) {
+        // eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
+        //   { "stream": "<streamName>", "data": { "e": "...", ... } }
+        const streamWrapper = this.safeString (message, 'stream');
+        if (streamWrapper !== undefined) {
+            message = this.safeDict (message, 'data', message);
+        }
         // handle WebSocketAPI
         const eventMsg = this.safeDict (message, 'event');
         if (eventMsg !== undefined) {

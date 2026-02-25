@@ -88,8 +88,9 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://stream.testnet.binance.vision/ws',
                         'future' => 'wss://fstream.binancefuture.com/ws',
                         'delivery' => 'wss://dstream.binancefuture.com/ws',
-                        'option' => 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate' => 'wss://nbstream.binance.com/eoptions/ws',
+                        'option' => 'wss://fstream.binancefuture.com/public/stream',
+                        'optionMarket' => 'wss://fstream.binancefuture.com/market/stream',
+                        'optionPrivate' => 'wss://fstream.binancefuture.com/public/stream',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -103,8 +104,9 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://demo-stream.binance.com/ws',
                         'future' => 'wss://fstream.binancefuture.com/ws',
                         'delivery' => 'wss://dstream.binancefuture.com/ws',
-                        'option' => 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate' => 'wss://nbstream.binance.com/eoptions/ws',
+                        'option' => 'wss://fstream.binance.com/public/stream',
+                        'optionMarket' => 'wss://fstream.binance.com/market/stream',
+                        'optionPrivate' => 'wss://fstream.binance.com/public/stream',
                         'ws-api' => array(
                             'spot' => 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -118,8 +120,9 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://stream.binance.com:9443/ws',
                         'future' => 'wss://fstream.binance.com/ws',
                         'delivery' => 'wss://dstream.binance.com/ws',
-                        'option' => 'wss://nbstream.binance.com/eoptions/ws',
-                        'optionPrivate' => 'wss://nbstream.binance.com/eoptions/ws',
+                        'option' => 'wss://fstream.binance.com/public/stream',
+                        'optionMarket' => 'wss://fstream.binance.com/market/stream',
+                        'optionPrivate' => 'wss://fstream.binance.com/public/stream',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
@@ -141,6 +144,7 @@ class binance extends \ccxt\async\binance {
                     'future' => 50, // max 200
                     'delivery' => 50, // max 200
                     'option' => 50, // max 200
+                    'optionMarket' => 50, // max 200
                 ),
                 'subscriptionLimitByStream' => array(
                     'spot' => 200,
@@ -148,6 +152,7 @@ class binance extends \ccxt\async\binance {
                     'future' => 200,
                     'delivery' => 200,
                     'option' => 200,
+                    'optionMarket' => 200,
                 ),
                 'streamBySubscriptionsHash' => $this->create_safe_dictionary(),
                 'streamIndex' => -1,
@@ -2145,7 +2150,8 @@ class binance extends \ccxt\async\binance {
             } elseif ($marketType === 'spot') {
                 $rawMarketType = $marketType;
             } elseif ($marketType === 'option') {
-                $rawMarketType = 'option';
+                // eOptions => mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+                $rawMarketType = ($isOptionMarkPrice) ? 'optionMarket' : 'option';
             } else {
                 throw new NotSupported($this->id . ' ' . $methodName . '() does not support options markets');
             }
@@ -4993,6 +4999,12 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_message(Client $client, $message) {
+        // eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
+        //   array( "stream" => "<streamName>", "data" => array( "e" => "...", ... ) )
+        $streamWrapper = $this->safe_string($message, 'stream');
+        if ($streamWrapper !== null) {
+            $message = $this->safe_dict($message, 'data', $message);
+        }
         // handle WebSocketAPI
         $eventMsg = $this->safe_dict($message, 'event');
         if ($eventMsg !== null) {
