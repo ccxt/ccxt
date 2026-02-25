@@ -1,5 +1,6 @@
 // ----------------------------------------------------------------------------
 
+import fs from 'fs';
 import * as functions from './functions.js';
 import {
     keys as keysFunc,
@@ -1935,8 +1936,22 @@ export default class Exchange {
     }
 
     // eslint-disable-next-line no-unused-vars
-    loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex): any {
-        throw new NotSupported (this.id + ' loadLighterLibrary not supported yet');
+    async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        // throw new NotSupported (this.id + ' loadLighterLibrary not supported yet');
+        try {
+            const goExecPath = '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
+            const wasmPath = '/Users/cjg/Git/lighter-go/lighter.wasm';
+            const mod = await import (goExecPath);
+            const go = new (globalThis as any).Go ();
+            // read wasm from disk
+            const bytes = new Uint8Array (fs.readFileSync (wasmPath));
+            const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
+            go.run (instance);
+            return undefined;
+            console.log ((globalThis as any).createClient);
+        } catch (e) {
+            console.error (e);
+        }
     }
 
     // eslint-disable-next-line no-unused-vars

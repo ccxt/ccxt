@@ -340,11 +340,13 @@ export default class lighter extends Exchange {
             'options': {
                 'defaultType': 'swap',
                 'chainId': 304,
+                'accountIndex': 715085,
+                'apiKeyIndex': 3,
             },
         });
     }
 
-    loadAccount (chainId, privateKey, apiKeyIndex, accountIndex, params = {}) {
+    async loadAccount (chainId, privateKey, apiKeyIndex, accountIndex, params = {}) {
         let signer = this.safeDict (this.options, 'signer');
         if (signer !== undefined) {
             return signer;
@@ -354,7 +356,7 @@ export default class lighter extends Exchange {
         if (libraryPath === undefined && this.isLighterLibraryPathRequired ()) {
             throw new ArgumentsRequired (this.id + ' loadAccount() requires a libraryPath in options. Libary path should be the path to the lighter signing library provided by lighter exchange. You can find them here https://github.com/elliottech/lighter-python/tree/main/lighter/signers and you should choose the one corresponding to your OS and architecture.');
         }
-        signer = this.loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex);
+        signer = await this.loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex);
         this.options['signer'] = signer;
         return signer;
     }
@@ -418,7 +420,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCreateSubAccount (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -427,7 +429,7 @@ export default class lighter extends Exchange {
         return await this.publicPostSendTx (request);
     }
 
-    createAuth (params = {}) {
+    async createAuth (params = {}) {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         let apiKeyIndex = this.safeInteger2 (params, 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
@@ -439,7 +441,7 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const rs = {
             'deadline': this.seconds () + 60,
             'api_key_index': apiKeyIndex,
@@ -664,7 +666,7 @@ export default class lighter extends Exchange {
                 order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
             }
         }
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         let txType = undefined;
         let txInfo = undefined;
         if (totalOrderRequests < 2) {
@@ -745,7 +747,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2077,7 +2079,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignTransfer (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2377,7 +2379,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignWithdraw (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2595,7 +2597,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignUpdateLeverage (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2644,7 +2646,7 @@ export default class lighter extends Exchange {
         } else {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires order id or client order id');
         }
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCancelOrder (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2680,7 +2682,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2717,7 +2719,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignCancelAllOrders (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
@@ -2799,7 +2801,7 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        const signer = this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignUpdateMargin (signer, this.extend (signRaw, params));
         const request: Dict = {
             'tx_type': txType,
