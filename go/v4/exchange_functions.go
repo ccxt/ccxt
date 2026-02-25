@@ -66,25 +66,46 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 	return outDict
 }
 
-func (this *Exchange) Sort(input interface{}) []string {
-	var list []string
+
+func (this *Exchange) Sort(input interface{}) []interface{} {
+	var list []interface{}
 
 	switch v := input.(type) {
 	case []string:
-		list = append([]string{}, v...) // Copy to avoid modifying the original
-	case []interface{}:
 		for _, item := range v {
-			if str, ok := item.(string); ok {
-				list = append(list, str)
-			}
+			list = append(list, item)
 		}
+	case []interface{}:
+		list = append([]interface{}{}, v...)
 	default:
-		// Unsupported type
-		return []string{}
+		return []interface{}{}
 	}
 
-	sort.Strings(list)
+	sort.Slice(list, func(i, j int) bool {
+		ai, aok := toFloat64(list[i])
+		bi, bok := toFloat64(list[j])
+		if aok && bok {
+			return ai < bi
+		}
+		return fmt.Sprintf("%v", list[i]) < fmt.Sprintf("%v", list[j])
+	})
 	return list
+}
+
+func toFloat64(v interface{}) (float64, bool) {
+	switch n := v.(type) {
+	case int:
+		return float64(n), true
+	case int32:
+		return float64(n), true
+	case int64:
+		return float64(n), true
+	case float32:
+		return float64(n), true
+	case float64:
+		return n, true
+	}
+	return 0, false
 }
 
 // omit removes specified keys from a map.
