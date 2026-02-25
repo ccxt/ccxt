@@ -1958,7 +1958,25 @@ export default class Exchange {
 
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateGroupedOrders (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignCreateGroupedOrders not supported yet');
+        const orders = request['orders'];
+        const ordersArr = [];
+        for (const order of orders) {
+            ordersArr.push ({
+                'MarketIndex': parseInt (order['market_index']),
+                'ClientOrderIndex': order['client_order_index'],
+                'BaseAmount': order['base_amount'],
+                'Price': order['avg_execution_price'],
+                'IsAsk': order['is_ask'],
+                'Type': order['order_type'],
+                'TimeInForce': order['time_in_force'],
+                'ReduceOnly': order['reduce_only'],
+                'TriggerPrice': order['trigger_price'],
+                'OrderExpiry': order['order_expiry'],
+            });
+        }
+        const res = globalThis.SignCreateGroupedOrders (request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
     // eslint-disable-next-line no-unused-vars
@@ -1978,53 +1996,130 @@ export default class Exchange {
             request['api_key_index'],
             request['account_index']
         ));
-        // const [ tx_type, tx_info, tx_hash, error ] = res;
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    checkLighterSignedError (result) {
+        if ('error' in result) {
+            throw new Error ('Lighter signing error: ' + result.error);
+        }
+    }
+
+    lighterSignCancelOrder (signer, request): any[] {
+        const res = (globalThis.SignCancelOrder (
+            request['market_index'],
+            request['order_index'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
+    }
+
+    lighterSignWithdraw (signer, request): any[] {
+        const res = (globalThis.SignWithdraw (
+            request['asset_index'],
+            request['route_type'],
+            request['amount'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
         return [ res.txType, res.txInfo ];
     }
 
     // eslint-disable-next-line no-unused-vars
-    lighterSignCancelOrder (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignCancelOrder not supported yet');
-    }
-
-    // eslint-disable-next-line no-unused-vars
-    lighterSignWithdraw (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignWithdraw not supported yet');
-    }
-
-    // eslint-disable-next-line no-unused-vars
     lighterSignCreateSubAccount (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignCreateSubAccount not supported yet');
+        const res = (globalThis.SignCreateSubAccount (
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignCancelAllOrders (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignCancelAllOrders not supported yet');
+        const res = (globalThis.SignCancelAllOrders (
+            request['time_in_force'],
+            request['time'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignModifyOrder (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignModifyOrder not supported yet');
+        const res = (globalThis.SignModifyOrder (
+            request['market_index'],
+            request['index'],
+            request['base_amount'],
+            request['price'],
+            request['trigger_price'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignTransfer (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignTransfer not supported yet');
+        const res = globalThis.SignTransfer (
+            request['to_account_index'],
+            request['asset_index'],
+            request['from_route_type'],
+            request['to_route_type'],
+            request['amount'],
+            request['usdc_fee'],
+            request['memo'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignUpdateLeverage (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignUpdateLeverage not supported yet');
+        const res = (globalThis.SignUpdateLeverage (
+            request['market_index'],
+            request['initial_margin_fraction'],
+            request['margin_mode'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterCreateAuthToken (signer, request): string {
-        throw new NotSupported (this.id + ' lighterCreateAuthToken not supported yet');
+        const res = globalThis.CreateAuthToken (
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return res.token; // check this
     }
 
-    // eslint-disable-next-line no-unused-vars
     lighterSignUpdateMargin (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignUpdateMargin not supported yet');
+        const res = globalThis.SignUpdateMargin (
+            request['market_index'],
+            request['usdc_amount'],
+            request['direction'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo ];
     }
 
     /* eslint-enable */
