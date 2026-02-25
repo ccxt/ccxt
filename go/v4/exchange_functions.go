@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sort"
 	"sync"
+	"fmt"
 )
 
 func (this *Exchange) Ordered(a interface{}) interface{} {
