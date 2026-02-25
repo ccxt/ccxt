@@ -1935,25 +1935,24 @@ export default class Exchange {
         return false; // not supported for now
     }
 
-    // eslint-disable-next-line no-unused-vars
     async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
-        // throw new NotSupported (this.id + ' loadLighterLibrary not supported yet');
-        try {
-            const goExecPath = '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
-            const wasmPath = '/Users/cjg/Git/lighter-go/lighter.wasm';
-            const mod = await import (goExecPath);
-            const go = new (globalThis as any).Go ();
-            // read wasm from disk
-            const bytes = new Uint8Array (fs.readFileSync (wasmPath));
-            const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
-            go.run (instance);
-            // createCLient
-            const url = this.implodeHostname (this.urls['api']['public']);
-            const res = globalThis.CreateClient (url, privateKey, chainId, apiKeyIndex, accountIndex);
-            return true;
-        } catch (e) {
-            console.error (e);
+        // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
+        // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        const wasmExecPath = this.safeString (this.options, 'wasmExecPath');
+        if (wasmExecPath === undefined || wasmExecPath === '') {
+            throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm');
         }
+        const mod = await import (wasmExecPath);
+        const go = new (globalThis as any).Go ();
+        // read wasm from disk
+        const bytes = new Uint8Array (fs.readFileSync (libraryPath)); // it should point to lighter.wasm
+        const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
+        go.run (instance);
+        // createCLient
+        const url = this.implodeHostname (this.urls['api']['public']);
+        const res = globalThis.CreateClient (url, privateKey, chainId, apiKeyIndex, accountIndex);
+        this.checkLighterSignedError (res);
+        return {}; // empty object we will read it from globalThis
     }
 
     // eslint-disable-next-line no-unused-vars
