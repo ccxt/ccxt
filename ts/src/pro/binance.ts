@@ -2110,7 +2110,7 @@ export default class binance extends binanceRest {
             unifiedPrefix = 'ticker';
         }
         if (symbolsDefined) {
-            const seenUnderlyings = new Set<string> ();
+            const seenUnderlyings: Dict = {};
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = this.market (symbol);
@@ -2121,8 +2121,8 @@ export default class binance extends binanceRest {
                 if (isOptionMarkPrice) {
                     // subscribe per underlying, not per contract
                     const underlying = market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
-                    if (!seenUnderlyings.has (underlying)) {
-                        seenUnderlyings.add (underlying);
+                    if (!(underlying in seenUnderlyings)) {
+                        seenUnderlyings[underlying] = true;
                         subscriptionArgs.push (underlying + '@optionMarkPrice');
                     }
                 } else {
