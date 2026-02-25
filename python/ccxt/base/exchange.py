@@ -2251,6 +2251,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
+        if error:
+            raise Exception('lighter_sign_create_order() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_order(self, signer, request):
@@ -2261,7 +2263,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_cancel_order() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_withdraw(self, signer, request):
