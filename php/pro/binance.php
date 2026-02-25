@@ -88,8 +88,8 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://stream.testnet.binance.vision/ws',
                         'future' => 'wss://fstream.binancefuture.com/ws',
                         'delivery' => 'wss://dstream.binancefuture.com/ws',
-                        'option' => 'wss://fstream.binancefuture.com/public/ws',
-                        'optionPrivate' => 'wss://fstream.binancefuture.com/private/ws',
+                        'option' => 'wss://nbstream.binance.com/eoptions/ws',
+                        'optionPrivate' => 'wss://nbstream.binance.com/eoptions/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -103,8 +103,8 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://demo-stream.binance.com/ws',
                         'future' => 'wss://fstream.binancefuture.com/ws',
                         'delivery' => 'wss://dstream.binancefuture.com/ws',
-                        'option' => 'wss://fstream.binance.com/public/ws',
-                        'optionPrivate' => 'wss://fstream.binance.com/private/ws',
+                        'option' => 'wss://nbstream.binance.com/eoptions/ws',
+                        'optionPrivate' => 'wss://nbstream.binance.com/eoptions/ws',
                         'ws-api' => array(
                             'spot' => 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future' => 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -118,8 +118,8 @@ class binance extends \ccxt\async\binance {
                         'margin' => 'wss://stream.binance.com:9443/ws',
                         'future' => 'wss://fstream.binance.com/ws',
                         'delivery' => 'wss://dstream.binance.com/ws',
-                        'option' => 'wss://fstream.binance.com/public/ws',
-                        'optionPrivate' => 'wss://fstream.binance.com/private/ws',
+                        'option' => 'wss://nbstream.binance.com/eoptions/ws',
+                        'optionPrivate' => 'wss://nbstream.binance.com/eoptions/ws',
                         'ws-api' => array(
                             'spot' => 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future' => 'wss://ws-fapi.binance.com/ws-fapi/v1',
