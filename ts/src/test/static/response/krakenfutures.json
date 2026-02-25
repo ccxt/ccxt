@@ -62,10 +62,17 @@
                         "amount": 1,
                         "cost": 0.50008,
                         "fee": {
-                            "cost": null,
-                            "currency": null
+                            "currency": "USD",
+                            "cost": 0.00025004,
+                            "rate": 0.0005
                         },
-                        "fees": []
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.00025004,
+                                "rate": 0.0005
+                            }
+                        ]
                     },
                     {
                         "info": {
@@ -90,10 +97,17 @@
                         "amount": 0.1,
                         "cost": 6.854,
                         "fee": {
-                            "cost": null,
-                            "currency": null
+                            "currency": "USD",
+                            "cost": 0.003427,
+                            "rate": 0.0005
                         },
-                        "fees": []
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.003427,
+                                "rate": 0.0005
+                            }
+                        ]
                     }
                 ]
             }
@@ -1257,13 +1271,13 @@
                         "cost": 0.003023203083667145,
                         "fee": {
                             "currency": "USD",
-                            "cost": 0.0000015116015418335726,
+                            "cost": 0.0000022674023127503585,
                             "rate": 0.0005
                         },
                         "fees": [
                             {
                                 "currency": "USD",
-                                "cost": 0.0000015116015418335726,
+                                "cost": 0.0000022674023127503585,
                                 "rate": 0.0005
                             }
                         ]
