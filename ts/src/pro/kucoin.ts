@@ -50,7 +50,7 @@ export default class kucoin extends kucoinRest {
                     'contractMethod': '/contractMarket/level2', // '/contractMarket/level2Depth5' or '/contractMarket/level2Depth20'
                 },
                 'watchMyTrades': {
-                    'method': '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
+                    'spotMethod': '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
                 },
             },
             'streaming': {
@@ -1497,23 +1497,28 @@ export default class kucoin extends kucoinRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+     * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        const url = await this.negotiate (true);
-        let topic: Str = undefined;
-        [ topic, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders');
-        const request: Dict = {
-            'privateChannel': true,
-        };
         let messageHash = 'myTrades';
+        let market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, marketType);
+        const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
+        const url = await this.negotiate (true, isFuturesMethod);
+        let topic = isFuturesMethod ? '/contractMarket/tradeOrders' : '/spotMarket/tradeOrders';
+        const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
+        [ topic, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', optionName, 'method', topic);
+        const request: Dict = {
+            'privateChannel': true,
+        };
         const trades = await this.subscribe (url, messageHash, topic, this.extend (request, params));
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
