@@ -1278,30 +1278,40 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
+     * @see https://www.kucoin.com/docs-new/3470074w0
+     * @see https://www.kucoin.com/docs-new/3470139w0
+     * @see https://www.kucoin.com/docs-new/3470090w0
+     * @see https://www.kucoin.com/docs-new/3470091w0
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] trigger orders are watched if true
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot' if symbol is not provided)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const trigger = this.safeValue2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        const url = await this.negotiate (true);
-        const topic = trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
-        const request: Dict = {
-            'privateChannel': true,
-        };
+        let market = undefined;
         let messageHash = 'orders';
         if (symbol !== undefined) {
-            const market = this.market (symbol);
+            market = this.market (symbol);
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, marketType);
+        const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
+        const url = await this.negotiate (true, isFuturesMethod);
+        let topic = trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
+        if (isFuturesMethod) {
+            topic = trigger ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
+        }
+        const request: Dict = {
+            'privateChannel': true,
+        };
         const orders = await this.subscribe (url, messageHash, topic, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1360,11 +1370,40 @@ export default class kucoin extends kucoinRest {
         //        "type": "triggered"
         //    }
         //
+        // futures
+        //     {
+        //         "symbol": "ETHUSDTM",
+        //         "orderType": "market",
+        //         "side": "buy",
+        //         "canceledSize": "0",
+        //         "orderId": "416204113500479490",
+        //         "positionSide": "LONG",
+        //         "liquidity": "taker",
+        //         "marginMode": "ISOLATED",
+        //         "type": "match",
+        //         "feeType": "takerFee",
+        //         "orderTime": "1772043995356345762",
+        //         "size": "1",
+        //         "filledSize": "1",
+        //         "price": "0",
+        //         "matchPrice": "2068.55",
+        //         "matchSize": "1",
+        //         "remainSize": "0",
+        //         "tradeId": "1815302608109",
+        //         "clientOid": "9f7a2be0-effe-45bd-bdc8-1614715a583a",
+        //         "tradeType": "trade",
+        //         "status": "match",
+        //         "ts": 1772043995362000000
+        //     }
+        //
         const rawType = this.safeString (order, 'type');
         let status = this.parseWsOrderStatus (rawType);
-        const timestamp = this.safeInteger2 (order, 'orderTime', 'createdAt');
+        let timestamp = this.safeInteger2 (order, 'orderTime', 'createdAt');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
+        if (market['contract']) {
+            timestamp = this.safeIntegerProduct (order, 'orderTime', 0.000001);
+        }
         const triggerPrice = this.safeString (order, 'stopPrice');
         const triggerSuccess = this.safeValue (order, 'triggerSuccess');
         const triggerFail = (triggerSuccess !== true) && (triggerSuccess !== undefined);  // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
@@ -1452,7 +1491,7 @@ export default class kucoin extends kucoinRest {
     /**
      * @method
      * @name kucoin#watchMyTrades
-     * @description watches information on multiple trades made by the user
+     * @description watches information on multiple trades made by the user on spot
      * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1719,6 +1758,8 @@ export default class kucoin extends kucoinRest {
             'tickerV2': this.handleBidAsk,
             'candle.stick': this.handleOHLCV,
             'match': this.handleTrade,
+            'orderUpdated': this.handleOrder,
+            'symbolOrderChange': this.handleOrder,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
