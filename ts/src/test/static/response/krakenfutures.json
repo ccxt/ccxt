@@ -1072,7 +1072,6 @@
             {
                 "description": "fetch funding rates",
                 "method": "fetchFundingRates",
-                "disabledPHP": true,
                 "input": [
                     [
                         "DOGE/USD:USD"

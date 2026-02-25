@@ -45,9 +45,9 @@ public partial class bingx
     /// retrieves data on all markets for bingx
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Spot%20trading%20symbols"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/USDT-M%20Perp%20Futures%20symbols"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Contract%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -67,11 +67,10 @@ public partial class bingx
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Kline%2FCandlestick%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20Kline%2FCandlestick%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20K-line%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -117,8 +116,8 @@ public partial class bingx
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Recent%20Trades%20List"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Recent%20Trades%20List"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -152,9 +151,9 @@ public partial class bingx
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -181,8 +180,8 @@ public partial class bingx
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -202,12 +201,19 @@ public partial class bingx
     /// fetch the current funding rate for multiple symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse" (default is linear)
     /// </description>
     /// </item>
     /// </list>
@@ -222,7 +228,7 @@ public partial class bingx
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -308,8 +314,8 @@ public partial class bingx
     /// retrieves the open interest of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Open%20Interest%20Statistics"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20Swap%20Open%20Positions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -329,9 +335,9 @@ public partial class bingx
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -351,9 +357,9 @@ public partial class bingx
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -373,7 +379,8 @@ public partial class bingx
     /// fetches mark prices for the market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -393,7 +400,8 @@ public partial class bingx
     /// fetches mark prices for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -413,10 +421,10 @@ public partial class bingx
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -448,7 +456,7 @@ public partial class bingx
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -488,9 +496,9 @@ public partial class bingx
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -516,8 +524,8 @@ public partial class bingx
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -620,10 +628,10 @@ public partial class bingx
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20TWAP%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Trade%20order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -740,8 +748,8 @@ public partial class bingx
     /// create a list of trade orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -767,10 +775,10 @@ public partial class bingx
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20TWAP%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20an%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -796,9 +804,9 @@ public partial class bingx
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20all%20orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -810,6 +818,18 @@ public partial class bingx
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' or 'inverse' for swap markets (default is 'linear' if symbol is not provided)
     /// </description>
     /// </item>
     /// </list>
@@ -824,8 +844,8 @@ public partial class bingx
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -845,8 +865,8 @@ public partial class bingx
     /// dead man's switch, cancel all orders after the given timeout
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20All%20After"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20After"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -872,10 +892,10 @@ public partial class bingx
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/TWAP%20Order%20Details"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -901,8 +921,8 @@ public partial class bingx
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -948,10 +968,10 @@ public partial class bingx
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Current%20All%20Open%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20all%20current%20pending%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Entrusted%20Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -991,9 +1011,9 @@ public partial class bingx
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1040,9 +1060,9 @@ public partial class bingx
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1089,11 +1109,11 @@ public partial class bingx
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Historical%20Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1151,7 +1171,7 @@ public partial class bingx
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20Transfer%20New"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1171,7 +1191,7 @@ public partial class bingx
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20transfer%20records%20new"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1217,7 +1237,7 @@ public partial class bingx
     /// fetch the deposit addresses for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1237,7 +1257,7 @@ public partial class bingx
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1263,7 +1283,7 @@ public partial class bingx
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Deposit%20records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1303,7 +1323,7 @@ public partial class bingx
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Withdraw%20records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -1343,8 +1363,8 @@ public partial class bingx
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Set%20Margin%20Type"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1364,7 +1384,7 @@ public partial class bingx
     /// Either adds or reduces margin in an isolated position in order to set the margin to a specific value
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1384,8 +1404,8 @@ public partial class bingx
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1405,8 +1425,8 @@ public partial class bingx
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Modify%20Leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1432,10 +1452,9 @@ public partial class bingx
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20historical%20transaction%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order%20Trade%20Detail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1481,7 +1500,7 @@ public partial class bingx
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1501,7 +1520,7 @@ public partial class bingx
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
@@ -1527,8 +1546,8 @@ public partial class bingx
     /// retrieves the users liquidated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/User's%20Force%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1574,7 +1593,7 @@ public partial class bingx
     /// fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1594,7 +1613,7 @@ public partial class bingx
     /// set hedged to true or false for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1614,8 +1633,8 @@ public partial class bingx
     /// cancels an order and places a new order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -1715,8 +1734,8 @@ public partial class bingx
     /// fetches the margin mode of the trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Margin%20Type"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1736,9 +1755,9 @@ public partial class bingx
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Trading%20Commission%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20Trading%20Commission%20Rate"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Trade%20Commission%20Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

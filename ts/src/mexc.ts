@@ -4392,7 +4392,15 @@ export default class mexc extends Exchange {
         //         "timestamp": 1643240373359
         //     }
         //
-        const nextFundingRate = this.safeNumber (contract, 'fundingRate');
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "rate": -0.000021,
+        //         "nextSettleTime": 1771084800000
+        //     }
+        //
+        const nextFundingRate = this.safeNumber2 (contract, 'fundingRate', 'rate');
         const nextFundingTimestamp = this.safeInteger (contract, 'nextSettleTime');
         const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, 'contract');

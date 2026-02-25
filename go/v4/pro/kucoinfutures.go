@@ -625,7 +625,7 @@ func  (this *KucoinfuturesCore) HandlePosition(client interface{}, message inter
     //            "currentCost": 0.00266375, //Current position value
     //            "openingTimestamp": 1558433191000, //Open time
     //            "currentQty": -20, //Current position
-    //            "delevPercentage": 0.52, //ADL ranking percentile
+    //            "delevPercentage": 0.52, //ccxt.ADL ranking percentile
     //            "currentComm": 0.00000271, //Current commission
     //            "realisedGrossCost": 0E-8, //Accumulated reliased gross profit value
     //            "isOpen": true, //Opened position or not
@@ -649,7 +649,7 @@ func  (this *KucoinfuturesCore) HandlePosition(client interface{}, message inter
     //              "unrealisedPnl": -0.00014735,           //Unrealised profit and lost
     //              "unrealisedRoePcnt": -0.0553,           //Rate of return on investment
     //              "unrealisedPnlPcnt": -0.0553,            //ccxt.Position profit and loss ratio
-    //              "delevPercentage": 0.52,             //ADL ranking percentile
+    //              "delevPercentage": 0.52,             //ccxt.ADL ranking percentile
     //              "currentTimestamp": 1558087175068,      //Current timestamp
     //              "settleCurrency": "XBT"                 //ccxt.Currency used to clear and settle the trades
     //          }

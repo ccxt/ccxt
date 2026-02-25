@@ -6,6 +6,7 @@ var stringify = require('./stringify.js');
 var parse = require('./parse.js');
 var formats$1 = require('./formats.js');
 
+// ----------------------------------------------------------------------------
 var formats = {
     default: formats$1["default"],
     formatters: formats$1.formatters,

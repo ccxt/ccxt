@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from zlib import decompress, MAX_WBITS
-from base64 import b64decode
 from gzip import GzipFile
 from io import BytesIO
 import time
@@ -10,10 +9,6 @@ import datetime
 
 def inflate(data):
     return decompress(data, -MAX_WBITS)
-
-
-def inflate64(data):
-    return inflate(b64decode(data))
 
 
 def gunzip(data):

@@ -100,7 +100,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -122,9 +122,9 @@ retrieves data on all markets for bingx
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Spot%20trading%20symbols
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/USDT-M%20Perp%20Futures%20symbols
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Contract%20Information
 
 
 | Param | Type | Required | Description |
@@ -147,11 +147,10 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
-- https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-- https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Kline%2FCandlestick%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20Kline%2FCandlestick%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20K-line%20Data
 
 
 | Param | Type | Required | Description |
@@ -180,8 +179,8 @@ get the list of most recent trades for a particular symbol
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Recent%20Trades%20List
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Recent%20Trades%20List
 
 
 | Param | Type | Required | Description |
@@ -207,9 +206,9 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
 
 
 | Param | Type | Required | Description |
@@ -234,8 +233,8 @@ fetch the current funding rate
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
 
 
 | Param | Type | Required | Description |
@@ -257,12 +256,17 @@ fetch the current funding rate for multiple symbols
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate  
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subType | <code>string</code> | No | "linear" or "inverse" (default is linear) |
 
 
 ```javascript
@@ -278,7 +282,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -329,8 +333,8 @@ retrieves the open interest of a trading pair
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Open%20Interest%20Statistics
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20Swap%20Open%20Positions
 
 
 | Param | Type | Required | Description |
@@ -354,9 +358,9 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
-- https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
 
 
 | Param | Type | Required | Description |
@@ -380,9 +384,9 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
-- https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
-- https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
 
 
 | Param | Type | Required | Description |
@@ -404,7 +408,11 @@ fetches mark prices for the market
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate  
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -425,7 +433,11 @@ fetches mark prices for multiple markets
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate  
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -448,10 +460,10 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20account%20data
-- https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets
+- https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets
 
 
 | Param | Type | Required | Description |
@@ -474,7 +486,7 @@ fetches historical positions
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -500,9 +512,9 @@ fetch all open positions
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
 - https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
 
 
 | Param | Type | Required | Description |
@@ -527,8 +539,8 @@ fetch data on a single open contract trade position
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
 
 
 | Param | Type | Required | Description |
@@ -616,10 +628,10 @@ create a trade order
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20order
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20TWAP%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Trade%20order
 
 
 | Param | Type | Required | Description |
@@ -664,8 +676,8 @@ create a list of trade orders
 
 **See**
 
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
 
 
 | Param | Type | Required | Description |
@@ -690,10 +702,10 @@ cancels an open order
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20TWAP%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20an%20Order
 
 
 | Param | Type | Required | Description |
@@ -719,15 +731,17 @@ cancel all open orders
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20all%20orders
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.type | <code>string</code> | No | 'spot' or 'swap' (default is 'spot' if symbol is not provided) |
+| params.subType | <code>string</code> | No | 'linear' or 'inverse' for swap markets (default is 'linear' if symbol is not provided) |
 
 
 ```javascript
@@ -745,8 +759,8 @@ cancel multiple orders
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-- https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
 
 
 | Param | Type | Required | Description |
@@ -772,8 +786,8 @@ dead man's switch, cancel all orders after the given timeout
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20All%20After
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20After
 
 
 | Param | Type | Required | Description |
@@ -798,10 +812,10 @@ fetches information on an order made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/TWAP%20Order%20Details
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order
 
 
 | Param | Type | Required | Description |
@@ -827,8 +841,8 @@ fetches information on multiple orders made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
 
 
 | Param | Type | Required | Description |
@@ -856,10 +870,10 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Current%20All%20Open%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20all%20current%20pending%20orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Entrusted%20Order
 
 
 | Param | Type | Required | Description |
@@ -886,9 +900,9 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
 - https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
 
@@ -917,9 +931,9 @@ fetches information on multiple canceled orders made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
 - https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
 
 
@@ -948,11 +962,11 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
 - https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Historical%20Orders
 
 
 | Param | Type | Required | Description |
@@ -979,7 +993,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20Transfer%20New  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20Transfer%20New  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1003,7 +1017,7 @@ fetch a history of internal transfers made on an account
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transfer structures](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/common/account-api.html#Asset%20transfer%20records%20new  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20transfer%20records%20new  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1029,7 +1043,7 @@ fetch the deposit addresses for a currency associated with this account
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a dictionary [address structures](https://docs.ccxt.com/?id=address-structure), indexed by the network
 
-**See**: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1050,7 +1064,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1072,7 +1086,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Deposit%20records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1095,7 +1109,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Withdraw%20records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1120,8 +1134,8 @@ set margin mode to 'cross' or 'isolated'
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Set%20Margin%20Type
 
 
 | Param | Type | Required | Description |
@@ -1144,7 +1158,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
-**See**: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1168,8 +1182,8 @@ fetch the set leverage for a market
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Leverage
 
 
 | Param | Type | Required | Description |
@@ -1193,8 +1207,8 @@ set the level of leverage for a market
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Modify%20Leverage
 
 
 | Param | Type | Required | Description |
@@ -1220,10 +1234,9 @@ fetch all trades made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20historical%20transaction%20orders
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order%20Trade%20Detail
 
 
 | Param | Type | Required | Description |
@@ -1250,7 +1263,7 @@ fetch deposit and withdraw fees
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1271,7 +1284,7 @@ make a withdrawal
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Withdraw  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1298,8 +1311,8 @@ retrieves the users liquidated positions
 
 **See**
 
-- https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/User's%20Force%20Orders
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
 
 
 | Param | Type | Required | Description |
@@ -1326,8 +1339,9 @@ closes open positions for a market
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20position%20by%20position%20ID
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
 
 
 | Param | Type | Required | Description |
@@ -1351,7 +1365,7 @@ fetchs the position mode, hedged or one way, hedged for binance is set identical
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - an object detailing whether the market is in hedged or one-way mode
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1372,7 +1386,7 @@ set hedged to true or false for a market
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - response from the exchange
 
-**See**: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode  
+**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1396,8 +1410,8 @@ cancels an order and places a new order
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  // spot
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  // swap
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
 
 
 | Param | Type | Required | Description |
@@ -1440,8 +1454,8 @@ fetches the margin mode of the trading pair
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Margin%20Type
 
 
 | Param | Type | Required | Description |
@@ -1465,9 +1479,9 @@ fetch the trading fees for a market
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
-- https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
-- https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Trading%20Commission%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20Trading%20Commission%20Rate
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Trade%20Commission%20Rate
 
 
 | Param | Type | Required | Description |
@@ -1512,9 +1526,9 @@ watches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20Price%20Change
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20price%20changes
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%2024-Hour%20Price%20Change
 
 
 | Param | Type | Required | Description |
@@ -1538,9 +1552,9 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20Price%20Change
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20price%20changes
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%2024-Hour%20Price%20Change
 
 
 | Param | Type | Required | Description |
@@ -1564,9 +1578,9 @@ watches information on multiple trades made in a market
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20the%20Latest%20Trade%20Detail
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
 
 
 | Param | Type | Required | Description |
@@ -1592,9 +1606,9 @@ unsubscribes from the trades channel
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20the%20Latest%20Trade%20Detail
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction
 
 
 | Param | Type | Required | Description |
@@ -1619,9 +1633,9 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Partial%20Order%20Book%20Depth
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
 
 
 | Param | Type | Required | Description |
@@ -1646,9 +1660,9 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20Market%20Depth%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Partial%20Order%20Book%20Depth
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth
 
 
 | Param | Type | Required | Description |
@@ -1672,9 +1686,9 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/K-line%20Streamst
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20K-Line%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
 
 
 | Param | Type | Required | Description |
@@ -1701,9 +1715,9 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/K-line%20Streamst
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20K-Line%20Data
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
 
 
 | Param | Type | Required | Description |
@@ -1728,9 +1742,9 @@ watches information on multiple orders made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/order%20update%20event
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Order%20update%20push
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Order%20update%20push
 
 
 | Param | Type | Required | Description |
@@ -1756,9 +1770,9 @@ watches information on multiple trades made by the user
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/order%20update%20event
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Order%20update%20push
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Order%20update%20push
 
 
 | Param | Type | Required | Description |
@@ -1784,9 +1798,9 @@ query for balance and get the amount of funds available for trading or funds loc
 
 **See**
 
-- https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
-- https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
-- https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push
+- https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/Subscription%20account%20balance%20push
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Account%20balance%20and%20position%20update%20push
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Account%20balance%20and%20position%20update%20push
 
 
 | Param | Type | Required | Description |

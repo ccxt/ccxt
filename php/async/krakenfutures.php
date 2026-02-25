@@ -1725,6 +1725,12 @@ class krakenfutures extends Exchange {
             'notFound' => 'rejected', // the order was not found, either because it had already been cancelled or it never existed
             'untouched' => 'open', // the entire size of the order is unfilled
             'partiallyFilled' => 'open', // the size of the order is partially but not entirely filled
+            'ENTERED_BOOK' => 'open',
+            'FULLY_EXECUTED' => 'closed',
+            'CANCELLED' => 'canceled',
+            'TRIGGER_PLACED' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'UNTOUCHED' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1964,6 +1970,72 @@ class krakenfutures extends Exchange {
         //     $status => 'closed'
         //   }
         //
+        // $order => array(
+        //     $type => 'ORDER',
+        //     orderId => 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId => null,
+        //     $symbol => 'PF_LTCUSD',
+        //     side => 'buy',
+        //     quantity => '0.1',
+        //     $filled => '0',
+        //     limitPrice => '40',
+        //     reduceOnly => false,
+        //     $timestamp => '2026-02-13T12:09:03.738Z',
+        //     $lastUpdateTimestamp => '2026-02-13T12:09:03.738Z'
+        // ),
+        //     $status => 'ENTERED_BOOK',
+        //     updateReason => null,
+        //     error => null
+        // }
+        //
+        $orderDictFromFetchOrder = $this->safe_dict($order, 'order');
+        if ($orderDictFromFetchOrder !== null) {
+            // $order => array(
+            //     $type => 'ORDER',
+            //     orderId => 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId => null,
+            //     $symbol => 'PF_LTCUSD',
+            //     side => 'buy',
+            //     quantity => '0.1',
+            //     $filled => '0',
+            //     limitPrice => '40',
+            //     reduceOnly => false,
+            //     $timestamp => '2026-02-13T12:09:03.738Z',
+            //     $lastUpdateTimestamp => '2026-02-13T12:09:03.738Z'
+            // ),
+            //     $status => 'ENTERED_BOOK',
+            //     updateReason => null,
+            //     error => null
+            //
+            $datetime = $this->safe_string($orderDictFromFetchOrder, 'timestamp');
+            $innerStatus = $this->safe_string($order, 'status');
+            return $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
+                'clientOrderId' => $this->safe_string_n($orderDictFromFetchOrder, array( 'cliOrdId' )),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'lastTradeTimestamp' => null,
+                'lastUpdateTimestamp' => $this->parse8601($this->safe_string($orderDictFromFetchOrder, 'lastUpdateTimestamp')),
+                'symbol' => $this->safe_symbol($this->safe_string($orderDictFromFetchOrder, 'symbol'), $market),
+                'type' => null,
+                'timeInForce' => null,
+                'postOnly' => null,
+                'reduceOnly' => $this->safe_bool($orderDictFromFetchOrder, 'reduceOnly'),
+                'side' => $this->safe_string($orderDictFromFetchOrder, 'side'),
+                'price' => $this->safe_string($orderDictFromFetchOrder, 'limitPrice'),
+                'triggerPrice' => null,
+                'amount' => $this->safe_string($orderDictFromFetchOrder, 'quantity'),
+                'cost' => null,
+                'average' => null,
+                'filled' => $this->safe_string($orderDictFromFetchOrder, 'filled'),
+                'remaining' => null,
+                'status' => $this->parse_order_status($innerStatus),
+                'fee' => null,
+                'fees' => null,
+                'trades' => null,
+            ));
+        }
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
         $orderEventsLength = count($orderEvents);
@@ -2439,7 +2511,7 @@ class krakenfutures extends Exchange {
         //         "fundingRate" => -0.000000756414717067,
         //         "fundingRatePrediction" => 0.000000195218676,
         //         "suspended" => false,
-        //         "indexPrice" => 0.043392,
+        //         "indexPrice" => 0.043391,
         //         "postOnly" => false,
         //         "change24h" => -0.46
         //     }
@@ -2452,14 +2524,14 @@ class krakenfutures extends Exchange {
         $fundingRateResult = Precise::string_div($fundingRateString, $markPriceString);
         $nextFundingRateString = $this->safe_string($ticker, 'fundingRatePrediction');
         $nextFundingRateResult = Precise::string_div($nextFundingRateString, $markPriceString);
-        if ($fundingRateResult > '0.25') {
+        if (Precise::string_gt($fundingRateResult, '0.25')) {
             $fundingRateResult = '0.25';
-        } elseif ($fundingRateResult > '-0.25') {
+        } elseif (Precise::string_lt($fundingRateResult, '-0.25')) {
             $fundingRateResult = '-0.25';
         }
-        if ($nextFundingRateResult > '0.25') {
+        if (Precise::string_gt($nextFundingRateResult, '0.25')) {
             $nextFundingRateResult = '0.25';
-        } elseif ($nextFundingRateResult > '-0.25') {
+        } elseif (Precise::string_lt($nextFundingRateResult, '-0.25')) {
             $nextFundingRateResult = '-0.25';
         }
         return array(
