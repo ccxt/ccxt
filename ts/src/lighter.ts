@@ -349,7 +349,7 @@ export default class lighter extends Exchange {
         let libraryPath = undefined;
         [ libraryPath, params ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
         if (libraryPath === undefined) {
-            throw new ArgumentsRequired (this.id + ' required libraryPath in options');
+            throw new ArgumentsRequired (this.id + ' loadAccount() requires a libraryPath in options. Libary path should be the path to the lighter signing library provided by lighter exchange. You can find them here https://github.com/elliottech/lighter-python/tree/main/lighter/signers and you should choose the one corresponding to your OS and architecture.');
         }
         signer = this.loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex);
         this.options['signer'] = signer;
@@ -362,7 +362,7 @@ export default class lighter extends Exchange {
         if (accountIndex === undefined) {
             const walletAddress = this.walletAddress;
             if (walletAddress === undefined) {
-                throw new ArgumentsRequired (this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddrrss to fetch accountIndex');
+                throw new ArgumentsRequired (this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddress to fetch accountIndex');
             }
             const res = await this.publicGetAccountsByL1Address ({ 'l1_address': walletAddress });
             //
