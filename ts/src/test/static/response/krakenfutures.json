@@ -99,13 +99,13 @@
                         "fee": {
                             "currency": "USD",
                             "cost": 0.0051405,
-                            "rate": 0.0005
+                            "rate": 0.00075
                         },
                         "fees": [
                             {
                                 "currency": "USD",
                                 "cost": 0.0051405,
-                                "rate": 0.0005
+                                "rate": 0.00075
                             }
                         ]
                     }
