@@ -1947,8 +1947,10 @@ export default class Exchange {
             const bytes = new Uint8Array (fs.readFileSync (wasmPath));
             const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
             go.run (instance);
-            return undefined;
-            console.log ((globalThis as any).createClient);
+            // createCLient
+            const url = this.implodeHostname (this.urls['api']['public']);
+            const res = globalThis.CreateClient (url, privateKey, chainId, apiKeyIndex, accountIndex);
+            return true;
         } catch (e) {
             console.error (e);
         }
@@ -1961,7 +1963,23 @@ export default class Exchange {
 
     // eslint-disable-next-line no-unused-vars
     lighterSignCreateOrder (signer, request): any[] {
-        throw new NotSupported (this.id + ' lighterSignCreateOrder not supported yet');
+        const res = (globalThis.SignCreateOrder (
+            parseInt (request['market_index']),
+            request['client_order_index'],
+            request['base_amount'],
+            request['avg_execution_price'],
+            request['is_ask'],
+            request['order_type'],
+            request['time_in_force'],
+            request['reduce_only'],
+            request['trigger_price'],
+            request['order_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        ));
+        // const [ tx_type, tx_info, tx_hash, error ] = res;
+        return [ res.txType, res.txInfo ];
     }
 
     // eslint-disable-next-line no-unused-vars

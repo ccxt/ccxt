@@ -2201,13 +2201,15 @@ class Exchange(object):
         lighterSigner = load_lighter_library(path)
 
         url = self.implode_hostname(self.urls['api']['public'])
-        lighterSigner.CreateClient(
+        res = lighterSigner.CreateClient(
             url.encode("utf-8"),
             privateKey.encode("utf-8"),
             chainId,
             apiKeyIndex,
             accountIndex,
         )
+        if res is not None and str(res).find('error'):
+            raise Exception('load_lighter_library(): Failed to create lighter signer: ' + str(res))
         return lighterSigner
 
     def lighter_sign_create_grouped_orders(self, signer, request):
@@ -2231,7 +2233,6 @@ class Exchange(object):
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
             request['grouping_type'], orders_carr, len(orders), request['nonce'], request['api_key_index'], request['account_index']
         ))
-        print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
 
     def lighter_sign_create_order(self, signer, request):
@@ -2250,7 +2251,6 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_order(self, signer, request):
