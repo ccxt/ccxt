@@ -3,6 +3,7 @@
 
 import kucoinRest from '../kucoin.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
+import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -51,6 +52,10 @@ export default class kucoin extends kucoinRest {
                 },
                 'watchMyTrades': {
                     'spotMethod': '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
+                },
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // or true // todo set to false after tests
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
             },
             'streaming': {
@@ -1278,10 +1283,10 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://www.kucoin.com/docs-new/3470074w0
-     * @see https://www.kucoin.com/docs-new/3470139w0
-     * @see https://www.kucoin.com/docs-new/3470090w0
-     * @see https://www.kucoin.com/docs-new/3470091w0
+     * @see https://www.kucoin.com/docs-new/3470074w0 // spot regular orders
+     * @see https://www.kucoin.com/docs-new/3470139w0 // spot trigger orders
+     * @see https://www.kucoin.com/docs-new/3470090w0 // contract regular orders
+     * @see https://www.kucoin.com/docs-new/3470091w0 // contract trigger orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1492,7 +1497,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchMyTrades
      * @description watches information on multiple trades made by the user on spot
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+     * @see https://www.kucoin.com/docs-new/3470074w0
+     * @see https://www.kucoin.com/docs-new/3470090w0
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -1655,17 +1661,72 @@ export default class kucoin extends kucoinRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
-        const url = await this.negotiate (true);
-        const topic = '/account/balance';
+        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
+        const type = this.safeString (params, 'type', defaultType);
+        params = this.omit (params, 'type');
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        const uniformType = this.safeString (accountsByType, type, type);
+        const isFuturesMethod = (uniformType === 'contract');
+        const url = await this.negotiate (true, isFuturesMethod);
+        const client = this.client (url);
+        this.setBalanceCache (client, uniformType);
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        const awaitBalanceSnapshot = this.safeBool (options, 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (uniformType + ':fetchBalanceSnapshot');
+        }
+        const messageHash = uniformType + ':balance';
+        const requestId = this.requestId ().toString ();
+        const subscriptionHash = isFuturesMethod ? '/contractAccount/wallet' : '/account/balance';
         const request: Dict = {
+            'id': requestId,
+            'type': 'subscribe',
+            'topic': subscriptionHash,
+            'response': true,
             'privateChannel': true,
         };
-        const messageHash = 'balance';
-        return await this.subscribe (url, messageHash, topic, this.extend (request, params));
+        const message = this.extend (request, params);
+        if (!(subscriptionHash in client.subscriptions)) {
+            client.subscriptions[requestId] = subscriptionHash;
+        }
+        return await this.watch (url, messageHash, message, type);
+    }
+
+    setBalanceCache (client: Client, type) {
+        if ((type in client.subscriptions) && (type in this.balance)) {
+            return;
+        }
+        const options = this.safeDict (this.options, 'watchBalance');
+        const fetchBalanceSnapshot = this.safeBool (options, 'fetchBalanceSnapshot', false);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.balance[type] = {};
+        }
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const params: Dict = {
+            'type': type,
+        };
+        const response = await this.fetchBalance (params);
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve ();
+            client.resolve (this.balance[type], type + ':balance');
+        }
     }
 
     handleBalance (client: Client, message) {
@@ -1692,8 +1753,51 @@ export default class kucoin extends kucoinRest {
         //        "total":"89"
         //     }
         //
-        const data = this.safeValue (message, 'data', {});
-        const messageHash = 'balance';
+        // futures
+        //    {
+        //        "id": "6375553193027a0001f6566f",
+        //        "type": "message",
+        //        "topic": "/contractAccount/wallet",
+        //        "userId": "613a896885d8660006151f01",
+        //        "channelType": "private",
+        //        "subject": "availableBalance.change",
+        //        "data": {
+        //            "currency": "USDT",
+        //            "holdBalance": "0.0000000000",
+        //            "availableBalance": "14.0350281903",
+        //            "timestamp": "1668633905657"
+        //        }
+        //    }
+        //
+        //     {
+        //         "topic": "/contractAccount/wallet",
+        //         "type": "message",
+        //         "subject": "walletBalance.change",
+        //         "id": "699f586d4416a80001df3804",
+        //         "userId": "64f99aced178640001306e6e",
+        //         "channelType": "private",
+        //         "data": {
+        //             "crossPosMargin": "0",
+        //             "isolatedOrderMargin": "0",
+        //             "holdBalance": "0",
+        //             "equity": "49.50050236",
+        //             "version": "2874",
+        //             "availableBalance": "28.67180236",
+        //             "isolatedPosMargin": "20.7308",
+        //             "maxWithdrawAmount": "28.67180236",
+        //             "walletBalance": "49.40260236",
+        //             "isolatedFundingFeeMargin": "0",
+        //             "crossUnPnl": "0",
+        //             "totalCrossMargin": "28.67180236",
+        //             "currency": "USDT",
+        //             "isolatedUnPnl": "0.0979",
+        //             "availableMargin": "28.67180236",
+        //             "crossOrderMargin": "0",
+        //             "timestamp": "1772050541214"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
         const currencyId = this.safeString (data, 'currency');
         const relationEvent = this.safeString (data, 'relationEvent');
         let requestAccountType = undefined;
@@ -1701,26 +1805,33 @@ export default class kucoin extends kucoinRest {
             const relationEventParts = relationEvent.split ('.');
             requestAccountType = this.safeString (relationEventParts, 0);
         }
-        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
-        const accountsByType = this.safeValue (this.options, 'accountsByType');
+        const topic = this.safeString (message, 'topic');
+        if (topic === '/contractAccount/wallet') {
+            requestAccountType = 'contract';
+        }
+        const accountsByType = this.safeDict (this.options, 'accountsByType');
         const uniformType = this.safeString (accountsByType, requestAccountType, 'trade');
         if (!(uniformType in this.balance)) {
             this.balance[uniformType] = {};
         }
         this.balance[uniformType]['info'] = data;
-        const timestamp = this.safeInteger (data, 'time');
+        const timestamp = this.safeInteger2 (data, 'time', 'timestamp');
         this.balance[uniformType]['timestamp'] = timestamp;
         this.balance[uniformType]['datetime'] = this.iso8601 (timestamp);
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeString (data, 'available');
-        account['used'] = this.safeString (data, 'hold');
+        let used = this.safeString2 (data, 'hold', 'holdBalance');
+        const isolatedPosMargin = this.omitZero (this.safeString (data, 'isolatedPosMargin'));
+        if (isolatedPosMargin !== undefined) {
+            used = Precise.stringAdd (used, isolatedPosMargin);
+        }
+        account['free'] = this.safeString2 (data, 'available', 'availableBalance');
+        account['used'] = used;
         account['total'] = this.safeString (data, 'total');
         this.balance[uniformType][code] = account;
         this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
-        if (uniformType === selectedType) {
-            client.resolve (this.balance[uniformType], messageHash);
-        }
+        const messageHash = uniformType + ':balance';
+        client.resolve (this.balance[uniformType], messageHash);
     }
 
     handleSubject (client: Client, message) {
@@ -1765,6 +1876,8 @@ export default class kucoin extends kucoinRest {
             'match': this.handleTrade,
             'orderUpdated': this.handleOrder,
             'symbolOrderChange': this.handleOrder,
+            'availableBalance.change': this.handleBalance,
+            'walletBalance.change': this.handleBalance,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
