@@ -486,26 +486,29 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 	return ch
 }
 
-func Unique(obj interface{}) []string {
-	// Type assertion to check if obj is of type []string
-	strList, ok := obj.([]string)
-	if !ok {
-		return nil
+func (this *Exchange) Unique(obj interface{}) []interface{} {
+	var list []interface{}
+
+	switch v := obj.(type) {
+	case []string:
+		for _, item := range v {
+			list = append(list, item)
+		}
+	case []interface{}:
+		list = v
+	default:
+		return []interface{}{}
 	}
 
-	// Use a map to ensure uniqueness
-	uniqueMap := make(map[string]struct{})
-	var result []string
-
-	for _, str := range strList {
-		// Check if the string is already in the map
-		if _, exists := uniqueMap[str]; !exists {
-			uniqueMap[str] = struct{}{}
-			result = append(result, str)
+	uniqueMap := make(map[interface{}]bool)
+	uniqueList := []interface{}{}
+	for _, item := range list {
+		if !uniqueMap[item] {
+			uniqueMap[item] = true
+			uniqueList = append(uniqueList, item)
 		}
 	}
-
-	return result
+	return uniqueList
 }
 
 func (this *Exchange) Log(args ...interface{}) {
