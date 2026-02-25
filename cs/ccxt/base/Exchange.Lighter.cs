@@ -12,7 +12,7 @@ public partial class Exchange
         return true; // not supported for now
     }
 
-    public object loadLighterLibrary(object path, object chainId, object privateKey, object apiKeyIndex, object accountIndex) {
+    public Task<object> loadLighterLibrary(object path, object chainId, object privateKey, object apiKeyIndex, object accountIndex) {
         LighterSigner.Signer lighterSigner = LighterSigner.Signer.GetInstance((string) path);
 
         string url = (string) this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));

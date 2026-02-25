@@ -2276,7 +2276,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_withdraw() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_create_sub_account(self, signer, request):
@@ -2285,7 +2286,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_create_sub_account() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_cancel_all_orders(self, signer, request):
@@ -2296,7 +2298,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_cancel_all_orders() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_modify_order(self, signer, request):
@@ -2310,7 +2313,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_modify_order() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_transfer(self, signer, request):
@@ -2326,7 +2330,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_transfer() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_sign_update_leverage(self, signer, request):
@@ -2338,7 +2343,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_update_leverage() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     def lighter_create_auth_token(self, signer, request):
@@ -2347,6 +2353,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
+        if error:
+            raise Exception('lighter_create_auth_token() failed with error: ' + str(error))
         return auth
 
     def lighter_sign_update_margin(self, signer, request):
@@ -2358,7 +2366,8 @@ class Exchange(object):
             request['api_key_index'],
             request['account_index'],
         ))
-        print(tx_type, tx_info, tx_hash, error)
+        if error:
+            raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
         return [tx_type, tx_info]
 
     # ########################################################################
