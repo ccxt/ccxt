@@ -7,6 +7,11 @@ using System.Numerics;
 
 public partial class Exchange
 {
+
+    public bool isLighterLibraryPathRequired() {
+        return true; // not supported for now
+    }
+
     public object loadLighterLibrary(object path, object chainId, object privateKey, object apiKeyIndex, object accountIndex) {
         LighterSigner.Signer lighterSigner = LighterSigner.Signer.GetInstance((string) path);
 

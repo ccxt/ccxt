@@ -1435,6 +1435,10 @@ class Exchange {
         return $this->json($signature);
     }
 
+    public function is_lighter_library_path_required() {
+        return true;
+    }
+
     public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
         $lighterSigner = Signer::getInstance($path);
 

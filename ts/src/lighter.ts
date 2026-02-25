@@ -156,7 +156,7 @@ export default class lighter extends Exchange {
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
                 'referral': {
                     'url': 'app.lighter.xyz/?referral=715955W9',
-                    'discount': 0.1, // user gets 10% of the points back
+                    'discount': 0.1, // user gets 10% of the points
                 },
             },
             'api': {
@@ -351,7 +351,7 @@ export default class lighter extends Exchange {
         }
         let libraryPath = undefined;
         [ libraryPath, params ] = this.handleOptionAndParams (params, 'loadAccount', 'libraryPath');
-        if (libraryPath === undefined) {
+        if (libraryPath === undefined && this.isLighterLibraryPathRequired ()) {
             throw new ArgumentsRequired (this.id + ' loadAccount() requires a libraryPath in options. Libary path should be the path to the lighter signing library provided by lighter exchange. You can find them here https://github.com/elliottech/lighter-python/tree/main/lighter/signers and you should choose the one corresponding to your OS and architecture.');
         }
         signer = this.loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex);

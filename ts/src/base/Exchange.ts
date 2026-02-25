@@ -1930,6 +1930,10 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
+    isLighterLibraryPathRequired () {
+        return false; // not supported for now
+    }
+
     // eslint-disable-next-line no-unused-vars
     loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex): any {
         throw new NotSupported (this.id + ' loadLighterLibrary not supported yet');
