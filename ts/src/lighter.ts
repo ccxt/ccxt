@@ -140,7 +140,7 @@ export default class lighter extends Exchange {
             },
             'hostname': 'zklighter.elliot.ai',
             'urls': {
-                'logo': '',
+                'logo': 'https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0',
                 'api': {
                     'root': 'https://mainnet.{hostname}',
                     'public': 'https://mainnet.{hostname}',
@@ -154,7 +154,10 @@ export default class lighter extends Exchange {
                 'www': 'https://lighter.xyz/',
                 'doc': 'https://apidocs.lighter.xyz/',
                 'fees': 'https://docs.lighter.xyz/perpetual-futures/fees',
-                'referral': '',
+                'referral': {
+                    'url': 'app.lighter.xyz/?referral=715955W9',
+                    'discount': 0.1, // user gets 10% of the points back
+                },
             },
             'api': {
                 'root': {
