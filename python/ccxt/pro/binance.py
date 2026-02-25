@@ -932,8 +932,11 @@ class binance(ccxt.async_support.binance):
         #     }
         #
         isSpot = self.is_spot_url(client)
-        marketType = 'spot' if (isSpot) else 'swap'
         marketId = self.safe_string(message, 's')
+        isOption = (marketId is not None) and (marketId.find('-') >= 0)
+        marketType = 'spot' if (isSpot) else 'swap'
+        if isOption:
+            marketType = 'option'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'orderbook::' + symbol
@@ -1423,10 +1426,13 @@ class binance(ccxt.async_support.binance):
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
+        wsUrlType: Str = type
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
+            wsUrlType = type
         elif firstMarket['option']:
-            type = 'optionMarket'  # eOptions klines are on /market/ws endpoint
+            type = 'option'
+            wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
         isSpot = (type == 'spot')
         timezone = None
         timezone, params = self.handle_param_string(params, 'timezone', None)
@@ -1448,7 +1454,7 @@ class binance(ccxt.async_support.binance):
             utcSuffix = suffix if shouldUseUTC8 else ''
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
+        url = self.urls['api']['ws'][wsUrlType] + '/' + self.stream(wsUrlType, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -1486,10 +1492,13 @@ class binance(ccxt.async_support.binance):
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
+        wsUrlType: Str = type
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
+            wsUrlType = type
         elif firstMarket['option']:
-            type = 'optionMarket'  # eOptions klines are on /market/ws endpoint
+            type = 'option'
+            wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
         isSpot = (type == 'spot')
         timezone = None
         timezone, params = self.handle_param_string(params, 'timezone', None)
@@ -1513,7 +1522,7 @@ class binance(ccxt.async_support.binance):
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             subMessageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
             messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString)
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
+        url = self.urls['api']['ws'][wsUrlType] + '/' + self.stream(wsUrlType, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'UNSUBSCRIBE',

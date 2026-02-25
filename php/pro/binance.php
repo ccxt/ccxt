@@ -1005,8 +1005,12 @@ class binance extends \ccxt\async\binance {
         //     }
         //
         $isSpot = $this->is_spot_url($client);
-        $marketType = ($isSpot) ? 'spot' : 'swap';
         $marketId = $this->safe_string($message, 's');
+        $isOption = ($marketId !== null) && (mb_strpos($marketId, '-') !== false);
+        $marketType = ($isSpot) ? 'spot' : 'swap';
+        if ($isOption) {
+            $marketType = 'option';
+        }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $symbol;
@@ -1555,10 +1559,13 @@ class binance extends \ccxt\async\binance {
             $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $firstMarket['type'];
+            $wsUrlType = $type;
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
+                $wsUrlType = $type;
             } elseif ($firstMarket['option']) {
-                $type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
+                $type = 'option';
+                $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
@@ -1583,7 +1590,7 @@ class binance extends \ccxt\async\binance {
                 $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
                 $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $url = $this->urls['api']['ws'][$wsUrlType] . '/' . $this->stream($wsUrlType, 'multipleOHLCV');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -1625,10 +1632,13 @@ class binance extends \ccxt\async\binance {
             $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $firstMarket['type'];
+            $wsUrlType = $type;
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
+                $wsUrlType = $type;
             } elseif ($firstMarket['option']) {
-                $type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
+                $type = 'option';
+                $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
@@ -1655,7 +1665,7 @@ class binance extends \ccxt\async\binance {
                 $subMessageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
                 $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $url = $this->urls['api']['ws'][$wsUrlType] . '/' . $this->stream($wsUrlType, 'multipleOHLCV');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'UNSUBSCRIBE',

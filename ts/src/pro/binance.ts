@@ -986,8 +986,12 @@ export default class binance extends binanceRest {
         //     }
         //
         const isSpot = this.isSpotUrl (client);
-        const marketType = (isSpot) ? 'spot' : 'swap';
         const marketId = this.safeString (message, 's');
+        const isOption = (marketId !== undefined) && (marketId.indexOf ('-') >= 0);
+        let marketType = (isSpot) ? 'spot' : 'swap';
+        if (isOption) {
+            marketType = 'option';
+        }
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
@@ -1525,10 +1529,13 @@ export default class binance extends binanceRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
+        let wsUrlType: Str = type;
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
+            wsUrlType = type;
         } else if (firstMarket['option']) {
-            type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
+            type = 'option';
+            wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
@@ -1553,7 +1560,7 @@ export default class binance extends binanceRest {
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
+        const url = this.urls['api']['ws'][wsUrlType] + '/' + this.stream (wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1593,10 +1600,13 @@ export default class binance extends binanceRest {
         const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
+        let wsUrlType: Str = type;
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
+            wsUrlType = type;
         } else if (firstMarket['option']) {
-            type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
+            type = 'option';
+            wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
@@ -1623,7 +1633,7 @@ export default class binance extends binanceRest {
             subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
+        const url = this.urls['api']['ws'][wsUrlType] + '/' + this.stream (wsUrlType, 'multipleOHLCV');
         const requestId = this.requestId (url);
         const request = {
             'method': 'UNSUBSCRIBE',
