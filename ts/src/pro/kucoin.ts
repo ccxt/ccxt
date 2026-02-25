@@ -5,7 +5,7 @@ import kucoinRest from '../kucoin.js';
 import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -25,6 +25,8 @@ export default class kucoin extends kucoinRest {
                 'watchBidsAsks': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
+                'watchPosition': true,
+                'watchPositions': false,
                 'watchMyTrades': true,
                 'watchTickers': true,
                 'watchTicker': true,
@@ -54,8 +56,12 @@ export default class kucoin extends kucoinRest {
                     'spotMethod': '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
                 },
                 'watchBalance': {
-                    'fetchBalanceSnapshot': true, // or true // todo set to false after tests
+                    'fetchBalanceSnapshot': true, // or false
                     'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'watchPosition': {
+                    'fetchPositionSnapshot': true, // or false
+                    'awaitPositionSnapshot': true, // whether to wait for the position snapshot before providing updates
                 },
             },
             'streaming': {
@@ -1659,7 +1665,8 @@ export default class kucoin extends kucoinRest {
      * @method
      * @name kucoin#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
+     * @see https://www.kucoin.com/docs-new/3470075w0 // spot balance
+     * @see https://www.kucoin.com/docs-new/3470092w0 // contract balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
@@ -1834,6 +1841,187 @@ export default class kucoin extends kucoinRest {
         client.resolve (this.balance[uniformType], messageHash);
     }
 
+    /**
+     * @method
+     * @name kucoin#watchPosition
+     * @description watch open positions for a specific symbol
+     * @see https://www.kucoin.com/docs-new/3470093w0
+     * @param {string|undefined} symbol unified market symbol
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchPosition() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const url = await this.negotiate (true);
+        const market = this.market (symbol);
+        const topic = '/contract/position:' + market['id'];
+        const request: Dict = {
+            'privateChannel': true,
+        };
+        const messageHash = 'position:' + market['symbol'];
+        const client = this.client (url);
+        this.setPositionCache (client, symbol);
+        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
+        const awaitPositionSnapshot = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
+        const currentPosition = this.getCurrentPosition (symbol);
+        if (fetchPositionSnapshot && awaitPositionSnapshot && currentPosition === undefined) {
+            const snapshot = await client.future ('fetchPositionSnapshot:' + symbol);
+            return snapshot;
+        }
+        return await this.subscribe (url, messageHash, topic, this.extend (request, params));
+    }
+
+    getCurrentPosition (symbol) {
+        if (this.positions === undefined) {
+            return undefined;
+        }
+        const cache = this.positions.hashmap;
+        const symbolCache = this.safeValue (cache, symbol, {});
+        const values = Object.values (symbolCache);
+        return this.safeValue (values, 0);
+    }
+
+    setPositionCache (client: Client, symbol: string) {
+        const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', false);
+        if (fetchPositionSnapshot) {
+            const messageHash = 'fetchPositionSnapshot:' + symbol;
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionSnapshot, client, messageHash, symbol);
+            }
+        }
+    }
+
+    async loadPositionSnapshot (client, messageHash, symbol) {
+        const position = await this.fetchPosition (symbol);
+        this.positions = new ArrayCacheBySymbolById ();
+        const cache = this.positions;
+        cache.append (position);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (position, 'position:' + symbol);
+        }
+    }
+
+    handlePosition (client: Client, message) {
+        //
+        // Position Changes Caused Operations
+        //    {
+        //        "type": "message",
+        //        "userId": "5c32d69203aa676ce4b543c7", // Deprecated, will detele later
+        //        "channelType": "private",
+        //        "topic": "/contract/position:XBTUSDM",
+        //        "subject": "position.change",
+        //        "data": {
+        //            "realisedGrossPnl": 0E-8, //Accumulated realised profit and loss
+        //            "symbol": "XBTUSDM", //Symbol
+        //            "crossMode": false, //Cross mode or not
+        //            "liquidationPrice": 1000000.0, //Liquidation price
+        //            "posLoss": 0E-8, //Manually added margin amount
+        //            "avgEntryPrice": 7508.22, //Average entry price
+        //            "unrealisedPnl": -0.00014735, //Unrealised profit and loss
+        //            "markPrice": 7947.83, //Mark price
+        //            "posMargin": 0.00266779, //Position margin
+        //            "autoDeposit": false, //Auto deposit margin or not
+        //            "riskLimit": 100000, //Risk limit
+        //            "unrealisedCost": 0.00266375, //Unrealised value
+        //            "posComm": 0.00000392, //Bankruptcy cost
+        //            "posMaint": 0.00001724, //Maintenance margin
+        //            "posCost": 0.00266375, //Position value
+        //            "maintMarginReq": 0.005, //Maintenance margin rate
+        //            "bankruptPrice": 1000000.0, //Bankruptcy price
+        //            "realisedCost": 0.00000271, //Currently accumulated realised position value
+        //            "markValue": 0.00251640, //Mark value
+        //            "posInit": 0.00266375, //Position margin
+        //            "realisedPnl": -0.00000253, //Realised profit and losts
+        //            "maintMargin": 0.00252044, //Position margin
+        //            "realLeverage": 1.06, //Leverage of the order
+        //            "changeReason": "positionChange", //changeReason:marginChange、positionChange、liquidation、autoAppendMarginStatusChange、adl
+        //            "currentCost": 0.00266375, //Current position value
+        //            "openingTimestamp": 1558433191000, //Open time
+        //            "currentQty": -20, //Current position
+        //            "delevPercentage": 0.52, //ADL ranking percentile
+        //            "currentComm": 0.00000271, //Current commission
+        //            "realisedGrossCost": 0E-8, //Accumulated reliased gross profit value
+        //            "isOpen": true, //Opened position or not
+        //            "posCross": 1.2E-7, //Manually added margin
+        //            "currentTimestamp": 1558506060394, //Current timestamp
+        //            "unrealisedRoePcnt": -0.0553, //Rate of return on investment
+        //            "unrealisedPnlPcnt": -0.0553, //Position profit and loss ratio
+        //            "settleCurrency": "XBT" //Currency used to clear and settle the trades
+        //        }
+        //    }
+        // Position Changes Caused by Mark Price
+        //    {
+        //        "userId": "5cd3f1a7b7ebc19ae9558591", // Deprecated, will detele later
+        //        "topic": "/contract/position:XBTUSDM",
+        //        "subject": "position.change",
+        //          "data": {
+        //              "markPrice": 7947.83,                   //Mark price
+        //              "markValue": 0.00251640,                 //Mark value
+        //              "maintMargin": 0.00252044,              //Position margin
+        //              "realLeverage": 10.06,                   //Leverage of the order
+        //              "unrealisedPnl": -0.00014735,           //Unrealised profit and lost
+        //              "unrealisedRoePcnt": -0.0553,           //Rate of return on investment
+        //              "unrealisedPnlPcnt": -0.0553,            //Position profit and loss ratio
+        //              "delevPercentage": 0.52,             //ADL ranking percentile
+        //              "currentTimestamp": 1558087175068,      //Current timestamp
+        //              "settleCurrency": "XBT"                 //Currency used to clear and settle the trades
+        //          }
+        //    }
+        //  Funding Settlement
+        //    {
+        //        "userId": "xbc453tg732eba53a88ggyt8c", // Deprecated, will detele later
+        //        "topic": "/contract/position:XBTUSDM",
+        //        "subject": "position.settlement",
+        //        "data": {
+        //            "fundingTime": 1551770400000,          //Funding time
+        //            "qty": 100,                            //Position siz
+        //            "markPrice": 3610.85,                 //Settlement price
+        //            "fundingRate": -0.002966,             //Funding rate
+        //            "fundingFee": -296,                   //Funding fees
+        //            "ts": 1547697294838004923,             //Current time (nanosecond)
+        //            "settleCurrency": "XBT"                //Currency used to clear and settle the trades
+        //        }
+        //    }
+        // Adjustmet result of risk limit level
+        //     {
+        //         "userId": "xbc453tg732eba53a88ggyt8c",
+        //         "topic": "/contract/position:ADAUSDTM",
+        //         "subject": "position.adjustRiskLimit",
+        //         "data": {
+        //           "success": true, // Successful or not
+        //           "riskLimitLevel": 1, // Current risk limit level
+        //           "msg": "" // Failure reason
+        //         }
+        //     }
+        //
+        const topic = this.safeString (message, 'topic', '');
+        const parts = topic.split (':');
+        const marketId = this.safeString (parts, 1);
+        const symbol = this.safeSymbol (marketId, undefined, '');
+        const cache = this.positions;
+        const currentPosition = this.getCurrentPosition (symbol);
+        const messageHash = 'position:' + symbol;
+        const data = this.safeValue (message, 'data', {});
+        const newPosition = this.parsePosition (data);
+        const keys = Object.keys (newPosition);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (newPosition[key] === undefined) {
+                delete newPosition[key];
+            }
+        }
+        const position = this.extend (currentPosition, newPosition);
+        cache.append (position);
+        client.resolve (position, messageHash);
+    }
+
     handleSubject (client: Client, message) {
         //
         //     {
@@ -1878,6 +2066,9 @@ export default class kucoin extends kucoinRest {
             'symbolOrderChange': this.handleOrder,
             'availableBalance.change': this.handleBalance,
             'walletBalance.change': this.handleBalance,
+            'position.change': this.handlePosition,
+            'position.settlement': this.handlePosition,
+            'position.adjustRiskLimit': this.handlePosition,
         };
         const method = this.safeValue (methods, subject);
         if (method !== undefined) {
