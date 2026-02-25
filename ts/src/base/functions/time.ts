@@ -1,9 +1,9 @@
 
 // @ts-nocheck
 const now = Date.now; // TODO: figure out how to utilize performance.now () properly – it's not as easy as it does not return a unix timestamp...
-const microseconds = () => now () * 1000; // TODO: utilize performance.now for that purpose
+const microseconds = () => milliseconds () * 1000; // TODO: utilize performance.now for that purpose
 const milliseconds = now;
-const seconds = () => Math.floor (now () / 1000);
+const seconds = () => Math.floor (milliseconds () / 1000);
 const uuidv1 = () => {
     const biasSeconds = 12219292800; // seconds from 15th Oct 1572 to Jan 1st 1970
     const bias = biasSeconds * 10000000;  // in hundreds of nanoseconds
@@ -16,7 +16,7 @@ const uuidv1 = () => {
     return arranged + clockId + macAddress;
 };
 const setTimeout_original = setTimeout;
-const setTimeout_safe = (done, ms, setTimeout: any = setTimeout_original /* overrideable for mocking purposes */, targetTime = now () + ms) => {
+const setTimeout_safe = (done, ms, setTimeout: any = setTimeout_original /* overrideable for mocking purposes */, targetTime = milliseconds () + ms) => {
     // avoid MAX_INT issue https://github.com/ccxt/ccxt/issues/10761
     if (ms >= 2147483647) {
         throw new Error ('setTimeout() function was called with unrealistic value of ' + ms.toString ());
@@ -27,7 +27,7 @@ const setTimeout_safe = (done, ms, setTimeout: any = setTimeout_original /* over
     let active = true;
     const id = setTimeout (() => {
         active = true;
-        const rest = targetTime - now ();
+        const rest = targetTime - milliseconds ();
         if (rest > 0) {
             clearInnerTimeout = setTimeout_safe (done, rest, setTimeout, targetTime); // try sleep more
         } else {

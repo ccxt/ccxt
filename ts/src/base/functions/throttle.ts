@@ -2,7 +2,7 @@
 //@ts-nocheck
 /*  ------------------------------------------------------------------------ */
 
-import { now, sleep } from './time.js';
+import { milliseconds, sleep } from './time.js';
 /*  ------------------------------------------------------------------------ */
 
 class Throttler {
@@ -43,7 +43,7 @@ class Throttler {
     }
 
     async leakyBucketLoop () {
-        let lastTimestamp = now ();
+        let lastTimestamp = milliseconds ();
         while (this.running) {
             const { resolver, cost } = this.queue[0];
             if (this.config['tokens'] >= 0) {
@@ -57,7 +57,7 @@ class Throttler {
                 }
             } else {
                 await sleep (this.config['delay'] * 1000);
-                const current = now ();
+                const current = milliseconds ();
                 const elapsed = current - lastTimestamp;
                 lastTimestamp = current;
                 const tokens = this.config['tokens'] + (this.config['refillRate'] * elapsed);
@@ -69,7 +69,7 @@ class Throttler {
     async rollingWindowLoop() {
         while (this.running) {
             const { resolver, cost } = this.queue[0];
-            const nowTime = now ();
+            const nowTime = milliseconds ();
             const cutOffTime = nowTime - this.config.windowSize;
             let totalCost = 0;
             // Remove expired timestamps & sum the remaining requests
