@@ -75,7 +75,6 @@ const {
     precisionFromString,
     Throttler,
     capitalize,
-    now,
     decimalToPrecision,
     safeValue,
     safeValue2,
@@ -447,7 +446,6 @@ export default class Exchange {
     unCamelCase = unCamelCase;
     precisionFromString = precisionFromString;
     capitalize = capitalize;
-    now = now;
     decimalToPrecision = decimalToPrecision;
     safeValue = safeValue;
     safeValue2 = safeValue2;
