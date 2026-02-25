@@ -89,7 +89,7 @@ export default class binance extends binanceRest {
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'option': 'wss://fstream.binancefuture.com/public/ws',
                         'optionMarket': 'wss://fstream.binancefuture.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binancefuture.com/public/ws',
+                        'optionPrivate': 'wss://fstream.binancefuture.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -105,7 +105,7 @@ export default class binance extends binanceRest {
                         'delivery': 'wss://dstream.binancefuture.com/ws',
                         'option': 'wss://fstream.binance.com/public/ws',
                         'optionMarket': 'wss://fstream.binance.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binance.com/public/ws',
+                        'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -121,7 +121,7 @@ export default class binance extends binanceRest {
                         'delivery': 'wss://dstream.binance.com/ws',
                         'option': 'wss://fstream.binance.com/public/ws',
                         'optionMarket': 'wss://fstream.binance.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binance.com/public/ws',
+                        'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
