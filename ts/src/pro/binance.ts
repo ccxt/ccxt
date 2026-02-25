@@ -2085,15 +2085,16 @@ export default class binance extends binanceRest {
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
         const isOptionMarkPrice = (isMarkPrice && firstMarket !== undefined && firstMarket['option'] === true);
         let rawMarketType = undefined;
-        if (this.isLinear (marketType, subType)) {
+        if (marketType === 'option') {
+            // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
+            // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+            rawMarketType = (isOptionMarkPrice) ? 'optionMarket' : 'option';
+        } else if (this.isLinear (marketType, subType)) {
             rawMarketType = 'future';
         } else if (this.isInverse (marketType, subType)) {
             rawMarketType = 'delivery';
         } else if (marketType === 'spot') {
             rawMarketType = marketType;
-        } else if (marketType === 'option') {
-            // eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-            rawMarketType = (isOptionMarkPrice) ? 'optionMarket' : 'option';
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }

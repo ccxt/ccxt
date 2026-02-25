@@ -2143,15 +2143,16 @@ class binance extends \ccxt\async\binance {
             list($subType, $params) = $this->handle_sub_type_and_params($methodName, $firstMarket, $params);
             $isOptionMarkPrice = ($isMarkPrice && $firstMarket !== null && $firstMarket['option'] === true);
             $rawMarketType = null;
-            if ($this->isLinear ($marketType, $subType)) {
+            if ($marketType === 'option') {
+                // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
+                // eOptions => mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+                $rawMarketType = ($isOptionMarkPrice) ? 'optionMarket' : 'option';
+            } elseif ($this->isLinear ($marketType, $subType)) {
                 $rawMarketType = 'future';
             } elseif ($this->isInverse ($marketType, $subType)) {
                 $rawMarketType = 'delivery';
             } elseif ($marketType === 'spot') {
                 $rawMarketType = $marketType;
-            } elseif ($marketType === 'option') {
-                // eOptions => mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-                $rawMarketType = ($isOptionMarkPrice) ? 'optionMarket' : 'option';
             } else {
                 throw new NotSupported($this->id . ' ' . $methodName . '() does not support options markets');
             }

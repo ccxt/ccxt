@@ -1941,15 +1941,16 @@ class binance(ccxt.async_support.binance):
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)
         isOptionMarkPrice = (isMarkPrice and firstMarket is not None and firstMarket['option'] is True)
         rawMarketType = None
-        if self.isLinear(marketType, subType):
+        if marketType == 'option':
+            # check option first — isLinear returns True for linear-settled options, which would incorrectly route to futures
+            # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+            rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
+        elif self.isLinear(marketType, subType):
             rawMarketType = 'future'
         elif self.isInverse(marketType, subType):
             rawMarketType = 'delivery'
         elif marketType == 'spot':
             rawMarketType = marketType
-        elif marketType == 'option':
-            # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-            rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
         else:
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
         if isMarkPrice and not self.in_array(marketType, ['swap', 'future', 'option']):
