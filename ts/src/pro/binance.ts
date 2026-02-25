@@ -1153,9 +1153,7 @@ export default class binance extends binanceRest {
         } else if (firstMarket['option']) {
             type = 'option';
         }
-        if (type === 'option') {
-            name = 'optionTrade';
-        }
+        // eOptions uses @trade (same stream name as futures), not @optionTrade
         const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -1220,9 +1218,7 @@ export default class binance extends binanceRest {
         } else if (firstMarket['option']) {
             type = 'option';
         }
-        if (type === 'option') {
-            name = 'optionTrade';
-        }
+        // eOptions uses @trade (same stream name as futures), not @optionTrade
         const subMessageHashes = [];
         const subParams = [];
         const messageHashes = [];
@@ -1532,7 +1528,7 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         } else if (firstMarket['option']) {
-            type = 'option';
+            type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
@@ -1600,7 +1596,7 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         } else if (firstMarket['option']) {
-            type = 'option';
+            type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;

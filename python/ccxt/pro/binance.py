@@ -1074,8 +1074,7 @@ class binance(ccxt.async_support.binance):
             type = 'future' if firstMarket['linear'] else 'delivery'
         elif firstMarket['option']:
             type = 'option'
-        if type == 'option':
-            name = 'optionTrade'
+        # eOptions uses @trade(same stream name), not @optionTrade
         messageHashes = []
         subParams = []
         for i in range(0, len(symbols)):
@@ -1134,8 +1133,7 @@ class binance(ccxt.async_support.binance):
             type = 'future' if firstMarket['linear'] else 'delivery'
         elif firstMarket['option']:
             type = 'option'
-        if type == 'option':
-            name = 'optionTrade'
+        # eOptions uses @trade(same stream name), not @optionTrade
         subMessageHashes = []
         subParams = []
         messageHashes = []
@@ -1428,7 +1426,7 @@ class binance(ccxt.async_support.binance):
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
         elif firstMarket['option']:
-            type = 'option'
+            type = 'optionMarket'  # eOptions klines are on /market/ws endpoint
         isSpot = (type == 'spot')
         timezone = None
         timezone, params = self.handle_param_string(params, 'timezone', None)
@@ -1491,7 +1489,7 @@ class binance(ccxt.async_support.binance):
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
         elif firstMarket['option']:
-            type = 'option'
+            type = 'optionMarket'  # eOptions klines are on /market/ws endpoint
         isSpot = (type == 'spot')
         timezone = None
         timezone, params = self.handle_param_string(params, 'timezone', None)

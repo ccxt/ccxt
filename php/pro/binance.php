@@ -1173,9 +1173,7 @@ class binance extends \ccxt\async\binance {
             } elseif ($firstMarket['option']) {
                 $type = 'option';
             }
-            if ($type === 'option') {
-                $name = 'optionTrade';
-            }
+            // eOptions uses @trade (same stream $name), not @optionTrade
             $messageHashes = array();
             $subParams = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -1242,9 +1240,7 @@ class binance extends \ccxt\async\binance {
             } elseif ($firstMarket['option']) {
                 $type = 'option';
             }
-            if ($type === 'option') {
-                $name = 'optionTrade';
-            }
+            // eOptions uses @trade (same stream $name), not @optionTrade
             $subMessageHashes = array();
             $subParams = array();
             $messageHashes = array();
@@ -1562,7 +1558,7 @@ class binance extends \ccxt\async\binance {
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             } elseif ($firstMarket['option']) {
-                $type = 'option';
+                $type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
@@ -1632,7 +1628,7 @@ class binance extends \ccxt\async\binance {
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             } elseif ($firstMarket['option']) {
-                $type = 'option';
+                $type = 'optionMarket'; // eOptions klines are on /market/ws endpoint
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
