@@ -1,6 +1,5 @@
 // ----------------------------------------------------------------------------
 
-import fs from 'fs';
 import * as functions from './functions.js';
 import {
     keys as keysFunc,
@@ -1961,6 +1960,11 @@ export default class Exchange {
     async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        let fs: any = undefined;
+        if (!isNode) {
+            throw new NotSupported (this.id + ' loadLighterLibrary() is only supported in node environment.');
+        }
+        fs = await import ('fs');
         const wasmExecPath = this.safeString (this.options, 'wasmExecPath');
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm');
