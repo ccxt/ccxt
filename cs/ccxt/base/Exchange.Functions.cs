@@ -268,12 +268,6 @@ public partial class Exchange
     // }
 
 
-    public string uuidv1()
-    {
-        return Guid.NewGuid().ToString(); //stub
-    }
-
-
     public List<object> extractParams(object str)
     {
         var regex = new Regex(@"\{([^\}]+)\}");

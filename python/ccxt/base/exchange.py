@@ -965,10 +965,6 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
-    def uuidv1():
-        return str(uuid.uuid1()).replace('-', '')
-
-    @staticmethod
     def uuid5(namespace: str, name):
         return str(uuid.uuid5(uuid.UUID(namespace), name))
 

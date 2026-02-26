@@ -95,7 +95,6 @@ const {
     implodeParams,
     extractParams,
     json,
-    merge,
     binaryConcat,
     hash,
     // ecdsa,
@@ -113,7 +112,6 @@ const {
     safeStringUpper,
     safeTimestamp,
     binaryConcatArray,
-    uuidv1,
     numberToLE,
     ymdhms,
     stringToBase64,
@@ -470,7 +468,6 @@ export default class Exchange {
     extractParams = extractParams;
     json = json;
     vwap = vwapFunc;
-    merge = merge;
     binaryConcat = binaryConcat;
     hash = hash;
     arrayConcat = arrayConcat;
@@ -486,7 +483,6 @@ export default class Exchange {
     safeStringUpper = safeStringUpper;
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
-    uuidv1 = uuidv1;
     numberToLE = numberToLE;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
