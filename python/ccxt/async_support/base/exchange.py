@@ -657,6 +657,9 @@ class Exchange(BaseExchange):
     async def load_dydx_protos(self):
         return
 
+    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        return self.load_lighter_library(path, chainId, privateKey, apiKeyIndex, accountIndex)
+
     # ########################################################################
     # ########################################################################
     # ########################################################################

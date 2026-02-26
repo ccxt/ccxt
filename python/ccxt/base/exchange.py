@@ -2192,6 +2192,9 @@ class Exchange(object):
         return True
 
     def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
+
+    def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
         if path is None:
             raise NotSupported(self.id + ' requires absolute path for shared library to send orders')
 
