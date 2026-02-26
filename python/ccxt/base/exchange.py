@@ -2196,10 +2196,10 @@ class Exchange(object):
 
     def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
         if path is None:
-            raise NotSupported(self.id + ' requires absolute path for shared library to send orders')
+            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
 
         if not os.path.isfile(path):
-            raise NotSupported(self.id + ' the library is not existed')
+            raise NotSupported(self.id + ' the library does not exist')
 
         lighterSigner = load_lighter_library(path)
 

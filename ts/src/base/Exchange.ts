@@ -1953,13 +1953,12 @@ export default class Exchange {
         return undefined;  // c# stub
     }
 
-    isLighterLibraryPathRequired () {
-        return true;
-    }
-
     async loadLighterLibrary (libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
         // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
         // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        if (libraryPath === undefined || libraryPath === '') {
+            throw new Error ('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/wasm_exec.js"');
+        }
         let fs: any = undefined;
         if (!isNode) {
             throw new NotSupported (this.id + ' loadLighterLibrary() is only supported in node environment.');
@@ -1967,7 +1966,7 @@ export default class Exchange {
         fs = await import ('fs');
         const wasmExecPath = this.safeString (this.options, 'wasmExecPath');
         if (wasmExecPath === undefined || wasmExecPath === '') {
-            throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm');
+            throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
         await import (wasmExecPath);
         const go = new (globalThis as any).Go ();
