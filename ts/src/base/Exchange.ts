@@ -114,7 +114,6 @@ const {
     safeTimestamp,
     binaryConcatArray,
     uuidv1,
-    numberToLE,
     ymdhms,
     stringToBase64,
     decode,
@@ -487,7 +486,6 @@ export default class Exchange {
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
     uuidv1 = uuidv1;
-    numberToLE = numberToLE;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
     stringToBase64 = stringToBase64;

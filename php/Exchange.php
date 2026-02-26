@@ -2197,11 +2197,6 @@ class Exchange {
         return array_reduce(array_map('chr', $n->toArray('be', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
-    public static function number_to_le($n, $padding) {
-        $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('le', $padding)),  [__CLASS__, 'binary_concat']);
-    }
-
     public static function base58_to_binary($s) {
         if (!self::$base58_decoder) {
             self::$base58_decoder = array();
