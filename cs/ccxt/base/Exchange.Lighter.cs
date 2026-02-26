@@ -12,7 +12,7 @@ public partial class Exchange
         return true; // not supported for now
     }
 
-    public Task<object> loadLighterLibrary(object path, object chainId, object privateKey, object apiKeyIndex, object accountIndex) {
+    public async Task<LighterSigner.Signer> loadLighterLibrary(object path, object chainId, object privateKey, object apiKeyIndex, object accountIndex) {
         if (path == null || path.ToString() == "") {
             throw new NotSupportedException(this.id + " loadLighterLibrary() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options[\"libraryPath\"] = \"path/to/lighter-signer-linux-arm64.so\"");
 
