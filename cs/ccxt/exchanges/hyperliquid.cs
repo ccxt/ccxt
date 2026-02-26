@@ -2437,7 +2437,6 @@ public partial class hyperliquid : Exchange
             object hasTakeProfit = (!isEqual(takeProfit, null));
             orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
             object mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            ((IList<object>)orderReq).Add(mainOrderObj);
             if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
             {
                 // grouping opposed orders for sl/tp
@@ -2447,8 +2446,20 @@ public partial class hyperliquid : Exchange
                 object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
                 object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
-                grouping = "normalTpsl";
-                orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
+                grouping = this.safeString(orderParams, "grouping", "normalTpsl");
+                if (isTrue(isEqual(grouping, "positionTpsl")))
+                {
+                    amount = "0";
+                    stopLossOrderType = "market";
+                    takeProfitOrderType = "market";
+                } else if (isTrue(isEqual(grouping, "normalTpsl")))
+                {
+                    ((IList<object>)orderReq).Add(mainOrderObj);
+                } else
+                {
+                    throw new NotSupported ((string)add(this.id, " only support grouping normalTpsl and positionTpsl.")) ;
+                }
+                orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit", "grouping"});
                 object triggerOrderSide = "";
                 if (isTrue(isEqual(side, "BUY")))
                 {
@@ -2473,6 +2484,9 @@ public partial class hyperliquid : Exchange
                     }));
                     ((IList<object>)orderReq).Add(orderObj);
                 }
+            } else
+            {
+                ((IList<object>)orderReq).Add(mainOrderObj);
             }
         }
         object vaultAddress = null;

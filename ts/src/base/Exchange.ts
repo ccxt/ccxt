@@ -63,7 +63,6 @@ const {
     deepExtend,
     extend,
     clone,
-    flatten,
     unique,
     indexBy,
     sortBy,
@@ -436,7 +435,6 @@ export default class Exchange {
     isNode = isNode;
     extend = extend;
     clone = clone;
-    flatten = flatten;
     unique = unique;
     indexBy = indexBy;
     indexBySafe = indexBy;

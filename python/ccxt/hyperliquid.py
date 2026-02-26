@@ -2125,7 +2125,6 @@ class hyperliquid(Exchange, ImplicitAPI):
             hasTakeProfit = (takeProfit is not None)
             orderParams = self.omit(orderParams, ['stopLoss', 'takeProfit'])
             mainOrderObj: dict = self.create_order_request(symbol, type, side, amount, price, orderParams)
-            orderReq.append(mainOrderObj)
             if hasStopLoss or hasTakeProfit:
                 # grouping opposed orders for sl/tp
                 stopLossOrderTriggerPrice = self.safe_string_n(stopLoss, ['triggerPrice', 'stopPrice'])
@@ -2134,8 +2133,16 @@ class hyperliquid(Exchange, ImplicitAPI):
                 takeProfitOrderTriggerPrice = self.safe_string_n(takeProfit, ['triggerPrice', 'stopPrice'])
                 takeProfitOrderType = self.safe_string(takeProfit, 'type', 'limit')
                 takeProfitOrderLimitPrice = self.safe_string_n(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice)
-                grouping = 'normalTpsl'
-                orderParams = self.omit(orderParams, ['stopLoss', 'takeProfit'])
+                grouping = self.safe_string(orderParams, 'grouping', 'normalTpsl')
+                if grouping == 'positionTpsl':
+                    amount = '0'
+                    stopLossOrderType = 'market'
+                    takeProfitOrderType = 'market'
+                elif grouping == 'normalTpsl':
+                    orderReq.append(mainOrderObj)
+                else:
+                    raise NotSupported(self.id + ' only support grouping normalTpsl and positionTpsl.')
+                orderParams = self.omit(orderParams, ['stopLoss', 'takeProfit', 'grouping'])
                 triggerOrderSide = ''
                 if side == 'BUY':
                     triggerOrderSide = 'sell'
@@ -2153,6 +2160,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                         'reduceOnly': True,
                     }))
                     orderReq.append(orderObj)
+            else:
+                orderReq.append(mainOrderObj)
         vaultAddress = None
         vaultAddress, params = self.handle_option_and_params(params, 'createOrder', 'vaultAddress')
         vaultAddress = self.format_vault_address(vaultAddress)

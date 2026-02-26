@@ -208,7 +208,6 @@ export default class Exchange {
     isNode: boolean;
     extend: (...args: any[]) => any;
     clone: (x: any) => any;
-    flatten: (x: any[], out?: any[]) => any[];
     unique: (x: any[]) => any[];
     indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
     indexBySafe: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;

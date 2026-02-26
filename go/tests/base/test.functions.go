@@ -30,6 +30,7 @@ var FunctionsMap = map[string]interface{}{
 	"removeRepeatedElementsFromArray": TestRemoveRepeatedElementsFromArray,
 	"safeMethods":                     TestSafeMethods,
 	"safeTicker":                      TestSafeTicker,
+	"setMarketsFromExchange":          TestSetMarketsFromExchange,
 	"sleep":                           TestSleep,
 	"sort":                            TestSort,
 	"sortBy":                          TestSortBy,

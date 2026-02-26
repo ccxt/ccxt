@@ -41,6 +41,7 @@ from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
 from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
+from ccxt.test.base.test_set_markets_from_exchange import test_set_markets_from_exchange  # noqa E402
 from ccxt.test.base.test_sleep import test_sleep  # noqa E402
 from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
 from ccxt.test.base.test_keysort import test_keysort  # noqa E402
@@ -76,6 +77,7 @@ async def base_tests_init():
     test_precision_from_string()
     test_extract_params()
     test_arrays_concat()
+    test_set_markets_from_exchange()
     test_eth_methods()
     test_keysort()
     await test_sleep()
