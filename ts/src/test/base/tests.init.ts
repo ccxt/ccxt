@@ -66,7 +66,7 @@ async function baseTestsInit () {
     testEthMethods ();
     testKeysort ();
     await testSleep ();
-    await testIo ();
+    testIo ();
 }
 
 export default baseTestsInit;
