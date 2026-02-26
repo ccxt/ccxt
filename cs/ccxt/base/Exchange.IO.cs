@@ -2,15 +2,15 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public string GetTempDir()
+    public string getTempDir()
     {
         var tmp = Path.GetFullPath(Path.GetTempPath());
         return tmp.EndsWith(Path.DirectorySeparatorChar) ? tmp : tmp + Path.DirectorySeparatorChar;
     }
 
-    public void EnsureWhitelistedFile(object filePath)
+    public void ensureWhitelistedFile(object filePath)
     {
-        var tempDir = GetTempDir();
+        var tempDir = getTempDir();
         var sanitized = Path.GetFullPath(filePath as string);
         if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
             return;
@@ -18,9 +18,9 @@ public partial class Exchange
         throw new InvalidOperationException($"invalid file path: {filePath as string}");
     }
 
-    public string ReadFile(object filePath)
+    public string readFile(object filePath)
     {
-        EnsureWhitelistedFile(filePath);
+        ensureWhitelistedFile(filePath);
         if (!File.Exists(filePath as string))
         {
             throw new Exception("File not found: " + (filePath as string));
@@ -28,9 +28,9 @@ public partial class Exchange
         return File.ReadAllText(filePath as string);
     }
 
-    public bool WriteFile(object filePath, object data)
+    public bool writeFile(object filePath, object data)
     {
-        EnsureWhitelistedFile(filePath);
+        ensureWhitelistedFile(filePath);
         var directory = Path.GetDirectoryName(filePath as string);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
@@ -40,9 +40,9 @@ public partial class Exchange
         return true;
     }
 
-    public bool ExistsFile(object filePath)
+    public bool existsFile(object filePath)
     {
-        EnsureWhitelistedFile(filePath);
+        ensureWhitelistedFile(filePath);
         return File.Exists(filePath as string);
     }
 }
