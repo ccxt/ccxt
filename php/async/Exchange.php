@@ -42,6 +42,8 @@ use React;
 use React\Async;
 use React\EventLoop\Loop;
 
+use Lighter\Signer;
+
 use Exception;
 
 $version = '4.5.37';
@@ -737,6 +739,22 @@ class Exchange extends \ccxt\Exchange {
             ),
             'rollingWindowSize' => 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         );
+    }
+
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+        return Async\async(function () use ($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+            $lighterSigner = Signer::getInstance($path);
+
+            $url = $this->implode_hostname($this->urls['api']['public']);
+            $lighterSigner->createClient(
+                $url,
+                $privateKey,
+                $chainId,
+                $apiKeyIndex,
+                $accountIndex
+            );
+            return $lighterSigner;
+        }) ();
     }
 
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {

@@ -88,6 +88,27 @@ class Exchange(BaseExchange):
         self.markets_loading = None
         self.reloading_markets = False
 
+    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        if path is None:
+            raise NotSupported(self.id + ' requires absolute path for shared library to send orders')
+
+        if not os.path.isfile(path):
+            raise NotSupported(self.id + ' the library is not existed')
+
+        lighterSigner = load_lighter_library(path)
+
+        url = self.implode_hostname(self.urls['api']['public'])
+        res = lighterSigner.CreateClient(
+            url.encode("utf-8"),
+            privateKey.encode("utf-8"),
+            chainId,
+            apiKeyIndex,
+            accountIndex,
+        )
+        if res is not None and str(res).find('error'):
+            raise Exception('load_lighter_library(): Failed to create lighter signer: ' + str(res))
+        return lighterSigner
+
     def get_event_loop(self):
         return self.asyncio_loop
 

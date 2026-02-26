@@ -1942,7 +1942,7 @@ export default class Exchange {
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm');
         }
-        const mod = await import (wasmExecPath);
+        await import (wasmExecPath);
         const go = new (globalThis as any).Go ();
         // read wasm from disk
         const bytes = new Uint8Array (fs.readFileSync (libraryPath)); // it should point to lighter.wasm
@@ -1959,7 +1959,8 @@ export default class Exchange {
     lighterSignCreateGroupedOrders (signer, request): any[] {
         const orders = request['orders'];
         const ordersArr = [];
-        for (const order of orders) {
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
             ordersArr.push ({
                 'MarketIndex': parseInt (order['market_index']),
                 'ClientOrderIndex': order['client_order_index'],
