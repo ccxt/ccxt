@@ -491,6 +491,9 @@ export default class lighter extends Exchange {
          * @param {int} [params.orderExpiry] orderExpiry
          * @returns {any[]} request to be sent to the exchange
          */
+        if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument');
+        }
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only', false); // default false
         const orderType = type.toUpperCase ();
         const market = this.market (symbol);
