@@ -665,7 +665,12 @@ export default class lighter extends Exchange {
             order = orderRequests[0];
             apiKeyIndex = order['api_key_index'];
             if (order['nonce'] === undefined) {
-                order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+                const nonceInOptions = this.safeInteger (this.options, 'nonce');
+                if (nonceInOptions !== undefined) {
+                    order['nonce'] = nonceInOptions;
+                } else {
+                    order['nonce'] = await this.fetchNonce (accountIndex, apiKeyIndex);
+                }
             }
         }
         const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
