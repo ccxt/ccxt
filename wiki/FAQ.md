@@ -274,9 +274,13 @@ Lighter is available as part of CCXT and it works similarly to any other CCXT ex
 ## Credentials requirements
 
 Lighter requires the following :
-- `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey
+- `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey (https://app.lighter.xyz/apikeys)
 - `apiKeyIndex` in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
-- `accountIndex` in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices
+- `accountIndex` in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
+
+
+
+![image](https://github.com/user-attachments/assets/f50602be-31eb-497c-a6df-e9b2803defdf)
 
 Example
 
