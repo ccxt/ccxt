@@ -8,7 +8,7 @@ import (
 
 // fileRead reads a file and returns its contents
 func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
-	this.EnsureCcxtFile(path)
+	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	data, err := os.ReadFile(pathStr)
 	if err != nil {
@@ -19,7 +19,7 @@ func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
 
 // fileWrite writes data to a file
 func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...interface{}) bool {
-	this.EnsureCcxtFile(path)
+	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	dataStr := data.(string)
 	dir := filepath.Dir(pathStr)
@@ -36,22 +36,30 @@ func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...inte
 
 // fileExists checks if a file exists
 func (this *Exchange) FileExists(path interface{}) bool {
-	this.EnsureCcxtFile(path)
+	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	_, err := os.Stat(pathStr)
 	return err == nil
 }
 
-// EnsureCcxtFile ensures the file path is ccxt file, so users would be safeguarded
-func (this *Exchange) EnsureCcxtFile(path interface{}) {
-	pathStr := path.(string)
+// EnsureWhitelistedFile ensures the file path is ccxt file, so users would be safeguarded
+func (this *Exchange) EnsureWhitelistedFile(filePath interface{}) {
 	tempDir := this.GetTempDir()
-	if !strings.Contains(pathStr, tempDir) || !strings.Contains(pathStr, "ccxt") {
-		panic("invalid file path")
+	sanitized, err := filepath.Abs(filePath.(string))
+	if err != nil {
+		panic("invalid file path: " + filePath.(string))
 	}
+	if strings.HasPrefix(sanitized, tempDir) && strings.HasSuffix(sanitized, ".ccxtfile") {
+		return
+	}
+	panic("invalid file path: " + filePath.(string))
 }
 
 // GetTempDir returns the temporary directory
 func (this *Exchange) GetTempDir() string {
-	return os.TempDir() + string(filepath.Separator)
+	tmp, _ := filepath.Abs(os.TempDir())
+	if !strings.HasSuffix(tmp, string(os.PathSeparator)) {
+		tmp += string(os.PathSeparator)
+	}
+	return tmp
 }

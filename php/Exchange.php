@@ -1270,27 +1270,31 @@ class Exchange {
         return $token . '.' . static::urlencode_base64($signature);
     }
 
-    public function get_temp_dir() {
-        return sys_get_temp_dir() . DIRECTORY_SEPARATOR;
+    public function get_temp_dir(): string {
+        $tmp = realpath(sys_get_temp_dir()) ?: '';
+        return str_ends_with($tmp, DIRECTORY_SEPARATOR) ? $tmp : $tmp . DIRECTORY_SEPARATOR;
     }
 
-    public function ensure_ccxt_file(string $path) {
-        $temp_dir = $this->get_temp_dir();
-        if ((strpos($path, $temp_dir) === false) || (strpos($path, 'ccxt') === false)) {
-            throw new \Exception("invalid file path");
+
+    public function ensure_whitelisted_file(string $filePath) {
+        $tempDir = $this->get_temp_dir();
+        $sanitized = realpath($filePath) ?: '';
+        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
+            return;
         }
+        throw new \RuntimeException('invalid file path: ' . $filePath);
     }
 
-    public function file_read(string $path) {
-        $this->ensure_ccxt_file($path);
-        if (!file_exists($path)) {
-            throw new \Exception("File not found: $path");
+    public function read_file(string $filePath) {
+        $this->ensure_whitelisted_file($filePath);
+        if (!file_exists($filePath)) {
+            throw new \Exception("File not found: $filePath");
         }
-        return file_get_contents($path);
+        return file_get_contents($filePath);
     }
 
-    public function file_write(string $path, string $data) {
-        $this->ensure_ccxt_file($path);
+    public function write_file(string $path, string $data) {
+        $this->ensure_whitelisted_file($path);
         $dir = dirname($path);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
@@ -1299,8 +1303,8 @@ class Exchange {
         return true;
     }
 
-    public function file_exists(string $path) {
-        $this->ensure_ccxt_file($path);
+    public function exists_file(string $path) {
+        $this->ensure_whitelisted_file($path);
         return file_exists($path);
     }
 

@@ -2,24 +2,24 @@ namespace ccxt;
 
 public partial class Exchange
 {
-    public string getTempDir()
+    public string GetTempDir()
     {
         return Path.GetTempPath();
     }
 
-    public void ensureCcxtFile(object path)
+    public void EnsureWhitelistedFile(object path)
     {
         var pathStr = path as string;
-        var tempDir = getTempDir();
+        var tempDir = GetTempDir();
         if (pathStr == null || !pathStr.Contains(tempDir) || !pathStr.Contains("ccxt"))
         {
             throw new Exception("invalid file path");
         }
     }
 
-    public string fileRead(object path)
+    public string ReadFile(object path)
     {
-        ensureCcxtFile(path);
+        EnsureWhitelistedFile(path);
         if (!File.Exists(path as string))
         {
             throw new Exception("File not found: " + path as string);
@@ -27,9 +27,9 @@ public partial class Exchange
         return File.ReadAllText(path as string);
     }
 
-    public bool fileWrite(object path, object data)
+    public bool WriteFile(object path, object data)
     {
-        ensureCcxtFile(path);
+        EnsureWhitelistedFile(path);
         var directory = Path.GetDirectoryName(path as string);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
@@ -39,11 +39,9 @@ public partial class Exchange
         return true;
     }
 
-    public bool fileExists(object path)
+    public bool ExistsFile(object path)
     {
-        ensureCcxtFile(path);
+        EnsureWhitelistedFile(path);
         return File.Exists(path as string);
     }
-
-
 }

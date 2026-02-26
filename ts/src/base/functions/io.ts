@@ -46,12 +46,12 @@ if (isNode) {
  * Get system temporary directory (Node.js only)
  * @returns Temporary directory path with trailing slash, or undefined
  */
-export function getTempDir (): string | undefined {
+export function getTempDir(): string | undefined {
     if (!isNode || osSyncModule === null) {
         return undefined;
     }
     try {
-        const tmpDir = osSyncModule.tmpdir ();
+        const tmpDir = pathSyncModule.resolve(osSyncModule.tmpdir());
         const sep = pathSyncModule ? pathSyncModule.sep : '/';
         return tmpDir.endsWith(sep) ? tmpDir : tmpDir + sep;
     } catch (e) {
@@ -59,14 +59,21 @@ export function getTempDir (): string | undefined {
     }
 }
 
+
 /**
  * Check if file path is ccxt-cache file, so users are ensured there is no access possible to other files
  * @param path File path to check
  */
-function ensureCcxtFile (path: string) {
-    if (!path.includes (getTempDir ()) || !path.includes ('ccxt')) {
-        throw new Error('invalid file path');
+function ensureWhitelistedFile(filePath: string) {
+    const tempDir = getTempDir();
+    if (!tempDir) {
+        throw new Error('invalid file path: ' + filePath);
     }
+    const sanitizedFilePath = pathSyncModule.resolve(filePath);
+    if ((sanitizedFilePath.startsWith(tempDir) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
+        return;
+    }
+    throw new Error('invalid file path: ' + filePath);
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -77,12 +84,12 @@ function ensureCcxtFile (path: string) {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export function fileRead (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
+export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
     if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
     }
-    ensureCcxtFile (path);
+    ensureWhitelistedFile (path);
     try {
         return fsSyncModule.readFileSync (path, encoding);
     } catch (e) {
@@ -98,11 +105,11 @@ export function fileRead (path: string, encoding: BufferEncoding = 'utf8'): stri
  * @param data Data to write
  * @param encoding File encoding (default: 'utf8')
  */
-export function fileWrite (path: string, data: string, encoding: BufferEncoding = 'utf8'): boolean {
+export function writeFile (path: string, data: string, encoding: BufferEncoding = 'utf8'): boolean {
     if (!isNode || fsSyncModule === null) {
         return false;
     }
-    ensureCcxtFile (path);
+    ensureWhitelistedFile (path);
     try {
         fsSyncModule.writeFileSync (path, data, encoding);
         return true;
@@ -119,12 +126,12 @@ export function fileWrite (path: string, data: string, encoding: BufferEncoding 
  * @param path File path to check
  * @returns true if file exists, false otherwise
  */
-export function fileExists (path: string): boolean {
+export function existsFile (path: string): boolean {
     if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return false;
     }
-    ensureCcxtFile (path);
+    ensureWhitelistedFile (path);
     try {
         fsSyncModule.accessSync (path);
         return true;
@@ -132,6 +139,3 @@ export function fileExists (path: string): boolean {
         return false;
     }
 }
-
-
-// we don't have `fileDelete` or other deletion methods
