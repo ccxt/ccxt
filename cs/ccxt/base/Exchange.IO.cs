@@ -5,7 +5,7 @@ public partial class Exchange
     public string getTempDir()
     {
         var tmp = Path.GetFullPath(Path.GetTempPath());
-        return tmp.EndsWith(Path.DirectorySeparatorChar) ? tmp : tmp + Path.DirectorySeparatorChar;
+        return tmp.EndsWith(Path.DirectorySeparatorChar.ToString()) ? tmp : tmp + Path.DirectorySeparatorChar;
     }
 
     public void ensureWhitelistedFile(object filePath)

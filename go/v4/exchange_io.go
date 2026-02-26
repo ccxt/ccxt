@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// fileRead reads a file and returns its contents
-func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
+// ReadFile reads a file and returns its contents
+func (this *Exchange) ReadFile(path interface{}, args ...interface{}) string {
 	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	data, err := os.ReadFile(pathStr)
@@ -17,8 +17,8 @@ func (this *Exchange) FileRead(path interface{}, args ...interface{}) string {
 	return string(data)
 }
 
-// fileWrite writes data to a file
-func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...interface{}) bool {
+// WriteFile writes data to a file
+func (this *Exchange) WriteFile(path interface{}, data interface{}, args ...interface{}) bool {
 	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	dataStr := data.(string)
@@ -34,8 +34,8 @@ func (this *Exchange) FileWrite(path interface{}, data interface{}, args ...inte
 	return true
 }
 
-// fileExists checks if a file exists
-func (this *Exchange) FileExists(path interface{}) bool {
+// ExistsFile checks if a file exists
+func (this *Exchange) ExistsFile(path interface{}) bool {
 	this.EnsureWhitelistedFile(path)
 	pathStr := path.(string)
 	_, err := os.Stat(pathStr)
