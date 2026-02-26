@@ -1297,8 +1297,49 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
+        const wasmExecPath = getRootDir () + './ts/src/test/static/binaries/wasm_exec.js';
+        const ligherWasmPath = getRootDir () + './ts/src/test/static/binaries/ccxt.wasm';
+        const binaryPath = getRootDir () + './ts/src/test/static/binaries/lighter-signer-linux-arm64.so';
+        const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId':'12345', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const options = {
+            "markets":markets,
+            "currencies":currencies,
+            "enableRateLimit":false,
+            "rateLimit":1,
+            "httpProxy":"http://fake:8080",
+            "httpsProxy":"http://fake:8080",
+            "apiKey":"key",
+            "secret":"secretsecret",
+            "password":"password",
+            "walletAddress":"wallet",
+            "privateKey":"0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+            "uid":"uid",
+            "token":"token",
+            "login":"login",
+            "accountId":"12345",
+            "accounts":[
+                {
+                    "id":"myAccount",
+                    "code":"USDT"
+                },
+                {
+                    "id":"myAccount",
+                    "code":"USDC"
+                }
+            ],
+            "options":{
+                "enableUnifiedAccount":true,
+                "enableUnifiedMargin":false,
+                "accessToken":"token",
+                "expires":999999999999999,
+                "leverageBrackets":{
+                },
+                "libraryPath": librarypath,
+                "wasmExecPath": wasmExecPath
+            }
+        };
+        const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;
