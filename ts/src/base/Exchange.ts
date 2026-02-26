@@ -953,7 +953,9 @@ export default class Exchange {
         // set final headers
         headers = this.setHeaders (headers);
         // multipart/form-data
-        for (const key of Object.keys (headers)) {
+        const headersKeys = Object.keys (headers);
+        for (let i = 0; i < headersKeys.length; i++) {
+            const key = headersKeys[i];
             if (key.toLowerCase () === 'content-type') {
                 let value = headers[key];
                 if (value === 'multipart/form-data') {
@@ -961,7 +963,8 @@ export default class Exchange {
                     const boundary = '--------------------------' + this.randomBytes (12);
                     const eol = '\r\n';
                     let newBody = '';
-                    for (const bodyKey of bodyKeys) {
+                    for (let j = 0; j < bodyKeys.length; j++) {
+                        const bodyKey = bodyKeys[j];
                         newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + body[bodyKey] + eol;
                     }
                     newBody += '--' + boundary + '--' + eol;
