@@ -4,44 +4,45 @@ public partial class Exchange
 {
     public string GetTempDir()
     {
-        return Path.GetTempPath();
+        var tmp = Path.GetFullPath(Path.GetTempPath());
+        return tmp.EndsWith(Path.DirectorySeparatorChar) ? tmp : tmp + Path.DirectorySeparatorChar;
     }
 
-    public void EnsureWhitelistedFile(object path)
+    public void EnsureWhitelistedFile(object filePath)
     {
-        var pathStr = path as string;
         var tempDir = GetTempDir();
-        if (pathStr == null || !pathStr.Contains(tempDir) || !pathStr.Contains("ccxt"))
-        {
-            throw new Exception("invalid file path");
+        var sanitized = Path.GetFullPath(filePath as string);
+        if (sanitized.StartsWith(tempDir) && sanitized.EndsWith(".ccxtfile")) {
+            return;
         }
+        throw new InvalidOperationException($"invalid file path: {filePath as string}");
     }
 
-    public string ReadFile(object path)
+    public string ReadFile(object filePath)
     {
-        EnsureWhitelistedFile(path);
-        if (!File.Exists(path as string))
+        EnsureWhitelistedFile(filePath);
+        if (!File.Exists(filePath as string))
         {
-            throw new Exception("File not found: " + path as string);
+            throw new Exception("File not found: " + (filePath as string));
         }
-        return File.ReadAllText(path as string);
+        return File.ReadAllText(filePath as string);
     }
 
-    public bool WriteFile(object path, object data)
+    public bool WriteFile(object filePath, object data)
     {
-        EnsureWhitelistedFile(path);
-        var directory = Path.GetDirectoryName(path as string);
+        EnsureWhitelistedFile(filePath);
+        var directory = Path.GetDirectoryName(filePath as string);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
         }
-        File.WriteAllText(path as string, data as string);
+        File.WriteAllText(filePath as string, data as string);
         return true;
     }
 
-    public bool ExistsFile(object path)
+    public bool ExistsFile(object filePath)
     {
-        EnsureWhitelistedFile(path);
-        return File.Exists(path as string);
+        EnsureWhitelistedFile(filePath);
+        return File.Exists(filePath as string);
     }
 }
