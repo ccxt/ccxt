@@ -542,13 +542,13 @@ class Exchange(object):
         except Exception:
             return False
 
-    def get_os_temp_dir(self):
+    def get_temp_dir(self):
         tmp = os.path.realpath(tempfile.gettempdir())
         return tmp if tmp.endswith(os.sep) else tmp + os.sep
 
     def _ensure_whitelisted_file(self, file_path: str):
         sanitized = os.path.realpath(file_path)
-        if sanitized.startswith(self.get_os_temp_dir()) and sanitized.endswith('.ccxtfile'):
+        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
             return
         raise ValueError(f'invalid file path: {file_path}')
 
