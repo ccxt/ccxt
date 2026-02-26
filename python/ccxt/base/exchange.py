@@ -1184,9 +1184,6 @@ class Exchange(object):
                 total += arg
         return total
 
-    @staticmethod
-    def ordered(array):
-        return collections.OrderedDict(array)
 
     @staticmethod
     def aggregate(bidasks):

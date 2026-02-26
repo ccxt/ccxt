@@ -914,10 +914,6 @@ class Exchange {
         }));
     }
 
-    public static function ordered($array) { // for Python OrderedDicts, does nothing in PHP and JS
-        return $array;
-    }
-
     public function aggregate($bidasks) {
         $result = array();
 
