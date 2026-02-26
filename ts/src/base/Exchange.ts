@@ -952,6 +952,28 @@ export default class Exchange {
         }
         // set final headers
         headers = this.setHeaders (headers);
+        
+        // multipart/form-data
+        for (var key of Object.keys (headers)) {
+            if (key.toLowerCase () === 'content-type') {
+                let value = headers[key];
+                if (value === 'multipart/form-data') {
+                    const bodyKeys = Object.keys (body);
+                    let boundary = '--------------------------' + this.random_bytes (12);
+                    let eol = "\r\n";
+                    let newBody = '';
+                    for (var bodyKey of bodyKeys) {
+                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"'  + eol + eol + body[bodyKey] + eol;
+                    }
+                    newBody += '--' + boundary + '--' + eol;
+                    value += '; boundary=' + boundary;
+                    headers[key] = value;
+                    body = newBody;
+                    break;
+                }
+            }
+        }
+
         // log
         if (this.verbose) {
             this.log ('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
