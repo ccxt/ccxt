@@ -643,10 +643,12 @@ export default class Exchange {
     }
 
     async loadExchangeSpecificFiles () {
-        try {
-            protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-        } catch (e) {
-            // TODO: handle error
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+            } catch (e) {
+                // TODO: handle error
+            }
         }
     }
 
