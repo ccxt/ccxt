@@ -95,7 +95,6 @@ const {
     implodeParams,
     extractParams,
     json,
-    merge,
     binaryConcat,
     hash,
     // ecdsa,
@@ -420,11 +419,17 @@ export default class Exchange {
     newUpdates: boolean = true;
     streaming: Dictionary<any> = {};
 
+    //
     // INTERNAL METHODS
+    //
+    // non-transpilables
+    isNode = isNode;
+    unCamelCase = unCamelCase;
+    now = now;
+    // transpilables
     sleep = sleep;
     deepExtend = deepExtend;
     deepExtendSafe = deepExtend;
-    isNode = isNode;
     extend = extend;
     clone = clone;
     unique = unique;
@@ -436,10 +441,8 @@ export default class Exchange {
     groupBy = groupBy;
     aggregate = aggregate;
     uuid = uuid;
-    unCamelCase = unCamelCase;
     precisionFromString = precisionFromString;
     capitalize = capitalize;
-    now = now;
     decimalToPrecision = decimalToPrecision;
     safeValue = safeValue;
     safeValue2 = safeValue2;
@@ -462,7 +465,6 @@ export default class Exchange {
     extractParams = extractParams;
     json = json;
     vwap = vwapFunc;
-    merge = merge;
     binaryConcat = binaryConcat;
     hash = hash;
     arrayConcat = arrayConcat;
