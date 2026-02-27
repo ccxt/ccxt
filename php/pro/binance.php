@@ -4394,9 +4394,18 @@ class binance extends \ccxt\async\binance {
             $order = $orders[$i];
             $fills = $this->safe_list($order, 'fi', array());
             $rawQty = $this->safe_string($order, 'q', '0');
-            $side = (floatval($rawQty) >= 0) ? 'BUY' : 'SELL';
-            $absQty = ($rawQty->charAt (0) === '-') ? mb_substr($rawQty, 1) : $rawQty;
-            $executionType = (strlen($fills) > 0) ? 'TRADE' : 'NEW';
+            $side = 'BUY';
+            if (floatval($rawQty) < 0) {
+                $side = 'SELL';
+            }
+            $absQty = $rawQty;
+            if ($rawQty->charAt (0) === '-') {
+                $absQty = mb_substr($rawQty, 1);
+            }
+            $executionType = 'NEW';
+            if (strlen($fills) > 0) {
+                $executionType = 'TRADE';
+            }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
             $normalizedOrder = array(
                 's' => $this->safe_string($order, 's'),

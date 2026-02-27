@@ -3988,9 +3988,15 @@ class binance(ccxt.async_support.binance):
             order = orders[i]
             fills = self.safe_list(order, 'fi', [])
             rawQty = self.safe_string(order, 'q', '0')
-            side = (float(rawQty) >= 'BUY' if 0) else 'SELL'
-            absQty = (rawQty.charAt(0) == rawQty[1:] if '-') else rawQty
-            executionType = 'TRADE' if (len(fills) > 0) else 'NEW'
+            side = 'BUY'
+            if float(rawQty) < 0:
+                side = 'SELL'
+            absQty = rawQty
+            if rawQty.charAt(0) == '-':
+                absQty = rawQty[1:]
+            executionType = 'NEW'
+            if len(fills) > 0:
+                executionType = 'TRADE'
             # normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
             normalizedOrder: dict = {
                 's': self.safe_string(order, 's'),

@@ -4297,9 +4297,18 @@ export default class binance extends binanceRest {
             const order = orders[i];
             const fills = this.safeList (order, 'fi', []);
             const rawQty = this.safeString (order, 'q', '0');
-            const side = (parseFloat (rawQty) >= 0) ? 'BUY' : 'SELL';
-            const absQty = (rawQty.charAt (0) === '-') ? rawQty.slice (1) : rawQty;
-            const executionType = (fills.length > 0) ? 'TRADE' : 'NEW';
+            let side = 'BUY';
+            if (parseFloat (rawQty) < 0) {
+                side = 'SELL';
+            }
+            let absQty = rawQty;
+            if (rawQty.charAt (0) === '-') {
+                absQty = rawQty.slice (1);
+            }
+            let executionType = 'NEW';
+            if (fills.length > 0) {
+                executionType = 'TRADE';
+            }
             // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
             const normalizedOrder: Dict = {
                 's': this.safeString (order, 's'),
