@@ -3256,7 +3256,7 @@ export default class binance extends binanceRest {
             this.balance[accountType][code] = account;
         } else {
             message = this.safeDict (message, 'a', message);
-            const B = this.safeList (message, 'B');
+            const B = this.safeList (message, 'B', []);
             for (let i = 0; i < B.length; i++) {
                 const entry = B[i];
                 const currencyId = this.safeString (entry, 'a');
@@ -4243,11 +4243,102 @@ export default class binance extends binanceRest {
         //
         const e = this.safeString (message, 'e');
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
+            const oField = this.safeValue (message, 'o');
+            if (Array.isArray (oField)) {
+                // eOptions format: o is an array of orders with nested fi fills
+                this.handleOptionsOrderUpdate (client, message);
+                return;
+            }
             message = this.safeDict (message, 'o', message);
         }
         this.handleMyTrade (client, message);
         this.handleOrder (client, message);
         this.handleMyLiquidation (client, message);
+    }
+
+    handleOptionsOrderUpdate (client: Client, message) {
+        //
+        // eOptions ORDER_TRADE_UPDATE: "o" is an array of orders (not a dict like futures)
+        //
+        //     {
+        //         "e": "ORDER_TRADE_UPDATE",
+        //         "E": 1657613775883,
+        //         "o": [
+        //             {
+        //                 "T": 1657613342918,          // order create time
+        //                 "t": 1657613342918,          // order last update time
+        //                 "s": "BTC-220930-18000-C",   // symbol
+        //                 "c": "",                     // client order ID
+        //                 "oid": "4611869636869226548", // order ID
+        //                 "p": "1993",                 // price
+        //                 "q": "1",                    // signed qty (positive = BUY, negative = SELL)
+        //                 "S": "PARTIALLY_FILLED",     // status
+        //                 "e": "0.1",                  // cumulative filled qty
+        //                 "ec": "199.3",               // cumulative filled amount (USDT)
+        //                 "f": "2",                    // cumulative fee
+        //                 "tif": "GTC",                // time in force
+        //                 "oty": "LIMIT",              // order type
+        //                 "fi": [
+        //                     {
+        //                         "t": "20",           // trade ID
+        //                         "p": "1993",         // fill price
+        //                         "q": "0.1",          // fill qty
+        //                         "T": 1657613774336,  // fill time
+        //                         "m": "TAKER",        // "TAKER" or "MAKER"
+        //                         "f": "0.0002"        // commission (positive) or rebate (negative)
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const orders = this.safeList (message, 'o', []);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            const fills = this.safeList (order, 'fi', []);
+            const rawQty = this.safeString (order, 'q', '0');
+            const side = (parseFloat (rawQty) >= 0) ? 'BUY' : 'SELL';
+            const absQty = (rawQty.charAt (0) === '-') ? rawQty.slice (1) : rawQty;
+            const executionType = (fills.length > 0) ? 'TRADE' : 'NEW';
+            // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
+            const normalizedOrder: Dict = {
+                's': this.safeString (order, 's'),
+                'i': this.safeString (order, 'oid'),
+                'c': this.safeString (order, 'c'),
+                'S': side,
+                'o': this.safeString (order, 'oty'),
+                'f': this.safeString (order, 'tif'),
+                'q': absQty,
+                'p': this.safeString (order, 'p'),
+                'X': this.safeString (order, 'S'),
+                'x': executionType,
+                'z': this.safeString (order, 'e'),
+                'Z': this.safeString (order, 'ec'),
+                'n': this.safeString (order, 'f'),
+                'T': this.safeInteger (order, 't'),
+                'O': this.safeInteger (order, 'T'),
+            };
+            this.handleOrder (client, normalizedOrder);
+            for (let j = 0; j < fills.length; j++) {
+                const fill = fills[j];
+                const isMaker = (this.safeString (fill, 'm') === 'MAKER');
+                // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
+                const normalizedTrade: Dict = {
+                    'x': 'TRADE',
+                    's': this.safeString (order, 's'),
+                    't': this.safeString (fill, 't'),
+                    'L': this.safeString (fill, 'p'),
+                    'l': this.safeString (fill, 'q'),
+                    'T': this.safeInteger (fill, 'T'),
+                    'm': isMaker,
+                    'n': this.safeString (fill, 'f'),
+                    'i': this.safeString (order, 'oid'),
+                    'S': side,
+                    'o': this.safeString (order, 'oty'),
+                };
+                this.handleMyTrade (client, normalizedTrade);
+            }
+        }
     }
 
     /**

@@ -3005,7 +3005,7 @@ class binance(ccxt.async_support.binance):
             self.balance[accountType][code] = account
         else:
             message = self.safe_dict(message, 'a', message)
-            B = self.safe_list(message, 'B')
+            B = self.safe_list(message, 'B', [])
             for i in range(0, len(B)):
                 entry = B[i]
                 currencyId = self.safe_string(entry, 'a')
@@ -3937,10 +3937,97 @@ class binance(ccxt.async_support.binance):
         #
         e = self.safe_string(message, 'e')
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
+            oField = self.safe_value(message, 'o')
+            if isinstance(oField, list):
+                # eOptions format: o is an array of orders with nested fi fills
+                self.handle_options_order_update(client, message)
+                return
             message = self.safe_dict(message, 'o', message)
         self.handle_my_trade(client, message)
         self.handle_order(client, message)
         self.handle_my_liquidation(client, message)
+
+    def handle_options_order_update(self, client: Client, message):
+        #
+        # eOptions ORDER_TRADE_UPDATE: "o" is an array of orders(not a dict like futures)
+        #
+        #     {
+        #         "e": "ORDER_TRADE_UPDATE",
+        #         "E": 1657613775883,
+        #         "o": [
+        #             {
+        #                 "T": 1657613342918,          # order create time
+        #                 "t": 1657613342918,          # order last update time
+        #                 "s": "BTC-220930-18000-C",   # symbol
+        #                 "c": "",                     # client order ID
+        #                 "oid": "4611869636869226548",  # order ID
+        #                 "p": "1993",                 # price
+        #                 "q": "1",                    # signed qty(positive = BUY, negative = SELL)
+        #                 "S": "PARTIALLY_FILLED",     # status
+        #                 "e": "0.1",                  # cumulative filled qty
+        #                 "ec": "199.3",               # cumulative filled amount(USDT)
+        #                 "f": "2",                    # cumulative fee
+        #                 "tif": "GTC",                # time in force
+        #                 "oty": "LIMIT",              # order type
+        #                 "fi": [
+        #                     {
+        #                         "t": "20",           # trade ID
+        #                         "p": "1993",         # fill price
+        #                         "q": "0.1",          # fill qty
+        #                         "T": 1657613774336,  # fill time
+        #                         "m": "TAKER",        # "TAKER" or "MAKER"
+        #                         "f": "0.0002"        # commission(positive) or rebate(negative)
+        #                     }
+        #                 ]
+        #             }
+        #         ]
+        #     }
+        #
+        orders = self.safe_list(message, 'o', [])
+        for i in range(0, len(orders)):
+            order = orders[i]
+            fills = self.safe_list(order, 'fi', [])
+            rawQty = self.safe_string(order, 'q', '0')
+            side = (float(rawQty) >= 'BUY' if 0) else 'SELL'
+            absQty = (rawQty.charAt(0) == rawQty[1:] if '-') else rawQty
+            executionType = 'TRADE' if (len(fills) > 0) else 'NEW'
+            # normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
+            normalizedOrder: dict = {
+                's': self.safe_string(order, 's'),
+                'i': self.safe_string(order, 'oid'),
+                'c': self.safe_string(order, 'c'),
+                'S': side,
+                'o': self.safe_string(order, 'oty'),
+                'f': self.safe_string(order, 'tif'),
+                'q': absQty,
+                'p': self.safe_string(order, 'p'),
+                'X': self.safe_string(order, 'S'),
+                'x': executionType,
+                'z': self.safe_string(order, 'e'),
+                'Z': self.safe_string(order, 'ec'),
+                'n': self.safe_string(order, 'f'),
+                'T': self.safe_integer(order, 't'),
+                'O': self.safe_integer(order, 'T'),
+            }
+            self.handle_order(client, normalizedOrder)
+            for j in range(0, len(fills)):
+                fill = fills[j]
+                isMaker = (self.safe_string(fill, 'm') == 'MAKER')
+                # normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
+                normalizedTrade: dict = {
+                    'x': 'TRADE',
+                    's': self.safe_string(order, 's'),
+                    't': self.safe_string(fill, 't'),
+                    'L': self.safe_string(fill, 'p'),
+                    'l': self.safe_string(fill, 'q'),
+                    'T': self.safe_integer(fill, 'T'),
+                    'm': isMaker,
+                    'n': self.safe_string(fill, 'f'),
+                    'i': self.safe_string(order, 'oid'),
+                    'S': side,
+                    'o': self.safe_string(order, 'oty'),
+                }
+                self.handle_my_trade(client, normalizedTrade)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """

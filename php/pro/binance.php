@@ -3335,7 +3335,7 @@ class binance extends \ccxt\async\binance {
             $this->balance[$accountType][$code] = $account;
         } else {
             $message = $this->safe_dict($message, 'a', $message);
-            $B = $this->safe_list($message, 'B');
+            $B = $this->safe_list($message, 'B', array());
             for ($i = 0; $i < count($B); $i++) {
                 $entry = $B[$i];
                 $currencyId = $this->safe_string($entry, 'a');
@@ -4340,11 +4340,102 @@ class binance extends \ccxt\async\binance {
         //
         $e = $this->safe_string($message, 'e');
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
+            $oField = $this->safe_value($message, 'o');
+            if ((gettype($oField) === 'array' && array_keys($oField) === array_keys(array_keys($oField)))) {
+                // eOptions format => o is an array of orders with nested fi fills
+                $this->handle_options_order_update($client, $message);
+                return;
+            }
             $message = $this->safe_dict($message, 'o', $message);
         }
         $this->handle_my_trade($client, $message);
         $this->handle_order($client, $message);
         $this->handle_my_liquidation($client, $message);
+    }
+
+    public function handle_options_order_update(Client $client, $message) {
+        //
+        // eOptions ORDER_TRADE_UPDATE => "o" is an array of $orders (not a dict like futures)
+        //
+        //     {
+        //         "e" => "ORDER_TRADE_UPDATE",
+        //         "E" => 1657613775883,
+        //         "o" => array(
+        //             {
+        //                 "T" => 1657613342918,          // $order create time
+        //                 "t" => 1657613342918,          // $order last update time
+        //                 "s" => "BTC-220930-18000-C",   // symbol
+        //                 "c" => "",                     // $client $order ID
+        //                 "oid" => "4611869636869226548", // $order ID
+        //                 "p" => "1993",                 // price
+        //                 "q" => "1",                    // signed qty (positive = BUY, negative = SELL)
+        //                 "S" => "PARTIALLY_FILLED",     // status
+        //                 "e" => "0.1",                  // cumulative filled qty
+        //                 "ec" => "199.3",               // cumulative filled amount (USDT)
+        //                 "f" => "2",                    // cumulative fee
+        //                 "tif" => "GTC",                // time in force
+        //                 "oty" => "LIMIT",              // $order type
+        //                 "fi" => array(
+        //                     {
+        //                         "t" => "20",           // trade ID
+        //                         "p" => "1993",         // $fill price
+        //                         "q" => "0.1",          // $fill qty
+        //                         "T" => 1657613774336,  // $fill time
+        //                         "m" => "TAKER",        // "TAKER" or "MAKER"
+        //                         "f" => "0.0002"        // commission (positive) or rebate (negative)
+        //                     }
+        //                 )
+        //             }
+        //         )
+        //     }
+        //
+        $orders = $this->safe_list($message, 'o', array());
+        for ($i = 0; $i < count($orders); $i++) {
+            $order = $orders[$i];
+            $fills = $this->safe_list($order, 'fi', array());
+            $rawQty = $this->safe_string($order, 'q', '0');
+            $side = (floatval($rawQty) >= 0) ? 'BUY' : 'SELL';
+            $absQty = ($rawQty->charAt (0) === '-') ? mb_substr($rawQty, 1) : $rawQty;
+            $executionType = (strlen($fills) > 0) ? 'TRADE' : 'NEW';
+            // normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
+            $normalizedOrder = array(
+                's' => $this->safe_string($order, 's'),
+                'i' => $this->safe_string($order, 'oid'),
+                'c' => $this->safe_string($order, 'c'),
+                'S' => $side,
+                'o' => $this->safe_string($order, 'oty'),
+                'f' => $this->safe_string($order, 'tif'),
+                'q' => $absQty,
+                'p' => $this->safe_string($order, 'p'),
+                'X' => $this->safe_string($order, 'S'),
+                'x' => $executionType,
+                'z' => $this->safe_string($order, 'e'),
+                'Z' => $this->safe_string($order, 'ec'),
+                'n' => $this->safe_string($order, 'f'),
+                'T' => $this->safe_integer($order, 't'),
+                'O' => $this->safe_integer($order, 'T'),
+            );
+            $this->handle_order($client, $normalizedOrder);
+            for ($j = 0; $j < count($fills); $j++) {
+                $fill = $fills[$j];
+                $isMaker = ($this->safe_string($fill, 'm') === 'MAKER');
+                // normalize $fill fields to the flat format parseWsTrade/handleMyTrade expect
+                $normalizedTrade = array(
+                    'x' => 'TRADE',
+                    's' => $this->safe_string($order, 's'),
+                    't' => $this->safe_string($fill, 't'),
+                    'L' => $this->safe_string($fill, 'p'),
+                    'l' => $this->safe_string($fill, 'q'),
+                    'T' => $this->safe_integer($fill, 'T'),
+                    'm' => $isMaker,
+                    'n' => $this->safe_string($fill, 'f'),
+                    'i' => $this->safe_string($order, 'oid'),
+                    'S' => $side,
+                    'o' => $this->safe_string($order, 'oty'),
+                );
+                $this->handle_my_trade($client, $normalizedTrade);
+            }
+        }
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
