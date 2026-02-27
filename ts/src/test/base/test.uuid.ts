@@ -8,8 +8,8 @@ function testUuid () {
     });
 
     // uuid() - standard UUID v4: xxxxxxxx-xxxx-4xxx-[89ab]xxx-xxxxxxxxxxxx
-    const id1 = exchange.uuid ();
-    const id2 = exchange.uuid ();
+    const id1: string = exchange.uuid (); // need type for .length understanding
+    const id2: string = exchange.uuid ();
     assert (id1 !== undefined, 'uuid 1 must return a value');
     assert (id2 !== undefined, 'uuid 2 must return a value');
     assert (id1 !== id2, 'uuid() must return unique values on each call');
@@ -20,8 +20,8 @@ function testUuid () {
     assert (id1.indexOf ('-') === 8, 'uuid() must have dash');
 
     // uuid16() - 16-char hex string
-    const id16a = exchange.uuid16 ();
-    const id16b = exchange.uuid16 ();
+    const id16a: string = exchange.uuid16 ();
+    const id16b: string = exchange.uuid16 ();
     assert (id16a !== undefined, 'uuid16 1 must return a value');
     assert (id16b !== undefined, 'uuid16 2 must return a value');
     assert (id16a !== id16b, 'uuid16() must return unique values on each call');
@@ -31,8 +31,8 @@ function testUuid () {
     assert (id16b.length === 16, 'uuid16() must return a 16-character string');
 
     // uuid22() - 22-char hex string
-    const id22a = exchange.uuid22 ();
-    const id22b = exchange.uuid22 ();
+    const id22a: string = exchange.uuid22 ();
+    const id22b: string = exchange.uuid22 ();
     assert (id22a !== undefined, 'uuid22 1 must return a value');
     assert (id22b !== undefined, 'uuid22 2 must return a value');
     assert (id22a !== id22b, 'uuid22() must return unique values on each call');
