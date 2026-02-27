@@ -1410,10 +1410,6 @@ class Exchange(object):
         return Exchange.binary_to_base64(Exchange.encode(s))
 
     @staticmethod
-    def base64_to_string(s):
-        return Exchange.decode(base64.b64decode(s))
-
-    @staticmethod
     def jwt(request, secret, algorithm='sha256', is_rsa=False, opts={}):
         algos = {
             'sha256': hashlib.sha256,

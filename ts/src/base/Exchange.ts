@@ -153,7 +153,6 @@ const {
     urlencodeBase64,
     parseDate,
     ymd,
-    base64ToString,
     crc32,
     packb,
     TRUNCATE,
@@ -517,7 +516,6 @@ export default class Exchange {
     urlencodeNested = urlencodeNested;
     parseDate = parseDate;
     ymd = ymd;
-    base64ToString = base64ToString;
     crc32 = crc32;
     packb = packb;
     urlencodeBase64 = urlencodeBase64;
