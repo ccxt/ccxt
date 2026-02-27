@@ -309,9 +309,7 @@ class whitebit extends whitebit$1["default"] {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
-                'networksById': {
-                    'BEP20': 'BSC',
-                },
+                'networksById': {},
                 'defaultType': 'spot',
                 'brokerId': 'ccxt',
             },
@@ -650,6 +648,7 @@ class whitebit extends whitebit$1["default"] {
             // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
             const code = this.safeCurrencyCode(id);
             const hasProvider = ('providers' in currency);
+            const networks = {};
             const rawNetworks = this.safeDict(currency, 'networks', {});
             const depositsNetworks = this.safeList(rawNetworks, 'deposits', []);
             const withdrawsNetworks = this.safeList(rawNetworks, 'withdraws', []);
@@ -660,7 +659,9 @@ class whitebit extends whitebit$1["default"] {
             for (let j = 0; j < allNetworks.length; j++) {
                 const networkId = allNetworks[j];
                 const networkCode = this.networkIdToCode(networkId);
-                ({
+                const networkDepositLimits = this.safeDict(depositLimits, networkId, {});
+                const networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, {});
+                networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
                     'active': undefined,
@@ -670,15 +671,15 @@ class whitebit extends whitebit$1["default"] {
                     'precision': undefined,
                     'limits': {
                         'deposit': {
-                            'min': this.safeNumber(depositLimits, 'min', undefined),
-                            'max': this.safeNumber(depositLimits, 'max', undefined),
+                            'min': this.safeNumber(networkDepositLimits, 'min'),
+                            'max': this.safeNumber(networkDepositLimits, 'max'),
                         },
                         'withdraw': {
-                            'min': this.safeNumber(withdrawLimits, 'min', undefined),
-                            'max': this.safeNumber(withdrawLimits, 'max', undefined),
+                            'min': this.safeNumber(networkWithdrawLimits, 'min'),
+                            'max': this.safeNumber(networkWithdrawLimits, 'max'),
                         },
                     },
-                });
+                };
             }
             result[code] = this.safeCurrencyStructure({
                 'id': id,
@@ -689,7 +690,7 @@ class whitebit extends whitebit$1["default"] {
                 'deposit': this.safeBool(currency, 'can_deposit'),
                 'withdraw': this.safeBool(currency, 'can_withdraw'),
                 'fee': undefined,
-                'networks': undefined,
+                'networks': networks,
                 'type': hasProvider ? 'fiat' : 'crypto',
                 'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'currency_precision'))),
                 'limits': {

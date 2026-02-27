@@ -1,5 +1,5 @@
 import bitmartRest from '../bitmart.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
@@ -261,6 +261,27 @@ export default class bitmart extends bitmartRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    /**
+     * @method
+     * @name bitmart#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    /**
+     * @method
+     * @name bitmart#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string[]} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    watchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    handleFundingRate(client: Client, message: any): void;
     authenticate(type: any, params?: {}): Promise<any>;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;

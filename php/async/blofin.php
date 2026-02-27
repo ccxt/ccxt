@@ -105,8 +105,10 @@ class blofin extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsForSymbol' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
@@ -2591,6 +2593,93 @@ class blofin extends Exchange {
             //
             return Async\await($this->privatePostAccountSetPositionMode ($this->extend($request, $params)));
         }) ();
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+             *
+             * @see https://docs.blofin.com/index.html#get-positions
+             *
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $response = Async\await($this->privateGetAccountPositions ($params));
+            //
+            //     {
+            //         "code" => "0",
+            //         "msg" => "success",
+            //         "data" => array(
+            //             {
+            //                 "positionId" => "756786",
+            //                 "instId" => "BTC-USDT",
+            //                 "instType" => "SWAP",
+            //                 "marginMode" => "cross",
+            //                 "positionSide" => "net",
+            //                 "adl" => "1",
+            //                 "positions" => "0.1",
+            //                 "availablePositions" => "0.1",
+            //                 "averagePrice" => "88564.9",
+            //                 "markPrice" => "88546.3696492756",
+            //                 "marginRatio" => "822.305183525552961566",
+            //                 "liquidationPrice" => "",
+            //                 "unrealizedPnl" => "-0.00185303507244",
+            //                 "unrealizedPnlRatio" => "-0.000627687178252332",
+            //                 "initialMargin" => "2.951545654975853333",
+            //                 "maintenanceMargin" => "0.02656391089478268",
+            //                 "createTime" => "1767169876207",
+            //                 "updateTime" => "1767169876207",
+            //                 "leverage" => "3"
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_adl_ranks($data, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "positionId" => "756786",
+        //         "instId" => "BTC-USDT",
+        //         "instType" => "SWAP",
+        //         "marginMode" => "cross",
+        //         "positionSide" => "net",
+        //         "adl" => "1",
+        //         "positions" => "0.1",
+        //         "availablePositions" => "0.1",
+        //         "averagePrice" => "88564.9",
+        //         "markPrice" => "88546.3696492756",
+        //         "marginRatio" => "822.305183525552961566",
+        //         "liquidationPrice" => "",
+        //         "unrealizedPnl" => "-0.00185303507244",
+        //         "unrealizedPnlRatio" => "-0.000627687178252332",
+        //         "initialMargin" => "2.951545654975853333",
+        //         "maintenanceMargin" => "0.02656391089478268",
+        //         "createTime" => "1767169876207",
+        //         "updateTime" => "1767169876207",
+        //         "leverage" => "3"
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'instId');
+        $timestamp = $this->safe_integer_omit_zero($info, 'createTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adl'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
     }
 
     public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {

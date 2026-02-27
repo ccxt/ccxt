@@ -2727,6 +2727,111 @@ public partial class binance : ccxt.binance
         callDynamically(client as WebSocketClient, "resolve", new object[] {message, messageHash});
     }
 
+    /**
+     * @name binance#ensureUserDataStreamWsSubscribeListenToken
+     * @description subscribes to user data stream using listenToken (for margin)
+     * @param {string} marketType - the market type (e.g., 'margin')
+     * @param {object} params - extra parameters specific to the request
+     * @param {string} [params.symbol] - required for isolated margin
+     * @param {boolean} [params.isIsolated] - whether it is isolated margin
+     * @param {number} [params.validity] - validity in milliseconds, default 24 hours, max 24 hours
+     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+     * @returns Promise<void>
+     */
+    public async virtual Task ensureUserDataStreamWsSubscribeListenToken(object marketType = null, object parameters = null)
+    {
+        marketType ??= "margin";
+        parameters ??= new Dictionary<string, object>();
+        object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
+        object options = this.safeDict(this.options, marketType, new Dictionary<string, object>() {});
+        object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
+        object listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
+        object time = this.milliseconds();
+        object delay = this.sum(listenTokenRefreshRate, 10000);
+        if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
+        {
+            // Step 1: Create listenToken via REST API
+            object symbol = this.safeString(parameters, "symbol");
+            object isIsolated = this.safeBool(parameters, "isIsolated", false);
+            object validity = this.safeInteger(parameters, "validity");
+            object request = new Dictionary<string, object>() {};
+            if (isTrue(isIsolated))
+            {
+                if (isTrue(isEqual(symbol, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")) ;
+                }
+                object marketId = this.marketId(symbol);
+                ((IDictionary<string,object>)request)["symbol"] = marketId;
+                ((IDictionary<string,object>)request)["isIsolated"] = true;
+            }
+            if (isTrue(!isEqual(validity, null)))
+            {
+                ((IDictionary<string,object>)request)["validity"] = validity;
+            }
+            object response = await this.sapiPostUserListenToken(request);
+            object listenToken = this.safeString(response, "token");
+            object expirationTime = this.safeInteger(response, "expirationTime");
+            // Step 2: Subscribe to user data stream via WebSocket API
+            object requestId = this.requestId(url);
+            object messageHash = ((object)requestId).ToString();
+            object message = new Dictionary<string, object>() {
+                { "id", messageHash },
+                { "method", "userDataStream.subscribe.listenToken" },
+                { "params", new Dictionary<string, object>() {
+                    { "listenToken", listenToken },
+                } },
+            };
+            object subscription = new Dictionary<string, object>() {
+                { "id", messageHash },
+                { "method", this.handleUserDataStreamSubscribe },
+                { "subscription", marketType },
+            };
+            ((IDictionary<string,object>)this.options)[(string)marketType] = this.extend(options, new Dictionary<string, object>() {
+                { "listenToken", listenToken },
+                { "expirationTime", expirationTime },
+                { "lastAuthenticatedTime", time },
+                { "symbol", symbol },
+                { "isIsolated", isIsolated },
+                { "validity", validity },
+            });
+            // Schedule token renewal before expiration
+            object renewalTime = subtract(subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
+            if (isTrue(isGreaterThan(renewalTime, 0)))
+            {
+                object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+                    { "type", marketType },
+                });
+                this.delay(renewalTime,  this.renewListenToken, new object[] { extendedParams});
+            }
+            await this.watch(url, messageHash, message, messageHash, subscription);
+        }
+    }
+
+    public async virtual Task renewListenToken(object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object type = this.safeString(parameters, "type", "margin");
+        object options = this.safeDict(this.options, type, new Dictionary<string, object>() {});
+        object symbol = this.safeString(options, "symbol");
+        object isIsolated = this.safeBool(options, "isIsolated", false);
+        object validity = this.safeInteger(options, "validity");
+        object renewParams = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)renewParams)["symbol"] = symbol;
+        }
+        if (isTrue(isIsolated))
+        {
+            ((IDictionary<string,object>)renewParams)["isIsolated"] = isIsolated;
+        }
+        if (isTrue(!isEqual(validity, null)))
+        {
+            ((IDictionary<string,object>)renewParams)["validity"] = validity;
+        }
+        await this.ensureUserDataStreamWsSubscribeListenToken(type, renewParams);
+    }
+
     public async virtual Task authenticate(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2761,8 +2866,22 @@ public partial class binance : ccxt.binance
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object isIsolatedMargin = (isEqual(marginMode, "isolated"));
-        object isCrossMargin = isTrue((isEqual(marginMode, "cross"))) || isTrue((isEqual(marginMode, null)));
         object symbol = this.safeString(parameters, "symbol");
+        // For margin use WebSocket API listenToken subscription
+        if (isTrue(isTrue(isEqual(type, "margin")) || isTrue(isIsolatedMargin)))
+        {
+            object marginParams = new Dictionary<string, object>() {};
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)marginParams)["symbol"] = symbol;
+            }
+            if (isTrue(isIsolatedMargin))
+            {
+                ((IDictionary<string,object>)marginParams)["isIsolated"] = true;
+            }
+            await this.ensureUserDataStreamWsSubscribeListenToken("margin", marginParams);
+            return;
+        }
         parameters = this.omit(parameters, "symbol");
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
         object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
@@ -2783,20 +2902,6 @@ public partial class binance : ccxt.binance
             } else if (isTrue(isEqual(type, "delivery")))
             {
                 response = await this.dapiPrivatePostListenKey(parameters);
-            } else if (isTrue(isTrue(isEqual(type, "margin")) && isTrue(isCrossMargin)))
-            {
-                response = await this.sapiPostUserDataStream(parameters);
-            } else if (isTrue(isIsolatedMargin))
-            {
-                if (isTrue(isEqual(symbol, null)))
-                {
-                    throw new ArgumentsRequired ((string)add(this.id, " authenticate() requires a symbol argument for isolated margin mode")) ;
-                }
-                object marketId = this.marketId(symbol);
-                parameters = this.extend(parameters, new Dictionary<string, object>() {
-                    { "symbol", marketId },
-                });
-                response = await this.sapiPostUserDataStreamIsolated(parameters);
             } else
             {
                 response = await this.publicPostUserDataStream(parameters);
@@ -2828,6 +2933,11 @@ public partial class binance : ccxt.binance
         {
             type = "delivery";
         }
+        // For margin, token renewal is handled by renewListenToken method
+        if (isTrue(isEqual(type, "margin")))
+        {
+            return;
+        }
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
         object listenKey = this.safeString(options, "listenKey");
         if (isTrue(isEqual(listenKey, null)))
@@ -2836,7 +2946,6 @@ public partial class binance : ccxt.binance
             return;
         }
         object request = new Dictionary<string, object>() {};
-        object symbol = this.safeString(parameters, "symbol");
         parameters = this.omit(parameters, new List<object>() {"type", "symbol"});
         object time = this.milliseconds();
         try
@@ -2856,14 +2965,7 @@ public partial class binance : ccxt.binance
             } else
             {
                 ((IDictionary<string,object>)request)["listenKey"] = listenKey;
-                if (isTrue(isEqual(type, "margin")))
-                {
-                    ((IDictionary<string,object>)request)["symbol"] = symbol;
-                    await this.sapiPutUserDataStream(this.extend(request, parameters));
-                } else
-                {
-                    await this.publicPutUserDataStream(this.extend(request, parameters));
-                }
+                await this.publicPutUserDataStream(this.extend(request, parameters));
             }
         } catch(Exception error)
         {
@@ -3231,10 +3333,10 @@ public partial class binance : ccxt.binance
         }
         object url = "";
         object urlType = type;
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
         } else
         {
             if (isTrue(isPortfolioMargin))
@@ -4123,10 +4225,10 @@ public partial class binance : ccxt.binance
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object url = "";
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
             // route orders to ws-api user data stream
-            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
         } else
         {
             if (isTrue(isPortfolioMargin))
@@ -4949,9 +5051,9 @@ public partial class binance : ccxt.binance
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object url = "";
-        if (isTrue(isEqual(type, "spot")))
+        if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), type);
+            url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), "spot");
         } else
         {
             if (isTrue(isPortfolioMargin))

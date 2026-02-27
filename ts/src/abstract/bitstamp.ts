@@ -20,7 +20,7 @@ interface Exchange {
     publicGetCurrencies (params?: {}): Promise<implicitReturnType>;
     publicGetEurUsd (params?: {}): Promise<implicitReturnType>;
     publicGetTravelRuleVasps (params?: {}): Promise<implicitReturnType>;
-    publicGetFundingRatePair (params?: {}): Promise<implicitReturnType>;
+    publicGetFundingRateMarketSymbol (params?: {}): Promise<implicitReturnType>;
     publicGetFundingRateHistoryPair (params?: {}): Promise<implicitReturnType>;
     privateGetTravelRuleContacts (params?: {}): Promise<implicitReturnType>;
     privateGetContactsContactUuid (params?: {}): Promise<implicitReturnType>;

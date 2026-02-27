@@ -8,7 +8,7 @@ import Client from '../base/ws/Client.js';
  */
 export default class bitget extends bitgetRest {
     describe(): any;
-    getInstType(market: any, uta?: boolean, params?: {}): any[];
+    getInstType(methodName: any, market: any, uta?: boolean, params?: {}): any[];
     /**
      * @method
      * @name bitget#watchTicker
@@ -123,7 +123,7 @@ export default class bitget extends bitgetRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
-    unWatchChannel(symbol: string, channel: string, messageHashTopic: string, params?: {}): Promise<any>;
+    unWatchChannel(symbol: string, channel: string, messageHashTopic: string, methodName: string, params?: {}): Promise<any>;
     /**
      * @method
      * @name bitget#watchOrderBookForSymbols
@@ -263,11 +263,11 @@ export default class bitget extends bitgetRest {
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
-    unWatchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
-    watchPublicMultiple(messageHashes: any, argsArray: any, params?: {}): Promise<any>;
+    watchPublic(uta: any, messageHash: any, args: any, params?: {}): Promise<any>;
+    unWatchPublic(uta: any, messageHash: any, args: any, params?: {}): Promise<any>;
+    watchPublicMultiple(uta: any, messageHashes: any, argsArray: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
-    watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
+    watchPrivate(uta: any, messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;

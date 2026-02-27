@@ -315,9 +315,7 @@ class whitebit extends Exchange {
                     'margin' => 'collateral',
                     'trade' => 'spot',
                 ),
-                'networksById' => array(
-                    'BEP20' => 'BSC',
-                ),
+                'networksById' => array(),
                 'defaultType' => 'spot',
                 'brokerId' => 'ccxt',
             ),
@@ -671,6 +669,8 @@ class whitebit extends Exchange {
                 for ($j = 0; $j < count($allNetworks); $j++) {
                     $networkId = $allNetworks[$j];
                     $networkCode = $this->network_id_to_code($networkId);
+                    $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
+                    $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
                     $networks[$networkCode] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
@@ -681,12 +681,12 @@ class whitebit extends Exchange {
                         'precision' => null,
                         'limits' => array(
                             'deposit' => array(
-                                'min' => $this->safe_number($depositLimits, 'min', null),
-                                'max' => $this->safe_number($depositLimits, 'max', null),
+                                'min' => $this->safe_number($networkDepositLimits, 'min'),
+                                'max' => $this->safe_number($networkDepositLimits, 'max'),
                             ),
                             'withdraw' => array(
-                                'min' => $this->safe_number($withdrawLimits, 'min', null),
-                                'max' => $this->safe_number($withdrawLimits, 'max', null),
+                                'min' => $this->safe_number($networkWithdrawLimits, 'min'),
+                                'max' => $this->safe_number($networkWithdrawLimits, 'max'),
                             ),
                         ),
                     );
@@ -700,7 +700,7 @@ class whitebit extends Exchange {
                     'deposit' => $this->safe_bool($currency, 'can_deposit'),
                     'withdraw' => $this->safe_bool($currency, 'can_withdraw'),
                     'fee' => null,
-                    'networks' => null, // todo
+                    'networks' => $networks,
                     'type' => $hasProvider ? 'fiat' : 'crypto',
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'currency_precision'))),
                     'limits' => array(

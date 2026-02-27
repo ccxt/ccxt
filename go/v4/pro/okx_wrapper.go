@@ -182,12 +182,26 @@ func (this *Okx) WatchFundingRate(symbol string, options ...ccxt.WatchFundingRat
     }
     return ccxt.NewFundingRate(res), nil
 }
-func (this *Okx) WatchFundingRates(symbols []string, options ...ccxt.WatchFundingRatesOptions) (ccxt.FundingRates, error) {
+/**
+ * @method
+ * @name okx#watchFundingRates
+ * @description watch the funding rate for multiple markets
+ * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
+ * @param {string[]} symbols a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+ */
+func (this *Okx) WatchFundingRates(options ...ccxt.WatchFundingRatesOptions) (ccxt.FundingRates, error) {
 
     opts := ccxt.WatchFundingRatesOptionsStruct{}
 
     for _, opt := range options {
         opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil

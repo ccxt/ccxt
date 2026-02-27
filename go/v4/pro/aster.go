@@ -2312,7 +2312,7 @@ func  (this *AsterCore) HandleOrder(client interface{}, message interface{})  {
     //         "c":"TEST",                    // ccxt.Client ccxt.Order Id
     //                                        // special client order id:
     //                                        // starts with "autoclose-": liquidation order
-    //                                        // "adl_autoclose": ADL auto close order
+    //                                        // "adl_autoclose": ccxt.ADL auto close order
     //         "S":"SELL",                    // Side
     //         "o":"TRAILING_STOP_MARKET",    // ccxt.Order Type
     //         "f":"GTC",                     // Time in Force

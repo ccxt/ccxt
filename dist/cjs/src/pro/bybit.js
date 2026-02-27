@@ -1633,7 +1633,7 @@ class bybit extends bybit$1["default"] {
      * @method
      * @name bybit#watchLiquidations
      * @description watch the public liquidations of a trading pair
-     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+     * @see https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -1648,7 +1648,7 @@ class bybit extends bybit$1["default"] {
         const url = await this.getUrlByMarketType(symbol, false, 'watchLiquidations', params);
         params = this.cleanParams(params);
         let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'liquidation');
+        [method, params] = this.handleOptionAndParams(params, 'watchLiquidations', 'method', 'allLiquidation');
         const messageHash = 'liquidations::' + symbol;
         const topic = method + '.' + market['id'];
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
