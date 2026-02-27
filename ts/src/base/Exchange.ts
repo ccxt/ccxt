@@ -162,6 +162,7 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
+    readFile, writeFile, existsFile, getTempDir,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
@@ -176,13 +177,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch (e) {
-        // TODO: handle error
-    }
-}) ();
 
 // -----------------------------------------------------------------------------
 /**
@@ -525,6 +519,11 @@ export default class Exchange {
     crc32 = crc32;
     packb = packb;
     urlencodeBase64 = urlencodeBase64;
+    // io
+    readFile = readFile;
+    writeFile = writeFile;
+    existsFile = existsFile;
+    getTempDir = getTempDir;
 
     constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions);
@@ -640,6 +639,18 @@ export default class Exchange {
         this.afterConstruct ();
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles ();
+    }
+
+    async loadExchangeSpecificFiles () {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+            } catch (e) {
+                // TODO: handle error
+            }
         }
     }
 

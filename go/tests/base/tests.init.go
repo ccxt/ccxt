@@ -40,8 +40,9 @@ func BaseTestsInit() <-chan interface{} {
 		TestEthMethods()
 		TestKeysort()
 
-		retRes684 := (<-TestSleep())
-		PanicOnError(retRes684)
+		retRes694 := (<-TestSleep())
+		PanicOnError(retRes694)
+		TestIo()
 		return nil
 	}()
 	return ch

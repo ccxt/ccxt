@@ -22,6 +22,7 @@ include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
 include_once __DIR__ . '/test_json.php';
+include_once __DIR__ . '/test_io.php';
 include_once __DIR__ . '/test_extract_params.php';
 include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
@@ -77,5 +78,6 @@ function base_tests_init() {
         test_eth_methods();
         test_keysort();
         Async\await(test_sleep());
+        test_io();
     }) ();
 }

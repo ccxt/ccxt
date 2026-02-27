@@ -41,5 +41,6 @@ public partial class BaseTest
             testEthMethods();
             testKeysort();
             await testSleep();
+            testIo();
         }
 }

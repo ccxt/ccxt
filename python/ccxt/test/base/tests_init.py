@@ -27,6 +27,7 @@ from ccxt.test.base.language_specific.test_language_specific import test_languag
 from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
 from ccxt.test.base.test_safe_ticker import test_safe_ticker  # noqa E402
 from ccxt.test.base.test_json import test_json  # noqa E402
+from ccxt.test.base.test_io import test_io  # noqa E402
 from ccxt.test.base.test_extract_params import test_extract_params  # noqa E402
 from ccxt.test.base.test_sort_by import test_sort_by  # noqa E402
 from ccxt.test.base.test_sum import test_sum  # noqa E402
@@ -81,3 +82,4 @@ async def base_tests_init():
     test_eth_methods()
     test_keysort()
     await test_sleep()
+    test_io()

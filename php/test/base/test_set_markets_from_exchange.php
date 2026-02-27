@@ -31,16 +31,16 @@ function test_set_markets_from_exchange() {
             ),
         );
         // Test 1: Basic market sharing
-        $exchange1 = new \ccxt\Exchange(array(
+        $exchange1 = new \ccxt\async\Exchange(array(
             'id' => 'primaryEx',
             'markets' => $sample_market,
         ));
-        $exchange2 = new \ccxt\Exchange(array(
+        $exchange2 = new \ccxt\async\Exchange(array(
             'id' => 'primaryEx',
         ));
         assert(count(is_array($exchange1->markets) ? array_keys($exchange1->markets) : array()) > 0, 'Markets should be loaded in exchange1');
         // Test error case: exchanges are different
-        $different_exchange = new \ccxt\Exchange(array(
+        $different_exchange = new \ccxt\async\Exchange(array(
             'id' => 'secondaryEx',
         ));
         try {
@@ -50,7 +50,7 @@ function test_set_markets_from_exchange() {
             assert($true_clause);
         }
         // Test error case: sharing from exchange without markets
-        $nonloaded_exchange = new \ccxt\Exchange(array(
+        $nonloaded_exchange = new \ccxt\async\Exchange(array(
             'id' => 'primaryEx',
         ));
         try {

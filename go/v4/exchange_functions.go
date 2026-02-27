@@ -9,13 +9,6 @@ import (
 	"sync"
 )
 
-func (this *Exchange) Ordered(a interface{}) interface{} {
-	if reflect.TypeOf(a).Kind() == reflect.Map {
-		return this.Keysort(a)
-	}
-	return a
-}
-
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
 // func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 // 	parameters := parameters2.(map[string]interface{})
