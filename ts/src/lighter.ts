@@ -2125,6 +2125,12 @@ export default class lighter extends Exchange {
         const request: Dict = {
             'account_index': accountIndex,
         };
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'fetchTransfers', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchTransfers() requires an apiKeyIndex parameter');
+        }
+        await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2219,6 +2225,12 @@ export default class lighter extends Exchange {
             'account_index': accountIndex,
             'l1_address': address,
         };
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an apiKeyIndex parameter');
+        }
+        await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2264,6 +2276,12 @@ export default class lighter extends Exchange {
         const request: Dict = {
             'account_index': accountIndex,
         };
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires an apiKeyIndex parameter');
+        }
+        await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
