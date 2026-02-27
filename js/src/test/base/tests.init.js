@@ -16,6 +16,7 @@ import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
 import testJson from './test.json.js';
+import testIo from './test.io.js';
 import testExtractParams from './test.extractParams.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
@@ -30,6 +31,7 @@ import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
+import testSetMarketsFromExchange from './test.setMarketsFromExchange.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
 import testKeysort from './test.keysort.js';
@@ -64,8 +66,10 @@ async function baseTestsInit() {
     testPrecisionFromString();
     testExtractParams();
     testArraysConcat();
+    await testSetMarketsFromExchange();
     testEthMethods();
     testKeysort();
     await testSleep();
+    testIo();
 }
 export default baseTestsInit;

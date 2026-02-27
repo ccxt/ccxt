@@ -22,6 +22,7 @@ include_once __DIR__ . '/language_specific/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 include_once __DIR__ . '/test_safe_ticker.php';
 include_once __DIR__ . '/test_json.php';
+include_once __DIR__ . '/test_io.php';
 include_once __DIR__ . '/test_extract_params.php';
 include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
@@ -36,6 +37,7 @@ include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
 include_once __DIR__ . '/test_parse_precision.php';
 include_once __DIR__ . '/test_arrays_concat.php';
+include_once __DIR__ . '/test_set_markets_from_exchange.php';
 include_once __DIR__ . '/test_sleep.php';
 include_once __DIR__ . '/test_eth_methods.php';
 include_once __DIR__ . '/test_keysort.php';
@@ -72,8 +74,10 @@ function base_tests_init() {
         test_precision_from_string();
         test_extract_params();
         test_arrays_concat();
+        Async\await(test_set_markets_from_exchange());
         test_eth_methods();
         test_keysort();
         Async\await(test_sleep());
+        test_io();
     }) ();
 }

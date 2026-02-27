@@ -13,6 +13,7 @@ import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
 import testJson from './test.json.js';
+import testIo from './test.io.js';
 import testExtractParams from './test.extractParams.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
@@ -64,11 +65,12 @@ async function baseTestsInit () {
     testPrecisionFromString ();
     testExtractParams ();
     testArraysConcat ();
-    testSetMarketsFromExchange ();
     testUuid ();
+    await testSetMarketsFromExchange ();
     testEthMethods ();
     testKeysort ();
     await testSleep ();
+    testIo ();
 }
 
 export default baseTestsInit;
