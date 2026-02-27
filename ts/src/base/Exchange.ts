@@ -170,7 +170,7 @@ const {
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
-let protobufMexc = undefined;
+
 let encodeAsAny = undefined;
 let AuthInfo = undefined;
 let Tx = undefined;
@@ -421,6 +421,9 @@ export default class Exchange {
     newUpdates: boolean = true;
     streaming: Dictionary<any> = {};
 
+    // exchange-specific props
+    protobufMexc = undefined;
+
     // INTERNAL METHODS
     sleep = sleep;
     deepExtend = deepExtend;
@@ -649,7 +652,7 @@ export default class Exchange {
     async loadExchangeSpecificFiles () {
         if (this.id === 'mexc') {
             try {
-                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+                this.protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
             } catch (e) {
                 // TODO: handle error
             }
@@ -877,7 +880,7 @@ export default class Exchange {
     }
 
     decodeProtoMsg (data) {
-        if (!protobufMexc) {
+        if (!this.protobufMexc) {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }
         if (data instanceof ArrayBuffer) {
@@ -885,7 +888,7 @@ export default class Exchange {
             data = new Uint8Array (data);
         }
         if (data instanceof Uint8Array) {
-            const decoded = (protobufMexc.default as any).PushDataV3ApiWrapper.decode (data);
+            const decoded = (this.protobufMexc.default as any).PushDataV3ApiWrapper.decode (data);
             const dict = decoded.toJSON ();
             //  {
             //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
