@@ -113,7 +113,6 @@ const {
     safeStringUpper,
     safeTimestamp,
     binaryConcatArray,
-    numberToLE,
     ymdhms,
     stringToBase64,
     decode,
@@ -479,7 +478,6 @@ export default class Exchange {
     safeStringUpper = safeStringUpper;
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
-    numberToLE = numberToLE;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
     stringToBase64 = stringToBase64;
