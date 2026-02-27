@@ -3987,13 +3987,11 @@ class binance(ccxt.async_support.binance):
         for i in range(0, len(orders)):
             order = orders[i]
             fills = self.safe_list(order, 'fi', [])
-            rawQty = self.safe_string(order, 'q', '0')
+            rawQty = self.safe_number(order, 'q', 0)
             side = 'BUY'
-            if float(rawQty) < 0:
+            if rawQty < 0:
                 side = 'SELL'
-            absQty = rawQty
-            if rawQty.charAt(0) == '-':
-                absQty = rawQty[1:]
+            absQty = self.number_to_string(abs(rawQty))
             executionType = 'NEW'
             if len(fills) > 0:
                 executionType = 'TRADE'

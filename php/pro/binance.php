@@ -4393,15 +4393,12 @@ class binance extends \ccxt\async\binance {
         for ($i = 0; $i < count($orders); $i++) {
             $order = $orders[$i];
             $fills = $this->safe_list($order, 'fi', array());
-            $rawQty = $this->safe_string($order, 'q', '0');
+            $rawQty = $this->safe_number($order, 'q', 0);
             $side = 'BUY';
-            if (floatval($rawQty) < 0) {
+            if ($rawQty < 0) {
                 $side = 'SELL';
             }
-            $absQty = $rawQty;
-            if ($rawQty->charAt (0) === '-') {
-                $absQty = mb_substr($rawQty, 1);
-            }
+            $absQty = $this->number_to_string(abs($rawQty));
             $executionType = 'NEW';
             if (strlen($fills) > 0) {
                 $executionType = 'TRADE';

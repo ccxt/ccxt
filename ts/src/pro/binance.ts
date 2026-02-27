@@ -4296,15 +4296,12 @@ export default class binance extends binanceRest {
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
             const fills = this.safeList (order, 'fi', []);
-            const rawQty = this.safeString (order, 'q', '0');
+            const rawQty = this.safeNumber (order, 'q', 0);
             let side = 'BUY';
-            if (parseFloat (rawQty) < 0) {
+            if (rawQty < 0) {
                 side = 'SELL';
             }
-            let absQty = rawQty;
-            if (rawQty.charAt (0) === '-') {
-                absQty = rawQty.slice (1);
-            }
+            const absQty = this.numberToString (Math.abs (rawQty));
             let executionType = 'NEW';
             if (fills.length > 0) {
                 executionType = 'TRADE';
