@@ -24,6 +24,8 @@ class mexc extends mexc$1["default"] {
                 'fetchOrderWs': false,
                 'fetchTradesWs': false,
                 'watchBalance': true,
+                'watchFundingRate': true,
+                'watchFundingRates': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -1569,6 +1571,69 @@ class mexc extends mexc$1["default"] {
     }
     /**
      * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const messageHash = 'fundingRate:' + market['symbol'];
+        const channel = 'sub.funding.rate';
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        return await this.watchSwapPublic(channel, messageHash, requestParams, params);
+    }
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async unWatchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const messageHash = 'unsubscribe:fundingRate:' + market['symbol'];
+        let url = undefined;
+        const channel = 'unsub.funding.rate';
+        const requestParams = {
+            'symbol': market['id'],
+        };
+        url = this.urls['api']['ws']['swap'];
+        this.watchSwapPublic(channel, messageHash, requestParams, params);
+        const client = this.client(url);
+        this.handleUnsubscriptions(client, [messageHash]);
+        return undefined;
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        const data = this.safeDict(message, 'data', {});
+        const fundingRate = this.parseFundingRate(data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const messageHash = 'fundingRate:' + symbol;
+        client.resolve(fundingRate, messageHash);
+    }
+    /**
+     * @method
      * @name mexc#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -1851,6 +1916,12 @@ class mexc extends mexc$1["default"] {
                     delete this.trades[symbol];
                 }
             }
+            else if (messageHash.indexOf('fundingRate') >= 0) {
+                const symbol = messageHash.replace('unsubscribe:fundingRate:', '');
+                if (symbol in this.fundingRates) {
+                    delete this.fundingRates[symbol];
+                }
+            }
         }
     }
     async authenticate(subscriptionHash, params = {}) {
@@ -2010,6 +2081,7 @@ class mexc extends mexc$1["default"] {
             'private.deals.v3.api': this.handleMyTrade,
             'push.personal.order.deal': this.handleMyTrade,
             'pong': this.handlePong,
+            'push.funding.rate': this.handleFundingRate,
         };
         if (channel in methods) {
             const method = methods[channel];

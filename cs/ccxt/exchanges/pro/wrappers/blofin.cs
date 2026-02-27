@@ -357,6 +357,26 @@ public partial class blofin
         var res = await this.watchPositions(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
+    /// <summary>
+    /// watch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.blofin.com/index.html#ws-funding-rate-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
     public async Task<Dictionary<string, object>> WatchMultipleWrapper(bool isPublic, string channelName, string callerMethodName, List<object> symbolsArray = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchMultipleWrapper(isPublic, channelName, callerMethodName, symbolsArray, parameters);

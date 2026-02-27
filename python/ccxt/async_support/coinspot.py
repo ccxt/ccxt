@@ -155,22 +155,92 @@ class coinspot(Exchange, ImplicitAPI):
                         'ro/my/referralpayments',
                     ],
                 },
+                'v2': {
+                    'public': {
+                        'get': [
+                            'latest',
+                            'latest/{cointype}',
+                            'latest/{cointype}/{markettype}',
+                            'buyprice/{cointype}',
+                            'buyprice/{cointype}/{markettype}',
+                            'sellprice/{cointype}',
+                            'sellprice/{cointype}/{markettype}',
+                            'orders/open/{cointype}',
+                            'orders/open/{cointype}/{markettype}',
+                            'orders/completed/{cointype}',
+                            'orders/completed/{cointype}/{markettype}',
+                            'orders/summary/completed/{cointype}',
+                            'orders/summary/completed/{cointype}/{markettype}',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            # Status & Account
+                            'status',
+                            'my/coin/deposit',
+                            # Quotes
+                            'quote/buy/now',
+                            'quote/sell/now',
+                            'quote/swap/now',
+                            # Market Orders
+                            'my/buy',
+                            'my/buy/edit',
+                            'my/sell',
+                            'my/sell/edit',
+                            # Instant Orders
+                            'my/buy/now',
+                            'my/sell/now',
+                            'my/swap/now',
+                            # Cancel Orders
+                            'my/buy/cancel',
+                            'my/buy/cancel/all',
+                            'my/sell/cancel',
+                            'my/sell/cancel/all',
+                            # Withdrawals
+                            'my/coin/withdraw/senddetails',
+                            'my/coin/withdraw/send',
+                            # Read Only Status
+                            'ro/status',
+                            # Read Only Market Orders
+                            'ro/orders/market/open',
+                            'ro/orders/market/completed',
+                            # Read Only Balances
+                            'ro/my/balances',
+                            'ro/my/balance/{cointype}',
+                            # Read Only Orders
+                            'ro/my/orders/market/open',
+                            'ro/my/orders/limit/open',
+                            'ro/my/orders/completed',
+                            'ro/my/orders/market/completed',
+                            # Read Only Transactions
+                            'ro/my/sendreceive',
+                            'ro/my/deposits',
+                            'ro/my/withdrawals',
+                            # Read Only Payments
+                            'ro/my/affiliatepayments',
+                            'ro/my/referralpayments',
+                        ],
+                    },
+                },
             },
             'markets': {
-                'ADA/AUD': self.safe_market_structure({'id': 'ada', 'symbol': 'ADA/AUD', 'base': 'ADA', 'quote': 'AUD', 'baseId': 'ada', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'BTC/AUD': self.safe_market_structure({'id': 'btc', 'symbol': 'BTC/AUD', 'base': 'BTC', 'quote': 'AUD', 'baseId': 'btc', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'BTC/USDT': self.safe_market_structure({'id': 'btc', 'symbol': 'BTC/USDT', 'base': 'BTC', 'quote': 'USDT', 'baseId': 'btc', 'quoteId': 'usdt', 'type': 'spot', 'spot': True}),
+                'USDT/AUD': self.safe_market_structure({'id': 'usdt', 'symbol': 'USDT/AUD', 'base': 'USDT', 'quote': 'AUD', 'baseId': 'usdt', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'ETH/AUD': self.safe_market_structure({'id': 'eth', 'symbol': 'ETH/AUD', 'base': 'ETH', 'quote': 'AUD', 'baseId': 'eth', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'ADA/AUD': self.safe_market_structure({'id': 'ada', 'symbol': 'ADA/AUD', 'base': 'ADA', 'quote': 'AUD', 'baseId': 'ada', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'SOL/AUD': self.safe_market_structure({'id': 'sol', 'symbol': 'SOL/AUD', 'base': 'SOL', 'quote': 'AUD', 'baseId': 'sol', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'XRP/AUD': self.safe_market_structure({'id': 'xrp', 'symbol': 'XRP/AUD', 'base': 'XRP', 'quote': 'AUD', 'baseId': 'xrp', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
-                'LTC/AUD': self.safe_market_structure({'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'DOGE/AUD': self.safe_market_structure({'id': 'doge', 'symbol': 'DOGE/AUD', 'base': 'DOGE', 'quote': 'AUD', 'baseId': 'doge', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
-                'RFOX/AUD': self.safe_market_structure({'id': 'rfox', 'symbol': 'RFOX/AUD', 'base': 'RFOX', 'quote': 'AUD', 'baseId': 'rfox', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
-                'POWR/AUD': self.safe_market_structure({'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
-                'NEO/AUD': self.safe_market_structure({'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'neo', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'LTC/AUD': self.safe_market_structure({'id': 'ltc', 'symbol': 'LTC/AUD', 'base': 'LTC', 'quote': 'AUD', 'baseId': 'ltc', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'XLM/AUD': self.safe_market_structure({'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'TRX/AUD': self.safe_market_structure({'id': 'trx', 'symbol': 'TRX/AUD', 'base': 'TRX', 'quote': 'AUD', 'baseId': 'trx', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'EOS/AUD': self.safe_market_structure({'id': 'eos', 'symbol': 'EOS/AUD', 'base': 'EOS', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
-                'XLM/AUD': self.safe_market_structure({'id': 'xlm', 'symbol': 'XLM/AUD', 'base': 'XLM', 'quote': 'AUD', 'baseId': 'xlm', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
-                'RHOC/AUD': self.safe_market_structure({'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'A/AUD': self.safe_market_structure({'id': 'eos', 'symbol': 'A/AUD', 'base': 'A', 'quote': 'AUD', 'baseId': 'eos', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'NEO/AUD': self.safe_market_structure({'id': 'neo', 'symbol': 'NEO/AUD', 'base': 'NEO', 'quote': 'AUD', 'baseId': 'ans', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'POWR/AUD': self.safe_market_structure({'id': 'powr', 'symbol': 'POWR/AUD', 'base': 'POWR', 'quote': 'AUD', 'baseId': 'powr', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
                 'GAS/AUD': self.safe_market_structure({'id': 'gas', 'symbol': 'GAS/AUD', 'base': 'GAS', 'quote': 'AUD', 'baseId': 'gas', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
+                'RHOC/AUD': self.safe_market_structure({'id': 'rhoc', 'symbol': 'RHOC/AUD', 'base': 'RHOC', 'quote': 'AUD', 'baseId': 'rhoc', 'quoteId': 'aud', 'type': 'spot', 'spot': True}),
             },
             'commonCurrencies': {
                 'DRK': 'DASH',

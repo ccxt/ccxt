@@ -4476,7 +4476,15 @@ class mexc extends Exchange {
         //         "timestamp" => 1643240373359
         //     }
         //
-        $nextFundingRate = $this->safe_number($contract, 'fundingRate');
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "rate" => -0.000021,
+        //         "nextSettleTime" => 1771084800000
+        //     }
+        //
+        $nextFundingRate = $this->safe_number_2($contract, 'fundingRate', 'rate');
         $nextFundingTimestamp = $this->safe_integer($contract, 'nextSettleTime');
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, 'contract');

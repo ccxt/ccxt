@@ -10,9 +10,9 @@ public partial class bingx
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20Price%20Change"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20to%2024-hour%20price%20changes"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%2024-Hour%20Price%20Change"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -32,9 +32,9 @@ public partial class bingx
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20the%20Latest%20Trade%20Detail"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscription%20transaction%20by%20transaction"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -68,9 +68,9 @@ public partial class bingx
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/Subscribe%20Market%20Depth%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Partial%20Order%20Book%20Depth"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Limited%20Depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -97,9 +97,9 @@ public partial class bingx
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Market%20Data/K-line%20Streamst"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Market%20Data/Subscribe%20K-Line%20Data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Market%20Data/Subscribe%20to%20Latest%20Trading%20Pair%20K-Line"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -133,9 +133,9 @@ public partial class bingx
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/order%20update%20event"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Order%20update%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Order%20update%20push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -175,9 +175,9 @@ public partial class bingx
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/order%20update%20event"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Order%20update%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Order%20update%20push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -217,9 +217,9 @@ public partial class bingx
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Spot/Websocket%20Account%20Data/Subscription%20account%20balance%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Swap/Websocket%20Account%20Data/Account%20balance%20and%20position%20update%20push"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Websocket%20Account%20Data/Account%20balance%20and%20position%20update%20push"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

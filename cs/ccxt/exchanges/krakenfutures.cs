@@ -1750,6 +1750,12 @@ public partial class krakenfutures : Exchange
             { "notFound", "rejected" },
             { "untouched", "open" },
             { "partiallyFilled", "open" },
+            { "ENTERED_BOOK", "open" },
+            { "FULLY_EXECUTED", "closed" },
+            { "CANCELLED", "canceled" },
+            { "TRIGGER_PLACED", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "UNTOUCHED", "open" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1990,6 +1996,73 @@ public partial class krakenfutures : Exchange
         //     status: 'closed'
         //   }
         //
+        // order: {
+        //     type: 'ORDER',
+        //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId: null,
+        //     symbol: 'PF_LTCUSD',
+        //     side: 'buy',
+        //     quantity: '0.1',
+        //     filled: '0',
+        //     limitPrice: '40',
+        //     reduceOnly: false,
+        //     timestamp: '2026-02-13T12:09:03.738Z',
+        //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        // },
+        //     status: 'ENTERED_BOOK',
+        //     updateReason: null,
+        //     error: null
+        // }
+        //
+        object orderDictFromFetchOrder = this.safeDict(order, "order");
+        if (isTrue(!isEqual(orderDictFromFetchOrder, null)))
+        {
+            // order: {
+            //     type: 'ORDER',
+            //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId: null,
+            //     symbol: 'PF_LTCUSD',
+            //     side: 'buy',
+            //     quantity: '0.1',
+            //     filled: '0',
+            //     limitPrice: '40',
+            //     reduceOnly: false,
+            //     timestamp: '2026-02-13T12:09:03.738Z',
+            //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            // },
+            //     status: 'ENTERED_BOOK',
+            //     updateReason: null,
+            //     error: null
+            //
+            object datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
+            object innerStatus = this.safeString(order, "status");
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
+                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "timestamp", this.parse8601(datetime) },
+                { "datetime", datetime },
+                { "lastTradeTimestamp", null },
+                { "lastUpdateTimestamp", this.parse8601(this.safeString(orderDictFromFetchOrder, "lastUpdateTimestamp")) },
+                { "symbol", this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market) },
+                { "type", null },
+                { "timeInForce", null },
+                { "postOnly", null },
+                { "reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly") },
+                { "side", this.safeString(orderDictFromFetchOrder, "side") },
+                { "price", this.safeString(orderDictFromFetchOrder, "limitPrice") },
+                { "triggerPrice", null },
+                { "amount", this.safeString(orderDictFromFetchOrder, "quantity") },
+                { "cost", null },
+                { "average", null },
+                { "filled", this.safeString(orderDictFromFetchOrder, "filled") },
+                { "remaining", null },
+                { "status", this.parseOrderStatus(innerStatus) },
+                { "fee", null },
+                { "fees", null },
+                { "trades", null },
+            });
+        }
         object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
         object errorStatus = this.safeString(order, "status");
         object orderEventsLength = getArrayLength(orderEvents);

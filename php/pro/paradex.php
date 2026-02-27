@@ -15,6 +15,8 @@ class paradex extends \ccxt\async\paradex {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchOrderBook' => true,
@@ -444,6 +446,146 @@ class paradex extends \ccxt\async\paradex {
         return $message;
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate for a $symbol
+             *
+             * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-$symbol
+             *
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $channel = 'funding_data';
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'jsonrpc' => '2.0',
+                'method' => 'subscribe',
+                'params' => array(
+                    'channel' => $channel,
+                ),
+            );
+            $messageHash = $channel . '.' . $symbol;
+            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
+        }) ();
+    }
+
+    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watch the funding rate for multiple markets
+             *
+             * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+             *
+             * @param {string[]} [$symbols] a list of unified market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $channel = 'funding_data';
+            $url = $this->urls['api']['ws'];
+            $request = array(
+                'jsonrpc' => '2.0',
+                'method' => 'subscribe',
+                'params' => array(
+                    'channel' => $channel,
+                ),
+            );
+            $messageHashes = array();
+            if ($symbols !== null) {
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 0) {
+                    for ($i = 0; $i < count($symbols); $i++) {
+                        $messageHash = $channel . '.' . $symbols[$i];
+                        $messageHashes[] = $messageHash;
+                    }
+                } else {
+                    $messageHashes[] = $channel; // if an empty array is passed, subscribe to all funding rates
+                }
+            } else {
+                $messageHashes[] = $channel;
+            }
+            $newFundingRates = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+            if ($this->newUpdates) {
+                $result = array();
+                $result[$newFundingRates['symbol']] = $newFundingRates;
+                return $result;
+            }
+            return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_funding_rate(Client $client, $message) {
+        //
+        //     {
+        //         "jsonrpc" => "2.0",
+        //         "method" => "subscription",
+        //         "params" => {
+        //             "channel" => "funding_data",
+        //             "data" => {
+        //                 "market" => "TRUMP-USD-PERP",
+        //                 "funding_index" => "-0.551694014226244835",
+        //                 "funding_premium" => "-0.000509914923994872836",
+        //                 "funding_rate" => "-0.00014969570582",
+        //                 "funding_rate_8h" => "-0.00014969",
+        //                 "funding_period_hours" => 8,
+        //                 "created_at" => 1771506636154
+        //             }
+        //         }
+        //     }
+        //
+        $params = $this->safe_dict($message, 'params', array());
+        $data = $this->safe_dict($params, 'data', array());
+        $fundingRate = $this->parse_funding_rate_ws($data);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $channel = $this->safe_string($params, 'channel');
+        $messageHash = $channel . '.' . $symbol;
+        $client->resolve ($fundingRate, $messageHash);
+    }
+
+    public function parse_funding_rate_ws($contract, ?array $market = null): array {
+        //
+        //     {
+        //         "market" => "TRUMP-USD-PERP",
+        //         "funding_index" => "-0.551694014226244835",
+        //         "funding_premium" => "-0.000509914923994872836",
+        //         "funding_rate" => "-0.00014969570582",
+        //         "funding_rate_8h" => "-0.00014969",
+        //         "funding_period_hours" => 8,
+        //         "created_at" => 1771506636154
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'market');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer($contract, 'created_at');
+        $fundingPeriod = $this->safe_string($contract, 'funding_period_hours');
+        return array(
+            'info' => $contract,
+            'symbol' => $symbol,
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => $this->parse_number('0'),
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => $fundingPeriod . 'h',
+        );
+    }
+
     public function handle_error_message(Client $client, $message): Bool {
         //
         //     {
@@ -523,6 +665,7 @@ class paradex extends \ccxt\async\paradex {
                 'order_book' => array($this, 'handle_order_book'),
                 'markets_summary' => array($this, 'handle_ticker'),
                 'orders' => array($this, 'handle_order'),
+                'funding_data' => array($this, 'handle_funding_rate'),
             );
             $method = $this->safe_value($methods, $name);
             if ($method !== null) {

@@ -10,6 +10,7 @@ public partial class BaseTest
         async public Task baseTestsInit()
         {
             testLanguageSpecific();
+            testConstants();
             testAfterConstructor();
             testExtend();
             testDeepExtend();
@@ -36,7 +37,10 @@ public partial class BaseTest
             testPrecisionFromString();
             testExtractParams();
             testArraysConcat();
+            testSetMarketsFromExchange();
             testEthMethods();
+            testKeysort();
             await testSleep();
+            testIo();
         }
 }

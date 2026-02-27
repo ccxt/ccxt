@@ -27,6 +27,7 @@ from ccxt.test.base.language_specific.test_language_specific import test_languag
 from ccxt.test.base.test_safe_methods import test_safe_methods  # noqa E402
 from ccxt.test.base.test_safe_ticker import test_safe_ticker  # noqa E402
 from ccxt.test.base.test_json import test_json  # noqa E402
+from ccxt.test.base.test_io import test_io  # noqa E402
 from ccxt.test.base.test_extract_params import test_extract_params  # noqa E402
 from ccxt.test.base.test_sort_by import test_sort_by  # noqa E402
 from ccxt.test.base.test_sum import test_sum  # noqa E402
@@ -41,12 +42,16 @@ from ccxt.test.base.test_handle_methods import test_handle_methods  # noqa E402
 from ccxt.test.base.test_remove_repeated_elements_from_array import test_remove_repeated_elements_from_array  # noqa E402
 from ccxt.test.base.test_parse_precision import test_parse_precision  # noqa E402
 from ccxt.test.base.test_arrays_concat import test_arrays_concat  # noqa E402
+from ccxt.test.base.test_set_markets_from_exchange import test_set_markets_from_exchange  # noqa E402
 from ccxt.test.base.test_sleep import test_sleep  # noqa E402
 from ccxt.test.base.test_eth_methods import test_eth_methods  # noqa E402
+from ccxt.test.base.test_keysort import test_keysort  # noqa E402
 from ccxt.test.base.test_capitalize import test_capitalize  # noqa E402
+from ccxt.test.base.test_constants import test_constants  # noqa E402
 
 async def base_tests_init():
     test_language_specific()
+    test_constants()
     test_after_constructor()
     test_extend()
     test_deep_extend()
@@ -73,5 +78,8 @@ async def base_tests_init():
     test_precision_from_string()
     test_extract_params()
     test_arrays_concat()
+    test_set_markets_from_exchange()
     test_eth_methods()
+    test_keysort()
     await test_sleep()
+    test_io()

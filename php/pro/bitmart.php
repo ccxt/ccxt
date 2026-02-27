@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -26,6 +27,8 @@ class bitmart extends \ccxt\async\bitmart {
                 'cancelAllOrdersWs' => false,
                 'ws' => true,
                 'watchBalance' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchBidsAsks' => true,
@@ -1817,6 +1820,76 @@ class bitmart extends \ccxt\async\bitmart {
         }) ();
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+             *
+             * @param {string} $symbol unified market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
+            $fundingRate = Async\await($this->watch_funding_rates(array( $symbol ), $params));
+            return $fundingRate[$symbol];
+        }) ();
+    }
+
+    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * watch the funding rate for multiple markets
+             *
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+             *
+             * @param {string[]} $symbols a list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~, indexed by $market $symbols
+             */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
+            }
+            Async\await($this->load_markets());
+            $market = $this->get_market_from_symbols($symbols);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchFundingRates', $market, $params);
+            $fundingRate = Async\await($this->subscribe_multiple('fundingRate', $marketType, $symbols, $params));
+            if ($this->newUpdates) {
+                $fundingRates = array();
+                $fundingRates[$fundingRate['symbol']] = $fundingRate;
+                return $fundingRates;
+            }
+            return $this->filter_by_array($this->fundingRates, 'symbol', $symbols);
+        }) ();
+    }
+
+    public function handle_funding_rate(Client $client, $message) {
+        //
+        //     {
+        //         "data" => array(
+        //             "symbol" => "BTCUSDT",
+        //             "fundingRate" => "0.0000561",
+        //             "fundingTime" => 1770978448000,
+        //             "nextFundingRate" => "-0.0000195",
+        //             "nextFundingTime" => 1770998400000,
+        //             "funding_upper_limit" => "0.0375",
+        //             "funding_lower_limit" => "-0.0375",
+        //             "ts" => 1770978448970
+        //         ),
+        //         "group" => "futures/fundingRate:BTCUSDT"
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $fundingRate = $this->parse_funding_rate($data);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $messageHash = 'fundingRate:' . $symbol;
+        $client->resolve ($fundingRate, $messageHash);
+    }
+
     public function authenticate($type, $params = array ()) {
         return Async\async(function () use ($type, $params) {
             $this->check_required_credentials();
@@ -2112,6 +2185,9 @@ class bitmart extends \ccxt\async\bitmart {
                 'balance' => array($this, 'handle_balance'),
                 'asset' => array($this, 'handle_balance'),
             );
+            if (mb_strpos($channel, 'fundingRate') !== false) {
+                $this->handle_funding_rate($client, $message);
+            }
             $keys = is_array($methods) ? array_keys($methods) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $key = $keys[$i];
