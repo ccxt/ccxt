@@ -737,7 +737,7 @@ func (this *IndependentreserveCore) FetchOpenOrders(optionalArgs ...interface{})
 
 		retRes6878 := (<-this.LoadMarkets())
 		PanicOnError(retRes6878)
-		var request interface{} = this.Ordered(map[string]interface{}{})
+		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -787,7 +787,7 @@ func (this *IndependentreserveCore) FetchClosedOrders(optionalArgs ...interface{
 
 		retRes7168 := (<-this.LoadMarkets())
 		PanicOnError(retRes7168)
-		var request interface{} = this.Ordered(map[string]interface{}{})
+		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -841,10 +841,10 @@ func (this *IndependentreserveCore) FetchMyTrades(optionalArgs ...interface{}) <
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 50
 		}
-		var request interface{} = this.Ordered(map[string]interface{}{
+		var request interface{} = map[string]interface{}{
 			"pageIndex": pageIndex,
 			"pageSize":  limit,
-		})
+		}
 
 		response := (<-this.PrivatePostGetTrades(this.Extend(request, params)))
 		PanicOnError(response)
@@ -1032,11 +1032,11 @@ func (this *IndependentreserveCore) CreateOrder(symbol interface{}, typeVar inte
 		var market interface{} = this.Market(symbol)
 		var orderType interface{} = this.Capitalize(typeVar)
 		orderType = Add(orderType, Ternary(IsTrue((IsEqual(side, "sell"))), "Offer", "Bid"))
-		var request interface{} = this.Ordered(map[string]interface{}{
+		var request interface{} = map[string]interface{}{
 			"primaryCurrencyCode":   GetValue(market, "baseId"),
 			"secondaryCurrencyCode": GetValue(market, "quoteId"),
 			"orderType":             orderType,
-		})
+		}
 		var response interface{} = nil
 		AddElementToObject(request, "volume", amount)
 		if IsTrue(IsEqual(typeVar, "limit")) {
@@ -1329,7 +1329,7 @@ func (this *IndependentreserveCore) Sign(path interface{}, optionalArgs ...inter
 		}
 		var message interface{} = Join(auth, ",")
 		var signature interface{} = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
-		var query interface{} = this.Ordered(map[string]interface{}{})
+		var query interface{} = map[string]interface{}{}
 		AddElementToObject(query, "apiKey", this.ApiKey)
 		AddElementToObject(query, "nonce", nonce)
 		AddElementToObject(query, "signature", ToUpper(signature))

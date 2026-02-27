@@ -57,7 +57,7 @@ function _interopNamespace(e) {
 // ----------------------------------------------------------------------------
 const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -67,14 +67,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await Promise.resolve().then(function () { return require('../protobuf/mexc/compiled.cjs.js'); });
-    }
-    catch (e) {
-        // TODO: handle error
-    }
-})();
 // -----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -244,7 +236,6 @@ class Exchange {
         this.safeTimestamp = safeTimestamp;
         this.binaryConcatArray = binaryConcatArray;
         this.uuidv1 = uuidv1;
-        this.numberToLE = numberToLE;
         this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
         this.stringToBase64 = stringToBase64;
@@ -399,6 +390,18 @@ class Exchange {
         this.afterConstruct();
         if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
             this.setSandboxMode(true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles();
+    }
+    async loadExchangeSpecificFiles() {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await Promise.resolve().then(function () { return require('../protobuf/mexc/compiled.cjs.js'); });
+            }
+            catch (e) {
+                // TODO: handle error
+            }
         }
     }
     uuid5(namespace, name) {

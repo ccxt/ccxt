@@ -65,8 +65,8 @@ async function baseTestsInit () {
     testPrecisionFromString ();
     testExtractParams ();
     testArraysConcat ();
-    testSetMarketsFromExchange ();
     testUuid ();
+    await testSetMarketsFromExchange ();
     testEthMethods ();
     testKeysort ();
     await testSleep ();

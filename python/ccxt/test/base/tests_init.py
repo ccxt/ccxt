@@ -78,7 +78,7 @@ async def base_tests_init():
     test_precision_from_string()
     test_extract_params()
     test_arrays_concat()
-    test_set_markets_from_exchange()
+    await test_set_markets_from_exchange()
     test_eth_methods()
     test_keysort()
     await test_sleep()

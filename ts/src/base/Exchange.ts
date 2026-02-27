@@ -114,7 +114,6 @@ const {
     safeTimestamp,
     binaryConcatArray,
     uuidv1,
-    numberToLE,
     ymdhms,
     stringToBase64,
     decode,
@@ -179,13 +178,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch (e) {
-        // TODO: handle error
-    }
-}) ();
 
 // -----------------------------------------------------------------------------
 /**
@@ -488,7 +480,6 @@ export default class Exchange {
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
     uuidv1 = uuidv1;
-    numberToLE = numberToLE;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
     stringToBase64 = stringToBase64;
@@ -650,6 +641,18 @@ export default class Exchange {
         this.afterConstruct ();
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles ();
+    }
+
+    async loadExchangeSpecificFiles () {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+            } catch (e) {
+                // TODO: handle error
+            }
         }
     }
 

@@ -1546,7 +1546,7 @@ export default class mexc extends mexcRest {
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         const channel = this.safeString(message, 'channel');

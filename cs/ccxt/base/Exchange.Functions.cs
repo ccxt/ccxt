@@ -347,8 +347,4 @@ public partial class Exchange
         // return null;
     }
 
-    public object ordered(object ob)
-    {
-        return ob; //stub
-    }
 }

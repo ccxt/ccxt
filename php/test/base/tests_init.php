@@ -74,7 +74,7 @@ function base_tests_init() {
         test_precision_from_string();
         test_extract_params();
         test_arrays_concat();
-        test_set_markets_from_exchange();
+        Async\await(test_set_markets_from_exchange());
         test_eth_methods();
         test_keysort();
         Async\await(test_sleep());

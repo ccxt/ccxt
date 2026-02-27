@@ -914,10 +914,6 @@ class Exchange {
         }));
     }
 
-    public static function ordered($array) { // for Python OrderedDicts, does nothing in PHP and JS
-        return $array;
-    }
-
     public function aggregate($bidasks) {
         $result = array();
 
@@ -2241,11 +2237,6 @@ class Exchange {
     public static function number_to_be($n, $padding) {
         $n = new BN($n);
         return array_reduce(array_map('chr', $n->toArray('be', $padding)),  [__CLASS__, 'binary_concat']);
-    }
-
-    public static function number_to_le($n, $padding) {
-        $n = new BN($n);
-        return array_reduce(array_map('chr', $n->toArray('le', $padding)),  [__CLASS__, 'binary_concat']);
     }
 
     public static function base58_to_binary($s) {

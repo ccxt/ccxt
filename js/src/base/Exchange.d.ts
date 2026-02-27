@@ -270,7 +270,6 @@ export default class Exchange {
     safeTimestamp: (o: any, k: IndexType, $default?: number) => number;
     binaryConcatArray: (arr: any[]) => Uint8Array;
     uuidv1: () => string;
-    numberToLE: (n: number, padding: number) => Uint8Array;
     ymdhms: (timestamp: any, infix?: string) => string;
     yymmdd: (timestamp: any, infix?: string) => string;
     stringToBase64: (string: string) => string;
@@ -317,6 +316,7 @@ export default class Exchange {
     existsFile: typeof functions.existsFile;
     getTempDir: typeof functions.getTempDir;
     constructor(userConfig?: ConstructorArgs);
+    loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
