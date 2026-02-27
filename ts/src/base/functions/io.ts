@@ -1,5 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
+import path from 'node:path';
 import { isNode } from './platform.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -65,12 +66,11 @@ export function getTempDir(): string | undefined {
  * @param path File path to check
  */
 function ensureWhitelistedFile(filePath: string) {
-    const tempDir = getTempDir();
-    if (!tempDir) {
-        throw new Error('invalid file path: ' + filePath);
+    if (pathSyncModule === null) {
+        throw new Error('path module is not available');
     }
     const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if ((sanitizedFilePath.startsWith(tempDir) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
+    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
         return;
     }
     throw new Error('invalid file path: ' + filePath);

@@ -1962,11 +1962,12 @@ export default class Exchange {
         if (!isNode) {
             throw new NotSupported (this.id + ' loadLighterLibrary() is only supported in node environment.');
         }
+        await functions.initFileSystem ();
         const wasmExecPath = this.safeString (this.options, 'wasmExecPath');
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
-        await import (wasmExecPath);
+        const importRest = await import (wasmExecPath);
         const go = new (globalThis as any).Go ();
         // read wasm from disks
         const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm

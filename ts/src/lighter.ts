@@ -627,9 +627,16 @@ export default class lighter extends Exchange {
         return orders;
     }
 
-    async fetchNonce (accountIndex, apiKeyIndex) {
+    async fetchNonce (accountIndex, apiKeyIndex, params = {}) {
         if ((accountIndex === undefined) || (apiKeyIndex === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchNonce() requires accountIndex and apiKeyIndex.');
+        }
+        if ('nonce' in params) {
+            return this.safeInteger (params, 'nonce');
+        }
+        const nonceInOptions = this.safeInteger (this.options, 'nonce');
+        if (nonceInOptions !== undefined) {
+            return nonceInOptions;
         }
         const response = await this.publicGetNextNonce ({ 'account_index': accountIndex, 'api_key_index': apiKeyIndex });
         return this.safeInteger (response, 'nonce');
@@ -2724,7 +2731,7 @@ export default class lighter extends Exchange {
         }
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'cancelAllOrders', 'accountIndex', 'account_index');
-        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex, params);
         const signRaw: Dict = {
             'time_in_force': 0, // 0: IMMEDIATE 1: SCHEDULED 2: ABORT
             'time': 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here

@@ -1,9 +1,12 @@
 {
     "exchange": "lighter",
-    "skipKeys": [],
-    "outputType": "urlencoded",
+    "skipKeys": ["OrderExpiry", "Nonce", "AccountIndex", "ApiKeyIndex", "Sig", "ExpiredAt", "account_index", "ClientOrderIndex"],
+    "outputType": "json",
+    "privateKey": "e5b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
     "options": {
-        "accountIndex": 12345678
+        "accountIndex": 12345678,
+        "apiKeyIndex": 0,
+        "nonce": 0
     },
     "methods": {
         "cancelAllOrders": [
