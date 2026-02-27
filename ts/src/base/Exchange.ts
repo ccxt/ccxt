@@ -1,12 +1,12 @@
 // ----------------------------------------------------------------------------
 
 import * as functions from './functions.js';
-import {
-    // keys as keysFunc,
-    // values as valuesFunc,
-    // inArray as inArrayFunc,
-    vwap as vwapFunc,
-} from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
     ExchangeError,
@@ -462,7 +462,6 @@ export default class Exchange {
     implodeParams = implodeParams;
     extractParams = extractParams;
     json = json;
-    vwap = vwapFunc;
     merge = merge;
     binaryConcat = binaryConcat;
     hash = hash;
