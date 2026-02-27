@@ -1084,8 +1084,12 @@ class binance extends \ccxt\async\binance {
                     }
                 }
             } catch (Exception $e) {
-                unset($this->orderbooks[$symbol]);
-                unset($client->subscriptions[$messageHash]);
+                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                    unset($this->orderbooks[$symbol]);
+                }
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
+                }
                 $client->reject ($e, $messageHash);
             }
         }

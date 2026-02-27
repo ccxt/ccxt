@@ -1000,8 +1000,10 @@ class binance(ccxt.async_support.binance):
                                 # todo: client.reject from handleOrderBookMessage properly
                                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
             except Exception as e:
-                del self.orderbooks[symbol]
-                del client.subscriptions[messageHash]
+                if symbol in self.orderbooks:
+                    del self.orderbooks[symbol]
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):

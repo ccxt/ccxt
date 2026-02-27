@@ -1056,8 +1056,12 @@ export default class binance extends binanceRest {
                 }
             }
             catch (e) {
-                delete this.orderbooks[symbol];
-                delete client.subscriptions[messageHash];
+                if (symbol in this.orderbooks) {
+                    delete this.orderbooks[symbol];
+                }
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
                 client.reject(e, messageHash);
             }
         }
