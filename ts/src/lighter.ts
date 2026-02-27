@@ -1848,6 +1848,12 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchClosedOrders', 'accountIndex', 'account_index');
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires an apiKeyIndex parameter');
+        }
+        await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const market = this.market (symbol);
         const request: Dict = {
             'market_id': market['id'],
@@ -2417,6 +2423,12 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchMyTrades', 'accountIndex', 'account_index');
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an apiKeyIndex parameter');
+        }
+        await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const request: Dict = {
             'sort_by': 'block_height',
             'limit': 100,
