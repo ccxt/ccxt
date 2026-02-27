@@ -340,10 +340,10 @@ export default class lighter extends Exchange {
             'options': {
                 'defaultType': 'swap',
                 'chainId': 304,
-                'accountIndex': 0,
-                'apiKeyIndex': 255,
-                'wasmExecPath': '', // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
-                'libraryPath': '', // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'accountIndex': 715085,
+                'apiKeyIndex': 5,
+                'wasmExecPath': '/Users/cjg/Git/lighter-wasm/wasm_exec.js', // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
+                'libraryPath': '/Users/cjg/Git/lighter-wasm/lighter.wasm', // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
             },
         });
     }
@@ -428,7 +428,7 @@ export default class lighter extends Exchange {
         return await this.publicPostSendTx (request);
     }
 
-    async createAuth (params = {}) {
+    createAuth (params = {}) {
         // don't omit [accountIndex, apiKeyIndex], request may need them
         let apiKeyIndex = this.safeInteger2 (params, 'apiKeyIndex', 'api_key_index');
         if (apiKeyIndex === undefined) {
@@ -440,13 +440,12 @@ export default class lighter extends Exchange {
             const res = this.handleOptionAndParams2 ({}, 'createAuth', 'accountIndex', 'account_index');
             accountIndex = this.safeInteger (res, 0);
         }
-        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const rs = {
             'deadline': this.seconds () + 60,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        return this.lighterCreateAuthToken (signer, rs);
+        return this.lighterCreateAuthToken (this.safeValue (this.options, 'signer'), rs);
     }
 
     pow (n: string, m: string) {
@@ -1772,6 +1771,12 @@ export default class lighter extends Exchange {
         await this.loadMarkets ();
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchOpenOrders', 'accountIndex', 'account_index');
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an apiKeyIndex parameter');
+        }
+        await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const market = this.market (symbol);
         const request: Dict = {
             'market_id': market['id'],

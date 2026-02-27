@@ -2132,7 +2132,7 @@ export default class Exchange {
             request['account_index']
         );
         this.checkLighterSignedError (res);
-        return res.authToken; // check this
+        return res.authToken;
     }
 
     lighterSignUpdateMargin (signer, request): any[] {
