@@ -20,6 +20,7 @@ var FunctionsMap = map[string]interface{}{
 	"groupBy":                         TestGroupBy,
 	"handleMethods":                   TestHandleMethods,
 	"indexBy":                         TestIndexBy,
+	"io":                              TestIo,
 	"json":                            TestJson,
 	"keysort":                         TestKeysort,
 	"numberToString":                  TestNumberToString,

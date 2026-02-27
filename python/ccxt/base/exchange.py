@@ -121,6 +121,8 @@ import gzip
 import hashlib
 import hmac
 import io
+import os
+import tempfile
 
 # load orjson if available, otherwise default to json
 orjson = None
@@ -496,6 +498,59 @@ class Exchange(object):
         if elapsed < sleep_time:
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
+
+    def read_file(self, path: str, encoding: str = 'utf-8'):
+        """
+        Read file contents (synchronous)
+        :param str path: File path to read
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns str|None: File contents as string, or None on error
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            with open(path, 'r', encoding=encoding) as file:
+                return file.read()
+        except Exception:
+            return None
+
+    def write_file(self, path: str, data: str, encoding: str = 'utf-8'):
+        """
+        Write file contents (synchronous)
+        :param str path: File path to write
+        :param str data: Data to write
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns bool: True if successful, False otherwise
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            with open(path, 'w', encoding=encoding) as file:
+                file.write(data)
+            return True
+        except Exception:
+            return False
+
+    def exists_file(self, path: str):
+        """
+        Check if file exists (synchronous)
+        :param str path: File path to check
+        :returns bool: True if file exists, False otherwise
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            import os
+            return os.path.isfile(path)
+        except Exception:
+            return False
+
+    def get_temp_dir(self):
+        tmp = os.path.realpath(tempfile.gettempdir())
+        return tmp if tmp.endswith(os.sep) else tmp + os.sep
+
+    def _ensure_whitelisted_file(self, file_path: str):
+        sanitized = os.path.realpath(file_path)
+        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
+            return
+        raise ValueError(f'invalid file path: {file_path}')
 
     @staticmethod
     def gzip_deflate(response, text):

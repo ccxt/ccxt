@@ -312,6 +312,10 @@ export default class Exchange {
     crc32: typeof functions.crc32;
     packb: typeof functions.packb;
     urlencodeBase64: (payload: string | Uint8Array) => string;
+    readFile: typeof functions.readFile;
+    writeFile: typeof functions.writeFile;
+    existsFile: typeof functions.existsFile;
+    getTempDir: typeof functions.getTempDir;
     constructor(userConfig?: ConstructorArgs);
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;

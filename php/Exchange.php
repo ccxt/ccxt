@@ -1264,6 +1264,52 @@ class Exchange {
         return $token . '.' . static::urlencode_base64($signature);
     }
 
+    public function get_temp_dir(): string {
+        $tmp = realpath(sys_get_temp_dir()) ?: '';
+        return str_ends_with($tmp, DIRECTORY_SEPARATOR) ? $tmp : $tmp . DIRECTORY_SEPARATOR;
+    }
+
+
+    public function ensure_whitelisted_file(string $filePath) {
+        $tempDir = $this->get_temp_dir();
+        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
+            $tempDir .= DIRECTORY_SEPARATOR;
+        }
+        // resolve parent dir (which exists) + filename
+        $dir = realpath(dirname($filePath));
+        if ($dir === false) {
+            throw new \RuntimeException('dir path does not exist: ' . $filePath);
+        }
+        $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
+        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
+            return;
+        }
+        throw new \RuntimeException('invalid file path: ' . $filePath);
+    }
+
+    public function read_file(string $filePath) {
+        $this->ensure_whitelisted_file($filePath);
+        if (!file_exists($filePath)) {
+            throw new \Exception("File not found: $filePath");
+        }
+        return file_get_contents($filePath);
+    }
+
+    public function write_file(string $path, string $data) {
+        $this->ensure_whitelisted_file($path);
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
+        }
+        file_put_contents($path, $data);
+        return true;
+    }
+
+    public function exists_file(string $path) {
+        $this->ensure_whitelisted_file($path);
+        return file_exists($path);
+    }
+
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {
         $base64url = strtr($base64, '+/', '-_');
 
