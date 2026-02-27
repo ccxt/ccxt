@@ -1,5 +1,6 @@
 // ----------------------------------------------------------------------------
 
+import { read } from 'node:fs';
 import * as functions from './functions.js';
 import {
     // keys as keysFunc,
@@ -1959,19 +1960,17 @@ export default class Exchange {
         if (libraryPath === undefined || libraryPath === '') {
             throw new Error ('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
         }
-        let fs: any = undefined;
         if (!isNode) {
             throw new NotSupported (this.id + ' loadLighterLibrary() is only supported in node environment.');
         }
-        fs = await import ('fs');
         const wasmExecPath = this.safeString (this.options, 'wasmExecPath');
         if (wasmExecPath === undefined || wasmExecPath === '') {
             throw new Error ('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
         }
         await import (wasmExecPath);
         const go = new (globalThis as any).Go ();
-        // read wasm from disk
-        const bytes = new Uint8Array (fs.readFileSync (libraryPath)); // it should point to lighter.wasm
+        // read wasm from disks
+        const bytes = new Uint8Array (readFile (libraryPath, null) as Buffer); // it should point to lighter.wasm
         const { instance } = await WebAssembly.instantiate (bytes, go.importObject);
         go.run (instance);
         // createCLient

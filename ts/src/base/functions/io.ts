@@ -84,7 +84,7 @@ function ensureWhitelistedFile(filePath: string) {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
+export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined | Buffer  {
     if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
@@ -96,6 +96,8 @@ export function readFile (path: string, encoding: BufferEncoding = 'utf8'): stri
         return undefined;
     }
 }
+
+
 
 /*  ------------------------------------------------------------------------ */
 
