@@ -125,7 +125,6 @@ import gzip
 import hashlib
 import hmac
 import io
-import os
 import tempfile
 
 # load orjson if available, otherwise default to json
