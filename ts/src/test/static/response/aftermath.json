@@ -716,7 +716,6 @@
                         "timestamp": 1767048234639,
                         "side": "buy",
                         "symbol": "BTC/USD:USDC",
-                        "nextCursor": "592",
                         "fee": {
                             "cost": null,
                             "currency": null
