@@ -645,6 +645,14 @@ export default class lighter extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -2681,10 +2689,10 @@ export default class lighter extends Exchange {
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
         };
-        if (id !== undefined) {
-            signRaw['order_index'] = this.parseToInt (id);
-        } else if (clientOrderId !== undefined) {
+        if (clientOrderId !== undefined) {
             signRaw['order_index'] = this.parseToInt (clientOrderId);
+        } else if (id !== undefined) {
+            signRaw['order_index'] = this.parseToInt (id);
         } else {
             throw new ArgumentsRequired (this.id + ' cancelOrder requires order id or client order id');
         }

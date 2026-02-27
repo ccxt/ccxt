@@ -6,6 +6,78 @@
         "accountIndex": 12345678
     },
     "methods": {
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [],
+                "output": {
+                    "tx_type": 16,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1772176172357,\"Nonce\":8,\"Sig\":\"NEzOBq4ZOwSoqvH/0RuH0P8b5ReKggfVhUlAge3sjQWc8M4j3qhRNJFaZP6lk36ZtpEQ4+mb2njrcpRgb++cDf77ceZEusyc0lYu/Ijt5Es=\"}"
+                }
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/accountInactiveOrders?market_id=35&account_index=715085&limit=2",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "my trades",
+                "method": "fetchMyTrades",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/trades?sort_by=block_height&limit=2&account_index=715085&market_id=35",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit  buy order",
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    40
+                ],
+                "output": {
+                    "tx_type": 14,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":489057754,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1774594326601,\"ExpiredAt\":1772175725602,\"Nonce\":7,\"Sig\":\"gl3Tm3SFdCvd5lJw9uByG8sUAThDZ8NpP5SJ8DUKwRwv2DoYAfZoIcjUZCiZjllNS2d/Z6XDlERYaKb4JrfniOXIVZHmfo5ie5I1lKR4UCk=\"}"
+                }
+            },
+            {
+                "description": "create market buy order",
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    60
+                ],
+                "output": {
+                    "tx_type": 14,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":911280573,\"BaseAmount\":100,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1772175612201,\"Nonce\":6,\"Sig\":\"6cnea3og5elG3CMCxRpldy7yHQI3ettJVkYKl2VcvF4yIT1/RREaD/m8D+KTbCTGAftezZjNtw8KEo9YoAO68WTdDU8d6bq69BcKlQm1kAk=\"}"
+                }
+            }
+        ],
         "fetchStatus": [
             {
                 "description": "fetchStatus",
@@ -139,6 +211,13 @@
             }
         ],
         "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=715085",
+                "input": [],
+                "output": null
+            },
             {
                 "description": "fetchPositions",
                 "method": "fetchPositions",
