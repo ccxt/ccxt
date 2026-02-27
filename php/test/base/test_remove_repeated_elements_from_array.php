@@ -10,7 +10,7 @@ namespace ccxt;
 
 
 function test_remove_repeated_elements_from_array() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     // CASE 1: by id

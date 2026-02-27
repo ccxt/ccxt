@@ -50,7 +50,7 @@ bitflyer.fetchMarkets ([params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#get-account-asset-balance  
 
@@ -70,7 +70,7 @@ bitflyer.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#order-book  
 
@@ -92,7 +92,7 @@ bitflyer.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#ticker  
 
@@ -113,7 +113,7 @@ bitflyer.fetchTicker (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#list-executions  
 
@@ -136,7 +136,7 @@ bitflyer.fetchTrades (symbol[, since, limit, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#get-trading-commission  
 
@@ -157,7 +157,7 @@ bitflyer.fetchTradingFee (symbol[, params])
 create a trade order
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#send-a-new-order  
 
@@ -182,7 +182,7 @@ bitflyer.createOrder (symbol, type, side, amount[, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#cancel-order  
 
@@ -204,7 +204,7 @@ bitflyer.cancelOrder (id, symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#list-orders  
 
@@ -227,7 +227,7 @@ bitflyer.fetchOrders (symbol[, since, limit, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#list-orders  
 
@@ -250,7 +250,7 @@ bitflyer.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#list-orders  
 
@@ -273,7 +273,7 @@ bitflyer.fetchClosedOrders (symbol[, since, limit, params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#list-orders  
 
@@ -295,7 +295,7 @@ bitflyer.fetchOrder (id, symbol[, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#list-executions  
 
@@ -318,7 +318,7 @@ bitflyer.fetchMyTrades (symbol[, since, limit, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#get-open-interest-summary  
 
@@ -339,7 +339,7 @@ bitflyer.fetchPositions (symbols[, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#withdrawing-funds  
 
@@ -363,7 +363,7 @@ bitflyer.withdraw (code, amount, address, tag[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-deposit-history  
 
@@ -386,7 +386,7 @@ bitflyer.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://lightning.bitflyer.com/docs?lang=en#get-crypto-assets-transaction-history  
 
@@ -409,7 +409,7 @@ bitflyer.fetchWithdrawals (code[, since, limit, params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>bitflyer</code>](#bitflyer)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://lightning.bitflyer.com/docs#funding-rate  
 

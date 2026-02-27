@@ -187,7 +187,7 @@ gate.fetchCurrencies ([params])
 fetch the current funding rate
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/#/?id=funding-rate-structure)
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#get-a-single-contract  
 
@@ -208,7 +208,7 @@ gate.fetchFundingRate (symbol[, params])
 fetch the funding rate for multiple markets
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rates-structure), indexed by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rates-structure), indexed by market symbols
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts  
 
@@ -229,7 +229,7 @@ gate.fetchFundingRates (symbols[, params])
 fetch a dictionary of addresses for a currency, indexed by network
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 
 | Param | Type | Required | Description |
@@ -249,7 +249,7 @@ gate.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#generate-currency-deposit-address  
 
@@ -271,7 +271,7 @@ gate.fetchDepositAddress (code[, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee  
 
@@ -292,7 +292,7 @@ gate.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee  
 
@@ -314,7 +314,7 @@ gate.fetchTradingFees ([params])
 please use fetchDepositWithdrawFees instead
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status  
 
@@ -335,7 +335,7 @@ gate.fetchTransactionFees (codes[, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status  
 
@@ -356,7 +356,7 @@ gate.fetchDepositWithdrawFees (codes[, params])
 fetch the history of funding payments paid and received on this account
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/#/?id=funding-history-structure)
+**Returns**: <code>object</code> - a [funding history structure](https://docs.ccxt.com/?id=funding-history-structure)
 
 **See**
 
@@ -383,7 +383,7 @@ gate.fetchFundingHistory (symbol[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -411,7 +411,7 @@ gate.fetchOrderBook (symbol[, limit, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -438,7 +438,7 @@ gate.fetchTicker (symbol[, params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -463,7 +463,7 @@ gate.fetchTickers (symbols[, params])
 
 ### fetchBalance{docsify-ignore}
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**
 
@@ -496,7 +496,7 @@ gate.fetchBalance ([params])
 fetches historical funding rate prices
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#funding-rate-history  
 
@@ -504,7 +504,7 @@ fetches historical funding rate prices
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate history for |
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
-| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure) to fetch |
+| limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest funding rate to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
@@ -521,7 +521,7 @@ gate.fetchFundingRateHistory (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**
 
@@ -552,7 +552,7 @@ gate.fetchTrades (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -582,7 +582,7 @@ gate.fetchOrderTrades (id, symbol[, since, limit, params])
 Fetch personal trading history
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**
 
@@ -622,7 +622,7 @@ gate.fetchMyTrades (symbol[, since, limit, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records  
 
@@ -647,7 +647,7 @@ gate.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records  
 
@@ -672,7 +672,7 @@ gate.fetchWithdrawals (code[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#withdraw  
 
@@ -696,7 +696,7 @@ gate.withdraw (code, amount, address, tag[, params])
 Create an order on the exchange
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> \| <code>undefined</code> - [An order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> \| <code>undefined</code> - [An order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -746,7 +746,7 @@ gate.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -772,7 +772,7 @@ gate.createOrders (orders[, params])
 create a market buy order by providing the symbol and cost
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#create-an-order  
 
@@ -795,7 +795,7 @@ gate.createMarketBuyOrderWithCost (symbol, cost[, params])
 edit a trade order, gate currently only supports the modification of the price or amount fields
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -826,7 +826,7 @@ gate.editOrder (id, symbol, type, side, amount[, price, params])
 Retrieves information on an order
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -859,7 +859,7 @@ gate.fetchOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -890,7 +890,7 @@ gate.fetchOpenOrders (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -928,7 +928,7 @@ gate.fetchClosedOrders (symbol[, since, limit, params])
 Cancels an open order
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -958,7 +958,7 @@ gate.cancelOrder (id, symbol[, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -985,7 +985,7 @@ gate.cancelOrders (ids, symbol[, params])
 cancel multiple orders for multiple symbols
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list  
 
@@ -1008,7 +1008,7 @@ gate.cancelOrdersForSymbols (orders[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1036,7 +1036,7 @@ gate.cancelAllOrders (symbol[, params])
 transfer currency internally between wallets on the same account
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: A [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
+**Returns**: A [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts  
 
@@ -1087,7 +1087,7 @@ gate.setLeverage (leverage, symbol[, params])
 fetch data on an open contract position
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1113,7 +1113,7 @@ gate.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1141,7 +1141,7 @@ gate.fetchPositions (symbols[, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/#/?id=leverage-tiers-structure), indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [leverage tiers structures](https://docs.ccxt.com/?id=leverage-tiers-structure), indexed by market symbols
 
 **See**
 
@@ -1166,7 +1166,7 @@ gate.fetchLeverageTiers ([symbols, params])
 retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/#/?id=leverage-tiers-structure)
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#list-risk-limit-tiers  
 
@@ -1187,7 +1187,7 @@ gate.fetchMarketLeverageTiers (symbol[, params])
 repay borrowed margin and interest
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.gate.com/docs/apiv4/en/#repay-a-loan  
 
@@ -1212,7 +1212,7 @@ gate.repayMargin (symbol, code, amount[, params])
 repay cross margin borrowed margin and interest
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**
 
@@ -1241,7 +1241,7 @@ gate.repayCrossMargin (code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#marginuni  
 
@@ -1265,7 +1265,7 @@ gate.borrowIsolatedMargin (symbol, code, amount[, params])
 create a loan to borrow margin
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/#/?id=margin-loan-structure)
+**Returns**: <code>object</code> - a [margin loan structure](https://docs.ccxt.com/?id=margin-loan-structure)
 
 **See**
 
@@ -1293,7 +1293,7 @@ gate.borrowMargin (code, amount[, params])
 fetch the interest owed by the user for borrowing currency for margin trading
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/#/?id=borrow-interest-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [borrow interest structures](https://docs.ccxt.com/?id=borrow-interest-structure)
 
 **See**
 
@@ -1323,7 +1323,7 @@ gate.fetchBorrowInterest ([code, symbol, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**
 
@@ -1349,7 +1349,7 @@ gate.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**
 
@@ -1375,7 +1375,7 @@ gate.addMargin (symbol, amount[, params])
 Retrieves the open interest of a currency
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/#/?id=open-interest-structure](https://docs.ccxt.com/#/?id=open-interest-structure)
+**Returns**: <code>object</code> - an open interest structure[https://docs.ccxt.com/?id=open-interest-structure](https://docs.ccxt.com/?id=open-interest-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#futures-stats  
 
@@ -1400,7 +1400,7 @@ gate.fetchOpenInterest (symbol, timeframe[, since, limit, params])
 fetches historical settlement records
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#list-settlement-history-2  
 
@@ -1446,7 +1446,7 @@ gate.fetchMySettlementHistory (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -1501,7 +1501,7 @@ gate.setPositionMode (hedged, symbol, params[])
 fetches the market ids of underlying assets for a specific contract market type
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [underlying assets](https://docs.ccxt.com/#/?id=underlying-assets-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [underlying assets](https://docs.ccxt.com/?id=underlying-assets-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#list-all-underlyings  
 
@@ -1522,7 +1522,7 @@ gate.fetchUnderlyingAssets ([params])
 retrieves the public liquidations of a trading pair
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-liquidation-history  
 
@@ -1546,7 +1546,7 @@ gate.fetchLiquidations (symbol[, since, limit, params])
 retrieves the users liquidated positions
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/#/?id=liquidation-structure)
+**Returns**: <code>object</code> - an array of [liquidation structures](https://docs.ccxt.com/?id=liquidation-structure)
 
 **See**
 
@@ -1574,7 +1574,7 @@ gate.fetchMyLiquidations (symbol[, since, limit, params])
 fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/#/?id=greeks-structure)
+**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts  
 
@@ -1595,7 +1595,7 @@ gate.fetchGreeks (symbol[, params])
 closes open positions for a market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1622,7 +1622,7 @@ gate.closePosition (symbol, side[, params])
 fetch the set leverage for a market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a [leverage structure](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**
 
@@ -1649,7 +1649,7 @@ gate.fetchLeverage (symbol[, params])
 fetch the set leverage for all leverage markets, only spot margin is supported on gate
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/#/?id=leverage-structure)
+**Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
 
 **See**
 
@@ -1675,7 +1675,7 @@ gate.fetchLeverages (symbols[, params])
 fetches option data that is commonly found in an option chain
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - an [option chain structure](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-detail  
 
@@ -1696,7 +1696,7 @@ gate.fetchOption (symbol[, params])
 fetches data for an underlying asset that is commonly found in an option chain
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/#/?id=option-chain-structure)
+**Returns**: <code>object</code> - a list of [option chain structures](https://docs.ccxt.com/?id=option-chain-structure)
 
 **See**: https://www.gate.com/docs/developers/apiv4/en/#list-all-the-contracts-with-specified-underlying-and-expiration-time  
 
@@ -1719,7 +1719,7 @@ gate.fetchOptionChain (code[, params])
 fetches historical positions
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**
 
@@ -1750,7 +1750,7 @@ gate.fetchPositionsHistory (symbols[, since, limit, params])
 Create an order on the exchange
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> \| <code>undefined</code> - [An order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> \| <code>undefined</code> - [An order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1794,7 +1794,7 @@ gate.createOrderWs (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.gate.io/docs/developers/futures/ws/en/#order-batch-place  
 
@@ -1815,7 +1815,7 @@ gate.createOrdersWs (orders[, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1841,7 +1841,7 @@ gate.cancelAllOrdersWs (symbol[, params])
 Cancels an open order
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1868,7 +1868,7 @@ gate.cancelOrderWs (id, symbol[, params])
 edit a trade order, gate currently only supports the modification of the price or amount fields
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1898,7 +1898,7 @@ gate.editOrderWs (id, symbol, type, side, amount[, price, params])
 Retrieves information on an order
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -1928,7 +1928,7 @@ gate.fetchOrderWs (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.gate.io/docs/developers/futures/ws/en/#order-list  
 
@@ -1951,7 +1951,7 @@ gate.fetchOpenOrdersWs (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.gate.io/docs/developers/futures/ws/en/#order-list  
 
@@ -1974,7 +1974,7 @@ gate.fetchClosedOrdersWs (symbol[, since, limit, params])
 fetches information on multiple orders made by the user by status
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://www.gate.io/docs/developers/futures/ws/en/#order-list  
 
@@ -2000,7 +2000,7 @@ gate.fetchOrdersWs (status, symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**
 
@@ -2029,7 +2029,7 @@ gate.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -2049,7 +2049,7 @@ gate.unWatchOrderBook (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel  
 
@@ -2070,7 +2070,7 @@ gate.watchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://www.gate.io/docs/developers/apiv4/ws/en/#tickers-channel  
 
@@ -2091,7 +2091,7 @@ gate.watchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -2116,7 +2116,7 @@ gate.watchBidsAsks (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -2138,7 +2138,7 @@ gate.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -2160,7 +2160,7 @@ gate.watchTradesForSymbols (symbols[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -2180,7 +2180,7 @@ gate.unWatchTradesForSymbols (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -2223,7 +2223,7 @@ gate.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 
 | Param | Type | Required | Description |
@@ -2245,7 +2245,7 @@ gate.watchMyTrades (symbol[, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
@@ -2292,7 +2292,7 @@ gate.watchPositions ([symbols, since, limit, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>gate</code>](#gate)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |

@@ -110,7 +110,7 @@ cryptocom.fetchMarkets ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**
 
@@ -135,7 +135,7 @@ cryptocom.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-tickers  
 
@@ -156,7 +156,7 @@ cryptocom.fetchTicker (symbol[, params])
 fetches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-history  
 
@@ -181,7 +181,7 @@ cryptocom.fetchOrders (symbol[, since, limit, params])
 get a list of the most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-trades  
 
@@ -232,7 +232,7 @@ cryptocom.fetchOHLCV (symbol, timeframe[, since, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-book  
 
@@ -254,7 +254,7 @@ cryptocom.fetchOrderBook (symbol[, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-user-balance  
 
@@ -274,7 +274,7 @@ cryptocom.fetchBalance ([params])
 fetches information on an order made by the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-order-detail  
 
@@ -296,7 +296,7 @@ cryptocom.fetchOrder (id, symbol[, params])
 create a trade order
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order  
 
@@ -326,7 +326,7 @@ cryptocom.createOrder (symbol, type, side, amount[, price, params])
 create a list of trade orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**
 
@@ -351,7 +351,7 @@ cryptocom.createOrders (orders[, params])
 edit a trade order
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order  
 
@@ -378,7 +378,7 @@ cryptocom.editOrder (id, symbol[, type, side, amount, price, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - Returns exchange raw message[https://docs.ccxt.com/#/?id=order-structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - Returns exchange raw message[https://docs.ccxt.com/?id=order-structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders  
 
@@ -399,7 +399,7 @@ cryptocom.cancelAllOrders (symbol[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order  
 
@@ -421,7 +421,7 @@ cryptocom.cancelOrder (id[, symbol, params])
 cancel multiple orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list  
 
@@ -443,7 +443,7 @@ cryptocom.cancelOrders (ids, symbol[, params])
 cancel multiple orders for multiple symbols
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list  
 
@@ -464,7 +464,7 @@ cryptocom.cancelOrdersForSymbols (orders[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-open-orders  
 
@@ -487,7 +487,7 @@ cryptocom.fetchOpenOrders (symbol[, since, limit, params])
 fetch all trades made by the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-trades  
 
@@ -512,7 +512,7 @@ cryptocom.fetchMyTrades (symbol[, since, limit, params])
 make a withdrawal
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-withdrawal  
 
@@ -536,7 +536,7 @@ cryptocom.withdraw (code, amount, address, tag[, params])
 fetch a dictionary of addresses for a currency, indexed by network
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/#/?id=address-structure) indexed by the network
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address  
 
@@ -557,7 +557,7 @@ cryptocom.fetchDepositAddressesByNetwork (code[, params])
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/#/?id=address-structure)
+**Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-address  
 
@@ -578,7 +578,7 @@ cryptocom.fetchDepositAddress (code[, params])
 fetch all deposits made to an account
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-deposit-history  
 
@@ -602,7 +602,7 @@ cryptocom.fetchDeposits (code[, since, limit, params])
 fetch all withdrawals made from an account
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/#/?id=transaction-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-withdrawal-history  
 
@@ -626,7 +626,7 @@ cryptocom.fetchWithdrawals (code[, since, limit, params])
 fetch deposit and withdraw fees
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-currency-networks  
 
@@ -647,7 +647,7 @@ cryptocom.fetchDepositWithdrawFees (codes[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/#/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions  
 
@@ -671,7 +671,7 @@ cryptocom.fetchLedger ([code, since, limit, params])
 fetch all the accounts associated with a profile
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/#/?id=account-structure) indexed by the account type
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-accounts  
 
@@ -691,7 +691,7 @@ cryptocom.fetchAccounts ([params])
 fetches historical settlement records
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/?id=settlement-history-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-expired-settlement-price  
 
@@ -715,7 +715,7 @@ cryptocom.fetchSettlementHistory (symbol[, since, limit, params])
 fetches historical funding rates
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations  
 
@@ -736,7 +736,7 @@ cryptocom.fetchFundingRate (symbol[, params])
 fetches historical funding rates
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/#/?id=funding-rate-history-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#public-get-valuations  
 
@@ -761,7 +761,7 @@ cryptocom.fetchFundingRateHistory (symbol[, since, limit, params])
 fetch data on a single open contract trade position
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions  
 
@@ -782,7 +782,7 @@ cryptocom.fetchPosition (symbol[, params])
 fetch all open positions
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-positions  
 
@@ -803,7 +803,7 @@ cryptocom.fetchPositions (symbols[, params])
 closes open positions for a market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/#/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - [A list of position structures](https://docs.ccxt.com/?id=position-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-close-position  
 
@@ -827,7 +827,7 @@ cryptocom.closePositions (symbol[, side, params])
 fetch the trading fees for a market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
+**Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate  
 
@@ -848,7 +848,7 @@ cryptocom.fetchTradingFee (symbol[, params])
 fetch the trading fees for multiple markets
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/#/?id=fee-structure) indexed by market symbols
+**Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate  
 
@@ -868,7 +868,7 @@ cryptocom.fetchTradingFees ([params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -892,7 +892,7 @@ cryptocom.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -915,7 +915,7 @@ cryptocom.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -939,7 +939,7 @@ cryptocom.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name  
 
@@ -963,7 +963,7 @@ cryptocom.unWatchOrderBookForSymbols (symbols[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name  
 
@@ -986,7 +986,7 @@ cryptocom.watchTrades (symbol[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name  
 
@@ -1007,7 +1007,7 @@ cryptocom.unWatchTrades (symbol[, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name  
 
@@ -1030,7 +1030,7 @@ cryptocom.watchTradesForSymbols (symbols[, since, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name  
 
@@ -1051,7 +1051,7 @@ cryptocom.unWatchTradesForSymbols ([symbols, params])
 watches information on multiple trades made by the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-trade-instrument_name  
 
@@ -1074,7 +1074,7 @@ cryptocom.watchMyTrades (symbol[, since, limit, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
 
@@ -1095,7 +1095,7 @@ cryptocom.watchTicker (symbol[, params])
 unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
 
@@ -1116,7 +1116,7 @@ cryptocom.unWatchTicker (symbol[, params])
 watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
 
@@ -1137,7 +1137,7 @@ cryptocom.watchTickers (symbols[, params])
 unWatches a price ticker
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
 
@@ -1158,7 +1158,7 @@ cryptocom.unWatchTickers (symbols[, params])
 watches best bid & ask for symbols
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name  
 
@@ -1225,7 +1225,7 @@ cryptocom.unWatchOHLCV (symbol, timeframe[, params])
 watches information on multiple orders made by the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-order-instrument_name  
 
@@ -1271,7 +1271,7 @@ cryptocom.watchPositions ([symbols, since, limit, params])
 watch balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance  
 
@@ -1291,7 +1291,7 @@ cryptocom.watchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order  
 
@@ -1316,7 +1316,7 @@ cryptocom.createOrderWs (symbol, type, side, amount[, price, params])
 edit a trade order
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order  
 
@@ -1343,7 +1343,7 @@ cryptocom.editOrderWs (id, symbol[, type, side, amount, price, params])
 cancels an open order
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order  
 
@@ -1365,7 +1365,7 @@ cryptocom.cancelOrderWs (id[, symbol, params])
 cancel all open orders
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - Returns exchange raw message [https://docs.ccxt.com/#/?id=order-structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - Returns exchange raw message [https://docs.ccxt.com/?id=order-structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-all-orders  
 

@@ -96,7 +96,7 @@ public partial class kucoin : Exchange
                 { "fetchTradingFee", true },
                 { "fetchTradingFees", false },
                 { "fetchTransactionFee", true },
-                { "fetchTransfers", false },
+                { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "repayCrossMargin", true },
                 { "repayIsolatedMargin", true },
@@ -119,6 +119,7 @@ public partial class kucoin : Exchange
                     { "broker", "https://api-broker.kucoin.com" },
                     { "earn", "https://api.kucoin.com" },
                     { "uta", "https://api.kucoin.com" },
+                    { "utaPrivate", "https://api.kucoin.com" },
                 } },
                 { "www", "https://www.kucoin.com" },
                 { "doc", new List<object>() {"https://docs.kucoin.com"} },
@@ -151,6 +152,8 @@ public partial class kucoin : Exchange
                         { "margin/config", 25 },
                         { "announcements", 20 },
                         { "margin/collateralRatio", 10 },
+                        { "convert/symbol", 5 },
+                        { "convert/currencies", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "bullet-public", 15 },
@@ -159,6 +162,7 @@ public partial class kucoin : Exchange
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "user-info", 30 },
+                        { "user/api-key", 30 },
                         { "accounts", 7.5 },
                         { "accounts/{accountId}", 7.5 },
                         { "accounts/ledgers", 3 },
@@ -230,7 +234,14 @@ public partial class kucoin : Exchange
                         { "broker/queryUser", 3 },
                         { "broker/queryDetailByUid", 3 },
                         { "migrate/user/account/status", 3 },
+                        { "convert/quote", 20 },
+                        { "convert/order/detail", 5 },
+                        { "convert/order/history", 5 },
+                        { "convert/limit/quote", 20 },
+                        { "convert/limit/order/detail", 5 },
+                        { "convert/limit/orders", 5 },
                         { "affiliate/inviter/statistics", 30 },
+                        { "earn/redeem-preview", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sub/user/created", 22.5 },
@@ -264,6 +275,8 @@ public partial class kucoin : Exchange
                         { "purchase", 15 },
                         { "redeem", 15 },
                         { "lend/purchase/update", 10 },
+                        { "convert/order", 20 },
+                        { "convert/limit/order", 20 },
                         { "bullet-private", 10 },
                         { "position/update-user-leverage", 5 },
                         { "deposit-address/create", 20 },
@@ -290,6 +303,7 @@ public partial class kucoin : Exchange
                         { "hf/margin/orders/{orderId}", 5 },
                         { "hf/margin/orders/client-order/{clientOid}", 5 },
                         { "hf/margin/orders", 10 },
+                        { "convert/limit/order/cancel", 5 },
                     } },
                 } },
                 { "futuresPublic", new Dictionary<string, object>() {
@@ -399,6 +413,7 @@ public partial class kucoin : Exchange
                 } },
                 { "earn", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
+                        { "otc-loan/discount-rate-configs", 10 },
                         { "otc-loan/loan", 1 },
                         { "otc-loan/accounts", 1 },
                         { "earn/redeem-preview", 7.5 },
@@ -408,9 +423,12 @@ public partial class kucoin : Exchange
                         { "earn/kcs-staking/products", 7.5 },
                         { "earn/staking/products", 7.5 },
                         { "earn/eth-staking/products", 7.5 },
+                        { "struct-earn/dual/products", 4.5 },
+                        { "struct-earn/orders", 7.5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "earn/orders", 7.5 },
+                        { "struct-earn/orders", 7.5 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "earn/orders", 7.5 },
@@ -420,15 +438,53 @@ public partial class kucoin : Exchange
                     { "get", new Dictionary<string, object>() {
                         { "market/announcement", 20 },
                         { "market/currency", 3 },
+                        { "market/currencies", 3 },
                         { "market/instrument", 4 },
                         { "market/ticker", 15 },
-                        { "market/orderbook", 3 },
                         { "market/trade", 3 },
                         { "market/kline", 3 },
                         { "market/funding-rate", 2 },
                         { "market/funding-rate-history", 5 },
                         { "market/cross-config", 25 },
+                        { "market/collateral-discount-ratio", 10 },
+                        { "market/index-price", 20 },
+                        { "market/position-tiers", 20 },
+                        { "market/open-interest", 10 },
                         { "server/status", 3 },
+                    } },
+                } },
+                { "utaPrivate", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "market/orderbook", 3 },
+                        { "account/balance", 5 },
+                        { "account/transfer-quota", 20 },
+                        { "account/mode", 30 },
+                        { "account/ledger", 2 },
+                        { "account/interest-history", 15 },
+                        { "account/deposit/address", 5 },
+                        { "{accountMode}/account/balance", 5 },
+                        { "{accountMode}/account/overview", 5 },
+                        { "{accountMode}/order/detail", 4 },
+                        { "{accountMode}/order/open-list", 4 },
+                        { "{accountMode}/order/history", 4 },
+                        { "{accountMode}/order/execution", 4 },
+                        { "{accountMode}/position/open-list", 3 },
+                        { "{accountMode}/position/history", 2 },
+                        { "{accountMode}/position/tiers", 20 },
+                        { "sub-account/balance", 5 },
+                        { "user/fee-rate", 3 },
+                        { "dcp/query", 2 },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "account/transfer", 4 },
+                        { "account/mode", 30 },
+                        { "{accountMode}/account/modify-leverage", 20 },
+                        { "{accountMode}/order/place", 1 },
+                        { "{accountMode}/order/place-batch", 4 },
+                        { "{accountMode}/order/cancel", 1 },
+                        { "{accountMode}/order/cancel-batch", 4 },
+                        { "sub-account/canTransferOut", 5 },
+                        { "dcp/set", 2 },
                     } },
                 } },
             } },
@@ -463,6 +519,8 @@ public partial class kucoin : Exchange
                     { "Unsuccessful! Exceeded the max. funds out-transfer limit", typeof(InsufficientFunds) },
                     { "The amount increment is invalid.", typeof(BadRequest) },
                     { "The quantity is below the minimum requirement.", typeof(InvalidOrder) },
+                    { "not in the given range!", typeof(BadRequest) },
+                    { "recAccountType not in the given range", typeof(BadRequest) },
                     { "400", typeof(BadRequest) },
                     { "401", typeof(AuthenticationError) },
                     { "403", typeof(NotSupported) },
@@ -559,7 +617,7 @@ public partial class kucoin : Exchange
                     { "400370", typeof(InvalidOrder) },
                     { "400400", typeof(BadRequest) },
                     { "400401", typeof(AuthenticationError) },
-                    { "400500", typeof(InvalidOrder) },
+                    { "400500", typeof(RestrictedLocation) },
                     { "400600", typeof(BadSymbol) },
                     { "400760", typeof(InvalidOrder) },
                     { "401000", typeof(BadRequest) },
@@ -621,6 +679,9 @@ public partial class kucoin : Exchange
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
+                } },
+                { "transfer", new Dictionary<string, object>() {
+                    { "fillResponseFromRequest", true },
                 } },
                 { "versions", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
@@ -978,7 +1039,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     public async override Task<object> fetchStatus(object parameters = null)
     {
@@ -1537,7 +1598,7 @@ public partial class kucoin : Exchange
      * @description fetch all the accounts associated with a profile
      * @see https://docs.kucoin.com/#list-accounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
@@ -1593,7 +1654,7 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/#get-withdrawal-quotas
      * @param {string} code unified currency code
      * @param {object} params extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTransactionFee(object code, object parameters = null)
     {
@@ -1630,7 +1691,7 @@ public partial class kucoin : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFee(object code, object parameters = null)
     {
@@ -1890,7 +1951,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
@@ -1959,7 +2020,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
@@ -1980,7 +2041,7 @@ public partial class kucoin : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -2077,7 +2138,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
     {
@@ -2226,7 +2287,7 @@ public partial class kucoin : Exchange
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
@@ -2272,7 +2333,7 @@ public partial class kucoin : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -2338,7 +2399,7 @@ public partial class kucoin : Exchange
      * @description fetch the deposit address for a currency associated with this account
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
@@ -2385,7 +2446,7 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -2421,7 +2482,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["tradeType"] = "FUTURES";
             }
-            response = await this.utaGetMarketOrderbook(this.extend(request, parameters));
+            response = await this.utaPrivateGetMarketOrderbook(this.extend(request, parameters));
         } else if (isTrue(!isTrue(isAuthenticated) || isTrue(!isEqual(limit, null))))
         {
             if (isTrue(isEqual(level, 2)))
@@ -2538,7 +2599,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
      * @param {bool} [params.sync] set to true to use the hf sync call
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -2616,7 +2677,7 @@ public partial class kucoin : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
@@ -2636,7 +2697,7 @@ public partial class kucoin : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -2653,7 +2714,7 @@ public partial class kucoin : Exchange
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {float} cost how much you want to trade in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
@@ -2673,7 +2734,7 @@ public partial class kucoin : Exchange
      * @param {object} [params]  extra parameters specific to the exchange API endpoint
      * @param {bool} [params.hf] false, // true for hf orders
      * @param {bool} [params.sync] false, // true to use the hf sync call
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
@@ -2879,7 +2940,7 @@ public partial class kucoin : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
@@ -3102,7 +3163,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
      * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
-     * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3241,7 +3302,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3279,7 +3340,7 @@ public partial class kucoin : Exchange
      * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3312,7 +3373,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.trigger] true if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.clientOid] unique order id created by users to identify their orders
-     * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
@@ -3586,7 +3647,7 @@ public partial class kucoin : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3610,7 +3671,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -3741,7 +3802,7 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
@@ -3976,7 +4037,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
@@ -4022,7 +4083,7 @@ public partial class kucoin : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -4221,7 +4282,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4320,7 +4381,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -4431,7 +4492,7 @@ public partial class kucoin : Exchange
      * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
      * @param {object} [params.type] extra parameters specific to the exchange API endpoint
      * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -4625,15 +4686,16 @@ public partial class kucoin : Exchange
      * @method
      * @name kucoin#transfer
      * @description transfer currency internally between wallets on the same account
-     * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
-     * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
-     * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
+     * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
      * @param {string} code unified currency code
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+     * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
+     * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -4641,89 +4703,86 @@ public partial class kucoin : Exchange
         await this.loadMarkets();
         object currency = this.currency(code);
         object requestedAmount = this.currencyToPrecision(code, amount);
+        object request = new Dictionary<string, object>() {
+            { "currency", getValue(currency, "id") },
+            { "amount", requestedAmount },
+        };
+        object transferType = "INTERNAL";
+        var transferTypeparametersVariable = this.handleParamString2(parameters, "transferType", "type", transferType);
+        transferType = ((IList<object>)transferTypeparametersVariable)[0];
+        parameters = ((IList<object>)transferTypeparametersVariable)[1];
+        if (isTrue(isEqual(transferType, "PARENT_TO_SUB")))
+        {
+            if (!isTrue((inOp(parameters, "toUserId"))))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() requires a toUserId param for PARENT_TO_SUB transfers")) ;
+            }
+        } else if (isTrue(isEqual(transferType, "SUB_TO_PARENT")))
+        {
+            if (!isTrue((inOp(parameters, "fromUserId"))))
+            {
+                throw new ExchangeError ((string)add(this.id, " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")) ;
+            }
+        }
+        if (!isTrue((inOp(parameters, "clientOid"))))
+        {
+            ((IDictionary<string,object>)request)["clientOid"] = this.uuid();
+        }
         object fromId = this.convertTypeToAccount(fromAccount);
         object toId = this.convertTypeToAccount(toAccount);
         object fromIsolated = this.inArray(fromId, this.ids);
         object toIsolated = this.inArray(toId, this.ids);
-        if (isTrue(isEqual(fromId, "contract")))
+        if (isTrue(fromIsolated))
         {
-            if (isTrue(!isEqual(toId, "main")))
-            {
-                throw new ExchangeError ((string)add(this.id, " transfer() only supports transferring from futures account to main account")) ;
-            }
-            object request = new Dictionary<string, object>() {
-                { "currency", getValue(currency, "id") },
-                { "amount", requestedAmount },
-            };
-            if (!isTrue((inOp(parameters, "bizNo"))))
-            {
-                // it doesn't like more than 24 characters
-                ((IDictionary<string,object>)request)["bizNo"] = this.uuid22();
-            }
-            object response = await this.futuresPrivatePostTransferOut(this.extend(request, parameters));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "applyId": "605a87217dff1500063d485d",
-            //             "bizNo": "bcd6e5e1291f4905af84dc",
-            //             "payAccountType": "CONTRACT",
-            //             "payTag": "DEFAULT",
-            //             "remark": '',
-            //             "recAccountType": "MAIN",
-            //             "recTag": "DEFAULT",
-            //             "recRemark": '',
-            //             "recSystem": "KUCOIN",
-            //             "status": "PROCESSING",
-            //             "currency": "XBT",
-            //             "amount": "0.00001",
-            //             "fee": "0",
-            //             "sn": "573688685663948",
-            //             "reason": '',
-            //             "createdAt": 1616545569000,
-            //             "updatedAt": 1616545569000
-            //         }
-            //     }
-            //
-            object data = this.safeDict(response, "data");
-            return this.parseTransfer(data, currency);
-        } else
+            ((IDictionary<string,object>)request)["fromAccountTag"] = fromId;
+            fromId = "isolated";
+        }
+        if (isTrue(toIsolated))
         {
-            object request = new Dictionary<string, object>() {
-                { "currency", getValue(currency, "id") },
-                { "amount", requestedAmount },
-            };
-            if (isTrue(isTrue(fromIsolated) || isTrue(toIsolated)))
-            {
-                if (isTrue(this.inArray(fromId, this.ids)))
-                {
-                    ((IDictionary<string,object>)request)["fromTag"] = fromId;
-                    fromId = "isolated";
-                }
-                if (isTrue(this.inArray(toId, this.ids)))
-                {
-                    ((IDictionary<string,object>)request)["toTag"] = toId;
-                    toId = "isolated";
-                }
-            }
+            ((IDictionary<string,object>)request)["toAccountTag"] = toId;
+            toId = "isolated";
+        }
+        object hfOrMining = this.isHfOrMining(fromId, toId);
+        object response = null;
+        if (isTrue(hfOrMining))
+        {
+            // new endpoint does not support hf and mining transfers
+            // use old endpoint for hf and mining transfers
             ((IDictionary<string,object>)request)["from"] = fromId;
             ((IDictionary<string,object>)request)["to"] = toId;
-            if (!isTrue((inOp(parameters, "clientOid"))))
-            {
-                ((IDictionary<string,object>)request)["clientOid"] = this.uuid();
-            }
-            object response = await this.privatePostAccountsInnerTransfer(this.extend(request, parameters));
+            response = await this.privatePostAccountsInnerTransfer(this.extend(request, parameters));
+        } else
+        {
+            ((IDictionary<string,object>)request)["type"] = transferType;
+            ((IDictionary<string,object>)request)["fromAccountType"] = ((string)fromId).ToUpper();
+            ((IDictionary<string,object>)request)["toAccountType"] = ((string)toId).ToUpper();
             //
             //     {
             //         "code": "200000",
             //         "data": {
-            //              "orderId": "605a6211e657f00006ad0ad6"
+            //             "orderId": "694fcb5b08bb1600015cda75"
             //         }
             //     }
             //
-            object data = this.safeDict(response, "data");
-            return this.parseTransfer(data, currency);
+            response = await this.privatePostAccountsUniversalTransfer(this.extend(request, parameters));
         }
+        object data = this.safeDict(response, "data");
+        object transfer = this.parseTransfer(data, currency);
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
+        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        if (isTrue(fillResponseFromRequest))
+        {
+            ((IDictionary<string,object>)transfer)["amount"] = amount;
+            ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
+            ((IDictionary<string,object>)transfer)["toAccount"] = toAccount;
+            ((IDictionary<string,object>)transfer)["status"] = "ok";
+        }
+        return transfer;
+    }
+
+    public virtual object isHfOrMining(object fromId, object toId)
+    {
+        return (isTrue(isTrue(isTrue(isEqual(fromId, "trade_hf")) || isTrue(isEqual(toId, "trade_hf"))) || isTrue(isEqual(fromId, "pool"))) || isTrue(isEqual(toId, "pool")));
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -4762,16 +4821,51 @@ public partial class kucoin : Exchange
         //         "updatedAt": 1616545569000
         //     }
         //
+        // ledger entry - from account ledgers API (for fetchTransfers)
+        //
+        // {
+        //     "id": "611a1e7c6a053300067a88d9",
+        //     "currency": "USDT",
+        //     "amount": "10.00059547",
+        //     "fee": "0",
+        //     "balance": "0",
+        //     "accountType": "MAIN",
+        //     "bizType": "Transfer",
+        //     "direction": "in",
+        //     "createdAt": 1629101692950,
+        //     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        // }
+        //
         object timestamp = this.safeInteger(transfer, "createdAt");
         object currencyId = this.safeString(transfer, "currency");
         object rawStatus = this.safeString(transfer, "status");
-        object accountFromRaw = this.safeStringLower(transfer, "payAccountType");
-        object accountToRaw = this.safeStringLower(transfer, "recAccountType");
+        object bizType = this.safeString(transfer, "bizType");
+        object isLedgerEntry = (!isEqual(bizType, null));
+        object accountFromRaw = null;
+        object accountToRaw = null;
+        if (isTrue(isLedgerEntry))
+        {
+            // Ledger entry format: uses accountType + direction
+            object accountType = this.safeStringLower(transfer, "accountType");
+            object direction = this.safeString(transfer, "direction");
+            if (isTrue(isEqual(direction, "out")))
+            {
+                accountFromRaw = accountType;
+            } else if (isTrue(isEqual(direction, "in")))
+            {
+                accountToRaw = accountType;
+            }
+        } else
+        {
+            // Transfer API format: uses payAccountType/recAccountType
+            accountFromRaw = this.safeStringLower(transfer, "payAccountType");
+            accountToRaw = this.safeStringLower(transfer, "recAccountType");
+        }
         object accountsByType = this.safeDict(this.options, "accountsByType");
         object accountFrom = this.safeString(accountsByType, accountFromRaw, accountFromRaw);
         object accountTo = this.safeString(accountsByType, accountToRaw, accountToRaw);
         return new Dictionary<string, object>() {
-            { "id", this.safeString2(transfer, "applyId", "orderId") },
+            { "id", this.safeStringN(transfer, new List<object>() {"id", "applyId", "orderId"}) },
             { "currency", this.safeCurrencyCode(currencyId, currency) },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4927,7 +5021,7 @@ public partial class kucoin : Exchange
      * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5091,7 +5185,7 @@ public partial class kucoin : Exchange
      * @param {int} [limit] the maximum number of structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
-     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+     * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5288,7 +5382,7 @@ public partial class kucoin : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+     * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
     public async virtual Task<object> fetchBorrowRateHistories(object codes = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5344,11 +5438,11 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
      * @param {string} code unified currency code
      * @param {int} [since] timestamp for the earliest borrow rate
-     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+     * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
     {
@@ -5445,7 +5539,7 @@ public partial class kucoin : Exchange
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @param {string} [params.timeInForce] either IOC or FOK
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
@@ -5484,7 +5578,7 @@ public partial class kucoin : Exchange
      * @param {float} amount the amount to borrow
      * @param {object} [params] extra parameters specific to the exchange API endpoints
      * @param {string} [params.timeInForce] either IOC or FOK
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> borrowIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -5524,7 +5618,7 @@ public partial class kucoin : Exchange
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoints
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
@@ -5561,7 +5655,7 @@ public partial class kucoin : Exchange
      * @param {string} code unified currency code of the currency to repay
      * @param {float} amount the amount to repay
      * @param {object} [params] extra parameters specific to the exchange API endpoints
-     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     public async override Task<object> repayIsolatedMargin(object symbol, object code, object amount, object parameters = null)
     {
@@ -5620,7 +5714,7 @@ public partial class kucoin : Exchange
      * @see https://docs.kucoin.com/#get-currencies
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
@@ -5705,7 +5799,7 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
@@ -5774,10 +5868,10 @@ public partial class kucoin : Exchange
      * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] not used by kucuoinfutures
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] end time in ms
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -5873,10 +5967,10 @@ public partial class kucoin : Exchange
             endpoint = add("/api/v1/", this.implodeParams(path, parameters));
         }
         object isUtaPrivate = false;
-        if (isTrue(isEqual(api, "uta")))
+        if (isTrue(isTrue((isEqual(api, "uta"))) || isTrue((isEqual(api, "utaPrivate")))))
         {
             endpoint = add("/api/ua/v1/", this.implodeParams(path, parameters));
-            if (isTrue(isEqual(path, "market/orderbook")))
+            if (isTrue(isEqual(api, "utaPrivate")))
             {
                 isUtaPrivate = true;
             }
@@ -5976,5 +6070,90 @@ public partial class kucoin : Exchange
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchTransfers
+     * @description fetch a history of internal transfers made on an account
+     * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {int} [since] the earliest time in ms to fetch transfers for
+     * @param {int} [limit] the maximum number of transfer structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters);
+        }
+        object request = new Dictionary<string, object>() {
+            { "bizType", "TRANSFER" },
+        };
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, "until");
+            ((IDictionary<string,object>)request)["endAt"] = until;
+        }
+        object currency = null;
+        if (isTrue(!isEqual(code, null)))
+        {
+            currency = this.currency(code);
+            ((IDictionary<string,object>)request)["currency"] = getValue(currency, "id");
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startAt"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["pageSize"] = 500;
+        }
+        var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object response = await this.privateGetAccountsLedgers(this.extend(request, parameters));
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //         "currentPage": 1,
+        //         "pageSize": 50,
+        //         "totalNum": 1,
+        //         "totalPage": 1,
+        //         "items": [
+        //             {
+        //                 "id": "611a1e7c6a053300067a88d9",
+        //                 "currency": "USDT",
+        //                 "amount": "10.00059547",
+        //                 "fee": "0",
+        //                 "balance": "0",
+        //                 "accountType": "MAIN",
+        //                 "bizType": "Transfer",
+        //                 "direction": "in",
+        //                 "createdAt": 1629101692950,
+        //                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+        //             }
+        //         ]
+        //     }
+        // }
+        //
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object items = this.safeList(data, "items", new List<object>() {});
+        return this.parseTransfers(items, currency, since, limit);
     }
 }

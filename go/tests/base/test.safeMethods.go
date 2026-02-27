@@ -19,6 +19,9 @@ func TestSafeMethods() {
 		"dict": map[string]interface{}{
 			"a": 1,
 		},
+		"listOfDicts": []interface{}{map[string]interface{}{
+			"a": 1,
+		}},
 		"str":          "heLlo",
 		"strNumber":    "3",
 		"zeroNumeric":  0,
@@ -88,6 +91,10 @@ func TestSafeMethods() {
 	Assert(Equals(dictObject, compareDict))
 	Assert(ccxt.IsEqual(exchange.SafeList(inputDict, "dict"), nil))
 	Assert(ccxt.IsEqual(exchange.SafeList(inputList, 1), nil))
+	var arrayOfDicts interface{} = exchange.SafeList(inputDict, "listOfDicts")
+	Assert(Equals(ccxt.GetValue(arrayOfDicts, 0), map[string]interface{}{
+		"a": 1,
+	}))
 	// safeList2
 	listObject = exchange.SafeList2(inputDict, "a", "list")
 	Assert(Equals(dictObject, compareDict))

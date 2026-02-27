@@ -184,8 +184,9 @@ func (this *CoinsphCore) Describe() interface{} {
 		"api": map[string]interface{}{
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
-					"openapi/v1/ping": 1,
-					"openapi/v1/time": 1,
+					"openapi/v1/ping":    1,
+					"openapi/v1/time":    1,
+					"openapi/v1/user/ip": 1,
 					"openapi/quote/v1/ticker/24hr": map[string]interface{}{
 						"cost":                 1,
 						"noSymbolAndNoSymbols": 40,
@@ -212,11 +213,14 @@ func (this *CoinsphCore) Describe() interface{} {
 			},
 			"private": map[string]interface{}{
 				"get": map[string]interface{}{
-					"openapi/wallet/v1/config/getall":    10,
-					"openapi/wallet/v1/deposit/address":  10,
-					"openapi/wallet/v1/deposit/history":  1,
-					"openapi/wallet/v1/withdraw/history": 1,
-					"openapi/v1/account":                 10,
+					"openapi/v1/check-sys-status":                  1,
+					"openapi/wallet/v1/config/getall":              10,
+					"openapi/wallet/v1/deposit/address":            10,
+					"openapi/wallet/v1/deposit/history":            1,
+					"openapi/wallet/v1/withdraw/history":           1,
+					"openapi/wallet/v1/withdraw/address-whitelist": 1,
+					"openapi/v1/account":                           10,
+					"openapi/v1/api-keys":                          1,
 					"openapi/v1/openOrders": map[string]interface{}{
 						"cost":     3,
 						"noSymbol": 40,
@@ -227,13 +231,22 @@ func (this *CoinsphCore) Describe() interface{} {
 						"cost":     10,
 						"noSymbol": 40,
 					},
-					"openapi/v1/myTrades":                            10,
-					"openapi/v1/capital/deposit/history":             1,
-					"openapi/v1/capital/withdraw/history":            1,
-					"openapi/v3/payment-request/get-payment-request": 1,
-					"merchant-api/v1/get-invoices":                   1,
-					"openapi/account/v3/crypto-accounts":             1,
-					"openapi/transfer/v3/transfers/{id}":             1,
+					"openapi/v1/myTrades":                                        10,
+					"openapi/v1/capital/deposit/history":                         1,
+					"openapi/v1/capital/withdraw/history":                        1,
+					"openapi/v3/payment-request/get-payment-request":             1,
+					"merchant-api/v1/get-invoices":                               1,
+					"openapi/account/v3/crypto-accounts":                         1,
+					"openapi/transfer/v3/transfers/{id}":                         1,
+					"openapi/v1/sub-account/list":                                10,
+					"openapi/v1/sub-account/asset":                               10,
+					"openapi/v1/sub-account/transfer/universal-transfer-history": 10,
+					"openapi/v1/sub-account/transfer/sub-history":                10,
+					"openapi/v1/sub-account/apikey/ip-restriction":               10,
+					"openapi/v1/sub-account/wallet/deposit/address":              1,
+					"openapi/v1/sub-account/wallet/deposit/history":              1,
+					"openapi/v1/fund-collect/get-fund-record":                    1,
+					"openapi/v1/asset/transaction/history":                       20,
 				},
 				"post": map[string]interface{}{
 					"openapi/wallet/v1/withdraw/apply":                    600,
@@ -250,12 +263,22 @@ func (this *CoinsphCore) Describe() interface{} {
 					"openapi/convert/v1/get-supported-trading-pairs":      1,
 					"openapi/convert/v1/get-quote":                        1,
 					"openapi/convert/v1/accpet-quote":                     1,
+					"openapi/convert/v1/query-order-history":              1,
 					"openapi/fiat/v1/support-channel":                     1,
 					"openapi/fiat/v1/cash-out":                            1,
 					"openapi/fiat/v1/history":                             1,
 					"openapi/migration/v4/sellorder":                      1,
 					"openapi/migration/v4/validate-field":                 1,
 					"openapi/transfer/v3/transfers":                       1,
+					"openapi/v1/sub-account/create":                       30,
+					"openapi/v1/sub-account/transfer/universal-transfer":  100,
+					"openapi/v1/sub-account/transfer/sub-to-master":       100,
+					"openapi/v1/sub-account/apikey/add-ip-restriction":    30,
+					"openapi/v1/sub-account/apikey/delete-ip-restriction": 30,
+					"openapi/v1/fund-collect/collect-from-sub-account":    1,
+				},
+				"put": map[string]interface{}{
+					"openapi/v1/userDataStream": 1,
 				},
 				"delete": map[string]interface{}{
 					"openapi/v1/order":          1,
@@ -673,7 +696,7 @@ func (this *CoinsphCore) CalculateRateLimiterCost(api interface{}, method interf
  * @description the latest known information on the availability of the exchange API
  * @see https://coins-docs.github.io/rest-api/#test-connectivity
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *CoinsphCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -888,7 +911,7 @@ func (this *CoinsphCore) FetchMarkets(optionalArgs ...interface{}) <-chan interf
  * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CoinsphCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -900,8 +923,8 @@ func (this *CoinsphCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8558 := (<-this.LoadMarkets())
-		PanicOnError(retRes8558)
+		retRes8788 := (<-this.LoadMarkets())
+		PanicOnError(retRes8788)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var ids interface{} = []interface{}{}
@@ -946,7 +969,7 @@ func (this *CoinsphCore) FetchTickers(optionalArgs ...interface{}) <-chan interf
  * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *CoinsphCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -956,8 +979,8 @@ func (this *CoinsphCore) FetchTicker(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8928 := (<-this.LoadMarkets())
-		PanicOnError(retRes8928)
+		retRes9158 := (<-this.LoadMarkets())
+		PanicOnError(retRes9158)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1075,7 +1098,7 @@ func (this *CoinsphCore) ParseTicker(ticker interface{}, optionalArgs ...interfa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *CoinsphCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1087,8 +1110,8 @@ func (this *CoinsphCore) FetchOrderBook(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10018 := (<-this.LoadMarkets())
-		PanicOnError(retRes10018)
+		retRes10248 := (<-this.LoadMarkets())
+		PanicOnError(retRes10248)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1149,8 +1172,8 @@ func (this *CoinsphCore) FetchOHLCV(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10428 := (<-this.LoadMarkets())
-		PanicOnError(retRes10428)
+		retRes10658 := (<-this.LoadMarkets())
+		PanicOnError(retRes10658)
 		var market interface{} = this.Market(symbol)
 		var interval interface{} = this.SafeString(this.Timeframes, timeframe)
 		var until interface{} = this.SafeInteger(params, "until")
@@ -1222,7 +1245,7 @@ func (this *CoinsphCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *CoinsphCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1236,8 +1259,8 @@ func (this *CoinsphCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes11168 := (<-this.LoadMarkets())
-		PanicOnError(retRes11168)
+		retRes11398 := (<-this.LoadMarkets())
+		PanicOnError(retRes11398)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1283,7 +1306,7 @@ func (this *CoinsphCore) FetchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *CoinsphCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1302,8 +1325,8 @@ func (this *CoinsphCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes11618 := (<-this.LoadMarkets())
-		PanicOnError(retRes11618)
+		retRes11848 := (<-this.LoadMarkets())
+		PanicOnError(retRes11848)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1336,7 +1359,7 @@ func (this *CoinsphCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *CoinsphCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1358,9 +1381,9 @@ func (this *CoinsphCore) FetchOrderTrades(id interface{}, optionalArgs ...interf
 			"orderId": id,
 		}
 
-		retRes119615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes119615)
-		ch <- retRes119615
+		retRes121915 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes121915)
+		ch <- retRes121915
 		return nil
 
 	}()
@@ -1461,7 +1484,7 @@ func (this *CoinsphCore) ParseTrade(trade interface{}, optionalArgs ...interface
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://coins-docs.github.io/rest-api/#accept-the-quote
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *CoinsphCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1471,8 +1494,8 @@ func (this *CoinsphCore) FetchBalance(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes12958 := (<-this.LoadMarkets())
-		PanicOnError(retRes12958)
+		retRes13188 := (<-this.LoadMarkets())
+		PanicOnError(retRes13188)
 
 		response := (<-this.PrivateGetOpenapiV1Account(params))
 		PanicOnError(response)
@@ -1536,7 +1559,7 @@ func (this *CoinsphCore) ParseBalance(response interface{}) interface{} {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
  * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinsphCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1549,8 +1572,8 @@ func (this *CoinsphCore) CreateOrder(symbol interface{}, typeVar interface{}, si
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13578 := (<-this.LoadMarkets())
-		PanicOnError(retRes13578)
+		retRes13808 := (<-this.LoadMarkets())
+		PanicOnError(retRes13808)
 		var market interface{} = this.Market(symbol)
 		var testOrder interface{} = this.SafeBool(params, "test", false)
 		params = this.Omit(params, "test")
@@ -1667,7 +1690,7 @@ func (this *CoinsphCore) CreateOrder(symbol interface{}, typeVar interface{}, si
  * @param {int|string} id order id
  * @param {string} symbol not used by coinsph fetchOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinsphCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1679,8 +1702,8 @@ func (this *CoinsphCore) FetchOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14678 := (<-this.LoadMarkets())
-		PanicOnError(retRes14678)
+		retRes14908 := (<-this.LoadMarkets())
+		PanicOnError(retRes14908)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -1709,7 +1732,7 @@ func (this *CoinsphCore) FetchOrder(id interface{}, optionalArgs ...interface{})
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinsphCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1725,8 +1748,8 @@ func (this *CoinsphCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14928 := (<-this.LoadMarkets())
-		PanicOnError(retRes14928)
+		retRes15158 := (<-this.LoadMarkets())
+		PanicOnError(retRes15158)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1753,7 +1776,7 @@ func (this *CoinsphCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan int
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinsphCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1772,8 +1795,8 @@ func (this *CoinsphCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan i
 			panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
 		}
 
-		retRes15188 := (<-this.LoadMarkets())
-		PanicOnError(retRes15188)
+		retRes15418 := (<-this.LoadMarkets())
+		PanicOnError(retRes15418)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1804,7 +1827,7 @@ func (this *CoinsphCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan i
  * @param {string} id order id
  * @param {string} symbol not used by coinsph cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinsphCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1816,8 +1839,8 @@ func (this *CoinsphCore) CancelOrder(id interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15458 := (<-this.LoadMarkets())
-		PanicOnError(retRes15458)
+		retRes15688 := (<-this.LoadMarkets())
+		PanicOnError(retRes15688)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
@@ -1844,7 +1867,7 @@ func (this *CoinsphCore) CancelOrder(id interface{}, optionalArgs ...interface{}
  * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *CoinsphCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1859,8 +1882,8 @@ func (this *CoinsphCore) CancelAllOrders(optionalArgs ...interface{}) <-chan int
 			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 		}
 
-		retRes15718 := (<-this.LoadMarkets())
-		PanicOnError(retRes15718)
+		retRes15948 := (<-this.LoadMarkets())
+		PanicOnError(retRes15948)
 		var market interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2046,7 +2069,7 @@ func (this *CoinsphCore) ParseOrderTimeInForce(status interface{}) interface{} {
  * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *CoinsphCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2056,8 +2079,8 @@ func (this *CoinsphCore) FetchTradingFee(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17588 := (<-this.LoadMarkets())
-		PanicOnError(retRes17588)
+		retRes17818 := (<-this.LoadMarkets())
+		PanicOnError(retRes17818)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2089,7 +2112,7 @@ func (this *CoinsphCore) FetchTradingFee(symbol interface{}, optionalArgs ...int
  * @description fetch the trading fees for multiple markets
  * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *CoinsphCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2099,8 +2122,8 @@ func (this *CoinsphCore) FetchTradingFees(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17868 := (<-this.LoadMarkets())
-		PanicOnError(retRes17868)
+		retRes18098 := (<-this.LoadMarkets())
+		PanicOnError(retRes18098)
 
 		response := (<-this.PrivateGetOpenapiV1AssetTradeFee(params))
 		PanicOnError(response)
@@ -2164,7 +2187,7 @@ func (this *CoinsphCore) ParseTradingFee(fee interface{}, optionalArgs ...interf
  * @param {string} address not used by coinsph withdraw ()
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoinsphCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2186,8 +2209,8 @@ func (this *CoinsphCore) Withdraw(code interface{}, amount interface{}, address 
 			panic(BadRequest(Add(this.Id, " withdraw() require network parameter")))
 		}
 
-		retRes18558 := (<-this.LoadMarkets())
-		PanicOnError(retRes18558)
+		retRes18788 := (<-this.LoadMarkets())
+		PanicOnError(retRes18788)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin":    GetValue(currency, "id"),
@@ -2219,7 +2242,7 @@ func (this *CoinsphCore) Withdraw(code interface{}, amount interface{}, address 
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoinsphCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2236,8 +2259,8 @@ func (this *CoinsphCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes18848 := (<-this.LoadMarkets())
-		PanicOnError(retRes18848)
+		retRes19078 := (<-this.LoadMarkets())
+		PanicOnError(retRes19078)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2298,7 +2321,7 @@ func (this *CoinsphCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *CoinsphCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2315,8 +2338,8 @@ func (this *CoinsphCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes19428 := (<-this.LoadMarkets())
-		PanicOnError(retRes19428)
+		retRes19658 := (<-this.LoadMarkets())
+		PanicOnError(retRes19658)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2487,7 +2510,7 @@ func (this *CoinsphCore) ParseTransactionStatus(status interface{}) interface{} 
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] network for fetch deposit address
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *CoinsphCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2502,8 +2525,8 @@ func (this *CoinsphCore) FetchDepositAddress(code interface{}, optionalArgs ...i
 			panic(BadRequest(Add(this.Id, " fetchDepositAddress() require network parameter")))
 		}
 
-		retRes21118 := (<-this.LoadMarkets())
-		PanicOnError(retRes21118)
+		retRes21348 := (<-this.LoadMarkets())
+		PanicOnError(retRes21348)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin":    GetValue(currency, "id"),

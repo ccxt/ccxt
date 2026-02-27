@@ -38,6 +38,7 @@ interface Exchange {
     spotV1PrivatePostOcoCancel (params?: {}): Promise<implicitReturnType>;
     spotV2PublicGetMarketDepth (params?: {}): Promise<implicitReturnType>;
     spotV2PublicGetMarketKline (params?: {}): Promise<implicitReturnType>;
+    spotV2PublicGetTickerPrice (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     spotV3PrivateGetCapitalDepositHisrec (params?: {}): Promise<implicitReturnType>;
@@ -59,6 +60,7 @@ interface Exchange {
     swapV1PrivateGetTwapOrderDetail (params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetTradeAssetMode (params?: {}): Promise<implicitReturnType>;
     swapV1PrivateGetUserMarginAssets (params?: {}): Promise<implicitReturnType>;
+    swapV1PrivatePostTradeAmend (params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeCancelReplace (params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     swapV1PrivatePostTradeBatchCancelReplace (params?: {}): Promise<implicitReturnType>;
@@ -95,6 +97,7 @@ interface Exchange {
     swapV2PrivateGetUserIncomeExport (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetUserCommissionRate (params?: {}): Promise<implicitReturnType>;
     swapV2PrivateGetQuoteBookTicker (params?: {}): Promise<implicitReturnType>;
+    swapV2PrivatePostTradeGetVst (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     swapV2PrivatePostTradeCloseAllPositions (params?: {}): Promise<implicitReturnType>;
@@ -166,8 +169,17 @@ interface Exchange {
     userAuthPrivatePutUserDataStream (params?: {}): Promise<implicitReturnType>;
     userAuthPrivateDeleteUserDataStream (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivateGetSwapTraceCurrentTrack (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetPFuturesTraderDetail (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetPFuturesProfitHistorySummarys (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetPFuturesProfitDetail (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetPFuturesTradingPairs (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetSpotTraderDetail (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetSpotProfitHistorySummarys (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetSpotProfitDetail (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivateGetSpotHistoryOrder (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceCloseTrackOrder (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSwapTraceSetTPSL (params?: {}): Promise<implicitReturnType>;
+    copyTradingV1PrivatePostPFuturesSetCommission (params?: {}): Promise<implicitReturnType>;
     copyTradingV1PrivatePostSpotTraderSellOrder (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetAssetTransfer (params?: {}): Promise<implicitReturnType>;
     apiV3PrivateGetAssetTransferRecord (params?: {}): Promise<implicitReturnType>;

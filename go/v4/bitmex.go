@@ -69,16 +69,21 @@ func (this *BitmexCore) Describe() interface{} {
 			"fetchMyLiquidations":            false,
 			"fetchMyTrades":                  true,
 			"fetchOHLCV":                     true,
+			"fetchOpenInterest":              "emulated",
+			"fetchOpenInterests":             true,
 			"fetchOpenOrders":                true,
 			"fetchOrder":                     true,
 			"fetchOrderBook":                 true,
 			"fetchOrders":                    true,
 			"fetchPosition":                  false,
+			"fetchPositionADLRank":           true,
 			"fetchPositionHistory":           false,
 			"fetchPositions":                 true,
+			"fetchPositionsADLRank":          true,
 			"fetchPositionsHistory":          false,
 			"fetchPositionsRisk":             false,
 			"fetchPremiumIndexOHLCV":         false,
+			"fetchSettlementHistory":         true,
 			"fetchTicker":                    true,
 			"fetchTickers":                   true,
 			"fetchTrades":                    true,
@@ -737,6 +742,9 @@ func (this *BitmexCore) ParseMarket(market interface{}) interface{} {
 		baseId = this.SafeString(market, "rootSymbol")
 		typeVar = "future"
 		future = true
+	} else if IsTrue(IsEqual(typ, "FFSCSX")) {
+		typeVar = "swap"
+		swap = true
 	}
 	var base interface{} = this.SafeCurrencyCode(baseId)
 	var quote interface{} = this.SafeCurrencyCode(quoteId)
@@ -906,7 +914,7 @@ func (this *BitmexCore) ParseBalance(response interface{}) interface{} {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BitmexCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -916,8 +924,8 @@ func (this *BitmexCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes9058 := (<-this.LoadMarkets())
-		PanicOnError(retRes9058)
+		retRes9138 := (<-this.LoadMarkets())
+		PanicOnError(retRes9138)
 		var request interface{} = map[string]interface{}{
 			"currency": "all",
 		}
@@ -987,7 +995,7 @@ func (this *BitmexCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *BitmexCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -999,8 +1007,8 @@ func (this *BitmexCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes9718 := (<-this.LoadMarkets())
-		PanicOnError(retRes9718)
+		retRes9798 := (<-this.LoadMarkets())
+		PanicOnError(retRes9798)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1050,7 +1058,7 @@ func (this *BitmexCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1092,7 +1100,7 @@ func (this *BitmexCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the earliest time in ms to fetch orders for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) FetchOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1108,17 +1116,17 @@ func (this *BitmexCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10448 := (<-this.LoadMarkets())
-		PanicOnError(retRes10448)
+		retRes10528 := (<-this.LoadMarkets())
+		PanicOnError(retRes10528)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes104819 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes104819)
-			ch <- retRes104819
+			retRes105619 := (<-this.FetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes105619)
+			ch <- retRes105619
 			return nil
 		}
 		var market interface{} = nil
@@ -1165,7 +1173,7 @@ func (this *BitmexCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1186,9 +1194,9 @@ func (this *BitmexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 			},
 		}
 
-		retRes109515 := (<-this.FetchOrders(symbol, since, limit, this.DeepExtend(request, params)))
-		PanicOnError(retRes109515)
-		ch <- retRes109515
+		retRes110315 := (<-this.FetchOrders(symbol, since, limit, this.DeepExtend(request, params)))
+		PanicOnError(retRes110315)
+		ch <- retRes110315
 		return nil
 
 	}()
@@ -1204,7 +1212,7 @@ func (this *BitmexCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1241,7 +1249,7 @@ func (this *BitmexCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitmexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1257,17 +1265,17 @@ func (this *BitmexCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes11288 := (<-this.LoadMarkets())
-		PanicOnError(retRes11288)
+		retRes11368 := (<-this.LoadMarkets())
+		PanicOnError(retRes11368)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes113219 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
-			PanicOnError(retRes113219)
-			ch <- retRes113219
+			retRes114019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params, 100))
+			PanicOnError(retRes114019)
+			ch <- retRes114019
 			return nil
 		}
 		var market interface{} = nil
@@ -1480,7 +1488,7 @@ func (this *BitmexCore) ParseLedgerEntry(item interface{}, optionalArgs ...inter
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BitmexCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1496,8 +1504,8 @@ func (this *BitmexCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes13408 := (<-this.LoadMarkets())
-		PanicOnError(retRes13408)
+		retRes13488 := (<-this.LoadMarkets())
+		PanicOnError(retRes13488)
 		var request interface{} = map[string]interface{}{}
 		//
 		//     if (since !== undefined) {
@@ -1552,7 +1560,7 @@ func (this *BitmexCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitmexCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1568,8 +1576,8 @@ func (this *BitmexCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes13938 := (<-this.LoadMarkets())
-		PanicOnError(retRes13938)
+		retRes14018 := (<-this.LoadMarkets())
+		PanicOnError(retRes14018)
 		var request interface{} = map[string]interface{}{
 			"currency": "all",
 		}
@@ -1691,7 +1699,7 @@ func (this *BitmexCore) ParseTransaction(transaction interface{}, optionalArgs .
  * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitmexCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1701,8 +1709,8 @@ func (this *BitmexCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes15128 := (<-this.LoadMarkets())
-		PanicOnError(retRes15128)
+		retRes15208 := (<-this.LoadMarkets())
+		PanicOnError(retRes15208)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1729,7 +1737,7 @@ func (this *BitmexCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
  * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitmexCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1741,8 +1749,8 @@ func (this *BitmexCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15358 := (<-this.LoadMarkets())
-		PanicOnError(retRes15358)
+		retRes15438 := (<-this.LoadMarkets())
+		PanicOnError(retRes15438)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetInstrumentActiveAndIndices(params))
@@ -1849,17 +1857,17 @@ func (this *BitmexCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes16278 := (<-this.LoadMarkets())
-		PanicOnError(retRes16278)
+		retRes16358 := (<-this.LoadMarkets())
+		PanicOnError(retRes16358)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes163119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params))
-			PanicOnError(retRes163119)
-			ch <- retRes163119
+			retRes163919 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params))
+			PanicOnError(retRes163919)
+			ch <- retRes163919
 			return nil
 		}
 		// send JSON key/value pairs, such as {"key": "value"}
@@ -2127,10 +2135,12 @@ func (this *BitmexCore) ParseOrder(order interface{}, optionalArgs ...interface{
 	} else {
 		filled = cumQty
 	}
-	var execInst interface{} = this.SafeString(order, "execInst")
+	var execInst interface{} = this.SafeString(order, "execInst", "")
 	var postOnly interface{} = nil
-	if IsTrue(!IsEqual(execInst, nil)) {
-		postOnly = (IsEqual(execInst, "ParticipateDoNotInitiate"))
+	var reduceOnly interface{} = nil
+	if IsTrue(IsGreaterThan(GetLength(execInst), 0)) {
+		postOnly = (IsGreaterThanOrEqual(GetIndexOf(execInst, "ParticipateDoNotInitiate"), 0))
+		reduceOnly = (IsTrue((IsGreaterThanOrEqual(GetIndexOf(execInst, "ReduceOnly"), 0))) || IsTrue((IsGreaterThanOrEqual(GetIndexOf(execInst, "Close"), 0))))
 	}
 	var timestamp interface{} = this.Parse8601(this.SafeString(order, "timestamp"))
 	var triggerPrice interface{} = this.SafeNumber(order, "stopPx")
@@ -2146,6 +2156,7 @@ func (this *BitmexCore) ParseOrder(order interface{}, optionalArgs ...interface{
 		"type":               this.SafeStringLower(order, "ordType"),
 		"timeInForce":        this.ParseTimeInForce(this.SafeString(order, "timeInForce")),
 		"postOnly":           postOnly,
+		"reduceOnly":         reduceOnly,
 		"side":               this.SafeStringLower(order, "side"),
 		"price":              this.SafeString(order, "price"),
 		"triggerPrice":       triggerPrice,
@@ -2170,7 +2181,7 @@ func (this *BitmexCore) ParseOrder(order interface{}, optionalArgs ...interface{
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitmexCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2184,17 +2195,17 @@ func (this *BitmexCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes19428 := (<-this.LoadMarkets())
-		PanicOnError(retRes19428)
+		retRes19538 := (<-this.LoadMarkets())
+		PanicOnError(retRes19538)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes194619 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes194619)
-			ch <- retRes194619
+			retRes195719 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes195719)
+			ch <- retRes195719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2280,8 +2291,8 @@ func (this *BitmexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes20158 := (<-this.LoadMarkets())
-		PanicOnError(retRes20158)
+		retRes20268 := (<-this.LoadMarkets())
+		PanicOnError(retRes20268)
 		var market interface{} = this.Market(symbol)
 		var orderType interface{} = this.Capitalize(typeVar)
 		var reduceOnly interface{} = this.SafeValue(params, "reduceOnly")
@@ -2290,6 +2301,8 @@ func (this *BitmexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 				panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() does not support reduceOnly for "), GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")))
 			}
 		}
+		var postOnly interface{} = this.SafeBool(params, "postOnly")
+		params = this.Omit(params, []interface{}{"reduceOnly", "postOnly"})
 		var brokerId interface{} = this.SafeString(this.Options, "brokerId", "CCXT")
 		var qty interface{} = this.ParseToInt(this.AmountToPrecision(symbol, amount))
 		var request interface{} = map[string]interface{}{
@@ -2298,6 +2311,17 @@ func (this *BitmexCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 			"orderQty": qty,
 			"ordType":  orderType,
 			"text":     brokerId,
+		}
+		var execInstructions interface{} = []interface{}{}
+		if IsTrue(IsEqual(reduceOnly, true)) {
+			AppendToArray(&execInstructions, "ReduceOnly")
+		}
+		if IsTrue(IsEqual(postOnly, true)) {
+			AppendToArray(&execInstructions, "ParticipateDoNotInitiate")
+		}
+		var execInstLength interface{} = GetArrayLength(execInstructions)
+		if IsTrue(IsGreaterThan(execInstLength, 0)) {
+			AddElementToObject(request, "execInst", Join(execInstructions, ","))
 		}
 		// support for unified trigger format
 		var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"triggerPrice", "stopPx", "stopPrice"})
@@ -2370,8 +2394,8 @@ func (this *BitmexCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes20888 := (<-this.LoadMarkets())
-		PanicOnError(retRes20888)
+		retRes21128 := (<-this.LoadMarkets())
+		PanicOnError(retRes21128)
 		var request interface{} = map[string]interface{}{}
 		var trailingAmount interface{} = this.SafeString2(params, "trailingAmount", "pegOffsetValue")
 		var isTrailingAmountOrder interface{} = !IsEqual(trailingAmount, nil)
@@ -2442,7 +2466,7 @@ func (this *BitmexCore) EditOrder(id interface{}, symbol interface{}, typeVar in
  * @param {string} id order id
  * @param {string} symbol not used by bitmex cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2454,8 +2478,8 @@ func (this *BitmexCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21558 := (<-this.LoadMarkets())
-		PanicOnError(retRes21558)
+		retRes21798 := (<-this.LoadMarkets())
+		PanicOnError(retRes21798)
 		// https://github.com/ccxt/ccxt/issues/6507
 		var clientOrderId interface{} = this.SafeValue2(params, "clOrdID", "clientOrderId")
 		var request interface{} = map[string]interface{}{}
@@ -2491,7 +2515,7 @@ func (this *BitmexCore) CancelOrder(id interface{}, optionalArgs ...interface{})
  * @param {string[]} ids order ids
  * @param {string} symbol not used by bitmex cancelOrders ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2504,8 +2528,8 @@ func (this *BitmexCore) CancelOrders(ids interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21888 := (<-this.LoadMarkets())
-		PanicOnError(retRes21888)
+		retRes22128 := (<-this.LoadMarkets())
+		PanicOnError(retRes22128)
 		// https://github.com/ccxt/ccxt/issues/6507
 		var clientOrderId interface{} = this.SafeValue2(params, "clOrdID", "clientOrderId")
 		var request interface{} = map[string]interface{}{}
@@ -2533,7 +2557,7 @@ func (this *BitmexCore) CancelOrders(ids interface{}, optionalArgs ...interface{
  * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitmexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2545,8 +2569,8 @@ func (this *BitmexCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22128 := (<-this.LoadMarkets())
-		PanicOnError(retRes22128)
+		retRes22368 := (<-this.LoadMarkets())
+		PanicOnError(retRes22368)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2620,8 +2644,8 @@ func (this *BitmexCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22728 := (<-this.LoadMarkets())
-		PanicOnError(retRes22728)
+		retRes22968 := (<-this.LoadMarkets())
+		PanicOnError(retRes22968)
 		var request interface{} = map[string]interface{}{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
@@ -2649,7 +2673,7 @@ func (this *BitmexCore) CancelAllOrdersAfter(timeout interface{}, optionalArgs .
  * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
  * @param {string[]} [symbols] a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *BitmexCore) FetchLeverages(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2661,8 +2685,8 @@ func (this *BitmexCore) FetchLeverages(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes22968 := (<-this.LoadMarkets())
-		PanicOnError(retRes22968)
+		retRes23208 := (<-this.LoadMarkets())
+		PanicOnError(retRes23208)
 
 		leverages := (<-this.FetchPositions(symbols, params))
 		PanicOnError(leverages)
@@ -2693,7 +2717,7 @@ func (this *BitmexCore) ParseLeverage(leverage interface{}, optionalArgs ...inte
  * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BitmexCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2705,8 +2729,8 @@ func (this *BitmexCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes23228 := (<-this.LoadMarkets())
-		PanicOnError(retRes23228)
+		retRes23468 := (<-this.LoadMarkets())
+		PanicOnError(retRes23468)
 
 		response := (<-this.PrivateGetPosition(params))
 		PanicOnError(response)
@@ -2974,7 +2998,7 @@ func (this *BitmexCore) ParsePosition(position interface{}, optionalArgs ...inte
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitmexCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2990,8 +3014,8 @@ func (this *BitmexCore) Withdraw(code interface{}, amount interface{}, address i
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes25878 := (<-this.LoadMarkets())
-		PanicOnError(retRes25878)
+		retRes26118 := (<-this.LoadMarkets())
+		PanicOnError(retRes26118)
 		var currency interface{} = this.Currency(code)
 		var qty interface{} = this.ConvertFromRealAmount(code, amount)
 		var networkCode interface{} = nil
@@ -3042,7 +3066,7 @@ func (this *BitmexCore) Withdraw(code interface{}, amount interface{}, address i
  * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *BitmexCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3054,8 +3078,8 @@ func (this *BitmexCore) FetchFundingRates(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26348 := (<-this.LoadMarkets())
-		PanicOnError(retRes26348)
+		retRes26588 := (<-this.LoadMarkets())
+		PanicOnError(retRes26588)
 
 		response := (<-this.PublicGetInstrumentActiveAndIndices(params))
 		PanicOnError(response)
@@ -3115,14 +3139,14 @@ func (this *BitmexCore) ParseFundingRate(contract interface{}, optionalArgs ...i
  * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for ending date filter
  * @param {bool} [params.reverse] if true, will sort results newest first
  * @param {int} [params.start] starting point for results
  * @param {string} [params.columns] array of column names to fetch in info, if omitted, will return all columns
  * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BitmexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3138,8 +3162,8 @@ func (this *BitmexCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes26968 := (<-this.LoadMarkets())
-		PanicOnError(retRes26968)
+		retRes27208 := (<-this.LoadMarkets())
+		PanicOnError(retRes27208)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(InOp(this.Currencies, symbol)) {
@@ -3242,8 +3266,8 @@ func (this *BitmexCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(BadRequest(Add(this.Id, " leverage should be between 0.01 and 100")))
 		}
 
-		retRes27828 := (<-this.LoadMarkets())
-		PanicOnError(retRes27828)
+		retRes28068 := (<-this.LoadMarkets())
+		PanicOnError(retRes28068)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(IsTrue(!IsEqual(GetValue(market, "type"), "swap")) && IsTrue(!IsEqual(GetValue(market, "type"), "future"))) {
 			panic(BadSymbol(Add(this.Id, " setLeverage() supports future and swap contracts only")))
@@ -3253,9 +3277,9 @@ func (this *BitmexCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			"leverage": leverage,
 		}
 
-		retRes279115 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params)))
-		PanicOnError(retRes279115)
-		ch <- retRes279115
+		retRes281515 := (<-this.PrivatePostPositionLeverage(this.Extend(request, params)))
+		PanicOnError(retRes281515)
+		ch <- retRes281515
 		return nil
 
 	}()
@@ -3289,8 +3313,8 @@ func (this *BitmexCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
 		}
 
-		retRes28128 := (<-this.LoadMarkets())
-		PanicOnError(retRes28128)
+		retRes28368 := (<-this.LoadMarkets())
+		PanicOnError(retRes28368)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(IsTrue((!IsEqual(GetValue(market, "type"), "swap"))) && IsTrue((!IsEqual(GetValue(market, "type"), "future")))) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap and future contracts only")))
@@ -3301,9 +3325,9 @@ func (this *BitmexCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			"enabled": enabled,
 		}
 
-		retRes282215 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params)))
-		PanicOnError(retRes282215)
-		ch <- retRes282215
+		retRes284615 := (<-this.PrivatePostPositionIsolate(this.Extend(request, params)))
+		PanicOnError(retRes284615)
+		ch <- retRes284615
 		return nil
 
 	}()
@@ -3318,7 +3342,7 @@ func (this *BitmexCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BitmexCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3328,8 +3352,8 @@ func (this *BitmexCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28368 := (<-this.LoadMarkets())
-		PanicOnError(retRes28368)
+		retRes28608 := (<-this.LoadMarkets())
+		PanicOnError(retRes28608)
 		var networkCode interface{} = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -3441,7 +3465,7 @@ func (this *BitmexCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ..
  * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BitmexCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3453,8 +3477,8 @@ func (this *BitmexCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes29358 := (<-this.LoadMarkets())
-		PanicOnError(retRes29358)
+		retRes29598 := (<-this.LoadMarkets())
+		PanicOnError(retRes29598)
 
 		assets := (<-this.PublicGetWalletAssets(params))
 		PanicOnError(assets)
@@ -3494,6 +3518,90 @@ func (this *BitmexCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-
 	}()
 	return ch
 }
+
+/**
+ * @method
+ * @name bitmex#fetchOpenInterests
+ * @description Retrieves the open interest for a list of symbols
+ * @see https://docs.bitmex.com/api-explorer/get-stats
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *BitmexCore) FetchOpenInterests(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes30038 := (<-this.LoadMarkets())
+		PanicOnError(retRes30038)
+		var request interface{} = map[string]interface{}{}
+		var response interface{} = nil
+
+		response = (<-this.PublicGetStats(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//    [
+		//        {
+		//            currency: 'XBt',
+		//            openInterest: '0',
+		//            openValue: '323890820079',
+		//            rootSymbol: 'Total',
+		//            turnover24h: '447088001322',
+		//            volume24h: '0'
+		//        }
+		//        ...
+		//    ]
+		//
+		symbols = this.MarketSymbols(symbols)
+
+		ch <- this.ParseOpenInterests(response, symbols)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitmexCore) ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	// fetchOpenInterest
+	//
+	//    {
+	//        currency: 'XBt',
+	//        openInterest: '0',
+	//        openValue: '323890820079',
+	//        rootSymbol: 'Total',
+	//        turnover24h: '447088001322',
+	//        volume24h: '0'
+	//    }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var quoteId interface{} = this.SafeString(interest, "currency")
+	var baseId interface{} = this.SafeString(interest, "rootSymbol")
+	var quoteSymbol interface{} = this.SafeCurrencyCode(quoteId)
+	var baseSymbol interface{} = this.SafeCurrencyCode(baseId)
+	var symbol interface{} = baseSymbol
+	if IsTrue(!IsEqual(quoteSymbol, nil)) {
+		symbol = Add(Add(Add(Add(baseSymbol, "/"), quoteSymbol), ":"), quoteSymbol)
+	}
+	var openInterest interface{} = this.SafeNumber(interest, "openInterest")
+	var openValue interface{} = this.SafeNumber(interest, "openValue")
+	return this.SafeOpenInterest(map[string]interface{}{
+		"info":               interest,
+		"symbol":             symbol,
+		"baseVolume":         openInterest,
+		"quoteVolume":        openValue,
+		"openInterestAmount": openInterest,
+		"openInterestValue":  openValue,
+		"timestamp":          nil,
+		"datetime":           nil,
+	}, market)
+}
 func (this *BitmexCore) CalculateRateLimiterCost(api interface{}, method interface{}, path interface{}, params interface{}, optionalArgs ...interface{}) interface{} {
 	config := GetArg(optionalArgs, 0, map[string]interface{}{})
 	_ = config
@@ -3520,7 +3628,7 @@ func (this *BitmexCore) CalculateRateLimiterCost(api interface{}, method interfa
  * @param {object} [params] exchange specific parameters for the bitmex api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *BitmexCore) FetchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3534,17 +3642,17 @@ func (this *BitmexCore) FetchLiquidations(symbol interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes29968 := (<-this.LoadMarkets())
-		PanicOnError(retRes29968)
+		retRes30868 := (<-this.LoadMarkets())
+		PanicOnError(retRes30868)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLiquidations", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes300019 := (<-this.FetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, params))
-			PanicOnError(retRes300019)
-			ch <- retRes300019
+			retRes309019 := (<-this.FetchPaginatedCallDynamic("fetchLiquidations", symbol, since, limit, params))
+			PanicOnError(retRes309019)
+			ch <- retRes309019
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -3606,6 +3714,394 @@ func (this *BitmexCore) ParseLiquidation(liquidation interface{}, optionalArgs .
 		"timestamp":    nil,
 		"datetime":     nil,
 	})
+}
+
+/**
+ * @method
+ * @name bitmex#fetchPositionsADLRank
+ * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+ * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+ */
+func (this *BitmexCore) FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbols := GetArg(optionalArgs, 0, nil)
+		_ = symbols
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+
+		retRes31538 := (<-this.LoadMarkets())
+		PanicOnError(retRes31538)
+		symbols = this.MarketSymbols(symbols, nil, true, true, true)
+
+		response := (<-this.PrivateGetPosition(params))
+		PanicOnError(response)
+
+		//
+		//     [
+		//         {
+		//             "account": 395724,
+		//             "symbol": "XBTUSDT",
+		//             "strategy": "OneWay",
+		//             "currency": "USDt",
+		//             "underlying": "XBT",
+		//             "quoteCurrency": "USDT",
+		//             "commission": 0.0005,
+		//             "initMarginReq": 0.01,
+		//             "maintMarginReq": 0.005,
+		//             "riskLimit": 1000000000000,
+		//             "leverage": 100,
+		//             "crossMargin": true,
+		//             "deleveragePercentile": 1,
+		//             "rebalancedPnl": -4319,
+		//             "prevRealisedPnl": 0,
+		//             "prevUnrealisedPnl": null,
+		//             "openingQty": null,
+		//             "openOrderBuyQty": 0,
+		//             "openOrderBuyCost": 0,
+		//             "openOrderBuyPremium": 0,
+		//             "openOrderSellQty": 0,
+		//             "openOrderSellCost": 0,
+		//             "openOrderSellPremium": 0,
+		//             "currentQty": 100,
+		//             "currentCost": 8639330,
+		//             "currentComm": 0,
+		//             "realisedCost": 0,
+		//             "unrealisedCost": 8639330,
+		//             "grossOpenPremium": 0,
+		//             "isOpen": true,
+		//             "markPrice": 88636.92,
+		//             "markValue": 8863692,
+		//             "riskValue": 8863692,
+		//             "homeNotional": 0.0001,
+		//             "foreignNotional": -8.863692,
+		//             "posCost": 8639330,
+		//             "posCross": 0,
+		//             "posComm": 0,
+		//             "posLoss": 0,
+		//             "posMargin": 44061,
+		//             "posMaint": 44061,
+		//             "posInit": 0,
+		//             "initMargin": 0,
+		//             "maintMargin": 44061,
+		//             "realisedPnl": 0,
+		//             "unrealisedPnl": 224362,
+		//             "unrealisedPnlPcnt": 0.026,
+		//             "unrealisedRoePcnt": 2.597,
+		//             "avgCostPrice": 86393.3,
+		//             "avgEntryPrice": 86393.3,
+		//             "breakEvenPrice": 86436.5,
+		//             "marginCallPrice": null,
+		//             "liquidationPrice": 0,
+		//             "bankruptPrice": 0,
+		//             "timestamp": "2025-12-31T07:55:50.505Z",
+		//             "positionReport": {
+		//                 "account": 395724,
+		//                 "avgCostPrice": 86393.3,
+		//                 "avgEntryPrice": 86393.3,
+		//                 "bankruptPrice": 0,
+		//                 "breakEvenPrice": 86436.5,
+		//                 "commission": 0.0005,
+		//                 "crossMargin": true,
+		//                 "currency": "USDt",
+		//                 "currentComm": 0,
+		//                 "currentCost": 8639330,
+		//                 "currentQty": 100,
+		//                 "deleveragePercentile": 1,
+		//                 "foreignNotional": -8.863692,
+		//                 "grossOpenPremium": 0,
+		//                 "homeNotional": 0.0001,
+		//                 "initMargin": 0,
+		//                 "initMarginReq": 0.01,
+		//                 "isOpen": true,
+		//                 "leverage": 100,
+		//                 "liquidationPrice": 0,
+		//                 "maintMargin": 44061,
+		//                 "maintMarginReq": 0.005,
+		//                 "markPrice": 88636.92,
+		//                 "markValue": 8863692,
+		//                 "openOrderBuyCost": 0,
+		//                 "openOrderBuyPremium": 0,
+		//                 "openOrderBuyQty": 0,
+		//                 "openOrderRealisedPnl": 0,
+		//                 "openOrderSellCost": 0,
+		//                 "openOrderSellPremium": 0,
+		//                 "openOrderSellQty": 0,
+		//                 "posComm": 0,
+		//                 "posCost": 8639330,
+		//                 "posCross": 0,
+		//                 "posInit": 0,
+		//                 "posLoss": 0,
+		//                 "posMaint": 44061,
+		//                 "posMargin": 44061,
+		//                 "prevRealisedPnl": 0,
+		//                 "quoteCurrency": "USDT",
+		//                 "realisedCost": 0,
+		//                 "realisedPnl": 0,
+		//                 "rebalancedPnl": -4319,
+		//                 "riskLimit": 1000000000000,
+		//                 "riskValue": 8863692,
+		//                 "strategy": "OneWay",
+		//                 "symbol": "XBTUSDT",
+		//                 "timestamp": "2025-12-31T07:55:50.505Z",
+		//                 "underlying": "XBT",
+		//                 "unrealisedCost": 8639330,
+		//                 "unrealisedPnl": 224362,
+		//                 "unrealisedPnlPcnt": 0.026,
+		//                 "unrealisedRoePcnt": 2.597
+		//             }
+		//         }
+		//     ]
+		//
+		ch <- this.ParseADLRanks(response, symbols)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitmexCore) ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	// fetchPositionsADLRank
+	//
+	//     {
+	//         "account": 395724,
+	//         "symbol": "XBTUSDT",
+	//         "strategy": "OneWay",
+	//         "currency": "USDt",
+	//         "underlying": "XBT",
+	//         "quoteCurrency": "USDT",
+	//         "commission": 0.0005,
+	//         "initMarginReq": 0.01,
+	//         "maintMarginReq": 0.005,
+	//         "riskLimit": 1000000000000,
+	//         "leverage": 100,
+	//         "crossMargin": true,
+	//         "deleveragePercentile": 1,
+	//         "rebalancedPnl": -4319,
+	//         "prevRealisedPnl": 0,
+	//         "prevUnrealisedPnl": null,
+	//         "openingQty": null,
+	//         "openOrderBuyQty": 0,
+	//         "openOrderBuyCost": 0,
+	//         "openOrderBuyPremium": 0,
+	//         "openOrderSellQty": 0,
+	//         "openOrderSellCost": 0,
+	//         "openOrderSellPremium": 0,
+	//         "currentQty": 100,
+	//         "currentCost": 8639330,
+	//         "currentComm": 0,
+	//         "realisedCost": 0,
+	//         "unrealisedCost": 8639330,
+	//         "grossOpenPremium": 0,
+	//         "isOpen": true,
+	//         "markPrice": 88636.92,
+	//         "markValue": 8863692,
+	//         "riskValue": 8863692,
+	//         "homeNotional": 0.0001,
+	//         "foreignNotional": -8.863692,
+	//         "posCost": 8639330,
+	//         "posCross": 0,
+	//         "posComm": 0,
+	//         "posLoss": 0,
+	//         "posMargin": 44061,
+	//         "posMaint": 44061,
+	//         "posInit": 0,
+	//         "initMargin": 0,
+	//         "maintMargin": 44061,
+	//         "realisedPnl": 0,
+	//         "unrealisedPnl": 224362,
+	//         "unrealisedPnlPcnt": 0.026,
+	//         "unrealisedRoePcnt": 2.597,
+	//         "avgCostPrice": 86393.3,
+	//         "avgEntryPrice": 86393.3,
+	//         "breakEvenPrice": 86436.5,
+	//         "marginCallPrice": null,
+	//         "liquidationPrice": 0,
+	//         "bankruptPrice": 0,
+	//         "timestamp": "2025-12-31T07:55:50.505Z",
+	//         "positionReport": {
+	//             "account": 395724,
+	//             "avgCostPrice": 86393.3,
+	//             "avgEntryPrice": 86393.3,
+	//             "bankruptPrice": 0,
+	//             "breakEvenPrice": 86436.5,
+	//             "commission": 0.0005,
+	//             "crossMargin": true,
+	//             "currency": "USDt",
+	//             "currentComm": 0,
+	//             "currentCost": 8639330,
+	//             "currentQty": 100,
+	//             "deleveragePercentile": 1,
+	//             "foreignNotional": -8.863692,
+	//             "grossOpenPremium": 0,
+	//             "homeNotional": 0.0001,
+	//             "initMargin": 0,
+	//             "initMarginReq": 0.01,
+	//             "isOpen": true,
+	//             "leverage": 100,
+	//             "liquidationPrice": 0,
+	//             "maintMargin": 44061,
+	//             "maintMarginReq": 0.005,
+	//             "markPrice": 88636.92,
+	//             "markValue": 8863692,
+	//             "openOrderBuyCost": 0,
+	//             "openOrderBuyPremium": 0,
+	//             "openOrderBuyQty": 0,
+	//             "openOrderRealisedPnl": 0,
+	//             "openOrderSellCost": 0,
+	//             "openOrderSellPremium": 0,
+	//             "openOrderSellQty": 0,
+	//             "posComm": 0,
+	//             "posCost": 8639330,
+	//             "posCross": 0,
+	//             "posInit": 0,
+	//             "posLoss": 0,
+	//             "posMaint": 44061,
+	//             "posMargin": 44061,
+	//             "prevRealisedPnl": 0,
+	//             "quoteCurrency": "USDT",
+	//             "realisedCost": 0,
+	//             "realisedPnl": 0,
+	//             "rebalancedPnl": -4319,
+	//             "riskLimit": 1000000000000,
+	//             "riskValue": 8863692,
+	//             "strategy": "OneWay",
+	//             "symbol": "XBTUSDT",
+	//             "timestamp": "2025-12-31T07:55:50.505Z",
+	//             "underlying": "XBT",
+	//             "unrealisedCost": 8639330,
+	//             "unrealisedPnl": 224362,
+	//             "unrealisedPnlPcnt": 0.026,
+	//             "unrealisedRoePcnt": 2.597
+	//         }
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId interface{} = this.SafeString(info, "symbol")
+	var datetime interface{} = this.SafeString(info, "timestamp")
+	return map[string]interface{}{
+		"info":       info,
+		"symbol":     this.SafeSymbol(marketId, market, nil, "contract"),
+		"rank":       this.SafeInteger(info, "deleveragePercentile"),
+		"rating":     nil,
+		"percentage": nil,
+		"timestamp":  this.Parse8601(datetime),
+		"datetime":   datetime,
+	}
+}
+
+/**
+ * @method
+ * @name bitmex#fetchSettlementHistory
+ * @description fetches historical settlement records
+ * @see https://docs.bitmex.com/api-explorer/get-settlements
+ * @param {string} symbol unified market symbol of the settlement history
+ * @param {int} [since] timestamp in ms
+ * @param {int} [limit] number of records
+ * @param {object} [params] exchange specific params
+ * @param {int} [params.until] timestamp in ms
+ *
+ * EXCHANGE SPECIFIC PARAMETERS
+ * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+ * @param {string} [params.columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+ * @param {int} [params.start] possible values are >= 0 starting point for results, default value = 0
+ * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+ */
+func (this *BitmexCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+
+		retRes34248 := (<-this.LoadMarkets())
+		PanicOnError(retRes34248)
+		var request interface{} = map[string]interface{}{}
+		var market interface{} = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+			AddElementToObject(request, "symbol", GetValue(market, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startTime", this.Iso8601(since))
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "count", limit)
+		}
+		var until interface{} = this.SafeString(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			AddElementToObject(request, "endTime", this.Iso8601(since))
+			params = this.Omit(params, "until")
+		}
+
+		response := (<-this.PublicGetSettlement(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//    [
+		//        {
+		//            timestamp: '2025-03-28T12:00:00.000Z',
+		//            symbol: 'ETHUSDH25',
+		//            settlementType: 'Settlement',
+		//            settledPrice: '1897.53'
+		//        }
+		//    ]
+		//
+		ch <- this.ParseSettlements(response, market, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+func (this *BitmexCore) ParseSettlements(settlements interface{}, optionalArgs ...interface{}) interface{} {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	var result interface{} = []interface{}{}
+	for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
+		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
+	}
+	var sorted interface{} = this.SortBy(result, "timestamp")
+	var symbol interface{} = this.SafeString(market, "symbol")
+	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+}
+func (this *BitmexCore) ParseSettlement(settlement interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	//    {
+	//        timestamp: '2025-03-28T12:00:00.000Z',
+	//        symbol: 'ETHUSDH25',
+	//        settlementType: 'Settlement',
+	//        settledPrice: '1897.53'
+	//    }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var datetime interface{} = this.SafeString(settlement, "timestamp")
+	var marketId interface{} = this.SafeString(settlement, "symbol")
+	return map[string]interface{}{
+		"info":      settlement,
+		"symbol":    this.SafeSymbol(marketId, market),
+		"price":     this.SafeNumber(settlement, "settledPrice"),
+		"timestamp": this.Parse8601(datetime),
+		"datetime":  datetime,
+	}
 }
 func (this *BitmexCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
 	if IsTrue(IsEqual(response, nil)) {

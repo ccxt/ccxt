@@ -530,7 +530,7 @@ class xt extends xt$1["default"] {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of  orde structures to retrieve
      * @param {object} params extra parameters specific to the kucoin api endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -552,7 +552,7 @@ class xt extends xt$1["default"] {
      * @see https://doc.xt.com/#websocket_privatebalanceChange
      * @see https://doc.xt.com/#futures_user_websocket_v2balance
      * @param {object} params extra parameters specific to the xt api endpoint
-     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.loadMarkets();
@@ -614,9 +614,11 @@ class xt extends xt$1["default"] {
             }
         }
         // don't remove the future from the .futures cache
-        const future = client.futures[messageHash];
-        future.resolve(cache);
-        client.resolve(cache, 'position::contract');
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve(cache);
+            client.resolve(cache, 'position::contract');
+        }
     }
     handlePosition(client, message) {
         //
@@ -1406,12 +1408,22 @@ class xt extends xt$1["default"] {
         //         method: 'unsubscribe'
         //     }
         //
-        const method = this.safeStringLower(message, 'method');
-        if (method === 'unsubscribe') {
-            const id = this.safeString(message, 'id');
-            const subscriptionsById = this.indexBy(client.subscriptions, 'id');
-            const subscription = this.safeValue(subscriptionsById, id, {});
-            this.handleUnSubscription(client, subscription);
+        //     {
+        //         code: 0,
+        //         msg: 'success',
+        //         id: '1764032903806ticker@btc_usdt',
+        //         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        //     }
+        //
+        const id = this.safeString(message, 'id');
+        const subscriptionsById = this.indexBy(client.subscriptions, 'id');
+        let unsubscribe = false;
+        if (id !== undefined) {
+            const subscription = this.safeDict(subscriptionsById, id, {});
+            unsubscribe = this.safeBool(subscription, 'unsubscribe', false);
+            if (unsubscribe) {
+                this.handleUnSubscription(client, subscription);
+            }
         }
         return message;
     }

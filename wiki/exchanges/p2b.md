@@ -45,7 +45,7 @@ p2b.fetchMarkets ([params])
 fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols  
 
@@ -66,7 +66,7 @@ p2b.fetchTickers (symbols[, params])
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker  
 
@@ -87,7 +87,7 @@ p2b.fetchTicker (symbol[, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-result  
 
@@ -110,7 +110,7 @@ p2b.fetchOrderBook (symbol[, limit, params])
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history  
 
@@ -159,7 +159,7 @@ p2b.fetchOHLCV (symbol, timeframe[, since, limit, params])
 query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances  
 
@@ -179,7 +179,7 @@ p2b.fetchBalance ([params])
 create a trade order
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order  
 
@@ -204,7 +204,7 @@ p2b.createOrder (symbol, type, side, amount, price[, params])
 cancels an open order
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order  
 
@@ -226,7 +226,7 @@ p2b.cancelOrder (id, symbol[, params])
 fetch all unfilled currently open orders
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders  
 
@@ -250,7 +250,7 @@ p2b.fetchOpenOrders (symbol[, since, limit, params])
 fetch all the trades made from a single order
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-id  
 
@@ -275,7 +275,7 @@ p2b.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between since and params["until"] cannot be longer than 24 hours
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-history-by-market  
 
@@ -300,7 +300,7 @@ p2b.fetchMyTrades (symbol[, since, limit, params])
 fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
 
 **Kind**: instance method of [<code>p2b</code>](#p2b)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 **See**: https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#orders-history-by-market  
 

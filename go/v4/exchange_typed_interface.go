@@ -220,6 +220,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "exchange":
 		itf := NewExchangeTyped(nil)
 		return itf
+	case "alp":
+		itf := NewAlp(options)
+		return itf
 	case "alpaca":
 		itf := NewAlpaca(options)
 		return itf
@@ -231,6 +234,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "ascendex":
 		itf := NewAscendex(options)
+		return itf
+	case "aster":
+		itf := NewAster(options)
 		return itf
 	case "backpack":
 		itf := NewBackpack(options)
@@ -310,9 +316,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "blofin":
 		itf := NewBlofin(options)
 		return itf
-	case "btcalpha":
-		itf := NewBtcalpha(options)
-		return itf
 	case "btcbox":
 		itf := NewBtcbox(options)
 		return itf
@@ -322,8 +325,14 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "btcturk":
 		itf := NewBtcturk(options)
 		return itf
+	case "bullish":
+		itf := NewBullish(options)
+		return itf
 	case "bybit":
 		itf := NewBybit(options)
+		return itf
+	case "bydfi":
+		itf := NewBydfi(options)
 		return itf
 	case "cex":
 		itf := NewCex(options)
@@ -475,9 +484,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "novadax":
 		itf := NewNovadax(options)
 		return itf
-	case "oceanex":
-		itf := NewOceanex(options)
-		return itf
 	case "okx":
 		itf := NewOkx(options)
 		return itf
@@ -504,9 +510,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "poloniex":
 		itf := NewPoloniex(options)
-		return itf
-	case "probit":
-		itf := NewProbit(options)
 		return itf
 	case "timex":
 		itf := NewTimex(options)
@@ -540,6 +543,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "zaif":
 		itf := NewZaif(options)
+		return itf
+	case "zebpay":
+		itf := NewZebpay(options)
 		return itf
 	case "zonda":
 		itf := NewZonda(options)

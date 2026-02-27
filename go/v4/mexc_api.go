@@ -15,6 +15,10 @@ func (this *MexcCore) SpotPublicGetTime(args ...interface{}) <-chan interface{} 
 	return this.callEndpointAsync("spotPublicGetTime", args...)
 }
 
+func (this *MexcCore) SpotPublicGetDefaultSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPublicGetDefaultSymbols", args...)
+}
+
 func (this *MexcCore) SpotPublicGetExchangeInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPublicGetExchangeInfo", args...)
 }
@@ -59,6 +63,14 @@ func (this *MexcCore) SpotPublicGetEtfInfo(args ...interface{}) <-chan interface
 	return this.callEndpointAsync("spotPublicGetEtfInfo", args...)
 }
 
+func (this *MexcCore) SpotPrivateGetKycStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetKycStatus", args...)
+}
+
+func (this *MexcCore) SpotPrivateGetUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetUid", args...)
+}
+
 func (this *MexcCore) SpotPrivateGetOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivateGetOrder", args...)
 }
@@ -79,6 +91,14 @@ func (this *MexcCore) SpotPrivateGetMyTrades(args ...interface{}) <-chan interfa
 	return this.callEndpointAsync("spotPrivateGetMyTrades", args...)
 }
 
+func (this *MexcCore) SpotPrivateGetStrategyGroup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetStrategyGroup", args...)
+}
+
+func (this *MexcCore) SpotPrivateGetStrategyGroupUid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetStrategyGroupUid", args...)
+}
+
 func (this *MexcCore) SpotPrivateGetTradeFee(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivateGetTradeFee", args...)
 }
@@ -89,6 +109,10 @@ func (this *MexcCore) SpotPrivateGetSubAccountList(args ...interface{}) <-chan i
 
 func (this *MexcCore) SpotPrivateGetSubAccountApiKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivateGetSubAccountApiKey", args...)
+}
+
+func (this *MexcCore) SpotPrivateGetSubAccountAsset(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivateGetSubAccountAsset", args...)
 }
 
 func (this *MexcCore) SpotPrivateGetCapitalConfigGetall(args ...interface{}) <-chan interface{} {
@@ -261,6 +285,10 @@ func (this *MexcCore) SpotPrivatePostSubAccountMargin(args ...interface{}) <-cha
 
 func (this *MexcCore) SpotPrivatePostBatchOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotPrivatePostBatchOrders", args...)
+}
+
+func (this *MexcCore) SpotPrivatePostStrategyGroup(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotPrivatePostStrategyGroup", args...)
 }
 
 func (this *MexcCore) SpotPrivatePostCapitalWithdrawApply(args ...interface{}) <-chan interface{} {

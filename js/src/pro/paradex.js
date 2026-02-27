@@ -6,17 +6,19 @@
 
 //  ---------------------------------------------------------------------------
 import paradexRest from '../paradex.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class paradex extends paradexRest {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
+                'watchFundingRate': true,
+                'watchFundingRates': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
                 'watchBalance': false,
@@ -39,16 +41,58 @@ export default class paradex extends paradexRest {
             'streaming': {},
         });
     }
+    requestId() {
+        const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
+    }
+    async authenticate(params = {}) {
+        const url = this.urls['api']['ws'];
+        const client = this.client(url);
+        const messageHash = 'authenticated';
+        const future = client.reusableFuture('authenticated');
+        const authenticated = this.safeValue(client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const token = await this.authenticateRest();
+            const request = {
+                'jsonrpc': '2.0',
+                'id': this.requestId(),
+                'method': 'auth',
+                'params': {
+                    'bearer': token,
+                },
+            };
+            this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+        }
+        return await future;
+    }
+    handleAuthenticationMessage(client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        const result = this.safeDict(message, 'result');
+        if (result !== undefined) {
+            // client.resolve (true, messageHash);
+            const future = this.safeValue(client.futures, 'authenticated');
+            if (future !== undefined) {
+                future.resolve(true);
+            }
+        }
+    }
     /**
      * @method
      * @name paradex#watchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.api.testnet.paradex.trade/#sub-trades-market_symbol-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/trades/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -111,11 +155,11 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchOrderBook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.api.testnet.paradex.trade/#sub-order_book-market_symbol-snapshot-15-refresh_rate-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/order-book/order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -199,10 +243,10 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -223,10 +267,10 @@ export default class paradex extends paradexRest {
      * @method
      * @name paradex#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.api.testnet.paradex.trade/#sub-markets_summary-operation
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -257,6 +301,89 @@ export default class paradex extends paradexRest {
             return result;
         }
         return this.filterByArray(this.tickers, 'symbol', symbols);
+    }
+    /**
+     * @method
+     * @name paradex#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://docs.paradex.trade/ws/web-socket-channels/orders/orders
+     * @param {string} [symbol] unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        await this.authenticate();
+        let messageHash = 'orders';
+        let channel = 'orders.';
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            channel += market['id'];
+            messageHash += ':' + symbol;
+        }
+        else {
+            channel += 'ALL';
+        }
+        const url = this.urls['api']['ws'];
+        const request = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const orders = await this.watch(url, messageHash, this.deepExtend(request, params), channel);
+        if (this.newUpdates) {
+            limit = orders.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    handleOrder(client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "orders.ALL",
+        //             "data": {
+        //                 "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
+        //                 "avg_fill_price": "26000",
+        //                 "client_id": "x1234",
+        //                 "cancel_reason": "",
+        //                 "created_at": 1681493746016,
+        //                 "flags": ["REDUCE_ONLY"],
+        //                 "id": "123456",
+        //                 "instruction": "GTC",
+        //                 "last_updated_at": 1681493746016,
+        //                 "market": "BTC-USD-PERP",
+        //                 "price": "26000",
+        //                 "remaining_size": "0",
+        //                 "side": "BUY",
+        //                 "size": "0.05",
+        //                 "status": "NEW",
+        //                 "type": "LIMIT"
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict(message, 'params', {});
+        const data = this.safeDict(params, 'data', {});
+        const parsed = this.parseOrder(data);
+        const symbol = this.safeString(parsed, 'symbol');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        this.orders.append(parsed);
+        const messageHash = 'orders';
+        client.resolve(this.orders, messageHash);
+        if (symbol !== undefined) {
+            const symbolMessageHash = messageHash + ':' + symbol;
+            client.resolve(this.orders, symbolMessageHash);
+        }
     }
     handleTicker(client, message) {
         //
@@ -296,6 +423,140 @@ export default class paradex extends paradexRest {
         client.resolve(ticker, messageHash);
         return message;
     }
+    /**
+     * @method
+     * @name paradex#watchFundingRate
+     * @description watch the current funding rate for a symbol
+     * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        const channel = 'funding_data';
+        const url = this.urls['api']['ws'];
+        const request = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHash = channel + '.' + symbol;
+        return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
+    }
+    /**
+     * @method
+     * @name paradex#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRates(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        const channel = 'funding_data';
+        const url = this.urls['api']['ws'];
+        const request = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const messageHash = channel + '.' + symbols[i];
+                    messageHashes.push(messageHash);
+                }
+            }
+            else {
+                messageHashes.push(channel); // if an empty array is passed, subscribe to all funding rates
+            }
+        }
+        else {
+            messageHashes.push(channel);
+        }
+        const newFundingRates = await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
+        if (this.newUpdates) {
+            const result = {};
+            result[newFundingRates['symbol']] = newFundingRates;
+            return result;
+        }
+        return this.filterByArray(this.fundingRates, 'symbol', symbols);
+    }
+    handleFundingRate(client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "funding_data",
+        //             "data": {
+        //                 "market": "TRUMP-USD-PERP",
+        //                 "funding_index": "-0.551694014226244835",
+        //                 "funding_premium": "-0.000509914923994872836",
+        //                 "funding_rate": "-0.00014969570582",
+        //                 "funding_rate_8h": "-0.00014969",
+        //                 "funding_period_hours": 8,
+        //                 "created_at": 1771506636154
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict(message, 'params', {});
+        const data = this.safeDict(params, 'data', {});
+        const fundingRate = this.parseFundingRateWs(data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const channel = this.safeString(params, 'channel');
+        const messageHash = channel + '.' + symbol;
+        client.resolve(fundingRate, messageHash);
+    }
+    parseFundingRateWs(contract, market = undefined) {
+        //
+        //     {
+        //         "market": "TRUMP-USD-PERP",
+        //         "funding_index": "-0.551694014226244835",
+        //         "funding_premium": "-0.000509914923994872836",
+        //         "funding_rate": "-0.00014969570582",
+        //         "funding_rate_8h": "-0.00014969",
+        //         "funding_period_hours": 8,
+        //         "created_at": 1771506636154
+        //     }
+        //
+        const marketId = this.safeString(contract, 'market');
+        const symbol = this.safeSymbol(marketId, market);
+        const timestamp = this.safeInteger(contract, 'created_at');
+        const fundingPeriod = this.safeString(contract, 'funding_period_hours');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': this.safeNumber(contract, 'funding_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': fundingPeriod + 'h',
+        };
+    }
     handleErrorMessage(client, message) {
         //
         //     {
@@ -333,6 +594,16 @@ export default class paradex extends paradexRest {
             return;
         }
         //
+        // auth response
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "id": 1,
+        //         "result": { "node_id": "73cf456f7cb78d59" }
+        //     }
+        //
+        // subscription message
+        //
         //     {
         //         "jsonrpc": "2.0",
         //         "method": "subscription",
@@ -350,6 +621,11 @@ export default class paradex extends paradexRest {
         //         }
         //     }
         //
+        const result = this.safeValue(message, 'result');
+        if (result !== undefined) {
+            this.handleAuthenticationMessage(client, message);
+            return;
+        }
         const data = this.safeDict(message, 'params');
         if (data !== undefined) {
             const channel = this.safeString(data, 'channel');
@@ -359,7 +635,8 @@ export default class paradex extends paradexRest {
                 'trades': this.handleTrade,
                 'order_book': this.handleOrderBook,
                 'markets_summary': this.handleTicker,
-                // ...
+                'orders': this.handleOrder,
+                'funding_data': this.handleFundingRate,
             };
             const method = this.safeValue(methods, name);
             if (method !== undefined) {

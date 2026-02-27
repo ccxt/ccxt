@@ -21,9 +21,4 @@ func TestJson() {
 	var list interface{} = []interface{}{1, 2}
 	var listJson interface{} = exchange.Json(list)
 	Assert(ccxt.IsEqual(listJson, "[1,2]"))
-
-	// Test: json a string
-	var str interface{} = "ccxt, rocks!"
-	var serializedString interface{} = exchange.Json(str)
-	Assert(ccxt.IsEqual(serializedString, "\"ccxt, rocks!\""))
 }

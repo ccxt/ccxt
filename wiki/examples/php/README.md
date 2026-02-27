@@ -74,6 +74,8 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Exchange Properties](./examples/php/exchange-properties.md)
 
+- [Exchange Rate Limiter Rollingwindow](./examples/php/exchange-rate-limiter-rollingWindow.md)
+
 - [Fetch Balance](./examples/php/fetch-balance.md)
 
 - [Fetch First Ohlcv Timestamp](./examples/php/fetch-first-ohlcv-timestamp.md)
@@ -97,6 +99,8 @@ php -f path/to/example.php # substitute for actual filename here
 - [Huobi Futures](./examples/php/huobi-futures.md)
 
 - [Huobi Swaps](./examples/php/huobi-swaps.md)
+
+- [Hyperliquid Load Hip3 Dexes](./examples/php/hyperliquid-load-hip3-dexes.md)
 
 - [Indodax Fetch Balance Create Order Cancel Order](./examples/php/indodax-fetch-balance-create-order-cancel-order.md)
 

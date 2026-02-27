@@ -67,11 +67,20 @@ abstract class kucoin extends \ccxt\Exchange {
     public function public_get_margin_collateralratio($params = array()) {
         return $this->request('margin/collateralRatio', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function public_get_convert_symbol($params = array()) {
+        return $this->request('convert/symbol', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_convert_currencies($params = array()) {
+        return $this->request('convert/currencies', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_post_bullet_public($params = array()) {
         return $this->request('bullet-public', 'public', 'POST', $params, null, null, array("cost" => 15));
     }
     public function private_get_user_info($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_user_api_key($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_get_accounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 7.5));
@@ -286,8 +295,29 @@ abstract class kucoin extends \ccxt\Exchange {
     public function private_get_migrate_user_account_status($params = array()) {
         return $this->request('migrate/user/account/status', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function private_get_convert_quote($params = array()) {
+        return $this->request('convert/quote', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_get_convert_order_detail($params = array()) {
+        return $this->request('convert/order/detail', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_convert_order_history($params = array()) {
+        return $this->request('convert/order/history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_convert_limit_quote($params = array()) {
+        return $this->request('convert/limit/quote', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function private_get_convert_limit_order_detail($params = array()) {
+        return $this->request('convert/limit/order/detail', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_convert_limit_orders($params = array()) {
+        return $this->request('convert/limit/orders', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_affiliate_inviter_statistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function private_get_earn_redeem_preview($params = array()) {
+        return $this->request('earn/redeem-preview', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -382,6 +412,12 @@ abstract class kucoin extends \ccxt\Exchange {
     public function private_post_lend_purchase_update($params = array()) {
         return $this->request('lend/purchase/update', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function private_post_convert_order($params = array()) {
+        return $this->request('convert/order', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function private_post_convert_limit_order($params = array()) {
+        return $this->request('convert/limit/order', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function private_post_bullet_private($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -453,6 +489,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function private_delete_hf_margin_orders($params = array()) {
         return $this->request('hf/margin/orders', 'private', 'DELETE', $params, null, null, array("cost" => 10));
+    }
+    public function private_delete_convert_limit_order_cancel($params = array()) {
+        return $this->request('convert/limit/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function futurespublic_get_contracts_active($params = array()) {
         return $this->request('contracts/active', 'futuresPublic', 'GET', $params, null, null, array("cost" => 4.5));
@@ -691,6 +730,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function broker_delete_broker_nd_account_apikey($params = array()) {
         return $this->request('broker/nd/account/apikey', 'broker', 'DELETE', $params, null, null, array("cost" => 3));
     }
+    public function earn_get_otc_loan_discount_rate_configs($params = array()) {
+        return $this->request('otc-loan/discount-rate-configs', 'earn', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function earn_get_otc_loan_loan($params = array()) {
         return $this->request('otc-loan/loan', 'earn', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -718,8 +760,17 @@ abstract class kucoin extends \ccxt\Exchange {
     public function earn_get_earn_eth_staking_products($params = array()) {
         return $this->request('earn/eth-staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
     }
+    public function earn_get_struct_earn_dual_products($params = array()) {
+        return $this->request('struct-earn/dual/products', 'earn', 'GET', $params, null, null, array("cost" => 4.5));
+    }
+    public function earn_get_struct_earn_orders($params = array()) {
+        return $this->request('struct-earn/orders', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
     public function earn_post_earn_orders($params = array()) {
         return $this->request('earn/orders', 'earn', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function earn_post_struct_earn_orders($params = array()) {
+        return $this->request('struct-earn/orders', 'earn', 'POST', $params, null, null, array("cost" => 7.5));
     }
     public function earn_delete_earn_orders($params = array()) {
         return $this->request('earn/orders', 'earn', 'DELETE', $params, null, null, array("cost" => 7.5));
@@ -730,14 +781,14 @@ abstract class kucoin extends \ccxt\Exchange {
     public function uta_get_market_currency($params = array()) {
         return $this->request('market/currency', 'uta', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function uta_get_market_currencies($params = array()) {
+        return $this->request('market/currencies', 'uta', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function uta_get_market_instrument($params = array()) {
         return $this->request('market/instrument', 'uta', 'GET', $params, null, null, array("cost" => 4));
     }
     public function uta_get_market_ticker($params = array()) {
         return $this->request('market/ticker', 'uta', 'GET', $params, null, null, array("cost" => 15));
-    }
-    public function uta_get_market_orderbook($params = array()) {
-        return $this->request('market/orderbook', 'uta', 'GET', $params, null, null, array("cost" => 3));
     }
     public function uta_get_market_trade($params = array()) {
         return $this->request('market/trade', 'uta', 'GET', $params, null, null, array("cost" => 3));
@@ -754,8 +805,104 @@ abstract class kucoin extends \ccxt\Exchange {
     public function uta_get_market_cross_config($params = array()) {
         return $this->request('market/cross-config', 'uta', 'GET', $params, null, null, array("cost" => 25));
     }
+    public function uta_get_market_collateral_discount_ratio($params = array()) {
+        return $this->request('market/collateral-discount-ratio', 'uta', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function uta_get_market_index_price($params = array()) {
+        return $this->request('market/index-price', 'uta', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function uta_get_market_position_tiers($params = array()) {
+        return $this->request('market/position-tiers', 'uta', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function uta_get_market_open_interest($params = array()) {
+        return $this->request('market/open-interest', 'uta', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function uta_get_server_status($params = array()) {
         return $this->request('server/status', 'uta', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaprivate_get_market_orderbook($params = array()) {
+        return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaprivate_get_account_balance($params = array()) {
+        return $this->request('account/balance', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaprivate_get_account_transfer_quota($params = array()) {
+        return $this->request('account/transfer-quota', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaprivate_get_account_mode($params = array()) {
+        return $this->request('account/mode', 'utaPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function utaprivate_get_account_ledger($params = array()) {
+        return $this->request('account/ledger', 'utaPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function utaprivate_get_account_interest_history($params = array()) {
+        return $this->request('account/interest-history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function utaprivate_get_account_deposit_address($params = array()) {
+        return $this->request('account/deposit/address', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaprivate_get_accountmode_account_balance($params = array()) {
+        return $this->request('{accountMode}/account/balance', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaprivate_get_accountmode_account_overview($params = array()) {
+        return $this->request('{accountMode}/account/overview', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaprivate_get_accountmode_order_detail($params = array()) {
+        return $this->request('{accountMode}/order/detail', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_get_accountmode_order_open_list($params = array()) {
+        return $this->request('{accountMode}/order/open-list', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_get_accountmode_order_history($params = array()) {
+        return $this->request('{accountMode}/order/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_get_accountmode_order_execution($params = array()) {
+        return $this->request('{accountMode}/order/execution', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_get_accountmode_position_open_list($params = array()) {
+        return $this->request('{accountMode}/position/open-list', 'utaPrivate', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaprivate_get_accountmode_position_history($params = array()) {
+        return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function utaprivate_get_accountmode_position_tiers($params = array()) {
+        return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaprivate_get_sub_account_balance($params = array()) {
+        return $this->request('sub-account/balance', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaprivate_get_user_fee_rate($params = array()) {
+        return $this->request('user/fee-rate', 'utaPrivate', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaprivate_get_dcp_query($params = array()) {
+        return $this->request('dcp/query', 'utaPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function utaprivate_post_account_transfer($params = array()) {
+        return $this->request('account/transfer', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_post_account_mode($params = array()) {
+        return $this->request('account/mode', 'utaPrivate', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function utaprivate_post_accountmode_account_modify_leverage($params = array()) {
+        return $this->request('{accountMode}/account/modify-leverage', 'utaPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function utaprivate_post_accountmode_order_place($params = array()) {
+        return $this->request('{accountMode}/order/place', 'utaPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function utaprivate_post_accountmode_order_place_batch($params = array()) {
+        return $this->request('{accountMode}/order/place-batch', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_post_accountmode_order_cancel($params = array()) {
+        return $this->request('{accountMode}/order/cancel', 'utaPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function utaprivate_post_accountmode_order_cancel_batch($params = array()) {
+        return $this->request('{accountMode}/order/cancel-batch', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaprivate_post_sub_account_cantransferout($params = array()) {
+        return $this->request('sub-account/canTransferOut', 'utaPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function utaprivate_post_dcp_set($params = array()) {
+        return $this->request('dcp/set', 'utaPrivate', 'POST', $params, null, null, array("cost" => 2));
     }
     public function publicGetCurrencies($params = array()) {
         return $this->request('currencies', 'public', 'GET', $params, null, null, array("cost" => 4.5));
@@ -817,11 +964,20 @@ abstract class kucoin extends \ccxt\Exchange {
     public function publicGetMarginCollateralRatio($params = array()) {
         return $this->request('margin/collateralRatio', 'public', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function publicGetConvertSymbol($params = array()) {
+        return $this->request('convert/symbol', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetConvertCurrencies($params = array()) {
+        return $this->request('convert/currencies', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function publicPostBulletPublic($params = array()) {
         return $this->request('bullet-public', 'public', 'POST', $params, null, null, array("cost" => 15));
     }
     public function privateGetUserInfo($params = array()) {
         return $this->request('user-info', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetUserApiKey($params = array()) {
+        return $this->request('user/api-key', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privateGetAccounts($params = array()) {
         return $this->request('accounts', 'private', 'GET', $params, null, null, array("cost" => 7.5));
@@ -1036,8 +1192,29 @@ abstract class kucoin extends \ccxt\Exchange {
     public function privateGetMigrateUserAccountStatus($params = array()) {
         return $this->request('migrate/user/account/status', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function privateGetConvertQuote($params = array()) {
+        return $this->request('convert/quote', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetConvertOrderDetail($params = array()) {
+        return $this->request('convert/order/detail', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetConvertOrderHistory($params = array()) {
+        return $this->request('convert/order/history', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetConvertLimitQuote($params = array()) {
+        return $this->request('convert/limit/quote', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function privateGetConvertLimitOrderDetail($params = array()) {
+        return $this->request('convert/limit/order/detail', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetConvertLimitOrders($params = array()) {
+        return $this->request('convert/limit/orders', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetAffiliateInviterStatistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function privateGetEarnRedeemPreview($params = array()) {
+        return $this->request('earn/redeem-preview', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -1132,6 +1309,12 @@ abstract class kucoin extends \ccxt\Exchange {
     public function privatePostLendPurchaseUpdate($params = array()) {
         return $this->request('lend/purchase/update', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function privatePostConvertOrder($params = array()) {
+        return $this->request('convert/order', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function privatePostConvertLimitOrder($params = array()) {
+        return $this->request('convert/limit/order', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
     public function privatePostBulletPrivate($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
@@ -1203,6 +1386,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function privateDeleteHfMarginOrders($params = array()) {
         return $this->request('hf/margin/orders', 'private', 'DELETE', $params, null, null, array("cost" => 10));
+    }
+    public function privateDeleteConvertLimitOrderCancel($params = array()) {
+        return $this->request('convert/limit/order/cancel', 'private', 'DELETE', $params, null, null, array("cost" => 5));
     }
     public function futuresPublicGetContractsActive($params = array()) {
         return $this->request('contracts/active', 'futuresPublic', 'GET', $params, null, null, array("cost" => 4.5));
@@ -1441,6 +1627,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function brokerDeleteBrokerNdAccountApikey($params = array()) {
         return $this->request('broker/nd/account/apikey', 'broker', 'DELETE', $params, null, null, array("cost" => 3));
     }
+    public function earnGetOtcLoanDiscountRateConfigs($params = array()) {
+        return $this->request('otc-loan/discount-rate-configs', 'earn', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function earnGetOtcLoanLoan($params = array()) {
         return $this->request('otc-loan/loan', 'earn', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1468,8 +1657,17 @@ abstract class kucoin extends \ccxt\Exchange {
     public function earnGetEarnEthStakingProducts($params = array()) {
         return $this->request('earn/eth-staking/products', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
     }
+    public function earnGetStructEarnDualProducts($params = array()) {
+        return $this->request('struct-earn/dual/products', 'earn', 'GET', $params, null, null, array("cost" => 4.5));
+    }
+    public function earnGetStructEarnOrders($params = array()) {
+        return $this->request('struct-earn/orders', 'earn', 'GET', $params, null, null, array("cost" => 7.5));
+    }
     public function earnPostEarnOrders($params = array()) {
         return $this->request('earn/orders', 'earn', 'POST', $params, null, null, array("cost" => 7.5));
+    }
+    public function earnPostStructEarnOrders($params = array()) {
+        return $this->request('struct-earn/orders', 'earn', 'POST', $params, null, null, array("cost" => 7.5));
     }
     public function earnDeleteEarnOrders($params = array()) {
         return $this->request('earn/orders', 'earn', 'DELETE', $params, null, null, array("cost" => 7.5));
@@ -1480,14 +1678,14 @@ abstract class kucoin extends \ccxt\Exchange {
     public function utaGetMarketCurrency($params = array()) {
         return $this->request('market/currency', 'uta', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function utaGetMarketCurrencies($params = array()) {
+        return $this->request('market/currencies', 'uta', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function utaGetMarketInstrument($params = array()) {
         return $this->request('market/instrument', 'uta', 'GET', $params, null, null, array("cost" => 4));
     }
     public function utaGetMarketTicker($params = array()) {
         return $this->request('market/ticker', 'uta', 'GET', $params, null, null, array("cost" => 15));
-    }
-    public function utaGetMarketOrderbook($params = array()) {
-        return $this->request('market/orderbook', 'uta', 'GET', $params, null, null, array("cost" => 3));
     }
     public function utaGetMarketTrade($params = array()) {
         return $this->request('market/trade', 'uta', 'GET', $params, null, null, array("cost" => 3));
@@ -1504,7 +1702,103 @@ abstract class kucoin extends \ccxt\Exchange {
     public function utaGetMarketCrossConfig($params = array()) {
         return $this->request('market/cross-config', 'uta', 'GET', $params, null, null, array("cost" => 25));
     }
+    public function utaGetMarketCollateralDiscountRatio($params = array()) {
+        return $this->request('market/collateral-discount-ratio', 'uta', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function utaGetMarketIndexPrice($params = array()) {
+        return $this->request('market/index-price', 'uta', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaGetMarketPositionTiers($params = array()) {
+        return $this->request('market/position-tiers', 'uta', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaGetMarketOpenInterest($params = array()) {
+        return $this->request('market/open-interest', 'uta', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function utaGetServerStatus($params = array()) {
         return $this->request('server/status', 'uta', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaPrivateGetMarketOrderbook($params = array()) {
+        return $this->request('market/orderbook', 'utaPrivate', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaPrivateGetAccountBalance($params = array()) {
+        return $this->request('account/balance', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaPrivateGetAccountTransferQuota($params = array()) {
+        return $this->request('account/transfer-quota', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaPrivateGetAccountMode($params = array()) {
+        return $this->request('account/mode', 'utaPrivate', 'GET', $params, null, null, array("cost" => 30));
+    }
+    public function utaPrivateGetAccountLedger($params = array()) {
+        return $this->request('account/ledger', 'utaPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function utaPrivateGetAccountInterestHistory($params = array()) {
+        return $this->request('account/interest-history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 15));
+    }
+    public function utaPrivateGetAccountDepositAddress($params = array()) {
+        return $this->request('account/deposit/address', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaPrivateGetAccountModeAccountBalance($params = array()) {
+        return $this->request('{accountMode}/account/balance', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaPrivateGetAccountModeAccountOverview($params = array()) {
+        return $this->request('{accountMode}/account/overview', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaPrivateGetAccountModeOrderDetail($params = array()) {
+        return $this->request('{accountMode}/order/detail', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetAccountModeOrderOpenList($params = array()) {
+        return $this->request('{accountMode}/order/open-list', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetAccountModeOrderHistory($params = array()) {
+        return $this->request('{accountMode}/order/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetAccountModeOrderExecution($params = array()) {
+        return $this->request('{accountMode}/order/execution', 'utaPrivate', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivateGetAccountModePositionOpenList($params = array()) {
+        return $this->request('{accountMode}/position/open-list', 'utaPrivate', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaPrivateGetAccountModePositionHistory($params = array()) {
+        return $this->request('{accountMode}/position/history', 'utaPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function utaPrivateGetAccountModePositionTiers($params = array()) {
+        return $this->request('{accountMode}/position/tiers', 'utaPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    public function utaPrivateGetSubAccountBalance($params = array()) {
+        return $this->request('sub-account/balance', 'utaPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function utaPrivateGetUserFeeRate($params = array()) {
+        return $this->request('user/fee-rate', 'utaPrivate', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function utaPrivateGetDcpQuery($params = array()) {
+        return $this->request('dcp/query', 'utaPrivate', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function utaPrivatePostAccountTransfer($params = array()) {
+        return $this->request('account/transfer', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivatePostAccountMode($params = array()) {
+        return $this->request('account/mode', 'utaPrivate', 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function utaPrivatePostAccountModeAccountModifyLeverage($params = array()) {
+        return $this->request('{accountMode}/account/modify-leverage', 'utaPrivate', 'POST', $params, null, null, array("cost" => 20));
+    }
+    public function utaPrivatePostAccountModeOrderPlace($params = array()) {
+        return $this->request('{accountMode}/order/place', 'utaPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function utaPrivatePostAccountModeOrderPlaceBatch($params = array()) {
+        return $this->request('{accountMode}/order/place-batch', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivatePostAccountModeOrderCancel($params = array()) {
+        return $this->request('{accountMode}/order/cancel', 'utaPrivate', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function utaPrivatePostAccountModeOrderCancelBatch($params = array()) {
+        return $this->request('{accountMode}/order/cancel-batch', 'utaPrivate', 'POST', $params, null, null, array("cost" => 4));
+    }
+    public function utaPrivatePostSubAccountCanTransferOut($params = array()) {
+        return $this->request('sub-account/canTransferOut', 'utaPrivate', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function utaPrivatePostDcpSet($params = array()) {
+        return $this->request('dcp/set', 'utaPrivate', 'POST', $params, null, null, array("cost" => 2));
     }
 }

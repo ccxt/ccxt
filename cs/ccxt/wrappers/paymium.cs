@@ -10,7 +10,7 @@ public partial class paymium
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/get-user-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -20,7 +20,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -30,7 +30,7 @@ public partial class paymium
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1depth/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -46,7 +46,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -57,7 +57,7 @@ public partial class paymium
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1ticker/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -67,7 +67,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -77,7 +77,7 @@ public partial class paymium
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/paths/~1data~1%7Bcurrency%7D~1trades/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-latest-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -99,7 +99,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -111,7 +111,7 @@ public partial class paymium
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/post"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/create-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -121,7 +121,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
@@ -131,7 +131,7 @@ public partial class paymium
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses~1%7Baddress%7D/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -141,7 +141,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
@@ -151,7 +151,7 @@ public partial class paymium
     /// fetch deposit addresses for multiple currencies and chain types
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/paths/~1user~1addresses/get"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/User/operation/get-deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -161,7 +161,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
@@ -171,7 +171,7 @@ public partial class paymium
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders/post"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/operation/create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -187,7 +187,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -198,8 +198,7 @@ public partial class paymium
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D/delete"/>  <br/>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/paths/~1user~1orders~1%7Buuid%7D~1cancel/delete"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -209,7 +208,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
@@ -219,7 +218,7 @@ public partial class paymium
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://paymium.github.io/api-documentation/#tag/Transfer/paths/~1user~1email_transfers/post"/>  <br/>
+    /// See <see href="https://paymium.github.io/api-documentation/#tag/Transfer/operation/create-email-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -229,7 +228,7 @@ public partial class paymium
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);

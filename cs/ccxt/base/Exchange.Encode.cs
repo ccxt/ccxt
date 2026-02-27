@@ -218,13 +218,19 @@ public partial class Exchange
         return base64Url;
     }
 
-    public string binaryToBase64(byte[] buff) => BinaryToBase64(buff);
+    public string binaryToBase64(object buff2)
+    {
+        var buff = (byte[])buff2;
+        return BinaryToBase64(buff);
+    }
 
     public static string BinaryToBase64(object buff2)
     {
         var buff = (byte[])buff2;
         return Convert.ToBase64String(buff);
     }
+
+
 
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 

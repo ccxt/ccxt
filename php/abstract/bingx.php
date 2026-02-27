@@ -94,6 +94,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spot_v2_public_get_market_kline($params = array()) {
         return $this->request('market/kline', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spot_v2_public_get_ticker_price($params = array()) {
+        return $this->request('ticker/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spot_v3_private_get_get_asset_transfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -267,6 +270,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swap_v2_private_get_quote_bookticker($params = array()) {
         return $this->request('quote/bookTicker', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swap_v2_private_post_trade_getvst($params = array()) {
+        return $this->request('trade/getVst', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
     public function swap_v2_private_post_trade_order($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 2));
@@ -649,6 +655,9 @@ abstract class bingx extends \ccxt\Exchange {
     public function spotV2PublicGetMarketKline($params = array()) {
         return $this->request('market/kline', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function spotV2PublicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', array('spot', 'v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function spotV3PrivateGetGetAssetTransfer($params = array()) {
         return $this->request('get/asset/transfer', array('spot', 'v3', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -822,6 +831,9 @@ abstract class bingx extends \ccxt\Exchange {
     }
     public function swapV2PrivateGetQuoteBookTicker($params = array()) {
         return $this->request('quote/bookTicker', array('swap', 'v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function swapV2PrivatePostTradeGetVst($params = array()) {
+        return $this->request('trade/getVst', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 5));
     }
     public function swapV2PrivatePostTradeOrder($params = array()) {
         return $this->request('trade/order', array('swap', 'v2', 'private'), 'POST', $params, null, null, array("cost" => 2));

@@ -150,7 +150,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-
+		this.Last_response_headers = HeaderToMap(resp.Header)
+		this.LastResponseHeaders = HeaderToMap(resp.Header)
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -174,6 +175,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			}
 		}
 
+		responseHeaders := HeaderToMap(resp.Header)
+
 		// Use ParseJSON to handle JSON parsing with proper number normalization
 		var result interface{}
 		result = ParseJSON(string(respBody))
@@ -184,7 +187,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		} else {
 			if this.ReturnResponseHeaders {
 				if resultMap, ok := result.(map[string]interface{}); ok {
-					resultMap["responseHeaders"] = HeaderToMap(resp.Header)
+					resultMap["responseHeaders"] = responseHeaders
 					result = resultMap
 				}
 			}
@@ -197,7 +200,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
-		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {

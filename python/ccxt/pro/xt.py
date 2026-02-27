@@ -507,7 +507,7 @@ class xt(ccxt.async_support.xt):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the kucoin api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         name = 'trade'
@@ -527,7 +527,7 @@ class xt(ccxt.async_support.xt):
         https://doc.xt.com/#futures_user_websocket_v2balance
 
         :param dict params: extra parameters specific to the xt api endpoint
-        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict[]: a list of `balance structures <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         name = 'balance'
@@ -581,9 +581,10 @@ class xt(ccxt.async_support.xt):
             if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'position::contract')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'position::contract')
 
     def handle_position(self, client, message):
         #
@@ -1344,12 +1345,21 @@ class xt(ccxt.async_support.xt):
         #         method: 'unsubscribe'
         #     }
         #
-        method = self.safe_string_lower(message, 'method')
-        if method == 'unsubscribe':
-            id = self.safe_string(message, 'id')
-            subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = self.safe_value(subscriptionsById, id, {})
-            self.handle_un_subscription(client, subscription)
+        #     {
+        #         code: 0,
+        #         msg: 'success',
+        #         id: '1764032903806ticker@btc_usdt',
+        #         sessionId: '5e1597fffeb08f50-00000001-06401597-943ec6d3c64310dd-9b247bee'
+        #     }
+        #
+        id = self.safe_string(message, 'id')
+        subscriptionsById = self.index_by(client.subscriptions, 'id')
+        unsubscribe = False
+        if id is not None:
+            subscription = self.safe_dict(subscriptionsById, id, {})
+            unsubscribe = self.safe_bool(subscription, 'unsubscribe', False)
+            if unsubscribe:
+                self.handle_un_subscription(client, subscription)
         return message
 
     def handle_un_subscription(self, client: Client, subscription: dict):

@@ -7,12 +7,83 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        public object testDeepExtend()
+        public void testDeepExtend()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            Assert(isEqual(exchange.parseToNumeric("1"), 1));
-            return true;  // dummy for now
+            object obj1 = new Dictionary<string, object>() {
+                { "a", 1 },
+                { "b", new List<object>() {1, 2, 3} },
+                { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 1 },
+            { "test2", 1 },
+        }} },
+                { "d", null },
+                { "e", "not_undefined" },
+                { "sub", new Dictionary<string, object>() {
+                    { "a", 1 },
+                    { "b", new List<object>() {1, 2} },
+                    { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 1 },
+            { "test2", 2 },
+        }} },
+                    { "d", null },
+                    { "e", "not_undefined" },
+                    { "other1", "x" },
+                } },
+                { "other1", "x" },
+            };
+            object obj2 = new Dictionary<string, object>() {
+                { "a", 2 },
+                { "b", new List<object>() {3, 4} },
+                { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 2 },
+            { "test3", 3 },
+        }} },
+                { "d", "not_undefined" },
+                { "e", null },
+                { "sub", new Dictionary<string, object>() {
+                    { "a", 2 },
+                    { "b", new List<object>() {3, 4} },
+                    { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 2 },
+            { "test3", 3 },
+        }} },
+                    { "d", "not_undefined" },
+                    { "e", null },
+                    { "other2", "y" },
+                } },
+                { "other2", "y" },
+            };
+            // deepExtend
+            object deepExtended = exchange.deepExtend(obj1, obj2);
+            object compareTo = new Dictionary<string, object>() {
+                { "a", 2 },
+                { "b", new List<object>() {3, 4} },
+                { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 2 },
+            { "test3", 3 },
+        }} },
+                { "d", "not_undefined" },
+                { "e", null },
+                { "sub", new Dictionary<string, object>() {
+                    { "a", 2 },
+                    { "b", new List<object>() {3, 4} },
+                    { "c", new List<object>() {new Dictionary<string, object>() {
+            { "test1", 2 },
+            { "test3", 3 },
+        }} },
+                    { "d", "not_undefined" },
+                    { "e", null },
+                    { "other1", "x" },
+                    { "other2", "y" },
+                } },
+                { "other1", "x" },
+                { "other2", "y" },
+            };
+            // todo: results are different across langs.
+            // to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
+            AssertDeepEqual(exchange, null, "testDeepExtend", deepExtended, compareTo);
         }
 }

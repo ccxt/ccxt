@@ -123,6 +123,10 @@ func (this *BingxCore) SpotV2PublicGetMarketKline(args ...interface{}) <-chan in
 	return this.callEndpointAsync("spotV2PublicGetMarketKline", args...)
 }
 
+func (this *BingxCore) SpotV2PublicGetTickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
+}
+
 func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
 }
@@ -353,6 +357,10 @@ func (this *BingxCore) SwapV2PrivateGetUserCommissionRate(args ...interface{}) <
 
 func (this *BingxCore) SwapV2PrivateGetQuoteBookTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("swapV2PrivateGetQuoteBookTicker", args...)
+}
+
+func (this *BingxCore) SwapV2PrivatePostTradeGetVst(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeGetVst", args...)
 }
 
 func (this *BingxCore) SwapV2PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {

@@ -103,7 +103,7 @@ func (this *KucoinCore) Describe() interface{} {
 			"fetchTradingFee":                true,
 			"fetchTradingFees":               false,
 			"fetchTransactionFee":            true,
-			"fetchTransfers":                 false,
+			"fetchTransfers":                 true,
 			"fetchWithdrawals":               true,
 			"repayCrossMargin":               true,
 			"repayIsolatedMargin":            true,
@@ -126,6 +126,7 @@ func (this *KucoinCore) Describe() interface{} {
 				"broker":         "https://api-broker.kucoin.com",
 				"earn":           "https://api.kucoin.com",
 				"uta":            "https://api.kucoin.com",
+				"utaPrivate":     "https://api.kucoin.com",
 			},
 			"www": "https://www.kucoin.com",
 			"doc": []interface{}{"https://docs.kucoin.com"},
@@ -158,6 +159,8 @@ func (this *KucoinCore) Describe() interface{} {
 					"margin/config":                         25,
 					"announcements":                         20,
 					"margin/collateralRatio":                10,
+					"convert/symbol":                        5,
+					"convert/currencies":                    5,
 				},
 				"post": map[string]interface{}{
 					"bullet-public": 15,
@@ -166,6 +169,7 @@ func (this *KucoinCore) Describe() interface{} {
 			"private": map[string]interface{}{
 				"get": map[string]interface{}{
 					"user-info":                                 30,
+					"user/api-key":                              30,
 					"accounts":                                  7.5,
 					"accounts/{accountId}":                      7.5,
 					"accounts/ledgers":                          3,
@@ -237,7 +241,14 @@ func (this *KucoinCore) Describe() interface{} {
 					"broker/queryUser":                          3,
 					"broker/queryDetailByUid":                   3,
 					"migrate/user/account/status":               3,
+					"convert/quote":                             20,
+					"convert/order/detail":                      5,
+					"convert/order/history":                     5,
+					"convert/limit/quote":                       20,
+					"convert/limit/order/detail":                5,
+					"convert/limit/orders":                      5,
 					"affiliate/inviter/statistics":              30,
+					"earn/redeem-preview":                       5,
 				},
 				"post": map[string]interface{}{
 					"sub/user/created":              22.5,
@@ -271,6 +282,8 @@ func (this *KucoinCore) Describe() interface{} {
 					"purchase":                      15,
 					"redeem":                        15,
 					"lend/purchase/update":          10,
+					"convert/order":                 20,
+					"convert/limit/order":           20,
 					"bullet-private":                10,
 					"position/update-user-leverage": 5,
 					"deposit-address/create":        20,
@@ -297,6 +310,7 @@ func (this *KucoinCore) Describe() interface{} {
 					"hf/margin/orders/{orderId}":                5,
 					"hf/margin/orders/client-order/{clientOid}": 5,
 					"hf/margin/orders":                          10,
+					"convert/limit/order/cancel":                5,
 				},
 			},
 			"futuresPublic": map[string]interface{}{
@@ -406,18 +420,22 @@ func (this *KucoinCore) Describe() interface{} {
 			},
 			"earn": map[string]interface{}{
 				"get": map[string]interface{}{
-					"otc-loan/loan":             1,
-					"otc-loan/accounts":         1,
-					"earn/redeem-preview":       7.5,
-					"earn/saving/products":      7.5,
-					"earn/hold-assets":          7.5,
-					"earn/promotion/products":   7.5,
-					"earn/kcs-staking/products": 7.5,
-					"earn/staking/products":     7.5,
-					"earn/eth-staking/products": 7.5,
+					"otc-loan/discount-rate-configs": 10,
+					"otc-loan/loan":                  1,
+					"otc-loan/accounts":              1,
+					"earn/redeem-preview":            7.5,
+					"earn/saving/products":           7.5,
+					"earn/hold-assets":               7.5,
+					"earn/promotion/products":        7.5,
+					"earn/kcs-staking/products":      7.5,
+					"earn/staking/products":          7.5,
+					"earn/eth-staking/products":      7.5,
+					"struct-earn/dual/products":      4.5,
+					"struct-earn/orders":             7.5,
 				},
 				"post": map[string]interface{}{
-					"earn/orders": 7.5,
+					"earn/orders":        7.5,
+					"struct-earn/orders": 7.5,
 				},
 				"delete": map[string]interface{}{
 					"earn/orders": 7.5,
@@ -425,17 +443,55 @@ func (this *KucoinCore) Describe() interface{} {
 			},
 			"uta": map[string]interface{}{
 				"get": map[string]interface{}{
-					"market/announcement":         20,
-					"market/currency":             3,
-					"market/instrument":           4,
-					"market/ticker":               15,
-					"market/orderbook":            3,
-					"market/trade":                3,
-					"market/kline":                3,
-					"market/funding-rate":         2,
-					"market/funding-rate-history": 5,
-					"market/cross-config":         25,
-					"server/status":               3,
+					"market/announcement":              20,
+					"market/currency":                  3,
+					"market/currencies":                3,
+					"market/instrument":                4,
+					"market/ticker":                    15,
+					"market/trade":                     3,
+					"market/kline":                     3,
+					"market/funding-rate":              2,
+					"market/funding-rate-history":      5,
+					"market/cross-config":              25,
+					"market/collateral-discount-ratio": 10,
+					"market/index-price":               20,
+					"market/position-tiers":            20,
+					"market/open-interest":             10,
+					"server/status":                    3,
+				},
+			},
+			"utaPrivate": map[string]interface{}{
+				"get": map[string]interface{}{
+					"market/orderbook":                 3,
+					"account/balance":                  5,
+					"account/transfer-quota":           20,
+					"account/mode":                     30,
+					"account/ledger":                   2,
+					"account/interest-history":         15,
+					"account/deposit/address":          5,
+					"{accountMode}/account/balance":    5,
+					"{accountMode}/account/overview":   5,
+					"{accountMode}/order/detail":       4,
+					"{accountMode}/order/open-list":    4,
+					"{accountMode}/order/history":      4,
+					"{accountMode}/order/execution":    4,
+					"{accountMode}/position/open-list": 3,
+					"{accountMode}/position/history":   2,
+					"{accountMode}/position/tiers":     20,
+					"sub-account/balance":              5,
+					"user/fee-rate":                    3,
+					"dcp/query":                        2,
+				},
+				"post": map[string]interface{}{
+					"account/transfer":                      4,
+					"account/mode":                          30,
+					"{accountMode}/account/modify-leverage": 20,
+					"{accountMode}/order/place":             1,
+					"{accountMode}/order/place-batch":       4,
+					"{accountMode}/order/cancel":            1,
+					"{accountMode}/order/cancel-batch":      4,
+					"sub-account/canTransferOut":            5,
+					"dcp/set":                               2,
 				},
 			},
 		},
@@ -470,115 +526,117 @@ func (this *KucoinCore) Describe() interface{} {
 				"Unsuccessful! Exceeded the max. funds out-transfer limit": InsufficientFunds,
 				"The amount increment is invalid.":                         BadRequest,
 				"The quantity is below the minimum requirement.":           InvalidOrder,
-				"400":    BadRequest,
-				"401":    AuthenticationError,
-				"403":    NotSupported,
-				"404":    NotSupported,
-				"405":    NotSupported,
-				"415":    NotSupported,
-				"429":    RateLimitExceeded,
-				"500":    ExchangeNotAvailable,
-				"503":    ExchangeNotAvailable,
-				"101030": PermissionDenied,
-				"103000": InvalidOrder,
-				"130101": BadRequest,
-				"130102": ExchangeError,
-				"130103": OrderNotFound,
-				"130104": ExchangeError,
-				"130105": InsufficientFunds,
-				"130106": NotSupported,
-				"130107": ExchangeError,
-				"130108": OrderNotFound,
-				"130201": PermissionDenied,
-				"130202": ExchangeError,
-				"130203": InsufficientFunds,
-				"130204": BadRequest,
-				"130301": InsufficientFunds,
-				"130302": PermissionDenied,
-				"130303": NotSupported,
-				"130304": NotSupported,
-				"130305": NotSupported,
-				"130306": NotSupported,
-				"130307": NotSupported,
-				"130308": InvalidOrder,
-				"130309": InvalidOrder,
-				"130310": ExchangeError,
-				"130311": InvalidOrder,
-				"130312": InvalidOrder,
-				"130313": InvalidOrder,
-				"130314": InvalidOrder,
-				"130315": NotSupported,
-				"126000": ExchangeError,
-				"126001": NotSupported,
-				"126002": ExchangeError,
-				"126003": InvalidOrder,
-				"126004": ExchangeError,
-				"126005": PermissionDenied,
-				"126006": ExchangeError,
-				"126007": ExchangeError,
-				"126009": ExchangeError,
-				"126010": ExchangeError,
-				"126011": ExchangeError,
-				"126013": InsufficientFunds,
-				"126015": ExchangeError,
-				"126021": NotSupported,
-				"126022": InvalidOrder,
-				"126027": InvalidOrder,
-				"126028": InvalidOrder,
-				"126029": InvalidOrder,
-				"126030": InvalidOrder,
-				"126033": InvalidOrder,
-				"126034": InvalidOrder,
-				"126036": InvalidOrder,
-				"126037": ExchangeError,
-				"126038": ExchangeError,
-				"126039": ExchangeError,
-				"126041": ExchangeError,
-				"126042": ExchangeError,
-				"126043": OrderNotFound,
-				"126044": InvalidOrder,
-				"126045": NotSupported,
-				"126046": NotSupported,
-				"126047": PermissionDenied,
-				"126048": PermissionDenied,
-				"135005": ExchangeError,
-				"135018": ExchangeError,
-				"200004": InsufficientFunds,
-				"210014": InvalidOrder,
-				"210021": InsufficientFunds,
-				"230003": InsufficientFunds,
-				"260000": InvalidAddress,
-				"260100": InsufficientFunds,
-				"300000": InvalidOrder,
-				"400000": BadSymbol,
-				"400001": AuthenticationError,
-				"400002": InvalidNonce,
-				"400003": AuthenticationError,
-				"400004": AuthenticationError,
-				"400005": AuthenticationError,
-				"400006": AuthenticationError,
-				"400007": AuthenticationError,
-				"400008": NotSupported,
-				"400100": InsufficientFunds,
-				"400200": InvalidOrder,
-				"400330": InvalidOrder,
-				"400350": InvalidOrder,
-				"400370": InvalidOrder,
-				"400400": BadRequest,
-				"400401": AuthenticationError,
-				"400500": InvalidOrder,
-				"400600": BadSymbol,
-				"400760": InvalidOrder,
-				"401000": BadRequest,
-				"408000": BadRequest,
-				"411100": AccountSuspended,
-				"415000": BadRequest,
-				"400303": PermissionDenied,
-				"500000": ExchangeNotAvailable,
-				"260220": InvalidAddress,
-				"600100": InsufficientFunds,
-				"600101": InvalidOrder,
-				"900014": BadRequest,
+				"not in the given range!":                                  BadRequest,
+				"recAccountType not in the given range":                    BadRequest,
+				"400":                                                      BadRequest,
+				"401":                                                      AuthenticationError,
+				"403":                                                      NotSupported,
+				"404":                                                      NotSupported,
+				"405":                                                      NotSupported,
+				"415":                                                      NotSupported,
+				"429":                                                      RateLimitExceeded,
+				"500":                                                      ExchangeNotAvailable,
+				"503":                                                      ExchangeNotAvailable,
+				"101030":                                                   PermissionDenied,
+				"103000":                                                   InvalidOrder,
+				"130101":                                                   BadRequest,
+				"130102":                                                   ExchangeError,
+				"130103":                                                   OrderNotFound,
+				"130104":                                                   ExchangeError,
+				"130105":                                                   InsufficientFunds,
+				"130106":                                                   NotSupported,
+				"130107":                                                   ExchangeError,
+				"130108":                                                   OrderNotFound,
+				"130201":                                                   PermissionDenied,
+				"130202":                                                   ExchangeError,
+				"130203":                                                   InsufficientFunds,
+				"130204":                                                   BadRequest,
+				"130301":                                                   InsufficientFunds,
+				"130302":                                                   PermissionDenied,
+				"130303":                                                   NotSupported,
+				"130304":                                                   NotSupported,
+				"130305":                                                   NotSupported,
+				"130306":                                                   NotSupported,
+				"130307":                                                   NotSupported,
+				"130308":                                                   InvalidOrder,
+				"130309":                                                   InvalidOrder,
+				"130310":                                                   ExchangeError,
+				"130311":                                                   InvalidOrder,
+				"130312":                                                   InvalidOrder,
+				"130313":                                                   InvalidOrder,
+				"130314":                                                   InvalidOrder,
+				"130315":                                                   NotSupported,
+				"126000":                                                   ExchangeError,
+				"126001":                                                   NotSupported,
+				"126002":                                                   ExchangeError,
+				"126003":                                                   InvalidOrder,
+				"126004":                                                   ExchangeError,
+				"126005":                                                   PermissionDenied,
+				"126006":                                                   ExchangeError,
+				"126007":                                                   ExchangeError,
+				"126009":                                                   ExchangeError,
+				"126010":                                                   ExchangeError,
+				"126011":                                                   ExchangeError,
+				"126013":                                                   InsufficientFunds,
+				"126015":                                                   ExchangeError,
+				"126021":                                                   NotSupported,
+				"126022":                                                   InvalidOrder,
+				"126027":                                                   InvalidOrder,
+				"126028":                                                   InvalidOrder,
+				"126029":                                                   InvalidOrder,
+				"126030":                                                   InvalidOrder,
+				"126033":                                                   InvalidOrder,
+				"126034":                                                   InvalidOrder,
+				"126036":                                                   InvalidOrder,
+				"126037":                                                   ExchangeError,
+				"126038":                                                   ExchangeError,
+				"126039":                                                   ExchangeError,
+				"126041":                                                   ExchangeError,
+				"126042":                                                   ExchangeError,
+				"126043":                                                   OrderNotFound,
+				"126044":                                                   InvalidOrder,
+				"126045":                                                   NotSupported,
+				"126046":                                                   NotSupported,
+				"126047":                                                   PermissionDenied,
+				"126048":                                                   PermissionDenied,
+				"135005":                                                   ExchangeError,
+				"135018":                                                   ExchangeError,
+				"200004":                                                   InsufficientFunds,
+				"210014":                                                   InvalidOrder,
+				"210021":                                                   InsufficientFunds,
+				"230003":                                                   InsufficientFunds,
+				"260000":                                                   InvalidAddress,
+				"260100":                                                   InsufficientFunds,
+				"300000":                                                   InvalidOrder,
+				"400000":                                                   BadSymbol,
+				"400001":                                                   AuthenticationError,
+				"400002":                                                   InvalidNonce,
+				"400003":                                                   AuthenticationError,
+				"400004":                                                   AuthenticationError,
+				"400005":                                                   AuthenticationError,
+				"400006":                                                   AuthenticationError,
+				"400007":                                                   AuthenticationError,
+				"400008":                                                   NotSupported,
+				"400100":                                                   InsufficientFunds,
+				"400200":                                                   InvalidOrder,
+				"400330":                                                   InvalidOrder,
+				"400350":                                                   InvalidOrder,
+				"400370":                                                   InvalidOrder,
+				"400400":                                                   BadRequest,
+				"400401":                                                   AuthenticationError,
+				"400500":                                                   RestrictedLocation,
+				"400600":                                                   BadSymbol,
+				"400760":                                                   InvalidOrder,
+				"401000":                                                   BadRequest,
+				"408000":                                                   BadRequest,
+				"411100":                                                   AccountSuspended,
+				"415000":                                                   BadRequest,
+				"400303":                                                   PermissionDenied,
+				"500000":                                                   ExchangeNotAvailable,
+				"260220":                                                   InvalidAddress,
+				"600100":                                                   InsufficientFunds,
+				"600101":                                                   InvalidOrder,
+				"900014":                                                   BadRequest,
 			},
 			"broad": map[string]interface{}{
 				"Exceeded the access frequency": RateLimitExceeded,
@@ -628,6 +686,9 @@ func (this *KucoinCore) Describe() interface{} {
 			},
 			"withdraw": map[string]interface{}{
 				"includeFee": false,
+			},
+			"transfer": map[string]interface{}{
+				"fillResponseFromRequest": true,
 			},
 			"versions": map[string]interface{}{
 				"public": map[string]interface{}{
@@ -994,7 +1055,7 @@ func (this *KucoinCore) FetchTime(optionalArgs ...interface{}) <-chan interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
- * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+ * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *KucoinCore) FetchStatus(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1066,9 +1127,9 @@ func (this *KucoinCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 		params = GetValue(utaparamsVariable, 1)
 		if IsTrue(uta) {
 
-			retRes120019 := (<-this.FetchUtaMarkets(params))
-			PanicOnError(retRes120019)
-			ch <- retRes120019
+			retRes126619 := (<-this.FetchUtaMarkets(params))
+			PanicOnError(retRes126619)
+			ch <- retRes126619
 			return nil
 		}
 		var promises interface{} = []interface{}{}
@@ -1210,8 +1271,8 @@ func (this *KucoinCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 		}
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes138212 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes138212)
+			retRes144812 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes144812)
 		}
 
 		ch <- result
@@ -1409,8 +1470,8 @@ func (this *KucoinCore) FetchUtaMarkets(optionalArgs ...interface{}) <-chan inte
 		}
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes156312 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes156312)
+			retRes162912 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes162912)
 		}
 
 		ch <- result
@@ -1592,7 +1653,7 @@ func (this *KucoinCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inte
  * @description fetch all the accounts associated with a profile
  * @see https://docs.kucoin.com/#list-accounts
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+ * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *KucoinCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1658,7 +1719,7 @@ func (this *KucoinCore) FetchAccounts(optionalArgs ...interface{}) <-chan interf
  * @see https://docs.kucoin.com/#get-withdrawal-quotas
  * @param {string} code unified currency code
  * @param {object} params extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *KucoinCore) FetchTransactionFee(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1668,8 +1729,8 @@ func (this *KucoinCore) FetchTransactionFee(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes17698 := (<-this.LoadMarkets())
-		PanicOnError(retRes17698)
+		retRes18358 := (<-this.LoadMarkets())
+		PanicOnError(retRes18358)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -1707,7 +1768,7 @@ func (this *KucoinCore) FetchTransactionFee(code interface{}, optionalArgs ...in
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency; you can query the chain through the response of the GET /api/v2/currencies/{currency} interface
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *KucoinCore) FetchDepositWithdrawFee(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1717,8 +1778,8 @@ func (this *KucoinCore) FetchDepositWithdrawFee(code interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18018 := (<-this.LoadMarkets())
-		PanicOnError(retRes18018)
+		retRes18678 := (<-this.LoadMarkets())
+		PanicOnError(retRes18678)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -1973,7 +2034,7 @@ func (this *KucoinCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
  * @param {string} [params.tradeType] *uta only* set to SPOT or FUTURES
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -1985,8 +2046,8 @@ func (this *KucoinCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes20498 := (<-this.LoadMarkets())
-		PanicOnError(retRes20498)
+		retRes21158 := (<-this.LoadMarkets())
+		PanicOnError(retRes21158)
 		var request interface{} = map[string]interface{}{}
 		symbols = this.MarketSymbols(symbols)
 		var uta interface{} = nil
@@ -2050,7 +2111,7 @@ func (this *KucoinCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
  * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-all-margin-trading-pairs-mark-prices
  * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2062,8 +2123,8 @@ func (this *KucoinCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes21578 := (<-this.LoadMarkets())
-		PanicOnError(retRes21578)
+		retRes22238 := (<-this.LoadMarkets())
+		PanicOnError(retRes22238)
 		symbols = this.MarketSymbols(symbols)
 
 		response := (<-this.PublicGetMarkPriceAllSymbols(params))
@@ -2086,7 +2147,7 @@ func (this *KucoinCore) FetchMarkPrices(optionalArgs ...interface{}) <-chan inte
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2096,8 +2157,8 @@ func (this *KucoinCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes21768 := (<-this.LoadMarkets())
-		PanicOnError(retRes21768)
+		retRes22428 := (<-this.LoadMarkets())
+		PanicOnError(retRes22428)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2194,7 +2255,7 @@ func (this *KucoinCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
  * @see https://www.kucoin.com/docs/rest/margin-trading/margin-info/get-mark-price
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinCore) FetchMarkPrice(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2204,8 +2265,8 @@ func (this *KucoinCore) FetchMarkPrice(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22638 := (<-this.LoadMarkets())
-		PanicOnError(retRes22638)
+		retRes23298 := (<-this.LoadMarkets())
+		PanicOnError(retRes23298)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2268,17 +2329,17 @@ func (this *KucoinCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23128 := (<-this.LoadMarkets())
-		PanicOnError(retRes23128)
+		retRes23788 := (<-this.LoadMarkets())
+		PanicOnError(retRes23788)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes231619 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1500))
-			PanicOnError(retRes231619)
-			ch <- retRes231619
+			retRes238219 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1500))
+			PanicOnError(retRes238219)
+			ch <- retRes238219
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -2372,7 +2433,7 @@ func (this *KucoinCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the blockchain network name
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *KucoinCore) CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2382,8 +2443,8 @@ func (this *KucoinCore) CreateDepositAddress(code interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23998 := (<-this.LoadMarkets())
-		PanicOnError(retRes23998)
+		retRes24658 := (<-this.LoadMarkets())
+		PanicOnError(retRes24658)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2430,7 +2491,7 @@ func (this *KucoinCore) CreateDepositAddress(code interface{}, optionalArgs ...i
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] the blockchain network name
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *KucoinCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2440,8 +2501,8 @@ func (this *KucoinCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24408 := (<-this.LoadMarkets())
-		PanicOnError(retRes24408)
+		retRes25068 := (<-this.LoadMarkets())
+		PanicOnError(retRes25068)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2504,7 +2565,7 @@ func (this *KucoinCore) ParseDepositAddress(depositAddress interface{}, optional
  * @description fetch the deposit address for a currency associated with this account
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *KucoinCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2514,8 +2575,8 @@ func (this *KucoinCore) FetchDepositAddressesByNetwork(code interface{}, optiona
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24998 := (<-this.LoadMarkets())
-		PanicOnError(retRes24998)
+		retRes25658 := (<-this.LoadMarkets())
+		PanicOnError(retRes25658)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2564,7 +2625,7 @@ func (this *KucoinCore) FetchDepositAddressesByNetwork(code interface{}, optiona
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *KucoinCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2576,8 +2637,8 @@ func (this *KucoinCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25448 := (<-this.LoadMarkets())
-		PanicOnError(retRes25448)
+		retRes26108 := (<-this.LoadMarkets())
+		PanicOnError(retRes26108)
 		var market interface{} = this.Market(symbol)
 		var level interface{} = this.SafeInteger(params, "level", 2)
 		var request interface{} = map[string]interface{}{
@@ -2605,7 +2666,7 @@ func (this *KucoinCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 				AddElementToObject(request, "tradeType", "FUTURES")
 			}
 
-			response = (<-this.UtaGetMarketOrderbook(this.Extend(request, params)))
+			response = (<-this.UtaPrivateGetMarketOrderbook(this.Extend(request, params)))
 			PanicOnError(response)
 		} else if IsTrue(!IsTrue(isAuthenticated) || IsTrue(!IsEqual(limit, nil))) {
 			if IsTrue(IsEqual(level, 2)) {
@@ -2723,7 +2784,7 @@ func (this *KucoinCore) HandleTriggerPrices(params interface{}) interface{} {
  * @param {bool} [params.hf] false, // true for hf order
  * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
  * @param {bool} [params.sync] set to true to use the hf sync call
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2735,8 +2796,8 @@ func (this *KucoinCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26958 := (<-this.LoadMarkets())
-		PanicOnError(retRes26958)
+		retRes27618 := (<-this.LoadMarkets())
+		PanicOnError(retRes27618)
 		var market interface{} = this.Market(symbol)
 		var testOrder interface{} = this.SafeBool(params, "test", false)
 		params = this.Omit(params, "test")
@@ -2821,7 +2882,7 @@ func (this *KucoinCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
  * @param {string} side 'buy' or 'sell'
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) CreateMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2831,15 +2892,15 @@ func (this *KucoinCore) CreateMarketOrderWithCost(symbol interface{}, side inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27558 := (<-this.LoadMarkets())
-		PanicOnError(retRes27558)
+		retRes28218 := (<-this.LoadMarkets())
+		PanicOnError(retRes28218)
 		var req interface{} = map[string]interface{}{
 			"cost": cost,
 		}
 
-		retRes275915 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes275915)
-		ch <- retRes275915
+		retRes282515 := (<-this.CreateOrder(symbol, "market", side, cost, nil, this.Extend(req, params)))
+		PanicOnError(retRes282515)
+		ch <- retRes282515
 		return nil
 
 	}()
@@ -2854,7 +2915,7 @@ func (this *KucoinCore) CreateMarketOrderWithCost(symbol interface{}, side inter
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2864,12 +2925,12 @@ func (this *KucoinCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27738 := (<-this.LoadMarkets())
-		PanicOnError(retRes27738)
+		retRes28398 := (<-this.LoadMarkets())
+		PanicOnError(retRes28398)
 
-		retRes277415 := (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
-		PanicOnError(retRes277415)
-		ch <- retRes277415
+		retRes284015 := (<-this.CreateMarketOrderWithCost(symbol, "buy", cost, params))
+		PanicOnError(retRes284015)
+		ch <- retRes284015
 		return nil
 
 	}()
@@ -2884,7 +2945,7 @@ func (this *KucoinCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost in
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) CreateMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2894,12 +2955,12 @@ func (this *KucoinCore) CreateMarketSellOrderWithCost(symbol interface{}, cost i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes27888 := (<-this.LoadMarkets())
-		PanicOnError(retRes27888)
+		retRes28548 := (<-this.LoadMarkets())
+		PanicOnError(retRes28548)
 
-		retRes278915 := (<-this.CreateMarketOrderWithCost(symbol, "sell", cost, params))
-		PanicOnError(retRes278915)
-		ch <- retRes278915
+		retRes285515 := (<-this.CreateMarketOrderWithCost(symbol, "sell", cost, params))
+		PanicOnError(retRes285515)
+		ch <- retRes285515
 		return nil
 
 	}()
@@ -2917,7 +2978,7 @@ func (this *KucoinCore) CreateMarketSellOrderWithCost(symbol interface{}, cost i
  * @param {object} [params]  extra parameters specific to the exchange API endpoint
  * @param {bool} [params.hf] false, // true for hf orders
  * @param {bool} [params.sync] false, // true to use the hf sync call
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2927,8 +2988,8 @@ func (this *KucoinCore) CreateOrders(orders interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28068 := (<-this.LoadMarkets())
-		PanicOnError(retRes28068)
+		retRes28728 := (<-this.LoadMarkets())
+		PanicOnError(retRes28728)
 		var ordersRequests interface{} = []interface{}{}
 		var symbol interface{} = nil
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -3116,7 +3177,7 @@ func (this *KucoinCore) CreateOrderRequest(symbol interface{}, typeVar interface
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3130,8 +3191,8 @@ func (this *KucoinCore) EditOrder(id interface{}, symbol interface{}, typeVar in
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes29738 := (<-this.LoadMarkets())
-		PanicOnError(retRes29738)
+		retRes30398 := (<-this.LoadMarkets())
+		PanicOnError(retRes30398)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3198,8 +3259,8 @@ func (this *KucoinCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes30248 := (<-this.LoadMarkets())
-		PanicOnError(retRes30248)
+		retRes30908 := (<-this.LoadMarkets())
+		PanicOnError(retRes30908)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeString2(params, "clientOid", "clientOrderId")
 		var trigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
@@ -3314,8 +3375,8 @@ func (this *KucoinCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes31408 := (<-this.LoadMarkets())
-		PanicOnError(retRes31408)
+		retRes32068 := (<-this.LoadMarkets())
+		PanicOnError(retRes32068)
 		var request interface{} = map[string]interface{}{}
 		var trigger interface{} = this.SafeBool2(params, "trigger", "stop", false)
 		var hf interface{} = nil
@@ -3386,7 +3447,7 @@ func (this *KucoinCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
  * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
  * @param {bool} [params.trigger] True if fetching a trigger order
  * @param {bool} [params.hf] false, // true for hf order
- * @returns An [array of order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) FetchOrdersByStatus(status interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3402,8 +3463,8 @@ func (this *KucoinCore) FetchOrdersByStatus(status interface{}, optionalArgs ...
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes31958 := (<-this.LoadMarkets())
-		PanicOnError(retRes31958)
+		retRes32618 := (<-this.LoadMarkets())
+		PanicOnError(retRes32618)
 		var lowercaseStatus interface{} = ToLower(status)
 		var until interface{} = this.SafeInteger(params, "until")
 		var trigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
@@ -3539,7 +3600,7 @@ func (this *KucoinCore) FetchOrdersByStatus(status interface{}, optionalArgs ...
  * @param {bool} [params.trigger] True if fetching a trigger order
  * @param {bool} [params.hf] false, // true for hf order
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3555,23 +3616,23 @@ func (this *KucoinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes33158 := (<-this.LoadMarkets())
-		PanicOnError(retRes33158)
+		retRes33818 := (<-this.LoadMarkets())
+		PanicOnError(retRes33818)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes331919 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-			PanicOnError(retRes331919)
-			ch <- retRes331919
+			retRes338519 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+			PanicOnError(retRes338519)
+			ch <- retRes338519
 			return nil
 		}
 
-		retRes332115 := (<-this.FetchOrdersByStatus("done", symbol, since, limit, params))
-		PanicOnError(retRes332115)
-		ch <- retRes332115
+		retRes338715 := (<-this.FetchOrdersByStatus("done", symbol, since, limit, params))
+		PanicOnError(retRes338715)
+		ch <- retRes338715
 		return nil
 
 	}()
@@ -3599,7 +3660,7 @@ func (this *KucoinCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
  * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
  * @param {bool} [params.hf] false, // true for hf order
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3615,23 +3676,23 @@ func (this *KucoinCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes33488 := (<-this.LoadMarkets())
-		PanicOnError(retRes33488)
+		retRes34148 := (<-this.LoadMarkets())
+		PanicOnError(retRes34148)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes335219 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
-			PanicOnError(retRes335219)
-			ch <- retRes335219
+			retRes341819 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+			PanicOnError(retRes341819)
+			ch <- retRes341819
 			return nil
 		}
 
-		retRes335415 := (<-this.FetchOrdersByStatus("active", symbol, since, limit, params))
-		PanicOnError(retRes335415)
-		ch <- retRes335415
+		retRes342015 := (<-this.FetchOrdersByStatus("active", symbol, since, limit, params))
+		PanicOnError(retRes342015)
+		ch <- retRes342015
 		return nil
 
 	}()
@@ -3654,7 +3715,7 @@ func (this *KucoinCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
  * @param {bool} [params.trigger] true if fetching a trigger order
  * @param {bool} [params.hf] false, // true for hf order
  * @param {bool} [params.clientOid] unique order id created by users to identify their orders
- * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KucoinCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3666,8 +3727,8 @@ func (this *KucoinCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes33768 := (<-this.LoadMarkets())
-		PanicOnError(retRes33768)
+		retRes34428 := (<-this.LoadMarkets())
+		PanicOnError(retRes34428)
 		var request interface{} = map[string]interface{}{}
 		var clientOrderId interface{} = this.SafeString2(params, "clientOid", "clientOrderId")
 		var trigger interface{} = this.SafeBool2(params, "stop", "trigger", false)
@@ -3931,7 +3992,7 @@ func (this *KucoinCore) ParseOrder(order interface{}, optionalArgs ...interface{
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *KucoinCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3950,9 +4011,9 @@ func (this *KucoinCore) FetchOrderTrades(id interface{}, optionalArgs ...interfa
 			"orderId": id,
 		}
 
-		retRes362615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes362615)
-		ch <- retRes362615
+		retRes369215 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes369215)
+		ch <- retRes369215
 		return nil
 
 	}()
@@ -3972,7 +4033,7 @@ func (this *KucoinCore) FetchOrderTrades(id interface{}, optionalArgs ...interfa
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {bool} [params.hf] false, // true for hf order
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *KucoinCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3988,17 +4049,17 @@ func (this *KucoinCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36458 := (<-this.LoadMarkets())
-		PanicOnError(retRes36458)
+		retRes37118 := (<-this.LoadMarkets())
+		PanicOnError(retRes37118)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes364919 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes364919)
-			ch <- retRes364919
+			retRes371519 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes371519)
+			ch <- retRes371519
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4118,7 +4179,7 @@ func (this *KucoinCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *KucoinCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4132,8 +4193,8 @@ func (this *KucoinCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes37568 := (<-this.LoadMarkets())
-		PanicOnError(retRes37568)
+		retRes38228 := (<-this.LoadMarkets())
+		PanicOnError(retRes38228)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -4362,7 +4423,7 @@ func (this *KucoinCore) ParseTrade(trade interface{}, optionalArgs ...interface{
  * @see https://www.kucoin.com/docs/rest/funding/trade-fee/trading-pair-actual-fee-spot-margin-trade_hf
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *KucoinCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4372,8 +4433,8 @@ func (this *KucoinCore) FetchTradingFee(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes39748 := (<-this.LoadMarkets())
-		PanicOnError(retRes39748)
+		retRes40408 := (<-this.LoadMarkets())
+		PanicOnError(retRes40408)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbols": GetValue(market, "id"),
@@ -4421,7 +4482,7 @@ func (this *KucoinCore) FetchTradingFee(symbol interface{}, optionalArgs ...inte
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *KucoinCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4436,8 +4497,8 @@ func (this *KucoinCore) Withdraw(code interface{}, amount interface{}, address i
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 
-		retRes40198 := (<-this.LoadMarkets())
-		PanicOnError(retRes40198)
+		retRes40858 := (<-this.LoadMarkets())
+		PanicOnError(retRes40858)
 		this.CheckAddress(address)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
@@ -4621,7 +4682,7 @@ func (this *KucoinCore) ParseTransaction(transaction interface{}, optionalArgs .
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *KucoinCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4637,17 +4698,17 @@ func (this *KucoinCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes41998 := (<-this.LoadMarkets())
-		PanicOnError(retRes41998)
+		retRes42658 := (<-this.LoadMarkets())
+		PanicOnError(retRes42658)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes420319 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes420319)
-			ch <- retRes420319
+			retRes426919 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes426919)
+			ch <- retRes426919
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4739,7 +4800,7 @@ func (this *KucoinCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *KucoinCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4755,17 +4816,17 @@ func (this *KucoinCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes42848 := (<-this.LoadMarkets())
-		PanicOnError(retRes42848)
+		retRes43508 := (<-this.LoadMarkets())
+		PanicOnError(retRes43508)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes428819 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes428819)
-			ch <- retRes428819
+			retRes435419 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes435419)
+			ch <- retRes435419
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4867,7 +4928,7 @@ func (this *KucoinCore) ParseBalanceHelper(entry interface{}) interface{} {
  * @param {object} [params.marginMode] 'cross' or 'isolated', margin type for fetching margin balance
  * @param {object} [params.type] extra parameters specific to the exchange API endpoint
  * @param {object} [params.hf] *default if false* if true, the result includes the balance of the high frequency account
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *KucoinCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4877,8 +4938,8 @@ func (this *KucoinCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes43808 := (<-this.LoadMarkets())
-		PanicOnError(retRes43808)
+		retRes44468 := (<-this.LoadMarkets())
+		PanicOnError(retRes44468)
 		var code interface{} = this.SafeString(params, "code")
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
@@ -5063,15 +5124,16 @@ func (this *KucoinCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
  * @method
  * @name kucoin#transfer
  * @description transfer currency internally between wallets on the same account
- * @see https://www.kucoin.com/docs/rest/funding/transfer/inner-transfer
- * @see https://docs.kucoin.com/futures/#transfer-funds-to-kucoin-main-account-2
- * @see https://docs.kucoin.com/spot-hf/#internal-funds-transfers-in-high-frequency-trading-accounts
+ * @see https://www.kucoin.com/docs-new/rest/account-info/transfer/flex-transfer?lang=en_US&
  * @param {string} code unified currency code
  * @param {float} amount amount to transfer
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @param {string} [params.transferType] INTERNAL, PARENT_TO_SUB, SUB_TO_PARENT (default is INTERNAL)
+ * @param {string} [params.fromUserId] required if transferType is SUB_TO_PARENT
+ * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *KucoinCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5081,96 +5143,87 @@ func (this *KucoinCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes45618 := (<-this.LoadMarkets())
-		PanicOnError(retRes45618)
+		retRes46288 := (<-this.LoadMarkets())
+		PanicOnError(retRes46288)
 		var currency interface{} = this.Currency(code)
 		var requestedAmount interface{} = this.CurrencyToPrecision(code, amount)
+		var request interface{} = map[string]interface{}{
+			"currency": GetValue(currency, "id"),
+			"amount":   requestedAmount,
+		}
+		var transferType interface{} = "INTERNAL"
+		transferTypeparamsVariable := this.HandleParamString2(params, "transferType", "type", transferType)
+		transferType = GetValue(transferTypeparamsVariable, 0)
+		params = GetValue(transferTypeparamsVariable, 1)
+		if IsTrue(IsEqual(transferType, "PARENT_TO_SUB")) {
+			if !IsTrue((InOp(params, "toUserId"))) {
+				panic(ExchangeError(Add(this.Id, " transfer() requires a toUserId param for PARENT_TO_SUB transfers")))
+			}
+		} else if IsTrue(IsEqual(transferType, "SUB_TO_PARENT")) {
+			if !IsTrue((InOp(params, "fromUserId"))) {
+				panic(ExchangeError(Add(this.Id, " transfer() requires a fromUserId param for SUB_TO_PARENT transfers")))
+			}
+		}
+		if !IsTrue((InOp(params, "clientOid"))) {
+			AddElementToObject(request, "clientOid", this.Uuid())
+		}
 		var fromId interface{} = this.ConvertTypeToAccount(fromAccount)
 		var toId interface{} = this.ConvertTypeToAccount(toAccount)
 		var fromIsolated interface{} = this.InArray(fromId, this.Ids)
 		var toIsolated interface{} = this.InArray(toId, this.Ids)
-		if IsTrue(IsEqual(fromId, "contract")) {
-			if IsTrue(!IsEqual(toId, "main")) {
-				panic(ExchangeError(Add(this.Id, " transfer() only supports transferring from futures account to main account")))
-			}
-			var request interface{} = map[string]interface{}{
-				"currency": GetValue(currency, "id"),
-				"amount":   requestedAmount,
-			}
-			if !IsTrue((InOp(params, "bizNo"))) {
-				// it doesn't like more than 24 characters
-				AddElementToObject(request, "bizNo", this.Uuid22())
-			}
-
-			response := (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
-			PanicOnError(response)
-			//
-			//     {
-			//         "code": "200000",
-			//         "data": {
-			//             "applyId": "605a87217dff1500063d485d",
-			//             "bizNo": "bcd6e5e1291f4905af84dc",
-			//             "payAccountType": "CONTRACT",
-			//             "payTag": "DEFAULT",
-			//             "remark": '',
-			//             "recAccountType": "MAIN",
-			//             "recTag": "DEFAULT",
-			//             "recRemark": '',
-			//             "recSystem": "KUCOIN",
-			//             "status": "PROCESSING",
-			//             "currency": "XBT",
-			//             "amount": "0.00001",
-			//             "fee": "0",
-			//             "sn": "573688685663948",
-			//             "reason": '',
-			//             "createdAt": 1616545569000,
-			//             "updatedAt": 1616545569000
-			//         }
-			//     }
-			//
-			var data interface{} = this.SafeDict(response, "data")
-
-			ch <- this.ParseTransfer(data, currency)
-			return nil
-		} else {
-			var request interface{} = map[string]interface{}{
-				"currency": GetValue(currency, "id"),
-				"amount":   requestedAmount,
-			}
-			if IsTrue(IsTrue(fromIsolated) || IsTrue(toIsolated)) {
-				if IsTrue(this.InArray(fromId, this.Ids)) {
-					AddElementToObject(request, "fromTag", fromId)
-					fromId = "isolated"
-				}
-				if IsTrue(this.InArray(toId, this.Ids)) {
-					AddElementToObject(request, "toTag", toId)
-					toId = "isolated"
-				}
-			}
+		if IsTrue(fromIsolated) {
+			AddElementToObject(request, "fromAccountTag", fromId)
+			fromId = "isolated"
+		}
+		if IsTrue(toIsolated) {
+			AddElementToObject(request, "toAccountTag", toId)
+			toId = "isolated"
+		}
+		var hfOrMining interface{} = this.IsHfOrMining(fromId, toId)
+		var response interface{} = nil
+		if IsTrue(hfOrMining) {
+			// new endpoint does not support hf and mining transfers
+			// use old endpoint for hf and mining transfers
 			AddElementToObject(request, "from", fromId)
 			AddElementToObject(request, "to", toId)
-			if !IsTrue((InOp(params, "clientOid"))) {
-				AddElementToObject(request, "clientOid", this.Uuid())
-			}
 
-			response := (<-this.PrivatePostAccountsInnerTransfer(this.Extend(request, params)))
+			response = (<-this.PrivatePostAccountsInnerTransfer(this.Extend(request, params)))
 			PanicOnError(response)
+		} else {
+			AddElementToObject(request, "type", transferType)
+			AddElementToObject(request, "fromAccountType", ToUpper(fromId))
+			AddElementToObject(request, "toAccountType", ToUpper(toId))
 			//
 			//     {
 			//         "code": "200000",
 			//         "data": {
-			//              "orderId": "605a6211e657f00006ad0ad6"
+			//             "orderId": "694fcb5b08bb1600015cda75"
 			//         }
 			//     }
 			//
-			var data interface{} = this.SafeDict(response, "data")
 
-			ch <- this.ParseTransfer(data, currency)
-			return nil
+			response = (<-this.PrivatePostAccountsUniversalTransfer(this.Extend(request, params)))
+			PanicOnError(response)
 		}
+		var data interface{} = this.SafeDict(response, "data")
+		var transfer interface{} = this.ParseTransfer(data, currency)
+		var transferOptions interface{} = this.SafeDict(this.Options, "transfer", map[string]interface{}{})
+		var fillResponseFromRequest interface{} = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
+		if IsTrue(fillResponseFromRequest) {
+			AddElementToObject(transfer, "amount", amount)
+			AddElementToObject(transfer, "fromAccount", fromAccount)
+			AddElementToObject(transfer, "toAccount", toAccount)
+			AddElementToObject(transfer, "status", "ok")
+		}
+
+		ch <- transfer
+		return nil
 
 	}()
 	return ch
+}
+func (this *KucoinCore) IsHfOrMining(fromId interface{}, toId interface{}) interface{} {
+	return (IsTrue(IsTrue(IsTrue(IsEqual(fromId, "trade_hf")) || IsTrue(IsEqual(toId, "trade_hf"))) || IsTrue(IsEqual(fromId, "pool"))) || IsTrue(IsEqual(toId, "pool")))
 }
 func (this *KucoinCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
 	//
@@ -5207,18 +5260,49 @@ func (this *KucoinCore) ParseTransfer(transfer interface{}, optionalArgs ...inte
 	//         "updatedAt": 1616545569000
 	//     }
 	//
+	// ledger entry - from account ledgers API (for fetchTransfers)
+	//
+	// {
+	//     "id": "611a1e7c6a053300067a88d9",
+	//     "currency": "USDT",
+	//     "amount": "10.00059547",
+	//     "fee": "0",
+	//     "balance": "0",
+	//     "accountType": "MAIN",
+	//     "bizType": "Transfer",
+	//     "direction": "in",
+	//     "createdAt": 1629101692950,
+	//     "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+	// }
+	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var timestamp interface{} = this.SafeInteger(transfer, "createdAt")
 	var currencyId interface{} = this.SafeString(transfer, "currency")
 	var rawStatus interface{} = this.SafeString(transfer, "status")
-	var accountFromRaw interface{} = this.SafeStringLower(transfer, "payAccountType")
-	var accountToRaw interface{} = this.SafeStringLower(transfer, "recAccountType")
+	var bizType interface{} = this.SafeString(transfer, "bizType")
+	var isLedgerEntry interface{} = (!IsEqual(bizType, nil))
+	var accountFromRaw interface{} = nil
+	var accountToRaw interface{} = nil
+	if IsTrue(isLedgerEntry) {
+		// Ledger entry format: uses accountType + direction
+		var accountType interface{} = this.SafeStringLower(transfer, "accountType")
+		var direction interface{} = this.SafeString(transfer, "direction")
+		if IsTrue(IsEqual(direction, "out")) {
+			accountFromRaw = accountType
+		} else if IsTrue(IsEqual(direction, "in")) {
+			accountToRaw = accountType
+		}
+	} else {
+		// Transfer API format: uses payAccountType/recAccountType
+		accountFromRaw = this.SafeStringLower(transfer, "payAccountType")
+		accountToRaw = this.SafeStringLower(transfer, "recAccountType")
+	}
 	var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType")
 	var accountFrom interface{} = this.SafeString(accountsByType, accountFromRaw, accountFromRaw)
 	var accountTo interface{} = this.SafeString(accountsByType, accountToRaw, accountToRaw)
 	return map[string]interface{}{
-		"id":          this.SafeString2(transfer, "applyId", "orderId"),
+		"id":          this.SafeStringN(transfer, []interface{}{"id", "applyId", "orderId"}),
 		"currency":    this.SafeCurrencyCode(currencyId, currency),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
@@ -5380,7 +5464,7 @@ func (this *KucoinCore) ParseLedgerEntry(item interface{}, optionalArgs ...inter
  * @param {boolean} [params.hf] default false, when true will fetch ledger entries for the high frequency trading account
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *KucoinCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5396,11 +5480,11 @@ func (this *KucoinCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes48508 := (<-this.LoadMarkets())
-		PanicOnError(retRes48508)
+		retRes49408 := (<-this.LoadMarkets())
+		PanicOnError(retRes49408)
 
-		retRes48518 := (<-this.LoadAccounts())
-		PanicOnError(retRes48518)
+		retRes49418 := (<-this.LoadAccounts())
+		PanicOnError(retRes49418)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
@@ -5411,9 +5495,9 @@ func (this *KucoinCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		params = GetValue(hfparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes485719 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes485719)
-			ch <- retRes485719
+			retRes494719 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes494719)
+			ch <- retRes494719
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -5563,7 +5647,7 @@ func (this *KucoinCore) ParseBorrowRate(info interface{}, optionalArgs ...interf
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *KucoinCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5581,8 +5665,8 @@ func (this *KucoinCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes49968 := (<-this.LoadMarkets())
-		PanicOnError(retRes49968)
+		retRes50868 := (<-this.LoadMarkets())
+		PanicOnError(retRes50868)
 		var marginMode interface{} = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params, "cross")
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -5775,7 +5859,7 @@ func (this *KucoinCore) ParseBorrowInterest(info interface{}, optionalArgs ...in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} indexed by the market symbol
+ * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
 func (this *KucoinCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5791,8 +5875,8 @@ func (this *KucoinCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes51808 := (<-this.LoadMarkets())
-		PanicOnError(retRes51808)
+		retRes52708 := (<-this.LoadMarkets())
+		PanicOnError(retRes52708)
 		var marginResult interface{} = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
 		var marginMode interface{} = this.SafeString(marginResult, 0, "cross")
 		var isIsolated interface{} = (IsEqual(marginMode, "isolated")) // true-isolated, false-cross
@@ -5848,11 +5932,11 @@ func (this *KucoinCore) FetchBorrowRateHistories(optionalArgs ...interface{}) <-
  * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/get-cross-isolated-margin-interest-records
  * @param {string} code unified currency code
  * @param {int} [since] timestamp for the earliest borrow rate
- * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure} to retrieve
+ * @param {int} [limit] the maximum number of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] 'cross' or 'isolated' default is 'cross'
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
+ * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *KucoinCore) FetchBorrowRateHistory(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5866,8 +5950,8 @@ func (this *KucoinCore) FetchBorrowRateHistory(code interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes52348 := (<-this.LoadMarkets())
-		PanicOnError(retRes52348)
+		retRes53248 := (<-this.LoadMarkets())
+		PanicOnError(retRes53248)
 		var marginResult interface{} = this.HandleMarginModeAndParams("fetchBorrowRateHistories", params)
 		var marginMode interface{} = this.SafeString(marginResult, 0, "cross")
 		var isIsolated interface{} = (IsEqual(marginMode, "isolated")) // true-isolated, false-cross
@@ -5958,7 +6042,7 @@ func (this *KucoinCore) ParseBorrowRateHistories(response interface{}, codes int
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @param {string} [params.timeInForce] either IOC or FOK
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *KucoinCore) BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5968,8 +6052,8 @@ func (this *KucoinCore) BorrowCrossMargin(code interface{}, amount interface{}, 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes53208 := (<-this.LoadMarkets())
-		PanicOnError(retRes53208)
+		retRes54108 := (<-this.LoadMarkets())
+		PanicOnError(retRes54108)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency":    GetValue(currency, "id"),
@@ -6010,7 +6094,7 @@ func (this *KucoinCore) BorrowCrossMargin(code interface{}, amount interface{}, 
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoints
  * @param {string} [params.timeInForce] either IOC or FOK
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *KucoinCore) BorrowIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6020,8 +6104,8 @@ func (this *KucoinCore) BorrowIsolatedMargin(symbol interface{}, code interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes53578 := (<-this.LoadMarkets())
-		PanicOnError(retRes53578)
+		retRes54478 := (<-this.LoadMarkets())
+		PanicOnError(retRes54478)
 		var market interface{} = this.Market(symbol)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
@@ -6063,7 +6147,7 @@ func (this *KucoinCore) BorrowIsolatedMargin(symbol interface{}, code interface{
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoints
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *KucoinCore) RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6073,8 +6157,8 @@ func (this *KucoinCore) RepayCrossMargin(code interface{}, amount interface{}, o
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes53958 := (<-this.LoadMarkets())
-		PanicOnError(retRes53958)
+		retRes54858 := (<-this.LoadMarkets())
+		PanicOnError(retRes54858)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -6113,7 +6197,7 @@ func (this *KucoinCore) RepayCrossMargin(code interface{}, amount interface{}, o
  * @param {string} code unified currency code of the currency to repay
  * @param {float} amount the amount to repay
  * @param {object} [params] extra parameters specific to the exchange API endpoints
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *KucoinCore) RepayIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6123,8 +6207,8 @@ func (this *KucoinCore) RepayIsolatedMargin(symbol interface{}, code interface{}
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes54308 := (<-this.LoadMarkets())
-		PanicOnError(retRes54308)
+		retRes55208 := (<-this.LoadMarkets())
+		PanicOnError(retRes55208)
 		var market interface{} = this.Market(symbol)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
@@ -6185,7 +6269,7 @@ func (this *KucoinCore) ParseMarginLoan(info interface{}, optionalArgs ...interf
  * @see https://docs.kucoin.com/#get-currencies
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *KucoinCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6197,8 +6281,8 @@ func (this *KucoinCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes54868 := (<-this.LoadMarkets())
-		PanicOnError(retRes54868)
+		retRes55768 := (<-this.LoadMarkets())
+		PanicOnError(retRes55768)
 
 		response := (<-this.PublicGetCurrencies(params))
 		PanicOnError(response)
@@ -6249,8 +6333,8 @@ func (this *KucoinCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes55218 := (<-this.LoadMarkets())
-		PanicOnError(retRes55218)
+		retRes56118 := (<-this.LoadMarkets())
+		PanicOnError(retRes56118)
 		var market interface{} = nil
 		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("setLeverage", nil, params)
@@ -6279,9 +6363,9 @@ func (this *KucoinCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 		AddElementToObject(request, "leverage", ToString(leverage))
 		AddElementToObject(request, "isIsolated", (IsEqual(marginMode, "isolated")))
 
-		retRes554515 := (<-this.PrivatePostPositionUpdateUserLeverage(this.Extend(request, params)))
-		PanicOnError(retRes554515)
-		ch <- retRes554515
+		retRes563515 := (<-this.PrivatePostPositionUpdateUserLeverage(this.Extend(request, params)))
+		PanicOnError(retRes563515)
+		ch <- retRes563515
 		return nil
 
 	}()
@@ -6295,7 +6379,7 @@ func (this *KucoinCore) SetLeverage(leverage interface{}, optionalArgs ...interf
  * @see https://www.kucoin.com/docs-new/rest/ua/get-current-funding-rate
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *KucoinCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6305,8 +6389,8 @@ func (this *KucoinCore) FetchFundingRate(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes55588 := (<-this.LoadMarkets())
-		PanicOnError(retRes55588)
+		retRes56488 := (<-this.LoadMarkets())
+		PanicOnError(retRes56488)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -6377,10 +6461,10 @@ func (this *KucoinCore) ParseFundingRate(data interface{}, optionalArgs ...inter
  * @see https://www.kucoin.com/docs-new/rest/ua/get-history-funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] not used by kucuoinfutures
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *KucoinCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6402,8 +6486,8 @@ func (this *KucoinCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a since argument")))
 		}
 
-		retRes56338 := (<-this.LoadMarkets())
-		PanicOnError(retRes56338)
+		retRes57238 := (<-this.LoadMarkets())
+		PanicOnError(retRes57238)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -6493,9 +6577,9 @@ func (this *KucoinCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 		endpoint = Add("/api/v1/", this.ImplodeParams(path, params))
 	}
 	var isUtaPrivate interface{} = false
-	if IsTrue(IsEqual(api, "uta")) {
+	if IsTrue(IsTrue((IsEqual(api, "uta"))) || IsTrue((IsEqual(api, "utaPrivate")))) {
 		endpoint = Add("/api/ua/v1/", this.ImplodeParams(path, params))
-		if IsTrue(IsEqual(path, "market/orderbook")) {
+		if IsTrue(IsEqual(api, "utaPrivate")) {
 			isUtaPrivate = true
 		}
 	}
@@ -6581,6 +6665,108 @@ func (this *KucoinCore) HandleErrors(code interface{}, reason interface{}, url i
 		panic(ExchangeError(feedback))
 	}
 	return nil
+}
+
+/**
+ * @method
+ * @name kucoin#fetchTransfers
+ * @description fetch a history of internal transfers made on an account
+ * @see https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-ledgers-spot-margin
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfer structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *KucoinCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		_ = params
+
+		retRes58968 := (<-this.LoadMarkets())
+		PanicOnError(retRes58968)
+		var paginate interface{} = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes590019 := (<-this.FetchPaginatedCallDynamic("fetchTransfers", code, since, limit, params))
+			PanicOnError(retRes590019)
+			ch <- retRes590019
+			return nil
+		}
+		var request interface{} = map[string]interface{}{
+			"bizType": "TRANSFER",
+		}
+		var until interface{} = this.SafeInteger(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, "until")
+			AddElementToObject(request, "endAt", until)
+		}
+		var currency interface{} = nil
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+			AddElementToObject(request, "currency", GetValue(currency, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "startAt", since)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "pageSize", limit)
+		} else {
+			AddElementToObject(request, "pageSize", 500)
+		}
+		requestparamsVariable := this.HandleUntilOption("endAt", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
+
+		response := (<-this.PrivateGetAccountsLedgers(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		// {
+		//     "code": "200000",
+		//     "data": {
+		//         "currentPage": 1,
+		//         "pageSize": 50,
+		//         "totalNum": 1,
+		//         "totalPage": 1,
+		//         "items": [
+		//             {
+		//                 "id": "611a1e7c6a053300067a88d9",
+		//                 "currency": "USDT",
+		//                 "amount": "10.00059547",
+		//                 "fee": "0",
+		//                 "balance": "0",
+		//                 "accountType": "MAIN",
+		//                 "bizType": "Transfer",
+		//                 "direction": "in",
+		//                 "createdAt": 1629101692950,
+		//                 "context": "{\"orderId\":\"611a1e7c6a053300067a88d9\"}"
+		//             }
+		//         ]
+		//     }
+		// }
+		//
+		var data interface{} = this.SafeDict(response, "data", map[string]interface{}{})
+		var items interface{} = this.SafeList(data, "items", []interface{}{})
+
+		ch <- this.ParseTransfers(items, currency, since, limit)
+		return nil
+
+	}()
+	return ch
 }
 
 func (this *KucoinCore) Init(userConfig map[string]interface{}) {

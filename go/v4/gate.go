@@ -51,6 +51,7 @@ func (this *GateCore) Describe() interface{} {
 					"earn":        "https://api.gateio.ws/api/v4",
 					"account":     "https://api.gateio.ws/api/v4",
 					"loan":        "https://api.gateio.ws/api/v4",
+					"otc":         "https://api.gateio.ws/api/v4",
 				},
 			},
 			"test": map[string]interface{}{
@@ -317,6 +318,7 @@ func (this *GateCore) Describe() interface{} {
 						"small_balance":                     1,
 						"small_balance_history":             1,
 						"push":                              1,
+						"getLowCapExchangeList":             1,
 					},
 					"post": map[string]interface{}{
 						"transfers":                  2.5,
@@ -471,6 +473,7 @@ func (this *GateCore) Describe() interface{} {
 						"{settle}/account_book":                   1,
 						"{settle}/positions":                      1,
 						"{settle}/positions/{contract}":           1,
+						"{settle}/get_leverage/{contract}":        1,
 						"{settle}/dual_comp/positions/{contract}": 1,
 						"{settle}/orders":                         1,
 						"{settle}/orders_timerange":               1,
@@ -488,10 +491,12 @@ func (this *GateCore) Describe() interface{} {
 					"post": map[string]interface{}{
 						"{settle}/positions/{contract}/margin":               1,
 						"{settle}/positions/{contract}/leverage":             1,
+						"{settle}/positions/{contract}/set_leverage":         1,
 						"{settle}/positions/{contract}/risk_limit":           1,
 						"{settle}/positions/cross_mode":                      1,
 						"{settle}/dual_comp/positions/cross_mode":            1,
 						"{settle}/dual_mode":                                 1,
+						"{settle}/set_position_mode":                         1,
 						"{settle}/dual_comp/positions/{contract}/margin":     1,
 						"{settle}/dual_comp/positions/{contract}/leverage":   1,
 						"{settle}/dual_comp/positions/{contract}/risk_limit": 1,
@@ -504,7 +509,8 @@ func (this *GateCore) Describe() interface{} {
 						"{settle}/price_orders":                              0.4,
 					},
 					"put": map[string]interface{}{
-						"{settle}/orders/{order_id}": 1,
+						"{settle}/orders/{order_id}":       1,
+						"{settle}/price_orders/{order_id}": 1,
 					},
 					"delete": map[string]interface{}{
 						"{settle}/orders":                  Divide(20, 75),
@@ -577,6 +583,7 @@ func (this *GateCore) Describe() interface{} {
 						"uni/rate":                       Divide(20, 15),
 						"staking/eth2/rate_records":      Divide(20, 15),
 						"dual/orders":                    Divide(20, 15),
+						"dual/balance":                   Divide(20, 15),
 						"structured/orders":              Divide(20, 15),
 						"staking/coins":                  Divide(20, 15),
 						"staking/order_list":             Divide(20, 15),
@@ -657,6 +664,21 @@ func (this *GateCore) Describe() interface{} {
 						"broker/transaction_history":  Divide(20, 15),
 						"user/info":                   Divide(20, 15),
 						"user/sub_relation":           Divide(20, 15),
+					},
+				},
+				"otc": map[string]interface{}{
+					"get": map[string]interface{}{
+						"get_user_def_bank":      1,
+						"order/list":             1,
+						"stable_coin/order/list": 1,
+						"order/detail":           1,
+					},
+					"post": map[string]interface{}{
+						"quote":                    1,
+						"order/create":             1,
+						"stable_coin/order/create": 1,
+						"order/paid":               1,
+						"order/cancel":             1,
 					},
 				},
 			},
@@ -1004,7 +1026,6 @@ func (this *GateCore) Describe() interface{} {
 				"LOAN_RECORD_NOT_FOUND":          OrderNotFound,
 				"NO_MATCHED_LOAN":                ExchangeError,
 				"NOT_MERGEABLE":                  ExchangeError,
-				"NO_CHANGE":                      ExchangeError,
 				"REPAY_TOO_MUCH":                 ExchangeError,
 				"TOO_MANY_CURRENCY_PAIRS":        InvalidOrder,
 				"TOO_MANY_ORDERS":                InvalidOrder,
@@ -1047,8 +1068,12 @@ func (this *GateCore) Describe() interface{} {
 				"AUTO_TRIGGER_PRICE_GREATE_LAST": InvalidOrder,
 				"POSITION_HOLDING":               BadRequest,
 				"USER_LOAN_EXCEEDED":             BadRequest,
+				"NO_CHANGE":                      InvalidOrder,
+				"PRICE_THRESHOLD_EXCEEDED":       InvalidOrder,
 			},
-			"broad": map[string]interface{}{},
+			"broad": map[string]interface{}{
+				"Your order size": InvalidOrder,
+			},
 		},
 	})
 }
@@ -1129,9 +1154,9 @@ func (this *GateCore) UpgradeUnifiedTradeAccount(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes118215 := (<-this.PrivateUnifiedPutUnifiedMode(params))
-		PanicOnError(retRes118215)
-		ch <- retRes118215
+		retRes120715 := (<-this.PrivateUnifiedPutUnifiedMode(params))
+		PanicOnError(retRes120715)
+		ch <- retRes120715
 		return nil
 
 	}()
@@ -1270,13 +1295,13 @@ func (this *GateCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes129112 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes129112)
+			retRes131612 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes131612)
 		}
 		if IsTrue(this.CheckRequiredCredentials(false)) {
 
-			retRes129412 := (<-this.LoadUnifiedStatus())
-			PanicOnError(retRes129412)
+			retRes131912 := (<-this.LoadUnifiedStatus())
+			PanicOnError(retRes131912)
 		}
 		var rawPromises interface{} = []interface{}{}
 		var fetchMarketsOptions interface{} = this.SafeDict(this.Options, "fetchMarkets")
@@ -2114,7 +2139,7 @@ func (this *GateCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interf
  * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-contract
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *GateCore) FetchFundingRate(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2124,8 +2149,8 @@ func (this *GateCore) FetchFundingRate(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes20338 := (<-this.LoadMarkets())
-		PanicOnError(retRes20338)
+		retRes20588 := (<-this.LoadMarkets())
+		PanicOnError(retRes20588)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -2195,7 +2220,7 @@ func (this *GateCore) FetchFundingRate(symbol interface{}, optionalArgs ...inter
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
  */
 func (this *GateCore) FetchFundingRates(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2207,8 +2232,8 @@ func (this *GateCore) FetchFundingRates(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes20978 := (<-this.LoadMarkets())
-		PanicOnError(retRes20978)
+		retRes21228 := (<-this.LoadMarkets())
+		PanicOnError(retRes21228)
 		symbols = this.MarketSymbols(symbols)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -2365,8 +2390,8 @@ func (this *GateCore) FetchNetworkDepositAddress(code interface{}, optionalArgs 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22398 := (<-this.LoadMarkets())
-		PanicOnError(retRes22398)
+		retRes22648 := (<-this.LoadMarkets())
+		PanicOnError(retRes22648)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2418,7 +2443,7 @@ func (this *GateCore) FetchNetworkDepositAddress(code interface{}, optionalArgs 
  * @description fetch a dictionary of addresses for a currency, indexed by network
  * @param {string} code unified currency code of the currency for the deposit address
  * @param {object} [params] extra parameters specific to the api endpoint
- * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+ * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *GateCore) FetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2428,8 +2453,8 @@ func (this *GateCore) FetchDepositAddressesByNetwork(code interface{}, optionalA
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes22878 := (<-this.LoadMarkets())
-		PanicOnError(retRes22878)
+		retRes23128 := (<-this.LoadMarkets())
+		PanicOnError(retRes23128)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2457,7 +2482,7 @@ func (this *GateCore) FetchDepositAddressesByNetwork(code interface{}, optionalA
  * @param {string} code unified currency code
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.network] unified network code (not used directly by gate.com but used by ccxt to filter the response)
- * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+ * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *GateCore) FetchDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2467,8 +2492,8 @@ func (this *GateCore) FetchDepositAddress(code interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23118 := (<-this.LoadMarkets())
-		PanicOnError(retRes23118)
+		retRes23368 := (<-this.LoadMarkets())
+		PanicOnError(retRes23368)
 		var networkCode interface{} = nil
 		networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode = GetValue(networkCodeparamsVariable, 0)
@@ -2514,7 +2539,7 @@ func (this *GateCore) ParseDepositAddress(depositAddress interface{}, optionalAr
  * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *GateCore) FetchTradingFee(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2524,8 +2549,8 @@ func (this *GateCore) FetchTradingFee(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23508 := (<-this.LoadMarkets())
-		PanicOnError(retRes23508)
+		retRes23758 := (<-this.LoadMarkets())
+		PanicOnError(retRes23758)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"currency_pair": GetValue(market, "id"),
@@ -2561,7 +2586,7 @@ func (this *GateCore) FetchTradingFee(symbol interface{}, optionalArgs ...interf
  * @description fetch the trading fees for multiple markets
  * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *GateCore) FetchTradingFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2571,8 +2596,8 @@ func (this *GateCore) FetchTradingFees(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23828 := (<-this.LoadMarkets())
-		PanicOnError(retRes23828)
+		retRes24078 := (<-this.LoadMarkets())
+		PanicOnError(retRes24078)
 
 		response := (<-this.PrivateWalletGetFee(params))
 		PanicOnError(response)
@@ -2647,7 +2672,7 @@ func (this *GateCore) ParseTradingFee(info interface{}, optionalArgs ...interfac
  * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *GateCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2659,8 +2684,8 @@ func (this *GateCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan i
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes24538 := (<-this.LoadMarkets())
-		PanicOnError(retRes24538)
+		retRes24788 := (<-this.LoadMarkets())
+		PanicOnError(retRes24788)
 
 		response := (<-this.PrivateWalletGetWithdrawStatus(params))
 		PanicOnError(response)
@@ -2723,7 +2748,7 @@ func (this *GateCore) FetchTransactionFees(optionalArgs ...interface{}) <-chan i
  * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status
  * @param {string[]|undefined} codes list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+ * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *GateCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2735,8 +2760,8 @@ func (this *GateCore) FetchDepositWithdrawFees(optionalArgs ...interface{}) <-ch
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes25128 := (<-this.LoadMarkets())
-		PanicOnError(retRes25128)
+		retRes25378 := (<-this.LoadMarkets())
+		PanicOnError(retRes25378)
 
 		response := (<-this.PrivateWalletGetWithdrawStatus(params))
 		PanicOnError(response)
@@ -2829,7 +2854,7 @@ func (this *GateCore) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...i
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *GateCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2845,8 +2870,8 @@ func (this *GateCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes26008 := (<-this.LoadMarkets())
-		PanicOnError(retRes26008)
+		retRes26258 := (<-this.LoadMarkets())
+		PanicOnError(retRes26258)
 		// let defaultType = 'future';
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2945,7 +2970,7 @@ func (this *GateCore) ParseFundingHistory(info interface{}, optionalArgs ...inte
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func (this *GateCore) FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -2957,8 +2982,8 @@ func (this *GateCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes26898 := (<-this.LoadMarkets())
-		PanicOnError(retRes26898)
+		retRes27148 := (<-this.LoadMarkets())
+		PanicOnError(retRes27148)
 		var market interface{} = this.Market(symbol)
 		//
 		//     const request: Dict = {
@@ -3091,7 +3116,7 @@ func (this *GateCore) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *GateCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3101,8 +3126,8 @@ func (this *GateCore) FetchTicker(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28108 := (<-this.LoadMarkets())
-		PanicOnError(retRes28108)
+		retRes28358 := (<-this.LoadMarkets())
+		PanicOnError(retRes28358)
 		var market interface{} = this.Market(symbol)
 		requestqueryVariable := this.PrepareRequest(market, nil, params)
 		request := GetValue(requestqueryVariable, 0)
@@ -3276,7 +3301,7 @@ func (this *GateCore) ParseTicker(ticker interface{}, optionalArgs ...interface{
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *GateCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3288,8 +3313,8 @@ func (this *GateCore) FetchTickers(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes29718 := (<-this.LoadMarkets())
-		PanicOnError(retRes29718)
+		retRes29968 := (<-this.LoadMarkets())
+		PanicOnError(retRes29968)
 		symbols = this.MarketSymbols(symbols)
 		var first interface{} = this.SafeString(symbols, 0)
 		var market interface{} = nil
@@ -3360,7 +3385,7 @@ func (this *GateCore) ParseBalanceHelper(entry interface{}) interface{} {
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
  * @param {string} [params.symbol] margin only - unified ccxt symbol
  * @param {boolean} [params.unifiedAccount] default false, set to true for fetching the unified account balance
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *GateCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3370,11 +3395,11 @@ func (this *GateCore) FetchBalance(optionalArgs ...interface{}) <-chan interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes30298 := (<-this.LoadMarkets())
-		PanicOnError(retRes30298)
+		retRes30548 := (<-this.LoadMarkets())
+		PanicOnError(retRes30548)
 
-		retRes30308 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes30308)
+		retRes30558 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes30558)
 		var symbol interface{} = this.SafeString(params, "symbol")
 		params = this.Omit(params, "symbol")
 		var isUnifiedAccount interface{} = false
@@ -3708,8 +3733,8 @@ func (this *GateCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes33228 := (<-this.LoadMarkets())
-		PanicOnError(retRes33228)
+		retRes33478 := (<-this.LoadMarkets())
+		PanicOnError(retRes33478)
 		var market interface{} = this.Market(symbol)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
@@ -3717,16 +3742,16 @@ func (this *GateCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes332719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes332719)
-			ch <- retRes332719
+			retRes335219 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes335219)
+			ch <- retRes335219
 			return nil
 		}
 		if IsTrue(GetValue(market, "option")) {
 
-			retRes333019 := (<-this.FetchOptionOHLCV(symbol, timeframe, since, limit, params))
-			PanicOnError(retRes333019)
-			ch <- retRes333019
+			retRes335519 := (<-this.FetchOptionOHLCV(symbol, timeframe, since, limit, params))
+			PanicOnError(retRes335519)
+			ch <- retRes335519
 			return nil
 		}
 		var price interface{} = this.SafeString(params, "price")
@@ -3804,8 +3829,8 @@ func (this *GateCore) FetchOptionOHLCV(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes33828 := (<-this.LoadMarkets())
-		PanicOnError(retRes33828)
+		retRes34078 := (<-this.LoadMarkets())
+		PanicOnError(retRes34078)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		requestparamsVariable := this.PrepareRequest(market, nil, params)
@@ -3830,11 +3855,11 @@ func (this *GateCore) FetchOptionOHLCV(symbol interface{}, optionalArgs ...inter
  * @see https://www.gate.com/docs/developers/apiv4/en/#funding-rate-history
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *GateCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3853,17 +3878,17 @@ func (this *GateCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-cha
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
 
-		retRes34088 := (<-this.LoadMarkets())
-		PanicOnError(retRes34088)
+		retRes34338 := (<-this.LoadMarkets())
+		PanicOnError(retRes34338)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes341219 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes341219)
-			ch <- retRes341219
+			retRes343719 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes343719)
+			ch <- retRes343719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -3963,7 +3988,7 @@ func (this *GateCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *GateCore) FetchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -3977,17 +4002,17 @@ func (this *GateCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes35188 := (<-this.LoadMarkets())
-		PanicOnError(retRes35188)
+		retRes35438 := (<-this.LoadMarkets())
+		PanicOnError(retRes35438)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes352219 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
-			PanicOnError(retRes352219)
-			ch <- retRes352219
+			retRes354719 := (<-this.FetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, params))
+			PanicOnError(retRes354719)
+			ch <- retRes354719
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -4107,7 +4132,7 @@ func (this *GateCore) FetchTrades(symbol interface{}, optionalArgs ...interface{
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *GateCore) FetchOrderTrades(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4126,8 +4151,8 @@ func (this *GateCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
 		}
 
-		retRes36328 := (<-this.LoadMarkets())
-		PanicOnError(retRes36328)
+		retRes36578 := (<-this.LoadMarkets())
+		PanicOnError(retRes36578)
 		//
 		//      [
 		//          {
@@ -4183,7 +4208,7 @@ func (this *GateCore) FetchOrderTrades(id interface{}, optionalArgs ...interface
  * @param {int} [params.count_total] *contract only* whether to return total number matched, default to 0(no return)
  * @param {bool} [params.unifiedAccount] set to true for fetching trades in a unified account
  * @param {bool} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *GateCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4199,20 +4224,20 @@ func (this *GateCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes36828 := (<-this.LoadMarkets())
-		PanicOnError(retRes36828)
+		retRes37078 := (<-this.LoadMarkets())
+		PanicOnError(retRes37078)
 
-		retRes36838 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes36838)
+		retRes37088 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes37088)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes368719 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes368719)
-			ch <- retRes368719
+			retRes371219 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes371219)
+			ch <- retRes371219
 			return nil
 		}
 		var typeVar interface{} = nil
@@ -4488,7 +4513,7 @@ func (this *GateCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
 	if IsTrue(!IsEqual(pointFee, nil)) {
 		AppendToArray(&fees, map[string]interface{}{
 			"cost":     pointFee,
-			"currency": "GatePoint",
+			"currency": "GATEPOINT",
 		})
 	}
 	var takerOrMaker interface{} = this.SafeString(trade, "role")
@@ -4521,7 +4546,7 @@ func (this *GateCore) ParseTrade(trade interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GateCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4537,17 +4562,17 @@ func (this *GateCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes39788 := (<-this.LoadMarkets())
-		PanicOnError(retRes39788)
+		retRes40038 := (<-this.LoadMarkets())
+		PanicOnError(retRes40038)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes398219 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes398219)
-			ch <- retRes398219
+			retRes400719 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+			PanicOnError(retRes400719)
+			ch <- retRes400719
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4589,7 +4614,7 @@ func (this *GateCore) FetchDeposits(optionalArgs ...interface{}) <-chan interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GateCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4605,17 +4630,17 @@ func (this *GateCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes40178 := (<-this.LoadMarkets())
-		PanicOnError(retRes40178)
+		retRes40428 := (<-this.LoadMarkets())
+		PanicOnError(retRes40428)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes402119 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes402119)
-			ch <- retRes402119
+			retRes404619 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+			PanicOnError(retRes404619)
+			ch <- retRes404619
 			return nil
 		}
 		var request interface{} = map[string]interface{}{}
@@ -4656,7 +4681,7 @@ func (this *GateCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan inter
  * @param {string} address the address to withdraw to
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *GateCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4672,8 +4697,8 @@ func (this *GateCore) Withdraw(code interface{}, amount interface{}, address int
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes40578 := (<-this.LoadMarkets())
-		PanicOnError(retRes40578)
+		retRes40828 := (<-this.LoadMarkets())
+		PanicOnError(retRes40828)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -4882,7 +4907,7 @@ func (this *GateCore) ParseTransaction(transaction interface{}, optionalArgs ...
  * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
  * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
- * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4894,11 +4919,11 @@ func (this *GateCore) CreateOrder(symbol interface{}, typeVar interface{}, side 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes42618 := (<-this.LoadMarkets())
-		PanicOnError(retRes42618)
+		retRes42868 := (<-this.LoadMarkets())
+		PanicOnError(retRes42868)
 
-		retRes42628 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes42628)
+		retRes42878 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes42878)
 		var market interface{} = this.Market(symbol)
 		var trigger interface{} = this.SafeValue(params, "trigger")
 		var triggerPrice interface{} = this.SafeValue2(params, "triggerPrice", "stopPrice")
@@ -5063,7 +5088,7 @@ func (this *GateCore) CreateOrdersRequest(orders interface{}, optionalArgs ...in
  * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CreateOrders(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5073,11 +5098,11 @@ func (this *GateCore) CreateOrders(orders interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes44108 := (<-this.LoadMarkets())
-		PanicOnError(retRes44108)
+		retRes44358 := (<-this.LoadMarkets())
+		PanicOnError(retRes44358)
 
-		retRes44118 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes44118)
+		retRes44368 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes44368)
 		var ordersRequests interface{} = this.CreateOrdersRequest(orders, params)
 		var firstOrder interface{} = GetValue(orders, 0)
 		var market interface{} = this.Market(GetValue(firstOrder, "symbol"))
@@ -5348,7 +5373,7 @@ func (this *GateCore) CreateOrderRequest(symbol interface{}, typeVar interface{}
  * @param {float} cost how much you want to trade in units of the quote currency
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5358,20 +5383,20 @@ func (this *GateCore) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes46838 := (<-this.LoadMarkets())
-		PanicOnError(retRes46838)
+		retRes47088 := (<-this.LoadMarkets())
+		PanicOnError(retRes47088)
 
-		retRes46848 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes46848)
+		retRes47098 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes47098)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes469015 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes469015)
-		ch <- retRes469015
+		retRes471515 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes471515)
+		ch <- retRes471515
 		return nil
 
 	}()
@@ -5442,7 +5467,7 @@ func (this *GateCore) EditOrderRequest(id interface{}, symbol interface{}, typeV
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for editing an order in a unified account
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5456,11 +5481,11 @@ func (this *GateCore) EditOrder(id interface{}, symbol interface{}, typeVar inte
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes47528 := (<-this.LoadMarkets())
-		PanicOnError(retRes47528)
+		retRes47778 := (<-this.LoadMarkets())
+		PanicOnError(retRes47778)
 
-		retRes47538 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes47538)
+		retRes47788 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes47788)
 		var market interface{} = this.Market(symbol)
 		var extendedRequest interface{} = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
 		var response interface{} = nil
@@ -5671,6 +5696,24 @@ func (this *GateCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 	//
 	//  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
 	//
+	// cancel trigger order returns timestamps in ms
+	//   id: '2007047737421336576',
+	//   id_string: '2007047737421336576',
+	//   trigger_time: '0',
+	//   trade_id: '0',
+	//   trade_id_string: '',
+	//   status: 'finished',
+	//   finish_as: 'cancelled',
+	//   reason: '',
+	//   create_time: '1767352444402496'
+	//   finish_time: '1767352509535790',
+	//   is_stop_order: false,
+	//   stop_trigger: { rule: '0', trigger_price: '', order_price: '' },
+	//   me_order_id: '0',
+	//   me_order_id_string: '',
+	//   order_type: '',
+	//   in_dual_mode: false,
+	//   parent_id: '0',
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var succeeded interface{} = this.SafeBool(order, "succeeded", true)
@@ -5715,13 +5758,31 @@ func (this *GateCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 		side = Ternary(IsTrue(Precise.StringGt(amount, "0")), "buy", "sell")
 	}
 	var rawStatus interface{} = this.SafeStringN(order, []interface{}{"finish_as", "status", "open"})
-	var timestamp interface{} = this.SafeInteger(order, "create_time_ms")
-	if IsTrue(IsEqual(timestamp, nil)) {
-		timestamp = this.SafeTimestamp2(order, "create_time", "ctime")
+	var timestampStr interface{} = this.SafeString(order, "create_time_ms")
+	if IsTrue(IsEqual(timestampStr, nil)) {
+		timestampStr = this.SafeString2(order, "create_time", "ctime")
+		if IsTrue(!IsEqual(timestampStr, nil)) {
+			if IsTrue(IsTrue(IsEqual(GetLength(timestampStr), 10)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(timestampStr, "."), 0))) {
+				// ts in seconds, multiply to ms
+				timestampStr = Precise.StringMul(timestampStr, "1000")
+			} else if IsTrue(IsEqual(GetLength(timestampStr), 16)) {
+				// ts in microseconds, divide to ms
+				timestampStr = Precise.StringDiv(timestampStr, "1000")
+			}
+		}
 	}
-	var lastTradeTimestamp interface{} = this.SafeInteger(order, "update_time_ms")
-	if IsTrue(IsEqual(lastTradeTimestamp, nil)) {
-		lastTradeTimestamp = this.SafeTimestamp2(order, "update_time", "finish_time")
+	var lastTradeTimestampStr interface{} = this.SafeString(order, "update_time_ms")
+	if IsTrue(IsEqual(lastTradeTimestampStr, nil)) {
+		lastTradeTimestampStr = this.SafeString2(order, "update_time", "finish_time")
+		if IsTrue(!IsEqual(lastTradeTimestampStr, nil)) {
+			if IsTrue(IsTrue(IsEqual(GetLength(lastTradeTimestampStr), 10)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(lastTradeTimestampStr, "."), 0))) {
+				// ts in seconds, multiply to ms
+				lastTradeTimestampStr = Precise.StringMul(lastTradeTimestampStr, "1000")
+			} else if IsTrue(IsEqual(GetLength(lastTradeTimestampStr), 16)) {
+				// ts in microseconds, divide to ms
+				lastTradeTimestampStr = Precise.StringDiv(lastTradeTimestampStr, "1000")
+			}
+		}
 	}
 	var marketType interface{} = "contract"
 	if IsTrue(IsTrue((InOp(order, "currency_pair"))) || IsTrue((InOp(order, "market")))) {
@@ -5767,6 +5828,14 @@ func (this *GateCore) ParseOrder(order interface{}, optionalArgs ...interface{})
 			cost = amount
 			amount = Precise.StringDiv(amount, averageString)
 		}
+	}
+	var timestamp interface{} = nil
+	var lastTradeTimestamp interface{} = nil
+	if IsTrue(!IsEqual(timestampStr, nil)) {
+		timestamp = this.ParseToInt(timestampStr)
+	}
+	if IsTrue(!IsEqual(lastTradeTimestampStr, nil)) {
+		lastTradeTimestamp = this.ParseToInt(lastTradeTimestampStr)
 	}
 	return this.SafeOrder(map[string]interface{}{
 		"id":                 this.SafeString(order, "id"),
@@ -5838,7 +5907,7 @@ func (this *GateCore) FetchOrderRequest(id interface{}, optionalArgs ...interfac
  * @param {string} [params.type] 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
  * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
  * @param {bool} [params.unifiedAccount] set to true for fetching a unified account order
- * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5850,11 +5919,11 @@ func (this *GateCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes51188 := (<-this.LoadMarkets())
-		PanicOnError(retRes51188)
+		retRes51878 := (<-this.LoadMarkets())
+		PanicOnError(retRes51878)
 
-		retRes51198 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes51198)
+		retRes51888 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes51888)
 		var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var result interface{} = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 		var typeVar interface{} = this.SafeString(result, 0)
@@ -5922,7 +5991,7 @@ func (this *GateCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-
  * @param {string} [params.type] spot, margin, swap or future, if not provided this.options['defaultType'] is used
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
  * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5938,9 +6007,9 @@ func (this *GateCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes516915 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-		PanicOnError(retRes516915)
-		ch <- retRes516915
+		retRes523815 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+		PanicOnError(retRes523815)
+		ch <- retRes523815
 		return nil
 
 	}()
@@ -5968,7 +6037,7 @@ func (this *GateCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} [params.marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
  * @param {boolean} [params.historical] *swap only* true for using historical endpoint
  * @param {bool} [params.unifiedAccount] set to true for fetching unified account orders
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -5984,11 +6053,11 @@ func (this *GateCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes51968 := (<-this.LoadMarkets())
-		PanicOnError(retRes51968)
+		retRes52658 := (<-this.LoadMarkets())
+		PanicOnError(retRes52658)
 
-		retRes51978 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes51978)
+		retRes52668 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes52668)
 		var until interface{} = this.SafeInteger(params, "until")
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -6003,9 +6072,9 @@ func (this *GateCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan inte
 		params = GetValue(useHistoricalparamsVariable, 1)
 		if IsTrue(!IsTrue(useHistorical) && IsTrue((IsTrue((IsTrue(IsEqual(since, nil)) && IsTrue(IsEqual(until, nil)))) || IsTrue((!IsEqual(typeVar, "swap")))))) {
 
-			retRes520919 := (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
-			PanicOnError(retRes520919)
-			ch <- retRes520919
+			retRes527819 := (<-this.FetchOrdersByStatus("finished", symbol, since, limit, params))
+			PanicOnError(retRes527819)
+			ch <- retRes527819
 			return nil
 		}
 		params = this.Omit(params, "type")
@@ -6102,11 +6171,11 @@ func (this *GateCore) FetchOrdersByStatus(status interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes52698 := (<-this.LoadMarkets())
-		PanicOnError(retRes52698)
+		retRes53388 := (<-this.LoadMarkets())
+		PanicOnError(retRes53388)
 
-		retRes52708 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes52708)
+		retRes53398 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes53398)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6342,7 +6411,7 @@ func (this *GateCore) FetchOrdersByStatus(status interface{}, optionalArgs ...in
  * @param {object} [params] Parameters specified by the exchange api
  * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6354,11 +6423,11 @@ func (this *GateCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes54868 := (<-this.LoadMarkets())
-		PanicOnError(retRes54868)
+		retRes55558 := (<-this.LoadMarkets())
+		PanicOnError(retRes55558)
 
-		retRes54878 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes54878)
+		retRes55568 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes55568)
 		var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var trigger interface{} = this.SafeBoolN(params, []interface{}{"is_stop_order", "stop", "trigger"}, false)
 		params = this.Omit(params, []interface{}{"is_stop_order", "stop", "trigger"})
@@ -6506,7 +6575,7 @@ func (this *GateCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CancelOrders(ids interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6518,11 +6587,11 @@ func (this *GateCore) CancelOrders(ids interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes56158 := (<-this.LoadMarkets())
-		PanicOnError(retRes56158)
+		retRes56848 := (<-this.LoadMarkets())
+		PanicOnError(retRes56848)
 
-		retRes56168 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes56168)
+		retRes56858 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes56858)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6548,9 +6617,9 @@ func (this *GateCore) CancelOrders(ids interface{}, optionalArgs ...interface{})
 				AppendToArray(&ordersRequests, orderItem)
 			}
 
-			retRes563919 := (<-this.CancelOrdersForSymbols(ordersRequests, params))
-			PanicOnError(retRes563919)
-			ch <- retRes563919
+			retRes570819 := (<-this.CancelOrdersForSymbols(ordersRequests, params))
+			PanicOnError(retRes570819)
+			ch <- retRes570819
 			return nil
 		}
 		var request interface{} = map[string]interface{}{
@@ -6580,7 +6649,7 @@ func (this *GateCore) CancelOrders(ids interface{}, optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string[]} [params.clientOrderIds] client order ids
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6590,11 +6659,11 @@ func (this *GateCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes56648 := (<-this.LoadMarkets())
-		PanicOnError(retRes56648)
+		retRes57338 := (<-this.LoadMarkets())
+		PanicOnError(retRes57338)
 
-		retRes56658 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes56658)
+		retRes57348 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes57348)
 		var ordersRequests interface{} = []interface{}{}
 		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 			var order interface{} = GetValue(orders, i)
@@ -6640,7 +6709,7 @@ func (this *GateCore) CancelOrdersForSymbols(orders interface{}, optionalArgs ..
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *GateCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6652,11 +6721,11 @@ func (this *GateCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes57078 := (<-this.LoadMarkets())
-		PanicOnError(retRes57078)
+		retRes57768 := (<-this.LoadMarkets())
+		PanicOnError(retRes57768)
 
-		retRes57088 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes57088)
+		retRes57778 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes57778)
 		var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
 		var trigger interface{} = this.SafeBool2(params, "stop", "trigger")
 		params = this.Omit(params, []interface{}{"stop", "trigger"})
@@ -6751,7 +6820,7 @@ func (this *GateCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interf
  * @param {string} toAccount the account to transfer currency to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.symbol] Unified market symbol *required for type == margin*
- * @returns A [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *GateCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -6761,8 +6830,8 @@ func (this *GateCore) Transfer(code interface{}, amount interface{}, fromAccount
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes57838 := (<-this.LoadMarkets())
-		PanicOnError(retRes57838)
+		retRes58528 := (<-this.LoadMarkets())
+		PanicOnError(retRes58528)
 		var currency interface{} = this.Currency(code)
 		var fromId interface{} = this.ConvertTypeToAccount(fromAccount)
 		var toId interface{} = this.ConvertTypeToAccount(toAccount)
@@ -6870,8 +6939,8 @@ func (this *GateCore) SetLeverage(leverage interface{}, optionalArgs ...interfac
 			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 100")))
 		}
 
-		retRes58748 := (<-this.LoadMarkets())
-		PanicOnError(retRes58748)
+		retRes59438 := (<-this.LoadMarkets())
+		PanicOnError(retRes59438)
 		var market interface{} = this.Market(symbol)
 		requestqueryVariable := this.PrepareRequest(market, nil, params)
 		request := GetValue(requestqueryVariable, 0)
@@ -7089,7 +7158,7 @@ func (this *GateCore) ParsePosition(position interface{}, optionalArgs ...interf
  * @see https://www.gate.com/docs/developers/apiv4/en/#get-specified-contract-position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *GateCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7099,8 +7168,8 @@ func (this *GateCore) FetchPosition(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes60838 := (<-this.LoadMarkets())
-		PanicOnError(retRes60838)
+		retRes61528 := (<-this.LoadMarkets())
+		PanicOnError(retRes61528)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchPosition() supports contract markets only")))
@@ -7199,7 +7268,7 @@ func (this *GateCore) FetchPosition(symbol interface{}, optionalArgs ...interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
  * @param {string} [params.type] swap, future or option, if not provided this.options['defaultType'] is used
- * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *GateCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7211,8 +7280,8 @@ func (this *GateCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes61728 := (<-this.LoadMarkets())
-		PanicOnError(retRes61728)
+		retRes62418 := (<-this.LoadMarkets())
+		PanicOnError(retRes62418)
 		var market interface{} = nil
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -7330,7 +7399,7 @@ func (this *GateCore) FetchPositions(optionalArgs ...interface{}) <-chan interfa
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-futures-contracts-2
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols
+ * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
  */
 func (this *GateCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7342,8 +7411,8 @@ func (this *GateCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes62788 := (<-this.LoadMarkets())
-		PanicOnError(retRes62788)
+		retRes63478 := (<-this.LoadMarkets())
+		PanicOnError(retRes63478)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchLeverageTiers", nil, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
 		query := GetValue(typeVarqueryVariable, 1)
@@ -7472,7 +7541,7 @@ func (this *GateCore) FetchLeverageTiers(optionalArgs ...interface{}) <-chan int
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-risk-limit-tiers
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *GateCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7482,8 +7551,8 @@ func (this *GateCore) FetchMarketLeverageTiers(symbol interface{}, optionalArgs 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes63978 := (<-this.LoadMarkets())
-		PanicOnError(retRes63978)
+		retRes64668 := (<-this.LoadMarkets())
+		PanicOnError(retRes64668)
 		var market interface{} = this.Market(symbol)
 		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchMarketLeverageTiers", market, params)
 		typeVar := GetValue(typeVarqueryVariable, 0)
@@ -7594,7 +7663,7 @@ func (this *GateCore) ParseMarketLeverageTiers(info interface{}, optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
  * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *GateCore) RepayIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7604,8 +7673,8 @@ func (this *GateCore) RepayIsolatedMargin(symbol interface{}, code interface{}, 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes64988 := (<-this.LoadMarkets())
-		PanicOnError(retRes64988)
+		retRes65678 := (<-this.LoadMarkets())
+		PanicOnError(retRes65678)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": ToUpper(GetValue(currency, "id")),
@@ -7640,7 +7709,7 @@ func (this *GateCore) RepayIsolatedMargin(symbol interface{}, code interface{}, 
  * @param {string} [params.mode] 'all' or 'partial' payment mode, extra parameter required for isolated margin
  * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
  * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *GateCore) RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7650,11 +7719,11 @@ func (this *GateCore) RepayCrossMargin(code interface{}, amount interface{}, opt
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes65298 := (<-this.LoadMarkets())
-		PanicOnError(retRes65298)
+		retRes65988 := (<-this.LoadMarkets())
+		PanicOnError(retRes65988)
 
-		retRes65308 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes65308)
+		retRes65998 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes65998)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": ToUpper(GetValue(currency, "id")),
@@ -7694,7 +7763,7 @@ func (this *GateCore) RepayCrossMargin(code interface{}, amount interface{}, opt
  * @param {float} amount the amount to borrow
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *GateCore) BorrowIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7704,8 +7773,8 @@ func (this *GateCore) BorrowIsolatedMargin(symbol interface{}, code interface{},
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes65788 := (<-this.LoadMarkets())
-		PanicOnError(retRes65788)
+		retRes66478 := (<-this.LoadMarkets())
+		PanicOnError(retRes66478)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": ToUpper(GetValue(currency, "id")),
@@ -7756,7 +7825,7 @@ func (this *GateCore) BorrowIsolatedMargin(symbol interface{}, code interface{},
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
  * @param {boolean} [params.unifiedAccount] set to true for borrowing in the unified account
- * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
+ * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *GateCore) BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7766,11 +7835,11 @@ func (this *GateCore) BorrowCrossMargin(code interface{}, amount interface{}, op
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes66258 := (<-this.LoadMarkets())
-		PanicOnError(retRes66258)
+		retRes66948 := (<-this.LoadMarkets())
+		PanicOnError(retRes66948)
 
-		retRes66268 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes66268)
+		retRes66958 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes66958)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": ToUpper(GetValue(currency, "id")),
@@ -7868,7 +7937,7 @@ func (this *GateCore) ParseMarginLoan(info interface{}, optionalArgs ...interfac
  * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unifiedAccount] set to true for fetching borrow interest in the unified account
- * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}
+ * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *GateCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -7886,11 +7955,11 @@ func (this *GateCore) FetchBorrowInterest(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 4, map[string]interface{}{})
 		_ = params
 
-		retRes67298 := (<-this.LoadMarkets())
-		PanicOnError(retRes67298)
+		retRes67988 := (<-this.LoadMarkets())
+		PanicOnError(retRes67988)
 
-		retRes67308 := (<-this.LoadUnifiedStatus())
-		PanicOnError(retRes67308)
+		retRes67998 := (<-this.LoadUnifiedStatus())
+		PanicOnError(retRes67998)
 		var isUnifiedAccount interface{} = false
 		isUnifiedAccountparamsVariable := this.HandleOptionAndParams(params, "fetchBorrowInterest", "unifiedAccount")
 		isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
@@ -8019,6 +8088,7 @@ func (this *GateCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 	} else {
 		this.CheckRequiredCredentials()
 		var queryString interface{} = ""
+		var rawQueryString interface{} = ""
 		var requiresURLEncoding interface{} = false
 		if IsTrue(IsTrue((IsTrue((IsEqual(typeVar, "futures"))) || IsTrue((IsEqual(typeVar, "delivery"))))) && IsTrue(IsEqual(method, "POST"))) {
 			var pathParts interface{} = Split(path, "/")
@@ -8027,6 +8097,8 @@ func (this *GateCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 		}
 		if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) || IsTrue(requiresURLEncoding)) || IsTrue((IsEqual(method, "PATCH")))) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+				// https://github.com/ccxt/ccxt/issues/27663
+				rawQueryString = this.Rawencode(query)
 				queryString = this.Urlencode(query)
 				// https://github.com/ccxt/ccxt/issues/25570
 				if IsTrue(IsTrue(IsGreaterThanOrEqual(GetIndexOf(queryString, "currencies="), 0)) && IsTrue(IsGreaterThanOrEqual(GetIndexOf(queryString, "%2C"), 0))) {
@@ -8052,7 +8124,7 @@ func (this *GateCore) Sign(path interface{}, optionalArgs ...interface{}) interf
 		var timestamp interface{} = this.ParseToInt(Divide(nonce, 1000))
 		var timestampString interface{} = ToString(timestamp)
 		var signaturePath interface{} = Add(Add("/api/", this.Version), entirePath)
-		var payloadArray interface{} = []interface{}{ToUpper(method), signaturePath, queryString, bodySignature, timestampString}
+		var payloadArray interface{} = []interface{}{ToUpper(method), signaturePath, rawQueryString, bodySignature, timestampString}
 		// eslint-disable-next-line quotes
 		var payload interface{} = Join(payloadArray, "\n")
 		var signature interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
@@ -8078,8 +8150,8 @@ func (this *GateCore) ModifyMarginHelper(symbol interface{}, amount interface{},
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes68818 := (<-this.LoadMarkets())
-		PanicOnError(retRes68818)
+		retRes69538 := (<-this.LoadMarkets())
+		PanicOnError(retRes69538)
 		var market interface{} = this.Market(symbol)
 		requestqueryVariable := this.PrepareRequest(market, nil, params)
 		request := GetValue(requestqueryVariable, 0)
@@ -8160,7 +8232,7 @@ func (this *GateCore) ParseMarginModification(data interface{}, optionalArgs ...
  * @param {string} symbol unified market symbol
  * @param {float} amount the amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *GateCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8170,9 +8242,9 @@ func (this *GateCore) ReduceMargin(symbol interface{}, amount interface{}, optio
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes695315 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), params))
-		PanicOnError(retRes695315)
-		ch <- retRes695315
+		retRes702515 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), params))
+		PanicOnError(retRes702515)
+		ch <- retRes702515
 		return nil
 
 	}()
@@ -8188,7 +8260,7 @@ func (this *GateCore) ReduceMargin(symbol interface{}, amount interface{}, optio
  * @param {string} symbol unified market symbol
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *GateCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8198,9 +8270,9 @@ func (this *GateCore) AddMargin(symbol interface{}, amount interface{}, optional
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes696815 := (<-this.ModifyMarginHelper(symbol, amount, params))
-		PanicOnError(retRes696815)
-		ch <- retRes696815
+		retRes704015 := (<-this.ModifyMarginHelper(symbol, amount, params))
+		PanicOnError(retRes704015)
+		ch <- retRes704015
 		return nil
 
 	}()
@@ -8218,7 +8290,7 @@ func (this *GateCore) AddMargin(symbol interface{}, amount interface{}, optional
  * @param {int} [limit] default 30
  * @param {object} [params] exchange specific parameters
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *GateCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8234,17 +8306,17 @@ func (this *GateCore) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes69858 := (<-this.LoadMarkets())
-		PanicOnError(retRes69858)
+		retRes70578 := (<-this.LoadMarkets())
+		PanicOnError(retRes70578)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenInterestHistory", "paginate", false)
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes698919 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
-			PanicOnError(retRes698919)
-			ch <- retRes698919
+			retRes706119 := (<-this.FetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, params, 100))
+			PanicOnError(retRes706119)
+			ch <- retRes706119
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -8334,7 +8406,7 @@ func (this *GateCore) ParseOpenInterest(interest interface{}, optionalArgs ...in
  * @param {int} [since] timestamp in ms
  * @param {int} [limit] number of records
  * @param {object} [params] exchange specific params
- * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+ * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
 func (this *GateCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8353,8 +8425,8 @@ func (this *GateCore) FetchSettlementHistory(optionalArgs ...interface{}) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
 		}
 
-		retRes70768 := (<-this.LoadMarkets())
-		PanicOnError(retRes70768)
+		retRes71488 := (<-this.LoadMarkets())
+		PanicOnError(retRes71488)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
@@ -8427,8 +8499,8 @@ func (this *GateCore) FetchMySettlementHistory(optionalArgs ...interface{}) <-ch
 			panic(ArgumentsRequired(Add(this.Id, " fetchMySettlementHistory() requires a symbol argument")))
 		}
 
-		retRes71278 := (<-this.LoadMarkets())
-		PanicOnError(retRes71278)
+		retRes71998 := (<-this.LoadMarkets())
+		PanicOnError(retRes71998)
 		var market interface{} = this.Market(symbol)
 		var typeVar interface{} = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)
@@ -8568,7 +8640,7 @@ func (this *GateCore) ParseSettlements(settlements interface{}, market interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *GateCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8584,17 +8656,17 @@ func (this *GateCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes72638 := (<-this.LoadMarkets())
-		PanicOnError(retRes72638)
+		retRes73358 := (<-this.LoadMarkets())
+		PanicOnError(retRes73358)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes726719 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes726719)
-			ch <- retRes726719
+			retRes733919 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+			PanicOnError(retRes733919)
+			ch <- retRes733919
 			return nil
 		}
 		var typeVar interface{} = nil
@@ -8861,9 +8933,9 @@ func (this *GateCore) SetPositionMode(hedged interface{}, optionalArgs ...interf
 		query := GetValue(requestqueryVariable, 1)
 		AddElementToObject(request, "dual_mode", hedged)
 
-		retRes750315 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query)))
-		PanicOnError(retRes750315)
-		ch <- retRes750315
+		retRes757515 := (<-this.PrivateFuturesPostSettleDualMode(this.Extend(request, query)))
+		PanicOnError(retRes757515)
+		ch <- retRes757515
 		return nil
 
 	}()
@@ -8877,7 +8949,7 @@ func (this *GateCore) SetPositionMode(hedged interface{}, optionalArgs ...interf
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-underlyings
  * @param {object} [params] exchange specific params
  * @param {string} [params.type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
- * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/#/?id=underlying-assets-structure}
+ * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
 func (this *GateCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8887,8 +8959,8 @@ func (this *GateCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes75168 := (<-this.LoadMarkets())
-		PanicOnError(retRes75168)
+		retRes75888 := (<-this.LoadMarkets())
+		PanicOnError(retRes75888)
 		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -8937,7 +9009,7 @@ func (this *GateCore) FetchUnderlyingAssets(optionalArgs ...interface{}) <-chan 
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *GateCore) FetchLiquidations(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -8951,8 +9023,8 @@ func (this *GateCore) FetchLiquidations(symbol interface{}, optionalArgs ...inte
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes75598 := (<-this.LoadMarkets())
-		PanicOnError(retRes75598)
+		retRes76318 := (<-this.LoadMarkets())
+		PanicOnError(retRes76318)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(this.Id, " fetchLiquidations() supports swap markets only")))
@@ -9004,7 +9076,7 @@ func (this *GateCore) FetchLiquidations(symbol interface{}, optionalArgs ...inte
  * @param {int} [since] the earliest time in ms to fetch liquidations for
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the exchange API endpoint
- * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+ * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *GateCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9023,8 +9095,8 @@ func (this *GateCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan in
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyLiquidations() requires a symbol argument")))
 		}
 
-		retRes76088 := (<-this.LoadMarkets())
-		PanicOnError(retRes76088)
+		retRes76808 := (<-this.LoadMarkets())
+		PanicOnError(retRes76808)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"contract": GetValue(market, "id"),
@@ -9188,7 +9260,7 @@ func (this *GateCore) ParseLiquidation(liquidation interface{}, optionalArgs ...
  * @see https://www.gate.com/docs/developers/apiv4/en/#list-tickers-of-options-contracts
  * @param {string} symbol unified symbol of the market to fetch greeks for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+ * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *GateCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9198,8 +9270,8 @@ func (this *GateCore) FetchGreeks(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes77638 := (<-this.LoadMarkets())
-		PanicOnError(retRes77638)
+		retRes78358 := (<-this.LoadMarkets())
+		PanicOnError(retRes78358)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"underlying": GetValue(GetValue(market, "info"), "underlying"),
@@ -9303,7 +9375,7 @@ func (this *GateCore) ParseGreeks(greeks interface{}, optionalArgs ...interface{
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} side 'buy' or 'sell'
  * @param {object} [params] extra parameters specific to the okx api endpoint
- * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *GateCore) ClosePosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9322,9 +9394,9 @@ func (this *GateCore) ClosePosition(symbol interface{}, optionalArgs ...interfac
 			side = "" // side is not used but needs to be present, otherwise crashes in php
 		}
 
-		retRes786815 := (<-this.CreateOrder(symbol, "market", side, 0, nil, params))
-		PanicOnError(retRes786815)
-		ch <- retRes786815
+		retRes794015 := (<-this.CreateOrder(symbol, "market", side, 0, nil, params))
+		PanicOnError(retRes794015)
+		ch <- retRes794015
 		return nil
 
 	}()
@@ -9341,7 +9413,7 @@ func (this *GateCore) ClosePosition(symbol interface{}, optionalArgs ...interfac
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unified] default false, set to true for fetching the unified accounts leverage
- * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *GateCore) FetchLeverage(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9351,8 +9423,8 @@ func (this *GateCore) FetchLeverage(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes78848 := (<-this.LoadMarkets())
-		PanicOnError(retRes78848)
+		retRes79568 := (<-this.LoadMarkets())
+		PanicOnError(retRes79568)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			// unified account does not require a symbol
@@ -9397,7 +9469,7 @@ func (this *GateCore) FetchLeverage(symbol interface{}, optionalArgs ...interfac
  * @param {string[]} symbols a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.unified] default false, set to true for fetching unified account leverages
- * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+ * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *GateCore) FetchLeverages(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9409,8 +9481,8 @@ func (this *GateCore) FetchLeverages(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes79918 := (<-this.LoadMarkets())
-		PanicOnError(retRes79918)
+		retRes80638 := (<-this.LoadMarkets())
+		PanicOnError(retRes80638)
 		symbols = this.MarketSymbols(symbols)
 		var response interface{} = nil
 		var isUnified interface{} = this.SafeBool(params, "unified")
@@ -9454,7 +9526,7 @@ func (this *GateCore) ParseLeverage(leverage interface{}, optionalArgs ...interf
  * @see https://www.gate.com/docs/developers/apiv4/en/#query-specified-contract-detail
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *GateCore) FetchOption(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9464,8 +9536,8 @@ func (this *GateCore) FetchOption(symbol interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes80528 := (<-this.LoadMarkets())
-		PanicOnError(retRes80528)
+		retRes81248 := (<-this.LoadMarkets())
+		PanicOnError(retRes81248)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"contract": GetValue(market, "id"),
@@ -9530,7 +9602,7 @@ func (this *GateCore) FetchOption(symbol interface{}, optionalArgs ...interface{
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.underlying] the underlying asset, can be obtained from fetchUnderlyingAssets ()
  * @param {int} [params.expiration] unix timestamp of the expiration time
- * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
+ * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *GateCore) FetchOptionChain(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9540,8 +9612,8 @@ func (this *GateCore) FetchOptionChain(code interface{}, optionalArgs ...interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes81138 := (<-this.LoadMarkets())
-		PanicOnError(retRes81138)
+		retRes81858 := (<-this.LoadMarkets())
+		PanicOnError(retRes81858)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"underlying": Add(GetValue(currency, "code"), "_USDT"),
@@ -9683,7 +9755,7 @@ func (this *GateCore) ParseOption(chain interface{}, optionalArgs ...interface{}
  * @param {int} [params.offset] list offset, starting from 0
  * @param {string} [params.side] long or short
  * @param {string} [params.pnl] query profit or loss
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *GateCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -9699,8 +9771,8 @@ func (this *GateCore) FetchPositionsHistory(optionalArgs ...interface{}) <-chan 
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes82488 := (<-this.LoadMarkets())
-		PanicOnError(retRes82488)
+		retRes83208 := (<-this.LoadMarkets())
+		PanicOnError(retRes83208)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
 			var symbolsLength interface{} = GetArrayLength(symbols)
