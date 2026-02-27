@@ -206,6 +206,7 @@ class binance extends \ccxt\async\binance {
                     '24hrTicker' => 'ticker',
                     '24hrMiniTicker' => 'miniTicker',
                     'markPriceUpdate' => 'markPrice',
+                    'markPrice' => 'markPrice', // eOptions mark price event type
                     // rolling window tickers
                     '1hTicker' => 'ticker_1h',
                     '4hTicker' => 'ticker_4h',
@@ -691,10 +692,10 @@ class binance extends \ccxt\async\binance {
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-            } elseif ($firstMarket['option']) {
+            if ($firstMarket['option']) {
                 $type = 'option';
+            } elseif ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $name = 'depth';
             $streamHash = 'multipleOrderbook';
@@ -719,7 +720,8 @@ class binance extends \ccxt\async\binance {
                 $symbol = $symbols[$i];
                 $market = $this->market($symbol);
                 $messageHashes[] = 'orderbook::' . $symbol;
-                $subscriptionHash = $market['lowercaseId'] . '@' . $name;
+                $streamId = $market['lowercaseId'];
+                $subscriptionHash = $streamId . '@' . $name;
                 $symbolHash = $subscriptionHash . '@' . (string) $watchOrderBookRate . 'ms';
                 $subParams[] = $symbolHash;
             }
@@ -765,10 +767,10 @@ class binance extends \ccxt\async\binance {
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-            } elseif ($firstMarket['option']) {
+            if ($firstMarket['option']) {
                 $type = 'option';
+            } elseif ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
             $name = 'depth';
             $streamHash = 'multipleOrderbook';
@@ -784,7 +786,8 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbol);
                 $subMessageHashes[] = 'orderbook::' . $symbol;
                 $messageHashes[] = 'unsubscribe:orderbook:' . $symbol;
-                $subscriptionHash = $market['lowercaseId'] . '@' . $name;
+                $streamId = $market['lowercaseId'];
+                $subscriptionHash = $streamId . '@' . $name;
                 $symbolHash = $subscriptionHash . '@' . $watchOrderBookRate . 'ms';
                 $subParams[] = $symbolHash;
             }
@@ -1004,13 +1007,12 @@ class binance extends \ccxt\async\binance {
         //         )
         //     }
         //
-        $isSpot = $this->is_spot_url($client);
         $marketId = $this->safe_string($message, 's');
-        $isOption = ($marketId !== null) && (mb_strpos($marketId, '-') !== false);
-        $marketType = ($isSpot) ? 'spot' : 'swap';
-        if ($isOption) {
-            $marketType = 'option';
-        }
+        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
+        $marketById = $this->safe_value($marketsByIdList, 0);
+        $isSpot = $this->is_spot_url($client);
+        $fallbackType = $isSpot ? 'spot' : 'swap';
+        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook::' . $symbol;
@@ -1172,20 +1174,36 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'callerMethodName');
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-            } elseif ($firstMarket['option']) {
+            $isOption = $firstMarket['option'];
+            if ($isOption) {
                 $type = 'option';
+            } elseif ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
-            // eOptions uses @trade (same stream $name), not @optionTrade
             $messageHashes = array();
             $subParams = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $messageHashes[] = 'trade::' . $symbol;
-                $rawHash = $market['lowercaseId'] . '@' . $name;
-                $subParams[] = $rawHash;
+            if ($isOption) {
+                // eOptions => always $subscribe per-$underlying (<$underlying>@optionTrade)
+                // handleTrade filters to the correct $symbol via the 's' field
+                $seenUnderlyings = array();
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $messageHashes[] = 'trade::' . $symbol;
+                    $underlying = strtolower($market['baseId']) . strtolower($market['quoteId']);
+                    if (!(is_array($seenUnderlyings) && array_key_exists($underlying, $seenUnderlyings))) {
+                        $seenUnderlyings[$underlying] = true;
+                        $subParams[] = $underlying . '@optionTrade';
+                    }
+                }
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $messageHashes[] = 'trade::' . $symbol;
+                    $rawHash = $market['lowercaseId'] . '@' . $name;
+                    $subParams[] = $rawHash;
+                }
             }
             $query = $this->omit($params, 'type');
             $subParamsLength = count($subParams);
@@ -1239,22 +1257,39 @@ class binance extends \ccxt\async\binance {
             $params = $this->omit($params, 'callerMethodName');
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-            } elseif ($firstMarket['option']) {
+            $isOption = $firstMarket['option'];
+            if ($isOption) {
                 $type = 'option';
+            } elseif ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
-            // eOptions uses @trade (same stream $name), not @optionTrade
             $subMessageHashes = array();
             $subParams = array();
             $messageHashes = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->market($symbol);
-                $subMessageHashes[] = 'trade::' . $symbol;
-                $messageHashes[] = 'unsubscribe:trade:' . $symbol;
-                $rawHash = $market['lowercaseId'] . '@' . $name;
-                $subParams[] = $rawHash;
+            if ($isOption) {
+                // eOptions => always subscribe per-$underlying (<$underlying>@optionTrade)
+                // handleTrade filters to the correct $symbol via the 's' field
+                $seenUnderlyings = array();
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $subMessageHashes[] = 'trade::' . $symbol;
+                    $messageHashes[] = 'unsubscribe:trade:' . $symbol;
+                    $underlying = strtolower($market['baseId']) . strtolower($market['quoteId']);
+                    if (!(is_array($seenUnderlyings) && array_key_exists($underlying, $seenUnderlyings))) {
+                        $seenUnderlyings[$underlying] = true;
+                        $subParams[] = $underlying . '@optionTrade';
+                    }
+                }
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    $subMessageHashes[] = 'trade::' . $symbol;
+                    $messageHashes[] = 'unsubscribe:trade:' . $symbol;
+                    $rawHash = $market['lowercaseId'] . '@' . $name;
+                    $subParams[] = $rawHash;
+                }
             }
             $query = $this->omit($params, 'type');
             $subParamsLength = count($subParams);
@@ -1314,7 +1349,6 @@ class binance extends \ccxt\async\binance {
              * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            $params['callerMethodName'] = 'watchTrades';
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
@@ -1443,11 +1477,10 @@ class binance extends \ccxt\async\binance {
             }
         }
         $marketId = $this->safe_string($trade, 's');
-        $isOption = ($marketId !== null) && (mb_strpos($marketId, '-') !== false);
-        $marketType = (is_array($trade) && array_key_exists('ps', $trade)) ? 'contract' : 'spot';
-        if ($isOption) {
-            $marketType = 'option';
-        }
+        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
+        $marketById = $this->safe_value($marketsByIdList, 0);
+        $fallbackType = (is_array($trade) && array_key_exists('ps', $trade)) ? 'contract' : 'spot';
+        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $side = $this->safe_string_lower($trade, 'S');
         $takerOrMaker = null;
@@ -1490,12 +1523,11 @@ class binance extends \ccxt\async\binance {
         // the $trade streams push raw $trade information in real-time
         // each $trade has a unique buyer and seller
         $marketId = $this->safe_string($message, 's');
-        $isOption = ($marketId !== null) && (mb_strpos($marketId, '-') !== false);
+        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
+        $marketById = $this->safe_value($marketsByIdList, 0);
         $isSpot = $this->is_spot_url($client);
-        $marketType = ($isSpot) ? 'spot' : 'contract';
-        if ($isOption) {
-            $marketType = 'option';
-        }
+        $fallbackType = $isSpot ? 'spot' : 'contract';
+        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
         $messageHash = 'trade::' . $symbol;
@@ -1560,12 +1592,12 @@ class binance extends \ccxt\async\binance {
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $firstMarket['type'];
             $wsUrlType = $type;
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-                $wsUrlType = $type;
-            } elseif ($firstMarket['option']) {
+            if ($firstMarket['option']) {
                 $type = 'option';
                 $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
+            } elseif ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+                $wsUrlType = $type;
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
@@ -1633,12 +1665,12 @@ class binance extends \ccxt\async\binance {
             $firstMarket = $this->market($marketSymbols[0]);
             $type = $firstMarket['type'];
             $wsUrlType = $type;
-            if ($firstMarket['contract']) {
-                $type = $firstMarket['linear'] ? 'future' : 'delivery';
-                $wsUrlType = $type;
-            } elseif ($firstMarket['option']) {
+            if ($firstMarket['option']) {
                 $type = 'option';
                 $wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
+            } elseif ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+                $wsUrlType = $type;
             }
             $isSpot = ($type === 'spot');
             $timezone = null;
@@ -1759,12 +1791,11 @@ class binance extends \ccxt\async\binance {
             $this->safe_float($kline, 'c'),
             $this->safe_float($kline, 'v'),
         );
-        $isOption = ($marketId !== null) && (mb_strpos($marketId, '-') !== false);
+        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
+        $marketById = $this->safe_value($marketsByIdList, 0);
         $isSpot = $this->is_spot_url($client);
-        $marketType = ($isSpot) ? 'spot' : 'contract';
-        if ($isOption) {
-            $marketType = 'option';
-        }
+        $fallbackType = $isSpot ? 'spot' : 'contract';
+        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
@@ -2143,11 +2174,13 @@ class binance extends \ccxt\async\binance {
             if ($symbolsDefined) {
                 $firstMarket = $this->market($symbols[0]);
             }
-            $defaultMarket = ($isMarkPrice) ? 'swap' : null;
+            $userDefaultType = $this->safe_string($this->options, 'defaultType');
+            $defaultMarket = ($isMarkPrice && $userDefaultType !== 'option') ? 'swap' : null;
             list($marketType, $params) = $this->handle_market_type_and_params($methodName, $firstMarket, $params, $defaultMarket);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params($methodName, $firstMarket, $params);
-            $isOptionMarkPrice = ($isMarkPrice && $firstMarket !== null && $firstMarket['option'] === true);
+            // use $marketType (not $firstMarket) so the no-$symbols case with defaultType='option' is also detected
+            $isOptionMarkPrice = ($isMarkPrice && $marketType === 'option');
             $rawMarketType = null;
             if ($marketType === 'option') {
                 // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
@@ -2162,6 +2195,9 @@ class binance extends \ccxt\async\binance {
             } else {
                 throw new NotSupported($this->id . ' ' . $methodName . '() does not support options markets');
             }
+            // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
+            // so only the $subscription arg changes — $channelName stays as-is to keep $messageHashes aligned
+            $isOptionTicker = ($marketType === 'option' && !$isMarkPrice && !$isBidAsk);
             if ($isMarkPrice && !$this->in_array($marketType, array( 'swap', 'future', 'option' ))) {
                 throw new NotSupported($this->id . ' ' . $methodName . '() does not support ' . $marketType . ' markets yet');
             }
@@ -2196,23 +2232,57 @@ class binance extends \ccxt\async\binance {
                             $seenUnderlyings[$underlying] = true;
                             $subscriptionArgs[] = $underlying . '@optionMarkPrice';
                         }
+                    } elseif ($isOptionTicker) {
+                        // eOptions tickers => group by $underlying . expiry date (<$underlying>@optionTicker@<YYMMDD>)
+                        // $market id format => BTC-240328-70000-C → expiry part is $parts[1] = '240328'
+                        $parts = explode('-', $market['id']);
+                        $expiryDate = $this->safe_string($parts, 1);
+                        $underlying = strtolower($market['baseId']) . strtolower($market['quoteId']);
+                        $subscriptionArg = $underlying . '@optionTicker@' . $expiryDate;
+                        if (!(is_array($seenUnderlyings) && array_key_exists($subscriptionArg, $seenUnderlyings))) {
+                            $seenUnderlyings[$subscriptionArg] = true;
+                            $subscriptionArgs[] = $subscriptionArg;
+                        }
                     } else {
-                        $subscriptionArgs[] = $market['lowercaseId'] . '@' . $channelName . $suffix;
+                        $streamId = $market['lowercaseId'];
+                        $subscriptionArgs[] = $streamId . '@' . $channelName . $suffix;
                     }
                 }
             } else {
-                if ($isBidAsk) {
+                if ($marketType === 'option') {
+                    $underlying = $this->safe_string_lower($params, 'underlying');
+                    if ($underlying === null) {
+                        throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires either $symbols or $params["underlying"] for eOptions');
+                    }
+                    if ($isOptionTicker) {
+                        // eOptions tickers are per $underlying+expiry => <$underlying>@optionTicker@<YYMMDD>
+                        $expirationDate = $this->safe_string($params, 'expirationDate');
+                        if ($expirationDate === null) {
+                            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $params["expirationDate"] (e.g. "260227") for eOptions tickers when no $symbols are provided');
+                        }
+                        $subscriptionArgs[] = $underlying . '@optionTicker@' . $expirationDate;
+                    } else {
+                        // $isOptionMarkPrice => one stream covers all contracts for the $underlying
+                        $subscriptionArgs[] = $underlying . '@optionMarkPrice';
+                    }
+                    $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
+                    $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
+                } elseif ($isBidAsk) {
                     if ($marketType === 'spot') {
                         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires $symbols for this channel for spot markets');
                     }
                     $subscriptionArgs[] = '!' . $channelName;
+                    $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
+                    $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
                 } elseif ($isMarkPrice) {
                     $subscriptionArgs[] = '!' . $channelName . '@arr' . $suffix;
+                    $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
+                    $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
                 } else {
                     $subscriptionArgs[] = '!' . $channelName . '@arr';
+                    $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
+                    $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
                 }
-                $messageHashes[] = $unifiedPrefix . 's:' . $channelName;
-                $unsubscribeMessageHashes[] = 'unsubscribe::' . $channelName;
             }
             $streamHash = $channelName;
             if ($symbolsDefined) {
@@ -2240,13 +2310,20 @@ class binance extends \ccxt\async\binance {
                 );
                 $hashes = $unsubscribeMessageHashes;
             }
-            $result = Async\await($this->watch_multiple($url, $hashes, $this->deep_extend($request, $params), $hashes, $subscription));
+            // for option mark prices, the $underlying stream delivers all contracts in one array message
+            // wait on the batch hash so the resolved value is the full dict of new tickers
+            $waitHashes = $hashes;
+            if ($isOptionMarkPrice && !$isUnsubscribe) {
+                $waitHashes = array( $unifiedPrefix . 's:' . $channelName );
+            }
+            $result = Async\await($this->watch_multiple($url, $waitHashes, $this->deep_extend($request, $params), $hashes, $subscription));
             if ($isUnsubscribe) {
                 return $result;
             }
             // for efficiency, we have two type of returned structure here - if $symbols array was provided, then individual
             // ticker dict comes in, otherwise all-tickers dict comes in
-            if (!$symbolsDefined) {
+            // $isOptionMarkPrice always resolves on a batch hash → $result is already a dict
+            if (!$symbolsDefined || $isOptionMarkPrice) {
                 return $result;
             } else {
                 $newDict = array();
@@ -2331,7 +2408,7 @@ class binance extends \ccxt\async\binance {
         if ($event === '24hrTicker') {
             $event = 'ticker';
         }
-        if ($event === 'markPriceUpdate') {
+        if ($event === 'markPriceUpdate' || $event === 'markPrice') {
             // handle this separately because some fields clash with the ticker fields
             // futures use 'p' for mark price; options use 'mp'
             return $this->safe_ticker(array(
@@ -2464,8 +2541,6 @@ class binance extends \ccxt\async\binance {
     }
 
     public function handle_tickers_and_bids_asks(Client $client, $message, $methodType) {
-        $isSpot = $this->is_spot_url($client);
-        $marketType = ($isSpot) ? 'spot' : 'contract';
         $isBidAsk = ($methodType === 'bidasks');
         $isMarkPrice = ($methodType === 'markPrices');
         $unifiedPrefix = null;
@@ -2495,7 +2570,13 @@ class binance extends \ccxt\async\binance {
             if ($channelName === null) {
                 continue;
             }
-            $parsedTicker = $this->parse_ws_ticker($ticker, $marketType);
+            $tickerMarketId = $this->safe_string($ticker, 's');
+            $tickerMarketsByIdList = $this->safe_value($this->markets_by_id, $tickerMarketId);
+            $tickerMarketById = $this->safe_value($tickerMarketsByIdList, 0);
+            $isSpot = $this->is_spot_url($client);
+            $tickerFallbackType = $isSpot ? 'spot' : 'contract';
+            $tickerMarketType = ($tickerMarketById !== null) ? $tickerMarketById['type'] : $tickerFallbackType;
+            $parsedTicker = $this->parse_ws_ticker($ticker, $tickerMarketType);
             $symbol = $parsedTicker['symbol'];
             $newTickers[$symbol] = $parsedTicker;
             if ($isBidAsk) {
@@ -2770,10 +2851,14 @@ class binance extends \ccxt\async\binance {
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
             $subTypeInfo = $this->handle_sub_type_and_params('keepAliveListenKey', null, $params);
             $subType = $subTypeInfo[0];
-            if ($this->isLinear ($type, $subType)) {
-                $type = 'future';
-            } elseif ($this->isInverse ($type, $subType)) {
-                $type = 'delivery';
+            if ($type !== 'option') {
+                // guard $options first => isLinear returns true for linear-settled $options ($subType='linear')
+                // which would incorrectly convert $type='option' to 'future'
+                if ($this->isLinear ($type, $subType)) {
+                    $type = 'future';
+                } elseif ($this->isInverse ($type, $subType)) {
+                    $type = 'delivery';
+                }
             }
             // For margin, token renewal is handled by renewListenToken method
             if ($type === 'margin') {
@@ -4070,11 +4155,10 @@ class binance extends \ccxt\async\binance {
         //
         $executionType = $this->safe_string($order, 'x');
         $marketId = $this->safe_string($order, 's');
-        $isOption = ($marketId !== null) && (mb_strpos($marketId, '-') !== false);
-        $marketType = (is_array($order) && array_key_exists('ps', $order)) ? 'contract' : 'spot';
-        if ($isOption) {
-            $marketType = 'option';
-        }
+        $marketsByIdList = $this->safe_value($this->markets_by_id, $marketId);
+        $marketById = $this->safe_value($marketsByIdList, 0);
+        $fallbackType = (is_array($order) && array_key_exists('ps', $order)) ? 'contract' : 'spot';
+        $marketType = ($marketById !== null) ? $marketById['type'] : $fallbackType;
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
         $timestamp = $this->safe_integer($order, 'O');
         $T = $this->safe_integer($order, 'T');
@@ -5037,6 +5121,7 @@ class binance extends \ccxt\async\binance {
             'trade' => array($this, 'handle_trade'),
             'aggTrade' => array($this, 'handle_trade'),
             'optionTrade' => array($this, 'handle_trade'),
+            'markPrice' => array($this, 'handle_mark_prices'),
             'kline' => array($this, 'handle_ohlcv'),
             'markPrice_kline' => array($this, 'handle_ohlcv'),
             'indexPrice_kline' => array($this, 'handle_ohlcv'),
@@ -5052,6 +5137,7 @@ class binance extends \ccxt\async\binance {
             '24hrMiniTicker' => array($this, 'handle_tickers'),
             'markPriceUpdate' => array($this, 'handle_mark_prices'),
             'markPriceUpdate@arr' => array($this, 'handle_mark_prices'),
+            'markPrice@arr' => array($this, 'handle_mark_prices'),
             'bookTicker' => array($this, 'handle_bids_asks'), // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition' => array($this, 'handle_balance'),
             'balanceUpdate' => array($this, 'handle_balance'),

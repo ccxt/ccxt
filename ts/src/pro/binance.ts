@@ -205,6 +205,7 @@ export default class binance extends binanceRest {
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
                     'markPriceUpdate': 'markPrice',
+                    'markPrice': 'markPrice', // eOptions mark price event type
                     // rolling window tickers
                     '1hTicker': 'ticker_1h',
                     '4hTicker': 'ticker_4h',
@@ -681,10 +682,10 @@ export default class binance extends binanceRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-        } else if (firstMarket['option']) {
+        if (firstMarket['option']) {
             type = 'option';
+        } else if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         let name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -709,7 +710,8 @@ export default class binance extends binanceRest {
             const symbol = symbols[i];
             const market = this.market (symbol);
             messageHashes.push ('orderbook::' + symbol);
-            const subscriptionHash = market['lowercaseId'] + '@' + name;
+            const streamId = market['lowercaseId'];
+            const subscriptionHash = streamId + '@' + name;
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate.toString () + 'ms';
             subParams.push (symbolHash);
         }
@@ -753,10 +755,10 @@ export default class binance extends binanceRest {
         symbols = this.marketSymbols (symbols, undefined, false, true, true);
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-        } else if (firstMarket['option']) {
+        if (firstMarket['option']) {
             type = 'option';
+        } else if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
         }
         const name = 'depth';
         let streamHash = 'multipleOrderbook';
@@ -772,7 +774,8 @@ export default class binance extends binanceRest {
             const market = this.market (symbol);
             subMessageHashes.push ('orderbook::' + symbol);
             messageHashes.push ('unsubscribe:orderbook:' + symbol);
-            const subscriptionHash = market['lowercaseId'] + '@' + name;
+            const streamId = market['lowercaseId'];
+            const subscriptionHash = streamId + '@' + name;
             const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
@@ -985,13 +988,12 @@ export default class binance extends binanceRest {
         //         ]
         //     }
         //
-        const isSpot = this.isSpotUrl (client);
         const marketId = this.safeString (message, 's');
-        const isOption = (marketId !== undefined) && (marketId.indexOf ('-') >= 0);
-        let marketType = (isSpot) ? 'spot' : 'swap';
-        if (isOption) {
-            marketType = 'option';
-        }
+        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
+        const marketById = this.safeValue (marketsByIdList, 0);
+        const isSpot = this.isSpotUrl (client);
+        const fallbackType = isSpot ? 'spot' : 'swap';
+        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
@@ -1152,20 +1154,36 @@ export default class binance extends binanceRest {
         params = this.omit (params, 'callerMethodName');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-        } else if (firstMarket['option']) {
+        const isOption = firstMarket['option'];
+        if (isOption) {
             type = 'option';
+        } else if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        // eOptions uses @trade (same stream name as futures), not @optionTrade
         const messageHashes = [];
         const subParams = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            messageHashes.push ('trade::' + symbol);
-            const rawHash = market['lowercaseId'] + '@' + name;
-            subParams.push (rawHash);
+        if (isOption) {
+            // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
+            // handleTrade filters to the correct symbol via the 's' field
+            const seenUnderlyings: Dict = {};
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                messageHashes.push ('trade::' + symbol);
+                const underlying = market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+                if (!(underlying in seenUnderlyings)) {
+                    seenUnderlyings[underlying] = true;
+                    subParams.push (underlying + '@optionTrade');
+                }
+            }
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                messageHashes.push ('trade::' + symbol);
+                const rawHash = market['lowercaseId'] + '@' + name;
+                subParams.push (rawHash);
+            }
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
@@ -1217,22 +1235,39 @@ export default class binance extends binanceRest {
         params = this.omit (params, 'callerMethodName');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-        } else if (firstMarket['option']) {
+        const isOption = firstMarket['option'];
+        if (isOption) {
             type = 'option';
+        } else if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        // eOptions uses @trade (same stream name as futures), not @optionTrade
         const subMessageHashes = [];
         const subParams = [];
         const messageHashes = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.market (symbol);
-            subMessageHashes.push ('trade::' + symbol);
-            messageHashes.push ('unsubscribe:trade:' + symbol);
-            const rawHash = market['lowercaseId'] + '@' + name;
-            subParams.push (rawHash);
+        if (isOption) {
+            // eOptions: always subscribe per-underlying (<underlying>@optionTrade)
+            // handleTrade filters to the correct symbol via the 's' field
+            const seenUnderlyings: Dict = {};
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                subMessageHashes.push ('trade::' + symbol);
+                messageHashes.push ('unsubscribe:trade:' + symbol);
+                const underlying = market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+                if (!(underlying in seenUnderlyings)) {
+                    seenUnderlyings[underlying] = true;
+                    subParams.push (underlying + '@optionTrade');
+                }
+            }
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                subMessageHashes.push ('trade::' + symbol);
+                messageHashes.push ('unsubscribe:trade:' + symbol);
+                const rawHash = market['lowercaseId'] + '@' + name;
+                subParams.push (rawHash);
+            }
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
@@ -1288,7 +1323,6 @@ export default class binance extends binanceRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        params['callerMethodName'] = 'watchTrades';
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
@@ -1416,11 +1450,10 @@ export default class binance extends binanceRest {
             }
         }
         const marketId = this.safeString (trade, 's');
-        const isOption = (marketId !== undefined) && (marketId.indexOf ('-') >= 0);
-        let marketType = ('ps' in trade) ? 'contract' : 'spot';
-        if (isOption) {
-            marketType = 'option';
-        }
+        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
+        const marketById = this.safeValue (marketsByIdList, 0);
+        const fallbackType = ('ps' in trade) ? 'contract' : 'spot';
+        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker = undefined;
@@ -1463,12 +1496,11 @@ export default class binance extends binanceRest {
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
         const marketId = this.safeString (message, 's');
-        const isOption = (marketId !== undefined) && (marketId.indexOf ('-') >= 0);
+        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
+        const marketById = this.safeValue (marketsByIdList, 0);
         const isSpot = this.isSpotUrl (client);
-        let marketType = (isSpot) ? 'spot' : 'contract';
-        if (isOption) {
-            marketType = 'option';
-        }
+        const fallbackType = isSpot ? 'spot' : 'contract';
+        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
@@ -1530,12 +1562,12 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
         let wsUrlType: Str = type;
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-            wsUrlType = type;
-        } else if (firstMarket['option']) {
+        if (firstMarket['option']) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
+        } else if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+            wsUrlType = type;
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
@@ -1601,12 +1633,12 @@ export default class binance extends binanceRest {
         const firstMarket = this.market (marketSymbols[0]);
         let type = firstMarket['type'];
         let wsUrlType: Str = type;
-        if (firstMarket['contract']) {
-            type = firstMarket['linear'] ? 'future' : 'delivery';
-            wsUrlType = type;
-        } else if (firstMarket['option']) {
+        if (firstMarket['option']) {
             type = 'option';
             wsUrlType = 'optionMarket'; // eOptions klines are served from /market/ws
+        } else if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+            wsUrlType = type;
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
@@ -1724,12 +1756,11 @@ export default class binance extends binanceRest {
             this.safeFloat (kline, 'c'),
             this.safeFloat (kline, 'v'),
         ];
-        const isOption = (marketId !== undefined) && (marketId.indexOf ('-') >= 0);
+        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
+        const marketById = this.safeValue (marketsByIdList, 0);
         const isSpot = this.isSpotUrl (client);
-        let marketType = (isSpot) ? 'spot' : 'contract';
-        if (isOption) {
-            marketType = 'option';
-        }
+        const fallbackType = isSpot ? 'spot' : 'contract';
+        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
@@ -2085,11 +2116,13 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
-        const defaultMarket = (isMarkPrice) ? 'swap' : undefined;
+        const userDefaultType = this.safeString (this.options, 'defaultType');
+        const defaultMarket = (isMarkPrice && userDefaultType !== 'option') ? 'swap' : undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params, defaultMarket);
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
-        const isOptionMarkPrice = (isMarkPrice && firstMarket !== undefined && firstMarket['option'] === true);
+        // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
+        const isOptionMarkPrice = (isMarkPrice && marketType === 'option');
         let rawMarketType = undefined;
         if (marketType === 'option') {
             // check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
@@ -2104,6 +2137,9 @@ export default class binance extends binanceRest {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
         }
+        // eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
+        // so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+        const isOptionTicker = (marketType === 'option' && !isMarkPrice && !isBidAsk);
         if (isMarkPrice && !this.inArray (marketType, [ 'swap', 'future', 'option' ])) {
             throw new NotSupported (this.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet');
         }
@@ -2138,23 +2174,57 @@ export default class binance extends binanceRest {
                         seenUnderlyings[underlying] = true;
                         subscriptionArgs.push (underlying + '@optionMarkPrice');
                     }
+                } else if (isOptionTicker) {
+                    // eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
+                    // market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
+                    const parts = market['id'].split ('-');
+                    const expiryDate = this.safeString (parts, 1);
+                    const underlying = market['baseId'].toLowerCase () + market['quoteId'].toLowerCase ();
+                    const subscriptionArg = underlying + '@optionTicker@' + expiryDate;
+                    if (!(subscriptionArg in seenUnderlyings)) {
+                        seenUnderlyings[subscriptionArg] = true;
+                        subscriptionArgs.push (subscriptionArg);
+                    }
                 } else {
-                    subscriptionArgs.push (market['lowercaseId'] + '@' + channelName + suffix);
+                    const streamId = market['lowercaseId'];
+                    subscriptionArgs.push (streamId + '@' + channelName + suffix);
                 }
             }
         } else {
-            if (isBidAsk) {
+            if (marketType === 'option') {
+                const underlying = this.safeStringLower (params, 'underlying');
+                if (underlying === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires either symbols or params["underlying"] for eOptions');
+                }
+                if (isOptionTicker) {
+                    // eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
+                    const expirationDate = this.safeString (params, 'expirationDate');
+                    if (expirationDate === undefined) {
+                        throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires params["expirationDate"] (e.g. "260227") for eOptions tickers when no symbols are provided');
+                    }
+                    subscriptionArgs.push (underlying + '@optionTicker@' + expirationDate);
+                } else {
+                    // isOptionMarkPrice: one stream covers all contracts for the underlying
+                    subscriptionArgs.push (underlying + '@optionMarkPrice');
+                }
+                messageHashes.push (unifiedPrefix + 's:' + channelName);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
+            } else if (isBidAsk) {
                 if (marketType === 'spot') {
                     throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
                 }
                 subscriptionArgs.push ('!' + channelName);
+                messageHashes.push (unifiedPrefix + 's:' + channelName);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
             } else if (isMarkPrice) {
                 subscriptionArgs.push ('!' + channelName + '@arr' + suffix);
+                messageHashes.push (unifiedPrefix + 's:' + channelName);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
             } else {
                 subscriptionArgs.push ('!' + channelName + '@arr');
+                messageHashes.push (unifiedPrefix + 's:' + channelName);
+                unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
             }
-            messageHashes.push (unifiedPrefix + 's:' + channelName);
-            unsubscribeMessageHashes.push ('unsubscribe::' + channelName);
         }
         let streamHash = channelName;
         if (symbolsDefined) {
@@ -2182,13 +2252,20 @@ export default class binance extends binanceRest {
             };
             hashes = unsubscribeMessageHashes;
         }
-        const result = await this.watchMultiple (url, hashes, this.deepExtend (request, params), hashes, subscription);
+        // for option mark prices, the underlying stream delivers all contracts in one array message
+        // wait on the batch hash so the resolved value is the full dict of new tickers
+        let waitHashes = hashes;
+        if (isOptionMarkPrice && !isUnsubscribe) {
+            waitHashes = [ unifiedPrefix + 's:' + channelName ];
+        }
+        const result = await this.watchMultiple (url, waitHashes, this.deepExtend (request, params), hashes, subscription);
         if (isUnsubscribe) {
             return result;
         }
         // for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         // ticker dict comes in, otherwise all-tickers dict comes in
-        if (!symbolsDefined) {
+        // isOptionMarkPrice always resolves on a batch hash → result is already a dict
+        if (!symbolsDefined || isOptionMarkPrice) {
             return result;
         } else {
             const newDict: Dict = {};
@@ -2272,7 +2349,7 @@ export default class binance extends binanceRest {
         if (event === '24hrTicker') {
             event = 'ticker';
         }
-        if (event === 'markPriceUpdate') {
+        if (event === 'markPriceUpdate' || event === 'markPrice') {
             // handle this separately because some fields clash with the ticker fields
             // futures use 'p' for mark price; options use 'mp'
             return this.safeTicker ({
@@ -2405,8 +2482,6 @@ export default class binance extends binanceRest {
     }
 
     handleTickersAndBidsAsks (client: Client, message, methodType) {
-        const isSpot = this.isSpotUrl (client);
-        const marketType = (isSpot) ? 'spot' : 'contract';
         const isBidAsk = (methodType === 'bidasks');
         const isMarkPrice = (methodType === 'markPrices');
         let unifiedPrefix: Str = undefined;
@@ -2436,7 +2511,13 @@ export default class binance extends binanceRest {
             if (channelName === undefined) {
                 continue;
             }
-            const parsedTicker = this.parseWsTicker (ticker, marketType);
+            const tickerMarketId = this.safeString (ticker, 's');
+            const tickerMarketsByIdList = this.safeValue (this.markets_by_id, tickerMarketId);
+            const tickerMarketById = this.safeValue (tickerMarketsByIdList, 0);
+            const isSpot = this.isSpotUrl (client);
+            const tickerFallbackType = isSpot ? 'spot' : 'contract';
+            const tickerMarketType = (tickerMarketById !== undefined) ? tickerMarketById['type'] : tickerFallbackType;
+            const parsedTicker = this.parseWsTicker (ticker, tickerMarketType);
             const symbol = parsedTicker['symbol'];
             newTickers[symbol] = parsedTicker;
             if (isBidAsk) {
@@ -2700,10 +2781,14 @@ export default class binance extends binanceRest {
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
         const subType = subTypeInfo[0];
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        if (type !== 'option') {
+            // guard options first: isLinear returns true for linear-settled options (subType='linear')
+            // which would incorrectly convert type='option' to 'future'
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
         }
         // For margin, token renewal is handled by renewListenToken method
         if (type === 'margin') {
@@ -3973,11 +4058,10 @@ export default class binance extends binanceRest {
         //
         const executionType = this.safeString (order, 'x');
         const marketId = this.safeString (order, 's');
-        const isOption = (marketId !== undefined) && (marketId.indexOf ('-') >= 0);
-        let marketType = ('ps' in order) ? 'contract' : 'spot';
-        if (isOption) {
-            marketType = 'option';
-        }
+        const marketsByIdList = this.safeValue (this.markets_by_id, marketId);
+        const marketById = this.safeValue (marketsByIdList, 0);
+        const fallbackType = ('ps' in order) ? 'contract' : 'spot';
+        const marketType = (marketById !== undefined) ? marketById['type'] : fallbackType;
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
         let timestamp = this.safeInteger (order, 'O');
         const T = this.safeInteger (order, 'T');
@@ -4934,6 +5018,7 @@ export default class binance extends binanceRest {
             'trade': this.handleTrade,
             'aggTrade': this.handleTrade,
             'optionTrade': this.handleTrade,
+            'markPrice': this.handleMarkPrices,
             'kline': this.handleOHLCV,
             'markPrice_kline': this.handleOHLCV,
             'indexPrice_kline': this.handleOHLCV,
@@ -4949,6 +5034,7 @@ export default class binance extends binanceRest {
             '24hrMiniTicker': this.handleTickers,
             'markPriceUpdate': this.handleMarkPrices,
             'markPriceUpdate@arr': this.handleMarkPrices,
+            'markPrice@arr': this.handleMarkPrices,
             'bookTicker': this.handleBidsAsks, // there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': this.handleBalance,
             'balanceUpdate': this.handleBalance,
