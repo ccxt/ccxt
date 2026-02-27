@@ -81,6 +81,7 @@ export default class aftermath extends Exchange {
                 'test': {
                     'rest': 'https://testnet.aftermath.finance/api/ccxt',
                 },
+                'docs': 'https://docs.aftermath.finance',
             },
             'api': {
                 'public': {

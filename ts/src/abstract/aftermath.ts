@@ -23,17 +23,17 @@ interface Exchange {
     privatePostBuildCancelOrders (params?: {}): Promise<implicitReturnType>;
     privatePostBuildCreateAccount (params?: {}): Promise<implicitReturnType>;
     privatePostBuildCreateOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostBuildCreateSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostBuildDeallocate (params?: {}): Promise<implicitReturnType>;
     privatePostBuildDeposit (params?: {}): Promise<implicitReturnType>;
+    privatePostBuildSetLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostBuildWithdraw (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitAllocate (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitCancelOrders (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitCreateAccount (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitCreateOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostSubmitCreateSubaccount (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitDeallocate (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitDeposit (params?: {}): Promise<implicitReturnType>;
+    privatePostSubmitSetLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostSubmitWithdraw (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
