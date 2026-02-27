@@ -80,7 +80,6 @@ class binance(ccxt.async_support.binance):
                 'unWatchPositions': False,
                 'unWatchMarkPrices': True,
                 'unWatchMarkPrice': True,
-                'unWatchBidsAsks': True,
             },
             'urls': {
                 'test': {
@@ -89,9 +88,6 @@ class binance(ccxt.async_support.binance):
                         'margin': 'wss://stream.testnet.binance.vision/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://fstream.binancefuture.com/public/ws',
-                        'optionMarket': 'wss://fstream.binancefuture.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binancefuture.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -105,9 +101,6 @@ class binance(ccxt.async_support.binance):
                         'margin': 'wss://demo-stream.binance.com/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://fstream.binance.com/public/ws',
-                        'optionMarket': 'wss://fstream.binance.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -121,9 +114,6 @@ class binance(ccxt.async_support.binance):
                         'margin': 'wss://stream.binance.com:9443/ws',
                         'future': 'wss://fstream.binance.com/ws',
                         'delivery': 'wss://dstream.binance.com/ws',
-                        'option': 'wss://fstream.binance.com/public/ws',
-                        'optionMarket': 'wss://fstream.binance.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.binance.com:443/ws-api/v3',
                             'future': 'wss://ws-fapi.binance.com/ws-fapi/v1',
@@ -144,16 +134,12 @@ class binance(ccxt.async_support.binance):
                     'margin': 50,  # max 1024
                     'future': 50,  # max 200
                     'delivery': 50,  # max 200
-                    'option': 50,  # max 200
-                    'optionMarket': 50,  # max 200
                 },
                 'subscriptionLimitByStream': {
                     'spot': 200,
                     'margin': 200,
                     'future': 200,
                     'delivery': 200,
-                    'option': 200,
-                    'optionMarket': 200,
                 },
                 'streamBySubscriptionsHash': self.create_safe_dictionary(),
                 'streamIndex': -1,
@@ -183,10 +169,6 @@ class binance(ccxt.async_support.binance):
                     'maxRetries': 3,
                     'checksum': True,
                 },
-                'option': {
-                    'listenKey': None,
-                    'lastAuthenticatedTime': 0,
-                },
                 'watchBalance': {
                     'fetchBalanceSnapshot': False,  # or True
                     'awaitBalanceSnapshot': True,  # whether to wait for the balance snapshot before providing updates
@@ -207,7 +189,6 @@ class binance(ccxt.async_support.binance):
                     '24hrTicker': 'ticker',
                     '24hrMiniTicker': 'miniTicker',
                     'markPriceUpdate': 'markPrice',
-                    'markPrice': 'markPrice',  # eOptions mark price event type
                     # rolling window tickers
                     '1hTicker': 'ticker_1h',
                     '4hTicker': 'ticker_4h',
@@ -303,8 +284,6 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        if type == 'option':
-            raise NotSupported(self.id + ' watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions')
         numSubscriptions = len(subscriptionHashes)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, numSubscriptions)
         requestId = self.request_id(url)
@@ -656,9 +635,7 @@ class binance(ccxt.async_support.binance):
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['option']:
-            type = 'option'
-        elif firstMarket['contract']:
+        if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
         name = 'depth'
         streamHash = 'multipleOrderbook'
@@ -680,8 +657,7 @@ class binance(ccxt.async_support.binance):
             symbol = symbols[i]
             market = self.market(symbol)
             messageHashes.append('orderbook::' + symbol)
-            streamId = market['lowercaseId']
-            subscriptionHash = streamId + '@' + name
+            subscriptionHash = market['lowercaseId'] + '@' + name
             symbolHash = subscriptionHash + '@' + str(watchOrderBookRate) + 'ms'
             subParams.append(symbolHash)
         messageHashesLength = len(messageHashes)
@@ -723,9 +699,7 @@ class binance(ccxt.async_support.binance):
         symbols = self.market_symbols(symbols, None, False, True, True)
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        if firstMarket['option']:
-            type = 'option'
-        elif firstMarket['contract']:
+        if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
         name = 'depth'
         streamHash = 'multipleOrderbook'
@@ -740,8 +714,7 @@ class binance(ccxt.async_support.binance):
             market = self.market(symbol)
             subMessageHashes.append('orderbook::' + symbol)
             messageHashes.append('unsubscribe:orderbook:' + symbol)
-            streamId = market['lowercaseId']
-            subscriptionHash = streamId + '@' + name
+            subscriptionHash = market['lowercaseId'] + '@' + name
             symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms'
             subParams.append(symbolHash)
         messageHashesLength = len(subMessageHashes)
@@ -934,12 +907,9 @@ class binance(ccxt.async_support.binance):
         #         ]
         #     }
         #
-        marketId = self.safe_string(message, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
         isSpot = self.is_spot_url(client)
-        fallbackType = 'spot' if isSpot else 'swap'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'spot' if (isSpot) else 'swap'
+        marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'orderbook::' + symbol
@@ -1000,10 +970,8 @@ class binance(ccxt.async_support.binance):
                                 # todo: client.reject from handleOrderBookMessage properly
                                 raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
             except Exception as e:
-                if symbol in self.orderbooks:
-                    del self.orderbooks[symbol]
-                if messageHash in client.subscriptions:
-                    del client.subscriptions[messageHash]
+                del self.orderbooks[symbol]
+                del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
     def handle_order_book_subscription(self, client: Client, message, subscription):
@@ -1078,32 +1046,16 @@ class binance(ccxt.async_support.binance):
         params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        isOption = firstMarket['option']
-        if isOption:
-            type = 'option'
-        elif firstMarket['contract']:
+        if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
         messageHashes = []
         subParams = []
-        if isOption:
-            # eOptions: always subscribe per-underlying(<underlying>@optionTrade)
-            # handleTrade filters to the correct symbol via the 's' field
-            seenUnderlyings: dict = {}
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                market = self.market(symbol)
-                messageHashes.append('trade::' + symbol)
-                underlying = market['baseId'].lower() + market['quoteId'].lower()
-                if not (underlying in seenUnderlyings):
-                    seenUnderlyings[underlying] = True
-                    subParams.append(underlying + '@optionTrade')
-        else:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                market = self.market(symbol)
-                messageHashes.append('trade::' + symbol)
-                rawHash = market['lowercaseId'] + '@' + name
-                subParams.append(rawHash)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            messageHashes.append('trade::' + symbol)
+            rawHash = market['lowercaseId'] + '@' + name
+            subParams.append(rawHash)
         query = self.omit(params, 'type')
         subParamsLength = len(subParams)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, subParamsLength)
@@ -1150,35 +1102,18 @@ class binance(ccxt.async_support.binance):
         params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
-        isOption = firstMarket['option']
-        if isOption:
-            type = 'option'
-        elif firstMarket['contract']:
+        if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
         subMessageHashes = []
         subParams = []
         messageHashes = []
-        if isOption:
-            # eOptions: always subscribe per-underlying(<underlying>@optionTrade)
-            # handleTrade filters to the correct symbol via the 's' field
-            seenUnderlyings: dict = {}
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                market = self.market(symbol)
-                subMessageHashes.append('trade::' + symbol)
-                messageHashes.append('unsubscribe:trade:' + symbol)
-                underlying = market['baseId'].lower() + market['quoteId'].lower()
-                if not (underlying in seenUnderlyings):
-                    seenUnderlyings[underlying] = True
-                    subParams.append(underlying + '@optionTrade')
-        else:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                market = self.market(symbol)
-                subMessageHashes.append('trade::' + symbol)
-                messageHashes.append('unsubscribe:trade:' + symbol)
-                rawHash = market['lowercaseId'] + '@' + name
-                subParams.append(rawHash)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            subMessageHashes.append('trade::' + symbol)
+            messageHashes.append('unsubscribe:trade:' + symbol)
+            rawHash = market['lowercaseId'] + '@' + name
+            subParams.append(rawHash)
         query = self.omit(params, 'type')
         subParamsLength = len(subParams)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, streamHash, subParamsLength)
@@ -1231,6 +1166,7 @@ class binance(ccxt.async_support.binance):
         :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
+        params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     def parse_ws_trade(self, trade, market=None) -> Trade:
@@ -1353,10 +1289,7 @@ class binance(ccxt.async_support.binance):
             if (price is not None) and (amount is not None):
                 cost = Precise.string_mul(price, amount)
         marketId = self.safe_string(trade, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
-        fallbackType = 'contract' if ('ps' in trade) else 'spot'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'contract' if ('ps' in trade) else 'spot'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         side = self.safe_string_lower(trade, 'S')
         takerOrMaker = None
@@ -1394,12 +1327,9 @@ class binance(ccxt.async_support.binance):
     def handle_trade(self, client: Client, message):
         # the trade streams push raw trade information in real-time
         # each trade has a unique buyer and seller
-        marketId = self.safe_string(message, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
         isSpot = self.is_spot_url(client)
-        fallbackType = 'spot' if isSpot else 'contract'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'spot' if (isSpot) else 'contract'
+        marketId = self.safe_string(message, 's')
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         messageHash = 'trade::' + symbol
@@ -1457,13 +1387,8 @@ class binance(ccxt.async_support.binance):
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
-        wsUrlType: Str = type
-        if firstMarket['option']:
-            type = 'option'
-            wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
-        elif firstMarket['contract']:
+        if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
-            wsUrlType = type
         isSpot = (type == 'spot')
         timezone = None
         timezone, params = self.handle_param_string(params, 'timezone', None)
@@ -1485,7 +1410,7 @@ class binance(ccxt.async_support.binance):
             utcSuffix = suffix if shouldUseUTC8 else ''
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
-        url = self.urls['api']['ws'][wsUrlType] + '/' + self.stream(wsUrlType, 'multipleOHLCV')
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'SUBSCRIBE',
@@ -1523,13 +1448,8 @@ class binance(ccxt.async_support.binance):
         marketSymbols = self.market_symbols(symbols, None, False, False, True)
         firstMarket = self.market(marketSymbols[0])
         type = firstMarket['type']
-        wsUrlType: Str = type
-        if firstMarket['option']:
-            type = 'option'
-            wsUrlType = 'optionMarket'  # eOptions klines are served from /market/ws
-        elif firstMarket['contract']:
+        if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
-            wsUrlType = type
         isSpot = (type == 'spot')
         timezone = None
         timezone, params = self.handle_param_string(params, 'timezone', None)
@@ -1553,7 +1473,7 @@ class binance(ccxt.async_support.binance):
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             subMessageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
             messageHashes.append('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString)
-        url = self.urls['api']['ws'][wsUrlType] + '/' + self.stream(wsUrlType, 'multipleOHLCV')
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
             'method': 'UNSUBSCRIBE',
@@ -1641,11 +1561,8 @@ class binance(ccxt.async_support.binance):
             self.safe_float(kline, 'c'),
             self.safe_float(kline, 'v'),
         ]
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
         isSpot = self.is_spot_url(client)
-        fallbackType = 'spot' if isSpot else 'contract'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'spot' if (isSpot) else 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
@@ -1913,19 +1830,6 @@ class binance(ccxt.async_support.binance):
         """
         return await self.un_watch_mark_prices([symbol], params)
 
-    async def un_watch_bids_asks(self, symbols: Strings = None, params={}) -> Any:
-        """
-        unWatches best bid & ask for symbols
-
-        https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
-        https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
-
-        :param str[] [symbols]: unified symbols
-        :param dict [params]: extra parameters
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
-        """
-        return await self.watch_multi_ticker_helper('unWatchBidsAsks', 'bookTicker', symbols, params, True)
-
     async def un_watch_ticker(self, symbol: str, params={}) -> Any:
         """
         unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -1973,19 +1877,12 @@ class binance(ccxt.async_support.binance):
         symbolsDefined = (symbols is not None)
         if symbolsDefined:
             firstMarket = self.market(symbols[0])
-        userDefaultType = self.safe_string(self.options, 'defaultType')
-        defaultMarket = 'swap' if (isMarkPrice and userDefaultType != 'option') else None
+        defaultMarket = 'swap' if (isMarkPrice) else None
         marketType, params = self.handle_market_type_and_params(methodName, firstMarket, params, defaultMarket)
         subType = None
         subType, params = self.handle_sub_type_and_params(methodName, firstMarket, params)
-        # use marketType(not firstMarket) so the no-symbols case with defaultType='option' is also detected
-        isOptionMarkPrice = (isMarkPrice and marketType == 'option')
         rawMarketType = None
-        if marketType == 'option':
-            # check option first — isLinear returns True for linear-settled options, which would incorrectly route to futures
-            # eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-            rawMarketType = 'optionMarket' if (isOptionMarkPrice) else 'option'
-        elif self.isLinear(marketType, subType):
+        if self.isLinear(marketType, subType):
             rawMarketType = 'future'
         elif self.isInverse(marketType, subType):
             rawMarketType = 'delivery'
@@ -1993,16 +1890,13 @@ class binance(ccxt.async_support.binance):
             rawMarketType = marketType
         else:
             raise NotSupported(self.id + ' ' + methodName + '() does not support options markets')
-        # eOptions tickers have a different stream name(@optionTicker) but the same event type(24hrTicker)
-        # so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
-        isOptionTicker = (marketType == 'option' and not isMarkPrice and not isBidAsk)
-        if isMarkPrice and not self.in_array(marketType, ['swap', 'future', 'option']):
+        if isMarkPrice and not self.in_array(marketType, ['swap', 'future']):
             raise NotSupported(self.id + ' ' + methodName + '() does not support ' + marketType + ' markets yet')
         subscriptionArgs = []
         messageHashes = []
         unsubscribeMessageHashes = []
         suffix = ''
-        if isMarkPrice and not isOptionMarkPrice:
+        if isMarkPrice:
             suffix = '@1s' if (use1sFreq) else ''
         unifiedPrefix: Str = None
         if isBidAsk:
@@ -2012,62 +1906,24 @@ class binance(ccxt.async_support.binance):
         else:
             unifiedPrefix = 'ticker'
         if symbolsDefined:
-            seenUnderlyings: dict = {}
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = self.market(symbol)
+                subscriptionArgs.append(market['lowercaseId'] + '@' + channelName + suffix)
                 messageHashes.append(unifiedPrefix + ':' + channelName + '@' + symbol)
                 if isUnsubscribe:
                     unsubscribeMessageHashes.append('unsubscribe::' + unifiedPrefix + ':' + channelName + '@' + symbol)
-                if isOptionMarkPrice:
-                    # subscribe per underlying, not per contract
-                    underlying = market['baseId'].lower() + market['quoteId'].lower()
-                    if not (underlying in seenUnderlyings):
-                        seenUnderlyings[underlying] = True
-                        subscriptionArgs.append(underlying + '@optionMarkPrice')
-                elif isOptionTicker:
-                    # eOptions tickers: group by underlying + expiry date(<underlying>@optionTicker@<YYMMDD>)
-                    # market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
-                    parts = market['id'].split('-')
-                    expiryDate = self.safe_string(parts, 1)
-                    underlying = market['baseId'].lower() + market['quoteId'].lower()
-                    subscriptionArg = underlying + '@optionTicker@' + expiryDate
-                    if not (subscriptionArg in seenUnderlyings):
-                        seenUnderlyings[subscriptionArg] = True
-                        subscriptionArgs.append(subscriptionArg)
-                else:
-                    streamId = market['lowercaseId']
-                    subscriptionArgs.append(streamId + '@' + channelName + suffix)
         else:
-            if marketType == 'option':
-                underlying = self.safe_string_lower(params, 'underlying')
-                if underlying is None:
-                    raise ArgumentsRequired(self.id + ' ' + methodName + '() requires either symbols or params["underlying"] for eOptions')
-                if isOptionTicker:
-                    # eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
-                    expirationDate = self.safe_string(params, 'expirationDate')
-                    if expirationDate is None:
-                        raise ArgumentsRequired(self.id + ' ' + methodName + '() requires params["expirationDate"](e.g. "260227") for eOptions tickers when no symbols are provided')
-                    subscriptionArgs.append(underlying + '@optionTicker@' + expirationDate)
-                else:
-                    # isOptionMarkPrice: one stream covers all contracts for the underlying
-                    subscriptionArgs.append(underlying + '@optionMarkPrice')
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
-            elif isBidAsk:
+            if isBidAsk:
                 if marketType == 'spot':
                     raise ArgumentsRequired(self.id + ' ' + methodName + '() requires symbols for self channel for spot markets')
                 subscriptionArgs.append('!' + channelName)
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
             elif isMarkPrice:
                 subscriptionArgs.append('!' + channelName + '@arr' + suffix)
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
             else:
                 subscriptionArgs.append('!' + channelName + '@arr')
-                messageHashes.append(unifiedPrefix + 's:' + channelName)
-                unsubscribeMessageHashes.append('unsubscribe::' + channelName)
+            messageHashes.append(unifiedPrefix + 's:' + channelName)
+            unsubscribeMessageHashes.append('unsubscribe::' + channelName)
         streamHash = channelName
         if symbolsDefined:
             streamHash = channelName + '::' + ','.join(symbols)
@@ -2092,18 +1948,12 @@ class binance(ccxt.async_support.binance):
                 'topic': 'ticker',
             }
             hashes = unsubscribeMessageHashes
-        # for option mark prices, the underlying stream delivers all contracts in one array message
-        # wait on the batch hash so the resolved value is the full dict of new tickers
-        waitHashes = hashes
-        if isOptionMarkPrice and not isUnsubscribe:
-            waitHashes = [unifiedPrefix + 's:' + channelName]
-        result = await self.watch_multiple(url, waitHashes, self.deep_extend(request, params), hashes, subscription)
+        result = await self.watch_multiple(url, hashes, self.deep_extend(request, params), hashes, subscription)
         if isUnsubscribe:
             return result
         # for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
         # ticker dict comes in, otherwise all-tickers dict comes in
-        # isOptionMarkPrice always resolves on a batch hash → result is already a dict
-        if not symbolsDefined or isOptionMarkPrice:
+        if not symbolsDefined:
             return result
         else:
             newDict: dict = {}
@@ -2184,15 +2034,14 @@ class binance(ccxt.async_support.binance):
         event = self.safe_string(message, 'e', 'bookTicker')
         if event == '24hrTicker':
             event = 'ticker'
-        if event == 'markPriceUpdate' or event == 'markPrice':
+        if event == 'markPriceUpdate':
             # handle self separately because some fields clash with the ticker fields
-            # futures use 'p' for mark price; options use 'mp'
             return self.safe_ticker({
                 'symbol': symbol,
                 'timestamp': self.safe_integer(message, 'E'),
                 'datetime': self.iso8601(self.safe_integer(message, 'E')),
                 'info': message,
-                'markPrice': self.safe_string_2(message, 'mp', 'p'),
+                'markPrice': self.safe_string(message, 'p'),
                 'indexPrice': self.safe_string(message, 'i'),
             })
         timestamp = None
@@ -2310,6 +2159,8 @@ class binance(ccxt.async_support.binance):
         self.handle_tickers_and_bids_asks(client, message, 'markPrices')
 
     def handle_tickers_and_bids_asks(self, client: Client, message, methodType):
+        isSpot = self.is_spot_url(client)
+        marketType = 'spot' if (isSpot) else 'contract'
         isBidAsk = (methodType == 'bidasks')
         isMarkPrice = (methodType == 'markPrices')
         unifiedPrefix: Str = None
@@ -2335,13 +2186,7 @@ class binance(ccxt.async_support.binance):
             channelName = self.safe_string(self.options['tickerChannelsMap'], event, event)
             if channelName is None:
                 continue
-            tickerMarketId = self.safe_string(ticker, 's')
-            tickerMarketsByIdList = self.safe_value(self.markets_by_id, tickerMarketId)
-            tickerMarketById = self.safe_value(tickerMarketsByIdList, 0)
-            isSpot = self.is_spot_url(client)
-            tickerFallbackType = 'spot' if isSpot else 'contract'
-            tickerMarketType = tickerMarketById['type'] if (tickerMarketById is not None) else tickerFallbackType
-            parsedTicker = self.parse_ws_ticker(ticker, tickerMarketType)
+            parsedTicker = self.parse_ws_ticker(ticker, marketType)
             symbol = parsedTicker['symbol']
             newTickers[symbol] = parsedTicker
             if isBidAsk:
@@ -2558,8 +2403,6 @@ class binance(ccxt.async_support.binance):
                 response = await self.fapiPrivatePostListenKey(params)
             elif type == 'delivery':
                 response = await self.dapiPrivatePostListenKey(params)
-            elif type == 'option':
-                response = await self.eapiPrivatePostListenKey(params)
             else:
                 response = await self.publicPostUserDataStream(params)
             self.options[type] = self.extend(options, {
@@ -2576,13 +2419,10 @@ class binance(ccxt.async_support.binance):
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'keepAliveListenKey', 'papi', 'portfolioMargin', False)
         subTypeInfo = self.handle_sub_type_and_params('keepAliveListenKey', None, params)
         subType = subTypeInfo[0]
-        if type != 'option':
-            # guard options first: isLinear returns True for linear-settled options(subType='linear')
-            # which would incorrectly convert type='option' to 'future'
-            if self.isLinear(type, subType):
-                type = 'future'
-            elif self.isInverse(type, subType):
-                type = 'delivery'
+        if self.isLinear(type, subType):
+            type = 'future'
+        elif self.isInverse(type, subType):
+            type = 'delivery'
         # For margin, token renewal is handled by renewListenToken method
         if type == 'margin':
             return
@@ -2602,8 +2442,6 @@ class binance(ccxt.async_support.binance):
                 await self.fapiPrivatePutListenKey(self.extend(request, params))
             elif type == 'delivery':
                 await self.dapiPrivatePutListenKey(self.extend(request, params))
-            elif type == 'option':
-                await self.eapiPrivatePutListenKey(self.extend(request, params))
             else:
                 request['listenKey'] = listenKey
                 await self.publicPutUserDataStream(self.extend(request, params))
@@ -2611,8 +2449,6 @@ class binance(ccxt.async_support.binance):
             urlType = type
             if isPortfolioMargin:
                 urlType = 'papi'
-            if type == 'option':
-                urlType = 'optionPrivate'
             url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
             client = self.client(url)
             messageHashes = list(client.futures.keys())
@@ -2901,8 +2737,6 @@ class binance(ccxt.async_support.binance):
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
-            elif type == 'option':
-                urlType = 'optionPrivate'
             url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
@@ -3007,7 +2841,7 @@ class binance(ccxt.async_support.binance):
             self.balance[accountType][code] = account
         else:
             message = self.safe_dict(message, 'a', message)
-            B = self.safe_list(message, 'B', [])
+            B = self.safe_list(message, 'B')
             for i in range(0, len(B)):
                 entry = B[i]
                 currencyId = self.safe_string(entry, 'a')
@@ -3027,7 +2861,7 @@ class binance(ccxt.async_support.binance):
         accountType = ''
         for i in range(0, len(subscriptions)):
             subscription = subscriptions[i]
-            if (subscription == 'spot') or (subscription == 'margin') or (subscription == 'future') or (subscription == 'delivery') or (subscription == 'option'):
+            if (subscription == 'spot') or (subscription == 'margin') or (subscription == 'future') or (subscription == 'delivery'):
                 accountType = subscription
                 break
         return accountType
@@ -3639,8 +3473,6 @@ class binance(ccxt.async_support.binance):
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
-            elif type == 'option':
-                urlType = 'optionPrivate'
             url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
@@ -3760,10 +3592,7 @@ class binance(ccxt.async_support.binance):
         #
         executionType = self.safe_string(order, 'x')
         marketId = self.safe_string(order, 's')
-        marketsByIdList = self.safe_value(self.markets_by_id, marketId)
-        marketById = self.safe_value(marketsByIdList, 0)
-        fallbackType = 'contract' if ('ps' in order) else 'spot'
-        marketType = marketById['type'] if (marketById is not None) else fallbackType
+        marketType = 'contract' if ('ps' in order) else 'spot'
         symbol = self.safe_symbol(marketId, None, None, marketType)
         timestamp = self.safe_integer(order, 'O')
         T = self.safe_integer(order, 'T')
@@ -3939,101 +3768,10 @@ class binance(ccxt.async_support.binance):
         #
         e = self.safe_string(message, 'e')
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
-            oField = self.safe_value(message, 'o')
-            if isinstance(oField, list):
-                # eOptions format: o is an array of orders with nested fi fills
-                self.handle_options_order_update(client, message)
-                return
             message = self.safe_dict(message, 'o', message)
         self.handle_my_trade(client, message)
         self.handle_order(client, message)
         self.handle_my_liquidation(client, message)
-
-    def handle_options_order_update(self, client: Client, message):
-        #
-        # eOptions ORDER_TRADE_UPDATE: "o" is an array of orders(not a dict like futures)
-        #
-        #     {
-        #         "e": "ORDER_TRADE_UPDATE",
-        #         "E": 1657613775883,
-        #         "o": [
-        #             {
-        #                 "T": 1657613342918,          # order create time
-        #                 "t": 1657613342918,          # order last update time
-        #                 "s": "BTC-220930-18000-C",   # symbol
-        #                 "c": "",                     # client order ID
-        #                 "oid": "4611869636869226548",  # order ID
-        #                 "p": "1993",                 # price
-        #                 "q": "1",                    # signed qty(positive = BUY, negative = SELL)
-        #                 "S": "PARTIALLY_FILLED",     # status
-        #                 "e": "0.1",                  # cumulative filled qty
-        #                 "ec": "199.3",               # cumulative filled amount(USDT)
-        #                 "f": "2",                    # cumulative fee
-        #                 "tif": "GTC",                # time in force
-        #                 "oty": "LIMIT",              # order type
-        #                 "fi": [
-        #                     {
-        #                         "t": "20",           # trade ID
-        #                         "p": "1993",         # fill price
-        #                         "q": "0.1",          # fill qty
-        #                         "T": 1657613774336,  # fill time
-        #                         "m": "TAKER",        # "TAKER" or "MAKER"
-        #                         "f": "0.0002"        # commission(positive) or rebate(negative)
-        #                     }
-        #                 ]
-        #             }
-        #         ]
-        #     }
-        #
-        orders = self.safe_list(message, 'o', [])
-        for i in range(0, len(orders)):
-            order = orders[i]
-            fills = self.safe_list(order, 'fi', [])
-            rawQty = self.safe_string(order, 'q', '0')
-            side = 'BUY'
-            if Precise.string_lt(rawQty, '0'):
-                side = 'SELL'
-            absQty = Precise.string_abs(rawQty)
-            executionType = 'NEW'
-            if len(fills) > 0:
-                executionType = 'TRADE'
-            # normalize eOptions fields to the flat format parseWsOrder/handleOrder expect
-            normalizedOrder: dict = {
-                's': self.safe_string(order, 's'),
-                'i': self.safe_string(order, 'oid'),
-                'c': self.safe_string(order, 'c'),
-                'S': side,
-                'o': self.safe_string(order, 'oty'),
-                'f': self.safe_string(order, 'tif'),
-                'q': absQty,
-                'p': self.safe_string(order, 'p'),
-                'X': self.safe_string(order, 'S'),
-                'x': executionType,
-                'z': self.safe_string(order, 'e'),
-                'Z': self.safe_string(order, 'ec'),
-                'n': self.safe_string(order, 'f'),
-                'T': self.safe_integer(order, 't'),
-                'O': self.safe_integer(order, 'T'),
-            }
-            self.handle_order(client, normalizedOrder)
-            for j in range(0, len(fills)):
-                fill = fills[j]
-                isMaker = (self.safe_string(fill, 'm') == 'MAKER')
-                # normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
-                normalizedTrade: dict = {
-                    'x': 'TRADE',
-                    's': self.safe_string(order, 's'),
-                    't': self.safe_string(fill, 't'),
-                    'L': self.safe_string(fill, 'p'),
-                    'l': self.safe_string(fill, 'q'),
-                    'T': self.safe_integer(fill, 'T'),
-                    'm': isMaker,
-                    'n': self.safe_string(fill, 'f'),
-                    'i': self.safe_string(order, 'oid'),
-                    'S': side,
-                    'o': self.safe_string(order, 'oty'),
-                }
-                self.handle_my_trade(client, normalizedTrade)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
@@ -4062,7 +3800,6 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         elif self.isInverse(type, subType):
             type = 'delivery'
-        # 'option' stays as 'option', don't redirect to 'future'
         marketTypeObject: dict = {}
         marketTypeObject['type'] = type
         marketTypeObject['subType'] = subType
@@ -4073,8 +3810,6 @@ class binance(ccxt.async_support.binance):
         urlType = type
         if isPortfolioMargin:
             urlType = 'papi'
-        elif type == 'option':
-            urlType = 'optionPrivate'
         url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
@@ -4226,51 +3961,6 @@ class binance(ccxt.async_support.binance):
             'markPrice': None,
             'side': positionSide,
             'hedged': hedged,
-            'timestamp': None,
-            'datetime': None,
-            'maintenanceMargin': None,
-            'maintenanceMarginPercentage': None,
-            'collateral': None,
-            'initialMargin': None,
-            'initialMarginPercentage': None,
-            'leverage': None,
-            'marginRatio': None,
-        })
-
-    def parse_ws_options_position(self, position, market=None):
-        #
-        #  from BALANCE_POSITION_UPDATE event P[] array:
-        #  {
-        #      "s": "BTC-251123-126000-C",  # option symbol
-        #      "c": "-0.1000",              # position quantity(negative = short)
-        #      "p": "-120.00000000",        # position value(USDT)
-        #      "a": "1200.00000000"         # average entry price
-        #  }
-        #
-        marketId = self.safe_string(position, 's')
-        contracts = self.safe_string(position, 'c')
-        contractsAbs = Precise.string_abs(contracts)
-        side: Str = None
-        if contracts is not None:
-            if Precise.string_lt(contracts, '0'):
-                side = 'short'
-            elif Precise.string_gt(contracts, '0'):
-                side = 'long'
-        return self.safe_position({
-            'info': position,
-            'id': None,
-            'symbol': self.safe_symbol(marketId, market, None, 'option'),
-            'notional': self.safe_string(position, 'p'),
-            'marginMode': None,
-            'liquidationPrice': None,
-            'entryPrice': self.safe_number(position, 'a'),
-            'unrealizedPnl': None,
-            'percentage': None,
-            'contracts': self.parse_number(contractsAbs),
-            'contractSize': None,
-            'markPrice': None,
-            'side': side,
-            'hedged': False,
             'timestamp': None,
             'datetime': None,
             'maintenanceMargin': None,
@@ -4463,8 +4153,6 @@ class binance(ccxt.async_support.binance):
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
-            elif type == 'option':
-                urlType = 'optionPrivate'
             url = self.urls['api']['ws'][urlType] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type, isPortfolioMargin)
@@ -4563,72 +4251,6 @@ class binance(ccxt.async_support.binance):
         self.handle_balance(client, message)
         self.handle_positions(client, message)
 
-    def handle_options_account_update(self, client: Client, message):
-        #
-        # BALANCE_POSITION_UPDATE(options user data stream)
-        #
-        #  {
-        #      "e": "BALANCE_POSITION_UPDATE",
-        #      "E": 1762917544216,   # event time
-        #      "T": 1762917544206,   # transaction time
-        #      "m": "ORDER",         # reason
-        #      "B": [
-        #          {"a": "USDT", "b": "10000471.37940900", "bc": "0"}
-        #      ],
-        #      "P": [
-        #          {
-        #              "s": "BTC-251123-126000-C",
-        #              "c": "-0.1000",
-        #              "p": "-120.00000000",
-        #              "a": "1200.00000000"
-        #          }
-        #      ]
-        #  }
-        #
-        # --- balance ---
-        accountType = 'option'
-        if self.balance[accountType] is None:
-            self.balance[accountType] = {}
-        self.balance[accountType]['info'] = message
-        B = self.safe_list(message, 'B', [])
-        for i in range(0, len(B)):
-            entry = B[i]
-            currencyId = self.safe_string(entry, 'a')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['total'] = self.safe_string(entry, 'b')
-            self.balance[accountType][code] = account
-        timestamp = self.safe_integer(message, 'E')
-        self.balance[accountType]['timestamp'] = timestamp
-        self.balance[accountType]['datetime'] = self.iso8601(timestamp)
-        self.balance[accountType] = self.safe_balance(self.balance[accountType])
-        client.resolve(self.balance[accountType], accountType + ':balance')
-        # --- positions ---
-        if self.positions is None:
-            self.positions = {}
-        if not (accountType in self.positions):
-            self.positions[accountType] = ArrayCacheBySymbolBySide()
-        cache = self.positions[accountType]
-        P = self.safe_list(message, 'P', [])
-        newPositions = []
-        for i in range(0, len(P)):
-            rawPosition = P[i]
-            position = self.parse_ws_options_position(rawPosition)
-            position['timestamp'] = timestamp
-            position['datetime'] = self.iso8601(timestamp)
-            newPositions.append(position)
-            cache.append(position)
-        messageHashes = self.find_message_hashes(client, accountType + ':positions::')
-        for i in range(0, len(messageHashes)):
-            messageHash = messageHashes[i]
-            parts = messageHash.split('::')
-            symbolsString = parts[1]
-            symbols = symbolsString.split(',')
-            positions = self.filter_by_array(newPositions, 'symbol', symbols, False)
-            if not self.is_empty(positions):
-                client.resolve(positions, messageHash)
-        client.resolve(newPositions, accountType + ':positions')
-
     def handle_ws_error(self, client: Client, message):
         #
         #    {
@@ -4683,11 +4305,6 @@ class binance(ccxt.async_support.binance):
             client.reject(message, accountType)
 
     def handle_message(self, client: Client, message):
-        # eOptions combined stream endpoints(/public/stream, /market/stream) wrap events as:
-        #   {"stream": "<streamName>", "data": {"e": "...", ...}}
-        streamWrapper = self.safe_string(message, 'stream')
-        if streamWrapper is not None:
-            message = self.safe_dict(message, 'data', message)
         # handle WebSocketAPI
         eventMsg = self.safe_dict(message, 'event')
         if eventMsg is not None:
@@ -4709,8 +4326,6 @@ class binance(ccxt.async_support.binance):
             'depthUpdate': self.handle_order_book,
             'trade': self.handle_trade,
             'aggTrade': self.handle_trade,
-            'optionTrade': self.handle_trade,
-            'markPrice': self.handle_mark_prices,
             'kline': self.handle_ohlcv,
             'markPrice_kline': self.handle_ohlcv,
             'indexPrice_kline': self.handle_ohlcv,
@@ -4726,12 +4341,10 @@ class binance(ccxt.async_support.binance):
             '24hrMiniTicker': self.handle_tickers,
             'markPriceUpdate': self.handle_mark_prices,
             'markPriceUpdate@arr': self.handle_mark_prices,
-            'markPrice@arr': self.handle_mark_prices,
             'bookTicker': self.handle_bids_asks,  # there is no "bookTicker@arr" endpoint
             'outboundAccountPosition': self.handle_balance,
             'balanceUpdate': self.handle_balance,
             'ACCOUNT_UPDATE': self.handle_acount_update,
-            'BALANCE_POSITION_UPDATE': self.handle_options_account_update,
             'executionReport': self.handle_order_update,
             'ORDER_TRADE_UPDATE': self.handle_order_update,
             'ALGO_UPDATE': self.handle_order_update,
