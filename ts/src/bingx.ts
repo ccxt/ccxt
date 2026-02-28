@@ -5774,7 +5774,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
             'side': side,
-            'leverage': leverage,
+            'leverage': this.numberToString (Math.floor (leverage as number)),
         };
         if (market['inverse']) {
             return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
