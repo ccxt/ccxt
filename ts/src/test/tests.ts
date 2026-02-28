@@ -1050,6 +1050,13 @@ class testMainClass {
             return true;
             // c# requirement
         }
+
+        // if needed convert stringified jsons to objects
+        if ((typeof storedOutput === 'string') && (typeof newOutput === 'string') && storedOutput.startsWith ('{') && newOutput.startsWith ('{')) {
+            storedOutput = jsonParse (storedOutput);
+            newOutput = jsonParse (newOutput);
+        }
+
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
@@ -1297,9 +1304,9 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const wasmExecPath = getRootDir () + './ts/src/test/static/binaries/wasm_exec.js';
-        const ligherWasmPath = getRootDir () + './ts/src/test/static/binaries/ccxt.wasm';
-        const binaryPath = getRootDir () + './ts/src/test/static/binaries/lighter-signer-linux-arm64.so';
+        const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const options = {
