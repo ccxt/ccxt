@@ -1981,61 +1981,36 @@ export default class krakenfutures extends Exchange {
             //
             const datetime = this.safeString (orderDictFromFetchOrder, 'timestamp');
             const innerStatus = this.safeString (order, 'status');
-            const filledOrder = this.safeString (orderDictFromFetchOrder, 'filled', '0');
-            if ((filledOrder !== '0') && (filledOrder !== '0.0')) {
-                return this.safeOrder ({
-                    'info': order,
-                    'id': this.safeString (orderDictFromFetchOrder, 'orderId'),
-                    'clientOrderId': this.safeStringN (orderDictFromFetchOrder, [ 'cliOrdId' ]),
-                    'timestamp': this.parse8601 (datetime),
-                    'datetime': datetime,
-                    'lastTradeTimestamp': undefined,
-                    'lastUpdateTimestamp': this.parse8601 (this.safeString (orderDictFromFetchOrder, 'lastUpdateTimestamp')),
-                    'symbol': this.safeSymbol (this.safeString (orderDictFromFetchOrder, 'symbol'), market),
-                    'type': undefined,
-                    'timeInForce': undefined,
-                    'postOnly': undefined,
-                    'reduceOnly': this.safeBool (orderDictFromFetchOrder, 'reduceOnly'),
-                    'side': this.safeString (orderDictFromFetchOrder, 'side'),
-                    'price': this.safeString (orderDictFromFetchOrder, 'limitPrice'),
-                    'triggerPrice': undefined,
-                    'amount': this.safeString (orderDictFromFetchOrder, 'quantity'),
-                    'cost': undefined,
-                    'average': undefined,
-                    'filled': filledOrder,
-                    'remaining': undefined,
-                    'status': this.parseOrderStatus (innerStatus),
-                    'fee': undefined,
-                    'fees': undefined,
-                    'trades': undefined,
-                });
-            } else {
-                return {
-                    'info': order,
-                    'id': this.safeString (orderDictFromFetchOrder, 'orderId'),
-                    'clientOrderId': this.safeStringN (orderDictFromFetchOrder, [ 'cliOrdId' ]),
-                    'timestamp': this.parse8601 (datetime),
-                    'datetime': datetime,
-                    'lastTradeTimestamp': undefined,
-                    'lastUpdateTimestamp': this.parse8601 (this.safeString (orderDictFromFetchOrder, 'lastUpdateTimestamp')),
-                    'symbol': this.safeSymbol (this.safeString (orderDictFromFetchOrder, 'symbol'), market),
-                    'type': undefined,
-                    'timeInForce': undefined,
-                    'postOnly': undefined,
-                    'reduceOnly': this.safeBool (orderDictFromFetchOrder, 'reduceOnly'),
-                    'side': this.safeString (orderDictFromFetchOrder, 'side'),
-                    'price': this.parseNumber (this.safeString (orderDictFromFetchOrder, 'limitPrice')),
-                    'triggerPrice': undefined,
-                    'amount': this.parseNumber (this.safeString (orderDictFromFetchOrder, 'quantity')),
-                    'cost': undefined,
-                    'average': undefined,
-                    'filled': this.parseNumber (filledOrder),
-                    'remaining': undefined,
-                    'status': this.parseOrderStatus (innerStatus),
-                    'fee': undefined,
-                    'trades': undefined,
-                };
+            let filledOrder = this.safeString (orderDictFromFetchOrder, 'filled', '0');
+            if ((filledOrder === '0') || (filledOrder === '0.0')) {
+                filledOrder = undefined;
             }
+            return this.safeOrder ({
+                'info': order,
+                'id': this.safeString (orderDictFromFetchOrder, 'orderId'),
+                'clientOrderId': this.safeStringN (orderDictFromFetchOrder, [ 'cliOrdId' ]),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'lastTradeTimestamp': undefined,
+                'lastUpdateTimestamp': this.parse8601 (this.safeString (orderDictFromFetchOrder, 'lastUpdateTimestamp')),
+                'symbol': this.safeSymbol (this.safeString (orderDictFromFetchOrder, 'symbol'), market),
+                'type': undefined,
+                'timeInForce': undefined,
+                'postOnly': undefined,
+                'reduceOnly': this.safeBool (orderDictFromFetchOrder, 'reduceOnly'),
+                'side': this.safeString (orderDictFromFetchOrder, 'side'),
+                'price': this.safeString (orderDictFromFetchOrder, 'limitPrice'),
+                'triggerPrice': undefined,
+                'amount': this.safeString (orderDictFromFetchOrder, 'quantity'),
+                'cost': undefined,
+                'average': undefined,
+                'filled': filledOrder,
+                'remaining': undefined,
+                'status': this.parseOrderStatus (innerStatus),
+                'fee': undefined,
+                'fees': undefined,
+                'trades': undefined,
+            });
         }
         const orderEvents = this.safeValue (order, 'orderEvents', []);
         const errorStatus = this.safeString (order, 'status');
