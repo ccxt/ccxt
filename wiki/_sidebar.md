@@ -1,6 +1,5 @@
 
 - [Install](Install.md)
-- [CLI](CLI.md)
 - [Examples](Examples.md)
 - [Manual](Manual.md)
 - [CCXT Pro](ccxt.pro.manual.md)
@@ -99,6 +98,7 @@
 	- [paymium](exchanges/paymium.md)
 	- [phemex](exchanges/phemex.md)
 	- [poloniex](exchanges/poloniex.md)
+	- [probit](exchanges/probit.md)
 	- [timex](exchanges/timex.md)
 	- [tokocrypto](exchanges/tokocrypto.md)
 	- [toobit](exchanges/toobit.md)
