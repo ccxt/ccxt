@@ -1020,10 +1020,6 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
-    def uuidv1():
-        return str(uuid.uuid1()).replace('-', '')
-
-    @staticmethod
     def uuid5(namespace: str, name):
         return str(uuid.uuid5(uuid.UUID(namespace), name))
 
@@ -1850,9 +1846,6 @@ class Exchange(object):
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
-
-    def vwap(self, baseVolume, quoteVolume):
-        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
 
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:

@@ -158,7 +158,7 @@ export default class binance extends binanceRest {
                     'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
+                    'name': 'miniTicker', // miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -1900,7 +1900,7 @@ export default class binance extends binanceRest {
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         let channelName = undefined;
-        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }

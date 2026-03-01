@@ -1025,6 +1025,14 @@ class krakenfutures(Exchange, ImplicitAPI):
             if taker is not None:
                 side = self.safe_string_lower(taker, 'direction')
                 takerOrMaker = 'taker'
+        fee = None
+        if (takerOrMaker is not None) and (cost is not None):
+            feeRate = self.safe_string(market, takerOrMaker)
+            fee = {
+                'cost': Precise.string_mul(cost, feeRate),
+                'currency': self.safe_string(market, 'quote'),
+                'rate': feeRate,
+            }
         return self.safe_trade({
             'info': trade,
             'id': id,
@@ -1038,7 +1046,7 @@ class krakenfutures(Exchange, ImplicitAPI):
             'price': price,
             'amount': amount if linear else None,
             'cost': cost,
-            'fee': None,
+            'fee': fee,
         })
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -1417,10 +1425,10 @@ class krakenfutures(Exchange, ImplicitAPI):
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
+        Gets all orders for an account from the exchange api
 
         https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
 
-        Gets all orders for an account from the exchange api
         :param str symbol: Unified market symbol
         :param int [since]: Timestamp(ms) of earliest order.(Not used by kraken api but filtered internally by CCXT)
         :param int [limit]: How many orders to return.(Not used by kraken api but filtered internally by CCXT)
@@ -2023,6 +2031,10 @@ class krakenfutures(Exchange, ImplicitAPI):
         if 'tradeable' in details:
             symbol = self.safe_symbol(self.safe_string(details, 'tradeable'), market)
         ts = self.safe_integer(details, 'timestamp', timestamp)
+        priceTriggerOptions = self.safe_dict(details, 'priceTriggerOptions', {})
+        triggerPrice = self.safe_string_2(details, 'triggerPrice', 'stopPrice')
+        if triggerPrice is None:
+            triggerPrice = self.safe_string(priceTriggerOptions, 'triggerPrice')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2038,7 +2050,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             'reduceOnly': self.safe_bool_2(details, 'reduceOnly', 'reduce_only'),
             'side': self.safe_string_lower_2(details, 'side', 'direction'),
             'price': price,
-            'triggerPrice': self.safe_string(details, 'triggerPrice'),
+            'triggerPrice': triggerPrice,
+            'stopPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

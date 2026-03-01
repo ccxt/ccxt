@@ -156,7 +156,7 @@ class binance extends binance$1["default"] {
                     'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker', // ticker or miniTicker or ticker_<window_size>
+                    'name': 'miniTicker', // miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -1867,7 +1867,7 @@ class binance extends binance$1["default"] {
      */
     async watchTickers(symbols = undefined, params = {}) {
         let channelName = undefined;
-        [channelName, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', 'ticker');
+        [channelName, params] = this.handleOptionAndParams(params, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new errors.BadRequest(this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }

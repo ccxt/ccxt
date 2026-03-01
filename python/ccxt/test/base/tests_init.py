@@ -31,10 +31,12 @@ from ccxt.test.base.test_io import test_io  # noqa E402
 from ccxt.test.base.test_extract_params import test_extract_params  # noqa E402
 from ccxt.test.base.test_sort_by import test_sort_by  # noqa E402
 from ccxt.test.base.test_sum import test_sum  # noqa E402
+from ccxt.test.base.test_unique import test_unique  # noqa E402
 from ccxt.test.base.test_omit import test_omit  # noqa E402
 from ccxt.test.base.test_group_by import test_group_by  # noqa E402
 from ccxt.test.base.test_index_by import test_index_by  # noqa E402
 from ccxt.test.base.test_filter_by import test_filter_by  # noqa E402
+from ccxt.test.base.test_uuid import test_uuid  # noqa E402
 from ccxt.test.base.test_precision_from_string import test_precision_from_string  # noqa E402
 from ccxt.test.base.test_urlencode_base64 import test_urlencode_base64  # noqa E402
 from ccxt.test.base.test_after_constructor import test_after_constructor  # noqa E402
@@ -78,8 +80,10 @@ async def base_tests_init():
     test_precision_from_string()
     test_extract_params()
     test_arrays_concat()
+    test_uuid()
     await test_set_markets_from_exchange()
     test_eth_methods()
     test_keysort()
+    test_unique()
     await test_sleep()
     test_io()

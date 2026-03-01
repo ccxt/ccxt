@@ -1045,6 +1045,15 @@ class krakenfutures extends krakenfutures$1["default"] {
                 takerOrMaker = 'taker';
             }
         }
+        let fee = undefined;
+        if ((takerOrMaker !== undefined) && (cost !== undefined)) {
+            const feeRate = this.safeString(market, takerOrMaker);
+            fee = {
+                'cost': Precise["default"].stringMul(cost, feeRate),
+                'currency': this.safeString(market, 'quote'),
+                'rate': feeRate,
+            };
+        }
         return this.safeTrade({
             'info': trade,
             'id': id,
@@ -1058,7 +1067,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'price': price,
             'amount': linear ? amount : undefined,
             'cost': cost,
-            'fee': undefined,
+            'fee': fee,
         });
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
@@ -1462,8 +1471,8 @@ class krakenfutures extends krakenfutures$1["default"] {
     /**
      * @method
      * @name krakenfutures#fetchOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
      * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -2117,6 +2126,11 @@ class krakenfutures extends krakenfutures$1["default"] {
             symbol = this.safeSymbol(this.safeString(details, 'tradeable'), market);
         }
         const ts = this.safeInteger(details, 'timestamp', timestamp);
+        const priceTriggerOptions = this.safeDict(details, 'priceTriggerOptions', {});
+        let triggerPrice = this.safeString2(details, 'triggerPrice', 'stopPrice');
+        if (triggerPrice === undefined) {
+            triggerPrice = this.safeString(priceTriggerOptions, 'triggerPrice');
+        }
         return this.safeOrder({
             'info': order,
             'id': id,
@@ -2132,7 +2146,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             'reduceOnly': this.safeBool2(details, 'reduceOnly', 'reduce_only'),
             'side': this.safeStringLower2(details, 'side', 'direction'),
             'price': price,
-            'triggerPrice': this.safeString(details, 'triggerPrice'),
+            'triggerPrice': triggerPrice,
+            'stopPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,

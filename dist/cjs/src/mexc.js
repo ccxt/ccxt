@@ -4714,7 +4714,6 @@ class mexc extends mexc$1["default"] {
         const address = this.safeString(depositAddress, 'address');
         const currencyId = this.safeString(depositAddress, 'coin');
         const networkId = this.safeString(depositAddress, 'netWork');
-        this.checkAddress(address);
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode(currencyId, currency),
