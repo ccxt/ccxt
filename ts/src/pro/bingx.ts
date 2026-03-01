@@ -81,7 +81,7 @@ export default class bingx extends bingxRest {
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
-                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
                 },
                 'watchPositions': {
                     'fetchPositionsSnapshot': true,
