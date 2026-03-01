@@ -215,6 +215,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                     'Insufficient balance for token transfer': errors.InsufficientFunds,
                     'TWAP order value too small. Min is $1200, which is $10 per minute.': errors.InvalidOrder,
                     'TWAP was never placed, already canceled, or filled.': errors.OrderNotFound,
+                    'Too many cumulative requests sent': errors.RateLimitExceeded, // {"status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded."}
                 },
             },
             'precisionMode': number.TICK_SIZE,
@@ -2198,7 +2199,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             const symbol = market['symbol'];
             const type = this.safeStringUpper(rawOrder, 'type');
             const side = this.safeStringUpper(rawOrder, 'side');
-            const amount = this.safeString(rawOrder, 'amount');
+            let amount = this.safeString(rawOrder, 'amount');
             const price = this.safeString(rawOrder, 'price');
             let orderParams = this.safeDict(rawOrder, 'params', {});
             const slippage = this.safeString(orderParams, 'slippage', defaultSlippage);
@@ -2209,17 +2210,27 @@ class hyperliquid extends hyperliquid$1["default"] {
             const hasTakeProfit = (takeProfit !== undefined);
             orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
             const mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            orderReq.push(mainOrderObj);
             if (hasStopLoss || hasTakeProfit) {
                 // grouping opposed orders for sl/tp
                 const stopLossOrderTriggerPrice = this.safeStringN(stopLoss, ['triggerPrice', 'stopPrice']);
-                const stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
+                let stopLossOrderType = this.safeString(stopLoss, 'type', 'limit');
                 const stopLossOrderLimitPrice = this.safeStringN(stopLoss, ['price', 'stopLossPrice'], stopLossOrderTriggerPrice);
                 const takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, ['triggerPrice', 'stopPrice']);
-                const takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
+                let takeProfitOrderType = this.safeString(takeProfit, 'type', 'limit');
                 const takeProfitOrderLimitPrice = this.safeStringN(takeProfit, ['price', 'takeProfitPrice'], takeProfitOrderTriggerPrice);
-                grouping = 'normalTpsl';
-                orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit']);
+                grouping = this.safeString(orderParams, 'grouping', 'normalTpsl');
+                if (grouping === 'positionTpsl') {
+                    amount = '0';
+                    stopLossOrderType = 'market';
+                    takeProfitOrderType = 'market';
+                }
+                else if (grouping === 'normalTpsl') {
+                    orderReq.push(mainOrderObj);
+                }
+                else {
+                    throw new errors.NotSupported(this.id + ' only support grouping normalTpsl and positionTpsl.');
+                }
+                orderParams = this.omit(orderParams, ['stopLoss', 'takeProfit', 'grouping']);
                 let triggerOrderSide = '';
                 if (side === 'BUY') {
                     triggerOrderSide = 'sell';
@@ -2241,6 +2252,9 @@ class hyperliquid extends hyperliquid$1["default"] {
                     }));
                     orderReq.push(orderObj);
                 }
+            }
+            else {
+                orderReq.push(mainOrderObj);
             }
         }
         let vaultAddress = undefined;
@@ -3040,17 +3054,46 @@ class hyperliquid extends hyperliquid$1["default"] {
         //
         //     [
         //         {
-        //             "coin": "ETH",
-        //             "limitPx": "2000.0",
-        //             "oid": 3991946565,
-        //             "origSz": "0.1",
-        //             "side": "B",
-        //             "sz": "0.1",
-        //             "timestamp": 1704346468838
+        //             "order": {
+        //                 "coin": "ETH",
+        //                 "limitPx": "2000.0",
+        //                 "oid": 3991946565,
+        //                 "origSz": "0.1",
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "timestamp": 1704346468838
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": 1704346468838
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        // Hyperliquid returns the full status history for each order,
+        // so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        const deduplicatedByOid = {};
+        for (let i = 0; i < response.length; i++) {
+            const rawOrder = response[i];
+            let entry = this.safeDict(rawOrder, 'order');
+            if (entry === undefined) {
+                entry = rawOrder;
+            }
+            const oid = this.safeString(entry, 'oid');
+            if (oid !== undefined) {
+                if (!(oid in deduplicatedByOid)) {
+                    deduplicatedByOid[oid] = rawOrder;
+                }
+                else {
+                    const existingTimestamp = this.safeInteger(deduplicatedByOid[oid], 'statusTimestamp');
+                    const currentTimestamp = this.safeInteger(rawOrder, 'statusTimestamp');
+                    if (currentTimestamp !== undefined && (existingTimestamp === undefined || currentTimestamp > existingTimestamp)) {
+                        deduplicatedByOid[oid] = rawOrder;
+                    }
+                }
+            }
+        }
+        const deduplicated = Object.values(deduplicatedByOid);
+        return this.parseOrders(deduplicated, market, since, limit);
     }
     /**
      * @method
@@ -3397,11 +3440,15 @@ class hyperliquid extends hyperliquid$1["default"] {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
-        const fee = this.safeString(trade, 'fee');
+        let fee = this.safeString(trade, 'fee');
         let takerOrMaker = undefined;
         const crossed = this.safeBool(trade, 'crossed');
         if (crossed !== undefined) {
             takerOrMaker = crossed ? 'taker' : 'maker';
+        }
+        const builderFee = this.safeString(trade, 'builderFee');
+        if (builderFee !== undefined) {
+            fee = Precise["default"].stringAdd(fee, builderFee);
         }
         return this.safeTrade({
             'info': trade,

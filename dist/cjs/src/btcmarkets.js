@@ -1331,7 +1331,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'currency_id': currency['id'],
+            'assetName': currency['id'],
             'amount': this.currencyToPrecision(code, amount),
         };
         if (code !== 'AUD') {

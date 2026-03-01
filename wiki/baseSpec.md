@@ -366,7 +366,6 @@ cancels an open order
 * [paradex](/exchanges/paradex.md#cancelorder)
 * [paymium](/exchanges/paymium.md#cancelorder)
 * [phemex](/exchanges/phemex.md#cancelorder)
-* [probit](/exchanges/probit.md#cancelorder)
 * [timex](/exchanges/timex.md#cancelorder)
 * [tokocrypto](/exchanges/tokocrypto.md#cancelorder)
 * [toobit](/exchanges/toobit.md#cancelorder)
@@ -970,7 +969,6 @@ create a trade order
 * [paymium](/exchanges/paymium.md#createorder)
 * [phemex](/exchanges/phemex.md#createorder)
 * [poloniex](/exchanges/poloniex.md#createorder)
-* [probit](/exchanges/probit.md#createorder)
 * [timex](/exchanges/timex.md#createorder)
 * [tokocrypto](/exchanges/tokocrypto.md#createorder)
 * [toobit](/exchanges/toobit.md#createorder)
@@ -1373,6 +1371,7 @@ edit a trade order
 * [bitfinex](/exchanges/bitfinex.md#editorder)
 * [bitget](/exchanges/bitget.md#editorder)
 * [bitmart](/exchanges/bitmart.md#editorder)
+* [bitstamp](/exchanges/bitstamp.md#editorder)
 * [bitvavo](/exchanges/bitvavo.md#editorder)
 * [bullish](/exchanges/bullish.md#editorder)
 * [bybit](/exchanges/bybit.md#editorder)
@@ -1498,6 +1497,25 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 ##### Supported exchanges
 * [hyperliquid](/exchanges/hyperliquid.md#enableuserdexabstraction)
+
+---
+
+<a name="fetchADLRank" id="fetchadlrank"></a>
+
+## fetchADLRank
+fetches the auto deleveraging rank and risk percentage for a symbol
+
+**Kind**: instance   
+**Returns**: <code>object</code> - an [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the auto deleveraging rank for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [binance](/exchanges/binance.md#fetchadlrank)
 
 ---
 
@@ -1701,7 +1719,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [paymium](/exchanges/paymium.md#fetchbalance)
 * [phemex](/exchanges/phemex.md#fetchbalance)
 * [poloniex](/exchanges/poloniex.md#fetchbalance)
-* [probit](/exchanges/probit.md#fetchbalance)
 * [timex](/exchanges/timex.md#fetchbalance)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchbalance)
 * [toobit](/exchanges/toobit.md#fetchbalance)
@@ -2021,7 +2038,6 @@ fetches information on multiple closed orders made by the user
 * [p2b](/exchanges/p2b.md#fetchclosedorders)
 * [phemex](/exchanges/phemex.md#fetchclosedorders)
 * [poloniex](/exchanges/poloniex.md#fetchclosedorders)
-* [probit](/exchanges/probit.md#fetchclosedorders)
 * [timex](/exchanges/timex.md#fetchclosedorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchclosedorders)
 * [toobit](/exchanges/toobit.md#fetchclosedorders)
@@ -2273,7 +2289,6 @@ fetches all available currencies on an exchange
 * [oxfun](/exchanges/oxfun.md#fetchcurrencies)
 * [phemex](/exchanges/phemex.md#fetchcurrencies)
 * [poloniex](/exchanges/poloniex.md#fetchcurrencies)
-* [probit](/exchanges/probit.md#fetchcurrencies)
 * [timex](/exchanges/timex.md#fetchcurrencies)
 * [toobit](/exchanges/toobit.md#fetchcurrencies)
 * [whitebit](/exchanges/whitebit.md#fetchcurrencies)
@@ -2395,7 +2410,6 @@ fetch the deposit address for a currency associated with this account
 * [paymium](/exchanges/paymium.md#fetchdepositaddress)
 * [phemex](/exchanges/phemex.md#fetchdepositaddress)
 * [poloniex](/exchanges/poloniex.md#fetchdepositaddress)
-* [probit](/exchanges/probit.md#fetchdepositaddress)
 * [timex](/exchanges/timex.md#fetchdepositaddress)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdepositaddress)
 * [toobit](/exchanges/toobit.md#fetchdepositaddress)
@@ -2431,7 +2445,6 @@ fetch deposit addresses for multiple currencies (when available)
 * [hollaex](/exchanges/hollaex.md#fetchdepositaddresses)
 * [indodax](/exchanges/indodax.md#fetchdepositaddresses)
 * [paymium](/exchanges/paymium.md#fetchdepositaddresses)
-* [probit](/exchanges/probit.md#fetchdepositaddresses)
 * [upbit](/exchanges/upbit.md#fetchdepositaddresses)
 * [zonda](/exchanges/zonda.md#fetchdepositaddresses)
 
@@ -2584,7 +2597,6 @@ fetch deposit and withdraw fees
 * [mexc](/exchanges/mexc.md#fetchdepositwithdrawfees)
 * [okx](/exchanges/okx.md#fetchdepositwithdrawfees)
 * [poloniex](/exchanges/poloniex.md#fetchdepositwithdrawfees)
-* [probit](/exchanges/probit.md#fetchdepositwithdrawfees)
 * [wavesexchange](/exchanges/wavesexchange.md#fetchdepositwithdrawfees)
 * [whitebit](/exchanges/whitebit.md#fetchdepositwithdrawfees)
 
@@ -2663,7 +2675,6 @@ fetch all deposits made to an account
 * [oxfun](/exchanges/oxfun.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
-* [probit](/exchanges/probit.md#fetchdeposits)
 * [timex](/exchanges/timex.md#fetchdeposits)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdeposits)
 * [toobit](/exchanges/toobit.md#fetchdeposits)
@@ -2713,7 +2724,6 @@ fetch history of deposits and withdrawals
 * [modetrade](/exchanges/modetrade.md#fetchdepositswithdrawals)
 * [novadax](/exchanges/novadax.md#fetchdepositswithdrawals)
 * [poloniex](/exchanges/poloniex.md#fetchdepositswithdrawals)
-* [probit](/exchanges/probit.md#fetchdepositswithdrawals)
 * [whitebit](/exchanges/whitebit.md#fetchdepositswithdrawals)
 * [woo](/exchanges/woo.md#fetchdepositswithdrawals)
 * [woofipro](/exchanges/woofipro.md#fetchdepositswithdrawals)
@@ -2882,6 +2892,7 @@ fetch the current funding rate
 * [bitflyer](/exchanges/bitflyer.md#fetchfundingrate)
 * [bitget](/exchanges/bitget.md#fetchfundingrate)
 * [bitmart](/exchanges/bitmart.md#fetchfundingrate)
+* [bitstamp](/exchanges/bitstamp.md#fetchfundingrate)
 * [blofin](/exchanges/blofin.md#fetchfundingrate)
 * [bydfi](/exchanges/bydfi.md#fetchfundingrate)
 * [coincatch](/exchanges/coincatch.md#fetchfundingrate)
@@ -2941,6 +2952,7 @@ fetches historical funding rate prices
 * [bitget](/exchanges/bitget.md#fetchfundingratehistory)
 * [bitmart](/exchanges/bitmart.md#fetchfundingratehistory)
 * [bitmex](/exchanges/bitmex.md#fetchfundingratehistory)
+* [bitstamp](/exchanges/bitstamp.md#fetchfundingratehistory)
 * [blofin](/exchanges/blofin.md#fetchfundingratehistory)
 * [bullish](/exchanges/bullish.md#fetchfundingratehistory)
 * [bybit](/exchanges/bybit.md#fetchfundingratehistory)
@@ -3632,7 +3644,6 @@ retrieves data on all markets for alp
 * [paradex](/exchanges/paradex.md#fetchmarkets)
 * [phemex](/exchanges/phemex.md#fetchmarkets)
 * [poloniex](/exchanges/poloniex.md#fetchmarkets)
-* [probit](/exchanges/probit.md#fetchmarkets)
 * [timex](/exchanges/timex.md#fetchmarkets)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmarkets)
 * [toobit](/exchanges/toobit.md#fetchmarkets)
@@ -3840,7 +3851,6 @@ fetch all trades made by the user
 * [paradex](/exchanges/paradex.md#fetchmytrades)
 * [phemex](/exchanges/phemex.md#fetchmytrades)
 * [poloniex](/exchanges/poloniex.md#fetchmytrades)
-* [probit](/exchanges/probit.md#fetchmytrades)
 * [timex](/exchanges/timex.md#fetchmytrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmytrades)
 * [toobit](/exchanges/toobit.md#fetchmytrades)
@@ -3969,7 +3979,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [paradex](/exchanges/paradex.md#fetchohlcv)
 * [phemex](/exchanges/phemex.md#fetchohlcv)
 * [poloniex](/exchanges/poloniex.md#fetchohlcv)
-* [probit](/exchanges/probit.md#fetchohlcv)
 * [timex](/exchanges/timex.md#fetchohlcv)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchohlcv)
 * [toobit](/exchanges/toobit.md#fetchohlcv)
@@ -4089,7 +4098,9 @@ Retrieves the open interest for a list of symbols
 | params | <code>object</code> | No | exchange specific parameters |
 
 ##### Supported exchanges
+* [ascendex](/exchanges/ascendex.md#fetchopeninterests)
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterests)
+* [bitmex](/exchanges/bitmex.md#fetchopeninterests)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
 * [htx](/exchanges/htx.md#fetchopeninterests)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterests)
@@ -4228,7 +4239,6 @@ fetch all unfilled currently open orders
 * [paradex](/exchanges/paradex.md#fetchopenorders)
 * [phemex](/exchanges/phemex.md#fetchopenorders)
 * [poloniex](/exchanges/poloniex.md#fetchopenorders)
-* [probit](/exchanges/probit.md#fetchopenorders)
 * [timex](/exchanges/timex.md#fetchopenorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchopenorders)
 * [toobit](/exchanges/toobit.md#fetchopenorders)
@@ -4425,7 +4435,6 @@ fetches information on an order made by the user
 * [paradex](/exchanges/paradex.md#fetchorder)
 * [phemex](/exchanges/phemex.md#fetchorder)
 * [poloniex](/exchanges/poloniex.md#fetchorder)
-* [probit](/exchanges/probit.md#fetchorder)
 * [timex](/exchanges/timex.md#fetchorder)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorder)
 * [toobit](/exchanges/toobit.md#fetchorder)
@@ -4541,7 +4550,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [paymium](/exchanges/paymium.md#fetchorderbook)
 * [phemex](/exchanges/phemex.md#fetchorderbook)
 * [poloniex](/exchanges/poloniex.md#fetchorderbook)
-* [probit](/exchanges/probit.md#fetchorderbook)
 * [timex](/exchanges/timex.md#fetchorderbook)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorderbook)
 * [toobit](/exchanges/toobit.md#fetchorderbook)
@@ -4957,6 +4965,27 @@ fetch data on an open position
 
 ---
 
+<a name="fetchPositionADLRank" id="fetchpositionadlrank"></a>
+
+## fetchPositionADLRank
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance   
+**Returns**: <code>object</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.code | <code>string</code> | No | the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default |
+| params.method | <code>string</code> | No | *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions' |
+
+##### Supported exchanges
+* [phemex](/exchanges/phemex.md#fetchpositionadlrank)
+
+---
+
 <a name="fetchPositionHistory" id="fetchpositionhistory"></a>
 
 ## fetchPositionHistory
@@ -5097,6 +5126,33 @@ fetch all open positions
 
 ---
 
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+## fetchPositionsADLRank
+fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true for the portfolio margin account |
+
+##### Supported exchanges
+* [binance](/exchanges/binance.md#fetchpositionsadlrank)
+* [bitmex](/exchanges/bitmex.md#fetchpositionsadlrank)
+* [blofin](/exchanges/blofin.md#fetchpositionsadlrank)
+* [bybit](/exchanges/bybit.md#fetchpositionsadlrank)
+* [delta](/exchanges/delta.md#fetchpositionsadlrank)
+* [htx](/exchanges/htx.md#fetchpositionsadlrank)
+* [kucoinfutures](/exchanges/kucoinfutures.md#fetchpositionsadlrank)
+* [woo](/exchanges/woo.md#fetchpositionsadlrank)
+
+---
+
 <a name="fetchPositionsForSymbol" id="fetchpositionsforsymbol"></a>
 
 ## fetchPositionsForSymbol
@@ -5209,6 +5265,7 @@ fetches historical settlement records
 
 ##### Supported exchanges
 * [binance](/exchanges/binance.md#fetchsettlementhistory)
+* [bitmex](/exchanges/bitmex.md#fetchsettlementhistory)
 * [bybit](/exchanges/bybit.md#fetchsettlementhistory)
 * [cryptocom](/exchanges/cryptocom.md#fetchsettlementhistory)
 * [delta](/exchanges/delta.md#fetchsettlementhistory)
@@ -5392,7 +5449,6 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [paymium](/exchanges/paymium.md#fetchticker)
 * [phemex](/exchanges/phemex.md#fetchticker)
 * [poloniex](/exchanges/poloniex.md#fetchticker)
-* [probit](/exchanges/probit.md#fetchticker)
 * [timex](/exchanges/timex.md#fetchticker)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
@@ -5515,7 +5571,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [paradex](/exchanges/paradex.md#fetchtickers)
 * [phemex](/exchanges/phemex.md#fetchtickers)
 * [poloniex](/exchanges/poloniex.md#fetchtickers)
-* [probit](/exchanges/probit.md#fetchtickers)
 * [timex](/exchanges/timex.md#fetchtickers)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtickers)
 * [toobit](/exchanges/toobit.md#fetchtickers)
@@ -5590,7 +5645,6 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [onetrading](/exchanges/onetrading.md#fetchtime)
 * [paradex](/exchanges/paradex.md#fetchtime)
 * [poloniex](/exchanges/poloniex.md#fetchtime)
-* [probit](/exchanges/probit.md#fetchtime)
 * [timex](/exchanges/timex.md#fetchtime)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtime)
 * [toobit](/exchanges/toobit.md#fetchtime)
@@ -5703,7 +5757,6 @@ get the list of most recent trades for a particular symbol
 * [paymium](/exchanges/paymium.md#fetchtrades)
 * [phemex](/exchanges/phemex.md#fetchtrades)
 * [poloniex](/exchanges/poloniex.md#fetchtrades)
-* [probit](/exchanges/probit.md#fetchtrades)
 * [timex](/exchanges/timex.md#fetchtrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtrades)
 * [toobit](/exchanges/toobit.md#fetchtrades)
@@ -6163,7 +6216,6 @@ fetch all withdrawals made from an account
 * [paradex](/exchanges/paradex.md#fetchwithdrawals)
 * [phemex](/exchanges/phemex.md#fetchwithdrawals)
 * [poloniex](/exchanges/poloniex.md#fetchwithdrawals)
-* [probit](/exchanges/probit.md#fetchwithdrawals)
 * [timex](/exchanges/timex.md#fetchwithdrawals)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchwithdrawals)
 * [toobit](/exchanges/toobit.md#fetchwithdrawals)
@@ -6657,7 +6709,6 @@ sign in, must be called prior to using other authenticated methods
 ##### Supported exchanges
 * [bullish](/exchanges/bullish.md#signin)
 * [ndax](/exchanges/ndax.md#signin)
-* [probit](/exchanges/probit.md#signin)
 * [wavesexchange](/exchanges/wavesexchange.md#signin)
 
 ---
@@ -6769,6 +6820,25 @@ unWatches best bid & ask for symbols
 * [backpack](/exchanges/backpack.md#unwatchbidsasks)
 * [mexc](/exchanges/mexc.md#unwatchbidsasks)
 * [woo](/exchanges/woo.md#unwatchbidsasks)
+
+---
+
+<a name="unWatchFundingRate" id="unwatchfundingrate"></a>
+
+## unWatchFundingRate
+unWatches the current funding rate for a symbol
+
+**Kind**: instance   
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [mexc](/exchanges/mexc.md#unwatchfundingrate)
 
 ---
 
@@ -7238,7 +7308,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 * [onetrading](/exchanges/onetrading.md#watchbalance)
 * [oxfun](/exchanges/oxfun.md#watchbalance)
 * [phemex](/exchanges/phemex.md#watchbalance)
-* [probit](/exchanges/probit.md#watchbalance)
 * [toobit](/exchanges/toobit.md#watchbalance)
 * [upbit](/exchanges/upbit.md#watchbalance)
 * [whitebit](/exchanges/whitebit.md#watchbalance)
@@ -7302,7 +7371,11 @@ watch the current funding rate
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [bitmart](/exchanges/bitmart.md#watchfundingrate)
+* [blofin](/exchanges/blofin.md#watchfundingrate)
+* [mexc](/exchanges/mexc.md#watchfundingrate)
 * [okx](/exchanges/okx.md#watchfundingrate)
+* [woo](/exchanges/woo.md#watchfundingrate)
 
 ---
 
@@ -7312,16 +7385,17 @@ watch the current funding rate
 watch the funding rate for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [coinbaseinternational](/exchanges/coinbaseinternational.md#watchfundingrates)
+* [bitmart](/exchanges/bitmart.md#watchfundingrates)
+* [okx](/exchanges/okx.md#watchfundingrates)
 
 ---
 
@@ -7509,7 +7583,6 @@ watches information on multiple trades made by the user
 * [okx](/exchanges/okx.md#watchmytrades)
 * [onetrading](/exchanges/onetrading.md#watchmytrades)
 * [phemex](/exchanges/phemex.md#watchmytrades)
-* [probit](/exchanges/probit.md#watchmytrades)
 * [toobit](/exchanges/toobit.md#watchmytrades)
 * [upbit](/exchanges/upbit.md#watchmytrades)
 * [whitebit](/exchanges/whitebit.md#watchmytrades)
@@ -7706,7 +7779,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [onetrading](/exchanges/onetrading.md#watchorderbook)
 * [oxfun](/exchanges/oxfun.md#watchorderbook)
 * [phemex](/exchanges/phemex.md#watchorderbook)
-* [probit](/exchanges/probit.md#watchorderbook)
 * [toobit](/exchanges/toobit.md#watchorderbook)
 * [upbit](/exchanges/upbit.md#watchorderbook)
 * [whitebit](/exchanges/whitebit.md#watchorderbook)
@@ -7817,7 +7889,6 @@ watches information on multiple orders made by the user
 * [onetrading](/exchanges/onetrading.md#watchorders)
 * [oxfun](/exchanges/oxfun.md#watchorders)
 * [phemex](/exchanges/phemex.md#watchorders)
-* [probit](/exchanges/probit.md#watchorders)
 * [toobit](/exchanges/toobit.md#watchorders)
 * [upbit](/exchanges/upbit.md#watchorders)
 * [whitebit](/exchanges/whitebit.md#watchorders)
@@ -7974,7 +8045,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [onetrading](/exchanges/onetrading.md#watchticker)
 * [oxfun](/exchanges/oxfun.md#watchticker)
 * [phemex](/exchanges/phemex.md#watchticker)
-* [probit](/exchanges/probit.md#watchticker)
 * [toobit](/exchanges/toobit.md#watchticker)
 * [upbit](/exchanges/upbit.md#watchticker)
 * [whitebit](/exchanges/whitebit.md#watchticker)
@@ -8104,7 +8174,6 @@ watches information on multiple trades made in a market
 * [okx](/exchanges/okx.md#watchtrades)
 * [oxfun](/exchanges/oxfun.md#watchtrades)
 * [phemex](/exchanges/phemex.md#watchtrades)
-* [probit](/exchanges/probit.md#watchtrades)
 * [toobit](/exchanges/toobit.md#watchtrades)
 * [upbit](/exchanges/upbit.md#watchtrades)
 * [whitebit](/exchanges/whitebit.md#watchtrades)
@@ -8235,7 +8304,6 @@ make a withdrawal
 * [oxfun](/exchanges/oxfun.md#withdraw)
 * [phemex](/exchanges/phemex.md#withdraw)
 * [poloniex](/exchanges/poloniex.md#withdraw)
-* [probit](/exchanges/probit.md#withdraw)
 * [tokocrypto](/exchanges/tokocrypto.md#withdraw)
 * [toobit](/exchanges/toobit.md#withdraw)
 * [upbit](/exchanges/upbit.md#withdraw)

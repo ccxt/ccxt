@@ -63,10 +63,15 @@ type OrderHyperliquid struct {
 }
 
 type OrderMessage struct {
-	Type     string                 `mapstructure:"type" msgpack:"type"`
-	Orders   []OrderHyperliquid     `mapstructure:"orders" msgpack:"orders"`
-	Grouping string                 `mapstructure:"grouping" msgpack:"grouping"`
-	Builder  map[string]interface{} `mapstructure:"builder" msgpack:"builder,omitempty"`
+	Type     string             `mapstructure:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
+	Grouping string             `mapstructure:"grouping" msgpack:"grouping"`
+	Builder  Builder            `mapstructure:"builder" msgpack:"builder,omitempty"`
+}
+
+type Builder struct {
+	B string `mapstructure:"b" msgpack:"b"`
+	F int    `mapstructure:"f" msgpack:"f"`
 }
 
 // cancel

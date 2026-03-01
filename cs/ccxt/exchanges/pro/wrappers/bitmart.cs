@@ -326,4 +326,44 @@ public partial class bitmart
         var res = await this.watchOrderBookForSymbols(symbols, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
+    /// <summary>
+    /// watch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// watch the funding rate for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols.</returns>
+    public async Task<FundingRates> WatchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
 }

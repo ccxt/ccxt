@@ -1057,6 +1057,15 @@ class krakenfutures extends Exchange {
                 $takerOrMaker = 'taker';
             }
         }
+        $fee = null;
+        if (($takerOrMaker !== null) && ($cost !== null)) {
+            $feeRate = $this->safe_string($market, $takerOrMaker);
+            $fee = array(
+                'cost' => Precise::string_mul($cost, $feeRate),
+                'currency' => $this->safe_string($market, 'quote'),
+                'rate' => $feeRate,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
@@ -1070,7 +1079,7 @@ class krakenfutures extends Exchange {
             'price' => $price,
             'amount' => $linear ? $amount : null,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         ));
     }
 
@@ -1494,10 +1503,10 @@ class krakenfutures extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * Gets all $orders for an account from the exchange api
              *
              * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
              *
-             * Gets all $orders for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
              * @param {int} [$since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
              * @param {int} [$limit] How many $orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -1725,6 +1734,12 @@ class krakenfutures extends Exchange {
             'notFound' => 'rejected', // the order was not found, either because it had already been cancelled or it never existed
             'untouched' => 'open', // the entire size of the order is unfilled
             'partiallyFilled' => 'open', // the size of the order is partially but not entirely filled
+            'ENTERED_BOOK' => 'open',
+            'FULLY_EXECUTED' => 'closed',
+            'CANCELLED' => 'canceled',
+            'TRIGGER_PLACED' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'UNTOUCHED' => 'open',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1964,6 +1979,72 @@ class krakenfutures extends Exchange {
         //     $status => 'closed'
         //   }
         //
+        // $order => array(
+        //     $type => 'ORDER',
+        //     orderId => 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId => null,
+        //     $symbol => 'PF_LTCUSD',
+        //     side => 'buy',
+        //     quantity => '0.1',
+        //     $filled => '0',
+        //     limitPrice => '40',
+        //     reduceOnly => false,
+        //     $timestamp => '2026-02-13T12:09:03.738Z',
+        //     $lastUpdateTimestamp => '2026-02-13T12:09:03.738Z'
+        // ),
+        //     $status => 'ENTERED_BOOK',
+        //     updateReason => null,
+        //     error => null
+        // }
+        //
+        $orderDictFromFetchOrder = $this->safe_dict($order, 'order');
+        if ($orderDictFromFetchOrder !== null) {
+            // $order => array(
+            //     $type => 'ORDER',
+            //     orderId => 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId => null,
+            //     $symbol => 'PF_LTCUSD',
+            //     side => 'buy',
+            //     quantity => '0.1',
+            //     $filled => '0',
+            //     limitPrice => '40',
+            //     reduceOnly => false,
+            //     $timestamp => '2026-02-13T12:09:03.738Z',
+            //     $lastUpdateTimestamp => '2026-02-13T12:09:03.738Z'
+            // ),
+            //     $status => 'ENTERED_BOOK',
+            //     updateReason => null,
+            //     error => null
+            //
+            $datetime = $this->safe_string($orderDictFromFetchOrder, 'timestamp');
+            $innerStatus = $this->safe_string($order, 'status');
+            return $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
+                'clientOrderId' => $this->safe_string_n($orderDictFromFetchOrder, array( 'cliOrdId' )),
+                'timestamp' => $this->parse8601($datetime),
+                'datetime' => $datetime,
+                'lastTradeTimestamp' => null,
+                'lastUpdateTimestamp' => $this->parse8601($this->safe_string($orderDictFromFetchOrder, 'lastUpdateTimestamp')),
+                'symbol' => $this->safe_symbol($this->safe_string($orderDictFromFetchOrder, 'symbol'), $market),
+                'type' => null,
+                'timeInForce' => null,
+                'postOnly' => null,
+                'reduceOnly' => $this->safe_bool($orderDictFromFetchOrder, 'reduceOnly'),
+                'side' => $this->safe_string($orderDictFromFetchOrder, 'side'),
+                'price' => $this->safe_string($orderDictFromFetchOrder, 'limitPrice'),
+                'triggerPrice' => null,
+                'amount' => $this->safe_string($orderDictFromFetchOrder, 'quantity'),
+                'cost' => null,
+                'average' => null,
+                'filled' => $this->safe_string($orderDictFromFetchOrder, 'filled'),
+                'remaining' => null,
+                'status' => $this->parse_order_status($innerStatus),
+                'fee' => null,
+                'fees' => null,
+                'trades' => null,
+            ));
+        }
         $orderEvents = $this->safe_value($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
         $orderEventsLength = count($orderEvents);
@@ -2086,6 +2167,11 @@ class krakenfutures extends Exchange {
             $symbol = $this->safe_symbol($this->safe_string($details, 'tradeable'), $market);
         }
         $ts = $this->safe_integer($details, 'timestamp', $timestamp);
+        $priceTriggerOptions = $this->safe_dict($details, 'priceTriggerOptions', array());
+        $triggerPrice = $this->safe_string_2($details, 'triggerPrice', 'stopPrice');
+        if ($triggerPrice === null) {
+            $triggerPrice = $this->safe_string($priceTriggerOptions, 'triggerPrice');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2101,7 +2187,8 @@ class krakenfutures extends Exchange {
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string_lower_2($details, 'side', 'direction'),
             'price' => $price,
-            'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
+            'triggerPrice' => $triggerPrice,
+            'stopPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
@@ -2439,7 +2526,7 @@ class krakenfutures extends Exchange {
         //         "fundingRate" => -0.000000756414717067,
         //         "fundingRatePrediction" => 0.000000195218676,
         //         "suspended" => false,
-        //         "indexPrice" => 0.043392,
+        //         "indexPrice" => 0.043391,
         //         "postOnly" => false,
         //         "change24h" => -0.46
         //     }
@@ -2452,14 +2539,14 @@ class krakenfutures extends Exchange {
         $fundingRateResult = Precise::string_div($fundingRateString, $markPriceString);
         $nextFundingRateString = $this->safe_string($ticker, 'fundingRatePrediction');
         $nextFundingRateResult = Precise::string_div($nextFundingRateString, $markPriceString);
-        if ($fundingRateResult > '0.25') {
+        if (Precise::string_gt($fundingRateResult, '0.25')) {
             $fundingRateResult = '0.25';
-        } elseif ($fundingRateResult > '-0.25') {
+        } elseif (Precise::string_lt($fundingRateResult, '-0.25')) {
             $fundingRateResult = '-0.25';
         }
-        if ($nextFundingRateResult > '0.25') {
+        if (Precise::string_gt($nextFundingRateResult, '0.25')) {
             $nextFundingRateResult = '0.25';
-        } elseif ($nextFundingRateResult > '-0.25') {
+        } elseif (Precise::string_lt($nextFundingRateResult, '-0.25')) {
             $nextFundingRateResult = '-0.25';
         }
         return array(

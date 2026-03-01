@@ -781,6 +781,15 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapi_get_dci_product_accounts($params = array()) {
         return $this->request('dci/product/accounts', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_get_accumulator_product_list($params = array()) {
+        return $this->request('accumulator/product/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_accumulator_product_position_list($params = array()) {
+        return $this->request('accumulator/product/position/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_accumulator_product_sum_holding($params = array()) {
+        return $this->request('accumulator/product/sum-holding', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_post_asset_dust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 0.06667));
     }
@@ -888,6 +897,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapi_post_userdatastream_isolated($params = array()) {
         return $this->request('userDataStream/isolated', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_userlistentoken($params = array()) {
+        return $this->request('userListenToken', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_post_futures_transfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -1146,6 +1158,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapi_post_dci_product_auto_compound_edit($params = array()) {
         return $this->request('dci/product/auto_compound/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_accumulator_product_subscribe($params = array()) {
+        return $this->request('accumulator/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
@@ -3130,6 +3145,15 @@ abstract class binance extends \ccxt\async\Exchange {
     public function sapiGetDciProductAccounts($params = array()) {
         return $this->request('dci/product/accounts', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiGetAccumulatorProductList($params = array()) {
+        return $this->request('accumulator/product/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetAccumulatorProductPositionList($params = array()) {
+        return $this->request('accumulator/product/position/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetAccumulatorProductSumHolding($params = array()) {
+        return $this->request('accumulator/product/sum-holding', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapiPostAssetDust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 0.06667));
     }
@@ -3237,6 +3261,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiPostUserDataStreamIsolated($params = array()) {
         return $this->request('userDataStream/isolated', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostUserListenToken($params = array()) {
+        return $this->request('userListenToken', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPostFuturesTransfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -3495,6 +3522,9 @@ abstract class binance extends \ccxt\async\Exchange {
     }
     public function sapiPostDciProductAutoCompoundEdit($params = array()) {
         return $this->request('dci/product/auto_compound/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostAccumulatorProductSubscribe($params = array()) {
+        return $this->request('accumulator/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPutUserDataStream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));

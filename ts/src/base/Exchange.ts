@@ -1,12 +1,12 @@
 // ----------------------------------------------------------------------------
 
 import * as functions from './functions.js';
-import {
-    keys as keysFunc,
-    values as valuesFunc,
-    // inArray as inArrayFunc,
-    vwap as vwapFunc,
-} from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
     ExchangeError,
@@ -39,7 +39,7 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 //
 import { axolotl } from './functions/crypto.js';
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
@@ -63,7 +63,6 @@ const {
     deepExtend,
     extend,
     clone,
-    flatten,
     unique,
     indexBy,
     sortBy,
@@ -114,8 +113,6 @@ const {
     safeStringUpper,
     safeTimestamp,
     binaryConcatArray,
-    uuidv1,
-    numberToLE,
     ymdhms,
     stringToBase64,
     decode,
@@ -132,7 +129,6 @@ const {
     sort,
     inArray,
     isEmpty,
-    ordered,
     filterBy,
     uuid16,
     safeFloat,
@@ -165,11 +161,12 @@ const {
     TICK_SIZE,
     SIGNIFICANT_DIGITS,
     sleep,
+    readFile, writeFile, existsFile, getTempDir,
 } = functions;
 
 // export {Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, Liquidation, FundingHistory} from './types.js'
 // import { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, OrderType, OrderSide, Position, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, FundingHistory, MarginMode, Tickers, Greeks, Str, Num, MarketInterface, CurrencyInterface, Account } from './types.js';
-export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio } from './types.js';
+export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion, DepositAddress, LongShortRatio, ADL } from './types.js';
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -179,13 +176,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch (e) {
-        // TODO: handle error
-    }
-}) ();
 
 // -----------------------------------------------------------------------------
 /**
@@ -434,11 +424,8 @@ export default class Exchange {
     deepExtend = deepExtend;
     deepExtendSafe = deepExtend;
     isNode = isNode;
-    keys = keysFunc;
-    values = valuesFunc;
     extend = extend;
     clone = clone;
-    flatten = flatten;
     unique = unique;
     indexBy = indexBy;
     indexBySafe = indexBy;
@@ -473,7 +460,6 @@ export default class Exchange {
     implodeParams = implodeParams;
     extractParams = extractParams;
     json = json;
-    vwap = vwapFunc;
     merge = merge;
     binaryConcat = binaryConcat;
     hash = hash;
@@ -490,8 +476,6 @@ export default class Exchange {
     safeStringUpper = safeStringUpper;
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
-    uuidv1 = uuidv1;
-    numberToLE = numberToLE;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
     stringToBase64 = stringToBase64;
@@ -510,7 +494,6 @@ export default class Exchange {
     safeStringLower2 = safeStringLower2;
     safeStringUpper2 = safeStringUpper2;
     isEmpty = isEmpty;
-    ordered = ordered;
     filterBy = filterBy;
     uuid16 = uuid16;
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -533,6 +516,11 @@ export default class Exchange {
     crc32 = crc32;
     packb = packb;
     urlencodeBase64 = urlencodeBase64;
+    // io
+    readFile = readFile;
+    writeFile = writeFile;
+    existsFile = existsFile;
+    getTempDir = getTempDir;
 
     constructor (userConfig: ConstructorArgs = {}) {
         Object.assign (this, functions);
@@ -648,6 +636,18 @@ export default class Exchange {
         this.afterConstruct ();
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles ();
+    }
+
+    async loadExchangeSpecificFiles () {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+            } catch (e) {
+                // TODO: handle error
+            }
         }
     }
 
@@ -2059,6 +2059,7 @@ export default class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -2144,6 +2145,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -3054,8 +3057,12 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchFundingRate() is not supported yet');
     }
 
-    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
+    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
         throw new NotSupported (this.id + ' watchFundingRates() is not supported yet');
+    }
+
+    async unWatchFundingRates (symbols: Strings = undefined, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchFundingRates() is not supported yet');
     }
 
     async watchFundingRatesForSymbols (symbols: string[], params = {}): Promise<{}> {
@@ -3143,7 +3150,12 @@ export default class Exchange {
     }
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
-        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests ([ symbol ], params);
+            return this.safeDict (openInterests, symbol) as OpenInterest;
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
 
     async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
@@ -5114,6 +5126,21 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
+    }
+
+    parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
+        symbols = this.marketSymbols (symbols);
+        ranks = this.toArray (ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend (this.parseADLRank (ranks[i], undefined), params);
+            result.push (rank);
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
     parseAccounts (accounts: any[], params = {}): Account[] {
         accounts = this.toArray (accounts);
         const result = [];
@@ -6019,6 +6046,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' unWatchTickers() is not supported yet');
     }
 
+    async unWatchFundingRate (symbol: string, params = {}): Promise<any> {
+        throw new NotSupported (this.id + ' unWatchFundingRate() is not supported yet');
+    }
+
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' fetchOrder() is not supported yet');
     }
@@ -6074,6 +6105,31 @@ export default class Exchange {
 
     async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
+    }
+
+    async fetchADLRank (symbol: string, params = {}): Promise<ADL> {
+        throw new NotSupported (this.id + ' fetchADLRank() is not supported yet');
+    }
+
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+
+    async fetchPositionADLRank (symbol: string, params = {}): Promise<ADL> {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank ([ symbol ], params);
+            const rank = this.safeDict (ranks, 0);
+            if (rank === undefined) {
+                throw new NullResponse (this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            } else {
+                return rank as ADL;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
 
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
@@ -7863,6 +7919,15 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+    }
+
+    filterByArrayADLRanks (objects, key: IndexType, values = undefined, indexed = true): ADL[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
+         */
+        return this.filterByArray (objects, key, values, indexed) as ADL[];
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {

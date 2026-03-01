@@ -1020,6 +1020,16 @@ public partial class krakenfutures : Exchange
                 takerOrMaker = "taker";
             }
         }
+        object fee = null;
+        if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
+        {
+            object feeRate = this.safeString(market, takerOrMaker);
+            fee = new Dictionary<string, object>() {
+                { "cost", Precise.stringMul(cost, feeRate) },
+                { "currency", this.safeString(market, "quote") },
+                { "rate", feeRate },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1033,7 +1043,7 @@ public partial class krakenfutures : Exchange
             { "price", price },
             { "amount", ((bool) isTrue(linear)) ? amount : null },
             { "cost", cost },
-            { "fee", null },
+            { "fee", fee },
         });
     }
 
@@ -1495,8 +1505,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
      * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -1750,6 +1760,12 @@ public partial class krakenfutures : Exchange
             { "notFound", "rejected" },
             { "untouched", "open" },
             { "partiallyFilled", "open" },
+            { "ENTERED_BOOK", "open" },
+            { "FULLY_EXECUTED", "closed" },
+            { "CANCELLED", "canceled" },
+            { "TRIGGER_PLACED", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "UNTOUCHED", "open" },
         };
         return this.safeString(statuses, status, status);
     }
@@ -1990,6 +2006,73 @@ public partial class krakenfutures : Exchange
         //     status: 'closed'
         //   }
         //
+        // order: {
+        //     type: 'ORDER',
+        //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+        //     cliOrdId: null,
+        //     symbol: 'PF_LTCUSD',
+        //     side: 'buy',
+        //     quantity: '0.1',
+        //     filled: '0',
+        //     limitPrice: '40',
+        //     reduceOnly: false,
+        //     timestamp: '2026-02-13T12:09:03.738Z',
+        //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+        // },
+        //     status: 'ENTERED_BOOK',
+        //     updateReason: null,
+        //     error: null
+        // }
+        //
+        object orderDictFromFetchOrder = this.safeDict(order, "order");
+        if (isTrue(!isEqual(orderDictFromFetchOrder, null)))
+        {
+            // order: {
+            //     type: 'ORDER',
+            //     orderId: 'a111f276-95fd-47fc-b77b-709c5ab2e9e1',
+            //     cliOrdId: null,
+            //     symbol: 'PF_LTCUSD',
+            //     side: 'buy',
+            //     quantity: '0.1',
+            //     filled: '0',
+            //     limitPrice: '40',
+            //     reduceOnly: false,
+            //     timestamp: '2026-02-13T12:09:03.738Z',
+            //     lastUpdateTimestamp: '2026-02-13T12:09:03.738Z'
+            // },
+            //     status: 'ENTERED_BOOK',
+            //     updateReason: null,
+            //     error: null
+            //
+            object datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
+            object innerStatus = this.safeString(order, "status");
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
+                { "clientOrderId", this.safeStringN(orderDictFromFetchOrder, new List<object>() {"cliOrdId"}) },
+                { "timestamp", this.parse8601(datetime) },
+                { "datetime", datetime },
+                { "lastTradeTimestamp", null },
+                { "lastUpdateTimestamp", this.parse8601(this.safeString(orderDictFromFetchOrder, "lastUpdateTimestamp")) },
+                { "symbol", this.safeSymbol(this.safeString(orderDictFromFetchOrder, "symbol"), market) },
+                { "type", null },
+                { "timeInForce", null },
+                { "postOnly", null },
+                { "reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly") },
+                { "side", this.safeString(orderDictFromFetchOrder, "side") },
+                { "price", this.safeString(orderDictFromFetchOrder, "limitPrice") },
+                { "triggerPrice", null },
+                { "amount", this.safeString(orderDictFromFetchOrder, "quantity") },
+                { "cost", null },
+                { "average", null },
+                { "filled", this.safeString(orderDictFromFetchOrder, "filled") },
+                { "remaining", null },
+                { "status", this.parseOrderStatus(innerStatus) },
+                { "fee", null },
+                { "fees", null },
+                { "trades", null },
+            });
+        }
         object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
         object errorStatus = this.safeString(order, "status");
         object orderEventsLength = getArrayLength(orderEvents);
@@ -2143,6 +2226,12 @@ public partial class krakenfutures : Exchange
             symbol = this.safeSymbol(this.safeString(details, "tradeable"), market);
         }
         object ts = this.safeInteger(details, "timestamp", timestamp);
+        object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new Dictionary<string, object>() {});
+        object triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            triggerPrice = this.safeString(priceTriggerOptions, "triggerPrice");
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2158,7 +2247,8 @@ public partial class krakenfutures : Exchange
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeStringLower2(details, "side", "direction") },
             { "price", price },
-            { "triggerPrice", this.safeString(details, "triggerPrice") },
+            { "triggerPrice", triggerPrice },
+            { "stopPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
@@ -2511,7 +2601,7 @@ public partial class krakenfutures : Exchange
         //         "fundingRate": -0.000000756414717067,
         //         "fundingRatePrediction": 0.000000195218676,
         //         "suspended": false,
-        //         "indexPrice": 0.043392,
+        //         "indexPrice": 0.043391,
         //         "postOnly": false,
         //         "change24h": -0.46
         //     }
@@ -2524,17 +2614,17 @@ public partial class krakenfutures : Exchange
         object fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         object nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
         object nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
-        if (isTrue(isGreaterThan(fundingRateResult, "0.25")))
+        if (isTrue(Precise.stringGt(fundingRateResult, "0.25")))
         {
             fundingRateResult = "0.25";
-        } else if (isTrue(isGreaterThan(fundingRateResult, "-0.25")))
+        } else if (isTrue(Precise.stringLt(fundingRateResult, "-0.25")))
         {
             fundingRateResult = "-0.25";
         }
-        if (isTrue(isGreaterThan(nextFundingRateResult, "0.25")))
+        if (isTrue(Precise.stringGt(nextFundingRateResult, "0.25")))
         {
             nextFundingRateResult = "0.25";
-        } else if (isTrue(isGreaterThan(nextFundingRateResult, "-0.25")))
+        } else if (isTrue(Precise.stringLt(nextFundingRateResult, "-0.25")))
         {
             nextFundingRateResult = "-0.25";
         }

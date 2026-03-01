@@ -23,42 +23,62 @@ func (this *ToobitCore) Describe() interface{} {
 		"certified": false,
 		"pro":       true,
 		"has": map[string]interface{}{
-			"CORS":                    nil,
-			"spot":                    true,
-			"margin":                  false,
-			"swap":                    true,
-			"future":                  false,
-			"option":                  false,
-			"cancelAllOrders":         true,
-			"cancelOrder":             true,
-			"cancelOrders":            true,
-			"createOrder":             true,
-			"fetchBalance":            true,
-			"fetchBidsAsks":           true,
-			"fetchCurrencies":         true,
-			"fetchDepositAddress":     true,
-			"fetchDeposits":           true,
-			"fetchFundingRateHistory": true,
-			"fetchFundingRates":       true,
-			"fetchIndexOHLCV":         true,
-			"fetchLastPrices":         true,
-			"fetchLedger":             true,
-			"fetchMarkets":            true,
-			"fetchMarkOHLCV":          true,
-			"fetchMyTrades":           true,
-			"fetchOHLCV":              true,
-			"fetchOpenOrders":         true,
-			"fetchOrder":              true,
-			"fetchOrderBook":          true,
-			"fetchOrders":             true,
-			"fetchStatus":             true,
-			"fetchTickers":            true,
-			"fetchTime":               true,
-			"fetchTrades":             true,
-			"fetchWithdrawals":        true,
-			"setMarginMode":           true,
-			"transfer":                true,
-			"withdraw":                true,
+			"CORS":                      nil,
+			"spot":                      true,
+			"margin":                    false,
+			"swap":                      true,
+			"future":                    false,
+			"option":                    false,
+			"borrowCrossMargin":         false,
+			"borrowIsolatedMargin":      false,
+			"borrowMargin":              false,
+			"cancelAllOrders":           true,
+			"cancelOrder":               true,
+			"cancelOrders":              true,
+			"createOrder":               true,
+			"fetchAllGreeks":            false,
+			"fetchBalance":              true,
+			"fetchBidsAsks":             true,
+			"fetchBorrowInterest":       false,
+			"fetchBorrowRate":           false,
+			"fetchBorrowRateHistories":  false,
+			"fetchBorrowRateHistory":    false,
+			"fetchBorrowRates":          false,
+			"fetchBorrowRatesPerSymbol": false,
+			"fetchCrossBorrowRate":      false,
+			"fetchCrossBorrowRates":     false,
+			"fetchCurrencies":           true,
+			"fetchDepositAddress":       true,
+			"fetchDeposits":             true,
+			"fetchFundingRateHistory":   true,
+			"fetchFundingRates":         true,
+			"fetchGreeks":               false,
+			"fetchIndexOHLCV":           true,
+			"fetchIsolatedBorrowRate":   false,
+			"fetchIsolatedBorrowRates":  false,
+			"fetchLastPrices":           true,
+			"fetchLedger":               true,
+			"fetchMarkets":              true,
+			"fetchMarkOHLCV":            true,
+			"fetchMyTrades":             true,
+			"fetchOHLCV":                true,
+			"fetchOpenOrders":           true,
+			"fetchOption":               false,
+			"fetchOptionChain":          false,
+			"fetchOrder":                true,
+			"fetchOrderBook":            true,
+			"fetchOrders":               true,
+			"fetchStatus":               true,
+			"fetchTickers":              true,
+			"fetchTime":                 true,
+			"fetchTrades":               true,
+			"fetchVolatilityHistory":    false,
+			"fetchWithdrawals":          true,
+			"repayCrossMargin":          false,
+			"repayIsolatedMargin":       false,
+			"setMarginMode":             true,
+			"transfer":                  true,
+			"withdraw":                  true,
 		},
 		"urls": map[string]interface{}{
 			"logo": "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e",
@@ -936,8 +956,8 @@ func (this *ToobitCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8878 := (<-this.LoadMarkets())
-		PanicOnError(retRes8878)
+		retRes9078 := (<-this.LoadMarkets())
+		PanicOnError(retRes9078)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1008,8 +1028,8 @@ func (this *ToobitCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes9408 := (<-this.LoadMarkets())
-		PanicOnError(retRes9408)
+		retRes9608 := (<-this.LoadMarkets())
+		PanicOnError(retRes9608)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1166,8 +1186,8 @@ func (this *ToobitCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes10768 := (<-this.LoadMarkets())
-		PanicOnError(retRes10768)
+		retRes10968 := (<-this.LoadMarkets())
+		PanicOnError(retRes10968)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -1235,8 +1255,8 @@ func (this *ToobitCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes11898 := (<-this.LoadMarkets())
-		PanicOnError(retRes11898)
+		retRes12098 := (<-this.LoadMarkets())
+		PanicOnError(retRes12098)
 		symbols = this.MarketSymbols(symbols)
 		var typeVar interface{} = nil
 		var market interface{} = nil
@@ -1336,8 +1356,8 @@ func (this *ToobitCore) FetchLastPrices(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes12688 := (<-this.LoadMarkets())
-		PanicOnError(retRes12688)
+		retRes12888 := (<-this.LoadMarkets())
+		PanicOnError(retRes12888)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1400,8 +1420,8 @@ func (this *ToobitCore) FetchBidsAsks(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13148 := (<-this.LoadMarkets())
-		PanicOnError(retRes13148)
+		retRes13348 := (<-this.LoadMarkets())
+		PanicOnError(retRes13348)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1477,8 +1497,8 @@ func (this *ToobitCore) FetchFundingRates(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes13728 := (<-this.LoadMarkets())
-		PanicOnError(retRes13728)
+		retRes13928 := (<-this.LoadMarkets())
+		PanicOnError(retRes13928)
 		symbols = this.MarketSymbols(symbols)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -1562,17 +1582,17 @@ func (this *ToobitCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-c
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14358 := (<-this.LoadMarkets())
-		PanicOnError(retRes14358)
+		retRes14558 := (<-this.LoadMarkets())
+		PanicOnError(retRes14558)
 		var paginate interface{} = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes143919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes143919)
-			ch <- retRes143919
+			retRes145919 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes145919)
+			ch <- retRes145919
 			return nil
 		}
 		var market interface{} = this.Market(symbol)
@@ -1632,8 +1652,8 @@ func (this *ToobitCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes14838 := (<-this.LoadMarkets())
-		PanicOnError(retRes14838)
+		retRes15038 := (<-this.LoadMarkets())
+		PanicOnError(retRes15038)
 		var response interface{} = nil
 		var marketType interface{} = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -1698,8 +1718,8 @@ func (this *ToobitCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15568 := (<-this.LoadMarkets())
-		PanicOnError(retRes15568)
+		retRes15768 := (<-this.LoadMarkets())
+		PanicOnError(retRes15768)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{}
 		var response interface{} = nil
@@ -2067,8 +2087,8 @@ func (this *ToobitCore) CancelAllOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes18708 := (<-this.LoadMarkets())
-		PanicOnError(retRes18708)
+		retRes18908 := (<-this.LoadMarkets())
+		PanicOnError(retRes18908)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2123,8 +2143,8 @@ func (this *ToobitCore) CancelOrders(ids interface{}, optionalArgs ...interface{
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes19138 := (<-this.LoadMarkets())
-		PanicOnError(retRes19138)
+		retRes19338 := (<-this.LoadMarkets())
+		PanicOnError(retRes19338)
 		var idsString interface{} = Join(ids, ",")
 		var request interface{} = map[string]interface{}{
 			"ids": idsString,
@@ -2183,8 +2203,8 @@ func (this *ToobitCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
 
-		retRes19718 := (<-this.LoadMarkets())
-		PanicOnError(retRes19718)
+		retRes19918 := (<-this.LoadMarkets())
+		PanicOnError(retRes19918)
 		var request interface{} = map[string]interface{}{
 			"orderId": id,
 		}
@@ -2261,8 +2281,8 @@ func (this *ToobitCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20268 := (<-this.LoadMarkets())
-		PanicOnError(retRes20268)
+		retRes20468 := (<-this.LoadMarkets())
+		PanicOnError(retRes20468)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2319,8 +2339,8 @@ func (this *ToobitCore) FetchOrders(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20868 := (<-this.LoadMarkets())
-		PanicOnError(retRes20868)
+		retRes21068 := (<-this.LoadMarkets())
+		PanicOnError(retRes21068)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
@@ -2382,8 +2402,8 @@ func (this *ToobitCore) FetchClosedOrders(optionalArgs ...interface{}) <-chan in
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes21518 := (<-this.LoadMarkets())
-		PanicOnError(retRes21518)
+		retRes21718 := (<-this.LoadMarkets())
+		PanicOnError(retRes21718)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -2452,8 +2472,8 @@ func (this *ToobitCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes22208 := (<-this.LoadMarkets())
-		PanicOnError(retRes22208)
+		retRes22408 := (<-this.LoadMarkets())
+		PanicOnError(retRes22408)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "startTime", since)
@@ -2508,8 +2528,8 @@ func (this *ToobitCore) Transfer(code interface{}, amount interface{}, fromAccou
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes23008 := (<-this.LoadMarkets())
-		PanicOnError(retRes23008)
+		retRes23208 := (<-this.LoadMarkets())
+		PanicOnError(retRes23208)
 		var currency interface{} = this.Currency(code)
 		var accountsByType interface{} = this.SafeDict(this.Options, "accountsByType", map[string]interface{}{})
 		var fromId interface{} = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -2585,8 +2605,8 @@ func (this *ToobitCore) FetchLedger(optionalArgs ...interface{}) <-chan interfac
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes23558 := (<-this.LoadMarkets())
-		PanicOnError(retRes23558)
+		retRes23758 := (<-this.LoadMarkets())
+		PanicOnError(retRes23758)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2696,8 +2716,8 @@ func (this *ToobitCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes24458 := (<-this.LoadMarkets())
-		PanicOnError(retRes24458)
+		retRes24658 := (<-this.LoadMarkets())
+		PanicOnError(retRes24658)
 		var response interface{} = nil
 		var marketType interface{} = nil
 		var market interface{} = nil
@@ -2782,9 +2802,9 @@ func (this *ToobitCore) FetchDeposits(optionalArgs ...interface{}) <-chan interf
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes250515 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
-		PanicOnError(retRes250515)
-		ch <- retRes250515
+		retRes252515 := (<-this.FetchDepositsOrWithdrawalsHelper("deposits", code, since, limit, params))
+		PanicOnError(retRes252515)
+		ch <- retRes252515
 		return nil
 
 	}()
@@ -2816,9 +2836,9 @@ func (this *ToobitCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes252015 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
-		PanicOnError(retRes252015)
-		ch <- retRes252015
+		retRes254015 := (<-this.FetchDepositsOrWithdrawalsHelper("withdrawals", code, since, limit, params))
+		PanicOnError(retRes254015)
+		ch <- retRes254015
 		return nil
 
 	}()
@@ -2830,8 +2850,8 @@ func (this *ToobitCore) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, co
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes25248 := (<-this.LoadMarkets())
-		PanicOnError(retRes25248)
+		retRes25448 := (<-this.LoadMarkets())
+		PanicOnError(retRes25448)
 		var currency interface{} = nil
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(code, nil)) {
@@ -2975,8 +2995,8 @@ func (this *ToobitCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes26988 := (<-this.LoadMarkets())
-		PanicOnError(retRes26988)
+		retRes27188 := (<-this.LoadMarkets())
+		PanicOnError(retRes27188)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin": GetValue(currency, "id"),
@@ -3053,8 +3073,8 @@ func (this *ToobitCore) Withdraw(code interface{}, amount interface{}, address i
 			panic(ArgumentsRequired(Add(this.Id, " withdraw() : param[\"network\"] is required")))
 		}
 
-		retRes27548 := (<-this.LoadMarkets())
-		PanicOnError(retRes27548)
+		retRes27748 := (<-this.LoadMarkets())
+		PanicOnError(retRes27748)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"coin":          GetValue(currency, "id"),
@@ -3109,8 +3129,8 @@ func (this *ToobitCore) SetMarginMode(marginMode interface{}, optionalArgs ...in
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 		}
 
-		retRes27938 := (<-this.LoadMarkets())
-		PanicOnError(retRes27938)
+		retRes28138 := (<-this.LoadMarkets())
+		PanicOnError(retRes28138)
 		var market interface{} = this.Market(symbol)
 		if IsTrue(!IsEqual(GetValue(market, "type"), "swap")) {
 			panic(BadSymbol(Add(this.Id, " setMarginMode() supports swap contracts only")))
@@ -3157,8 +3177,8 @@ func (this *ToobitCore) SetLeverage(leverage interface{}, optionalArgs ...interf
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
 
-		retRes28248 := (<-this.LoadMarkets())
-		PanicOnError(retRes28248)
+		retRes28448 := (<-this.LoadMarkets())
+		PanicOnError(retRes28448)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol":   GetValue(market, "id"),
@@ -3195,8 +3215,8 @@ func (this *ToobitCore) FetchLeverage(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes28478 := (<-this.LoadMarkets())
-		PanicOnError(retRes28478)
+		retRes28678 := (<-this.LoadMarkets())
+		PanicOnError(retRes28678)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -3256,8 +3276,8 @@ func (this *ToobitCore) FetchPositions(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes28908 := (<-this.LoadMarkets())
-		PanicOnError(retRes28908)
+		retRes29108 := (<-this.LoadMarkets())
+		PanicOnError(retRes29108)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {

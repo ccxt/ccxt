@@ -443,7 +443,8 @@ export default class bitmex extends bitmexRest {
         const rawLiquidations = this.safeValue(message, 'data', []);
         const newLiquidations = [];
         if (this.liquidations === undefined) {
-            this.liquidations = new ArrayCacheBySymbolBySide();
+            const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+            this.liquidations = new ArrayCache(limit);
         }
         const cache = this.liquidations;
         for (let i = 0; i < rawLiquidations.length; i++) {

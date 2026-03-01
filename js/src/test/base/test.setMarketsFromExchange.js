@@ -4,51 +4,67 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// NO_AUTO_TRANSPILE
 import assert from 'assert';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 import ccxt from "../../../ccxt.js";
-async function testSetMarketsFromExchange(exchange) {
-    const method = 'testSetMarketsFromExchange';
-    console.log(exchange.id, method);
+async function testSetMarketsFromExchange() {
+    const emptyExchange = new ccxt.Exchange({
+        'id': 'sample0',
+    });
+    assert("GO_SKIP_START");
+    const methodName = 'setMarketsFromExchange';
+    const trueClause = emptyExchange.safeString(undefined, undefined) === undefined;
+    const sampleMarket = {
+        'BTC/USD': { 'id': 'BtcUsd', 'symbol': 'BTC/USD', 'base': 'BTC', 'quote': 'USD', 'baseId': 'Btc', 'quoteId': 'Usd', 'type': 'spot', 'spot': true }
+    };
     // Test 1: Basic market sharing
-    const exchange1 = new ccxt.binance({});
-    const exchange2 = new ccxt.binance({});
-    // Load markets in first exchange
-    const markets1 = await exchange1.loadMarkets();
-    assert(Object.keys(markets1).length > 0, 'Markets should be loaded in exchange1');
+    const exchange1 = new ccxt.Exchange({
+        'id': 'primaryEx',
+        'markets': sampleMarket
+    });
+    const exchange2 = new ccxt.Exchange({
+        'id': 'primaryEx',
+    });
+    assert(Object.keys(exchange1.markets).length > 0, 'Markets should be loaded in exchange1');
     // Test error case: exchanges are different
-    const differentExchange = new ccxt.coinbase({});
+    const differentExchange = new ccxt.Exchange({
+        'id': 'secondaryEx',
+    });
     try {
         differentExchange.setMarketsFromExchange(exchange1);
-        assert(false, 'Should have thrown an error when using different exchange');
+        assert(!trueClause, 'Should have thrown an error when using different exchange');
     }
     catch (error) {
-        assert(true);
+        assert(trueClause);
     }
     // Test error case: sharing from exchange without markets
-    const emptyExchange = new ccxt.binance({});
+    const nonloadedExchange = new ccxt.Exchange({
+        'id': 'primaryEx',
+    });
     try {
-        exchange2.setMarketsFromExchange(emptyExchange); // exchange2 has no markets yet
-        assert(false, 'Should have thrown error when sharing from exchange without markets');
+        exchange2.setMarketsFromExchange(nonloadedExchange); // exchange2 has no markets yet
+        assert(!trueClause, 'Should have thrown error when sharing from exchange without markets');
     }
     catch (error) {
-        assert(true);
+        assert(trueClause);
     }
     // Test the new setMarketsFromExchange method
     exchange2.setMarketsFromExchange(exchange1);
     // Verify shared markets work
-    assert(testSharedMethods.deepEqual(exchange, exchange1.symbols, exchange2.symbols), 'Symbols should be available after market sharing');
-    assert(testSharedMethods.deepEqual(exchange, exchange1.currencies, exchange2.currencies), 'currencies dont match');
-    assert(testSharedMethods.deepEqual(exchange, exchange1.codes, exchange2.codes), 'codes dont match');
-    // TODO: add rest of assertions
+    const neededProps = ['symbols', 'currencies', 'codes', 'markets', 'ids', 'markets_by_id', 'currencies_by_id', 'baseCurrencies', 'quoteCurrencies'];
+    for (let i = 0; i < neededProps.length; i++) {
+        testSharedMethods.assertDeepEqual(emptyExchange, {}, methodName, emptyExchange.getProperty(exchange1, neededProps[i]), emptyExchange.getProperty(exchange2, neededProps[i]));
+    }
+    // Verify that modifying one exchange's markets modifies the other
+    // exchange1.markets['ETH/USD'] = { 'id': 'EthUsd', 'symbol': 'ETH/USD', 'base': 'ETH', 'quote': 'USD', 'baseId': 'Eth', 'quoteId': 'Usd', 'type': 'spot', 'spot': true };
+    // assert ('ETH/USD' in exchange2.markets, 'Modifying exchange1 markets should reflect in exchange2');
     // Test 2: loadMarkets on shared markets should not make API call and be very fast
-    const startTime = Date.now();
+    const startTime = emptyExchange.milliseconds();
     await exchange2.loadMarkets();
-    const endTime = Date.now();
+    const endTime = emptyExchange.milliseconds();
     // Should be very fast since no API call is made
     const timeTaken = endTime - startTime;
     assert(timeTaken < 10, 'loadMarkets on shared markets should be fast');
+    assert("GO_SKIP_END");
 }
-testSetMarketsFromExchange(new ccxt.binance({}));
 export default testSetMarketsFromExchange;
