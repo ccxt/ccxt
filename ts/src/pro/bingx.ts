@@ -1200,15 +1200,15 @@ export default class bingx extends bingxRest {
         let awaitPositionsSnapshot = undefined;
         [ fetchPositionsSnapshot, params ] = this.handleOptionAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
         [ awaitPositionsSnapshot, params ] = this.handleOptionAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', false);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
-            const snapshot = await client.future (type + ':fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
-        }
         const uuid = this.uuid ();
         const subscription: Dict = {
             'unsubscribe': false,
             'id': uuid,
         };
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future (type + ':fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
         const newPositions = await this.watch (url, messageHash, undefined, subscriptionHash, subscription);
         if (this.newUpdates) {
             return newPositions;
@@ -1393,7 +1393,11 @@ export default class bingx extends bingxRest {
             const types = [ 'spot', 'linear', 'inverse' ];
             for (let i = 0; i < types.length; i++) {
                 const type = types[i];
-                const url = this.urls['api']['ws'][type] + '?listenKey=' + listenKey;
+                const baseUrl = this.safeString (this.urls['api']['ws'], type);
+                if (baseUrl === undefined) {
+                    continue;
+                }
+                const url = baseUrl + '?listenKey=' + listenKey;
                 const client = this.client (url);
                 const messageHashes = Object.keys (client.futures);
                 for (let j = 0; j < messageHashes.length; j++) {
