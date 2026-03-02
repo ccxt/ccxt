@@ -31,7 +31,7 @@ export default class lbank extends Exchange {
                 'CORS': false,
                 'spot': true,
                 'margin': false,
-                'swap': true,
+                'swap': undefined,
                 'future': false,
                 'option': false,
                 'addMargin': false,
@@ -111,7 +111,7 @@ export default class lbank extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg',
                 'api': {
                     'rest': 'https://api.lbank.info',
-                    'contract': 'https://lbkperp.lbank.com',
+                    'contract': 'https://lbkperp.lbank.com', // doesn't work for now
                 },
                 'api2': 'https://api.lbkex.com',
                 'www': 'https://www.lbank.com',
@@ -220,6 +220,7 @@ export default class lbank extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'enableContractApi': false, // set to true to enable the contract API (which is currently not working properly)
                 'cacheSecretAsPem': true,
                 'createMarketBuyOrderRequiresPrice': true,
                 'fetchTrades': {
@@ -383,7 +384,7 @@ export default class lbank extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if (type === 'swap') {
-            response = await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
+            response = !this.options['enableContractApi'] ? undefined : await this.contractPublicGetCfdOpenApiV1PubGetTime (params);
         } else {
             response = await this.spotPublicGetTimestamp (params);
         }
@@ -619,7 +620,7 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'productGroup': 'SwapU',
         };
-        const response = await this.contractPublicGetCfdOpenApiV1PubInstrument (this.extend (request, params));
+        const response = !this.options['enableContractApi'] ? undefined : await this.contractPublicGetCfdOpenApiV1PubInstrument (this.extend (request, params));
         //
         //     {
         //         "data": [
@@ -846,7 +847,7 @@ export default class lbank extends Exchange {
         let response = undefined;
         if (type === 'swap') {
             request['productGroup'] = 'SwapU';
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
+            response = !this.options['enableContractApi'] ? undefined : await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
         } else {
             request['symbol'] = 'all';
             response = await this.spotPublicGetTicker24hr (this.extend (request, params));
@@ -925,7 +926,7 @@ export default class lbank extends Exchange {
         let response = undefined;
         if (type === 'swap') {
             request['depth'] = limit;
-            response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
+            response = !this.options['enableContractApi'] ? undefined : await this.contractPublicGetCfdOpenApiV1PubMarketOrder (this.extend (request, params));
         } else {
             request['size'] = limit;
             response = await this.spotPublicGetDepth (this.extend (request, params));
@@ -1434,7 +1435,7 @@ export default class lbank extends Exchange {
         const request: Dict = {
             'productGroup': 'SwapU',
         };
-        const response = await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
+        const response = !this.options['enableContractApi'] ? undefined : await this.contractPublicGetCfdOpenApiV1PubMarketData (this.extend (request, params));
         // {
         //     "data": [
         //         {
