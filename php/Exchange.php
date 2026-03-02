@@ -1484,7 +1484,7 @@ class Exchange {
         return true;
     }
 
-    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+    public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
         if ($path == null || $path == '') {
             throw new ExchangeError($this->id . ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"');
         }
@@ -1499,6 +1499,10 @@ class Exchange {
             $accountIndex
         );
         return $lighterSigner;
+    }
+
+    public function load_lighter_library($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex) {
+        return $this->load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex);
     }
 
     public function lighter_sign_create_grouped_orders($signer, $request) {
