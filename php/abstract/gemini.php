@@ -19,11 +19,17 @@ abstract class gemini extends \ccxt\Exchange {
     public function public_get_v1_symbols_details_symbol($params = array()) {
         return $this->request('v1/symbols/details/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_v1_network_token($params = array()) {
+        return $this->request('v1/network/{token}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_get_v1_staking_rates($params = array()) {
         return $this->request('v1/staking/rates', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_v1_pubticker_symbol($params = array()) {
         return $this->request('v1/pubticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v1_feepromos($params = array()) {
+        return $this->request('v1/feepromos', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_v2_ticker_symbol($params = array()) {
         return $this->request('v2/ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -43,11 +49,29 @@ abstract class gemini extends \ccxt\Exchange {
     public function public_get_v1_pricefeed($params = array()) {
         return $this->request('v1/pricefeed', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function public_get_v1_fundingamount_symbol($params = array()) {
+        return $this->request('v1/fundingamount/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v1_fundingamountreport_records_xlsx($params = array()) {
+        return $this->request('v1/fundingamountreport/records.xlsx', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function public_get_v1_book_symbol($params = array()) {
         return $this->request('v1/book/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function public_get_v1_earn_rates($params = array()) {
         return $this->request('v1/earn/rates', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v2_derivatives_candles_symbol_time_frame($params = array()) {
+        return $this->request('v2/derivatives/candles/{symbol}/{time_frame}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v2_fxrate_symbol_timestamp($params = array()) {
+        return $this->request('v2/fxrate/{symbol}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v1_perpetuals_fundingpaymentreport_records_xlsx($params = array()) {
+        return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_v1_riskstats_symbol($params = array()) {
+        return $this->request('v1/riskstats/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_post_v1_staking_unstake($params = array()) {
         return $this->request('v1/staking/unstake', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -172,6 +196,63 @@ abstract class gemini extends \ccxt\Exchange {
     public function private_post_v1_roles($params = array()) {
         return $this->request('v1/roles', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_v1_custodyaccountfees($params = array()) {
+        return $this->request('v1/custodyaccountfees', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_withdraw_currencycodelowercase_feeestimate($params = array()) {
+        return $this->request('v1/withdraw/{currencyCodeLowerCase}/feeEstimate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_payments_addbank_cad($params = array()) {
+        return $this->request('v1/payments/addbank/cad', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_transactions($params = array()) {
+        return $this->request('v1/transactions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_margin_account($params = array()) {
+        return $this->request('v1/margin/account', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_margin_rates($params = array()) {
+        return $this->request('v1/margin/rates', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_margin_order_preview($params = array()) {
+        return $this->request('v1/margin/order/preview', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_clearing_list($params = array()) {
+        return $this->request('v1/clearing/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_clearing_broker_list($params = array()) {
+        return $this->request('v1/clearing/broker/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_clearing_broker_new($params = array()) {
+        return $this->request('v1/clearing/broker/new', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_clearing_trades($params = array()) {
+        return $this->request('v1/clearing/trades', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_instant_quote($params = array()) {
+        return $this->request('v1/instant/quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_instant_execute($params = array()) {
+        return $this->request('v1/instant/execute', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_account_rename($params = array()) {
+        return $this->request('v1/account/rename', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_oauth_revokebytoken($params = array()) {
+        return $this->request('v1/oauth/revokeByToken', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_margin($params = array()) {
+        return $this->request('v1/margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_perpetuals_fundingpayment($params = array()) {
+        return $this->request('v1/perpetuals/fundingPayment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_perpetuals_fundingpaymentreport_records_json($params = array()) {
+        return $this->request('v1/perpetuals/fundingpaymentreport/records.json', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_v1_positions($params = array()) {
+        return $this->request('v1/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
     public function webExchangeGet($params = array()) {
         return $this->request('', 'webExchange', 'GET', $params, null, null, array());
     }
@@ -184,11 +265,17 @@ abstract class gemini extends \ccxt\Exchange {
     public function publicGetV1SymbolsDetailsSymbol($params = array()) {
         return $this->request('v1/symbols/details/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetV1NetworkToken($params = array()) {
+        return $this->request('v1/network/{token}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function publicGetV1StakingRates($params = array()) {
         return $this->request('v1/staking/rates', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetV1PubtickerSymbol($params = array()) {
         return $this->request('v1/pubticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV1Feepromos($params = array()) {
+        return $this->request('v1/feepromos', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetV2TickerSymbol($params = array()) {
         return $this->request('v2/ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
@@ -208,11 +295,29 @@ abstract class gemini extends \ccxt\Exchange {
     public function publicGetV1Pricefeed($params = array()) {
         return $this->request('v1/pricefeed', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function publicGetV1FundingamountSymbol($params = array()) {
+        return $this->request('v1/fundingamount/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV1FundingamountreportRecordsXlsx($params = array()) {
+        return $this->request('v1/fundingamountreport/records.xlsx', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function publicGetV1BookSymbol($params = array()) {
         return $this->request('v1/book/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function publicGetV1EarnRates($params = array()) {
         return $this->request('v1/earn/rates', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV2DerivativesCandlesSymbolTimeFrame($params = array()) {
+        return $this->request('v2/derivatives/candles/{symbol}/{time_frame}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV2FxrateSymbolTimestamp($params = array()) {
+        return $this->request('v2/fxrate/{symbol}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV1PerpetualsFundingpaymentreportRecordsXlsx($params = array()) {
+        return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetV1RiskstatsSymbol($params = array()) {
+        return $this->request('v1/riskstats/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privatePostV1StakingUnstake($params = array()) {
         return $this->request('v1/staking/unstake', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -336,5 +441,62 @@ abstract class gemini extends \ccxt\Exchange {
     }
     public function privatePostV1Roles($params = array()) {
         return $this->request('v1/roles', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1Custodyaccountfees($params = array()) {
+        return $this->request('v1/custodyaccountfees', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate($params = array()) {
+        return $this->request('v1/withdraw/{currencyCodeLowerCase}/feeEstimate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1PaymentsAddbankCad($params = array()) {
+        return $this->request('v1/payments/addbank/cad', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1Transactions($params = array()) {
+        return $this->request('v1/transactions', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1MarginAccount($params = array()) {
+        return $this->request('v1/margin/account', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1MarginRates($params = array()) {
+        return $this->request('v1/margin/rates', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1MarginOrderPreview($params = array()) {
+        return $this->request('v1/margin/order/preview', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1ClearingList($params = array()) {
+        return $this->request('v1/clearing/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1ClearingBrokerList($params = array()) {
+        return $this->request('v1/clearing/broker/list', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1ClearingBrokerNew($params = array()) {
+        return $this->request('v1/clearing/broker/new', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1ClearingTrades($params = array()) {
+        return $this->request('v1/clearing/trades', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1InstantQuote($params = array()) {
+        return $this->request('v1/instant/quote', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1InstantExecute($params = array()) {
+        return $this->request('v1/instant/execute', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1AccountRename($params = array()) {
+        return $this->request('v1/account/rename', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1OauthRevokeByToken($params = array()) {
+        return $this->request('v1/oauth/revokeByToken', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1Margin($params = array()) {
+        return $this->request('v1/margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1PerpetualsFundingPayment($params = array()) {
+        return $this->request('v1/perpetuals/fundingPayment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1PerpetualsFundingpaymentreportRecordsJson($params = array()) {
+        return $this->request('v1/perpetuals/fundingpaymentreport/records.json', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostV1Positions($params = array()) {
+        return $this->request('v1/positions', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

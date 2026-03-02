@@ -1020,6 +1020,16 @@ public partial class krakenfutures : Exchange
                 takerOrMaker = "taker";
             }
         }
+        object fee = null;
+        if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
+        {
+            object feeRate = this.safeString(market, takerOrMaker);
+            fee = new Dictionary<string, object>() {
+                { "cost", Precise.stringMul(cost, feeRate) },
+                { "currency", this.safeString(market, "quote") },
+                { "rate", feeRate },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1033,7 +1043,7 @@ public partial class krakenfutures : Exchange
             { "price", price },
             { "amount", ((bool) isTrue(linear)) ? amount : null },
             { "cost", cost },
-            { "fee", null },
+            { "fee", fee },
         });
     }
 
@@ -1495,8 +1505,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
      * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -2216,6 +2226,12 @@ public partial class krakenfutures : Exchange
             symbol = this.safeSymbol(this.safeString(details, "tradeable"), market);
         }
         object ts = this.safeInteger(details, "timestamp", timestamp);
+        object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new Dictionary<string, object>() {});
+        object triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            triggerPrice = this.safeString(priceTriggerOptions, "triggerPrice");
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2231,7 +2247,8 @@ public partial class krakenfutures : Exchange
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeStringLower2(details, "side", "direction") },
             { "price", price },
-            { "triggerPrice", this.safeString(details, "triggerPrice") },
+            { "triggerPrice", triggerPrice },
+            { "stopPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },

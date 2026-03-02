@@ -4045,6 +4045,7 @@ retrieves the open interest of a contract trading pair
 * [delta](/exchanges/delta.md#fetchopeninterest)
 * [deribit](/exchanges/deribit.md#fetchopeninterest)
 * [gate](/exchanges/gate.md#fetchopeninterest)
+* [gemini](/exchanges/gemini.md#fetchopeninterest)
 * [hibachi](/exchanges/hibachi.md#fetchopeninterest)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterest)
 * [htx](/exchanges/htx.md#fetchopeninterest)
@@ -4098,6 +4099,7 @@ Retrieves the open interest for a list of symbols
 | params | <code>object</code> | No | exchange specific parameters |
 
 ##### Supported exchanges
+* [ascendex](/exchanges/ascendex.md#fetchopeninterests)
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterests)
 * [bitmex](/exchanges/bitmex.md#fetchopeninterests)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
@@ -7961,6 +7963,7 @@ watch all open positions
 * [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
 * [binance](/exchanges/binance.md#watchpositions)
+* [bingx](/exchanges/bingx.md#watchpositions)
 * [bitget](/exchanges/bitget.md#watchpositions)
 * [bitmart](/exchanges/bitmart.md#watchpositions)
 * [bitmex](/exchanges/bitmex.md#watchpositions)

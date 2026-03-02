@@ -31,6 +31,11 @@ public partial class gemini : Exchange
         return await this.callAsync ("publicGetV1SymbolsDetailsSymbol",parameters);
     }
 
+    public async Task<object> publicGetV1NetworkToken (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1NetworkToken",parameters);
+    }
+
     public async Task<object> publicGetV1StakingRates (object parameters = null)
     {
         return await this.callAsync ("publicGetV1StakingRates",parameters);
@@ -39,6 +44,11 @@ public partial class gemini : Exchange
     public async Task<object> publicGetV1PubtickerSymbol (object parameters = null)
     {
         return await this.callAsync ("publicGetV1PubtickerSymbol",parameters);
+    }
+
+    public async Task<object> publicGetV1Feepromos (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1Feepromos",parameters);
     }
 
     public async Task<object> publicGetV2TickerSymbol (object parameters = null)
@@ -71,6 +81,16 @@ public partial class gemini : Exchange
         return await this.callAsync ("publicGetV1Pricefeed",parameters);
     }
 
+    public async Task<object> publicGetV1FundingamountSymbol (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1FundingamountSymbol",parameters);
+    }
+
+    public async Task<object> publicGetV1FundingamountreportRecordsXlsx (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1FundingamountreportRecordsXlsx",parameters);
+    }
+
     public async Task<object> publicGetV1BookSymbol (object parameters = null)
     {
         return await this.callAsync ("publicGetV1BookSymbol",parameters);
@@ -79,6 +99,26 @@ public partial class gemini : Exchange
     public async Task<object> publicGetV1EarnRates (object parameters = null)
     {
         return await this.callAsync ("publicGetV1EarnRates",parameters);
+    }
+
+    public async Task<object> publicGetV2DerivativesCandlesSymbolTimeFrame (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV2DerivativesCandlesSymbolTimeFrame",parameters);
+    }
+
+    public async Task<object> publicGetV2FxrateSymbolTimestamp (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV2FxrateSymbolTimestamp",parameters);
+    }
+
+    public async Task<object> publicGetV1PerpetualsFundingpaymentreportRecordsXlsx (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1PerpetualsFundingpaymentreportRecordsXlsx",parameters);
+    }
+
+    public async Task<object> publicGetV1RiskstatsSymbol (object parameters = null)
+    {
+        return await this.callAsync ("publicGetV1RiskstatsSymbol",parameters);
     }
 
     public async Task<object> privatePostV1StakingUnstake (object parameters = null)
@@ -284,6 +324,101 @@ public partial class gemini : Exchange
     public async Task<object> privatePostV1Roles (object parameters = null)
     {
         return await this.callAsync ("privatePostV1Roles",parameters);
+    }
+
+    public async Task<object> privatePostV1Custodyaccountfees (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1Custodyaccountfees",parameters);
+    }
+
+    public async Task<object> privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate",parameters);
+    }
+
+    public async Task<object> privatePostV1PaymentsAddbankCad (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1PaymentsAddbankCad",parameters);
+    }
+
+    public async Task<object> privatePostV1Transactions (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1Transactions",parameters);
+    }
+
+    public async Task<object> privatePostV1MarginAccount (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1MarginAccount",parameters);
+    }
+
+    public async Task<object> privatePostV1MarginRates (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1MarginRates",parameters);
+    }
+
+    public async Task<object> privatePostV1MarginOrderPreview (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1MarginOrderPreview",parameters);
+    }
+
+    public async Task<object> privatePostV1ClearingList (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1ClearingList",parameters);
+    }
+
+    public async Task<object> privatePostV1ClearingBrokerList (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1ClearingBrokerList",parameters);
+    }
+
+    public async Task<object> privatePostV1ClearingBrokerNew (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1ClearingBrokerNew",parameters);
+    }
+
+    public async Task<object> privatePostV1ClearingTrades (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1ClearingTrades",parameters);
+    }
+
+    public async Task<object> privatePostV1InstantQuote (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1InstantQuote",parameters);
+    }
+
+    public async Task<object> privatePostV1InstantExecute (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1InstantExecute",parameters);
+    }
+
+    public async Task<object> privatePostV1AccountRename (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1AccountRename",parameters);
+    }
+
+    public async Task<object> privatePostV1OauthRevokeByToken (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1OauthRevokeByToken",parameters);
+    }
+
+    public async Task<object> privatePostV1Margin (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1Margin",parameters);
+    }
+
+    public async Task<object> privatePostV1PerpetualsFundingPayment (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1PerpetualsFundingPayment",parameters);
+    }
+
+    public async Task<object> privatePostV1PerpetualsFundingpaymentreportRecordsJson (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1PerpetualsFundingpaymentreportRecordsJson",parameters);
+    }
+
+    public async Task<object> privatePostV1Positions (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1Positions",parameters);
     }
 
 }

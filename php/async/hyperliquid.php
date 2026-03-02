@@ -2284,7 +2284,6 @@ class hyperliquid extends Exchange {
             $hasTakeProfit = ($takeProfit !== null);
             $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
-            $orderReq[] = $mainOrderObj;
             if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
@@ -2293,8 +2292,17 @@ class hyperliquid extends Exchange {
                 $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
                 $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
                 $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
-                $grouping = 'normalTpsl';
-                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+                $grouping = $this->safe_string($orderParams, 'grouping', 'normalTpsl');
+                if ($grouping === 'positionTpsl') {
+                    $amount = '0';
+                    $stopLossOrderType = 'market';
+                    $takeProfitOrderType = 'market';
+                } elseif ($grouping === 'normalTpsl') {
+                    $orderReq[] = $mainOrderObj;
+                } else {
+                    throw new NotSupported($this->id . ' only support $grouping normalTpsl and positionTpsl.');
+                }
+                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit', 'grouping' ));
                 $triggerOrderSide = '';
                 if ($side === 'BUY') {
                     $triggerOrderSide = 'sell';
@@ -2315,6 +2323,8 @@ class hyperliquid extends Exchange {
                     )));
                     $orderReq[] = $orderObj;
                 }
+            } else {
+                $orderReq[] = $mainOrderObj;
             }
         }
         $vaultAddress = null;

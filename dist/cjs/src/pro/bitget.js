@@ -2010,6 +2010,7 @@ class bitget extends bitget$1["default"] {
     }
     parseWsOrderStatus(status) {
         const statuses = {
+            'new': 'open',
             'live': 'open',
             'partially_filled': 'open',
             'filled': 'closed',

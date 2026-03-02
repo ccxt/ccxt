@@ -7,222 +7,330 @@
 
 package ccxt
 
-func (this *GeminiCore) WebExchangeGet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("webExchangeGet", args...)
+func (this *GeminiCore) WebExchangeGet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webExchangeGet", args...)
 }
 
-func (this *GeminiCore) WebGetRestApi (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("webGetRestApi", args...)
+func (this *GeminiCore) WebGetRestApi(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webGetRestApi", args...)
 }
 
-func (this *GeminiCore) PublicGetV1Symbols (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1Symbols", args...)
+func (this *GeminiCore) PublicGetV1Symbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1Symbols", args...)
 }
 
-func (this *GeminiCore) PublicGetV1SymbolsDetailsSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1SymbolsDetailsSymbol", args...)
+func (this *GeminiCore) PublicGetV1SymbolsDetailsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1SymbolsDetailsSymbol", args...)
 }
 
-func (this *GeminiCore) PublicGetV1StakingRates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1StakingRates", args...)
+func (this *GeminiCore) PublicGetV1NetworkToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1NetworkToken", args...)
 }
 
-func (this *GeminiCore) PublicGetV1PubtickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1PubtickerSymbol", args...)
+func (this *GeminiCore) PublicGetV1StakingRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1StakingRates", args...)
 }
 
-func (this *GeminiCore) PublicGetV2TickerSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV2TickerSymbol", args...)
+func (this *GeminiCore) PublicGetV1PubtickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1PubtickerSymbol", args...)
 }
 
-func (this *GeminiCore) PublicGetV2CandlesSymbolTimeframe (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV2CandlesSymbolTimeframe", args...)
+func (this *GeminiCore) PublicGetV1Feepromos(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1Feepromos", args...)
 }
 
-func (this *GeminiCore) PublicGetV1TradesSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1TradesSymbol", args...)
+func (this *GeminiCore) PublicGetV2TickerSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV2TickerSymbol", args...)
 }
 
-func (this *GeminiCore) PublicGetV1AuctionSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1AuctionSymbol", args...)
+func (this *GeminiCore) PublicGetV2CandlesSymbolTimeframe(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV2CandlesSymbolTimeframe", args...)
 }
 
-func (this *GeminiCore) PublicGetV1AuctionSymbolHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1AuctionSymbolHistory", args...)
+func (this *GeminiCore) PublicGetV1TradesSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1TradesSymbol", args...)
 }
 
-func (this *GeminiCore) PublicGetV1Pricefeed (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1Pricefeed", args...)
+func (this *GeminiCore) PublicGetV1AuctionSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1AuctionSymbol", args...)
 }
 
-func (this *GeminiCore) PublicGetV1BookSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1BookSymbol", args...)
+func (this *GeminiCore) PublicGetV1AuctionSymbolHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1AuctionSymbolHistory", args...)
 }
 
-func (this *GeminiCore) PublicGetV1EarnRates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetV1EarnRates", args...)
+func (this *GeminiCore) PublicGetV1Pricefeed(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1Pricefeed", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1StakingUnstake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1StakingUnstake", args...)
+func (this *GeminiCore) PublicGetV1FundingamountSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FundingamountSymbol", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1StakingStake (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1StakingStake", args...)
+func (this *GeminiCore) PublicGetV1FundingamountreportRecordsXlsx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1FundingamountreportRecordsXlsx", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1StakingRewards (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1StakingRewards", args...)
+func (this *GeminiCore) PublicGetV1BookSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1BookSymbol", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1StakingHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1StakingHistory", args...)
+func (this *GeminiCore) PublicGetV1EarnRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1EarnRates", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1OrderNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1OrderNew", args...)
+func (this *GeminiCore) PublicGetV2DerivativesCandlesSymbolTimeFrame(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV2DerivativesCandlesSymbolTimeFrame", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1OrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1OrderCancel", args...)
+func (this *GeminiCore) PublicGetV2FxrateSymbolTimestamp(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV2FxrateSymbolTimestamp", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1WrapSymbol (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1WrapSymbol", args...)
+func (this *GeminiCore) PublicGetV1PerpetualsFundingpaymentreportRecordsXlsx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1PerpetualsFundingpaymentreportRecordsXlsx", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1OrderCancelSession (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1OrderCancelSession", args...)
+func (this *GeminiCore) PublicGetV1RiskstatsSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetV1RiskstatsSymbol", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1OrderCancelAll (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1OrderCancelAll", args...)
+func (this *GeminiCore) PrivatePostV1StakingUnstake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1StakingUnstake", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1OrderStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1OrderStatus", args...)
+func (this *GeminiCore) PrivatePostV1StakingStake(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1StakingStake", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Orders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Orders", args...)
+func (this *GeminiCore) PrivatePostV1StakingRewards(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1StakingRewards", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Mytrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Mytrades", args...)
+func (this *GeminiCore) PrivatePostV1StakingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1StakingHistory", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Notionalvolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Notionalvolume", args...)
+func (this *GeminiCore) PrivatePostV1OrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1OrderNew", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Tradevolume (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Tradevolume", args...)
+func (this *GeminiCore) PrivatePostV1OrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1OrderCancel", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ClearingNew (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ClearingNew", args...)
+func (this *GeminiCore) PrivatePostV1WrapSymbol(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1WrapSymbol", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ClearingStatus (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ClearingStatus", args...)
+func (this *GeminiCore) PrivatePostV1OrderCancelSession(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1OrderCancelSession", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ClearingCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ClearingCancel", args...)
+func (this *GeminiCore) PrivatePostV1OrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1OrderCancelAll", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ClearingConfirm (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ClearingConfirm", args...)
+func (this *GeminiCore) PrivatePostV1OrderStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1OrderStatus", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Balances (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Balances", args...)
+func (this *GeminiCore) PrivatePostV1Orders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Orders", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1BalancesStaking (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1BalancesStaking", args...)
+func (this *GeminiCore) PrivatePostV1Mytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Mytrades", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1NotionalbalancesCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1NotionalbalancesCurrency", args...)
+func (this *GeminiCore) PrivatePostV1Notionalvolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Notionalvolume", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Transfers (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Transfers", args...)
+func (this *GeminiCore) PrivatePostV1Tradevolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Tradevolume", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1AddressesNetwork (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1AddressesNetwork", args...)
+func (this *GeminiCore) PrivatePostV1ClearingNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingNew", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1DepositNetworkNewAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1DepositNetworkNewAddress", args...)
+func (this *GeminiCore) PrivatePostV1ClearingStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingStatus", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1DepositCurrencyNewAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1DepositCurrencyNewAddress", args...)
+func (this *GeminiCore) PrivatePostV1ClearingCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingCancel", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1WithdrawCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1WithdrawCurrency", args...)
+func (this *GeminiCore) PrivatePostV1ClearingConfirm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingConfirm", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1AccountTransferCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1AccountTransferCurrency", args...)
+func (this *GeminiCore) PrivatePostV1Balances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Balances", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1PaymentsAddbank (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1PaymentsAddbank", args...)
+func (this *GeminiCore) PrivatePostV1BalancesStaking(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1BalancesStaking", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1PaymentsMethods (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1PaymentsMethods", args...)
+func (this *GeminiCore) PrivatePostV1NotionalbalancesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1NotionalbalancesCurrency", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1PaymentsSenWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1PaymentsSenWithdraw", args...)
+func (this *GeminiCore) PrivatePostV1Transfers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Transfers", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1BalancesEarn (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1BalancesEarn", args...)
+func (this *GeminiCore) PrivatePostV1AddressesNetwork(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1AddressesNetwork", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1EarnInterest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1EarnInterest", args...)
+func (this *GeminiCore) PrivatePostV1DepositNetworkNewAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1DepositNetworkNewAddress", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1EarnHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1EarnHistory", args...)
+func (this *GeminiCore) PrivatePostV1DepositCurrencyNewAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1DepositCurrencyNewAddress", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ApprovedAddressesNetworkRequest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ApprovedAddressesNetworkRequest", args...)
+func (this *GeminiCore) PrivatePostV1WithdrawCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1WithdrawCurrency", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ApprovedAddressesAccountNetwork (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ApprovedAddressesAccountNetwork", args...)
+func (this *GeminiCore) PrivatePostV1AccountTransferCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1AccountTransferCurrency", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1ApprovedAddressesNetworkRemove (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1ApprovedAddressesNetworkRemove", args...)
+func (this *GeminiCore) PrivatePostV1PaymentsAddbank(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1PaymentsAddbank", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Account (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Account", args...)
+func (this *GeminiCore) PrivatePostV1PaymentsMethods(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1PaymentsMethods", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1AccountCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1AccountCreate", args...)
+func (this *GeminiCore) PrivatePostV1PaymentsSenWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1PaymentsSenWithdraw", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1AccountList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1AccountList", args...)
+func (this *GeminiCore) PrivatePostV1BalancesEarn(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1BalancesEarn", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Heartbeat (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Heartbeat", args...)
+func (this *GeminiCore) PrivatePostV1EarnInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1EarnInterest", args...)
 }
 
-func (this *GeminiCore) PrivatePostV1Roles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostV1Roles", args...)
+func (this *GeminiCore) PrivatePostV1EarnHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1EarnHistory", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ApprovedAddressesNetworkRequest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ApprovedAddressesNetworkRequest", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ApprovedAddressesAccountNetwork(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ApprovedAddressesAccountNetwork", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ApprovedAddressesNetworkRemove(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ApprovedAddressesNetworkRemove", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Account(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Account", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1AccountCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1AccountCreate", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1AccountList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1AccountList", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Heartbeat(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Heartbeat", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Roles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Roles", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Custodyaccountfees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Custodyaccountfees", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1PaymentsAddbankCad(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1PaymentsAddbankCad", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Transactions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Transactions", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1MarginAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1MarginAccount", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1MarginRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1MarginRates", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1MarginOrderPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1MarginOrderPreview", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ClearingList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingList", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ClearingBrokerList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingBrokerList", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ClearingBrokerNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingBrokerNew", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1ClearingTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1ClearingTrades", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1InstantQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1InstantQuote", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1InstantExecute(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1InstantExecute", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1AccountRename(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1AccountRename", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1OauthRevokeByToken(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1OauthRevokeByToken", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Margin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Margin", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1PerpetualsFundingPayment(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1PerpetualsFundingPayment", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1PerpetualsFundingpaymentreportRecordsJson(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1PerpetualsFundingpaymentreportRecordsJson", args...)
+}
+
+func (this *GeminiCore) PrivatePostV1Positions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostV1Positions", args...)
 }

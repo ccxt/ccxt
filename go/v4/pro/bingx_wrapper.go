@@ -405,6 +405,50 @@ func (this *Bingx) WatchBalance(params ...interface{}) (ccxt.Balances, error) {
     }
     return ccxt.NewBalances(res), nil
 }
+/**
+ * @method
+ * @name bingx#watchPositions
+ * @description watch all open positions
+ * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#ccxt.Account%20balance%20and%20position%20update%20push
+ * @param {string[]|undefined} [symbols] list of unified market symbols
+ * @param {int} [since] the earliest time in ms to fetch positions for
+ * @param {int} [limit] the maximum number of position structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+ */
+func (this *Bingx) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {
+
+    opts := ccxt.WatchPositionsOptionsStruct{}
+
+    for _, opt := range options {
+        opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
+    }
+
+    var since interface{} = nil
+    if opts.Since != nil {
+        since = *opts.Since
+    }
+
+    var limit interface{} = nil
+    if opts.Limit != nil {
+        limit = *opts.Limit
+    }
+
+    var params interface{} = nil
+    if opts.Params != nil {
+        params = *opts.Params
+    }
+    res := <- this.Core.WatchPositions(symbols, since, limit, params)
+    if ccxt.IsError(res) {
+        return nil, ccxt.CreateReturnError(res)
+    }
+    return ccxt.NewPositionArray(res), nil
+}
 // missing typed methods from base
 //nolint
 func (this *Bingx) LoadMarkets(params ...interface{}) (map[string]ccxt.MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }
@@ -598,7 +642,6 @@ func (this *Bingx) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
 func (this *Bingx) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
 func (this *Bingx) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
 func (this *Bingx) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
-func (this *Bingx) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.WatchPositions(options...)}
 func (this *Bingx) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchTickers(options...)}
 func (this *Bingx) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
 func (this *Bingx) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

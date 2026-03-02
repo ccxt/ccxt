@@ -65,7 +65,7 @@ function helper_test_handle_market_type_and_params() {
 
 
 function helper_test_handle_network_request() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'options' => array(
             'networks' => array(

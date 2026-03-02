@@ -1039,6 +1039,15 @@ class krakenfutures extends Exchange {
                 $takerOrMaker = 'taker';
             }
         }
+        $fee = null;
+        if (($takerOrMaker !== null) && ($cost !== null)) {
+            $feeRate = $this->safe_string($market, $takerOrMaker);
+            $fee = array(
+                'cost' => Precise::string_mul($cost, $feeRate),
+                'currency' => $this->safe_string($market, 'quote'),
+                'rate' => $feeRate,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
@@ -1052,7 +1061,7 @@ class krakenfutures extends Exchange {
             'price' => $price,
             'amount' => $linear ? $amount : null,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         ));
     }
 
@@ -1459,10 +1468,10 @@ class krakenfutures extends Exchange {
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
+         * Gets all $orders for an account from the exchange api
          *
          * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
          *
-         * Gets all $orders for an account from the exchange api
          * @param {string} $symbol Unified $market $symbol
          * @param {int} [$since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
          * @param {int} [$limit] How many $orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -2116,6 +2125,11 @@ class krakenfutures extends Exchange {
             $symbol = $this->safe_symbol($this->safe_string($details, 'tradeable'), $market);
         }
         $ts = $this->safe_integer($details, 'timestamp', $timestamp);
+        $priceTriggerOptions = $this->safe_dict($details, 'priceTriggerOptions', array());
+        $triggerPrice = $this->safe_string_2($details, 'triggerPrice', 'stopPrice');
+        if ($triggerPrice === null) {
+            $triggerPrice = $this->safe_string($priceTriggerOptions, 'triggerPrice');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2131,7 +2145,8 @@ class krakenfutures extends Exchange {
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string_lower_2($details, 'side', 'direction'),
             'price' => $price,
-            'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
+            'triggerPrice' => $triggerPrice,
+            'stopPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
