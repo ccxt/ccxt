@@ -47,6 +47,9 @@ jobs:
         sudo apt-get install -y libc6 libstdc++6 libgcc-s1 libssl3
     - name: Check if it loads
       run: |
+        git lfs version || echo "no git lfs"
+        git lfs ls-files | head -n 20
+        git lfs status || true
         sha256sum ts/src/test/static/binaries/lighter-signer-linux-amd64.so
         python3 - <<'PY'
         import ctypes
