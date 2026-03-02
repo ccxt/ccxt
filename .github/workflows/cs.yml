@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm64
+    runs-on: ubuntu-latest
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - uses: actions/checkout@v4
@@ -72,7 +72,13 @@ jobs:
       run: npm run id-tests-cs
     - name: Request tests
       if: env.important_modified == 'true'
-      run: npm run request-cs
+      run: |
+        sudo fallocate -l 4G /swapfile
+        sudo chmod 600 /swapfile
+        sudo mkswap /swapfile
+        sudo swapon /swapfile
+        sudo sysctl vm.swappiness=10
+        npm run request-cs
     - name: Request tests (specific)
       if: env.important_modified == 'false'
       run: |
