@@ -45,6 +45,15 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y libc6 libstdc++6 libgcc-s1 libssl3
+    - name: Check if it loads
+      run: |
+        sha256sum ts/src/test/static/binaries/lighter-signer-linux-amd64.so
+        python3 - <<'PY'
+        import ctypes
+        p = "ts/src/test/static/binaries/lighter-signer-linux-amd64.so"
+        ctypes.CDLL(p)
+        print("Loaded OK")
+        PY
     - name: Check binaries and platform
       run: |
         uname -a
