@@ -347,17 +347,17 @@ public partial class testMainClass : BaseTest
         return ROOT_DIR;
     }
 
-    public bool IsWindows()
+    public bool isWindows()
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
     }
 
-    public bool IsLinux()
+    public bool isLinux()
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
     }
 
-    public bool IsAmd64()
+    public bool isAmd64()
     {
         return RuntimeInformation.ProcessArchitecture == Architecture.X64;
     }
