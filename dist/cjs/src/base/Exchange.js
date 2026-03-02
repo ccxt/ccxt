@@ -33,8 +33,6 @@ var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
 var sha1 = require('../static_dependencies/noble-hashes/sha1.js');
 var onboarding = require('../static_dependencies/dydx-v4-client/onboarding.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
-var generic = require('./functions/generic.js');
-var misc = require('./functions/misc.js');
 var index$3 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 
 function _interopNamespace(e) {
@@ -56,9 +54,9 @@ function _interopNamespace(e) {
 }
 
 // ----------------------------------------------------------------------------
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
+const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -68,14 +66,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await Promise.resolve().then(function () { return require('../protobuf/mexc/compiled.cjs.js'); });
-    }
-    catch (e) {
-        // TODO: handle error
-    }
-})();
 // -----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -191,11 +181,8 @@ class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = generic.keys;
-        this.values = generic.values;
         this.extend = extend;
         this.clone = clone;
-        this.flatten = flatten;
         this.unique = unique;
         this.indexBy = indexBy;
         this.indexBySafe = indexBy;
@@ -230,8 +217,6 @@ class Exchange {
         this.implodeParams = implodeParams;
         this.extractParams = extractParams;
         this.json = json;
-        this.vwap = misc.vwap;
-        this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
         this.arrayConcat = arrayConcat;
@@ -247,8 +232,6 @@ class Exchange {
         this.safeStringUpper = safeStringUpper;
         this.safeTimestamp = safeTimestamp;
         this.binaryConcatArray = binaryConcatArray;
-        this.uuidv1 = uuidv1;
-        this.numberToLE = numberToLE;
         this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
         this.stringToBase64 = stringToBase64;
@@ -267,7 +250,6 @@ class Exchange {
         this.safeStringLower2 = safeStringLower2;
         this.safeStringUpper2 = safeStringUpper2;
         this.isEmpty = isEmpty;
-        this.ordered = ordered;
         this.filterBy = filterBy;
         this.uuid16 = uuid16;
         this.urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -290,6 +272,11 @@ class Exchange {
         this.crc32 = crc32;
         this.packb = packb;
         this.urlencodeBase64 = urlencodeBase64;
+        // io
+        this.readFile = readFile;
+        this.writeFile = writeFile;
+        this.existsFile = existsFile;
+        this.getTempDir = getTempDir;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -398,6 +385,18 @@ class Exchange {
         this.afterConstruct();
         if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
             this.setSandboxMode(true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles();
+    }
+    async loadExchangeSpecificFiles() {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await Promise.resolve().then(function () { return require('../protobuf/mexc/compiled.cjs.js'); });
+            }
+            catch (e) {
+                // TODO: handle error
+            }
         }
     }
     uuid5(namespace, name) {
@@ -1706,6 +1705,7 @@ class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -1791,6 +1791,8 @@ class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -2624,8 +2626,11 @@ class Exchange {
     async watchFundingRate(symbol, params = {}) {
         throw new errors.NotSupported(this.id + ' watchFundingRate() is not supported yet');
     }
-    async watchFundingRates(symbols, params = {}) {
+    async watchFundingRates(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' watchFundingRates() is not supported yet');
+    }
+    async unWatchFundingRates(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchFundingRates() is not supported yet');
     }
     async watchFundingRatesForSymbols(symbols, params = {}) {
         return await this.watchFundingRates(symbols, params);
@@ -2696,7 +2701,13 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -4636,6 +4647,19 @@ class Exchange {
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    parseADLRank(info, market = undefined) {
+        throw new errors.NotSupported(this.id + ' parseADLRank() is not supported yet');
+    }
+    parseADLRanks(ranks, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols(symbols);
+        ranks = this.toArray(ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend(this.parseADLRank(ranks[i], undefined), params);
+            result.push(rank);
+        }
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+    }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
         const result = [];
@@ -5475,6 +5499,9 @@ class Exchange {
     async unWatchTickers(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' unWatchTickers() is not supported yet');
     }
+    async unWatchFundingRate(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' unWatchFundingRate() is not supported yet');
+    }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOrder() is not supported yet');
     }
@@ -5520,6 +5547,30 @@ class Exchange {
     }
     async fetchPositionMode(symbol = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchPositionMode() is not supported yet');
+    }
+    async fetchADLRank(symbol, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchADLRank() is not supported yet');
+    }
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        throw new errors.NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+    async fetchPositionADLRank(symbol, params = {}) {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank([symbol], params);
+            const rank = this.safeDict(ranks, 0);
+            if (rank === undefined) {
+                throw new errors.NullResponse(this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            }
+            else {
+                return rank;
+            }
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
     async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
@@ -7178,6 +7229,14 @@ class Exchange {
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    filterByArrayADLRanks(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
         return this.filterByArray(objects, key, values, indexed);
     }

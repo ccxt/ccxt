@@ -98,6 +98,8 @@
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchFundingIntervals](#fetchfundingintervals)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchADLRank](#fetchadlrank)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchLiquidations](#watchliquidations)
 * [watchLiquidationsForSymbols](#watchliquidationsforsymbols)
 * [watchMyLiquidations](#watchmyliquidations)
@@ -2715,6 +2717,55 @@ fetches the long short ratio history for a unified market symbol
 
 ```javascript
 binance.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
+<a name="fetchADLRank" id="fetchadlrank"></a>
+
+### fetchADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a symbol
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>object</code> - an [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the auto deleveraging rank for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+binance.fetchADLRank (symbol[, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+
+**Kind**: instance method of [<code>binance</code>](#binance)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structure](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+- https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+- https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+- https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true for the portfolio margin account |
+
+
+```javascript
+binance.fetchPositionsADLRank ([symbols, params])
 ```
 
 

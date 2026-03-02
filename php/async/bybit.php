@@ -120,8 +120,10 @@ class bybit extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
@@ -9634,6 +9636,143 @@ class bybit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'timeframe' => null,
             'longShortRatio' => $this->parse_to_numeric(Precise::string_div($longString, $shortString)),
+        );
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+             *
+             * @see https://bybit-exchange.github.io/docs/v5/position#$response-parameters
+             *
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+             */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' fetchPositionsADLRank() requires a $symbols argument');
+            }
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $request = array();
+            if ($market !== null) {
+                $request['symbol'] = $market['id'];
+            }
+            $type = null;
+            list($type, $params) = $this->get_bybit_type('fetchPositionsADLRank', $market, $params);
+            $request['category'] = $type;
+            $response = Async\await($this->privateGetV5PositionList ($this->extend($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => {
+            //             "nextPageCursor" => "BTCUSDT%2C1767085496112%2C0",
+            //             "category" => "linear",
+            //             "list" => array(
+            //                 array(
+            //                     "symbol" => "BTCUSDT",
+            //                     "leverage" => "",
+            //                     "autoAddMargin" => 0,
+            //                     "avgPrice" => "177489.6",
+            //                     "liqPrice" => "",
+            //                     "riskLimitValue" => "",
+            //                     "takeProfit" => "",
+            //                     "positionValue" => "1774.896",
+            //                     "isReduceOnly" => false,
+            //                     "positionIMByMp" => "",
+            //                     "tpslMode" => "Full",
+            //                     "riskId" => 0,
+            //                     "trailingStop" => "0",
+            //                     "unrealisedPnl" => "-3.016",
+            //                     "markPrice" => "177188",
+            //                     "adlRankIndicator" => 2,
+            //                     "cumRealisedPnl" => "-9782.391468",
+            //                     "positionMM" => "",
+            //                     "createdTime" => "1699928551230",
+            //                     "positionIdx" => 0,
+            //                     "positionIM" => "",
+            //                     "positionMMByMp" => "",
+            //                     "seq" => 9558506126,
+            //                     "updatedTime" => "1767085496112",
+            //                     "side" => "Buy",
+            //                     "bustPrice" => "",
+            //                     "positionBalance" => "",
+            //                     "leverageSysUpdatedTime" => "",
+            //                     "curRealisedPnl" => "-0.9761928",
+            //                     "size" => "0.01",
+            //                     "positionStatus" => "Normal",
+            //                     "mmrSysUpdatedTime" => "",
+            //                     "stopLoss" => "",
+            //                     "tradeMode" => 0,
+            //                     "sessionAvgPrice" => ""
+            //                 }
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => 1767085741416
+            //     }
+            //
+            $result = $this->safe_dict($response, 'result', array());
+            $ranks = $this->safe_list($result, 'list', array());
+            return $this->parse_adl_ranks($ranks, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "leverage" => "",
+        //         "autoAddMargin" => 0,
+        //         "avgPrice" => "177489.6",
+        //         "liqPrice" => "",
+        //         "riskLimitValue" => "",
+        //         "takeProfit" => "",
+        //         "positionValue" => "1774.896",
+        //         "isReduceOnly" => false,
+        //         "positionIMByMp" => "",
+        //         "tpslMode" => "Full",
+        //         "riskId" => 0,
+        //         "trailingStop" => "0",
+        //         "unrealisedPnl" => "-3.016",
+        //         "markPrice" => "177188",
+        //         "adlRankIndicator" => 2,
+        //         "cumRealisedPnl" => "-9782.391468",
+        //         "positionMM" => "",
+        //         "createdTime" => "1699928551230",
+        //         "positionIdx" => 0,
+        //         "positionIM" => "",
+        //         "positionMMByMp" => "",
+        //         "seq" => 9558506126,
+        //         "updatedTime" => "1767085496112",
+        //         "side" => "Buy",
+        //         "bustPrice" => "",
+        //         "positionBalance" => "",
+        //         "leverageSysUpdatedTime" => "",
+        //         "curRealisedPnl" => "-0.9761928",
+        //         "size" => "0.01",
+        //         "positionStatus" => "Normal",
+        //         "mmrSysUpdatedTime" => "",
+        //         "stopLoss" => "",
+        //         "tradeMode" => 0,
+        //         "sessionAvgPrice" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer($info, 'updatedTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adlRankIndicator'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

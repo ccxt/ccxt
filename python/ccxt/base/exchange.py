@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.38'
+__version__ = '4.5.40'
 
 # -----------------------------------------------------------------------------
 
@@ -121,6 +121,8 @@ import gzip
 import hashlib
 import hmac
 import io
+import os
+import tempfile
 
 # load orjson if available, otherwise default to json
 orjson = None
@@ -455,7 +457,7 @@ class Exchange(object):
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
-                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE'}
+                exceptions = {'ohlcv': 'OHLCV', 'le': 'LE', 'be': 'BE', 'adl': 'ADL'}
                 camelcase = parts[0] + ''.join(exceptions.get(i, self.capitalize(i)) for i in parts[1:])
                 attr = getattr(self, name)
                 if isinstance(attr, types.MethodType):
@@ -497,6 +499,59 @@ class Exchange(object):
         if elapsed < sleep_time:
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
+
+    def read_file(self, path: str, encoding: str = 'utf-8'):
+        """
+        Read file contents (synchronous)
+        :param str path: File path to read
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns str|None: File contents as string, or None on error
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            with open(path, 'r', encoding=encoding) as file:
+                return file.read()
+        except Exception:
+            return None
+
+    def write_file(self, path: str, data: str, encoding: str = 'utf-8'):
+        """
+        Write file contents (synchronous)
+        :param str path: File path to write
+        :param str data: Data to write
+        :param str encoding: File encoding (default: 'utf-8')
+        :returns bool: True if successful, False otherwise
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            with open(path, 'w', encoding=encoding) as file:
+                file.write(data)
+            return True
+        except Exception:
+            return False
+
+    def exists_file(self, path: str):
+        """
+        Check if file exists (synchronous)
+        :param str path: File path to check
+        :returns bool: True if file exists, False otherwise
+        """
+        self._ensure_whitelisted_file(path)
+        try:
+            import os
+            return os.path.isfile(path)
+        except Exception:
+            return False
+
+    def get_temp_dir(self):
+        tmp = os.path.realpath(tempfile.gettempdir())
+        return tmp if tmp.endswith(os.sep) else tmp + os.sep
+
+    def _ensure_whitelisted_file(self, file_path: str):
+        sanitized = os.path.realpath(file_path)
+        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
+            return
+        raise ValueError(f'invalid file path: {file_path}')
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -966,10 +1021,6 @@ class Exchange(object):
         return str(uuid.uuid4())
 
     @staticmethod
-    def uuidv1():
-        return str(uuid.uuid1()).replace('-', '')
-
-    @staticmethod
     def uuid5(namespace: str, name):
         return str(uuid.uuid5(uuid.UUID(namespace), name))
 
@@ -988,7 +1039,7 @@ class Exchange(object):
 
     @staticmethod
     def keysort(dictionary):
-        return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+        return dict(sorted(dictionary.items()))
 
     @staticmethod
     def sort(array):
@@ -1004,16 +1055,13 @@ class Exchange(object):
 
     @staticmethod
     def extend(*args):
-        if args is not None:
-            result = None
-            if type(args[0]) is collections.OrderedDict:
-                result = collections.OrderedDict()
-            else:
-                result = {}
-            for arg in args:
-                result.update(arg)
-            return result
-        return {}
+        if not args:
+            return {}
+        # after dropping 3.7 py, we can use result = {}
+        result = collections.OrderedDict() if type(args[0]) is collections.OrderedDict else {}
+        for arg in args:
+            result.update(arg)
+        return result
 
     @staticmethod
     def deep_extend(*args, _all_dicts=False):
@@ -1069,7 +1117,6 @@ class Exchange(object):
     def groupBy(array, key):
         return Exchange.group_by(array, key)
 
-
     @staticmethod
     def index_by_safe(array, key):
         return Exchange.index_by(array, key)  # wrapper for go
@@ -1077,13 +1124,19 @@ class Exchange(object):
     @staticmethod
     def index_by(array, key):
         result = {}
-        if type(array) is dict:
-            array = Exchange.keysort(array).values()
-        is_int_key = isinstance(key, int)
-        for element in array:
-            if ((is_int_key and (key < len(element))) or (key in element)) and (element[key] is not None):
-                k = element[key]
-                result[k] = element
+        if isinstance(array, dict):
+            array = dict(sorted(array.items())).values()
+        if isinstance(key, int):
+            for element in array:
+                if key < len(element):
+                    k = element[key]
+                    if k is not None:
+                        result[k] = element
+        else:
+            for element in array:
+                k = element.get(key)
+                if k is not None:
+                    result[k] = element
         return result
 
     @staticmethod
@@ -1185,11 +1238,12 @@ class Exchange(object):
 
     @staticmethod
     def sum(*args):
-        return sum([arg for arg in args if isinstance(arg, (float, int))])
+        total = 0
+        for arg in args:
+            if isinstance(arg, (int, float)):
+                total += arg
+        return total
 
-    @staticmethod
-    def ordered(array):
-        return collections.OrderedDict(array)
 
     @staticmethod
     def aggregate(bidasks):
@@ -1802,9 +1856,6 @@ class Exchange(object):
         offset = timestamp % ms
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
-    def vwap(self, baseVolume, quoteVolume):
-        return (quoteVolume / baseVolume) if (quoteVolume is not None) and (baseVolume is not None) and (baseVolume > 0) else None
-
     def check_required_dependencies(self):
         if self.requiresEddsa and eddsa is None:
             raise NotSupported(self.id + ' Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
@@ -2299,6 +2350,7 @@ class Exchange(object):
                 'editOrders': None,
                 'editOrderWs': None,
                 'fetchAccounts': None,
+                'fetchADLRank': None,
                 'fetchBalance': True,
                 'fetchBalanceWs': None,
                 'fetchBidsAsks': None,
@@ -2384,6 +2436,8 @@ class Exchange(object):
                 'fetchOrderTrades': None,
                 'fetchOrderWs': None,
                 'fetchPosition': None,
+                'fetchPositionADLRank': None,
+                'fetchPositionsADLRank': None,
                 'fetchPositionHistory': None,
                 'fetchPositionsHistory': None,
                 'fetchPositionWs': None,
@@ -3125,8 +3179,11 @@ class Exchange(object):
     def watch_funding_rate(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchFundingRate() is not supported yet')
 
-    def watch_funding_rates(self, symbols: List[str], params={}):
+    def watch_funding_rates(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' watchFundingRates() is not supported yet')
+
+    def un_watch_funding_rates(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' unWatchFundingRates() is not supported yet')
 
     def watch_funding_rates_for_symbols(self, symbols: List[str], params={}):
         return self.watch_funding_rates(symbols, params)
@@ -3193,7 +3250,11 @@ class Exchange(object):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     def fetch_open_interest(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+        if self.has['fetchOpenInterests']:
+            openInterests = self.fetch_open_interests([symbol], params)
+            return self.safe_dict(openInterests, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     def fetch_open_interests(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
@@ -4822,6 +4883,18 @@ class Exchange(object):
             result.append(position)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
 
+    def parse_adl_rank(self, info: dict, market: Market = None):
+        raise NotSupported(self.id + ' parseADLRank() is not supported yet')
+
+    def parse_adl_ranks(self, ranks: List[Any], symbols: List[str] = None, params={}):
+        symbols = self.market_symbols(symbols)
+        ranks = self.to_array(ranks)
+        result = []
+        for i in range(0, len(ranks)):
+            rank = self.extend(self.parse_adl_rank(ranks[i], None), params)
+            result.append(rank)
+        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+
     def parse_accounts(self, accounts: List[Any], params={}):
         accounts = self.to_array(accounts)
         result = []
@@ -5533,6 +5606,9 @@ class Exchange(object):
     def un_watch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' unWatchTickers() is not supported yet')
 
+    def un_watch_funding_rate(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' unWatchFundingRate() is not supported yet')
+
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
 
@@ -5576,6 +5652,26 @@ class Exchange(object):
 
     def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
+
+    def fetch_adl_rank(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchADLRank() is not supported yet')
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
+
+    def fetch_position_adl_rank(self, symbol: str, params={}):
+        if self.has['fetchPositionsADLRank']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            ranks = self.fetch_positions_adl_rank([symbol], params)
+            rank = self.safe_dict(ranks, 0)
+            if rank is None:
+                raise NullResponse(self.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol)
+            else:
+                return rank
+        else:
+            raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
 
     def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
@@ -6990,6 +7086,13 @@ class Exchange(object):
         """
  @ignore
         Typed wrapper for filterByArray that returns a dictionary of tickers
+        """
+        return self.filter_by_array(objects, key, values, indexed)
+
+    def filter_by_array_adl_ranks(self, objects, key: IndexType, values=None, indexed=True):
+        """
+ @ignore
+        Typed wrapper for filterByArray that returns a list of ADL Ranks
         """
         return self.filter_by_array(objects, key, values, indexed)
 

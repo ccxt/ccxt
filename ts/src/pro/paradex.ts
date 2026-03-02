@@ -3,7 +3,7 @@
 
 import paradexRest from '../paradex.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, Trade, Order, Dict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,6 +13,8 @@ export default class paradex extends paradexRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'watchFundingRate': true,
+                'watchFundingRates': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchOrderBook': true,
@@ -430,6 +432,142 @@ export default class paradex extends paradexRest {
         return message;
     }
 
+    /**
+     * @method
+     * @name paradex#watchFundingRate
+     * @description watch the current funding rate for a symbol
+     * @see https://docs.paradex.trade/ws/web-socket-channels/funding-data-market-symbol/funding-data-market-symbol
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
+        const channel = 'funding_data';
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHash = channel + '.' + symbol;
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    /**
+     * @method
+     * @name paradex#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://docs.paradex.trade/ws/web-socket-channels/markets-summary/markets-summary
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const channel = 'funding_data';
+        const url = this.urls['api']['ws'];
+        const request: Dict = {
+            'jsonrpc': '2.0',
+            'method': 'subscribe',
+            'params': {
+                'channel': channel,
+            },
+        };
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const messageHash = channel + '.' + symbols[i];
+                    messageHashes.push (messageHash);
+                }
+            } else {
+                messageHashes.push (channel); // if an empty array is passed, subscribe to all funding rates
+            }
+        } else {
+            messageHashes.push (channel);
+        }
+        const newFundingRates = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[newFundingRates['symbol']] = newFundingRates;
+            return result;
+        }
+        return this.filterByArray (this.fundingRates, 'symbol', symbols);
+    }
+
+    handleFundingRate (client: Client, message) {
+        //
+        //     {
+        //         "jsonrpc": "2.0",
+        //         "method": "subscription",
+        //         "params": {
+        //             "channel": "funding_data",
+        //             "data": {
+        //                 "market": "TRUMP-USD-PERP",
+        //                 "funding_index": "-0.551694014226244835",
+        //                 "funding_premium": "-0.000509914923994872836",
+        //                 "funding_rate": "-0.00014969570582",
+        //                 "funding_rate_8h": "-0.00014969",
+        //                 "funding_period_hours": 8,
+        //                 "created_at": 1771506636154
+        //             }
+        //         }
+        //     }
+        //
+        const params = this.safeDict (message, 'params', {});
+        const data = this.safeDict (params, 'data', {});
+        const fundingRate = this.parseFundingRateWs (data);
+        const symbol = fundingRate['symbol'];
+        this.fundingRates[symbol] = fundingRate;
+        const channel = this.safeString (params, 'channel');
+        const messageHash = channel + '.' + symbol;
+        client.resolve (fundingRate, messageHash);
+    }
+
+    parseFundingRateWs (contract, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "market": "TRUMP-USD-PERP",
+        //         "funding_index": "-0.551694014226244835",
+        //         "funding_premium": "-0.000509914923994872836",
+        //         "funding_rate": "-0.00014969570582",
+        //         "funding_rate_8h": "-0.00014969",
+        //         "funding_period_hours": 8,
+        //         "created_at": 1771506636154
+        //     }
+        //
+        const marketId = this.safeString (contract, 'market');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (contract, 'created_at');
+        const fundingPeriod = this.safeString (contract, 'funding_period_hours');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (contract, 'funding_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': fundingPeriod + 'h',
+        } as FundingRate;
+    }
+
     handleErrorMessage (client: Client, message): Bool {
         //
         //     {
@@ -509,6 +647,7 @@ export default class paradex extends paradexRest {
                 'order_book': this.handleOrderBook,
                 'markets_summary': this.handleTicker,
                 'orders': this.handleOrder,
+                'funding_data': this.handleFundingRate,
             };
             const method = this.safeValue (methods, name);
             if (method !== undefined) {

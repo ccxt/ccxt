@@ -690,8 +690,13 @@ class coinspot(Exchange, ImplicitAPI):
         })
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + path
-        if api == 'private':
+        isVersionedApi = isinstance(api, list)
+        version = api[0] if isVersionedApi else None
+        accessType = api[1] if isVersionedApi else api
+        endpoint = '/' + self.implode_params(path, params)
+        fullPath = '/' + version + endpoint if (version is not None) else endpoint
+        url = self.urls['api'][accessType] + fullPath
+        if accessType == 'private':
             self.check_required_credentials()
             nonce = self.nonce()
             body = self.json(self.extend({'nonce': nonce}, params))

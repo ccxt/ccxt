@@ -643,7 +643,7 @@ class hyperliquid extends Exchange {
                         $this->safe_dict($universe, $j, array()),
                         $this->safe_dict($assetCtxs, $j, array())
                     );
-                    $data['baseId'] = $j . $offset;
+                    $data['baseId'] = $this->sum($j, $offset);
                     $data['collateralToken'] = $collateralToken;
                     $data['hip3'] = true;
                     $data['dex'] = $dexName;
@@ -2284,7 +2284,6 @@ class hyperliquid extends Exchange {
             $hasTakeProfit = ($takeProfit !== null);
             $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
             $mainOrderObj = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
-            $orderReq[] = $mainOrderObj;
             if ($hasStopLoss || $hasTakeProfit) {
                 // $grouping opposed $orders for sl/tp
                 $stopLossOrderTriggerPrice = $this->safe_string_n($stopLoss, array( 'triggerPrice', 'stopPrice' ));
@@ -2293,8 +2292,17 @@ class hyperliquid extends Exchange {
                 $takeProfitOrderTriggerPrice = $this->safe_string_n($takeProfit, array( 'triggerPrice', 'stopPrice' ));
                 $takeProfitOrderType = $this->safe_string($takeProfit, 'type', 'limit');
                 $takeProfitOrderLimitPrice = $this->safe_string_n($takeProfit, array( 'price', 'takeProfitPrice' ), $takeProfitOrderTriggerPrice);
-                $grouping = 'normalTpsl';
-                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit' ));
+                $grouping = $this->safe_string($orderParams, 'grouping', 'normalTpsl');
+                if ($grouping === 'positionTpsl') {
+                    $amount = '0';
+                    $stopLossOrderType = 'market';
+                    $takeProfitOrderType = 'market';
+                } elseif ($grouping === 'normalTpsl') {
+                    $orderReq[] = $mainOrderObj;
+                } else {
+                    throw new NotSupported($this->id . ' only support $grouping normalTpsl and positionTpsl.');
+                }
+                $orderParams = $this->omit($orderParams, array( 'stopLoss', 'takeProfit', 'grouping' ));
                 $triggerOrderSide = '';
                 if ($side === 'BUY') {
                     $triggerOrderSide = 'sell';
@@ -2315,6 +2323,8 @@ class hyperliquid extends Exchange {
                     )));
                     $orderReq[] = $orderObj;
                 }
+            } else {
+                $orderReq[] = $mainOrderObj;
             }
         }
         $vaultAddress = null;
@@ -3139,17 +3149,45 @@ class hyperliquid extends Exchange {
             //
             //     array(
             //         {
-            //             "coin" => "ETH",
-            //             "limitPx" => "2000.0",
-            //             "oid" => 3991946565,
-            //             "origSz" => "0.1",
-            //             "side" => "B",
-            //             "sz" => "0.1",
-            //             "timestamp" => 1704346468838
+            //             "order" => array(
+            //                 "coin" => "ETH",
+            //                 "limitPx" => "2000.0",
+            //                 "oid" => 3991946565,
+            //                 "origSz" => "0.1",
+            //                 "side" => "B",
+            //                 "sz" => "0.1",
+            //                 "timestamp" => 1704346468838
+            //             ),
+            //             "status" => "open",
+            //             "statusTimestamp" => 1704346468838
             //         }
             //     )
             //
-            return $this->parse_orders($response, $market, $since, $limit);
+            // Hyperliquid returns the full status history for each order,
+            // so a canceled order appears twice => once as 'open' and once as 'canceled'.
+            // Deduplicate by $oid, keeping the $entry with the most recent statusTimestamp.
+            $deduplicatedByOid = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $rawOrder = $response[$i];
+                $entry = $this->safe_dict($rawOrder, 'order');
+                if ($entry === null) {
+                    $entry = $rawOrder;
+                }
+                $oid = $this->safe_string($entry, 'oid');
+                if ($oid !== null) {
+                    if (!(is_array($deduplicatedByOid) && array_key_exists($oid, $deduplicatedByOid))) {
+                        $deduplicatedByOid[$oid] = $rawOrder;
+                    } else {
+                        $existingTimestamp = $this->safe_integer($deduplicatedByOid[$oid], 'statusTimestamp');
+                        $currentTimestamp = $this->safe_integer($rawOrder, 'statusTimestamp');
+                        if ($currentTimestamp !== null && ($existingTimestamp === null || $currentTimestamp > $existingTimestamp)) {
+                            $deduplicatedByOid[$oid] = $rawOrder;
+                        }
+                    }
+                }
+            }
+            $deduplicated = is_array($deduplicatedByOid) ? array_values($deduplicatedByOid) : array();
+            return $this->parse_orders($deduplicated, $market, $since, $limit);
         }) ();
     }
 

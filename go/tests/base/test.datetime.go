@@ -48,13 +48,13 @@ func TestDatetime() {
 	// assert (exchange.parseDate ('Sun, 29 Dec 2024 01:01:10 GMT') === 1735434070000);
 	// assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
 	// assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("5m", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("10m", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.Parse8601("2019-08-12 13:00:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1d", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_DOWN), exchange.Parse8601("2019-08-12 00:00:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("5m", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.Parse8601("2019-08-12 13:25:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("10m", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.Parse8601("2019-08-12 13:30:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.Parse8601("2019-08-12 13:30:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1h", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.Parse8601("2019-08-12 14:00:00")))
-	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1d", exchange.Parse8601("2019-08-12 13:22:08"), ROUND_UP), exchange.Parse8601("2019-08-13 00:00:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("5m", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("10m", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:20:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 13:00:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1d", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_DOWN), exchange.Parse8601("2019-08-12 00:00:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("5m", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_UP), exchange.Parse8601("2019-08-12 13:25:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("10m", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_UP), exchange.Parse8601("2019-08-12 13:30:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("30m", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_UP), exchange.Parse8601("2019-08-12 13:30:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1h", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_UP), exchange.Parse8601("2019-08-12 14:00:00")))
+	Assert(ccxt.IsEqual(exchange.RoundTimeframe("1d", exchange.Parse8601("2019-08-12 13:22:08"), ccxt.ROUND_UP), exchange.Parse8601("2019-08-13 00:00:00")))
 }

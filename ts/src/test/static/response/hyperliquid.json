@@ -10,6 +10,115 @@
         }
     },
     "methods": {
+        "fetchOrders": [
+            {
+                "description": "ensure orders are dedup when hl returns 2 orders with same id",
+                "method": "fetchOrders",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "A",
+                            "limitPx": "40.0",
+                            "sz": "1.0",
+                            "oid": "323550506865",
+                            "timestamp": "1771401340649",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "1.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1771402034835"
+                    },
+                    {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "A",
+                            "limitPx": "40.0",
+                            "sz": "1.0",
+                            "oid": 323550506865,
+                            "timestamp": 1771401340649,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "1.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1771401340649
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order": {
+                                "coin": "HYPE",
+                                "side": "A",
+                                "limitPx": "40.0",
+                                "sz": "1.0",
+                                "oid": "323550506865",
+                                "timestamp": "1771401340649",
+                                "triggerCondition": "N/A",
+                                "isTrigger": false,
+                                "triggerPx": "0.0",
+                                "children": [],
+                                "isPositionTpsl": false,
+                                "reduceOnly": false,
+                                "orderType": "Limit",
+                                "origSz": "1.0",
+                                "tif": "Gtc",
+                                "cloid": null
+                            },
+                            "status": "canceled",
+                            "statusTimestamp": "1771402034835"
+                        },
+                        "id": "323550506865",
+                        "clientOrderId": null,
+                        "timestamp": 1771401340649,
+                        "datetime": "2026-02-18T07:55:40.649Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1771402034835,
+                        "symbol": "HYPE/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 40,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 1,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order",

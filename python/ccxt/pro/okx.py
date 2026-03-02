@@ -339,16 +339,18 @@ class okx(ccxt.async_support.okx):
         fr = await self.watch_funding_rates([symbol], params)
         return fr[symbol]
 
-    async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
+    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         watch the funding rate for multiple markets
 
         https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
 
-        :param str[] symbols: list of unified market symbols
+        :param str[] symbols: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
         """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'funding-rate'

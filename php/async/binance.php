@@ -71,6 +71,7 @@ class binance extends Exchange {
                 'editOrder' => true,
                 'editOrders' => true,
                 'fetchAccounts' => null,
+                'fetchADLRank' => true,
                 'fetchAllGreeks' => true,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => true,
@@ -140,9 +141,11 @@ class binance extends Exchange {
                 'fetchOrders' => true,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => true,
                 'fetchPremiumIndexOHLCV' => true,
@@ -14623,6 +14626,145 @@ class binance extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'timeframe' => null,
             'longShortRatio' => $this->safe_number($info, 'longShortRatio'),
+        );
+    }
+
+    public function fetch_adl_rank(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a $symbol
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+             *
+             * @param {string} $symbol unified $symbol of the $market to fetch the auto deleveraging rank for
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchADLRank', $market, $params);
+            $response = null;
+            if ($subType === 'linear') {
+                $response = Async\await($this->fapiPublicGetSymbolAdlRisk ($this->extend($request, $params)));
+                //
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "adlRisk" => "LOW",
+                //         "updateTime" => 1766827800453
+                //     }
+                //
+            } else {
+                throw new BadRequest($this->id . ' fetchADLRank() supports linear subTypes only');
+            }
+            return $this->parse_adl_rank($response, $market);
+        }) ();
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the auto deleveraging rank and risk percentage for a list of $symbols that have open positions
+             *
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+             * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+             *
+             * @param {string[]} [$symbols] list of unified $market $symbols
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {boolean} [$params->portfolioMargin] set to true for the portfolio margin account
+             * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, true, true);
+            $market = $this->get_market_from_symbols($symbols);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionsADLRank', $market, $params);
+            $isPortfolioMargin = null;
+            list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchPositionsADLRank', 'papi', 'portfolioMargin', false);
+            $response = null;
+            if ($subType === 'linear') {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiGetUmAdlQuantile ($params));
+                } else {
+                    $response = Async\await($this->fapiPrivateGetAdlQuantile ($params));
+                }
+            } elseif ($subType === 'inverse') {
+                if ($isPortfolioMargin) {
+                    $response = Async\await($this->papiGetCmAdlQuantile ($params));
+                } else {
+                    $response = Async\await($this->dapiPrivateGetAdlQuantile ($params));
+                }
+            } else {
+                throw new BadRequest($this->id . ' fetchPositionsADLRank() supports linear and inverse subTypes only');
+            }
+            //
+            //     array(
+            //         {
+            //             "symbol" => "BTCUSDT",
+            //             "adlQuantile" => {
+            //                 "LONG" => 0,
+            //                 "SHORT" => 0,
+            //                 "BOTH" => 1
+            //             }
+            //         }
+            //     )
+            //
+            return $this->parse_adl_ranks($response, $symbols);
+        }) ();
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "adlRisk" => "LOW",
+        //         "updateTime" => 1766827800453
+        //     }
+        //
+        // fetchPositionADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "adlQuantile" => {
+        //             "LONG" => 0,
+        //             "SHORT" => 0,
+        //             "BOTH" => 1
+        //         }
+        //     }
+        //
+        $adlQuantile = $this->safe_dict($info, 'adlQuantile', array());
+        $longNum = $this->safe_number($adlQuantile, 'LONG');
+        $shortNum = $this->safe_number($adlQuantile, 'SHORT');
+        $both = $this->safe_number($adlQuantile, 'BOTH');
+        $rank = null;
+        if ($both !== null) {
+            $rank = $both;
+        } else {
+            if ($longNum !== null && $shortNum !== null) {
+                if ($longNum > $shortNum) {
+                    $rank = $longNum;
+                } else {
+                    $rank = $shortNum;
+                }
+            }
+        }
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer_2($info, 'timestamp', 'updateTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $rank,
+            'rating' => $this->safe_string_lower($info, 'adlRisk'),
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 }

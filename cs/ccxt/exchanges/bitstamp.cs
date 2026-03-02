@@ -2474,7 +2474,7 @@ public partial class bitstamp : Exchange
         object request = new Dictionary<string, object>() {
             { "market_symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetFundingRateMarketSymbol", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetFundingRateMarketSymbol(this.extend(request, parameters));
         //
         //     {
         //         "funding_rate": "0.0024",

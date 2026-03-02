@@ -4840,9 +4840,23 @@ export default class bitmart extends Exchange {
         //         "timestamp": 1761291544336
         //     }
         //
+        // watchFundingRates
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "fundingRate": "0.0000561",
+        //         "fundingTime": 1770978448000,
+        //         "nextFundingRate": "-0.0000195",
+        //         "nextFundingTime": 1770998400000,
+        //         "funding_upper_limit": "0.0375",
+        //         "funding_lower_limit": "-0.0375",
+        //         "ts": 1770978448970
+        //     }
+        //
         const marketId = this.safeString(contract, 'symbol');
-        const timestamp = this.safeInteger(contract, 'timestamp');
-        const fundingTimestamp = this.safeInteger(contract, 'funding_time');
+        const timestamp = this.safeInteger2(contract, 'timestamp', 'ts');
+        const fundingTimestamp = this.safeInteger2(contract, 'funding_time', 'fundingTime');
+        const nextFundingTimestamp = this.safeInteger(contract, 'nextFundingTime');
         return {
             'info': contract,
             'symbol': this.safeSymbol(marketId, market),
@@ -4852,12 +4866,12 @@ export default class bitmart extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'fundingRate': this.safeNumber(contract, 'expected_rate'),
+            'fundingRate': this.safeNumber2(contract, 'expected_rate', 'fundingRate'),
             'fundingTimestamp': fundingTimestamp,
             'fundingDatetime': this.iso8601(fundingTimestamp),
-            'nextFundingRate': undefined,
-            'nextFundingTimestamp': undefined,
-            'nextFundingDatetime': undefined,
+            'nextFundingRate': this.safeNumber(contract, 'nextFundingRate'),
+            'nextFundingTimestamp': nextFundingTimestamp,
+            'nextFundingDatetime': this.iso8601(nextFundingTimestamp),
             'previousFundingRate': this.safeNumber(contract, 'rate_value'),
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,

@@ -5509,11 +5509,25 @@ func (this *BitmartCore) ParseFundingRate(contract interface{}, optionalArgs ...
 	//         "timestamp": 1761291544336
 	//     }
 	//
+	// watchFundingRates
+	//
+	//     {
+	//         "symbol": "BTCUSDT",
+	//         "fundingRate": "0.0000561",
+	//         "fundingTime": 1770978448000,
+	//         "nextFundingRate": "-0.0000195",
+	//         "nextFundingTime": 1770998400000,
+	//         "funding_upper_limit": "0.0375",
+	//         "funding_lower_limit": "-0.0375",
+	//         "ts": 1770978448970
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId interface{} = this.SafeString(contract, "symbol")
-	var timestamp interface{} = this.SafeInteger(contract, "timestamp")
-	var fundingTimestamp interface{} = this.SafeInteger(contract, "funding_time")
+	var timestamp interface{} = this.SafeInteger2(contract, "timestamp", "ts")
+	var fundingTimestamp interface{} = this.SafeInteger2(contract, "funding_time", "fundingTime")
+	var nextFundingTimestamp interface{} = this.SafeInteger(contract, "nextFundingTime")
 	return map[string]interface{}{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(marketId, market),
@@ -5523,12 +5537,12 @@ func (this *BitmartCore) ParseFundingRate(contract interface{}, optionalArgs ...
 		"estimatedSettlePrice":     nil,
 		"timestamp":                timestamp,
 		"datetime":                 this.Iso8601(timestamp),
-		"fundingRate":              this.SafeNumber(contract, "expected_rate"),
+		"fundingRate":              this.SafeNumber2(contract, "expected_rate", "fundingRate"),
 		"fundingTimestamp":         fundingTimestamp,
 		"fundingDatetime":          this.Iso8601(fundingTimestamp),
-		"nextFundingRate":          nil,
-		"nextFundingTimestamp":     nil,
-		"nextFundingDatetime":      nil,
+		"nextFundingRate":          this.SafeNumber(contract, "nextFundingRate"),
+		"nextFundingTimestamp":     nextFundingTimestamp,
+		"nextFundingDatetime":      this.Iso8601(nextFundingTimestamp),
 		"previousFundingRate":      this.SafeNumber(contract, "rate_value"),
 		"previousFundingTimestamp": nil,
 		"previousFundingDatetime":  nil,
@@ -5553,8 +5567,8 @@ func (this *BitmartCore) FetchPosition(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes48728 := (<-this.LoadMarkets())
-		PanicOnError(retRes48728)
+		retRes48868 := (<-this.LoadMarkets())
+		PanicOnError(retRes48868)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -5621,8 +5635,8 @@ func (this *BitmartCore) FetchPositions(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes49238 := (<-this.LoadMarkets())
-		PanicOnError(retRes49238)
+		retRes49378 := (<-this.LoadMarkets())
+		PanicOnError(retRes49378)
 		var market interface{} = nil
 		var symbolsLength interface{} = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -5776,8 +5790,8 @@ func (this *BitmartCore) FetchMyLiquidations(optionalArgs ...interface{}) <-chan
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyLiquidations() requires a symbol argument")))
 		}
 
-		retRes50568 := (<-this.LoadMarkets())
-		PanicOnError(retRes50568)
+		retRes50708 := (<-this.LoadMarkets())
+		PanicOnError(retRes50708)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(this.Id, " fetchMyLiquidations() supports swap markets only")))
@@ -5913,8 +5927,8 @@ func (this *BitmartCore) EditOrder(id interface{}, symbol interface{}, typeVar i
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes51718 := (<-this.LoadMarkets())
-		PanicOnError(retRes51718)
+		retRes51858 := (<-this.LoadMarkets())
+		PanicOnError(retRes51858)
 		var market interface{} = this.Market(symbol)
 		if !IsTrue(GetValue(market, "swap")) {
 			panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " markets, only swap markets are supported")))
@@ -6027,8 +6041,8 @@ func (this *BitmartCore) FetchLedger(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes52888 := (<-this.LoadMarkets())
-		PanicOnError(retRes52888)
+		retRes53028 := (<-this.LoadMarkets())
+		PanicOnError(retRes53028)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -6179,8 +6193,8 @@ func (this *BitmartCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes54068 := (<-this.LoadMarkets())
-		PanicOnError(retRes54068)
+		retRes54208 := (<-this.LoadMarkets())
+		PanicOnError(retRes54208)
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6273,8 +6287,8 @@ func (this *BitmartCore) FetchWithdrawAddresses(code interface{}, optionalArgs .
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes54748 := (<-this.LoadMarkets())
-		PanicOnError(retRes54748)
+		retRes54888 := (<-this.LoadMarkets())
+		PanicOnError(retRes54888)
 		var codes interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			var currency interface{} = this.Currency(code)
@@ -6344,8 +6358,8 @@ func (this *BitmartCore) SetPositionMode(hedged interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes55288 := (<-this.LoadMarkets())
-		PanicOnError(retRes55288)
+		retRes55428 := (<-this.LoadMarkets())
+		PanicOnError(retRes55428)
 		var positionMode interface{} = nil
 		if IsTrue(hedged) {
 			positionMode = "hedge_mode"
@@ -6356,8 +6370,8 @@ func (this *BitmartCore) SetPositionMode(hedged interface{}, optionalArgs ...int
 			"position_mode": positionMode,
 		}
 
-		retRes554815 := (<-this.PrivatePostContractPrivateSetPositionMode(this.Extend(request, params)))
-		PanicOnError(retRes554815)
+		retRes556215 := (<-this.PrivatePostContractPrivateSetPositionMode(this.Extend(request, params)))
+		PanicOnError(retRes556215)
 		//
 		// {
 		//     "code": 1000,
@@ -6368,7 +6382,7 @@ func (this *BitmartCore) SetPositionMode(hedged interface{}, optionalArgs ...int
 		//     }
 		// }
 		//
-		ch <- retRes554815
+		ch <- retRes556215
 		return nil
 
 	}()

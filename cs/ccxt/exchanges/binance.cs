@@ -53,6 +53,7 @@ public partial class binance : Exchange
                 { "editOrder", true },
                 { "editOrders", true },
                 { "fetchAccounts", null },
+                { "fetchADLRank", true },
                 { "fetchAllGreeks", true },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", true },
@@ -122,9 +123,11 @@ public partial class binance : Exchange
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
+                { "fetchPositionADLRank", true },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
+                { "fetchPositionsADLRank", true },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", true },
                 { "fetchPremiumIndexOHLCV", true },
@@ -15221,6 +15224,159 @@ public partial class binance : Exchange
             { "datetime", this.iso8601(timestamp) },
             { "timeframe", null },
             { "longShortRatio", this.safeNumber(info, "longShortRatio") },
+        };
+    }
+
+    /**
+     * @method
+     * @name binance#fetchADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a symbol
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
+     * @param {string} symbol unified symbol of the market to fetch the auto deleveraging rank for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchADLRank(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchADLRank", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            response = await this.fapiPublicGetSymbolAdlRisk(this.extend(request, parameters));
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchADLRank() supports linear subTypes only")) ;
+        }
+        return this.parseADLRank(response, market);
+    }
+
+    /**
+     * @method
+     * @name binance#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols that have open positions
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Position-ADL-Quantile-Estimation
+     * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Position-ADL-Quantile-Estimation
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.portfolioMargin] set to true for the portfolio margin account
+     * @returns {object[]} an array of [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, true, true);
+        object market = this.getMarketFromSymbols(symbols);
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object isPortfolioMargin = null;
+        var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
+        isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
+        parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(subType, "linear")))
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetUmAdlQuantile(parameters);
+            } else
+            {
+                response = await this.fapiPrivateGetAdlQuantile(parameters);
+            }
+        } else if (isTrue(isEqual(subType, "inverse")))
+        {
+            if (isTrue(isPortfolioMargin))
+            {
+                response = await this.papiGetCmAdlQuantile(parameters);
+            } else
+            {
+                response = await this.dapiPrivateGetAdlQuantile(parameters);
+            }
+        } else
+        {
+            throw new BadRequest ((string)add(this.id, " fetchPositionsADLRank() supports linear and inverse subTypes only")) ;
+        }
+        //
+        //     [
+        //         {
+        //             "symbol": "BTCUSDT",
+        //             "adlQuantile": {
+        //                 "LONG": 0,
+        //                 "SHORT": 0,
+        //                 "BOTH": 1
+        //             }
+        //         }
+        //     ]
+        //
+        return this.parseADLRanks(response, symbols);
+    }
+
+    public override object parseADLRank(object info, object market = null)
+    {
+        //
+        // fetchADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "adlRisk": "LOW",
+        //         "updateTime": 1766827800453
+        //     }
+        //
+        // fetchPositionADLRank
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "adlQuantile": {
+        //             "LONG": 0,
+        //             "SHORT": 0,
+        //             "BOTH": 1
+        //         }
+        //     }
+        //
+        object adlQuantile = this.safeDict(info, "adlQuantile", new Dictionary<string, object>() {});
+        object longNum = this.safeNumber(adlQuantile, "LONG");
+        object shortNum = this.safeNumber(adlQuantile, "SHORT");
+        object both = this.safeNumber(adlQuantile, "BOTH");
+        object rank = null;
+        if (isTrue(!isEqual(both, null)))
+        {
+            rank = both;
+        } else
+        {
+            if (isTrue(isTrue(!isEqual(longNum, null)) && isTrue(!isEqual(shortNum, null))))
+            {
+                if (isTrue(isGreaterThan(longNum, shortNum)))
+                {
+                    rank = longNum;
+                } else
+                {
+                    rank = shortNum;
+                }
+            }
+        }
+        object marketId = this.safeString(info, "symbol");
+        object timestamp = this.safeInteger2(info, "timestamp", "updateTime");
+        return new Dictionary<string, object>() {
+            { "info", info },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
+            { "rank", rank },
+            { "rating", this.safeStringLower(info, "adlRisk") },
+            { "percentage", null },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
         };
     }
 }

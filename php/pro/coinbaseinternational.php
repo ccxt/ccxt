@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use \React\Async;
 use \React\Promise\PromiseInterface;
@@ -198,17 +199,20 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }) ();
     }
 
-    public function watch_funding_rates(array $symbols, $params = array ()): PromiseInterface {
+    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watch the funding rate for multiple markets
              *
              * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
              *
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @param {string[]} $symbols a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
+            }
             Async\await($this->load_markets());
             $fundingRate = Async\await($this->subscribe_multiple('RISK', $symbols, $params));
             $symbol = $this->safe_string($fundingRate, 'symbol');
