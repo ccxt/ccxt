@@ -72,13 +72,7 @@ jobs:
       run: npm run id-tests-cs
     - name: Request tests
       if: env.important_modified == 'true'
-      run: |
-        sudo fallocate -l 4G /swapfile
-        sudo chmod 600 /swapfile
-        sudo mkswap /swapfile
-        sudo swapon /swapfile
-        sudo sysctl vm.swappiness=10
-        npm run request-cs
+      run: npm run request-cs
     - name: Request tests (specific)
       if: env.important_modified == 'false'
       run: |
