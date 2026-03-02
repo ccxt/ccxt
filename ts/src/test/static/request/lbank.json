@@ -236,7 +236,8 @@
                 ]
             },
             {
-                "description": "swap orderbook",
+                "disabled": true,
+                "description": "swap orderbook (disabled before contract API is re-enabled)",
                 "method": "fetchOrderBook",
                 "url": "https://lbkperp.lbank.com/cfd/openApi/v1/pub/marketOrder?depth=60&symbol=BTCUSDT",
                 "input": [
@@ -246,7 +247,8 @@
         ],
         "fetchTicker": [
             {
-                "description": "Swap ticker",
+                "disabled": true,
+                "description": "Swap ticker (disabled before contract API is re-enabled)",
                 "method": "fetchTicker",
                 "url": "https://lbkperp.lbank.com/cfd/openApi/v1/pub/marketData?productGroup=SwapU",
                 "input": [
@@ -275,7 +277,8 @@
                 ]
             },
             {
-                "description": "swap tickers",
+                "disabled": true,
+                "description": "swap tickers (disabled before contract API is re-enabled)",
                 "method": "fetchTickers",
                 "url": "https://lbkperp.lbank.com/cfd/openApi/v1/pub/marketData?productGroup=SwapU",
                 "input": [
