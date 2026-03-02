@@ -1092,26 +1092,6 @@ export default class Exchange {
         return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
     }
 
-    async loadMarketsHelper (reload = false, params = {}) {
-        if (!reload && this.markets) {
-            if (!this.markets_by_id) {
-                return this.setMarkets (this.markets);
-            }
-            return this.markets;
-        }
-        let currencies = undefined;
-        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ();
-            this.options['cachedCurrencies'] = currencies;
-        }
-        const markets = await this.fetchMarkets (params);
-        if ('cachedCurrencies' in this.options) {
-            delete this.options['cachedCurrencies'];
-        }
-        return this.setMarkets (markets, currencies);
-    }
-
     /**
      * @method
      * @name Exchange#loadMarkets
@@ -2309,6 +2289,26 @@ export default class Exchange {
             },
             'rollingWindowSize': 60000, // default 60 seconds, requires rateLimiterAlgorithm to be set as 'rollingWindow'
         };
+    }
+
+    async loadMarketsHelper (reload = false, params = {}) {
+        if (!reload && this.valueIsDefined (this.markets)) {
+            if (!this.valueIsDefined (this.markets_by_id)) {
+                return this.setMarkets (this.markets);
+            }
+            return this.markets;
+        }
+        let currencies = undefined;
+        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
+        if (this.has['fetchCurrencies'] === true) {
+            currencies = await this.fetchCurrencies ();
+            this.options['cachedCurrencies'] = currencies;
+        }
+        const markets = await this.fetchMarkets (params);
+        if ('cachedCurrencies' in this.options) {
+            delete this.options['cachedCurrencies'];
+        }
+        return this.setMarkets (markets, currencies);
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
