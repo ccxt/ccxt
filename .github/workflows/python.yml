@@ -46,8 +46,8 @@ jobs:
         uname -a
         uname -m
         python3 -c "import platform; print(platform.platform(), platform.machine())"
-        file /ccxt/python/ccxt/test/../../.././ts/src/test/static/markets/binaries/lighter-signer-linux-amd64.so || true
-        ldd /ccxt/python/ccxt/test/../../.././ts/src/test/static/markets/binaries/lighter-signer-linux-amd64.so || true
+        file ts/src/test/static/binaries/lighter-signer-linux-amd64.so
+        ldd ts/src/test/static/binaries/lighter-signer-linux-amd64.so
     - name: Check Python version
       run: python --version
     - name: Install npm dependencies
