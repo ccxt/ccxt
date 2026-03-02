@@ -311,22 +311,6 @@ class Exchange(BaseExchange):
             self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
         return self.socks_proxy_sessions[socksProxy]
 
-    async def load_markets_helper(self, reload=False, params={}):
-        if not reload:
-            if self.markets:
-                if not self.markets_by_id:
-                    return self.set_markets(self.markets)
-                return self.markets
-        currencies = None
-        if self.has['fetchCurrencies'] is True:
-            currencies = await self.fetch_currencies()
-            self.options['cachedCurrencies'] = currencies
-        markets = await self.fetch_markets(params)
-        if 'cachedCurrencies' in self.options:
-            del self.options['cachedCurrencies']
-        return self.set_markets(markets, currencies)
-
-
     async def load_markets(self, reload=False, params={}):
         """
         Loads and prepares the markets for trading.
