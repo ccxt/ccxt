@@ -24,11 +24,11 @@ function testUuid () {
     const id16b: string = exchange.uuid16 ();
     assert (id16a !== undefined, 'uuid16 1 must return a value');
     assert (id16b !== undefined, 'uuid16 2 must return a value');
-    assert (id16a !== id16b, 'uuid16() must return unique values on each call');
-    assert (id16a.toString () === id16a, 'uuid16() must return a string');
-    assert (id16b.toString () === id16b, 'uuid16() must return a string');
-    assert (id16a.length === 16, 'uuid16() must return a 16-character string');
-    assert (id16b.length === 16, 'uuid16() must return a 16-character string');
+    assert (id16a !== id16b, 'uuid16() must return unique values on each call, returned id16a: ' + id16a + ', id16b: ' + id16b);
+    assert (id16a.toString () === id16a, 'uuid16() must return a string, returned id16a: ' + id16a);
+    assert (id16b.toString () === id16b, 'uuid16() must return a string, returned id16b: ' + id16b);
+    assert (id16a.length === 16, 'uuid16() must return a 16-character string, returned id16a: ' + id16a);
+    assert (id16b.length === 16, 'uuid16() must return a 16-character string, returned id16b: ' + id16b);
 
     // uuid22() - 22-char hex string
     const id22a: string = exchange.uuid22 ();
