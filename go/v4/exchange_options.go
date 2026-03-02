@@ -337,16 +337,16 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.cacheLoaded = false
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
 	this.RequiredCredentials = reqCred.(map[string]interface{})
-	this.ApiKey = SafeString(extendedProperties, "apiKey", nil).(string)
-	this.Secret = SafeString(extendedProperties, "secret", nil).(string)
-	this.Password = SafeString(extendedProperties, "password", nil).(string)
-	this.Login = SafeString(extendedProperties, "login", nil).(string)
+	this.ApiKey = SafeString(extendedProperties, "apiKey", nil)
+	this.Secret = SafeString(extendedProperties, "secret", nil)
+	this.Password = SafeString(extendedProperties, "password", nil)
+	this.Login = SafeString(extendedProperties, "login", nil)
 	this.Twofa = SafeString(extendedProperties, "twofa", nil)
-	this.PrivateKey = SafeString(extendedProperties, "privateKey", nil).(string)
-	this.WalletAddress = SafeString(extendedProperties, "walletAddress", nil).(string)
-	this.Token = SafeString(extendedProperties, "token", nil).(string)
-	this.Uid = SafeString(extendedProperties, "uid", nil).(string)
-	this.AccountId = SafeString(extendedProperties, "accountId", nil).(string)
+	this.PrivateKey = SafeString(extendedProperties, "privateKey", nil)
+	this.WalletAddress = SafeString(extendedProperties, "walletAddress", nil)
+	this.Token = SafeString(extendedProperties, "token", nil)
+	this.Uid = SafeString(extendedProperties, "uid", nil)
+	this.AccountId = SafeString(extendedProperties, "accountId", nil)
 
 	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{
 		"chrome":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36",
