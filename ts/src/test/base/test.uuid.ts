@@ -15,9 +15,9 @@ function testUuid () {
     assert (id1 !== id2, 'uuid() must return unique values on each call');
     assert (id1.toString () === id1, 'uuid() must return a string');
     assert (id2.toString () === id2, 'uuid() must return a string');
-    assert (id1.length === 36, 'uuid() must return a 36-character string');
-    assert (id2.length === 36, 'uuid() must return a 36-character string');
-    assert (id1.indexOf ('-') === 8, 'uuid() must have dash');
+    assert (id1.length === 36, 'uuid() must return a 36-character string, returned id1: ' + id1);
+    assert (id2.length === 36, 'uuid() must return a 36-character string, returned id2: ' + id2);
+    assert (id1.indexOf ('-') === 8, 'uuid() must have dash, returned id1: ' + id1);
 
     // uuid16() - 16-char hex string
     const id16a: string = exchange.uuid16 ();
@@ -36,10 +36,10 @@ function testUuid () {
     assert (id22a !== undefined, 'uuid22 1 must return a value');
     assert (id22b !== undefined, 'uuid22 2 must return a value');
     assert (id22a !== id22b, 'uuid22() must return unique values on each call');
-    assert (id22a.toString () === id22a, 'uuid22() must return a string');
-    assert (id22b.toString () === id22b, 'uuid22() must return a string');
-    assert (id22a.length === 22, 'uuid22() must return a 22-character string');
-    assert (id22b.length === 22, 'uuid22() must return a 22-character string');
+    assert (id22a.toString () === id22a, 'uuid22() must return a string, returned id22a: ' + id22a);
+    assert (id22b.toString () === id22b, 'uuid22() must return a string, returned id22b: ' + id22b);
+    assert (id22a.length === 22, 'uuid22() must return a 22-character string, returned id22a: ' + id22a);
+    assert (id22b.length === 22, 'uuid22() must return a 22-character string, returned id22b: ' + id22b);
 
     // todo (future): enhance dashes matching and hex checks in transpilabe manner
 }
