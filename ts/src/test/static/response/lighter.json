@@ -5,7 +5,9 @@
         "vwap"
     ],
     "options": {
-        "accountIndex": 12345678
+        "accountIndex": 715085,
+        "apiKeyIndex": 0,
+        "nonce": 0
     },
     "methods": {
         "fetchClosedOrders": [
