@@ -41,6 +41,10 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
+    - name: try missing deps
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libc6 libstdc++6 libgcc-s1 libssl3
     - name: Check binaries and platform
       run: |
         uname -a
