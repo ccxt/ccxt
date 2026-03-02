@@ -1186,6 +1186,41 @@ export default class krakenfutures extends Exchange {
         //        "serverTime": "2022-02-28T19:32:17.122Z"
         //    }
         //
+        // MARKET
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2026-03-02T06:10:31.955Z",
+        //         "sendStatus": {
+        //             "status": "placed",
+        //             "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //             "receivedTime": "2026-03-02T06:10:31.954Z",
+        //             "orderEvents": [
+        //                 {
+        //                     "type": "EXECUTION",
+        //                     "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                     "price": 66596.0,
+        //                     "amount": 0.001,
+        //                     "orderPriorEdit": null,
+        //                     "orderPriorExecution": {
+        //                         "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                         "cliOrdId": null,
+        //                         "type": "ioc",
+        //                         "symbol": "PF_XBTUSD",
+        //                         "side": "buy",
+        //                         "quantity": 0.001,
+        //                         "filled": 0,
+        //                         "limitPrice": 67261.000,
+        //                         "reduceOnly": false,
+        //                         "timestamp": "2026-03-02T06:10:31.954Z",
+        //                         "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                     },
+        //                     "takerReducedQuantity": null
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const sendStatus = this.safeValue (response, 'sendStatus');
         const status = this.safeString (sendStatus, 'status');
         this.verifyOrderActionSuccess (status, 'createOrder', [ 'filled' ]);
@@ -1738,6 +1773,37 @@ export default class krakenfutures extends Exchange {
         //        ]
         //    }
         //
+        // MARKET
+        //
+        //     {
+        //         "status": "placed",
+        //         "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //         "receivedTime": "2026-03-02T06:10:31.954Z",
+        //         "orderEvents": [
+        //             {
+        //                 "type": "EXECUTION",
+        //                 "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                 "price": 66596.0,
+        //                 "amount": 0.001,
+        //                 "orderPriorEdit": null,
+        //                 "orderPriorExecution": {
+        //                     "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                     "cliOrdId": null,
+        //                     "type": "ioc",
+        //                     "symbol": "PF_XBTUSD",
+        //                     "side": "buy",
+        //                     "quantity": 0.001,
+        //                     "filled": 0,
+        //                     "limitPrice": 67261.000,
+        //                     "reduceOnly": false,
+        //                     "timestamp": "2026-03-02T06:10:31.954Z",
+        //                     "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                 },
+        //                 "takerReducedQuantity": null
+        //             }
+        //         ]
+        //     }
+        //
         // CONDITIONAL
         //
         //    {
@@ -2040,9 +2106,14 @@ export default class krakenfutures extends Exchange {
                         isPrior = false;
                         fixed = true;
                     } else if (!fixed) {
+                        const executedPrice = this.safeString (item, 'price');
                         const orderPriorExecution = this.safeValue (item, 'orderPriorExecution');
                         details = this.safeValue2 (item, 'orderPriorExecution', 'orderPriorEdit');
-                        price = this.safeString (orderPriorExecution, 'limitPrice');
+                        if (executedPrice === undefined) {
+                            price = this.safeString (orderPriorExecution, 'limitPrice');
+                        } else {
+                            price = executedPrice;
+                        }
                         if (details !== undefined) {
                             isPrior = true;
                         }
