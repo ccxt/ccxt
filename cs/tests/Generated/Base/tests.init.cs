@@ -37,6 +37,7 @@ public partial class BaseTest
             testPrecisionFromString();
             testExtractParams();
             testArraysConcat();
+            testUuid();
             await testSetMarketsFromExchange();
             testEthMethods();
             testKeysort();

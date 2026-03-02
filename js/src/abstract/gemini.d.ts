@@ -5,16 +5,24 @@ interface Exchange {
     webGetRestApi(params?: {}): Promise<implicitReturnType>;
     publicGetV1Symbols(params?: {}): Promise<implicitReturnType>;
     publicGetV1SymbolsDetailsSymbol(params?: {}): Promise<implicitReturnType>;
+    publicGetV1NetworkToken(params?: {}): Promise<implicitReturnType>;
     publicGetV1StakingRates(params?: {}): Promise<implicitReturnType>;
     publicGetV1PubtickerSymbol(params?: {}): Promise<implicitReturnType>;
+    publicGetV1Feepromos(params?: {}): Promise<implicitReturnType>;
     publicGetV2TickerSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetV2CandlesSymbolTimeframe(params?: {}): Promise<implicitReturnType>;
     publicGetV1TradesSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetV1AuctionSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetV1AuctionSymbolHistory(params?: {}): Promise<implicitReturnType>;
     publicGetV1Pricefeed(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FundingamountSymbol(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FundingamountreportRecordsXlsx(params?: {}): Promise<implicitReturnType>;
     publicGetV1BookSymbol(params?: {}): Promise<implicitReturnType>;
     publicGetV1EarnRates(params?: {}): Promise<implicitReturnType>;
+    publicGetV2DerivativesCandlesSymbolTimeFrame(params?: {}): Promise<implicitReturnType>;
+    publicGetV2FxrateSymbolTimestamp(params?: {}): Promise<implicitReturnType>;
+    publicGetV1PerpetualsFundingpaymentreportRecordsXlsx(params?: {}): Promise<implicitReturnType>;
+    publicGetV1RiskstatsSymbol(params?: {}): Promise<implicitReturnType>;
     privatePostV1StakingUnstake(params?: {}): Promise<implicitReturnType>;
     privatePostV1StakingStake(params?: {}): Promise<implicitReturnType>;
     privatePostV1StakingRewards(params?: {}): Promise<implicitReturnType>;
@@ -56,6 +64,25 @@ interface Exchange {
     privatePostV1AccountList(params?: {}): Promise<implicitReturnType>;
     privatePostV1Heartbeat(params?: {}): Promise<implicitReturnType>;
     privatePostV1Roles(params?: {}): Promise<implicitReturnType>;
+    privatePostV1Custodyaccountfees(params?: {}): Promise<implicitReturnType>;
+    privatePostV1WithdrawCurrencyCodeLowerCaseFeeEstimate(params?: {}): Promise<implicitReturnType>;
+    privatePostV1PaymentsAddbankCad(params?: {}): Promise<implicitReturnType>;
+    privatePostV1Transactions(params?: {}): Promise<implicitReturnType>;
+    privatePostV1MarginAccount(params?: {}): Promise<implicitReturnType>;
+    privatePostV1MarginRates(params?: {}): Promise<implicitReturnType>;
+    privatePostV1MarginOrderPreview(params?: {}): Promise<implicitReturnType>;
+    privatePostV1ClearingList(params?: {}): Promise<implicitReturnType>;
+    privatePostV1ClearingBrokerList(params?: {}): Promise<implicitReturnType>;
+    privatePostV1ClearingBrokerNew(params?: {}): Promise<implicitReturnType>;
+    privatePostV1ClearingTrades(params?: {}): Promise<implicitReturnType>;
+    privatePostV1InstantQuote(params?: {}): Promise<implicitReturnType>;
+    privatePostV1InstantExecute(params?: {}): Promise<implicitReturnType>;
+    privatePostV1AccountRename(params?: {}): Promise<implicitReturnType>;
+    privatePostV1OauthRevokeByToken(params?: {}): Promise<implicitReturnType>;
+    privatePostV1Margin(params?: {}): Promise<implicitReturnType>;
+    privatePostV1PerpetualsFundingPayment(params?: {}): Promise<implicitReturnType>;
+    privatePostV1PerpetualsFundingpaymentreportRecordsJson(params?: {}): Promise<implicitReturnType>;
+    privatePostV1Positions(params?: {}): Promise<implicitReturnType>;
 }
 declare abstract class Exchange extends _Exchange {
 }

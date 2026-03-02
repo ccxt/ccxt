@@ -242,7 +242,6 @@ export default class Exchange {
     implodeParams: (string: string, params: any[] | Dictionary<any>) => string;
     extractParams: (string: string) => string[];
     json: (data: any, params?: any) => string;
-    vwap: typeof functions.vwap;
     merge: (target: Dictionary<any>, ...args: any) => Dictionary<any>;
     binaryConcat: typeof import("../static_dependencies/noble-curves/abstract/utils.js").concatBytes;
     hash: (request: import("../static_dependencies/noble-hashes/utils.js").Input, hash: {
@@ -287,7 +286,6 @@ export default class Exchange {
     safeStringLower2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
     safeStringUpper2: (o: any, k1: IndexType, k2: IndexType, $default?: string) => string;
     isEmpty: (object: any[] | Dictionary<any>) => boolean;
-    ordered: (x: any[] | Dictionary<any>) => any[] | Dictionary<any>;
     filterBy: (x: Dictionary<any>, k: string, value?: any, out?: Dictionary<any>[]) => Dictionary<any>[];
     uuid16: (a?: any) => string;
     urlencodeWithArrayRepeat: (object: object) => string;
