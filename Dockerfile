@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Supresses unwanted user interaction (like "Please select the geographic area" when installing tzdata)
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,7 +13,7 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
 RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg git ca-certificates
 # PHP
 RUN apt-get install -y software-properties-common && add-apt-repository -y ppa:ondrej/php
-RUN apt-get update && apt-get install -y --no-install-recommends php8.1 php8.1-curl php8.1-iconv php8.1-mbstring php8.1-bcmath php8.1-gmp
+RUN apt-get update && apt-get install -y --no-install-recommends php8.4 php8.4-curl php8.4-iconv php8.4-mbstring php8.4-bcmath php8.4-gmp
 # Node
 RUN apt-get update
 RUN apt-get install -y ca-certificates curl gnupg
