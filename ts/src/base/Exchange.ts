@@ -290,6 +290,7 @@ export default class Exchange {
         referral?: string;
     };
 
+    requiresWeb3: boolean = false;
     requiresEddsa: boolean = false;
     precision: {
         amount: Num,
@@ -547,6 +548,17 @@ export default class Exchange {
         // default property values
         this.timeout = 10000; // milliseconds
         this.verbose = false;
+        this.twofa = undefined; // two-factor authentication (2FA)
+        // default credentials
+        this.apiKey = undefined;
+        this.secret = undefined;
+        this.uid = undefined;
+        this.login = undefined;
+        this.password = undefined;
+        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
+        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
+        this.token = undefined; // reserved for HTTP auth in some cases
+        // placeholders for cached data
         this.balance = {};
         this.bidsasks = {};
         this.orderbooks = {};
@@ -560,6 +572,7 @@ export default class Exchange {
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
+        this.requiresWeb3 = false;
         this.requiresEddsa = false;
         // response handling flags and properties
         this.lastRestRequestTimestamp = 0;
