@@ -42,6 +42,9 @@ import {
     getEnvVars,
     getLang,
     getExt,
+    isWindows,
+    isLinux,
+    isAmd64,
 } from './tests.helpers.js';
 
 
@@ -1304,11 +1307,33 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
-        const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
-        const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
-        const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
+        let wasmExecPath = undefined;
+        let libraryPath = undefined;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
+        const basePath = getRootDir () + 'ts/src/test/static/binaries/';
+        if (exchangeName === 'lighter') {
+            if (this.lang === 'JS') {
+                wasmExecPath = basePath + 'wasm_exec.js';
+                libraryPath = basePath + 'lighter.wasm';
+            } else {
+                if (isWindows ()) {
+                    libraryPath = basePath + 'lighter-signer-windows-amd64.dll';
+                } else if (isLinux ()) {
+                    if (isAmd64 ()) {
+                        libraryPath = basePath + 'lighter-signer-linux-amd64.so';
+                    } else {
+                        libraryPath = basePath + 'lighter-signer-linux-arm64.so';
+                    }
+                } else {
+                    // assume macos arm64
+                    libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                }
+            }
+        }
         const options = {
             "markets":markets,
             "currencies":currencies,
@@ -1342,7 +1367,7 @@ class testMainClass {
                 "expires":999999999999999,
                 "leverageBrackets":{
                 },
-                "libraryPath": librarypath,
+                "libraryPath": libraryPath,
                 "wasmExecPath": wasmExecPath
             }
         };

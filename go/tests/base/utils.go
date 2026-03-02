@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"runtime"
 	"strings"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
@@ -587,3 +588,7 @@ func GetEnvVars() map[string]string {
 	}
 	return envMap
 }
+
+func IsWindows() bool { return runtime.GOOS == "windows" }
+func IsLinux() bool   { return runtime.GOOS == "linux" }
+func IsAmd64() bool   { return runtime.GOARCH == "amd64" }
