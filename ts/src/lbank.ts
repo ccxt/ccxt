@@ -31,7 +31,7 @@ export default class lbank extends Exchange {
                 'CORS': false,
                 'spot': true,
                 'margin': false,
-                'swap': undefined,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': false,
