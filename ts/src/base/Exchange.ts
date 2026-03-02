@@ -398,7 +398,7 @@ export default class Exchange {
 
     name: Str = undefined;
 
-    lastRestRequestTimestamp: int;
+    lastRestRequestTimestamp: int = 0;
 
     targetAccount: string = undefined;
 
@@ -417,7 +417,6 @@ export default class Exchange {
     newUpdates: boolean = true;
     streaming: Dictionary<any> = {};
 
-    // non-transpilable props
     isNode = isNode;
     unCamelCase = unCamelCase;
     now = now;
@@ -541,62 +540,11 @@ export default class Exchange {
         //
         this.options = this.getDefaultOptions (); // exchange-specific options if any
         // fetch implementation options (JS only)
-        // http properties
-        this.headers = {};
-        this.origin = '*'; // CORS origin
         // underlying properties
-        this.minFundingAddressLength = 1; // used in checkAddress
-        this.substituteCommonCurrencyCodes = true;  // reserved
-        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
         this.number = Number; // or String (a pointer to a function)
-        this.handleContentTypeApplicationZip = false;
-        // whether fees should be summed by currency code
-        this.reduceFees = true;
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation
         this.fetchImplementation = undefined;
-        this.validateServerSsl = true;
-        this.validateClientSsl = false;
-        // default property values
-        this.timeout = 10000; // milliseconds
-        this.verbose = false;
-        this.twofa = undefined; // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey = undefined;
-        this.secret = undefined;
-        this.uid = undefined;
-        this.login = undefined;
-        this.password = undefined;
-        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
-        this.token = undefined; // reserved for HTTP auth in some cases
-        // placeholders for cached data
-        this.balance = {};
-        this.bidsasks = {};
-        this.orderbooks = {};
-        this.tickers = {};
-        this.liquidations = undefined;
-        this.orders = undefined;
-        this.trades = {};
-        this.transactions = {};
-        this.ohlcvs = {};
-        this.myLiquidations = undefined;
-        this.myTrades = undefined;
-        this.positions = undefined;
-        // web3 and cryptography flags
-        this.requiresWeb3 = false;
-        this.requiresEddsa = false;
-        // response handling flags and properties
-        this.lastRestRequestTimestamp = 0;
-        this.enableLastJsonResponse = false;
-        this.enableLastHttpResponse = true;
-        this.enableLastResponseHeaders = true;
-        this.last_http_response = undefined;
-        this.last_json_response = undefined;
-        this.last_response_headers = undefined;
-        this.last_request_headers = undefined;
-        this.last_request_body = undefined;
-        this.last_request_url = undefined;
-        this.last_request_path = undefined;
+
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
