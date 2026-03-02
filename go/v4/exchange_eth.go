@@ -579,11 +579,13 @@ func SafeInt(v interface{}) int64 {
 // we create client with the given api credential in this function
 func (this *Exchange) LoadLighterLibrary(path interface{}, chainId interface{}, privateKey interface{}, apiKeyIndex interface{}, accountIndex interface{}) <-chan interface{} {
 	ch := make(chan interface{})
-	ch <- this.loadLighterLibrary(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+	go func() {
+		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+	}()
 	return ch
 }
 
-func (this *Exchange) loadLighterLibrary(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
+func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
 	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
 
 	httpClient := http.NewClient(url)
