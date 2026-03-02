@@ -41,34 +41,6 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-    - name: try missing deps
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y libc6 libstdc++6 libgcc-s1 libssl3
-    - name: Check header
-      run: |
-        ls -la ts/src/test/static/binaries/lighter-signer-linux-amd64.so
-        wc -c ts/src/test/static/binaries/lighter-signer-linux-amd64.so
-        head -n 5 ts/src/test/static/binaries/lighter-signer-linux-amd64.so
-    - name: Check if it loads
-      run: |
-        git lfs version || echo "no git lfs"
-        git lfs ls-files | head -n 20
-        git lfs status || true
-        sha256sum ts/src/test/static/binaries/lighter-signer-linux-amd64.so
-        python3 - <<'PY'
-        import ctypes
-        p = "ts/src/test/static/binaries/lighter-signer-linux-amd64.so"
-        ctypes.CDLL(p)
-        print("Loaded OK")
-        PY
-    - name: Check binaries and platform
-      run: |
-        uname -a
-        uname -m
-        python3 -c "import platform; print(platform.platform(), platform.machine())"
-        file ts/src/test/static/binaries/lighter-signer-linux-amd64.so
-        ldd ts/src/test/static/binaries/lighter-signer-linux-amd64.so
     - name: Check Python version
       run: python --version
     - name: Install npm dependencies
