@@ -1160,6 +1160,7 @@ export default class gate extends Exchange {
                     'Your order size': InvalidOrder, // {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
                 },
             },
+            'rollingWindowSize': 5000.0,
         });
     }
 
