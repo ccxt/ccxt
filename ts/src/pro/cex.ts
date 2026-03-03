@@ -239,7 +239,12 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue (message, 'data', []);
-        const stored = this.trades as any; // to do fix this, this.trades is not meant to be used like this
+        const symbol = 'default'; // yeah, but this is what it is
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const stored = this.trades[symbol];
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
@@ -248,8 +253,8 @@ export default class cex extends cexRest {
             stored.append (parsed);
         }
         const messageHash = 'trades';
-        this.trades = stored;
-        client.resolve (this.trades, messageHash);
+        this.trades[symbol] = stored;
+        client.resolve (this.trades[symbol], messageHash);
     }
 
     /**
