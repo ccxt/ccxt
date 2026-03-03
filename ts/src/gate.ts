@@ -5123,6 +5123,9 @@ export default class gate extends Exchange {
         if (lastTradeTimestampStr !== undefined) {
             lastTradeTimestamp = this.parseToInt (lastTradeTimestampStr);
         }
+        const initial = this.safeDict (order, 'initial', {});
+        const reduceOnlyInitial = this.safeBool (initial, 'is_reduce_only');
+        const reduceOnly = this.safeBool (order, 'is_reduce_only', reduceOnlyInitial);
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
             'clientOrderId': this.safeString (order, 'text'),
@@ -5134,7 +5137,7 @@ export default class gate extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeBool (order, 'is_reduce_only'),
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,
