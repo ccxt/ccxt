@@ -32,7 +32,19 @@ func UnWrapType(value interface{}) interface{} {
 		return v.ToMap()
 	case ArrayCacheByTimestamp:
 		return v.ToArray()
+	case *ArrayCacheByTimestamp:
+		return v.ToArray()
 	case ArrayCache:
+		return v.ToArray()
+	case *ArrayCache:
+		return v.ToArray()
+	case ArrayCacheBySymbolById:
+		return v.ToArray()
+	case *ArrayCacheBySymbolById:
+		return v.ToArray()
+	case ArrayCacheBySymbolBySide:
+		return v.ToArray()
+	case *ArrayCacheBySymbolBySide:
 		return v.ToArray()
 	case string:
 		panic(v)
@@ -407,14 +419,14 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 	}
 
 	// to access
-	if val, ok := collection.(*ArrayCache); ok {
+	if val, ok := collection.(interface{ GetData() []interface{} }); ok {
 		intKey := ParseInt(key)
 		if intKey == math.MinInt64 {
 			return nil // Key is not an int, invalid index
 		}
-		if intKey < int64(len(val.Data)) {
-			// return val.Data[intKey]
-			return val.Data[int(intKey)]
+		data := val.GetData()
+		if intKey >= 0 && intKey < int64(len(data)) {
+			return data[int(intKey)]
 		}
 		return nil
 	}
