@@ -2714,6 +2714,17 @@ export default class deribit extends Exchange {
         const notionalString = this.safeString (position, 'size_currency');
         const notionalStringAbs = Precise.stringAbs (notionalString);
         const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
+        const isOption = (market['type'] === 'option');
+        const delta = this.safeNumber (position, 'delta');
+        let greeks = undefined;
+        if (delta !== undefined) {
+            greeks = {
+                'delta': delta,
+                'gamma': isOption ? this.safeNumber (position, 'gamma') : undefined,
+                'theta': isOption ? this.safeNumber (position, 'theta') : undefined,
+                'vega': isOption ? this.safeNumber (position, 'vega') : undefined,
+            };
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -2743,6 +2754,7 @@ export default class deribit extends Exchange {
             'hedged': undefined,
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
+            'greeks': greeks,
         });
     }
 
