@@ -61,6 +61,8 @@ jobs:
         done
     - name: Build Project
       run: npm run buildCS
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-cs
