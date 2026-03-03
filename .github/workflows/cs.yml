@@ -67,8 +67,8 @@ jobs:
       run: for i in {1..10}; do npm run request-cs -- lighter; done
     - name: Debug script remove later
       run: bash all.sh
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
     - name: Run Base Tests
       if: env.important_modified == 'true'
       run: npm run test-base-rest-cs
