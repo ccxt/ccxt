@@ -61,6 +61,8 @@ jobs:
         done
     - name: Build Project
       run: npm run buildCS
+    - name: Debug script remove later
+      run: sh all.sh
     - name: Setup tmate session
       uses: mxschmitt/action-tmate@v3
     - name: Run Base Tests
