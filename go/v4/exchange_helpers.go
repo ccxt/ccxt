@@ -406,6 +406,19 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		}
 	}
 
+	// to access
+	if val, ok := collection.(*ArrayCache); ok {
+		intKey := ParseInt(key)
+		if intKey == math.MinInt64 {
+			return nil // Key is not an int, invalid index
+		}
+		if intKey < int64(len(val.Data)) {
+			// return val.Data[intKey]
+			return val.Data[int(intKey)]
+		}
+		return nil
+	}
+
 	// this is needed in checkRequiredCredentials or alike
 	reflectValue := reflect.ValueOf(collection)
 
