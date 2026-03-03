@@ -88,6 +88,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run request-cs -- $exchange
         done
+    - name: Diagnostics (always)
+      if: always()
+      shell: bash
+      run: |
+        set +e
+        echo "=== free -h ==="; free -h
+        echo "=== df -h ==="; df -h
+        echo "=== ulimit -a ==="; ulimit -a
+        echo "=== dmesg OOM/killed ==="
+        sudo dmesg -T | tail -n 300 | grep -i -E "oom|killed process|out of memory" || true
     - name: Response tests
       if: env.important_modified == 'true'
       run: npm run response-cs
@@ -98,6 +108,16 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-cs -- $exchange
         done
+    - name: Diagnostics (always) response tests
+      if: always()
+      shell: bash
+      run: |
+        set +e
+        echo "=== free -h ==="; free -h
+        echo "=== df -h ==="; df -h
+        echo "=== ulimit -a ==="; ulimit -a
+        echo "=== dmesg OOM/killed ==="
+        sudo dmesg -T | tail -n 300 | grep -i -E "oom|killed process|out of memory" || true
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
