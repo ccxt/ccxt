@@ -165,10 +165,6 @@ export default class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        // assing symbol to the trades as message does not contain symbol information
-        for (let i = 0; i < trades.length; i++) {
-            trades[i]['symbol'] = symbol;
-        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
