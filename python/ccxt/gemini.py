@@ -40,7 +40,7 @@ class gemini(Exchange, ImplicitAPI):
             'has': {
                 'CORS': None,
                 'spot': True,
-                'margin': False,
+                'margin': None,
                 'swap': True,
                 'future': False,
                 'option': False,
@@ -146,16 +146,24 @@ class gemini(Exchange, ImplicitAPI):
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/network/{token}': 5,
                         'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
+                        'v1/feepromos': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
                         'v1/trades/{symbol}': 5,
                         'v1/auction/{symbol}': 5,
                         'v1/auction/{symbol}/history': 5,
                         'v1/pricefeed': 5,
+                        'v1/fundingamount/{symbol}': 5,
+                        'v1/fundingamountreport/records.xlsx': 5,
                         'v1/book/{symbol}': 5,
                         'v1/earn/rates': 5,
+                        'v2/derivatives/candles/{symbol}/{time_frame}': 5,
+                        'v2/fxrate/{symbol}/{timestamp}': 5,
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx': 5,
+                        'v1/riskstats/{symbol}': 5,
                     },
                 },
                 'private': {
@@ -201,6 +209,25 @@ class gemini(Exchange, ImplicitAPI):
                         'v1/account/list': 1,
                         'v1/heartbeat': 1,
                         'v1/roles': 1,
+                        'v1/custodyaccountfees': 1,
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': 1,
+                        'v1/payments/addbank/cad': 1,
+                        'v1/transactions': 1,
+                        'v1/margin/account': 1,
+                        'v1/margin/rates': 1,
+                        'v1/margin/order/preview': 1,
+                        'v1/clearing/list': 1,
+                        'v1/clearing/broker/list': 1,
+                        'v1/clearing/broker/new': 1,
+                        'v1/clearing/trades': 1,
+                        'v1/instant/quote': 1,
+                        'v1/instant/execute': 1,
+                        'v1/account/rename': 1,
+                        'v1/oauth/revokeByToken': 1,
+                        'v1/margin': 1,
+                        'v1/perpetuals/fundingPayment': 1,
+                        'v1/perpetuals/fundingpaymentreport/records.json': 1,
+                        'v1/positions': 1,
                     },
                 },
             },
@@ -1931,3 +1958,49 @@ class gemini(Exchange, ImplicitAPI):
         #     ]
         #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def fetch_open_interest(self, symbol: str, params={}):
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://docs.gemini.com/rest/derivatives#get-risk-stats
+
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetV1RiskstatsSymbol(self.extend(request, params))
+        #
+        #    {
+        #        product_type: 'PerpetualSwapContract',
+        #        mark_price: '9.023',
+        #        index_price: '9.02072',
+        #        open_interest: '4681.9',
+        #        open_interest_notional: '42244.7837'
+        #    }
+        #
+        return self.parse_open_interest(response, market)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        #    {
+        #        product_type: 'PerpetualSwapContract',
+        #        mark_price: '9.023',
+        #        index_price: '9.02072',
+        #        open_interest: '4681.9',
+        #        open_interest_notional: '42244.7837'
+        #    }
+        #
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_string(market, 'symbol'),
+            'openInterestAmount': self.safe_string(interest, 'open_interest'),
+            'openInterestValue': self.safe_string(interest, 'open_interest_notional'),
+            'timestamp': None,
+            'datetime': None,
+        }, market)

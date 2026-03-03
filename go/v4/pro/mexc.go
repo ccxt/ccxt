@@ -1784,7 +1784,7 @@ func  (this *MexcCore) HandleBalance(client interface{}, message interface{})  {
     //             "frozenBalance": 0,
     //             "positionMargin": 1.36945756
     //         },
-    //         "ts": 1680059188190
+    //         "ts": 1680059188191
     //     }
     //
     var channel interface{} = this.SafeString(message, "channel")

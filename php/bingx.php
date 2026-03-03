@@ -135,7 +135,17 @@ class bingx extends Exchange {
                     'api' => 'https://open-api.{hostname}/openApi',
                 ),
                 'test' => array(
-                    'swap' => 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                    'fund' => 'https://open-api-vst.{hostname}/openApi',
+                    'spot' => 'https://open-api-vst.{hostname}/openApi',
+                    'swap' => 'https://open-api-vst.{hostname}/openApi',
+                    'contract' => 'https://open-api-vst.{hostname}/openApi',
+                    'wallets' => 'https://open-api-vst.{hostname}/openApi',
+                    'user' => 'https://open-api-vst.{hostname}/openApi',
+                    'subAccount' => 'https://open-api-vst.{hostname}/openApi',
+                    'account' => 'https://open-api-vst.{hostname}/openApi',
+                    'copyTrading' => 'https://open-api-vst.{hostname}/openApi',
+                    'cswap' => 'https://open-api-vst.{hostname}/openApi',
+                    'api' => 'https://open-api-vst.{hostname}/openApi',
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -6822,10 +6832,10 @@ class bingx extends Exchange {
         $version = $section[1];
         $access = $section[2];
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox && ($type !== 'swap')) {
+        $url = $this->implode_hostname($this->urls['api'][$type]);
+        if ($isSandbox && $url === null) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
-        $url = $this->implode_hostname($this->urls['api'][$type]);
         $path = $this->implode_params($path, $params);
         $versionIsTransfer = ($version === 'transfer');
         $versionIsAsset = ($version === 'asset');

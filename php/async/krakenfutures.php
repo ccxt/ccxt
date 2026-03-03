@@ -1057,6 +1057,15 @@ class krakenfutures extends Exchange {
                 $takerOrMaker = 'taker';
             }
         }
+        $fee = null;
+        if (($takerOrMaker !== null) && ($cost !== null)) {
+            $feeRate = $this->safe_string($market, $takerOrMaker);
+            $fee = array(
+                'cost' => Precise::string_mul($cost, $feeRate),
+                'currency' => $this->safe_string($market, 'quote'),
+                'rate' => $feeRate,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
@@ -1070,7 +1079,7 @@ class krakenfutures extends Exchange {
             'price' => $price,
             'amount' => $linear ? $amount : null,
             'cost' => $cost,
-            'fee' => null,
+            'fee' => $fee,
         ));
     }
 
@@ -1190,6 +1199,41 @@ class krakenfutures extends Exchange {
             //        ),
             //        "serverTime" => "2022-02-28T19:32:17.122Z"
             //    }
+            //
+            // MARKET
+            //
+            //     {
+            //         "result" => "success",
+            //         "serverTime" => "2026-03-02T06:10:31.955Z",
+            //         "sendStatus" => {
+            //             "status" => "placed",
+            //             "order_id" => "a133a4f9-254d-4806-8176-9acc936b6944",
+            //             "receivedTime" => "2026-03-02T06:10:31.954Z",
+            //             "orderEvents" => array(
+            //                 {
+            //                     "type" => "EXECUTION",
+            //                     "executionId" => "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+            //                     "price" => 66596.0,
+            //                     "amount" => 0.001,
+            //                     "orderPriorEdit" => null,
+            //                     "orderPriorExecution" => array(
+            //                         "orderId" => "a133a4f9-254d-4806-8176-9acc936b6944",
+            //                         "cliOrdId" => null,
+            //                         "type" => "ioc",
+            //                         "symbol" => "PF_XBTUSD",
+            //                         "side" => "buy",
+            //                         "quantity" => 0.001,
+            //                         "filled" => 0,
+            //                         "limitPrice" => 67261.000,
+            //                         "reduceOnly" => false,
+            //                         "timestamp" => "2026-03-02T06:10:31.954Z",
+            //                         "lastUpdateTimestamp" => "2026-03-02T06:10:31.954Z"
+            //                     ),
+            //                     "takerReducedQuantity" => null
+            //                 }
+            //             )
+            //         }
+            //     }
             //
             $sendStatus = $this->safe_value($response, 'sendStatus');
             $status = $this->safe_string($sendStatus, 'status');
@@ -1494,10 +1538,10 @@ class krakenfutures extends Exchange {
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * Gets all $orders for an account from the exchange api
              *
              * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
              *
-             * Gets all $orders for an account from the exchange api
              * @param {string} $symbol Unified $market $symbol
              * @param {int} [$since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
              * @param {int} [$limit] How many $orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -1766,6 +1810,37 @@ class krakenfutures extends Exchange {
         //        )
         //    }
         //
+        // MARKET
+        //
+        //     {
+        //         "status" => "placed",
+        //         "order_id" => "a133a4f9-254d-4806-8176-9acc936b6944",
+        //         "receivedTime" => "2026-03-02T06:10:31.954Z",
+        //         "orderEvents" => array(
+        //             {
+        //                 "type" => "EXECUTION",
+        //                 "executionId" => "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                 "price" => 66596.0,
+        //                 "amount" => 0.001,
+        //                 "orderPriorEdit" => null,
+        //                 "orderPriorExecution" => array(
+        //                     "orderId" => "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                     "cliOrdId" => null,
+        //                     "type" => "ioc",
+        //                     "symbol" => "PF_XBTUSD",
+        //                     "side" => "buy",
+        //                     "quantity" => 0.001,
+        //                     "filled" => 0,
+        //                     "limitPrice" => 67261.000,
+        //                     "reduceOnly" => false,
+        //                     "timestamp" => "2026-03-02T06:10:31.954Z",
+        //                     "lastUpdateTimestamp" => "2026-03-02T06:10:31.954Z"
+        //                 ),
+        //                 "takerReducedQuantity" => null
+        //             }
+        //         )
+        //     }
+        //
         // CONDITIONAL
         //
         //    {
@@ -2009,6 +2084,10 @@ class krakenfutures extends Exchange {
             //
             $datetime = $this->safe_string($orderDictFromFetchOrder, 'timestamp');
             $innerStatus = $this->safe_string($order, 'status');
+            $filledOrder = $this->safe_string($orderDictFromFetchOrder, 'filled', '0');
+            if (($filledOrder === '0') || ($filledOrder === '0.0')) {
+                $filledOrder = null;
+            }
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
@@ -2028,7 +2107,7 @@ class krakenfutures extends Exchange {
                 'amount' => $this->safe_string($orderDictFromFetchOrder, 'quantity'),
                 'cost' => null,
                 'average' => null,
-                'filled' => $this->safe_string($orderDictFromFetchOrder, 'filled'),
+                'filled' => $filledOrder,
                 'remaining' => null,
                 'status' => $this->parse_order_status($innerStatus),
                 'fee' => null,
@@ -2064,9 +2143,14 @@ class krakenfutures extends Exchange {
                         $isPrior = false;
                         $fixed = true;
                     } elseif (!$fixed) {
+                        $executedPrice = $this->safe_string($item, 'price');
                         $orderPriorExecution = $this->safe_value($item, 'orderPriorExecution');
                         $details = $this->safe_value_2($item, 'orderPriorExecution', 'orderPriorEdit');
-                        $price = $this->safe_string($orderPriorExecution, 'limitPrice');
+                        if ($executedPrice === null) {
+                            $price = $this->safe_string($orderPriorExecution, 'limitPrice');
+                        } else {
+                            $price = $executedPrice;
+                        }
                         if ($details !== null) {
                             $isPrior = true;
                         }
@@ -2158,6 +2242,11 @@ class krakenfutures extends Exchange {
             $symbol = $this->safe_symbol($this->safe_string($details, 'tradeable'), $market);
         }
         $ts = $this->safe_integer($details, 'timestamp', $timestamp);
+        $priceTriggerOptions = $this->safe_dict($details, 'priceTriggerOptions', array());
+        $triggerPrice = $this->safe_string_2($details, 'triggerPrice', 'stopPrice');
+        if ($triggerPrice === null) {
+            $triggerPrice = $this->safe_string($priceTriggerOptions, 'triggerPrice');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2173,7 +2262,8 @@ class krakenfutures extends Exchange {
             'reduceOnly' => $this->safe_bool_2($details, 'reduceOnly', 'reduce_only'),
             'side' => $this->safe_string_lower_2($details, 'side', 'direction'),
             'price' => $price,
-            'triggerPrice' => $this->safe_string($details, 'triggerPrice'),
+            'triggerPrice' => $triggerPrice,
+            'stopPrice' => $triggerPrice,
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,

@@ -707,8 +707,13 @@ export default class coinspot extends Exchange {
         });
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const url = this.urls['api'][api] + '/' + path;
-        if (api === 'private') {
+        const isVersionedApi = Array.isArray(api);
+        const version = isVersionedApi ? api[0] : undefined;
+        const accessType = isVersionedApi ? api[1] : api;
+        const endpoint = '/' + this.implodeParams(path, params);
+        const fullPath = (version !== undefined) ? '/' + version + endpoint : endpoint;
+        const url = this.urls['api'][accessType] + fullPath;
+        if (accessType === 'private') {
             this.checkRequiredCredentials();
             const nonce = this.nonce();
             body = this.json(this.extend({ 'nonce': nonce }, params));

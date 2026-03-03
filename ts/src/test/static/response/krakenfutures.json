@@ -62,10 +62,17 @@
                         "amount": 1,
                         "cost": 0.50008,
                         "fee": {
-                            "cost": null,
-                            "currency": null
+                            "currency": "USD",
+                            "cost": 0.00025004,
+                            "rate": 0.0005
                         },
-                        "fees": []
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.00025004,
+                                "rate": 0.0005
+                            }
+                        ]
                     },
                     {
                         "info": {
@@ -90,10 +97,17 @@
                         "amount": 0.1,
                         "cost": 6.854,
                         "fee": {
-                            "cost": null,
-                            "currency": null
+                            "currency": "USD",
+                            "cost": 0.0051405,
+                            "rate": 0.00075
                         },
-                        "fees": []
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.0051405,
+                                "rate": 0.00075
+                            }
+                        ]
                     }
                 ]
             }
@@ -1154,6 +1168,121 @@
                         "interval": "1h"
                     }
                 }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Inverse swap fetch trades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD:BTC",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "elements": [
+                        {
+                            "uid": "1aa82c9b-e778-49d9-976f-6c4974677089",
+                            "timestamp": "1772026472238",
+                            "event": {
+                                "Execution": {
+                                    "execution": {
+                                    "uid": "73dd02fe-54f1-4ed8-a419-7e468357cd72",
+                                    "makerOrder": {
+                                        "uid": "a12a3479-d3e5-410a-8c86-3c1c4c8b6ef1",
+                                        "tradeable": "PI_XBTUSD",
+                                        "direction": "Sell",
+                                        "quantity": "200.0",
+                                        "timestamp": "1772026410977",
+                                        "limitPrice": "66155.0",
+                                        "orderType": "Limit",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772026470976"
+                                    },
+                                    "takerOrder": {
+                                        "uid": "a12a34d7-4e1d-4018-ab50-04f6485736db",
+                                        "tradeable": "PI_XBTUSD",
+                                        "direction": "Buy",
+                                        "quantity": "200",
+                                        "timestamp": "1772026472238",
+                                        "limitPrice": "66816.500",
+                                        "orderType": "Market",
+                                        "reduceOnly": false,
+                                        "lastUpdateTimestamp": "1772026472238"
+                                    },
+                                    "timestamp": "1772026472238",
+                                    "quantity": "200.0",
+                                    "price": "66155.0",
+                                    "markPrice": "66156.99270213483",
+                                    "limitFilled": true,
+                                    "usdValue": "200.00"
+                                    },
+                                    "takerReducedQuantity": ""
+                                }
+                            }
+                        }
+                    ],
+                    "len": "1",
+                    "continuationToken": "MTc3MjAyMTc1MTg0Ny81MzI5NzAyNjM5Mw=="
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "uid": "73dd02fe-54f1-4ed8-a419-7e468357cd72",
+                            "makerOrder": {
+                                "uid": "a12a3479-d3e5-410a-8c86-3c1c4c8b6ef1",
+                                "tradeable": "PI_XBTUSD",
+                                "direction": "Sell",
+                                "quantity": "200.0",
+                                "timestamp": "1772026410977",
+                                "limitPrice": "66155.0",
+                                "orderType": "Limit",
+                                "reduceOnly": false,
+                                "lastUpdateTimestamp": "1772026470976"
+                            },
+                            "takerOrder": {
+                                "uid": "a12a34d7-4e1d-4018-ab50-04f6485736db",
+                                "tradeable": "PI_XBTUSD",
+                                "direction": "Buy",
+                                "quantity": "200",
+                                "timestamp": "1772026472238",
+                                "limitPrice": "66816.500",
+                                "orderType": "Market",
+                                "reduceOnly": false,
+                                "lastUpdateTimestamp": "1772026472238"
+                            },
+                            "timestamp": "1772026472238",
+                            "quantity": "200.0",
+                            "price": "66155.0",
+                            "markPrice": "66156.99270213483",
+                            "limitFilled": true,
+                            "usdValue": "200.00"
+                        },
+                        "id": "73dd02fe-54f1-4ed8-a419-7e468357cd72",
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1772026472238,
+                        "datetime": "2026-02-25T13:34:32.238Z",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 66155,
+                        "amount": null,
+                        "cost": 0.003023203083667145,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.0000022674023127503585,
+                            "rate": 0.00075
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.0000022674023127503585,
+                                "rate": 0.00075
+                            }
+                        ]
+                    }
+                ]
             }
         ]
     }

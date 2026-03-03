@@ -37,9 +37,11 @@ public partial class BaseTest
             testPrecisionFromString();
             testExtractParams();
             testArraysConcat();
-            testSetMarketsFromExchange();
+            testUuid();
+            await testSetMarketsFromExchange();
             testEthMethods();
             testKeysort();
+            testUnique();
             await testSleep();
             testIo();
         }

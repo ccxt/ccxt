@@ -1202,6 +1202,16 @@
         ],
         "setLeverage": [
             {
+                "description": "set leverage hip3 market",
+                "method": "setLeverage",
+                "url": "https://api.hyperliquid.xyz/exchange",
+                "input": [
+                    5,
+                    "XYZ-AAPL/USDC:USDC"
+                ],
+                "output": "{\"action\":{\"type\":\"updateLeverage\",\"asset\":110009,\"isCross\":true,\"leverage\":5},\"nonce\":1772355531476,\"signature\":{\"r\":\"0x8a7b78bfe2b19078fea19563d029559e3714856ce4567ce40767dceb63145302\",\"s\":\"0x36e9200c81c29deab01facbfba10ae0cdccc16f611f0fb32f57da01f540d9187\",\"v\":28}}"
+            },
+            {
                 "description": "set leverage",
                 "method": "setLeverage",
                 "url": "https://api.hyperliquid-testnet.xyz/exchange",

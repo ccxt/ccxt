@@ -1488,7 +1488,7 @@ class mexc(ccxt.async_support.mexc):
         #             "frozenBalance": 0,
         #             "positionMargin": 1.36945756
         #         },
-        #         "ts": 1680059188190
+        #         "ts": 1680059188191
         #     }
         #
         channel = self.safe_string(message, 'channel')

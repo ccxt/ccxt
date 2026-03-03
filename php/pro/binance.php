@@ -159,7 +159,7 @@ class binance extends \ccxt\async\binance {
                     'name' => 'ticker', // ticker or miniTicker or ticker_<window_size>
                 ),
                 'watchTickers' => array(
-                    'name' => 'ticker', // ticker or miniTicker or ticker_<window_size>
+                    'name' => 'miniTicker', // miniTicker or ticker_<window_size>
                 ),
                 'watchOHLCV' => array(
                     'name' => 'kline', // or indexPriceKline or markPriceKline (coin-m futures)
@@ -1944,7 +1944,7 @@ class binance extends \ccxt\async\binance {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $channelName = null;
-            list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'ticker');
+            list($channelName, $params) = $this->handle_option_and_params($params, 'watchTickers', 'name', 'miniTicker');
             if ($channelName === 'bookTicker') {
                 throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
             }
