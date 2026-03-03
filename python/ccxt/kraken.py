@@ -1649,7 +1649,7 @@ class kraken(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         result['usingCost'] = isUsingCost
         # it's impossible to know if the order was created using cost or base currency
-        # becuase kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
+        # because kraken only returns something like self: {order: 'buy 10.00000000 LTCUSD @ market'}
         # self usingCost flag is used to help the parsing but omited from the order
         return self.parse_order(result)
 
