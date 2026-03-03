@@ -6172,16 +6172,19 @@ export default class okx extends Exchange {
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         const isOption = (market['type'] === 'option');
         const deltaBS = this.safeNumber (position, 'deltaBS');
-        const greeks = (isOption && deltaBS !== undefined) ? {
-            'delta': deltaBS,
-            'gamma': this.safeNumber (position, 'gammaBS'),
-            'theta': this.safeNumber (position, 'thetaBS'),
-            'vega': this.safeNumber (position, 'vegaBS'),
-            'deltaPA': this.safeNumber (position, 'deltaPA'),
-            'gammaPA': this.safeNumber (position, 'gammaPA'),
-            'thetaPA': this.safeNumber (position, 'thetaPA'),
-            'vegaPA': this.safeNumber (position, 'vegaPA'),
-        } : undefined;
+        let greeks: Dict = undefined;
+        if (isOption && deltaBS !== undefined) {
+            greeks = {
+                'delta': deltaBS,
+                'gamma': this.safeNumber (position, 'gammaBS'),
+                'theta': this.safeNumber (position, 'thetaBS'),
+                'vega': this.safeNumber (position, 'vegaBS'),
+                'deltaPA': this.safeNumber (position, 'deltaPA'),
+                'gammaPA': this.safeNumber (position, 'gammaPA'),
+                'thetaPA': this.safeNumber (position, 'thetaPA'),
+                'vegaPA': this.safeNumber (position, 'vegaPA'),
+            };
+        }
         return this.safePosition ({
             'info': position,
             'id': this.safeString (position, 'posId'),

@@ -2716,7 +2716,7 @@ export default class deribit extends Exchange {
         const maintenanceMarginString = this.safeString (position, 'maintenance_margin');
         const isOption = (market['type'] === 'option');
         const delta = this.safeNumber (position, 'delta');
-        let greeks = undefined;
+        let greeks: Dict = undefined;
         if (delta !== undefined) {
             greeks = {
                 'delta': delta,
