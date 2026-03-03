@@ -17,10 +17,12 @@ import testIo from './test.io.js';
 import testExtractParams from './test.extractParams.js';
 import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
+import testUnique from './test.unique.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
+import testUuid from './test.uuid.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
@@ -64,9 +66,11 @@ async function baseTestsInit () {
     testPrecisionFromString ();
     testExtractParams ();
     testArraysConcat ();
-    testSetMarketsFromExchange ();
+    testUuid ();
+    await testSetMarketsFromExchange ();
     testEthMethods ();
     testKeysort ();
+    testUnique ();
     await testSleep ();
     testIo ();
 }

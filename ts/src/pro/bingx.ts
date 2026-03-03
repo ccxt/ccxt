@@ -3,8 +3,9 @@
 
 import bingxRest from '../bingx.js';
 import { BadRequest, NetworkError, NotSupported } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Market, OHLCV, Str, OrderBook, Order, Trade, Balances, Ticker, Dict } from '../base/types.js';
+import { Precise } from '../base/Precise.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { Int, Market, OHLCV, Str, Strings, OrderBook, Order, Trade, Balances, Ticker, Position, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -25,12 +26,18 @@ export default class bingx extends bingxRest {
                 'watchTicker': true,
                 'watchTickers': false, // no longer supported
                 'watchBalance': true,
+                'watchPositions': true,
                 'unWatchOHLCV': true,
                 'unWatchOrderBook': true,
                 'unWatchTicker': true,
                 'unWatchTrades': true,
             },
             'urls': {
+                'test': {
+                    'ws': {
+                        'linear': 'wss://vst-open-api-ws.bingx.com/swap-market',
+                    },
+                },
                 'api': {
                     'ws': {
                         'spot': 'wss://open-api-ws.bingx.com/market',
@@ -74,7 +81,11 @@ export default class bingx extends bingxRest {
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': true, // needed to be true to keep track of used and free balance
-                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot': true, // whether to wait for the balance snapshot before providing updates
+                },
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true,
+                    'awaitPositionsSnapshot': false,
                 },
                 'watchOrderBook': {
                     'depth': 100, // 5, 10, 20, 50, 100
@@ -1148,6 +1159,206 @@ export default class bingx extends bingxRest {
         }
     }
 
+    /**
+     * @method
+     * @name bingx#watchPositions
+     * @description watch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+     * @param {string[]|undefined} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        await this.loadMarkets ();
+        await this.authenticate ();
+        let market = undefined;
+        let messageHash = '';
+        symbols = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbols)) {
+            market = this.getMarketFromSymbols (symbols);
+            messageHash = '::' + symbols.join (',');
+        }
+        let type = undefined;
+        let subType = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params, 'linear');
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' watchPositions is not supported for spot markets');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchPositions is not supported for inverse swap markets yet');
+        }
+        const subscriptionHash = 'swap:private';
+        messageHash = 'swap:positions' + messageHash;
+        const baseUrl = this.safeString (this.urls['api']['ws'], subType);
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const client = this.client (url);
+        this.setPositionsCache (client, type, symbols);
+        let fetchPositionsSnapshot = undefined;
+        let awaitPositionsSnapshot = undefined;
+        [ fetchPositionsSnapshot, params ] = this.handleOptionAndParams (params, 'watchPositions', 'fetchPositionsSnapshot', true);
+        [ awaitPositionsSnapshot, params ] = this.handleOptionAndParams (params, 'watchPositions', 'awaitPositionsSnapshot', false);
+        const uuid = this.uuid ();
+        const subscription: Dict = {
+            'unsubscribe': false,
+            'id': uuid,
+        };
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+            const snapshot = await client.future (type + ':fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.watch (url, messageHash, undefined, subscriptionHash, subscription);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    setPositionsCache (client: Client, type, symbols: Strings = undefined) {
+        if (this.positions !== undefined) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        if (fetchPositionsSnapshot) {
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, type);
+            }
+        } else {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client, messageHash, type) {
+        const positions = await this.fetchPositions (undefined, { 'type': type, 'subType': 'linear' });
+        this.positions = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions;
+        for (let i = 0; i < positions.length; i++) {
+            const position = positions[i];
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if (contracts > 0) {
+                cache.append (position);
+            }
+        }
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, 'swap:positions');
+        }
+    }
+
+    parseWsPosition (position, market = undefined) {
+        //
+        //     {
+        //         "s": "LINK-USDT",     // Symbol
+        //         "pa": "5.000",        // Position Amount
+        //         "ep": "11.2345",      // Entry Price
+        //         "up": "0.5000",       // Unrealized PnL
+        //         "mt": "isolated",     // Margin Type
+        //         "iw": "50.00000000",  // Isolated Wallet
+        //         "ps": "LONG"          // Position Side
+        //     }
+        //
+        const marketId = this.safeString (position, 's');
+        const contracts = this.safeString (position, 'pa');
+        const contractsAbs = Precise.stringAbs (contracts);
+        let positionSide = this.safeStringLower (position, 'ps');
+        let hedged = true;
+        if (positionSide === 'both') {
+            hedged = false;
+            if (!Precise.stringEq (contracts, '0')) {
+                if (Precise.stringLt (contracts, '0')) {
+                    positionSide = 'short';
+                } else {
+                    positionSide = 'long';
+                }
+            }
+        }
+        const marginMode = this.safeString (position, 'mt');
+        const collateral = (marginMode === 'isolated') ? this.safeNumber (position, 'iw') : undefined;
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeSymbol (marketId, undefined, undefined, 'swap'),
+            'notional': undefined,
+            'marginMode': marginMode,
+            'liquidationPrice': undefined,
+            'entryPrice': this.safeNumber (position, 'ep'),
+            'unrealizedPnl': this.safeNumber (position, 'up'),
+            'percentage': undefined,
+            'contracts': this.parseNumber (contractsAbs),
+            'contractSize': undefined,
+            'markPrice': undefined,
+            'side': positionSide,
+            'hedged': hedged,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'collateral': collateral,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': undefined,
+            'marginRatio': undefined,
+        });
+    }
+
+    handlePositions (client: Client, message) {
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "E": 1696244249320,
+        //         "a": {
+        //             "m": "ORDER",
+        //             "B": [...],
+        //             "P": [
+        //                 {
+        //                     "s": "LINK-USDT",
+        //                     "pa": "5.000",
+        //                     "ep": "11.2345",
+        //                     "up": "0.5000",
+        //                     "mt": "isolated",
+        //                     "iw": "50.00000000",
+        //                     "ps": "LONG"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions;
+        const data = this.safeDict (message, 'a', {});
+        const rawPositions = this.safeList (data, 'P', []);
+        const newPositions = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition (rawPosition);
+            const timestamp = this.safeInteger (message, 'E');
+            position['timestamp'] = timestamp;
+            position['datetime'] = this.iso8601 (timestamp);
+            newPositions.push (position);
+            cache.append (position);
+        }
+        const messageHashes = this.findMessageHashes (client, 'swap:positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const filteredSymbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', filteredSymbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'swap:positions');
+    }
+
     handleErrorMessage (client, message) {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
@@ -1182,7 +1393,11 @@ export default class bingx extends bingxRest {
             const types = [ 'spot', 'linear', 'inverse' ];
             for (let i = 0; i < types.length; i++) {
                 const type = types[i];
-                const url = this.urls['api']['ws'][type] + '?listenKey=' + listenKey;
+                const baseUrl = this.safeString (this.urls['api']['ws'], type);
+                if (baseUrl === undefined) {
+                    continue;
+                }
+                const url = baseUrl + '?listenKey=' + listenKey;
                 const client = this.client (url);
                 const messageHashes = Object.keys (client.futures);
                 for (let j = 0; j < messageHashes.length; j++) {
@@ -1516,6 +1731,7 @@ export default class bingx extends bingxRest {
         const e = this.safeString (message, 'e');
         if (e === 'ACCOUNT_UPDATE') {
             this.handleBalance (client, message);
+            this.handlePositions (client, message);
         }
         if (e === 'ORDER_TRADE_UPDATE') {
             this.handleOrder (client, message);

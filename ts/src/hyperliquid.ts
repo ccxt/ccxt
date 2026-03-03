@@ -635,7 +635,7 @@ export default class hyperliquid extends Exchange {
                     this.safeDict (universe, j, {}),
                     this.safeDict (assetCtxs, j, {})
                 );
-                data['baseId'] = j + offset;
+                data['baseId'] = this.sum (j, offset);
                 data['collateralToken'] = collateralToken;
                 data['hip3'] = true;
                 data['dex'] = dexName;

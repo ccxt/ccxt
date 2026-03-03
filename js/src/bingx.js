@@ -141,7 +141,17 @@ export default class bingx extends Exchange {
                     'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
-                    'swap': 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                    'fund': 'https://open-api-vst.{hostname}/openApi',
+                    'spot': 'https://open-api-vst.{hostname}/openApi',
+                    'swap': 'https://open-api-vst.{hostname}/openApi',
+                    'contract': 'https://open-api-vst.{hostname}/openApi',
+                    'wallets': 'https://open-api-vst.{hostname}/openApi',
+                    'user': 'https://open-api-vst.{hostname}/openApi',
+                    'subAccount': 'https://open-api-vst.{hostname}/openApi',
+                    'account': 'https://open-api-vst.{hostname}/openApi',
+                    'copyTrading': 'https://open-api-vst.{hostname}/openApi',
+                    'cswap': 'https://open-api-vst.{hostname}/openApi',
+                    'api': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -6841,10 +6851,10 @@ export default class bingx extends Exchange {
         let version = section[1];
         let access = section[2];
         const isSandbox = this.safeBool(this.options, 'sandboxMode', false);
-        if (isSandbox && (type !== 'swap')) {
+        let url = this.implodeHostname(this.urls['api'][type]);
+        if (isSandbox && url === undefined) {
             throw new NotSupported(this.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints');
         }
-        let url = this.implodeHostname(this.urls['api'][type]);
         path = this.implodeParams(path, params);
         const versionIsTransfer = (version === 'transfer');
         const versionIsAsset = (version === 'asset');

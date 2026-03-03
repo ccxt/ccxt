@@ -816,8 +816,13 @@ public partial class coinspot : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
-        if (isTrue(isEqual(api, "private")))
+        object isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object version = ((bool) isTrue(isVersionedApi)) ? getValue(api, 0) : null;
+        object accessType = ((bool) isTrue(isVersionedApi)) ? getValue(api, 1) : api;
+        object endpoint = add("/", this.implodeParams(path, parameters));
+        object fullPath = ((bool) isTrue((!isEqual(version, null)))) ? add(add("/", version), endpoint) : endpoint;
+        object url = add(getValue(getValue(this.urls, "api"), accessType), fullPath);
+        if (isTrue(isEqual(accessType, "private")))
         {
             this.checkRequiredCredentials();
             object nonce = this.nonce();

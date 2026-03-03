@@ -654,7 +654,7 @@ public partial class hyperliquid : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(universe)); postFixIncrement(ref j))
             {
                 object data = this.extend(this.safeDict(universe, j, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, j, new Dictionary<string, object>() {}));
-                ((IDictionary<string,object>)data)["baseId"] = add(j, offset);
+                ((IDictionary<string,object>)data)["baseId"] = this.sum(j, offset);
                 ((IDictionary<string,object>)data)["collateralToken"] = collateralToken;
                 ((IDictionary<string,object>)data)["hip3"] = true;
                 ((IDictionary<string,object>)data)["dex"] = dexName;

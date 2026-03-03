@@ -28,7 +28,7 @@ export default class gemini extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
+                'margin': undefined,
                 'swap': true,
                 'future': false,
                 'option': false,
@@ -134,16 +134,24 @@ export default class gemini extends Exchange {
                     'get': {
                         'v1/symbols': 5,
                         'v1/symbols/details/{symbol}': 5,
+                        'v1/network/{token}': 5,
                         'v1/staking/rates': 5,
                         'v1/pubticker/{symbol}': 5,
+                        'v1/feepromos': 5,
                         'v2/ticker/{symbol}': 5,
                         'v2/candles/{symbol}/{timeframe}': 5,
                         'v1/trades/{symbol}': 5,
                         'v1/auction/{symbol}': 5,
                         'v1/auction/{symbol}/history': 5,
                         'v1/pricefeed': 5,
+                        'v1/fundingamount/{symbol}': 5,
+                        'v1/fundingamountreport/records.xlsx': 5,
                         'v1/book/{symbol}': 5,
                         'v1/earn/rates': 5,
+                        'v2/derivatives/candles/{symbol}/{time_frame}': 5,
+                        'v2/fxrate/{symbol}/{timestamp}': 5,
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx': 5,
+                        'v1/riskstats/{symbol}': 5,
                     },
                 },
                 'private': {
@@ -189,6 +197,25 @@ export default class gemini extends Exchange {
                         'v1/account/list': 1,
                         'v1/heartbeat': 1,
                         'v1/roles': 1,
+                        'v1/custodyaccountfees': 1,
+                        'v1/withdraw/{currencyCodeLowerCase}/feeEstimate': 1,
+                        'v1/payments/addbank/cad': 1,
+                        'v1/transactions': 1,
+                        'v1/margin/account': 1,
+                        'v1/margin/rates': 1,
+                        'v1/margin/order/preview': 1,
+                        'v1/clearing/list': 1,
+                        'v1/clearing/broker/list': 1,
+                        'v1/clearing/broker/new': 1,
+                        'v1/clearing/trades': 1,
+                        'v1/instant/quote': 1,
+                        'v1/instant/execute': 1,
+                        'v1/account/rename': 1,
+                        'v1/oauth/revokeByToken': 1,
+                        'v1/margin': 1,
+                        'v1/perpetuals/fundingPayment': 1,
+                        'v1/perpetuals/fundingpaymentreport/records.json': 1,
+                        'v1/positions': 1,
                     },
                 },
             },
@@ -2030,5 +2057,53 @@ export default class gemini extends Exchange {
         //     ]
         //
         return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @name gemini#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterest (symbol: string, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetV1RiskstatsSymbol (this.extend (request, params));
+        //
+        //    {
+        //        product_type: 'PerpetualSwapContract',
+        //        mark_price: '9.023',
+        //        index_price: '9.02072',
+        //        open_interest: '4681.9',
+        //        open_interest_notional: '42244.7837'
+        //    }
+        //
+        return this.parseOpenInterest (response, market);
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        //    {
+        //        product_type: 'PerpetualSwapContract',
+        //        mark_price: '9.023',
+        //        index_price: '9.02072',
+        //        open_interest: '4681.9',
+        //        open_interest_notional: '42244.7837'
+        //    }
+        //
+        return this.safeOpenInterest ({
+            'info': interest,
+            'symbol': this.safeString (market, 'symbol'),
+            'openInterestAmount': this.safeString (interest, 'open_interest'),
+            'openInterestValue': this.safeString (interest, 'open_interest_notional'),
+            'timestamp': undefined,
+            'datetime': undefined,
+        }, market);
     }
 }

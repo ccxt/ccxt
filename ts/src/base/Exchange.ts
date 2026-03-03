@@ -1,12 +1,12 @@
 // ----------------------------------------------------------------------------
 
 import * as functions from './functions.js';
-import {
-    // keys as keysFunc,
-    // values as valuesFunc,
-    // inArray as inArrayFunc,
-    vwap as vwapFunc,
-} from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
     ExchangeError,
@@ -95,7 +95,6 @@ const {
     implodeParams,
     extractParams,
     json,
-    merge,
     binaryConcat,
     hash,
     // ecdsa,
@@ -113,7 +112,6 @@ const {
     safeStringUpper,
     safeTimestamp,
     binaryConcatArray,
-    uuidv1,
     ymdhms,
     stringToBase64,
     decode,
@@ -130,7 +128,6 @@ const {
     sort,
     inArray,
     isEmpty,
-    ordered,
     filterBy,
     uuid16,
     safeFloat,
@@ -178,13 +175,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
-    } catch (e) {
-        // TODO: handle error
-    }
-}) ();
 
 // -----------------------------------------------------------------------------
 /**
@@ -469,8 +459,6 @@ export default class Exchange {
     implodeParams = implodeParams;
     extractParams = extractParams;
     json = json;
-    vwap = vwapFunc;
-    merge = merge;
     binaryConcat = binaryConcat;
     hash = hash;
     arrayConcat = arrayConcat;
@@ -486,7 +474,6 @@ export default class Exchange {
     safeStringUpper = safeStringUpper;
     safeTimestamp = safeTimestamp;
     binaryConcatArray = binaryConcatArray;
-    uuidv1 = uuidv1;
     ymdhms = ymdhms;
     yymmdd = yymmdd;
     stringToBase64 = stringToBase64;
@@ -505,7 +492,6 @@ export default class Exchange {
     safeStringLower2 = safeStringLower2;
     safeStringUpper2 = safeStringUpper2;
     isEmpty = isEmpty;
-    ordered = ordered;
     filterBy = filterBy;
     uuid16 = uuid16;
     urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -648,6 +634,18 @@ export default class Exchange {
         this.afterConstruct ();
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles ();
+    }
+
+    async loadExchangeSpecificFiles () {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import ('../protobuf/mexc/compiled.cjs');
+            } catch (e) {
+                // TODO: handle error
+            }
         }
     }
 

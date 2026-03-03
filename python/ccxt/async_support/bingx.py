@@ -154,7 +154,17 @@ class bingx(Exchange, ImplicitAPI):
                     'api': 'https://open-api.{hostname}/openApi',
                 },
                 'test': {
-                    'swap': 'https://open-api-vst.{hostname}/openApi',  # only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                    'fund': 'https://open-api-vst.{hostname}/openApi',
+                    'spot': 'https://open-api-vst.{hostname}/openApi',
+                    'swap': 'https://open-api-vst.{hostname}/openApi',
+                    'contract': 'https://open-api-vst.{hostname}/openApi',
+                    'wallets': 'https://open-api-vst.{hostname}/openApi',
+                    'user': 'https://open-api-vst.{hostname}/openApi',
+                    'subAccount': 'https://open-api-vst.{hostname}/openApi',
+                    'account': 'https://open-api-vst.{hostname}/openApi',
+                    'copyTrading': 'https://open-api-vst.{hostname}/openApi',
+                    'cswap': 'https://open-api-vst.{hostname}/openApi',
+                    'api': 'https://open-api-vst.{hostname}/openApi',
                 },
                 'www': 'https://bingx.com/',
                 'doc': 'https://bingx-api.github.io/docs/',
@@ -6514,9 +6524,9 @@ class bingx(Exchange, ImplicitAPI):
         version = section[1]
         access = section[2]
         isSandbox = self.safe_bool(self.options, 'sandboxMode', False)
-        if isSandbox and (type != 'swap'):
-            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         url = self.implode_hostname(self.urls['api'][type])
+        if isSandbox and url is None:
+            raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + type + ' endpoints')
         path = self.implode_params(path, params)
         versionIsTransfer = (version == 'transfer')
         versionIsAsset = (version == 'asset')

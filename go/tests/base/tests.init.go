@@ -36,12 +36,16 @@ func BaseTestsInit() <-chan interface{} {
 		TestPrecisionFromString()
 		TestExtractParams()
 		TestArraysConcat()
-		TestSetMarketsFromExchange()
+		TestUuid()
+
+		retRes694 := (<-TestSetMarketsFromExchange())
+		PanicOnError(retRes694)
 		TestEthMethods()
 		TestKeysort()
+		TestUnique()
 
-		retRes694 := (<-TestSleep())
-		PanicOnError(retRes694)
+		retRes734 := (<-TestSleep())
+		PanicOnError(retRes734)
 		TestIo()
 		return nil
 	}()

@@ -1089,6 +1089,39 @@ func (this *Ascendex) FetchLeverages(options ...FetchLeveragesOptions) (Leverage
 	return NewLeverages(res), nil
 }
 
+/**
+ * @method
+ * @name ascendex#fetchOpenInterests
+ * @description Retrieves the open interest for a list of symbols
+ * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] exchange specific parameters
+ * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *Ascendex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
+
+	opts := FetchOpenInterestsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchOpenInterests(symbols, params)
+	if IsError(res) {
+		return OpenInterests{}, CreateReturnError(res)
+	}
+	return NewOpenInterests(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Ascendex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
@@ -1312,9 +1345,6 @@ func (this *Ascendex) FetchOpenInterest(symbol string, options ...FetchOpenInter
 }
 func (this *Ascendex) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 	return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)
-}
-func (this *Ascendex) FetchOpenInterests(options ...FetchOpenInterestsOptions) (OpenInterests, error) {
-	return this.exchangeTyped.FetchOpenInterests(options...)
 }
 func (this *Ascendex) FetchOption(symbol string, options ...FetchOptionOptions) (Option, error) {
 	return this.exchangeTyped.FetchOption(symbol, options...)
