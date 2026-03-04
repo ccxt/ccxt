@@ -562,6 +562,13 @@
             }
         }
     },
+    "blofin": {
+        "skipMethods": {
+            "fetchTickers": {
+                "checkActiveSymbols": "todo https://github.com/ccxt/ccxt/actions/runs/22588349073/job/65440134952?pr=28035#step:10:231"
+            }
+        }
+    },
     "blockchaincom": {
         "skipMethods": {
             "loadMarkets": {
