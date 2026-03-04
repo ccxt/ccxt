@@ -193,9 +193,15 @@ public partial class whitebit
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+    /// string : either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
     /// </description>
     /// </item>
     /// </list>
