@@ -2212,7 +2212,7 @@
             },
             "orderBook": {
                 "spread":"bids[0][0] is not < asks[0][0]",
-                "timestamp":""
+                "timestamp": "not provided"
             }
         }
     }
