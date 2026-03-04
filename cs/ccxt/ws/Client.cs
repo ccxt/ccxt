@@ -436,6 +436,7 @@ public partial class Exchange
                                     Console.WriteLine($"On zlib binary message decompressed {decompressedString}");
                                 this.TryHandleMessage(decompressedString);
                             }
+                            return;
                         }
                         
                         // assume GZip (magic bytes: 0x1F 0x8B)
