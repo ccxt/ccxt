@@ -333,19 +333,9 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
-                "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=spot",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ]
-            },
-            {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=swap",
+                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT",
                 "input": [
                     {
                         "type": "swap"
@@ -383,15 +373,11 @@
         ],
         "fetchLedger": [
             {
-                "description": "fetch USDT ledger",
+                "description": "fetch ledger",
                 "method": "fetchLedger",
-                "options": {
-                    "hfMigrated": false
-                },
-                "url": "https://openapi-v2.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
-                "input": [
-                    "USDT"
-                ]
+                "url": "https://api-futures.kucoin.com/api/v1/transaction-history",
+                "input": [],
+                "output": null
             }
         ],
         "fetchDepositAddress": [
@@ -584,7 +570,7 @@
             {
                 "description": "fetchTradingFee",
                 "method": "fetchTradingFee",
-                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbols=XBTUSDTM",
+                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbol=XBTUSDTM",
                 "input": [
                   "BTC/USDT:USDT"
                 ]
@@ -771,64 +757,28 @@
         ],
         "transfer": [
             {
-                "description": "transfer from spot to future",
+                "description": "Transfer from swap to spot",
                 "method": "transfer",
-                "url": "https://api-futures.kucoin.com/api/v1/transfer-in",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
                 "input": [
                     "USDT",
-                    5,
+                    1,
+                    "swap",
+                    "spot"
+                ],
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"d9713a5d-e3c6-4ea0-99cf-47a73559d91c\",\"fromAccountType\":\"CONTRACT\",\"toAccountType\":\"TRADE\",\"type\":\"INTERNAL\"}"
+            },
+            {
+                "description": "Transfer from spot to swap",
+                "method": "transfer",
+                "url": "https://api.kucoin.com/api/v3/accounts/universal-transfer",
+                "input": [
+                    "USDT",
+                    1,
                     "spot",
-                    "future"
+                    "swap"
                 ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"TRADE\"}"
-            },
-            {
-                "description": "transfer from future to spot account",
-                "method": "transfer",
-                "url": "https://api-futures.kucoin.com/api/v2/transfer-out",
-                "input": [
-                  "USDT",
-                  5,
-                  "future",
-                  "spot"
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"recAccountType\":\"TRADE\"}"
-            },
-            {
-                "description": "transfer from future to funding account",
-                "method": "transfer",
-                "url": "https://api-futures.kucoin.com/api/v2/transfer-out",
-                "input": [
-                  "USDT",
-                  5,
-                  "future",
-                  "funding"
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"recAccountType\":\"MAIN\"}"
-            },
-            {
-                "description": "transfer from funding to future account",
-                "method": "transfer",
-                "url": "https://api-futures.kucoin.com/api/v1/transfer-in",
-                "input": [
-                  "USDT",
-                  5,
-                  "funding",
-                  "future"
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"MAIN\"}"
-            },
-            {
-                "description": "transfer from spot to swap account",
-                "method": "transfer",
-                "url": "https://api-futures.kucoin.com/api/v1/transfer-in",
-                "input": [
-                  "USDT",
-                  5,
-                  "spot",
-                  "swap"
-                ],
-                "output": "{\"currency\":\"USDT\",\"amount\":\"5\",\"payAccountType\":\"TRADE\"}"
+                "output": "{\"currency\":\"USDT\",\"amount\":\"1\",\"clientOid\":\"9c6bdb0e-cc97-4ddc-96e2-0a5a59ddad09\",\"fromAccountType\":\"TRADE\",\"toAccountType\":\"CONTRACT\",\"type\":\"INTERNAL\"}"
             }
         ],
         "setPositionMode": [
