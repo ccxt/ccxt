@@ -22,6 +22,8 @@ public partial class mexc : ccxt.mexc
                 { "fetchOrderWs", false },
                 { "fetchTradesWs", false },
                 { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -1677,6 +1679,77 @@ public partial class mexc : ccxt.mexc
 
     /**
      * @method
+     * @name mexc#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("fundingRate:", getValue(market, "symbol"));
+        object channel = "sub.funding.rate";
+        object requestParams = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        return await this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+    }
+
+    /**
+     * @method
+     * @name mexc#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.mexc.com/api-docs/futures/websocket-api#funding-rate
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("unsubscribe:fundingRate:", getValue(market, "symbol"));
+        object url = null;
+        object channel = "unsub.funding.rate";
+        object requestParams = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        url = getValue(getValue(getValue(this.urls, "api"), "ws"), "swap");
+        this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+        var client = this.client(url);
+        this.handleUnsubscriptions(client as WebSocketClient, new List<object>() {messageHash});
+        return null;
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "data": {
+        //             "symbol": "BTC_USDT",
+        //             "rate": -0.000021,
+        //             "nextSettleTime": 1771084800000
+        //         },
+        //         "channel": "push.funding.rate",
+        //         "ts": 1771069020506
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object messageHash = add("fundingRate:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+    }
+
+    /**
+     * @method
      * @name mexc#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -1977,6 +2050,13 @@ public partial class mexc : ccxt.mexc
                 {
                     ((IDictionary<string,object>)this.trades).Remove((string)symbol);
                 }
+            } else if (isTrue(isGreaterThanOrEqual(getIndexOf(messageHash, "fundingRate"), 0)))
+            {
+                object symbol = ((string)messageHash).Replace((string)"unsubscribe:fundingRate:", (string)"");
+                if (isTrue(inOp(this.fundingRates, symbol)))
+                {
+                    ((IDictionary<string,object>)this.fundingRates).Remove((string)symbol);
+                }
             }
         }
     }
@@ -2162,6 +2242,7 @@ public partial class mexc : ccxt.mexc
             { "private.deals.v3.api", this.handleMyTrade },
             { "push.personal.order.deal", this.handleMyTrade },
             { "pong", this.handlePong },
+            { "push.funding.rate", this.handleFundingRate },
         };
         if (isTrue(inOp(methods, channel)))
         {

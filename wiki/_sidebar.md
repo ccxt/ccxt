@@ -84,6 +84,7 @@
 	- [kucoinfutures](exchanges/kucoinfutures.md)
 	- [latoken](exchanges/latoken.md)
 	- [lbank](exchanges/lbank.md)
+	- [lighter](exchanges/lighter.md)
 	- [luno](exchanges/luno.md)
 	- [mercado](exchanges/mercado.md)
 	- [mexc](exchanges/mexc.md)

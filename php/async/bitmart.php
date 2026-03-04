@@ -4925,9 +4925,23 @@ class bitmart extends Exchange {
         //         "timestamp" => 1761291544336
         //     }
         //
+        // watchFundingRates
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "fundingRate" => "0.0000561",
+        //         "fundingTime" => 1770978448000,
+        //         "nextFundingRate" => "-0.0000195",
+        //         "nextFundingTime" => 1770998400000,
+        //         "funding_upper_limit" => "0.0375",
+        //         "funding_lower_limit" => "-0.0375",
+        //         "ts" => 1770978448970
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
-        $timestamp = $this->safe_integer($contract, 'timestamp');
-        $fundingTimestamp = $this->safe_integer($contract, 'funding_time');
+        $timestamp = $this->safe_integer_2($contract, 'timestamp', 'ts');
+        $fundingTimestamp = $this->safe_integer_2($contract, 'funding_time', 'fundingTime');
+        $nextFundingTimestamp = $this->safe_integer($contract, 'nextFundingTime');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
@@ -4937,12 +4951,12 @@ class bitmart extends Exchange {
             'estimatedSettlePrice' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'fundingRate' => $this->safe_number($contract, 'expected_rate'),
+            'fundingRate' => $this->safe_number_2($contract, 'expected_rate', 'fundingRate'),
             'fundingTimestamp' => $fundingTimestamp,
             'fundingDatetime' => $this->iso8601($fundingTimestamp),
-            'nextFundingRate' => null,
-            'nextFundingTimestamp' => null,
-            'nextFundingDatetime' => null,
+            'nextFundingRate' => $this->safe_number($contract, 'nextFundingRate'),
+            'nextFundingTimestamp' => $nextFundingTimestamp,
+            'nextFundingDatetime' => $this->iso8601($nextFundingTimestamp),
             'previousFundingRate' => $this->safe_number($contract, 'rate_value'),
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,

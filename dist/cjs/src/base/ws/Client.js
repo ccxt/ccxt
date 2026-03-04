@@ -10,8 +10,10 @@ var generic = require('../functions/generic.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/io.js');
 var index = require('../../static_dependencies/scure-base/index.js');
 
+// ----------------------------------------------------------------------------
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;

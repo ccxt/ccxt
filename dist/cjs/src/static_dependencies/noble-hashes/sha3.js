@@ -6,6 +6,7 @@ var _assert = require('./_assert.js');
 var _u64 = require('./_u64.js');
 var utils = require('./utils.js');
 
+// ----------------------------------------------------------------------------
 // Various per round constants calculations
 const [SHA3_PI, SHA3_ROTL, _SHA3_IOTA] = [[], [], []];
 const _0n = BigInt(0);

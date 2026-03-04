@@ -373,17 +373,20 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
-    public function watch_funding_rates(array $symbols, $params = array ()): PromiseInterface {
+    public function watch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watch the funding rate for multiple markets
              *
              * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-$channel
              *
-             * @param {string[]} $symbols list of unified market $symbols
+             * @param {string[]} $symbols a list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rates structures~, indexed by market $symbols
              */
+            if ($symbols === null) {
+                throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
+            }
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $channel = 'funding-rate';

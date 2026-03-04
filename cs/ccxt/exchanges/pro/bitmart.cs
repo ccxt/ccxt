@@ -20,6 +20,8 @@ public partial class bitmart : ccxt.bitmart
                 { "cancelAllOrdersWs", false },
                 { "ws", true },
                 { "watchBalance", true },
+                { "watchFundingRate", true },
+                { "watchFundingRates", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchBidsAsks", true },
@@ -1993,6 +1995,81 @@ public partial class bitmart : ccxt.bitmart
         return await this.subscribeMultiple(channel, type, symbols, parameters);
     }
 
+    /**
+     * @method
+     * @name bitmart#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<object> watchFundingRate(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbol = this.symbol(symbol);
+        object fundingRate = await this.watchFundingRates(new List<object>() {symbol}, parameters);
+        return getValue(fundingRate, symbol);
+    }
+
+    /**
+     * @method
+     * @name bitmart#watchFundingRates
+     * @description watch the funding rate for multiple markets
+     * @see https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel
+     * @param {string[]} symbols a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
+     */
+    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchFundingRates() requires an array of symbols")) ;
+        }
+        await this.loadMarkets();
+        object market = this.getMarketFromSymbols(symbols);
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRates", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object fundingRate = await this.subscribeMultiple("fundingRate", marketType, symbols, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            object fundingRates = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)fundingRates)[(string)getValue(fundingRate, "symbol")] = fundingRate;
+            return fundingRates;
+        }
+        return this.filterByArray(this.fundingRates, "symbol", symbols);
+    }
+
+    public virtual void handleFundingRate(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "data": {
+        //             "symbol": "BTCUSDT",
+        //             "fundingRate": "0.0000561",
+        //             "fundingTime": 1770978448000,
+        //             "nextFundingRate": "-0.0000195",
+        //             "nextFundingTime": 1770998400000,
+        //             "funding_upper_limit": "0.0375",
+        //             "funding_lower_limit": "-0.0375",
+        //             "ts": 1770978448970
+        //         },
+        //         "group": "futures/fundingRate:BTCUSDT"
+        //     }
+        //
+        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        object fundingRate = this.parseFundingRate(data);
+        object symbol = getValue(fundingRate, "symbol");
+        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        object messageHash = add("fundingRate:", symbol);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
+    }
+
     public async virtual Task<object> authenticate(object type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -2308,6 +2385,10 @@ public partial class bitmart : ccxt.bitmart
                 { "balance", this.handleBalance },
                 { "asset", this.handleBalance },
             };
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "fundingRate"), 0)))
+            {
+                this.handleFundingRate(client as WebSocketClient, message);
+            }
             object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {

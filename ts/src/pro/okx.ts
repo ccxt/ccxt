@@ -359,14 +359,17 @@ export default class okx extends okxRest {
 
     /**
      * @method
-     * @name coinbaseinternational#watchFundingRates
+     * @name okx#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
-     * @param {string[]} symbols list of unified market symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
-    async watchFundingRates (symbols: string[], params = {}): Promise<FundingRates> {
+    async watchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const channel = 'funding-rate';

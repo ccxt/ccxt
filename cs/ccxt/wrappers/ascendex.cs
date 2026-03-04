@@ -898,4 +898,24 @@ public partial class ascendex
         var res = await this.fetchLeverages(symbols, parameters);
         return new Leverages(res);
     }
+    /// <summary>
+    /// Retrieves the open interest for a list of symbols
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : exchange specific parameters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterests(symbols, parameters);
+        return new OpenInterests(res);
+    }
 }

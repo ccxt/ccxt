@@ -365,16 +365,20 @@ public partial class okx : ccxt.okx
 
     /**
      * @method
-     * @name coinbaseinternational#watchFundingRates
+     * @name okx#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
-     * @param {string[]} symbols list of unified market symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
-    public async override Task<object> watchFundingRates(object symbols, object parameters = null)
+    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchFundingRates() requires an array of symbols")) ;
+        }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object channel = "funding-rate";

@@ -20,6 +20,8 @@ class woo extends \ccxt\async\woo {
             'has' => array(
                 'ws' => true,
                 'watchBalance' => true,
+                'watchFundingRate' => true,
+                'watchFundingRates' => false,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -1473,6 +1475,50 @@ class woo extends \ccxt\async\woo {
         $client->resolve ($this->balance, 'balance');
     }
 
+    public function watch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * watch the current funding rate
+             *
+             * @see https://docs.woox.io/#estfundingrate
+             *
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $topic = $market['id'] . '@estfundingrate';
+            $request = array(
+                'event' => 'subscribe',
+                'topic' => $topic,
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch_public($topic, $message));
+        }) ();
+    }
+
+    public function handle_funding_rate(Client $client, $message) {
+        //
+        //     {
+        //         "topic" => "PERP_BTC_USDT@estfundingrate",
+        //         "ts" => 1771484159016,
+        //         "data" => {
+        //             "symbol" => "PERP_BTC_USDT",
+        //             "fundingRate" => 0.0001,
+        //             "fundingTs" => 1771488000000
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($message, 'data', array());
+        $fundingRate = $this->parse_funding_rate($data);
+        $symbol = $fundingRate['symbol'];
+        $this->fundingRates[$symbol] = $fundingRate;
+        $messageHash = $this->safe_string($message, 'topic');
+        $client->resolve ($fundingRate, $messageHash);
+    }
+
     public function handle_error_message(Client $client, $message): Bool {
         //
         // array("id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed.")
@@ -1549,6 +1595,7 @@ class woo extends \ccxt\async\woo {
             'balance' => array($this, 'handle_balance'),
             'position' => array($this, 'handle_positions'),
             'bbos' => array($this, 'handle_bid_ask'),
+            'estfundingrate' => array($this, 'handle_funding_rate'),
         );
         $event = $this->safe_string($message, 'event');
         $method = $this->safe_value($methods, $event);

@@ -9,7 +9,7 @@ var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 /**
  * @class kraken
@@ -1679,7 +1679,7 @@ class kraken extends kraken$1["default"] {
         const result = this.safeDict(response, 'result');
         result['usingCost'] = isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // becuase kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
+        // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omited from the order
         return this.parseOrder(result);
     }

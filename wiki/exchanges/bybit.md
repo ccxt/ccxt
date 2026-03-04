@@ -85,6 +85,7 @@
 * [fetchConvertTrade](#fetchconverttrade)
 * [fetchConvertTradeHistory](#fetchconverttradehistory)
 * [fetchLongShortRatioHistory](#fetchlongshortratiohistory)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [fetchMarginMode](#fetchmarginmode)
 * [createOrderWs](#createorderws)
 * [editOrderWs](#editorderws)
@@ -2059,6 +2060,27 @@ fetches the long short ratio history for a unified market symbol
 
 ```javascript
 bybit.fetchLongShortRatioHistory (symbol[, timeframe, since, limit, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/position#response-parameters  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchPositionsADLRank ([symbols, params])
 ```
 
 

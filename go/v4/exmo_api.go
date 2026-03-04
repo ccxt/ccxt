@@ -7,206 +7,206 @@
 
 package ccxt
 
-func (this *ExmoCore) WebGetCtrlFeesAndLimits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("webGetCtrlFeesAndLimits", args...)
+func (this *ExmoCore) WebGetCtrlFeesAndLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webGetCtrlFeesAndLimits", args...)
 }
 
-func (this *ExmoCore) WebGetEnDocsFees (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("webGetEnDocsFees", args...)
+func (this *ExmoCore) WebGetEnDocsFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webGetEnDocsFees", args...)
 }
 
-func (this *ExmoCore) PublicGetCurrency (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrency", args...)
+func (this *ExmoCore) PublicGetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *ExmoCore) PublicGetCurrencyListExtended (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrencyListExtended", args...)
+func (this *ExmoCore) PublicGetCurrencyListExtended(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencyListExtended", args...)
 }
 
-func (this *ExmoCore) PublicGetOrderBook (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBook", args...)
+func (this *ExmoCore) PublicGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *ExmoCore) PublicGetPairSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPairSettings", args...)
+func (this *ExmoCore) PublicGetPairSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPairSettings", args...)
 }
 
-func (this *ExmoCore) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTicker", args...)
+func (this *ExmoCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *ExmoCore) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTrades", args...)
+func (this *ExmoCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *ExmoCore) PublicGetCandlesHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandlesHistory", args...)
+func (this *ExmoCore) PublicGetCandlesHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesHistory", args...)
 }
 
-func (this *ExmoCore) PublicGetRequiredAmount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRequiredAmount", args...)
+func (this *ExmoCore) PublicGetRequiredAmount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRequiredAmount", args...)
 }
 
-func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
+func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserInfo", args...)
+func (this *ExmoCore) PrivatePostUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCreate", args...)
+func (this *ExmoCore) PrivatePostOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderCancel", args...)
+func (this *ExmoCore) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostStopMarketOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostStopMarketOrderCreate", args...)
+func (this *ExmoCore) PrivatePostStopMarketOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStopMarketOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostStopMarketOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostStopMarketOrderCancel", args...)
+func (this *ExmoCore) PrivatePostStopMarketOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostStopMarketOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserOpenOrders", args...)
+func (this *ExmoCore) PrivatePostUserOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserOpenOrders", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserTrades", args...)
+func (this *ExmoCore) PrivatePostUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostUserCancelledOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostUserCancelledOrders", args...)
+func (this *ExmoCore) PrivatePostUserCancelledOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostUserCancelledOrders", args...)
 }
 
-func (this *ExmoCore) PrivatePostOrderTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostOrderTrades", args...)
+func (this *ExmoCore) PrivatePostOrderTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostDepositAddress", args...)
+func (this *ExmoCore) PrivatePostDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDepositAddress", args...)
 }
 
-func (this *ExmoCore) PrivatePostWithdrawCrypt (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawCrypt", args...)
+func (this *ExmoCore) PrivatePostWithdrawCrypt(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawCrypt", args...)
 }
 
-func (this *ExmoCore) PrivatePostWithdrawGetTxid (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWithdrawGetTxid", args...)
+func (this *ExmoCore) PrivatePostWithdrawGetTxid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawGetTxid", args...)
 }
 
-func (this *ExmoCore) PrivatePostExcodeCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExcodeCreate", args...)
+func (this *ExmoCore) PrivatePostExcodeCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExcodeCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostExcodeLoad (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostExcodeLoad", args...)
+func (this *ExmoCore) PrivatePostExcodeLoad(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostExcodeLoad", args...)
 }
 
-func (this *ExmoCore) PrivatePostCodeCheck (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostCodeCheck", args...)
+func (this *ExmoCore) PrivatePostCodeCheck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCodeCheck", args...)
 }
 
-func (this *ExmoCore) PrivatePostWalletHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletHistory", args...)
+func (this *ExmoCore) PrivatePostWalletHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostWalletOperations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostWalletOperations", args...)
+func (this *ExmoCore) PrivatePostWalletOperations(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWalletOperations", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderCreate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderCreate", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderCreate", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderUpdate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderUpdate", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderUpdate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderUpdate", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderCancel (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderCancel", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderCancel", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionClose (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserPositionClose", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserPositionClose", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserPositionMarginAdd", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginAdd", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserPositionMarginRemove", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemove", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginCurrencyList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginCurrencyList", args...)
+func (this *ExmoCore) PrivatePostMarginCurrencyList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginCurrencyList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginPairList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginPairList", args...)
+func (this *ExmoCore) PrivatePostMarginPairList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginPairList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginSettings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginSettings", args...)
+func (this *ExmoCore) PrivatePostMarginSettings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginSettings", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginFundingList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginFundingList", args...)
+func (this *ExmoCore) PrivatePostMarginFundingList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginFundingList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserInfo", args...)
+func (this *ExmoCore) PrivatePostMarginUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderList", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderHistory", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderTrades", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserOrderMaxQuantity", args...)
+func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserOrderMaxQuantity", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserPositionList", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserPositionList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserPositionMarginRemoveInfo", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemoveInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserPositionMarginAddInfo", args...)
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginAddInfo", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserWalletList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserWalletList", args...)
+func (this *ExmoCore) PrivatePostMarginUserWalletList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserWalletList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserWalletHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserWalletHistory", args...)
+func (this *ExmoCore) PrivatePostMarginUserWalletHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserWalletHistory", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginUserTradeList (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginUserTradeList", args...)
+func (this *ExmoCore) PrivatePostMarginUserTradeList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginUserTradeList", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginTrades", args...)
+func (this *ExmoCore) PrivatePostMarginTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginTrades", args...)
 }
 
-func (this *ExmoCore) PrivatePostMarginLiquidationFeed (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostMarginLiquidationFeed", args...)
+func (this *ExmoCore) PrivatePostMarginLiquidationFeed(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostMarginLiquidationFeed", args...)
 }

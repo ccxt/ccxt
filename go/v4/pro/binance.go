@@ -158,7 +158,7 @@ func  (this *BinanceCore) DescribeData() interface{}  {
                 "name": "ticker",
             },
             "watchTickers": map[string]interface{} {
-                "name": "ticker",
+                "name": "miniTicker",
             },
             "watchOHLCV": map[string]interface{} {
                 "name": "kline",
@@ -440,7 +440,7 @@ func  (this *BinanceCore) ParseWsLiquidation(liquidation interface{}, optionalAr
     //        "c":"TEST",                 // ccxt.Client ccxt.Order Id
     //          // special client order id:
     //          // starts with "autoclose-": liquidation order
-    //          // "adl_autoclose": ADL auto close order
+    //          // "adl_autoclose": ccxt.ADL auto close order
     //          // "settlement_autoclose-": settlement order for delisting or delivery
     //        "S":"SELL",                 // Side
     //        "o":"TRAILING_STOP_MARKET", // ccxt.Order Type
@@ -601,7 +601,7 @@ func  (this *BinanceCore) HandleMyLiquidation(client interface{}, message interf
     //        "c":"TEST",                 // ccxt.Client ccxt.Order Id
     //          // special client order id:
     //          // starts with "autoclose-": liquidation order
-    //          // "adl_autoclose": ADL auto close order
+    //          // "adl_autoclose": ccxt.ADL auto close order
     //          // "settlement_autoclose-": settlement order for delisting or delivery
     //        "S":"SELL",                 // Side
     //        "o":"TRAILING_STOP_MARKET", // ccxt.Order Type
@@ -2320,7 +2320,7 @@ func  (this *BinanceCore) WatchTickers(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             var channelName interface{} = nil
-            channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "ticker")
+            channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "miniTicker")
             channelName = ccxt.GetValue(channelNameparamsVariable,0)
             params = ccxt.GetValue(channelNameparamsVariable,1)
             if ccxt.IsTrue(ccxt.IsEqual(channelName, "bookTicker")) {
@@ -4712,7 +4712,7 @@ func  (this *BinanceCore) ParseWsOrder(order interface{}, optionalArgs ...interf
     //         "c":"TEST",                    // ccxt.Client ccxt.Order Id
     //                                        // special client order id:
     //                                        // starts with "autoclose-": liquidation order
-    //                                        // "adl_autoclose": ADL auto close order
+    //                                        // "adl_autoclose": ccxt.ADL auto close order
     //         "S":"SELL",                    // Side
     //         "o":"TRAILING_STOP_MARKET",    // ccxt.Order Type
     //         "f":"GTC",                     // Time in Force
@@ -4889,7 +4889,7 @@ func  (this *BinanceCore) HandleOrderUpdate(client interface{}, message interfac
     //             "c":"TEST",                     // ccxt.Client ccxt.Order Id
     //                                             // special client order id:
     //                                             // starts with "autoclose-": liquidation order
-    //                                             // "adl_autoclose": ADL auto close order
+    //                                             // "adl_autoclose": ccxt.ADL auto close order
     //             "S":"SELL",                     // Side
     //             "o":"TRAILING_STOP_MARKET",     // ccxt.Order Type
     //             "f":"GTC",                      // Time in Force

@@ -1,3 +1,38 @@
+<a id="v4.5.40"></a>
+# [v4.5.40](https://github.com/ccxt/ccxt/releases/tag/v4.5.40) - 2026-02-23
+
+## What's Changed
+* fix(bingx): fetchFundingRateHistory until arg by [@carlosmiei](https://github.com/carlosmiei) in [#27947](https://github.com/ccxt/ccxt/pull/27947)
+* fix(go): remove duplicate sandbox prop toggling by [@ttodua](https://github.com/ttodua) in [#27946](https://github.com/ccxt/ccxt/pull/27946)
+* test: add keysort base test by [@ttodua](https://github.com/ttodua) in [#27782](https://github.com/ccxt/ccxt/pull/27782)
+* test: add base constants test by [@ttodua](https://github.com/ttodua) in [#27860](https://github.com/ccxt/ccxt/pull/27860)
+* fix(htx): correct method name in fetchOpenInterests by [@samgermain](https://github.com/samgermain) in [#27953](https://github.com/ccxt/ccxt/pull/27953)
+* feat(bitmex): fetchOpenInterest by [@samgermain](https://github.com/samgermain) in [#27954](https://github.com/ccxt/ccxt/pull/27954)
+* fix(go): remove stack from CCXT error by [@carlosmiei](https://github.com/carlosmiei) in [#27956](https://github.com/ccxt/ccxt/pull/27956)
+* fix(bing): update links to the documentation by [@yzh-pelle](https://github.com/yzh-pelle) in [#27957](https://github.com/ccxt/ccxt/pull/27957)
+* phemex.has: margin and option methods by [@samgermain](https://github.com/samgermain) in [#27962](https://github.com/ccxt/ccxt/pull/27962)
+* feat(exchange) add emulated fetch open interest by [@samgermain](https://github.com/samgermain) in [#27961](https://github.com/ccxt/ccxt/pull/27961)
+* poloniex.has option methods by [@samgermain](https://github.com/samgermain) in [#27943](https://github.com/ccxt/ccxt/pull/27943)
+* fix(python): futures race memory leak by [@pcriadoperez](https://github.com/pcriadoperez) in [#27871](https://github.com/ccxt/ccxt/pull/27871)
+* refactor: remove unused func by [@ttodua](https://github.com/ttodua) in [#27855](https://github.com/ccxt/ccxt/pull/27855)
+* fix(blofin): sort trades by [@ttodua](https://github.com/ttodua) in [#27635](https://github.com/ccxt/ccxt/pull/27635)
+* perf: python sum (30%) by [@ttodua](https://github.com/ttodua) in [#27798](https://github.com/ccxt/ccxt/pull/27798)
+* perf: python keysort (80%) by [@ttodua](https://github.com/ttodua) in [#27781](https://github.com/ccxt/ccxt/pull/27781)
+* perf: python index_by (10%) by [@ttodua](https://github.com/ttodua) in [#27792](https://github.com/ccxt/ccxt/pull/27792)
+* perf: python extend (10%) by [@ttodua](https://github.com/ttodua) in [#27790](https://github.com/ccxt/ccxt/pull/27790)
+* feat(exchanges): new ADL unified methods by [@Dan-krm](https://github.com/Dan-krm) in [#27590](https://github.com/ccxt/ccxt/pull/27590)
+* refactor: remove inflate64 by [@ttodua](https://github.com/ttodua) in [#27949](https://github.com/ccxt/ccxt/pull/27949)
+* feat(bitmex): fetchSettlementHistory by [@samgermain](https://github.com/samgermain) in [#27967](https://github.com/ccxt/ccxt/pull/27967)
+* fix(go): make some WS structs thread-safe by [@carlosmiei](https://github.com/carlosmiei) in [#27966](https://github.com/ccxt/ccxt/pull/27966)
+* fix(bitget): WS uta methods by [@ttodua](https://github.com/ttodua) in [#27968](https://github.com/ccxt/ccxt/pull/27968)
+* feat(exchanges): add watchFundingRate support by [@Dan-krm](https://github.com/Dan-krm) in [#27950](https://github.com/ccxt/ccxt/pull/27950)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/go/v4.5.39...v4.5.40
+
+[Changes][v4.5.40]
+
+
 <a id="v4.5.39"></a>
 # [v4.5.39](https://github.com/ccxt/ccxt/releases/tag/v4.5.39) - 2026-02-19
 
@@ -12453,6 +12488,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.40]: https://github.com/ccxt/ccxt/compare/v4.5.39...v4.5.40
 [v4.5.39]: https://github.com/ccxt/ccxt/compare/v4.5.38...v4.5.39
 [v4.5.38]: https://github.com/ccxt/ccxt/compare/v4.5.37...v4.5.38
 [v4.5.37]: https://github.com/ccxt/ccxt/compare/v4.5.36...v4.5.37

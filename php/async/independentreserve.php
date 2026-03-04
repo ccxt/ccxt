@@ -685,7 +685,7 @@ class independentreserve extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $request = $this->ordered(array());
+            $request = array();
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -714,7 +714,7 @@ class independentreserve extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
-            $request = $this->ordered(array());
+            $request = array();
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -747,10 +747,10 @@ class independentreserve extends Exchange {
             if ($limit === null) {
                 $limit = 50;
             }
-            $request = $this->ordered(array(
+            $request = array(
                 'pageIndex' => $pageIndex,
                 'pageSize' => $limit,
-            ));
+            );
             $response = Async\await($this->privatePostGetTrades ($this->extend($request, $params)));
             $market = null;
             if ($symbol !== null) {
@@ -886,11 +886,11 @@ class independentreserve extends Exchange {
             $market = $this->market($symbol);
             $orderType = $this->capitalize($type);
             $orderType .= ($side === 'sell') ? 'Offer' : 'Bid';
-            $request = $this->ordered(array(
+            $request = array(
                 'primaryCurrencyCode' => $market['baseId'],
                 'secondaryCurrencyCode' => $market['quoteId'],
                 'orderType' => $orderType,
-            ));
+            );
             $response = null;
             $request['volume'] = $amount;
             if ($type === 'limit') {
@@ -1121,7 +1121,7 @@ class independentreserve extends Exchange {
             }
             $message = implode(',', $auth);
             $signature = $this->hmac($this->encode($message), $this->encode($this->secret), 'sha256');
-            $query = $this->ordered(array());
+            $query = array();
             $query['apiKey'] = $this->apiKey;
             $query['nonce'] = $nonce;
             $query['signature'] = strtoupper($signature);

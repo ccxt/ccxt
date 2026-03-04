@@ -160,7 +160,7 @@ class binance(ccxt.async_support.binance):
                     'name': 'ticker',  # ticker or miniTicker or ticker_<window_size>
                 },
                 'watchTickers': {
-                    'name': 'ticker',  # ticker or miniTicker or ticker_<window_size>
+                    'name': 'miniTicker',  # miniTicker or ticker_<window_size>
                 },
                 'watchOHLCV': {
                     'name': 'kline',  # or indexPriceKline or markPriceKline(coin-m futures)
@@ -1774,7 +1774,7 @@ class binance(ccxt.async_support.binance):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         channelName = None
-        channelName, params = self.handle_option_and_params(params, 'watchTickers', 'name', 'ticker')
+        channelName, params = self.handle_option_and_params(params, 'watchTickers', 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         newTickers = await self.watch_multi_ticker_helper('watchTickers', channelName, symbols, params)
