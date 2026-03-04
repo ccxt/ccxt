@@ -22,10 +22,7 @@ public partial class Exchange
             throw new NotSupportedException(this.id + " loadLighterLibrary() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options[\"libraryPath\"] = \"path/to/lighter-signer-linux-arm64.so\"");
 
         }
-        System.Console.WriteLine("1: Loading Lighter library from path: " + path.ToString());
         LighterSigner.Signer lighterSigner = LighterSigner.Signer.GetInstance((string)path);
-        System.Console.WriteLine("2 : Successfully loaded Lighter library");
-
 
         string url = (string)this.implodeHostname(getValue(getValue(this.urls, "api"), "public"));
         lighterSigner.CreateClient(
@@ -35,7 +32,6 @@ public partial class Exchange
             Convert.ToInt32(apiKeyIndex),
             (long)accountIndex
         );
-        System.Console.WriteLine("3 : Successfully created Lighter client with provided credentials");
         return lighterSigner;
     }
 
@@ -75,7 +71,6 @@ public partial class Exchange
 
     public object lighterSignCreateOrder(object signer, object request)
     {
-        Console.WriteLine("4: Signing create order with request: ");
         LighterSigner.Signer.SignedTx signedTx = ((LighterSigner.Signer)signer).SignCreateOrder(
             Convert.ToInt32(getValue(request, "market_index")),
             Convert.ToInt64(getValue(request, "client_order_index")),
@@ -91,7 +86,6 @@ public partial class Exchange
             Convert.ToInt32(getValue(request, "api_key_index")),
             Convert.ToInt64(getValue(request, "account_index"))
         );
-        Console.WriteLine("5: Successfully signed create order");
         return this.formatSignedLighterTx(signedTx);
     }
 
