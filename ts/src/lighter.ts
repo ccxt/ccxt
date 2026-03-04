@@ -1004,6 +1004,13 @@ export default class lighter extends Exchange {
             const id = this.safeString (entry, 'asset_id');
             const code = this.safeCurrencyCode (this.safeString (entry, 'symbol'));
             const decimals = this.safeString (entry, 'decimals');
+            const isUSDC = (code === 'USDC');
+            let depositMin = undefined;
+            let withdrawMin = undefined;
+            if (isUSDC) {
+                depositMin = this.safeNumber (entry, 'min_transfer_amount');
+                withdrawMin = this.safeNumber (entry, 'min_withdrawal_amount');
+            }
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': code,
@@ -1011,17 +1018,17 @@ export default class lighter extends Exchange {
                 'precision': this.parseNumber ('1e-' + decimals),
                 'active': true,
                 'fee': undefined,
-                'networks': undefined,
-                'deposit': undefined,
-                'withdraw': undefined,
+                'networks': {},
+                'deposit': isUSDC,
+                'withdraw': isUSDC,
                 'type': 'crypto',
                 'limits': {
                     'deposit': {
-                        'min': this.safeNumber (entry, 'min_transfer_amount'),
+                        'min': depositMin,
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (entry, 'min_withdrawal_amount'),
+                        'min': withdrawMin,
                         'max': undefined,
                     },
                 },

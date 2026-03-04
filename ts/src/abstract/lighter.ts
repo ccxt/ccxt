@@ -29,7 +29,7 @@ interface Exchange {
     publicGetBlock (params?: {}): Promise<implicitReturnType>;
     publicGetBlocks (params?: {}): Promise<implicitReturnType>;
     publicGetCurrentHeight (params?: {}): Promise<implicitReturnType>;
-    publicGetCandlesticks (params?: {}): Promise<implicitReturnType>;
+    publicGetCandles (params?: {}): Promise<implicitReturnType>;
     publicGetFundings (params?: {}): Promise<implicitReturnType>;
     publicGetFastbridgeInfo (params?: {}): Promise<implicitReturnType>;
     publicGetFundingRates (params?: {}): Promise<implicitReturnType>;

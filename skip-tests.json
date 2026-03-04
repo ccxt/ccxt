@@ -2200,6 +2200,9 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
+            },
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "can deposit only USDC into perp"
             }
         }
     }
