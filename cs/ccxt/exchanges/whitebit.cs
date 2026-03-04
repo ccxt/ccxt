@@ -184,9 +184,7 @@ public partial class whitebit : Exchange
                     { "margin", "collateral" },
                     { "trade", "spot" },
                 } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "BEP20", "BSC" },
-                } },
+                { "networksById", new Dictionary<string, object>() {} },
                 { "defaultType", "spot" },
                 { "brokerId", "ccxt" },
             } },
@@ -396,6 +394,7 @@ public partial class whitebit : Exchange
         object taker = Precise.stringDiv(takerFeeRate, "100");
         object makerFeeRate = this.safeString(market, "makerFee");
         object maker = Precise.stringDiv(makerFeeRate, "100");
+        object isSpot = !isTrue(swap);
         return new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -406,7 +405,7 @@ public partial class whitebit : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", !isTrue(swap) },
+            { "spot", isSpot },
             { "margin", margin },
             { "swap", swap },
             { "future", false },
@@ -417,7 +416,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", contractSize },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : contractSize },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -547,6 +546,8 @@ public partial class whitebit : Exchange
             {
                 object networkId = getValue(allNetworks, j);
                 object networkCode = this.networkIdToCode(networkId);
+                object networkDepositLimits = this.safeDict(depositLimits, networkId, new Dictionary<string, object>() {});
+                object networkWithdrawLimits = this.safeDict(withdrawLimits, networkId, new Dictionary<string, object>() {});
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
                     { "id", networkId },
                     { "network", networkCode },
@@ -557,12 +558,12 @@ public partial class whitebit : Exchange
                     { "precision", null },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(depositLimits, "min", null) },
-                            { "max", this.safeNumber(depositLimits, "max", null) },
+                            { "min", this.safeNumber(networkDepositLimits, "min") },
+                            { "max", this.safeNumber(networkDepositLimits, "max") },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(withdrawLimits, "min", null) },
-                            { "max", this.safeNumber(withdrawLimits, "max", null) },
+                            { "min", this.safeNumber(networkWithdrawLimits, "min") },
+                            { "max", this.safeNumber(networkWithdrawLimits, "max") },
                         } },
                     } },
                 };
@@ -576,7 +577,7 @@ public partial class whitebit : Exchange
                 { "deposit", this.safeBool(currency, "can_deposit") },
                 { "withdraw", this.safeBool(currency, "can_withdraw") },
                 { "fee", null },
-                { "networks", null },
+                { "networks", networks },
                 { "type", ((bool) isTrue(hasProvider)) ? "fiat" : "crypto" },
                 { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "currency_precision"))) },
                 { "limits", new Dictionary<string, object>() {
@@ -1242,7 +1243,40 @@ public partial class whitebit : Exchange
         //       tradesEnabled: true
         //   }
         //
-        object marketId = this.safeString(ticker, "tradingPairs");
+        // v4PublicGetFutures
+        //     {
+        //         "ticker_id": "0G_PERP",
+        //         "stock_currency": "0G",
+        //         "money_currency": "USDT",
+        //         "last_price": "0.6065",
+        //         "stock_volume": "2563218",
+        //         "money_volume": "1587952.6137",
+        //         "bid": "0.6065",
+        //         "ask": "0.6077",
+        //         "high": "0.6472",
+        //         "low": "0.6045",
+        //         "product_type": "Perpetual",
+        //         "open_interest": "3721488",
+        //         "index_price": "0.61",
+        //         "index_name": "0G future contract",
+        //         "index_currency": "0G",
+        //         "funding_rate": "-0.00000778",
+        //         "next_funding_rate_timestamp": "1772467200000",
+        //         "brackets": {
+        //             "1": 0,
+        //             "10": 0,
+        //             "100": 0,
+        //             "2": 0,
+        //             "20": 4000,
+        //             "3": 0,
+        //             "5": 0,
+        //             "50": 800
+        //         },
+        //         "max_leverage": 50,
+        //         "funding_interval_minutes": 240
+        //     }
+        //
+        object marketId = this.safeString2(ticker, "tradingPairs", "ticker_id");
         market = this.safeMarket(marketId, market);
         // last price is provided as "last" or "last_price"
         object last = this.safeStringN(ticker, new List<object>() {"last", "last_price", "lastPrice"});
@@ -1266,8 +1300,9 @@ public partial class whitebit : Exchange
             { "change", null },
             { "percentage", this.safeString(ticker, "change") },
             { "average", null },
-            { "baseVolume", this.safeStringN(ticker, new List<object>() {"base_volume", "volume", "baseVolume24h"}) },
-            { "quoteVolume", this.safeStringN(ticker, new List<object>() {"quote_volume", "deal", "quoteVolume24h"}) },
+            { "baseVolume", this.safeStringN(ticker, new List<object>() {"base_volume", "volume", "baseVolume24h", "stock_volume"}) },
+            { "quoteVolume", this.safeStringN(ticker, new List<object>() {"quote_volume", "deal", "quoteVolume24h", "money_volume"}) },
+            { "indexPrice", this.safeString(ticker, "index_price") },
             { "info", ticker },
         }, market);
     }
@@ -1368,7 +1403,8 @@ public partial class whitebit : Exchange
      * @see https://docs.whitebit.com/public/http-v4/#market-activity
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+     * @param {string} [params.type] 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+     * @param {string} [params.method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -1376,29 +1412,103 @@ public partial class whitebit : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object method = "v4PublicGetTicker";
+        object onlyContractSymbols = true;
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                if (!isTrue((getValue(market, "contract"))))
+                {
+                    onlyContractSymbols = false;
+                    break;
+                }
+            }
+        } else
+        {
+            onlyContractSymbols = false;
+        }
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
+        if (isTrue(isEqual(method, null)))
+        {
+            // if the user did not specify a method, choose it based on market type and symbols
+            if (isTrue(isTrue(onlyContractSymbols) || isTrue((isEqual(marketType, "swap")))))
+            {
+                method = "v4PublicGetFutures";
+            } else
+            {
+                method = "v4PublicGetTicker";
+            }
+        }
         object response = null;
         if (isTrue(isEqual(method, "v4PublicGetTicker")))
         {
+            //
+            //      "BCH_RUB": {
+            //          "base_id":1831,
+            //          "quote_id":0,
+            //          "last_price":"32830.21",
+            //          "quote_volume":"1494659.8024096",
+            //          "base_volume":"46.1083",
+            //          "isFrozen":false,
+            //          "change":"2.12"
+            //      },
+            //
             response = await this.v4PublicGetTicker(parameters);
+        } else if (isTrue(isEqual(method, "v4PublicGetFutures")))
+        {
+            //
+            //     {
+            //         "success": true,
+            //         "message": null,
+            //         "result": [
+            //             {
+            //                 "ticker_id": "0G_PERP",
+            //                 "stock_currency": "0G",
+            //                 "money_currency": "USDT",
+            //                 "last_price": "0.6065",
+            //                 "stock_volume": "2563218",
+            //                 "money_volume": "1587952.6137",
+            //                 "bid": "0.6065",
+            //                 "ask": "0.6077",
+            //                 "high": "0.6472",
+            //                 "low": "0.6045",
+            //                 "product_type": "Perpetual",
+            //                 "open_interest": "3721488",
+            //                 "index_price": "0.61",
+            //                 "index_name": "0G future contract",
+            //                 "index_currency": "0G",
+            //                 "funding_rate": "-0.00000778",
+            //                 "next_funding_rate_timestamp": "1772467200000",
+            //                 "brackets": {
+            //                     "1": 0,
+            //                     "10": 0,
+            //                     "100": 0,
+            //                     "2": 0,
+            //                     "20": 4000,
+            //                     "3": 0,
+            //                     "5": 0,
+            //                     "50": 800
+            //                 },
+            //                 "max_leverage": 50,
+            //                 "funding_interval_minutes": 240
+            //             }
+            //         ]
+            //     }
+            //
+            response = await this.v4PublicGetFutures(parameters);
         } else
         {
             response = await this.v2PublicGetTicker(parameters);
         }
-        //
-        //      "BCH_RUB": {
-        //          "base_id":1831,
-        //          "quote_id":0,
-        //          "last_price":"32830.21",
-        //          "quote_volume":"1494659.8024096",
-        //          "base_volume":"46.1083",
-        //          "isFrozen":false,
-        //          "change":"2.12"
-        //      },
-        //
         object resultList = this.safeList(response, "result");
         if (isTrue(!isEqual(resultList, null)))
         {
@@ -2505,7 +2615,7 @@ public partial class whitebit : Exchange
             { "lastTradeTimestamp", lastTradeTimestamp },
             { "timeInForce", null },
             { "postOnly", null },
-            { "status", null },
+            { "status", this.parseOrderStatus(this.safeString(order, "status")) },
             { "side", side },
             { "price", price },
             { "type", orderType },
@@ -2518,6 +2628,17 @@ public partial class whitebit : Exchange
             { "fee", fee },
             { "trades", null },
         }, market);
+    }
+
+    public virtual object parseOrderStatus(object status)
+    {
+        object statuses = new Dictionary<string, object>() {
+            { "CANCELED", "canceled" },
+            { "OPEN", "open" },
+            { "PARTIALLY_FILLED", "open" },
+            { "FILLED", "closed" },
+        };
+        return this.safeStringLower(statuses, status, status);
     }
 
     /**

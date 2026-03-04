@@ -3204,7 +3204,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
+     * @param {string} [params.orderIds] *stop orders only* Comma separated order IDs
      * @param {bool} [params.hf] false, // true for hf order
      * @returns Response from the exchange
      */
@@ -3260,7 +3260,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3415,7 +3415,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

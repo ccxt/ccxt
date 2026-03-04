@@ -736,6 +736,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetchOpenInterests",
+                "method": "fetchOpenInterests",
+                "url": "https://ascendex.com/api/pro/v2/futures/pricing-data",
+                "input": []
+            },
+            {
+                "description": "fetchOpenInterests for a specific market",
+                "method": "fetchOpenInterests",
+                "url": "https://ascendex.com/api/pro/v2/futures/pricing-data",
+                "input": [
+                    [
+                    "BTC/USDT:USDT"
+                    ]
+                ]
+            }
         ]
     }
 }

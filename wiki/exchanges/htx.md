@@ -62,6 +62,7 @@
 * [fetchLiquidations](#fetchliquidations)
 * [closePositions](#closepositions)
 * [setPositionMode](#setpositionmode)
+* [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [watchTicker](#watchticker)
 * [unWatchTicker](#unwatchticker)
 * [watchTrades](#watchtrades)
@@ -1589,6 +1590,33 @@ set hedged to true or false
 
 ```javascript
 htx.setPositionMode (hedged[, symbol, params])
+```
+
+
+<a name="fetchPositionsADLRank" id="fetchpositionsadlrank"></a>
+
+### fetchPositionsADLRank{docsify-ignore}
+fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+**Kind**: instance method of [<code>htx</code>](#htx)  
+**Returns**: <code>Array&lt;object&gt;</code> - an array of [auto de leverage structures](https://docs.ccxt.com/?id=auto-de-leverage-structure)
+
+**See**
+
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
+- https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+htx.fetchPositionsADLRank ([symbols, params])
 ```
 
 

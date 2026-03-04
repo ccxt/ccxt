@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 ubuntu:22.04
+FROM ubuntu:22.04
 
 # Supresses unwanted user interaction (like "Please select the geographic area" when installing tzdata)
 ENV DEBIAN_FRONTEND=noninteractive

@@ -24,7 +24,7 @@ func (this *GeminiCore) Describe() interface{} {
 		"has": map[string]interface{}{
 			"CORS":                           nil,
 			"spot":                           true,
-			"margin":                         false,
+			"margin":                         nil,
 			"swap":                           true,
 			"future":                         false,
 			"option":                         false,
@@ -113,63 +113,92 @@ func (this *GeminiCore) Describe() interface{} {
 			},
 			"public": map[string]interface{}{
 				"get": map[string]interface{}{
-					"v1/symbols":                      5,
-					"v1/symbols/details/{symbol}":     5,
-					"v1/staking/rates":                5,
-					"v1/pubticker/{symbol}":           5,
-					"v2/ticker/{symbol}":              5,
-					"v2/candles/{symbol}/{timeframe}": 5,
-					"v1/trades/{symbol}":              5,
-					"v1/auction/{symbol}":             5,
-					"v1/auction/{symbol}/history":     5,
-					"v1/pricefeed":                    5,
-					"v1/book/{symbol}":                5,
-					"v1/earn/rates":                   5,
+					"v1/symbols":                                   5,
+					"v1/symbols/details/{symbol}":                  5,
+					"v1/network/{token}":                           5,
+					"v1/staking/rates":                             5,
+					"v1/pubticker/{symbol}":                        5,
+					"v1/feepromos":                                 5,
+					"v2/ticker/{symbol}":                           5,
+					"v2/candles/{symbol}/{timeframe}":              5,
+					"v1/trades/{symbol}":                           5,
+					"v1/auction/{symbol}":                          5,
+					"v1/auction/{symbol}/history":                  5,
+					"v1/pricefeed":                                 5,
+					"v1/fundingamount/{symbol}":                    5,
+					"v1/fundingamountreport/records.xlsx":          5,
+					"v1/book/{symbol}":                             5,
+					"v1/earn/rates":                                5,
+					"v2/derivatives/candles/{symbol}/{time_frame}": 5,
+					"v2/fxrate/{symbol}/{timestamp}":               5,
+					"v1/riskstats/{symbol}":                        5,
 				},
 			},
 			"private": map[string]interface{}{
+				"get": map[string]interface{}{
+					"v1/perpetuals/fundingpaymentreport/records.xlsx": 1,
+				},
 				"post": map[string]interface{}{
-					"v1/staking/unstake":                     1,
-					"v1/staking/stake":                       1,
-					"v1/staking/rewards":                     1,
-					"v1/staking/history":                     1,
-					"v1/order/new":                           1,
-					"v1/order/cancel":                        1,
-					"v1/wrap/{symbol}":                       1,
-					"v1/order/cancel/session":                1,
-					"v1/order/cancel/all":                    1,
-					"v1/order/status":                        1,
-					"v1/orders":                              1,
-					"v1/mytrades":                            1,
-					"v1/notionalvolume":                      1,
-					"v1/tradevolume":                         1,
-					"v1/clearing/new":                        1,
-					"v1/clearing/status":                     1,
-					"v1/clearing/cancel":                     1,
-					"v1/clearing/confirm":                    1,
-					"v1/balances":                            1,
-					"v1/balances/staking":                    1,
-					"v1/notionalbalances/{currency}":         1,
-					"v1/transfers":                           1,
-					"v1/addresses/{network}":                 1,
-					"v1/deposit/{network}/newAddress":        1,
-					"v1/deposit/{currency}/newAddress":       1,
-					"v1/withdraw/{currency}":                 1,
-					"v1/account/transfer/{currency}":         1,
-					"v1/payments/addbank":                    1,
-					"v1/payments/methods":                    1,
-					"v1/payments/sen/withdraw":               1,
-					"v1/balances/earn":                       1,
-					"v1/earn/interest":                       1,
-					"v1/earn/history":                        1,
-					"v1/approvedAddresses/{network}/request": 1,
-					"v1/approvedAddresses/account/{network}": 1,
-					"v1/approvedAddresses/{network}/remove":  1,
-					"v1/account":                             1,
-					"v1/account/create":                      1,
-					"v1/account/list":                        1,
-					"v1/heartbeat":                           1,
-					"v1/roles":                               1,
+					"v1/staking/unstake":                              1,
+					"v1/staking/stake":                                1,
+					"v1/staking/rewards":                              1,
+					"v1/staking/history":                              1,
+					"v1/order/new":                                    1,
+					"v1/order/cancel":                                 1,
+					"v1/wrap/{symbol}":                                1,
+					"v1/order/cancel/session":                         1,
+					"v1/order/cancel/all":                             1,
+					"v1/order/status":                                 1,
+					"v1/orders":                                       1,
+					"v1/mytrades":                                     1,
+					"v1/notionalvolume":                               1,
+					"v1/tradevolume":                                  1,
+					"v1/clearing/new":                                 1,
+					"v1/clearing/status":                              1,
+					"v1/clearing/cancel":                              1,
+					"v1/clearing/confirm":                             1,
+					"v1/balances":                                     1,
+					"v1/balances/staking":                             1,
+					"v1/notionalbalances/{currency}":                  1,
+					"v1/transfers":                                    1,
+					"v1/addresses/{network}":                          1,
+					"v1/deposit/{network}/newAddress":                 1,
+					"v1/deposit/{currency}/newAddress":                1,
+					"v1/withdraw/{currency}":                          1,
+					"v1/account/transfer/{currency}":                  1,
+					"v1/payments/addbank":                             1,
+					"v1/payments/methods":                             1,
+					"v1/payments/sen/withdraw":                        1,
+					"v1/balances/earn":                                1,
+					"v1/earn/interest":                                1,
+					"v1/earn/history":                                 1,
+					"v1/approvedAddresses/{network}/request":          1,
+					"v1/approvedAddresses/account/{network}":          1,
+					"v1/approvedAddresses/{network}/remove":           1,
+					"v1/account":                                      1,
+					"v1/account/create":                               1,
+					"v1/account/list":                                 1,
+					"v1/heartbeat":                                    1,
+					"v1/roles":                                        1,
+					"v1/custodyaccountfees":                           1,
+					"v1/withdraw/{currencyCodeLowerCase}/feeEstimate": 1,
+					"v1/payments/addbank/cad":                         1,
+					"v1/transactions":                                 1,
+					"v1/margin/account":                               1,
+					"v1/margin/rates":                                 1,
+					"v1/margin/order/preview":                         1,
+					"v1/clearing/list":                                1,
+					"v1/clearing/broker/list":                         1,
+					"v1/clearing/broker/new":                          1,
+					"v1/clearing/trades":                              1,
+					"v1/instant/quote":                                1,
+					"v1/instant/execute":                              1,
+					"v1/account/rename":                               1,
+					"v1/oauth/revokeByToken":                          1,
+					"v1/margin":                                       1,
+					"v1/perpetuals/fundingPayment":                    1,
+					"v1/perpetuals/fundingpaymentreport/records.json": 1,
+					"v1/positions":                                    1,
 				},
 			},
 		},
@@ -364,9 +393,9 @@ func (this *GeminiCore) FetchCurrencies(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes37815 := (<-this.FetchCurrenciesFromWeb(params))
-		PanicOnError(retRes37815)
-		ch <- retRes37815
+		retRes40715 := (<-this.FetchCurrenciesFromWeb(params))
+		PanicOnError(retRes40715)
+		ch <- retRes40715
 		return nil
 
 	}()
@@ -511,9 +540,9 @@ func (this *GeminiCore) FetchMarkets(optionalArgs ...interface{}) <-chan interfa
 			return nil
 		}
 
-		retRes49315 := (<-this.FetchMarketsFromAPI(params))
-		PanicOnError(retRes49315)
-		ch <- retRes49315
+		retRes52215 := (<-this.FetchMarketsFromAPI(params))
+		PanicOnError(retRes52215)
+		ch <- retRes52215
 		return nil
 
 	}()
@@ -921,8 +950,8 @@ func (this *GeminiCore) FetchOrderBook(symbol interface{}, optionalArgs ...inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes8628 := (<-this.LoadMarkets())
-		PanicOnError(retRes8628)
+		retRes8918 := (<-this.LoadMarkets())
+		PanicOnError(retRes8918)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -949,8 +978,8 @@ func (this *GeminiCore) FetchTickerV1(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8768 := (<-this.LoadMarkets())
-		PanicOnError(retRes8768)
+		retRes9058 := (<-this.LoadMarkets())
+		PanicOnError(retRes9058)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -985,8 +1014,8 @@ func (this *GeminiCore) FetchTickerV2(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes8988 := (<-this.LoadMarkets())
-		PanicOnError(retRes8988)
+		retRes9278 := (<-this.LoadMarkets())
+		PanicOnError(retRes9278)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1063,22 +1092,22 @@ func (this *GeminiCore) FetchTicker(symbol interface{}, optionalArgs ...interfac
 		var method interface{} = this.SafeValue(this.Options, "fetchTickerMethod", "fetchTickerV1")
 		if IsTrue(IsEqual(method, "fetchTickerV1")) {
 
-			retRes94919 := (<-this.FetchTickerV1(symbol, params))
-			PanicOnError(retRes94919)
-			ch <- retRes94919
+			retRes97819 := (<-this.FetchTickerV1(symbol, params))
+			PanicOnError(retRes97819)
+			ch <- retRes97819
 			return nil
 		}
 		if IsTrue(IsEqual(method, "fetchTickerV2")) {
 
-			retRes95219 := (<-this.FetchTickerV2(symbol, params))
-			PanicOnError(retRes95219)
-			ch <- retRes95219
+			retRes98119 := (<-this.FetchTickerV2(symbol, params))
+			PanicOnError(retRes98119)
+			ch <- retRes98119
 			return nil
 		}
 
-		retRes95415 := (<-this.FetchTickerV1AndV2(symbol, params))
-		PanicOnError(retRes95415)
-		ch <- retRes95415
+		retRes98315 := (<-this.FetchTickerV1AndV2(symbol, params))
+		PanicOnError(retRes98315)
+		ch <- retRes98315
 		return nil
 
 	}()
@@ -1199,8 +1228,8 @@ func (this *GeminiCore) FetchTickers(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes10618 := (<-this.LoadMarkets())
-		PanicOnError(retRes10618)
+		retRes10908 := (<-this.LoadMarkets())
+		PanicOnError(retRes10908)
 
 		response := (<-this.PublicGetV1Pricefeed(params))
 		PanicOnError(response)
@@ -1316,8 +1345,8 @@ func (this *GeminiCore) FetchTrades(symbol interface{}, optionalArgs ...interfac
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes11588 := (<-this.LoadMarkets())
-		PanicOnError(retRes11588)
+		retRes11878 := (<-this.LoadMarkets())
+		PanicOnError(retRes11878)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -1383,8 +1412,8 @@ func (this *GeminiCore) FetchTradingFees(optionalArgs ...interface{}) <-chan int
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes12098 := (<-this.LoadMarkets())
-		PanicOnError(retRes12098)
+		retRes12388 := (<-this.LoadMarkets())
+		PanicOnError(retRes12388)
 
 		response := (<-this.PrivatePostV1Notionalvolume(params))
 		PanicOnError(response)
@@ -1458,8 +1487,8 @@ func (this *GeminiCore) FetchBalance(optionalArgs ...interface{}) <-chan interfa
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes12698 := (<-this.LoadMarkets())
-		PanicOnError(retRes12698)
+		retRes12988 := (<-this.LoadMarkets())
+		PanicOnError(retRes12988)
 
 		response := (<-this.PrivatePostV1Balances(params))
 		PanicOnError(response)
@@ -1657,8 +1686,8 @@ func (this *GeminiCore) FetchOrder(id interface{}, optionalArgs ...interface{}) 
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes14508 := (<-this.LoadMarkets())
-		PanicOnError(retRes14508)
+		retRes14798 := (<-this.LoadMarkets())
+		PanicOnError(retRes14798)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
 		}
@@ -1721,8 +1750,8 @@ func (this *GeminiCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes14938 := (<-this.LoadMarkets())
-		PanicOnError(retRes14938)
+		retRes15228 := (<-this.LoadMarkets())
+		PanicOnError(retRes15228)
 
 		response := (<-this.PrivatePostV1Orders(params))
 		PanicOnError(response)
@@ -1786,8 +1815,8 @@ func (this *GeminiCore) CreateOrder(symbol interface{}, typeVar interface{}, sid
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes15418 := (<-this.LoadMarkets())
-		PanicOnError(retRes15418)
+		retRes15708 := (<-this.LoadMarkets())
+		PanicOnError(retRes15708)
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
@@ -1895,8 +1924,8 @@ func (this *GeminiCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes16348 := (<-this.LoadMarkets())
-		PanicOnError(retRes16348)
+		retRes16638 := (<-this.LoadMarkets())
+		PanicOnError(retRes16638)
 		var request interface{} = map[string]interface{}{
 			"order_id": id,
 		}
@@ -1963,8 +1992,8 @@ func (this *GeminiCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interf
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
 
-		retRes16818 := (<-this.LoadMarkets())
-		PanicOnError(retRes16818)
+		retRes17108 := (<-this.LoadMarkets())
+		PanicOnError(retRes17108)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"symbol": GetValue(market, "id"),
@@ -2012,8 +2041,8 @@ func (this *GeminiCore) Withdraw(code interface{}, amount interface{}, address i
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
 
-		retRes17118 := (<-this.LoadMarkets())
-		PanicOnError(retRes17118)
+		retRes17408 := (<-this.LoadMarkets())
+		PanicOnError(retRes17408)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2090,8 +2119,8 @@ func (this *GeminiCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes17698 := (<-this.LoadMarkets())
-		PanicOnError(retRes17698)
+		retRes17988 := (<-this.LoadMarkets())
+		PanicOnError(retRes17988)
 		var request interface{} = map[string]interface{}{}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit_transfers", limit)
@@ -2214,8 +2243,8 @@ func (this *GeminiCore) FetchDepositAddress(code interface{}, optionalArgs ...in
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18778 := (<-this.LoadMarkets())
-		PanicOnError(retRes18778)
+		retRes19068 := (<-this.LoadMarkets())
+		PanicOnError(retRes19068)
 
 		groupedByNetwork := (<-this.FetchDepositAddressesByNetwork(code, params))
 		PanicOnError(groupedByNetwork)
@@ -2250,8 +2279,8 @@ func (this *GeminiCore) FetchDepositAddressesByNetwork(code interface{}, optiona
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes18968 := (<-this.LoadMarkets())
-		PanicOnError(retRes18968)
+		retRes19258 := (<-this.LoadMarkets())
+		PanicOnError(retRes19258)
 		var currency interface{} = this.Currency(code)
 		code = GetValue(currency, "code")
 		var networkCode interface{} = nil
@@ -2373,8 +2402,8 @@ func (this *GeminiCore) CreateDepositAddress(code interface{}, optionalArgs ...i
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes19868 := (<-this.LoadMarkets())
-		PanicOnError(retRes19868)
+		retRes20158 := (<-this.LoadMarkets())
+		PanicOnError(retRes20158)
 		var currency interface{} = this.Currency(code)
 		var request interface{} = map[string]interface{}{
 			"currency": GetValue(currency, "id"),
@@ -2424,8 +2453,8 @@ func (this *GeminiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes20168 := (<-this.LoadMarkets())
-		PanicOnError(retRes20168)
+		retRes20458 := (<-this.LoadMarkets())
+		PanicOnError(retRes20458)
 		var market interface{} = this.Market(symbol)
 		var timeframeId interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var request interface{} = map[string]interface{}{
@@ -2448,6 +2477,70 @@ func (this *GeminiCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface
 
 	}()
 	return ch
+}
+
+/**
+ * @method
+ * @name gemini#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] exchange specific parameters
+ * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *GeminiCore) FetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		_ = params
+
+		retRes20738 := (<-this.LoadMarkets())
+		PanicOnError(retRes20738)
+		var market interface{} = this.Market(symbol)
+		var request interface{} = map[string]interface{}{
+			"symbol": GetValue(market, "id"),
+		}
+
+		response := (<-this.PublicGetV1RiskstatsSymbol(this.Extend(request, params)))
+		PanicOnError(response)
+
+		//
+		//    {
+		//        product_type: 'PerpetualSwapContract',
+		//        mark_price: '9.023',
+		//        index_price: '9.02072',
+		//        open_interest: '4681.9',
+		//        open_interest_notional: '42244.7837'
+		//    }
+		//
+		ch <- this.ParseOpenInterest(response, market)
+		return nil
+
+	}()
+	return ch
+}
+func (this *GeminiCore) ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{} {
+	//
+	//    {
+	//        product_type: 'PerpetualSwapContract',
+	//        mark_price: '9.023',
+	//        index_price: '9.02072',
+	//        open_interest: '4681.9',
+	//        open_interest_notional: '42244.7837'
+	//    }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	return this.SafeOpenInterest(map[string]interface{}{
+		"info":               interest,
+		"symbol":             this.SafeString(market, "symbol"),
+		"openInterestAmount": this.SafeString(interest, "open_interest"),
+		"openInterestValue":  this.SafeString(interest, "open_interest_notional"),
+		"timestamp":          nil,
+		"datetime":           nil,
+	}, market)
 }
 
 func (this *GeminiCore) Init(userConfig map[string]interface{}) {

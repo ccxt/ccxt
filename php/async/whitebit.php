@@ -315,9 +315,7 @@ class whitebit extends Exchange {
                     'margin' => 'collateral',
                     'trade' => 'spot',
                 ),
-                'networksById' => array(
-                    'BEP20' => 'BSC',
-                ),
+                'networksById' => array(),
                 'defaultType' => 'spot',
                 'brokerId' => 'ccxt',
             ),
@@ -522,6 +520,7 @@ class whitebit extends Exchange {
         $taker = Precise::string_div($takerFeeRate, '100');
         $makerFeeRate = $this->safe_string($market, 'makerFee');
         $maker = Precise::string_div($makerFeeRate, '100');
+        $isSpot = !$swap;
         return array(
             'id' => $id,
             'symbol' => $symbol,
@@ -532,7 +531,7 @@ class whitebit extends Exchange {
             'quoteId' => $quoteId,
             'settleId' => $settleId,
             'type' => $type,
-            'spot' => !$swap,
+            'spot' => $isSpot,
             'margin' => $margin,
             'swap' => $swap,
             'future' => false,
@@ -543,7 +542,7 @@ class whitebit extends Exchange {
             'inverse' => $inverse,
             'taker' => $this->parse_number($taker),
             'maker' => $this->parse_number($maker),
-            'contractSize' => $contractSize,
+            'contractSize' => $isSpot ? null : $contractSize,
             'expiry' => null,
             'expiryDatetime' => null,
             'strike' => null,
@@ -670,6 +669,8 @@ class whitebit extends Exchange {
                 for ($j = 0; $j < count($allNetworks); $j++) {
                     $networkId = $allNetworks[$j];
                     $networkCode = $this->network_id_to_code($networkId);
+                    $networkDepositLimits = $this->safe_dict($depositLimits, $networkId, array());
+                    $networkWithdrawLimits = $this->safe_dict($withdrawLimits, $networkId, array());
                     $networks[$networkCode] = array(
                         'id' => $networkId,
                         'network' => $networkCode,
@@ -680,12 +681,12 @@ class whitebit extends Exchange {
                         'precision' => null,
                         'limits' => array(
                             'deposit' => array(
-                                'min' => $this->safe_number($depositLimits, 'min', null),
-                                'max' => $this->safe_number($depositLimits, 'max', null),
+                                'min' => $this->safe_number($networkDepositLimits, 'min'),
+                                'max' => $this->safe_number($networkDepositLimits, 'max'),
                             ),
                             'withdraw' => array(
-                                'min' => $this->safe_number($withdrawLimits, 'min', null),
-                                'max' => $this->safe_number($withdrawLimits, 'max', null),
+                                'min' => $this->safe_number($networkWithdrawLimits, 'min'),
+                                'max' => $this->safe_number($networkWithdrawLimits, 'max'),
                             ),
                         ),
                     );
@@ -699,7 +700,7 @@ class whitebit extends Exchange {
                     'deposit' => $this->safe_bool($currency, 'can_deposit'),
                     'withdraw' => $this->safe_bool($currency, 'can_withdraw'),
                     'fee' => null,
-                    'networks' => null, // todo
+                    'networks' => $networks,
                     'type' => $hasProvider ? 'fiat' : 'crypto',
                     'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'currency_precision'))),
                     'limits' => array(
@@ -1341,7 +1342,40 @@ class whitebit extends Exchange {
         //       tradesEnabled => true
         //   }
         //
-        $marketId = $this->safe_string($ticker, 'tradingPairs');
+        // v4PublicGetFutures
+        //     {
+        //         "ticker_id" => "0G_PERP",
+        //         "stock_currency" => "0G",
+        //         "money_currency" => "USDT",
+        //         "last_price" => "0.6065",
+        //         "stock_volume" => "2563218",
+        //         "money_volume" => "1587952.6137",
+        //         "bid" => "0.6065",
+        //         "ask" => "0.6077",
+        //         "high" => "0.6472",
+        //         "low" => "0.6045",
+        //         "product_type" => "Perpetual",
+        //         "open_interest" => "3721488",
+        //         "index_price" => "0.61",
+        //         "index_name" => "0G future contract",
+        //         "index_currency" => "0G",
+        //         "funding_rate" => "-0.00000778",
+        //         "next_funding_rate_timestamp" => "1772467200000",
+        //         "brackets" => array(
+        //             "1" => 0,
+        //             "10" => 0,
+        //             "100" => 0,
+        //             "2" => 0,
+        //             "20" => 4000,
+        //             "3" => 0,
+        //             "5" => 0,
+        //             "50" => 800
+        //         ),
+        //         "max_leverage" => 50,
+        //         "funding_interval_minutes" => 240
+        //     }
+        //
+        $marketId = $this->safe_string_2($ticker, 'tradingPairs', 'ticker_id');
         $market = $this->safe_market($marketId, $market);
         // $last price is provided as "last" or "last_price"
         $last = $this->safe_string_n($ticker, array( 'last', 'last_price', 'lastPrice' ));
@@ -1358,15 +1392,16 @@ class whitebit extends Exchange {
             'ask' => $this->safe_string_2($ticker, 'ask', 'lowestAsk'),
             'askVolume' => null,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open'),
+            'open' => $this->safe_string($ticker, 'open'), // can not be defined in v4PublicGetFutures
             'close' => $close,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
-            'percentage' => $this->safe_string($ticker, 'change'),
-            'average' => null,
-            'baseVolume' => $this->safe_string_n($ticker, array( 'base_volume', 'volume', 'baseVolume24h' )),
-            'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h' )),
+            'change' => null, // can not be defined in v4PublicGetFutures
+            'percentage' => $this->safe_string($ticker, 'change'), // can not be defined in v4PublicGetFutures
+            'average' => null, // can not be defined in v4PublicGetFutures
+            'baseVolume' => $this->safe_string_n($ticker, array( 'base_volume', 'volume', 'baseVolume24h', 'stock_volume' )),
+            'quoteVolume' => $this->safe_string_n($ticker, array( 'quote_volume', 'deal', 'quoteVolume24h', 'money_volume' )),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
             'info' => $ticker,
         ), $market);
     }
@@ -1456,30 +1491,95 @@ class whitebit extends Exchange {
              *
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+             * @param {string} [$params->type] 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+             * @param {string} [$params->method] either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $method = 'v4PublicGetTicker';
+            $onlyContractSymbols = true;
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->market($symbol);
+                    if (!($market['contract'])) {
+                        $onlyContractSymbols = false;
+                        break;
+                    }
+                }
+            } else {
+                $onlyContractSymbols = false;
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', $method);
+            if ($method === null) {
+                // if the user did not specify a $method, choose it based on $market type and $symbols
+                if ($onlyContractSymbols || ($marketType === 'swap')) {
+                    $method = 'v4PublicGetFutures';
+                } else {
+                    $method = 'v4PublicGetTicker';
+                }
+            }
             $response = null;
             if ($method === 'v4PublicGetTicker') {
+                //
+                //      "BCH_RUB" => array(
+                //          "base_id":1831,
+                //          "quote_id":0,
+                //          "last_price":"32830.21",
+                //          "quote_volume":"1494659.8024096",
+                //          "base_volume":"46.1083",
+                //          "isFrozen":false,
+                //          "change":"2.12"
+                //      ),
+                //
                 $response = Async\await($this->v4PublicGetTicker ($params));
+            } elseif ($method === 'v4PublicGetFutures') {
+                //
+                //     {
+                //         "success" => true,
+                //         "message" => null,
+                //         "result" => array(
+                //             {
+                //                 "ticker_id" => "0G_PERP",
+                //                 "stock_currency" => "0G",
+                //                 "money_currency" => "USDT",
+                //                 "last_price" => "0.6065",
+                //                 "stock_volume" => "2563218",
+                //                 "money_volume" => "1587952.6137",
+                //                 "bid" => "0.6065",
+                //                 "ask" => "0.6077",
+                //                 "high" => "0.6472",
+                //                 "low" => "0.6045",
+                //                 "product_type" => "Perpetual",
+                //                 "open_interest" => "3721488",
+                //                 "index_price" => "0.61",
+                //                 "index_name" => "0G future contract",
+                //                 "index_currency" => "0G",
+                //                 "funding_rate" => "-0.00000778",
+                //                 "next_funding_rate_timestamp" => "1772467200000",
+                //                 "brackets" => array(
+                //                     "1" => 0,
+                //                     "10" => 0,
+                //                     "100" => 0,
+                //                     "2" => 0,
+                //                     "20" => 4000,
+                //                     "3" => 0,
+                //                     "5" => 0,
+                //                     "50" => 800
+                //                 ),
+                //                 "max_leverage" => 50,
+                //                 "funding_interval_minutes" => 240
+                //             }
+                //         )
+                //     }
+                //
+                $response = Async\await($this->v4PublicGetFutures ($params));
             } else {
                 $response = Async\await($this->v2PublicGetTicker ($params));
             }
-            //
-            //      "BCH_RUB" => array(
-            //          "base_id":1831,
-            //          "quote_id":0,
-            //          "last_price":"32830.21",
-            //          "quote_volume":"1494659.8024096",
-            //          "base_volume":"46.1083",
-            //          "isFrozen":false,
-            //          "change":"2.12"
-            //      ),
-            //
             $resultList = $this->safe_list($response, 'result');
             if ($resultList !== null) {
                 return $this->parse_tickers($resultList, $symbols);
@@ -2500,7 +2600,7 @@ class whitebit extends Exchange {
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'timeInForce' => null,
             'postOnly' => null,
-            'status' => null,
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'side' => $side,
             'price' => $price,
             'type' => $orderType,
@@ -2513,6 +2613,16 @@ class whitebit extends Exchange {
             'fee' => $fee,
             'trades' => null,
         ), $market);
+    }
+
+    public function parse_order_status(?string $status) {
+        $statuses = array(
+            'CANCELED' => 'canceled',
+            'OPEN' => 'open',
+            'PARTIALLY_FILLED' => 'open',
+            'FILLED' => 'closed',
+        );
+        return $this->safe_string_lower($statuses, $status, $status);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

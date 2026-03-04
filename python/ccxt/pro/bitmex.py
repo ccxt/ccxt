@@ -439,7 +439,8 @@ class bitmex(ccxt.async_support.bitmex):
         rawLiquidations = self.safe_value(message, 'data', [])
         newLiquidations = []
         if self.liquidations is None:
-            self.liquidations = ArrayCacheBySymbolBySide()
+            limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+            self.liquidations = ArrayCache(limit)
         cache = self.liquidations
         for i in range(0, len(rawLiquidations)):
             rawLiquidation = rawLiquidations[i]

@@ -46,6 +46,11 @@ public partial class bitstamp : Exchange
         return await this.callAsync ("publicGetTradingPairsInfo",parameters);
     }
 
+    public async Task<object> publicGetMarkets (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarkets",parameters);
+    }
+
     public async Task<object> publicGetCurrencies (object parameters = null)
     {
         return await this.callAsync ("publicGetCurrencies",parameters);
@@ -59,6 +64,16 @@ public partial class bitstamp : Exchange
     public async Task<object> publicGetTravelRuleVasps (object parameters = null)
     {
         return await this.callAsync ("publicGetTravelRuleVasps",parameters);
+    }
+
+    public async Task<object> publicGetFundingRateMarketSymbol (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFundingRateMarketSymbol",parameters);
+    }
+
+    public async Task<object> publicGetFundingRateHistoryPair (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFundingRateHistoryPair",parameters);
     }
 
     public async Task<object> privateGetTravelRuleContacts (object parameters = null)
@@ -79,6 +94,16 @@ public partial class bitstamp : Exchange
     public async Task<object> privateGetEarnTransactions (object parameters = null)
     {
         return await this.callAsync ("privateGetEarnTransactions",parameters);
+    }
+
+    public async Task<object> privateGetTradeHistory (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeHistory",parameters);
+    }
+
+    public async Task<object> privateGetTradeHistoryPair (object parameters = null)
+    {
+        return await this.callAsync ("privateGetTradeHistoryPair",parameters);
     }
 
     public async Task<object> privatePostAccountBalances (object parameters = null)
@@ -139,6 +164,11 @@ public partial class bitstamp : Exchange
     public async Task<object> privatePostOpenOrdersPair (object parameters = null)
     {
         return await this.callAsync ("privatePostOpenOrdersPair",parameters);
+    }
+
+    public async Task<object> privatePostReplaceOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostReplaceOrder",parameters);
     }
 
     public async Task<object> privatePostOrderStatus (object parameters = null)
@@ -264,6 +294,16 @@ public partial class bitstamp : Exchange
     public async Task<object> privatePostWebsocketsToken (object parameters = null)
     {
         return await this.callAsync ("privatePostWebsocketsToken",parameters);
+    }
+
+    public async Task<object> privatePostRevokeAllApiKeys (object parameters = null)
+    {
+        return await this.callAsync ("privatePostRevokeAllApiKeys",parameters);
+    }
+
+    public async Task<object> privatePostGetMaxOrderAmount (object parameters = null)
+    {
+        return await this.callAsync ("privatePostGetMaxOrderAmount",parameters);
     }
 
     public async Task<object> privatePostBtcWithdrawal (object parameters = null)

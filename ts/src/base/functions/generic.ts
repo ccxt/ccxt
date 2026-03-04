@@ -203,7 +203,7 @@ const deepExtend = function (...args: any) {
     return result;
 }
 
-
+// better "merge" func resides in static_dependencies/qs/utils.js
 const merge = (target: Dictionary<any>, ...args: any) => {
     // doesn't overwrite defined keys with undefined
     const overwrite: Dictionary<any> = {};

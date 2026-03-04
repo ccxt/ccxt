@@ -204,6 +204,7 @@ public partial class hyperliquid : Exchange
                     { "Insufficient balance for token transfer", typeof(InsufficientFunds) },
                     { "TWAP order value too small. Min is $1200, which is $10 per minute.", typeof(InvalidOrder) },
                     { "TWAP was never placed, already canceled, or filled.", typeof(OrderNotFound) },
+                    { "Too many cumulative requests sent", typeof(RateLimitExceeded) },
                 } },
             } },
             { "precisionMode", TICK_SIZE },
@@ -653,7 +654,7 @@ public partial class hyperliquid : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(universe)); postFixIncrement(ref j))
             {
                 object data = this.extend(this.safeDict(universe, j, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, j, new Dictionary<string, object>() {}));
-                ((IDictionary<string,object>)data)["baseId"] = add(j, offset);
+                ((IDictionary<string,object>)data)["baseId"] = this.sum(j, offset);
                 ((IDictionary<string,object>)data)["collateralToken"] = collateralToken;
                 ((IDictionary<string,object>)data)["hip3"] = true;
                 ((IDictionary<string,object>)data)["dex"] = dexName;
@@ -2436,7 +2437,6 @@ public partial class hyperliquid : Exchange
             object hasTakeProfit = (!isEqual(takeProfit, null));
             orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
             object mainOrderObj = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
-            ((IList<object>)orderReq).Add(mainOrderObj);
             if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
             {
                 // grouping opposed orders for sl/tp
@@ -2446,8 +2446,20 @@ public partial class hyperliquid : Exchange
                 object takeProfitOrderTriggerPrice = this.safeStringN(takeProfit, new List<object>() {"triggerPrice", "stopPrice"});
                 object takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
                 object takeProfitOrderLimitPrice = this.safeStringN(takeProfit, new List<object>() {"price", "takeProfitPrice"}, takeProfitOrderTriggerPrice);
-                grouping = "normalTpsl";
-                orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit"});
+                grouping = this.safeString(orderParams, "grouping", "normalTpsl");
+                if (isTrue(isEqual(grouping, "positionTpsl")))
+                {
+                    amount = "0";
+                    stopLossOrderType = "market";
+                    takeProfitOrderType = "market";
+                } else if (isTrue(isEqual(grouping, "normalTpsl")))
+                {
+                    ((IList<object>)orderReq).Add(mainOrderObj);
+                } else
+                {
+                    throw new NotSupported ((string)add(this.id, " only support grouping normalTpsl and positionTpsl.")) ;
+                }
+                orderParams = this.omit(orderParams, new List<object>() {"stopLoss", "takeProfit", "grouping"});
                 object triggerOrderSide = "";
                 if (isTrue(isEqual(side, "BUY")))
                 {
@@ -2472,6 +2484,9 @@ public partial class hyperliquid : Exchange
                     }));
                     ((IList<object>)orderReq).Add(orderObj);
                 }
+            } else
+            {
+                ((IList<object>)orderReq).Add(mainOrderObj);
             }
         }
         object vaultAddress = null;
@@ -3386,17 +3401,51 @@ public partial class hyperliquid : Exchange
         //
         //     [
         //         {
-        //             "coin": "ETH",
-        //             "limitPx": "2000.0",
-        //             "oid": 3991946565,
-        //             "origSz": "0.1",
-        //             "side": "B",
-        //             "sz": "0.1",
-        //             "timestamp": 1704346468838
+        //             "order": {
+        //                 "coin": "ETH",
+        //                 "limitPx": "2000.0",
+        //                 "oid": 3991946565,
+        //                 "origSz": "0.1",
+        //                 "side": "B",
+        //                 "sz": "0.1",
+        //                 "timestamp": 1704346468838
+        //             },
+        //             "status": "open",
+        //             "statusTimestamp": 1704346468838
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        // Hyperliquid returns the full status history for each order,
+        // so a canceled order appears twice: once as 'open' and once as 'canceled'.
+        // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
+        object deduplicatedByOid = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object rawOrder = getValue(response, i);
+            object entry = this.safeDict(rawOrder, "order");
+            if (isTrue(isEqual(entry, null)))
+            {
+                entry = rawOrder;
+            }
+            object oid = this.safeString(entry, "oid");
+            if (isTrue(!isEqual(oid, null)))
+            {
+                if (!isTrue((inOp(deduplicatedByOid, oid))))
+                {
+                    ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
+                } else
+                {
+                    object existingTimestamp = this.safeInteger(getValue(deduplicatedByOid, oid), "statusTimestamp");
+                    object currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
+                    if (isTrue(isTrue(!isEqual(currentTimestamp, null)) && isTrue((isTrue(isEqual(existingTimestamp, null)) || isTrue(isGreaterThan(currentTimestamp, existingTimestamp))))))
+                    {
+                        ((IDictionary<string,object>)deduplicatedByOid)[(string)oid] = rawOrder;
+                    }
+                }
+            }
+        }
+        object deduplicated = new List<object>(((IDictionary<string,object>)deduplicatedByOid).Values);
+        return this.parseOrders(deduplicated, market, since, limit);
     }
 
     /**
@@ -3781,6 +3830,11 @@ public partial class hyperliquid : Exchange
         if (isTrue(!isEqual(crossed, null)))
         {
             takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
+        }
+        object builderFee = this.safeString(trade, "builderFee");
+        if (isTrue(!isEqual(builderFee, null)))
+        {
+            fee = Precise.stringAdd(fee, builderFee);
         }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },

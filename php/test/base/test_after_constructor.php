@@ -71,7 +71,7 @@ function helper_test_init_sandbox() {
     //
     // CASE A: when sandbox is not enabled
     //
-    $exchange3 = new \ccxt\Exchange($opts);
+    $exchange3 = new \ccxt\async\Exchange($opts);
     helper_test_sandbox_state($exchange3, false);
     $exchange3->set_sandbox_mode(true);
     helper_test_sandbox_state($exchange3, true);
@@ -79,7 +79,7 @@ function helper_test_init_sandbox() {
     // CASE B: when sandbox is enabled
     //
     $opts['options']['sandbox'] = true;
-    $exchange4 = new \ccxt\Exchange($opts);
+    $exchange4 = new \ccxt\async\Exchange($opts);
     helper_test_sandbox_state($exchange4, true);
     $exchange4->set_sandbox_mode(false);
     helper_test_sandbox_state($exchange4, false);
@@ -98,7 +98,7 @@ function helper_test_init_market() {
         'type' => 'spot',
         'spot' => true,
     );
-    $exchange2 = new \ccxt\Exchange(array(
+    $exchange2 = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
         'markets' => array(
             'BTC/USD' => $sample_market,

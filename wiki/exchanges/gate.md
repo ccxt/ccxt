@@ -733,6 +733,7 @@ Create an order on the exchange
 | params.price_type | <code>int</code> | No | *contract only* 0 latest deal price, 1 mark price, 2 index price |
 | params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
 | params.unifiedAccount | <code>bool</code> | No | set to true for creating an order in the unified account |
+| params.clientOrderId | <code>string</code> | No | the clientOrderId of the order |
 
 
 ```javascript

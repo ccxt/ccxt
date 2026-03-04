@@ -321,9 +321,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
-                'networksById': {
-                    'BEP20': 'BSC',
-                },
+                'networksById': {},
                 'defaultType': 'spot',
                 'brokerId': 'ccxt',
             },
@@ -523,6 +521,7 @@ class whitebit(Exchange, ImplicitAPI):
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'makerFee')
         maker = Precise.string_div(makerFeeRate, '100')
+        isSpot = not swap
         return {
             'id': id,
             'symbol': symbol,
@@ -533,7 +532,7 @@ class whitebit(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': not swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': False,
@@ -544,7 +543,7 @@ class whitebit(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.parse_number(taker),
             'maker': self.parse_number(maker),
-            'contractSize': contractSize,
+            'contractSize': None if isSpot else contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -669,6 +668,8 @@ class whitebit(Exchange, ImplicitAPI):
             for j in range(0, len(allNetworks)):
                 networkId = allNetworks[j]
                 networkCode = self.network_id_to_code(networkId)
+                networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
+                networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -679,12 +680,12 @@ class whitebit(Exchange, ImplicitAPI):
                     'precision': None,
                     'limits': {
                         'deposit': {
-                            'min': self.safe_number(depositLimits, 'min', None),
-                            'max': self.safe_number(depositLimits, 'max', None),
+                            'min': self.safe_number(networkDepositLimits, 'min'),
+                            'max': self.safe_number(networkDepositLimits, 'max'),
                         },
                         'withdraw': {
-                            'min': self.safe_number(withdrawLimits, 'min', None),
-                            'max': self.safe_number(withdrawLimits, 'max', None),
+                            'min': self.safe_number(networkWithdrawLimits, 'min'),
+                            'max': self.safe_number(networkWithdrawLimits, 'max'),
                         },
                     },
                 }
@@ -697,7 +698,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'deposit': self.safe_bool(currency, 'can_deposit'),
                 'withdraw': self.safe_bool(currency, 'can_withdraw'),
                 'fee': None,
-                'networks': None,  # todo
+                'networks': networks,
                 'type': 'fiat' if hasProvider else 'crypto',
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
                 'limits': {
@@ -1292,7 +1293,40 @@ class whitebit(Exchange, ImplicitAPI):
         #       tradesEnabled: True
         #   }
         #
-        marketId = self.safe_string(ticker, 'tradingPairs')
+        # v4PublicGetFutures
+        #     {
+        #         "ticker_id": "0G_PERP",
+        #         "stock_currency": "0G",
+        #         "money_currency": "USDT",
+        #         "last_price": "0.6065",
+        #         "stock_volume": "2563218",
+        #         "money_volume": "1587952.6137",
+        #         "bid": "0.6065",
+        #         "ask": "0.6077",
+        #         "high": "0.6472",
+        #         "low": "0.6045",
+        #         "product_type": "Perpetual",
+        #         "open_interest": "3721488",
+        #         "index_price": "0.61",
+        #         "index_name": "0G future contract",
+        #         "index_currency": "0G",
+        #         "funding_rate": "-0.00000778",
+        #         "next_funding_rate_timestamp": "1772467200000",
+        #         "brackets": {
+        #             "1": 0,
+        #             "10": 0,
+        #             "100": 0,
+        #             "2": 0,
+        #             "20": 4000,
+        #             "3": 0,
+        #             "5": 0,
+        #             "50": 800
+        #         },
+        #         "max_leverage": 50,
+        #         "funding_interval_minutes": 240
+        #     }
+        #
+        marketId = self.safe_string_2(ticker, 'tradingPairs', 'ticker_id')
         market = self.safe_market(marketId, market)
         # last price is provided as "last" or "last_price"
         last = self.safe_string_n(ticker, ['last', 'last_price', 'lastPrice'])
@@ -1309,15 +1343,16 @@ class whitebit(Exchange, ImplicitAPI):
             'ask': self.safe_string_2(ticker, 'ask', 'lowestAsk'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),  # can not be defined in v4PublicGetFutures
             'close': close,
             'last': last,
             'previousClose': None,
-            'change': None,
-            'percentage': self.safe_string(ticker, 'change'),
-            'average': None,
-            'baseVolume': self.safe_string_n(ticker, ['base_volume', 'volume', 'baseVolume24h']),
-            'quoteVolume': self.safe_string_n(ticker, ['quote_volume', 'deal', 'quoteVolume24h']),
+            'change': None,  # can not be defined in v4PublicGetFutures
+            'percentage': self.safe_string(ticker, 'change'),  # can not be defined in v4PublicGetFutures
+            'average': None,  # can not be defined in v4PublicGetFutures
+            'baseVolume': self.safe_string_n(ticker, ['base_volume', 'volume', 'baseVolume24h', 'stock_volume']),
+            'quoteVolume': self.safe_string_n(ticker, ['quote_volume', 'deal', 'quoteVolume24h', 'money_volume']),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
         }, market)
 
@@ -1390,29 +1425,89 @@ class whitebit(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.method]: either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker
+        :param str [params.type]: 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures
+        :param str [params.method]: either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        method = 'v4PublicGetTicker'
+        onlyContractSymbols = True
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.market(symbol)
+                if not (market['contract']):
+                    onlyContractSymbols = False
+                    break
+        else:
+            onlyContractSymbols = False
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchTickers', None, params)
+        method = None
         method, params = self.handle_option_and_params(params, 'fetchTickers', 'method', method)
+        if method is None:
+            # if the user did not specify a method, choose it based on market type and symbols
+            if onlyContractSymbols or (marketType == 'swap'):
+                method = 'v4PublicGetFutures'
+            else:
+                method = 'v4PublicGetTicker'
         response = None
         if method == 'v4PublicGetTicker':
+            #
+            #      "BCH_RUB": {
+            #          "base_id":1831,
+            #          "quote_id":0,
+            #          "last_price":"32830.21",
+            #          "quote_volume":"1494659.8024096",
+            #          "base_volume":"46.1083",
+            #          "isFrozen":false,
+            #          "change":"2.12"
+            #      },
+            #
             response = self.v4PublicGetTicker(params)
+        elif method == 'v4PublicGetFutures':
+            #
+            #     {
+            #         "success": True,
+            #         "message": null,
+            #         "result": [
+            #             {
+            #                 "ticker_id": "0G_PERP",
+            #                 "stock_currency": "0G",
+            #                 "money_currency": "USDT",
+            #                 "last_price": "0.6065",
+            #                 "stock_volume": "2563218",
+            #                 "money_volume": "1587952.6137",
+            #                 "bid": "0.6065",
+            #                 "ask": "0.6077",
+            #                 "high": "0.6472",
+            #                 "low": "0.6045",
+            #                 "product_type": "Perpetual",
+            #                 "open_interest": "3721488",
+            #                 "index_price": "0.61",
+            #                 "index_name": "0G future contract",
+            #                 "index_currency": "0G",
+            #                 "funding_rate": "-0.00000778",
+            #                 "next_funding_rate_timestamp": "1772467200000",
+            #                 "brackets": {
+            #                     "1": 0,
+            #                     "10": 0,
+            #                     "100": 0,
+            #                     "2": 0,
+            #                     "20": 4000,
+            #                     "3": 0,
+            #                     "5": 0,
+            #                     "50": 800
+            #                 },
+            #                 "max_leverage": 50,
+            #                 "funding_interval_minutes": 240
+            #             }
+            #         ]
+            #     }
+            #
+            response = self.v4PublicGetFutures(params)
         else:
             response = self.v2PublicGetTicker(params)
-        #
-        #      "BCH_RUB": {
-        #          "base_id":1831,
-        #          "quote_id":0,
-        #          "last_price":"32830.21",
-        #          "quote_volume":"1494659.8024096",
-        #          "base_volume":"46.1083",
-        #          "isFrozen":false,
-        #          "change":"2.12"
-        #      },
-        #
         resultList = self.safe_list(response, 'result')
         if resultList is not None:
             return self.parse_tickers(resultList, symbols)
@@ -2325,7 +2420,7 @@ class whitebit(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': None,
             'postOnly': None,
-            'status': None,
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'side': side,
             'price': price,
             'type': orderType,
@@ -2338,6 +2433,15 @@ class whitebit(Exchange, ImplicitAPI):
             'fee': fee,
             'trades': None,
         }, market)
+
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
+            'CANCELED': 'canceled',
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+        }
+        return self.safe_string_lower(statuses, status, status)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

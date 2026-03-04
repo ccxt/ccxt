@@ -133,7 +133,7 @@ $main = function() use ($argv) {
                 $markets = json_decode(file_get_contents($markets_path), true);
                 $exchange->markets = $markets;
             } else {
-                // yield $exchange->load_markets();
+                yield $exchange->load_markets();
             }
 
             $exchange->verbose = $verbose;

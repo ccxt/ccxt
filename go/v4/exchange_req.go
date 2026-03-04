@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
@@ -62,6 +63,27 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 				panic("headersOptions should be a map[string]interface{}")
 			}
 
+		}
+
+		// check content type for multipart/form-data, used in lighter
+		for k, v := range headersStrMap {
+			lk := strings.ToLower(k)
+			if lk == "content-type" {
+				if v == "multipart/form-data" {
+					var formBody bytes.Buffer
+					writer := multipart.NewWriter(&formBody)
+
+					for fk, fv := range body.(map[string]any) {
+						writer.WriteField(fk, fmt.Sprintf("%v", fv))
+					}
+
+					headersStrMap[k] = writer.FormDataContentType()
+					writer.Close()
+					body = formBody.String()
+				}
+				break
+			}
+			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
 		// Marshal the body to JSON if not nil
@@ -150,7 +172,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-
+		this.Last_response_headers = HeaderToMap(resp.Header)
+		this.LastResponseHeaders = HeaderToMap(resp.Header)
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {

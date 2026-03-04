@@ -600,6 +600,19 @@ export default class binance extends binanceRest {
      */
     ensureUserDataStreamWsSubscribeSignature(marketType?: string): Promise<void>;
     handleUserDataStreamSubscribe(client: Client, message: any): void;
+    /**
+     * @name binance#ensureUserDataStreamWsSubscribeListenToken
+     * @description subscribes to user data stream using listenToken (for margin)
+     * @param {string} marketType - the market type (e.g., 'margin')
+     * @param {object} params - extra parameters specific to the request
+     * @param {string} [params.symbol] - required for isolated margin
+     * @param {boolean} [params.isIsolated] - whether it is isolated margin
+     * @param {number} [params.validity] - validity in milliseconds, default 24 hours, max 24 hours
+     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+     * @returns Promise<void>
+     */
+    ensureUserDataStreamWsSubscribeListenToken(marketType?: string, params?: {}): Promise<void>;
+    renewListenToken(params?: {}): Promise<void>;
     authenticate(params?: {}): Promise<void>;
     keepAliveListenKey(params?: {}): Promise<void>;
     setBalanceCache(client: Client, type: any, isPortfolioMargin?: boolean): void;

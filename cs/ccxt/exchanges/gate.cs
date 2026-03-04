@@ -966,7 +966,7 @@ public partial class gate : Exchange
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
-                    { "INVALID_PARAM_VALUE", typeof(InvalidOrder) },
+                    { "INVALID_PARAM_VALUE", typeof(BadRequest) },
                     { "INVALID_PROTOCOL", typeof(BadRequest) },
                     { "INVALID_ARGUMENT", typeof(BadRequest) },
                     { "INVALID_REQUEST_BODY", typeof(BadRequest) },
@@ -1064,7 +1064,9 @@ public partial class gate : Exchange
                     { "NO_CHANGE", typeof(InvalidOrder) },
                     { "PRICE_THRESHOLD_EXCEEDED", typeof(InvalidOrder) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Your order size", typeof(InvalidOrder) },
+                } },
             } },
         });
     }
@@ -4516,6 +4518,7 @@ public partial class gate : Exchange
      * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -4734,7 +4737,8 @@ public partial class gate : Exchange
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly"});
+        object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
+        parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"});
         object isLimitOrder = (isEqual(type, "limit"));
         object isMarketOrder = (isEqual(type, "market"));
         if (isTrue(isTrue(isLimitOrder) && isTrue(isEqual(price, null))))
@@ -4858,7 +4862,6 @@ public partial class gate : Exchange
                     ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
                 }
             }
-            object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
             object textIsRequired = this.safeBool(parameters, "textIsRequired", false);
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -4870,7 +4873,7 @@ public partial class gate : Exchange
                 {
                     throw new BadRequest ((string)add(this.id, " createOrder () clientOrderId or text param must be up to 28 characters")) ;
                 }
-                parameters = this.omit(parameters, new List<object>() {"text", "clientOrderId", "textIsRequired"});
+                parameters = this.omit(parameters, "textIsRequired");
                 if (isTrue(!isEqual(getValue(clientOrderId, 0), "t")))
                 {
                     clientOrderId = add("t-", clientOrderId);
@@ -4886,6 +4889,10 @@ public partial class gate : Exchange
             }
         } else
         {
+            if (isTrue(!isEqual(clientOrderId, null)))
+            {
+                ((IDictionary<string,object>)request)["text"] = clientOrderId;
+            }
             if (isTrue(getValue(market, "option")))
             {
                 throw new NotSupported ((string)add(this.id, " createOrder() conditional option orders are not supported")) ;
@@ -5462,6 +5469,9 @@ public partial class gate : Exchange
         {
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
+        object initial = this.safeDict(order, "initial", new Dictionary<string, object>() {});
+        object reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
+        object reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "id") },
             { "clientOrderId", this.safeString(order, "text") },
@@ -5473,7 +5483,7 @@ public partial class gate : Exchange
             { "type", type },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
-            { "reduceOnly", this.safeValue(order, "is_reduce_only") },
+            { "reduceOnly", reduceOnly },
             { "side", side },
             { "price", price },
             { "triggerPrice", triggerPrice },

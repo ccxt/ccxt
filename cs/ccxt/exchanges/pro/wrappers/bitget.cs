@@ -486,9 +486,9 @@ public partial class bitget
         var res = await this.watchBalance(parameters);
         return new Balances(res);
     }
-    public async Task<Dictionary<string, object>> WatchPublicMultiple(object messageHashes, object argsArray, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchPublicMultiple(object uta, object messageHashes, object argsArray, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchPublicMultiple(messageHashes, argsArray, parameters);
+        var res = await this.watchPublicMultiple(uta, messageHashes, argsArray, parameters);
         return ((Dictionary<string, object>)res);
     }
 }

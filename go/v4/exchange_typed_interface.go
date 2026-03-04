@@ -463,6 +463,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "lbank":
 		itf := NewLbank(options)
 		return itf
+	case "lighter":
+		itf := NewLighter(options)
+		return itf
 	case "luno":
 		itf := NewLuno(options)
 		return itf
@@ -510,9 +513,6 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 		return itf
 	case "poloniex":
 		itf := NewPoloniex(options)
-		return itf
-	case "probit":
-		itf := NewProbit(options)
 		return itf
 	case "timex":
 		itf := NewTimex(options)
