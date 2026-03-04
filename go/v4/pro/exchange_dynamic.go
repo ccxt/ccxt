@@ -239,6 +239,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         lbankItf := NewLbankCore()
         lbankItf.Init(exchangeArgs)
         return lbankItf, true
+    case "lighter":
+        lighterItf := NewLighterCore()
+        lighterItf.Init(exchangeArgs)
+        return lighterItf, true
     case "luno":
         lunoItf := NewLunoCore()
         lunoItf.Init(exchangeArgs)
