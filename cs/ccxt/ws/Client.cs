@@ -420,13 +420,14 @@ public partial class Exchange
 
                         }
 
-                        // detect zlib magic bytes: 0x78 0x01, 0x78 0x9C, 0x78 0xDA
-                        var msgBinaryZlip = memory.ToArray(); 
-                        bool isZLib = msgBinaryZlip.Length > 2 && msgBinaryZlip[0] == 0x78 && (msgBinaryZlip[1] == 0x01 || msgBinaryZlip[1] == 0x9C || msgBinaryZlip[1] == 0xDA);
+                        // detect zlib magic bytes: 0x78 0x01, 0x78 0x5E, 0x78 0x9C, 0x78 0xDA
+                        // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
+                        var msgBinaryZlib = memory.ToArray();
+                        bool isZLib = msgBinaryZlib.Length > 2 && msgBinaryZlib[0] == 0x78 && (msgBinaryZlib[1] == 0x01 || msgBinaryZlib[1] == 0x5E || msgBinaryZlib[1] == 0x9C || msgBinaryZlib[1] == 0xDA);
 
                         if (isZLib)
                         {
-                            using (var compressedStream = new MemoryStream(msgBinaryZlip, 2, msgBinaryZlip.Length - 2))
+                            using (var compressedStream = new MemoryStream(msgBinaryZlib, 2, msgBinaryZlib.Length - 2))
                             using (var decompressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
                             using (var decompressedStream = new MemoryStream())
                             {
@@ -436,10 +437,13 @@ public partial class Exchange
                                     Console.WriteLine($"On zlib binary message decompressed {decompressedString}");
                                 this.TryHandleMessage(decompressedString);
                             }
-                            return;
+                            continue;
                         }
-                        
+
                         // assume GZip (magic bytes: 0x1F 0x8B)
+                        bool isGZip = msgBinary.Length > 1 && msgBinary[0] == 0x1F && msgBinary[1] == 0x8B;
+
+                        if (isGZip)
                         using (var compressedStream = new MemoryStream(msgBinary))
                         using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
                         using (var decompressedStream = new MemoryStream())
