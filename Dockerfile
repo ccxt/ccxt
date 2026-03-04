@@ -32,12 +32,12 @@ RUN pip3 install cryptography
 RUN pip3 install requests
 RUN pip3 install psutil
 # Dotnet - Using direct installation script
-RUN apt-get update && apt-get install -y curl
-# Directly install .NET SDK 7.0 using official script
-RUN mkdir -p /usr/share/dotnet && \
-    curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --install-dir /usr/share/dotnet --channel 7.0 && \
-    ln -s /usr/share/dotnet/dotnet /usr/bin/dotnet && \
-    dotnet --list-sdks || echo "Installing SDK..."
+RUN apt-get update && apt-get install -y wget apt-transport-https \
+    && wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && rm packages-microsoft-prod.deb \
+    && apt-get update \
+    && apt-get install -y dotnet-sdk-9.0
 # Installs as a local Node & Python module so that `require ('ccxt')` and `import ccxt` should work after that
 RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/
