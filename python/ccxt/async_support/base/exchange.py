@@ -38,29 +38,12 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
-
-# -----------------------------------------------------------------------------
-
-try:
-    from aiohttp_socks import ProxyConnector as SocksProxyConnector
-except ImportError:
-    SocksProxyConnector = None
-
 # -----------------------------------------------------------------------------
 
 __all__ = [
     'BaseExchange',
     'Exchange',
 ]
-
-# -----------------------------------------------------------------------------
-# --- PROTO BUF IMPORTS
-try:
-    from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
-    from google.protobuf.json_format import MessageToDict
-except ImportError:
-    PushDataV3ApiWrapper_pb2 = None
-    MessageToDict = None
 
 # -----------------------------------------------------------------------------
 
@@ -177,9 +160,6 @@ class Exchange(BaseExchange):
         elif httpsProxy:
             final_proxy = httpsProxy
         elif socksProxy:
-            if SocksProxyConnector is None:
-                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
-            # override session
             if (self.socks_proxy_sessions is None):
                 self.socks_proxy_sessions = {}
             if (socksProxy not in self.socks_proxy_sessions):
@@ -276,6 +256,11 @@ class Exchange(BaseExchange):
         if (socksProxy not in self.socks_proxy_sessions):
             reverse_dns = socksProxy.startswith('socks5h://')
             socks_proxy_selected = socksProxy if not reverse_dns else socksProxy.replace('socks5h://', 'socks5://')
+            try:
+                from aiohttp_socks import ProxyConnector as SocksProxyConnector
+            except ImportError:
+                raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
+            # override session
             self.aiohttp_socks_connector = SocksProxyConnector.from_url(
                 socks_proxy_selected,
                 # extra args copied from self.open()
@@ -584,7 +569,11 @@ class Exchange(BaseExchange):
         return format(n, 'g')
 
     def decode_proto_msg(self, data):
-        if not MessageToDict:
+        # --- PROTO BUF IMPORTS
+        try:
+            from ccxt.protobuf.mexc import PushDataV3ApiWrapper_pb2
+            from google.protobuf.json_format import MessageToDict
+        except ImportError:
             raise NotSupported(self.id + ' requires protobuf to decode messages, please install it with `pip install "protobuf==5.29.5"`')
         message = PushDataV3ApiWrapper_pb2.PushDataV3ApiWrapper()
         message.ParseFromString(data)

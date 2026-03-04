@@ -8,7 +8,6 @@ __version__ = '4.5.40'
 
 # -----------------------------------------------------------------------------
 
-from traceback import format_exception
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import NotSupported
@@ -34,15 +33,13 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, NumType, Strings, CancellationRequest, Bool, Order
+from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, NumType, Strings, CancellationRequest, Bool, Order, Int
 
 # -----------------------------------------------------------------------------
 
-# rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding, ed25519
-# from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
 # -----------------------------------------------------------------------------
@@ -50,55 +47,6 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 # ecdsa signing
 from ccxt.static_dependencies import ecdsa
 from ccxt.static_dependencies import keccak
-
-try:
-    import coincurve
-except ImportError:
-    coincurve = None
-
-# eddsa signing
-try:
-    import axolotl_curve25519 as eddsa
-except ImportError:
-    eddsa = None
-
-# eth signing
-from ccxt.static_dependencies.ethereum import abi
-from ccxt.static_dependencies.ethereum import account
-from ccxt.static_dependencies.msgpack import packb
-
-# starknet
-from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
-from ccxt.static_dependencies.starknet.hash.address import compute_address
-from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
-from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
-from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
-
-# dydx
-try:
-    from ccxt.static_dependencies.mnemonic import Mnemonic
-    from ccxt.static_dependencies.bip.bip44 import Bip44
-    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
-    from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
-        AuthInfo,
-        Fee,
-        ModeInfo,
-        SignDoc,
-        SignerInfo,
-        Tx,
-        TxBody,
-        TxRaw,
-    )
-    from ccxt.static_dependencies.dydx_v4_client.registry import (
-        encode_as_any,
-    )
-except ImportError:
-    encode_as_any = None
-
-try:
-    import apexpro.zklink_sdk as zklink_sdk
-except ImportError:
-    zklink_sdk = None
 
 # -----------------------------------------------------------------------------
 
@@ -148,7 +96,6 @@ import zlib
 from decimal import Decimal
 import urllib.parse as _urlencode
 from typing import Any, List
-from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
@@ -1458,15 +1405,18 @@ class Exchange(object):
 
     @staticmethod
     def eth_abi_encode(types, args):
+        from ccxt.static_dependencies.ethereum import abi
         return abi.encode(types, args)
 
     @staticmethod
     def eth_encode_structured_data(domain, messageTypes, message):
+        from ccxt.static_dependencies.ethereum import account
         encodedData = account.messages.encode_typed_data(domain, messageTypes, message)
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
     def eth_get_address_from_private_key(private_key):
+        import coincurve
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
         clean_private_key = Exchange.remove0x_prefix(private_key)
@@ -1480,8 +1430,24 @@ class Exchange(object):
         address_hex = '0x' + address_bytes.hex()
         return address_hex
 
+    #
+    # method is not used anywhere in the codebase, but we keep it here for a while
+    #
+    # def privateKeyToAddress(self, privateKey):
+    #     from ccxt.static_dependencies import ecdsa
+    #     private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
+    #     public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
+    #     public_key_hash = keccak.SHA3(public_key_bytes)
+    #     return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
+
     @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
+        # imports
+        from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
+        from ccxt.static_dependencies.starknet.hash.address import compute_address
+        from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
+        from ccxt.static_dependencies.starknet.hash.utils import private_to_stark_key
+        #
         privateKey = get_private_key_from_eth_signature(signature)
         publicKey = private_to_stark_key(privateKey)
         calldata = [
@@ -1505,6 +1471,7 @@ class Exchange(object):
 
     @staticmethod
     def starknet_encode_structured_data (domain, messageTypes, messageData, address):
+        from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
         types = list(messageTypes.keys())
         if len(types) > 1:
             raise NotSupported('starknetEncodeStructuredData only support single type')
@@ -1528,6 +1495,7 @@ class Exchange(object):
     @staticmethod
     def starknet_sign (msg_hash, pri):
         # // TODO: unify to ecdsa
+        from ccxt.static_dependencies.starknet.hash.utils import message_signature
         if isinstance(pri, str):
             pri = int(pri, 16)
         r, s = message_signature(msg_hash, pri)
@@ -1535,6 +1503,7 @@ class Exchange(object):
 
     @staticmethod
     def packb(o):
+        from ccxt.static_dependencies.msgpack import packb
         return packb(o)
 
     @staticmethod
@@ -1574,7 +1543,7 @@ class Exchange(object):
         if algorithm not in algorithms:
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         # Use coincurve for SECP256K1 if available
-        if algorithm == 'secp256k1' and coincurve is not None:
+        if algorithm == 'secp256k1':
             try:
                 return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
             except Exception:
@@ -1632,6 +1601,7 @@ class Exchange(object):
         Raises:
             ArgumentsRequired: If coincurve library is not available
         """
+        import coincurve
         encoded_request = Exchange.encode(request)
         if hash is not None:
             digest = Exchange.hash(encoded_request, hash, 'binary')
@@ -1680,6 +1650,8 @@ class Exchange(object):
 
     @staticmethod
     def axolotl(request, secret, curve='ed25519'):
+        # this method only used in wavesexchange
+        import axolotl_curve25519 as eddsa
         random = b'\x00' * 64
         request = base64.b16decode(request, casefold=True)
         secret = base64.b16decode(secret, casefold=True)
@@ -1848,14 +1820,11 @@ class Exchange(object):
         return timestamp - offset + (ms if direction == ROUND_UP else 0)
 
     def check_required_dependencies(self):
-        if self.requiresEddsa and eddsa is None:
-            raise NotSupported(self.id + ' Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
-
-    def privateKeyToAddress(self, privateKey):
-        private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
-        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
-        public_key_hash = keccak.SHA3(public_key_bytes)
-        return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
+        if self.requiresEddsa:
+            try:
+                import axolotl_curve25519 as eddsa  # noqa: F401
+            except Exception:
+                raise NotSupported(self.id + ' Eddsa functionality requires python-axolotl-curve25519, install with `pip install python-axolotl-curve25519==0.4.1.post2`: https://github.com/tgalal/python-axolotl-curve25519')
 
     @staticmethod
     def remove0x_prefix(value):
@@ -2004,6 +1973,7 @@ class Exchange(object):
         setattr(obj, property, value)
 
     def exception_message(self, exc, include_stack=True):
+        from traceback import format_exception
         message = '[' + type(exc).__name__ + '] ' + (str(exc) if include_stack else "".join(format_exception(type(exc), exc, exc.__traceback__, limit=6)))
         length = min(100000, len(message))
         return message[0:length]
@@ -2036,10 +2006,15 @@ class Exchange(object):
     def binary_length(self, binary):
         return len(binary)
 
-    def get_zk_contract_signature_obj(self, seeds: str, params={}):
-        if zklink_sdk is None:
+    def _load_dep_zklink_sdk(self):
+        try:
+            import apexpro.zklink_sdk as zklink_sdk
+            return zklink_sdk
+        except ImportError:
             raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
 
+    def get_zk_contract_signature_obj(self, seeds: str, params={}):
+        zklink_sdk = self._load_dep_zklink_sdk()
         slotId = self.safe_string(params, 'slotId')
         nonceInt = int(self.remove0x_prefix(self.hash(self.encode(slotId), 'sha256', 'hex')), 16)
 
@@ -2070,9 +2045,7 @@ class Exchange(object):
         return signature
 
     def get_zk_transfer_signature_obj(self, seeds: str, params={}):
-        if zklink_sdk is None:
-            raise Exception('zklink_sdk is not installed, please do pip3 install apexomni-arm or apexomni-x86-mac or apexomni-x86-windows-linux')
-
+        zklink_sdk = self._load_dep_zklink_sdk()
         nonce = self.safe_string(params, 'nonce', '0')
         if self.safe_bool(params, 'isContract'):
             formattedUint32 = '4294967295'
@@ -2102,6 +2075,10 @@ class Exchange(object):
         return isinstance(message, bytes) or isinstance(message, bytearray)
 
     def retrieve_dydx_credentials(self, entropy):
+        # imports
+        from ccxt.static_dependencies.mnemonic import Mnemonic
+        from ccxt.static_dependencies.bip.bip44 import Bip44
+        #
         mnemo = Mnemonic("english")
         if ' ' in entropy:
             mnemonic = entropy
@@ -2123,11 +2100,25 @@ class Exchange(object):
     def to_dydx_long(self, num):
         return num
 
-    def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
-        if not encode_as_any:
+    def encode_as_any(self):
+        try:
+            from ccxt.static_dependencies.dydx_v4_client.registry import encode_as_any
+            return encode_as_any
+        except Exception:
             raise NotSupported(self.id + ' requires protobuf and pycryptodome to encode messages, please install it with `pip install "protobuf==5.29.5"` and `pycryptodome==3.18.0`')
+
+    def encode_dydx_tx_for_simulation(self, message, memo, sequence, publicKey):
+        from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+        from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+            AuthInfo,
+            ModeInfo,
+            SignerInfo,
+            TxBody,
+            Tx
+        )
+
         messages = [
-            encode_as_any(
+            self.encode_as_any(
                 message,
             )
         ]
@@ -2138,7 +2129,7 @@ class Exchange(object):
         auth_info = AuthInfo(
             signer_infos=[
                 SignerInfo(
-                    public_key=encode_as_any({
+                    public_key=self.encode_as_any({
                         'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                         'value': publicKey,
                     }),
@@ -2152,8 +2143,17 @@ class Exchange(object):
         return self.binary_to_base64(tx.SerializeToString())
 
     def encode_dydx_tx_for_signing(self, message, memo, chainId, account, authenticators, fee=None):
-        if not encode_as_any:
-            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+        # imports
+        from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
+        from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
+            AuthInfo,
+            ModeInfo,
+            Fee,
+            TxBody,
+            SignerInfo,
+            SignDoc,
+        )
+        #
         if fee is None:
             fee = {
                 'amount': [],
@@ -2161,14 +2161,14 @@ class Exchange(object):
             }
         non_critical_extension_options = []
         if authenticators is not None:
-            non_critical_extension_options.append(encode_as_any({
+            non_critical_extension_options.append(self.encode_as_any({
                 'typeUrl': '/dydxprotocol.accountplus.TxExtension',
                 'value': {
                     'selected_authenticators': authenticators
                 }
             }))
         messages = [
-            encode_as_any(
+            self.encode_as_any(
                 message
             )
         ]
@@ -2181,7 +2181,7 @@ class Exchange(object):
         auth_info = AuthInfo(
             signer_infos=[
                 SignerInfo(
-                    public_key=encode_as_any({
+                    public_key=self.encode_as_any({
                         'typeUrl': '/cosmos.crypto.secp256k1.PubKey',
                         'value': account['pub_key'],
                     }),
@@ -2201,8 +2201,7 @@ class Exchange(object):
         return [signingHash, signDoc]
 
     def encode_dydx_tx_raw(self, signDoc, signature):
-        if not encode_as_any:
-            raise NotSupported(self.id + ' requires protobuf to encode messages, please install it with `pip install "protobuf==5.29.5"`')
+        from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import TxRaw
         tx = TxRaw(
             auth_info_bytes=signDoc.auth_info_bytes,
             body_bytes=signDoc.body_bytes,
