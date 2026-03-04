@@ -247,7 +247,7 @@ class paradex extends \ccxt\async\paradex {
         }
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderbookData, $symbol, $timestamp, 'bids', 'asks');
-        $snapshot['nonce'] = $this->safe_number($data, 'seq_no');
+        $snapshot['nonce'] = $this->safe_integer($data, 'seq_no');
         $orderbook->reset ($snapshot);
         $messageHash = $this->safe_string($params, 'channel');
         $client->resolve ($orderbook, $messageHash);
