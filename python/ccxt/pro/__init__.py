@@ -115,6 +115,7 @@ from ccxt.pro.krakenfutures import krakenfutures                          # noqa
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
+from ccxt.pro.lighter import lighter                                      # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
@@ -194,6 +195,7 @@ exchanges = [
     'kucoin',
     'kucoinfutures',
     'lbank',
+    'lighter',
     'luno',
     'mexc',
     'modetrade',
