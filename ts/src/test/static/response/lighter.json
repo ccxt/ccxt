@@ -792,11 +792,11 @@
                         "type": "crypto",
                         "name": "USDC",
                         "active": true,
-                        "deposit": null,
-                        "withdraw": null,
+                        "deposit": true,
+                        "withdraw": true,
                         "fee": null,
                         "fees": {},
-                        "networks": null,
+                        "networks": {},
                         "limits": {
                             "deposit": {
                                 "min": 1,
