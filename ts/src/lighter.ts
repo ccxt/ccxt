@@ -345,6 +345,25 @@ export default class lighter extends Exchange {
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'timeInForce': {
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
+                            'GTD': false,
+                        },
+                        'leverage': false,
+                        'marketBuyRequiresPrice': false,
+                        'marketBuyByCost': false,
+                        'selfTradePrevention': false,
+                        'trailing': false,
+                        'iceberg': false,
+                    },
+                },
+            },
         });
     }
 
@@ -1155,8 +1174,8 @@ export default class lighter extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': undefined,
+            'change': undefined,
+            'percentage': change,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
@@ -1283,7 +1302,7 @@ export default class lighter extends Exchange {
      * @method
      * @name lighter#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://apidocs.lighter.xyz/reference/candlesticks
+     * @see https://apidocs.lighter.xyz/reference/candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1292,7 +1311,7 @@ export default class lighter extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    async fetchOHLCV (symbol: string, timeframe: string = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a symbol argument');
         }
