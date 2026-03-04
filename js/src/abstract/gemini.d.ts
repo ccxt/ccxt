@@ -21,8 +21,8 @@ interface Exchange {
     publicGetV1EarnRates(params?: {}): Promise<implicitReturnType>;
     publicGetV2DerivativesCandlesSymbolTimeFrame(params?: {}): Promise<implicitReturnType>;
     publicGetV2FxrateSymbolTimestamp(params?: {}): Promise<implicitReturnType>;
-    publicGetV1PerpetualsFundingpaymentreportRecordsXlsx(params?: {}): Promise<implicitReturnType>;
     publicGetV1RiskstatsSymbol(params?: {}): Promise<implicitReturnType>;
+    privateGetV1PerpetualsFundingpaymentreportRecordsXlsx(params?: {}): Promise<implicitReturnType>;
     privatePostV1StakingUnstake(params?: {}): Promise<implicitReturnType>;
     privatePostV1StakingStake(params?: {}): Promise<implicitReturnType>;
     privatePostV1StakingRewards(params?: {}): Promise<implicitReturnType>;
