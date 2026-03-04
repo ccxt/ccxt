@@ -65,12 +65,11 @@ export function getTempDir() {
  * @param path File path to check
  */
 function ensureWhitelistedFile(filePath) {
-    const tempDir = getTempDir();
-    if (!tempDir) {
-        throw new Error('invalid file path: ' + filePath);
+    if (pathSyncModule === null) {
+        throw new Error('path module is not available');
     }
     const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if ((sanitizedFilePath.startsWith(tempDir) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
+    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
         return;
     }
     throw new Error('invalid file path: ' + filePath);

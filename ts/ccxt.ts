@@ -218,6 +218,7 @@ import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
+import lighterPro from  './src/pro/lighter.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
@@ -411,6 +412,7 @@ const pro = {
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
     'lbank':                  lbankPro,
+    'lighter':                lighterPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'modetrade':              modetradePro,
