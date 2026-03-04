@@ -340,10 +340,10 @@ export default class lighter extends Exchange {
             'options': {
                 'defaultType': 'swap',
                 'chainId': 304,
-                'accountIndex': 715085,
-                'apiKeyIndex': 5,
-                'wasmExecPath': '/Users/cjg/Git/lighter-wasm/wasm_exec.js', // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
-                'libraryPath': '/Users/cjg/Git/lighter-wasm/lighter.wasm', // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'accountIndex': undefined,
+                'apiKeyIndex': undefined,
+                'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
+                'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
             },
         });
     }
