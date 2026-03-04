@@ -78,6 +78,7 @@ export default class kucoin extends Exchange {
                 'fetchIsolatedBorrowRates': false,
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
@@ -708,10 +709,20 @@ export default class kucoin extends Exchange {
                     '600100': InsufficientFunds, // {"msg":"Funds below the minimum requirement.","code":"600100"}
                     '600101': InvalidOrder, // {"msg":"The order funds should more then 0.1 USDT.","code":"600101"}
                     '900014': BadRequest, // {"code":"900014","msg":"Invalid chainId"}
+                    // futures errors
+                    '100001': OrderNotFound,     // {"msg":"error.getOrder.orderNotExist","code":"100001"}
+                    '100004': BadRequest,       // {"code":"100004","msg":"Order is in not cancelable state"}
+                    '300003': InsufficientFunds,
+                    '300012': InvalidOrder,
+                    '404000': NotSupported, // URL Not Found -- The requested resource could not be found
+                    '300009': InvalidOrder, // {"msg":"No open positions to close.","code":"300009"}
+                    '330008': InsufficientFunds, // {"msg":"Your current margin and leverage have reached the maximum open limit. Please increase your margin or raise your leverage to open larger positions.","code":"330008"}
                 },
                 'broad': {
                     'Exceeded the access frequency': RateLimitExceeded,
                     'require more permission': PermissionDenied,
+                    // futures errors
+                    'Position does not exist': OrderNotFound, // { "code":"200000", "msg":"Position does not exist" }
                 },
             },
             'fees': {
@@ -750,6 +761,82 @@ export default class kucoin extends Exchange {
                             [ this.parseNumber ('40000'), this.parseNumber ('-0.00005') ],
                             [ this.parseNumber ('60000'), this.parseNumber ('-0.00005') ],
                             [ this.parseNumber ('80000'), this.parseNumber ('-0.00005') ],
+                        ],
+                    },
+                },
+                'spot': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.001'),
+                    'maker': this.parseNumber ('0.001'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.0008') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('2000'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('4000'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('8000'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('15000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.00035') ],
+                            [ this.parseNumber ('60000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('80000'), this.parseNumber ('0.00025') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.0009') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.0007') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('2000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('4000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('8000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('15000'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('60000'), this.parseNumber ('-0.00005') ],
+                            [ this.parseNumber ('80000'), this.parseNumber ('-0.00005') ],
+                        ],
+                    },
+                },
+                'contract': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'taker': this.parseNumber ('0.0006'),
+                    'maker': this.parseNumber ('0.0002'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.0006') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.0005') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('2000'), this.parseNumber ('0.0004') ],
+                            [ this.parseNumber ('4000'), this.parseNumber ('0.00038') ],
+                            [ this.parseNumber ('8000'), this.parseNumber ('0.00035') ],
+                            [ this.parseNumber ('15000'), this.parseNumber ('0.00032') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('60000'), this.parseNumber ('0.0003') ],
+                            [ this.parseNumber ('80000'), this.parseNumber ('0.0003') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.02') ],
+                            [ this.parseNumber ('50'), this.parseNumber ('0.015') ],
+                            [ this.parseNumber ('200'), this.parseNumber ('0.01') ],
+                            [ this.parseNumber ('500'), this.parseNumber ('0.01') ],
+                            [ this.parseNumber ('1000'), this.parseNumber ('0.01') ],
+                            [ this.parseNumber ('2000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('4000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('8000'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('15000'), this.parseNumber ('-0.003') ],
+                            [ this.parseNumber ('25000'), this.parseNumber ('-0.006') ],
+                            [ this.parseNumber ('40000'), this.parseNumber ('-0.009') ],
+                            [ this.parseNumber ('60000'), this.parseNumber ('-0.012') ],
+                            [ this.parseNumber ('80000'), this.parseNumber ('-0.015') ],
                         ],
                     },
                 },
@@ -2601,7 +2688,7 @@ export default class kucoin extends Exchange {
             firstMarket = this.market (firstSymbol);
         }
         let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, params, type);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, params);
         let response = undefined;
         if ((tradeType !== undefined) || uta) {
             if (tradeType === undefined) {
@@ -2798,7 +2885,7 @@ export default class kucoin extends Exchange {
         let response = undefined;
         let result = undefined;
         let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params, type);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (uta) {
             request['tradeType'] = this.typeToTradeType (type);
             response = await this.utaGetMarketTicker (this.extend (request, params));
@@ -3123,10 +3210,18 @@ export default class kucoin extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] the blockchain network name
+     * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         await this.loadMarkets ();
+        let accountType = 'main';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'accountType', accountType);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        accountType = this.safeString (accountsByType, accountType, accountType);
+        if (accountType === 'contract') {
+            return await this.fetchContractDepositAddress (code, params);
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
@@ -3150,6 +3245,47 @@ export default class kucoin extends Exchange {
             throw new ExchangeError (this.id + ' fetchDepositAddress() returned an empty response, you might try to run createDepositAddress() first and try again');
         }
         return this.parseDepositAddress (data, currency);
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchContractDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-address
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchContractDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const currencyId = currency['id'];
+        const request: Dict = {
+            'currency': currencyId, // Currency,including XBT,USDT
+        };
+        const response = await this.futuresPrivateGetDepositAddress (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "address": "0x78d3ad1c0aa1bf068e19c94a2d7b16c9c0fcd8b1",//Deposit address
+        //            "memo": null//Address tag. If the returned value is null, it means that the requested token has no memo. If you are to transfer funds from another platform to KuCoin Futures and if the token to be //transferred has memo(tag), you need to fill in the memo to ensure the transferred funds will be sent //to the address you specified.
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const address = this.safeString (data, 'address');
+        if (currencyId !== 'NIM') {
+            // contains spaces
+            this.checkAddress (address);
+        }
+        return {
+            'info': response,
+            'currency': currencyId,
+            'network': this.safeString (data, 'chain'),
+            'address': address,
+            'tag': this.safeString (data, 'memo'),
+        } as DepositAddress;
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined): DepositAddress {
@@ -4054,7 +4190,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         let marketType = 'spot';
         if (symbol === undefined) {
-            [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params, marketType);
+            [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         } else {
             const market = this.market (symbol);
             marketType = market['type'];
@@ -4246,7 +4382,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         let marketType = 'spot';
         if (symbol === undefined) {
-            [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params, marketType);
+            [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         } else {
             const market = this.market (symbol);
             marketType = market['type'];
@@ -4367,11 +4503,11 @@ export default class kucoin extends Exchange {
         if (symbol === undefined) {
             const type = this.safeString (params, 'type'); // exchange has specific param for order type
             // todo check for better way to determine market type without symbol
-            if (type === 'spot' || type === 'swap' || type === 'future' || type === 'contract') {
+            if (type === 'spot' || type === 'margin' || type === 'swap' || type === 'future' || type === 'contract') {
                 marketType = type;
                 params = this.omit (params, 'type');
             } else {
-                [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', undefined, {}, marketType);
+                [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', undefined, {});
             }
         } else {
             const market = this.market (symbol);
@@ -4702,7 +4838,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         let marketType = 'spot';
         if (symbol === undefined) {
-            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params, marketType);
+            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
         } else {
             const market = this.market (symbol);
             marketType = market['type'];
@@ -5222,7 +5358,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         let marketType = 'spot';
         if (symbol === undefined) {
-            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params, marketType);
+            [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         } else {
             const market = this.market (symbol);
             marketType = market['type'];
@@ -6064,12 +6200,19 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
+        let accountType = 'main';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'accountType', accountType);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        accountType = this.safeString (accountsByType, accountType, accountType);
+        if (accountType === 'contract') {
+            return await this.fetchContractDeposits (code, since, limit, params);
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -6141,6 +6284,62 @@ export default class kucoin extends Exchange {
 
     /**
      * @method
+     * @name kucoin#fetchContractDeposits
+     * @description helper method for fetching deposits for futures accounts
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposits structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchContractDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.futuresPrivateGetDepositList (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 {
+        //                     "address": "0x5f047b29041bcfdbf0e4478cdfa753a336ba6989",
+        //                     "memo": "5c247c8a03aa677cea2a251d",
+        //                     "amount": 1,
+        //                     "fee": 0.0001,
+        //                     "currency": "KCS",
+        //                     "isInner": false,
+        //                     "walletTxId": "5bbb57386d99522d9f954c5a@test004",
+        //                     "status": "SUCCESS",
+        //                     "createdAt": 1544178843000,
+        //                     "updatedAt": 1544178891000
+        //                     "remark":"foobar"
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const responseData = response['data']['items'];
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'deposit' });
+    }
+
+    /**
+     * @method
      * @name kucoin#fetchWithdrawals
      * @description fetch all withdrawals made from an account
      * @see https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
@@ -6151,11 +6350,19 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {boolean} [params.paginate] *main account only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {string} [params.accountType] 'main' or 'contract' (default is 'main')
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         await this.loadMarkets ();
+        let accountType = 'main';
+        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'accountType', accountType);
+        const accountsByType = this.safeDict (this.options, 'accountsByType', {});
+        accountType = this.safeString (accountsByType, accountType, accountType);
+        if (accountType === 'contract') {
+            return await this.fetchContractWithdrawals (code, since, limit, params);
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -6226,6 +6433,62 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (items, currency, since, limit, { 'type': 'withdrawal' });
     }
 
+    /**
+     * @method
+     * @name kucoin#fetchContractWithdrawals
+     * @description helper method for fetching withdrawals for futures accounts
+     * @param {string} code unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchContractWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        if (since !== undefined) {
+            request['startAt'] = since;
+        }
+        const response = await this.futuresPrivateGetWithdrawalList (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "currentPage": 1,
+        //             "pageSize": 5,
+        //             "totalNum": 2,
+        //             "totalPage": 1,
+        //             "items": [
+        //                 {
+        //                     "id": "5c2dc64e03aa675aa263f1ac",
+        //                     "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
+        //                     "memo": "",
+        //                     "currency": "ETH",
+        //                     "amount": 1.0000000,
+        //                     "fee": 0.0100000,
+        //                     "walletTxId": "3e2414d82acce78d38be7fe9",
+        //                     "isInner": false,
+        //                     "status": "FAILURE",
+        //                     "createdAt": 1546503758000,
+        //                     "updatedAt": 1546504603000
+        //                 },
+        //                 ...
+        //             ]
+        //         }
+        //     }
+        //
+        const responseData = response['data']['items'];
+        return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
+    }
+
     parseBalanceHelper (entry) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'holdBalance', 'hold');
@@ -6259,7 +6522,7 @@ export default class kucoin extends Exchange {
             currency = this.currency (code);
         }
         let requestedType = 'spot';
-        [ requestedType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params, requestedType);
+        [ requestedType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         let type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
@@ -6881,7 +7144,7 @@ export default class kucoin extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
         let type = 'spot';
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params, type);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         type = this.safeString (accountsByType, type, type);
         let response = undefined;
@@ -7537,6 +7800,46 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
+    }
+
+    /**
+     * @method
+     * @name kucoin#fetchLeverage
+     * @description fetch the set leverage for a market
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-cross-margin-leverage
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
+     */
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams (symbol, params);
+        if (marginMode !== 'cross') {
+            throw new NotSupported (this.id + ' fetchLeverage() currently supports only params["marginMode"] = "cross"');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new NotSupported (this.id + ' fetchLeverage() supports contract markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.futuresPrivateGetGetCrossUserLeverage (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": {
+        //            "symbol": "XBTUSDTM",
+        //            "leverage": "3"
+        //        }
+        //    }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const parsed = this.parseLeverage (data, market);
+        return this.extend (parsed, {
+            'marginMode': marginMode,
+        });
     }
 
     /**
