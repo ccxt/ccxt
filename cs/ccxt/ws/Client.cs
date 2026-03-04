@@ -421,11 +421,12 @@ public partial class Exchange
                         }
 
                         // detect zlib magic bytes: 0x78 0x01, 0x78 0x9C, 0x78 0xDA
-                        bool isZLib = msgBinary.Length > 2 && msgBinary[0] == 0x78 && (msgBinary[1] == 0x01 || msgBinary[1] == 0x9C || msgBinary[1] == 0xDA);
+                        var msgBinaryZlip = memory.ToArray(); 
+                        bool isZLib = msgBinaryZlip.Length > 2 && msgBinaryZlip[0] == 0x78 && (msgBinaryZlip[1] == 0x01 || msgBinaryZlip[1] == 0x9C || msgBinaryZlip[1] == 0xDA);
 
                         if (isZLib)
                         {
-                            using (var compressedStream = new MemoryStream(msgBinary, 2, msgBinary.Length - 2))
+                            using (var compressedStream = new MemoryStream(msgBinaryZlip, 2, msgBinaryZlip.Length - 2))
                             using (var decompressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
                             using (var decompressedStream = new MemoryStream())
                             {
@@ -436,19 +437,17 @@ public partial class Exchange
                                 this.TryHandleMessage(decompressedString);
                             }
                         }
-                        else
+                        
+                        // assume GZip (magic bytes: 0x1F 0x8B)
+                        using (var compressedStream = new MemoryStream(msgBinary))
+                        using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
+                        using (var decompressedStream = new MemoryStream())
                         {
-                            // assume GZip (magic bytes: 0x1F 0x8B)
-                            using (var compressedStream = new MemoryStream(msgBinary))
-                            using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
-                            using (var decompressedStream = new MemoryStream())
-                            {
-                                decompressionStream.CopyTo(decompressedStream);
-                                string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
-                                if (this.verbose)
-                                    Console.WriteLine($"On gzip binary message decompressed {decompressedString}");
-                                this.TryHandleMessage(decompressedString);
-                            }
+                            decompressionStream.CopyTo(decompressedStream);
+                            string decompressedString = Encoding.UTF8.GetString(decompressedStream.ToArray());
+                            if (this.verbose)
+                                Console.WriteLine($"On gzip binary message decompressed {decompressedString}");
+                            this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }
