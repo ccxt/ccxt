@@ -394,8 +394,9 @@ public partial class Exchange
                     {
 
                         var msgBinary = buffer.Take(result.Count).ToArray();
+                        // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
+                        var msgBinaryMemory = memory.ToArray();
                         // Handle binary message
-                        // assume gunzip for now
 
                         if (this.verbose)
                         {
@@ -421,13 +422,11 @@ public partial class Exchange
                         }
 
                         // detect zlib magic bytes: 0x78 0x01, 0x78 0x5E, 0x78 0x9C, 0x78 0xDA
-                        // Use memory.ToArray() to get the FULL message (all frames), not just the last chunk
-                        var msgBinaryZlib = memory.ToArray();
-                        bool isZLib = msgBinaryZlib.Length > 2 && msgBinaryZlib[0] == 0x78 && (msgBinaryZlib[1] == 0x01 || msgBinaryZlib[1] == 0x5E || msgBinaryZlib[1] == 0x9C || msgBinaryZlib[1] == 0xDA);
+                        bool isZLib = msgBinaryMemory.Length > 2 && msgBinaryMemory[0] == 0x78 && (msgBinaryMemory[1] == 0x01 || msgBinaryMemory[1] == 0x5E || msgBinaryMemory[1] == 0x9C || msgBinaryMemory[1] == 0xDA);
 
                         if (isZLib)
                         {
-                            using (var compressedStream = new MemoryStream(msgBinaryZlib, 2, msgBinaryZlib.Length - 2))
+                            using (var compressedStream = new MemoryStream(msgBinaryMemory, 2, msgBinaryMemory.Length - 2))
                             using (var decompressionStream = new DeflateStream(compressedStream, CompressionMode.Decompress))
                             using (var decompressedStream = new MemoryStream())
                             {
@@ -441,10 +440,11 @@ public partial class Exchange
                         }
 
                         // assume GZip (magic bytes: 0x1F 0x8B)
-                        bool isGZip = msgBinary.Length > 1 && msgBinary[0] == 0x1F && msgBinary[1] == 0x8B;
+                        // use msgBinaryMemory (full reassembled message) not msgBinary (last chunk only)
+                        bool isGZip = msgBinaryMemory.Length > 1 && msgBinaryMemory[0] == 0x1F && msgBinaryMemory[1] == 0x8B;
 
                         if (isGZip)
-                        using (var compressedStream = new MemoryStream(msgBinary))
+                        using (var compressedStream = new MemoryStream(msgBinaryMemory))
                         using (var decompressionStream = new GZipStream(compressedStream, CompressionMode.Decompress))
                         using (var decompressedStream = new MemoryStream())
                         {
