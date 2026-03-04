@@ -3,7 +3,14 @@
     "disabledGO": true,
     "disabledCS": true,
     "privateKey": "e5b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
-    "skipKeys": [ "vwap", "nonce", "api_key_index", "account_index", "client_order_index", "clientOrderId" ],
+    "skipKeys": [
+        "vwap",
+        "nonce",
+        "api_key_index",
+        "account_index",
+        "client_order_index",
+        "clientOrderId"
+    ],
     "options": {
         "accountIndex": 715085,
         "apiKeyIndex": 0,
@@ -1095,32 +1102,32 @@
                 ],
                 "httpResponse": {
                     "code": 200,
-                    "resolution": "1m",
-                    "candlesticks": [
+                    "r": "1m",
+                    "c": [
                         {
-                            "timestamp": 1763090460000,
-                            "open": 3223.32,
-                            "high": 3224.61,
-                            "low": 3221.1,
-                            "close": 3223.56,
-                            "open_raw": 0,
-                            "high_raw": 0,
-                            "low_raw": 0,
-                            "close_raw": 0,
-                            "volume0": 183.81289999999998,
-                            "volume1": 592414.835547,
-                            "last_trade_id": 476396604
+                            "t": 1767700500000,
+                            "o": 3236.86,
+                            "h": 3237.78,
+                            "l": 3235.36,
+                            "c": 3235.39,
+                            "v": 55.1632,
+                            "V": 178530.793575,
+                            "i": 779870452,
+                            "C": "string",
+                            "H": "string",
+                            "L": "string",
+                            "O": "string"
                         }
                     ]
                 },
                 "parsedResponse": [
                     [
-                        1763090460000,
-                        3223.32,
-                        3224.61,
-                        3221.1,
-                        3223.56,
-                        183.81289999999998
+                        1767700500000,
+                        3236.86,
+                        3237.78,
+                        3235.36,
+                        3235.39,
+                        55.1632
                     ]
                 ]
             }

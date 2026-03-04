@@ -148,7 +148,7 @@
             {
                 "description": "fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://mainnet.zklighter.elliot.ai/api/v1/candlesticks?market_id=0&count_back=0&resolution=5m&start_timestamp=1763060345862&end_timestamp=1763090345862",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/candles?market_id=0&count_back=0&resolution=5m&start_timestamp=1763060345862&end_timestamp=1763090345862",
                 "input": [
                     "ETH/USDC:USDC",
                     "5m",

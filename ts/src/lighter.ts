@@ -193,7 +193,7 @@ export default class lighter extends Exchange {
                         'blocks': 1,
                         'currentHeight': 1,
                         // candlestick
-                        'candlesticks': 1,
+                        'candles': 1,
                         'fundings': 1,
                         // bridge
                         'fastbridge/info': 1,
@@ -1273,28 +1273,28 @@ export default class lighter extends Exchange {
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        //     {
-        //         "timestamp": 1763001300000,
-        //         "open": 3438.49,
-        //         "high": 3445.58,
-        //         "low": 3435.38,
-        //         "close": 3439.19,
-        //         "open_raw": 0,
-        //         "high_raw": 0,
-        //         "low_raw": 0,
-        //         "close_raw": 0,
-        //         "volume0": 1253.4977,
-        //         "volume1": 4314077.600513,
-        //         "last_trade_id": 464354353
-        //     }
+        // {
+        //     "t": 1767700500000,
+        //     "o": 3236.86,
+        //     "h": 3237.78,
+        //     "l": 3235.36,
+        //     "c": 3235.39,
+        //     "v": 55.1632,
+        //     "V": 178530.793575,
+        //     "i": 779870452,
+        //     "C": "string",
+        //     "H": "string",
+        //     "L": "string",
+        //     "O": "string"
+        // }
         //
         return [
-            this.safeInteger (ohlcv, 'timestamp'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume0'),
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
         ];
     }
 
@@ -1348,30 +1348,30 @@ export default class lighter extends Exchange {
             'start_timestamp': startTs,
             'end_timestamp': endTs,
         };
-        const response = await this.publicGetCandlesticks (this.extend (request, params));
+        const response = await this.publicGetCandles (this.extend (request, params));
         //
-        //     {
-        //         "code": 200,
-        //         "resolution": "5m",
-        //         "candlesticks": [
-        //             {
-        //                 "timestamp": 1763001300000,
-        //                 "open": 3438.49,
-        //                 "high": 3445.58,
-        //                 "low": 3435.38,
-        //                 "close": 3439.19,
-        //                 "open_raw": 0,
-        //                 "high_raw": 0,
-        //                 "low_raw": 0,
-        //                 "close_raw": 0,
-        //                 "volume0": 1253.4977,
-        //                 "volume1": 4314077.600513,
-        //                 "last_trade_id": 464354353
-        //             }
-        //         ]
-        //     }
+        // {
+        //     "code": 200,
+        //     "r": "1m",
+        //     "c": [
+        //         {
+        //             "t": 1767700500000,
+        //             "o": 3236.86,
+        //             "h": 3237.78,
+        //             "l": 3235.36,
+        //             "c": 3235.39,
+        //             "v": 55.1632,
+        //             "V": 178530.793575,
+        //             "i": 779870452,
+        //             "C": "string",
+        //             "H": "string",
+        //             "L": "string",
+        //             "O": "string"
+        //         }
+        //     ]
+        // }
         //
-        const ohlcvs = this.safeList (response, 'candlesticks', []);
+        const ohlcvs = this.safeList (response, 'c', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
