@@ -2192,5 +2192,15 @@
                 "precision":"is undefined"
             }
         }
+    },
+    "lighter": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided"
+            }
+        }
     }
 }
