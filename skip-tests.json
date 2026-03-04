@@ -2192,5 +2192,19 @@
                 "precision":"is undefined"
             }
         }
+    },
+    "btse": {
+        "skipMethods": {
+            "loadMarkets": {
+                "contractSize": "broken for some markets"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            },
+            "ticker": {
+                "spread": "messed bid-ask for some markets",
+                "compareOHLC": "close lower than low from API"
+            }
+        }
     }
 }
