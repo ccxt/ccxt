@@ -6,7 +6,7 @@ import { AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, B
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
+import type { ADL, Account, Balances, Bool, BorrowInterest, Currency, Currencies, DepositAddress, Dict, FundingHistory, FundingRate, Int, int, LedgerEntry, Leverage, LeverageTier, MarginMode, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -98,9 +98,11 @@ export default class kucoin extends Exchange {
                 'fetchOrdersByStatus': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': true,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -9173,5 +9175,126 @@ export default class kucoin extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const items = this.safeList (data, 'items', []);
         return this.parseTransfers (items, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name kucoinfutures#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const response = await this.futuresPrivateGetPositions (params);
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "id": "600000000001260912",
+        //                 "symbol": "XBTUSDTM",
+        //                 "crossMode": true,
+        //                 "maintMarginReq": 0.0040000133,
+        //                 "delevPercentage": 0.0,
+        //                 "openingTimestamp": 1768481882915,
+        //                 "currentTimestamp": 1768481897988,
+        //                 "currentQty": 1,
+        //                 "currentCost": 96.9768,
+        //                 "currentComm": 0.05818608,
+        //                 "unrealisedCost": 96.9768,
+        //                 "realisedGrossCost": 0.0,
+        //                 "realisedCost": 0.05818608,
+        //                 "isOpen": true,
+        //                 "markPrice": 96985.6,
+        //                 "markValue": 96.9856,
+        //                 "posCost": 96.9768,
+        //                 "posInit": 4.84884,
+        //                 "posMargin": 4.84928,
+        //                 "posMaint": 0.38794369,
+        //                 "realisedGrossPnl": 0.0,
+        //                 "realisedPnl": -0.05818608,
+        //                 "unrealisedPnl": 0.0088,
+        //                 "unrealisedPnlPcnt": 1.0E-4,
+        //                 "unrealisedRoePcnt": 0.0018,
+        //                 "avgEntryPrice": 96976.8,
+        //                 "liquidationPrice": 52351.69,
+        //                 "bankruptPrice": 52110.87,
+        //                 "settleCurrency": "USDT",
+        //                 "isInverse": false,
+        //                 "maintainMargin": 0.0040000133,
+        //                 "marginMode": "CROSS",
+        //                 "positionSide": "LONG",
+        //                 "leverage": 20,
+        //                 "dealComm": -0.05818608,
+        //                 "fundingFee": 0,
+        //                 "tax": 0
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseADLRanks (data, symbols);
+    }
+
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "id": "600000000001260912",
+        //         "symbol": "XBTUSDTM",
+        //         "crossMode": true,
+        //         "maintMarginReq": 0.0040000133,
+        //         "delevPercentage": 0.0,
+        //         "openingTimestamp": 1768481882915,
+        //         "currentTimestamp": 1768481897988,
+        //         "currentQty": 1,
+        //         "currentCost": 96.9768,
+        //         "currentComm": 0.05818608,
+        //         "unrealisedCost": 96.9768,
+        //         "realisedGrossCost": 0.0,
+        //         "realisedCost": 0.05818608,
+        //         "isOpen": true,
+        //         "markPrice": 96985.6,
+        //         "markValue": 96.9856,
+        //         "posCost": 96.9768,
+        //         "posInit": 4.84884,
+        //         "posMargin": 4.84928,
+        //         "posMaint": 0.38794369,
+        //         "realisedGrossPnl": 0.0,
+        //         "realisedPnl": -0.05818608,
+        //         "unrealisedPnl": 0.0088,
+        //         "unrealisedPnlPcnt": 1.0E-4,
+        //         "unrealisedRoePcnt": 0.0018,
+        //         "avgEntryPrice": 96976.8,
+        //         "liquidationPrice": 52351.69,
+        //         "bankruptPrice": 52110.87,
+        //         "settleCurrency": "USDT",
+        //         "isInverse": false,
+        //         "maintainMargin": 0.0040000133,
+        //         "marginMode": "CROSS",
+        //         "positionSide": "LONG",
+        //         "leverage": 20,
+        //         "dealComm": -0.05818608,
+        //         "fundingFee": 0,
+        //         "tax": 0
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const timestamp = this.safeInteger (info, 'openingTimestamp');
+        const percentage = this.safeString (info, 'delevPercentage');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': undefined,
+            'rating': undefined,
+            'percentage': this.parseNumber (Precise.stringMul (percentage, '100')),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        } as ADL;
     }
 }
