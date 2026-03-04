@@ -88,6 +88,9 @@ class Exchange(BaseExchange):
         self.markets_loading = None
         self.reloading_markets = False
 
+    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
+
     def get_event_loop(self):
         return self.asyncio_loop
 
@@ -204,7 +207,28 @@ class Exchange(BaseExchange):
         # end of proxies & headers
 
         request_body = body
-        encoded_body = body.encode() if body else None
+        # check content-type is multipart/form-data for lighter
+        has_multipart = False
+        content_type_key = None
+        for k, v in request_headers.items():
+            lk = k.lower()
+            if lk == 'content-type':
+                if v == 'multipart/form-data':
+                    content_type_key = k
+                    has_multipart = True
+                    data = aiohttp.FormData()
+                    # TODO: attach file?
+                    for k, v in body.items():
+                        data.add_field(k, v)
+                    encoded_body = data
+                    break
+                else:
+                    break
+        if not has_multipart:
+            encoded_body = body.encode() if body else None
+        else:
+            # asyncio would handle it for multipart/form-data
+            del request_headers[content_type_key]
         self.open()
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
