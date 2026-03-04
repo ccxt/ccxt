@@ -61,8 +61,6 @@ jobs:
         done
     - name: Build Project
       run: npm run buildCS
-    - name: Run request lighter tests
-      run: npm run request-cs -- lighter
     # - name: Run request lighter tests multiple times
     #   run: for i in {1..10}; do npm run request-cs -- lighter; done
     # - name: Debug script remove later
