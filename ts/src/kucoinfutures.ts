@@ -24,12 +24,11 @@ export default class kucoinfutures extends kucoin {
                 'future': true,
                 'option': undefined,
                 'fetchBidsAsks': true,
-
             },
             'options': {
                 'fetchMarkets': {
                     'types': [ 'swap', 'future' ],
-                    'fetchTickersFees': true,
+                    'fetchTickersFees': false,
                 },
                 'defaultType': 'swap',
                 'defaultAccountType': 'contract',
