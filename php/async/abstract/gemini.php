@@ -67,11 +67,11 @@ abstract class gemini extends \ccxt\async\Exchange {
     public function public_get_v2_fxrate_symbol_timestamp($params = array()) {
         return $this->request('v2/fxrate/{symbol}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function public_get_v1_perpetuals_fundingpaymentreport_records_xlsx($params = array()) {
-        return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'public', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function public_get_v1_riskstats_symbol($params = array()) {
         return $this->request('v1/riskstats/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v1_perpetuals_fundingpaymentreport_records_xlsx($params = array()) {
+        return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_post_v1_staking_unstake($params = array()) {
         return $this->request('v1/staking/unstake', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -313,11 +313,11 @@ abstract class gemini extends \ccxt\async\Exchange {
     public function publicGetV2FxrateSymbolTimestamp($params = array()) {
         return $this->request('v2/fxrate/{symbol}/{timestamp}', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function publicGetV1PerpetualsFundingpaymentreportRecordsXlsx($params = array()) {
-        return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'public', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function publicGetV1RiskstatsSymbol($params = array()) {
         return $this->request('v1/riskstats/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV1PerpetualsFundingpaymentreportRecordsXlsx($params = array()) {
+        return $this->request('v1/perpetuals/fundingpaymentreport/records.xlsx', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostV1StakingUnstake($params = array()) {
         return $this->request('v1/staking/unstake', 'private', 'POST', $params, null, null, array("cost" => 1));

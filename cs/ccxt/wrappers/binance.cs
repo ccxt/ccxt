@@ -770,6 +770,12 @@ public partial class binance
     /// bool : *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>

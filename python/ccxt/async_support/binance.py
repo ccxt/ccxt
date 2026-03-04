@@ -6173,6 +6173,7 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.stopLossOrTakeProfit]: 'stopLoss' or 'takeProfit', required for spot trailing orders
         :param str [params.positionSide]: *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
         :param bool [params.hedged]: *swap and portfolio margin only* True for hedged mode, False for one way mode, default is False
+        :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
