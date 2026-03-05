@@ -300,7 +300,7 @@ Since the signing algorithms and structs are not supported natively in all langu
 
 ### Python/C#/PHP users:
 
-- The binaries can be download here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
+- The binaries can be downloaded here: https://github.com/elliottech/lighter-python/tree/main/lighter/signers
 - The path to the binary needs to be provided as `libraryPath`
 - You need to choose the binary according to your OS/architecture
 
