@@ -106,6 +106,7 @@ export default class grvt extends Exchange {
                 'privateEdge': {
                     'post': {
                         'auth/api_key/login': 100,
+                        'auth/wallet/login': 100,
                     },
                 },
                 'publicMarket': {
@@ -265,9 +266,9 @@ export default class grvt extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'privateKey': true,
-                'apiKey': true,
-                'secret': true,
+                'privateKey': false,
+                'apiKey': false,
+                'secret': false,
             },
             'quoteJsonNumbers': false, // needed for some endpoints (todo: specify in implementations)
             'exceptions': {
@@ -437,11 +438,19 @@ export default class grvt extends Exchange {
                     { 'name': 'expiration', 'type': 'int64' },
                 ],
             },
+            'EIP712_WALLETLOGIN_TYPE': {
+                'WalletLogin': [
+                    { 'name': 'signer', 'type': 'address' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+            },
         };
     }
 
     async loadMarketsAndSignIn () {
         await Promise.all ([ this.loadMarkets (), this.signIn () ]);
+        await this.loadAccountInfos ();
     }
 
     /**
@@ -465,6 +474,32 @@ export default class grvt extends Exchange {
             'api_key': this.apiKey,
         };
         const response = await this.privateEdgePostAuthApiKeyLogin (this.extend (request, params));
+        //
+        //    {
+        //        "location": "",
+        //        "status": "success"
+        //    }
+        //
+        this.options['signInExpiration'] = now + 86400000; // 24 hours
+        return response;
+    }
+
+    async signInWithPrivateKey (params = {}) {
+        this.checkRequiredCredentials ();
+        const now = this.milliseconds ();
+        // expires in 24 hours as CS suggested
+        const expires = this.safeInteger (this.options, 'signInExpiration', 0);
+        // if previous sign-in not expired (give 10 seconds margin)
+        if (expires !== undefined && expires > now + 10000) {
+            return {};
+        }
+        const walletAddress = this.ethGetAddressFromPrivateKey (this.secret);
+        let request: Dict = {
+            'signer': walletAddress,
+            'signature': this.defaultSignature (),
+        };
+        request = this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE');
+        const response = await this.privateEdgePostAuthWalletLogin (this.extend (request, params));
         //
         //    {
         //        "location": "",
@@ -1468,8 +1503,7 @@ export default class grvt extends Exchange {
                 const parsedMeta = this.parseJson (metaData);
                 direction = this.safeStringLower (parsedMeta, 'direction');
                 txId = this.safeString (parsedMeta, 'provider_tx_id');
-                const chainId = this.safeString (parsedMeta, 'chainid');
-                networkCode = this.networkIdToCode (chainId);
+                networkCode = this.networkIdToCode (this.safeString (parsedMeta, 'chainid'));
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString (parsedMeta, 'endpoint');
                 } else if (direction === 'deposit') {
@@ -1604,7 +1638,6 @@ export default class grvt extends Exchange {
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         await this.loadMarketsAndSignIn ();
-        await this.loadAccountInfos ();
         const currency = this.currency (code);
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         if (this.inArray (fromAccount, [ 'trading', 'funding' ]) && this.inArray (toAccount, [ 'trading', 'funding' ])) {
@@ -1775,7 +1808,6 @@ export default class grvt extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         this.checkAddress (address);
         await this.loadMarketsAndSignIn ();
-        await this.loadAccountInfos ();
         const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId');
         const currency = this.currency (code);
         let request: Dict = {
@@ -2048,6 +2080,14 @@ export default class grvt extends Exchange {
             'expiration': order['signature']['expiration'],
         };
         return returnValue;
+    }
+
+    eipMessageForWalletLogin (dataObj) {
+        return {
+            'signer': dataObj['signer'],
+            'nonce': dataObj['signature']['nonce'],
+            'expiration': dataObj['signature']['expiration'],
+        };
     }
 
     eipMessageForBuilderApproval (dataObj) {
@@ -2997,11 +3037,10 @@ export default class grvt extends Exchange {
         //     GrvtEnv.STAGING.value: 327,
         //     GrvtEnv.TESTNET.value: 326,
         //     GrvtEnv.PROD.value: 325,
-        const chainId = this.isSandboxModeEnabled ? 326 : 325;
         return {
             'name': 'GRVT Exchange',
             'version': '0',
-            'chainId': chainId,
+            'chainId': this.isSandboxModeEnabled ? 326 : 325,
         };
     }
 
@@ -3015,12 +3054,15 @@ export default class grvt extends Exchange {
             messageData = this.eipMessageForOrder (request);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
             messageData = this.eipMessageForBuilderApproval (request);
+        } else if (structureType === 'EIP712_WALLETLOGIN_TYPE') {
+            messageData = this.eipMessageForWalletLogin (request);
         }
         const domainData = this.eipDomainData ();
         const definitions = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const privateKeyWithoutZero = this.remove0xPrefix (this.secret);
+        const secretOrPrivkey = this.privateKey !== undefined ? this.privateKey : this.privateKey
+        const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS (signature['r']);
         request['signature']['s'] = this.formatSignatureRS (signature['s']);
@@ -3040,7 +3082,6 @@ export default class grvt extends Exchange {
 
     defaultSignature () {
         const expiration = this.milliseconds () * 1000000 + 1000000 * this.safeInteger (this.options, 'expirationSeconds', 30) * 1000;
-        const chainId = this.isSandboxModeEnabled ? '326' : '325';
         return {
             'signer': '',
             'r': '',
@@ -3048,7 +3089,7 @@ export default class grvt extends Exchange {
             'v': 0,
             'expiration': expiration.toString (),
             'nonce': this.nonce (),
-            'chain_id': chainId,
+            'chainID': this.isSandboxModeEnabled ? 326 : 325,
         };
     }
 
@@ -3082,7 +3123,7 @@ export default class grvt extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
             };
-            if (path === 'auth/api_key/login') {
+            if (path === 'auth/api_key/login' || path === 'auth/wallet/login') {
                 headers['Cookie'] = 'rm=true;';
             } else {
                 const accountId = this.safeString (this.options, 'AuthAccountId');
