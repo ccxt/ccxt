@@ -8719,11 +8719,13 @@ export default class bitget extends Exchange {
      * @name bitget#fetchFundingHistory
      * @description fetch the funding history
      * @see https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+     * @see https://www.bitget.com/api-doc/uta/account/Get-Financial-Records
      * @param {string} symbol unified market symbol
      * @param {int} [since] the starting timestamp in milliseconds
      * @param {int} [limit] the number of entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch funding history for
+     * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
@@ -8733,8 +8735,10 @@ export default class bitget extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
         }
         let paginate = false;
+        let uta = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
-        if (paginate) {
+        [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'uta', false);
+        if (paginate && !uta) {
             return await this.fetchPaginatedCallCursor ('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan') as FundingHistory[];
         }
         const market = this.market (symbol);
@@ -8745,10 +8749,14 @@ export default class bitget extends Exchange {
         [ productType, params ] = this.handleProductTypeAndParams (market, params);
         let request: Dict = {
             'symbol': market['id'],
-            'marginCoin': market['settleId'],
             'businessType': 'contract_settle_fee',
-            'productType': productType,
         };
+        if (uta) {
+            request['productType'] = productType;
+        } else {
+            request['marginCoin'] = market['settleId'];
+            request['productType'] = productType;
+        }
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8756,7 +8764,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateMixGetV2MixAccountBill (this.extend (request, params));
+        const response = uta ? await this.privateUtaGetV3AccountFinancialRecords (this.extend (request, params)) : await this.privateMixGetV2MixAccountBill (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -8780,7 +8788,10 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const result = this.safeValue (data, 'bills', []);
+        let result = this.safeValue (data, 'bills', []);
+        if (uta) {
+            result = this.safeList2 (data, 'list', 'resultList', result);
+        }
         return this.parseFundingHistories (result, market, since, limit);
     }
 
@@ -8798,16 +8809,16 @@ export default class bitget extends Exchange {
         //     }
         //
         const marketId = this.safeString (contract, 'symbol');
-        const currencyId = this.safeString (contract, 'coin');
-        const timestamp = this.safeInteger (contract, 'cTime');
+        const currencyId = this.safeString2 (contract, 'coin', 'marginCoin');
+        const timestamp = this.safeInteger2 (contract, 'cTime', 'uTime');
         return {
             'info': contract,
             'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'code': this.safeCurrencyCode (currencyId),
-            'amount': this.safeNumber (contract, 'amount'),
-            'id': this.safeString (contract, 'billId'),
+            'amount': this.safeNumber2 (contract, 'amount', 'size'),
+            'id': this.safeString2 (contract, 'billId', 'id'),
         };
     }
 

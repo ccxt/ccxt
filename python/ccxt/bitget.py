@@ -8319,12 +8319,14 @@ class bitget(Exchange, ImplicitAPI):
         fetch the funding history
 
         https://www.bitget.com/api-doc/contract/account/Get-Account-Bill
+        https://www.bitget.com/api-doc/uta/account/Get-Financial-Records
 
         :param str symbol: unified market symbol
         :param int [since]: the starting timestamp in milliseconds
         :param int [limit]: the number of entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch funding history for
+        :param boolean [params.uta]: set to True for the unified trading account (uta), defaults to False
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
@@ -8332,8 +8334,10 @@ class bitget(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
         paginate = False
+        uta = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
-        if paginate:
+        uta, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'uta', False)
+        if paginate and (not uta):
             return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'endId', 'idLessThan')
         market = self.market(symbol)
         if not market['swap']:
@@ -8342,16 +8346,19 @@ class bitget(Exchange, ImplicitAPI):
         productType, params = self.handle_product_type_and_params(market, params)
         request: dict = {
             'symbol': market['id'],
-            'marginCoin': market['settleId'],
             'businessType': 'contract_settle_fee',
-            'productType': productType,
         }
+        if uta:
+            request['productType'] = productType
+        else:
+            request['marginCoin'] = market['settleId']
+            request['productType'] = productType
         request, params = self.handle_until_option('endTime', request, params)
         if since is not None:
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.privateMixGetV2MixAccountBill(self.extend(request, params))
+        response = self.privateUtaGetV3AccountFinancialRecords(self.extend(request, params)) if uta else self.privateMixGetV2MixAccountBill(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -8376,6 +8383,8 @@ class bitget(Exchange, ImplicitAPI):
         #
         data = self.safe_value(response, 'data', {})
         result = self.safe_value(data, 'bills', [])
+        if uta:
+            result = self.safe_list_2(data, 'list', 'resultList', result)
         return self.parse_funding_histories(result, market, since, limit)
 
     def parse_funding_history(self, contract, market: Market = None):
@@ -8392,16 +8401,16 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(contract, 'symbol')
-        currencyId = self.safe_string(contract, 'coin')
-        timestamp = self.safe_integer(contract, 'cTime')
+        currencyId = self.safe_string_2(contract, 'coin', 'marginCoin')
+        timestamp = self.safe_integer_2(contract, 'cTime', 'uTime')
         return {
             'info': contract,
             'symbol': self.safe_symbol(marketId, market, None, 'swap'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'code': self.safe_currency_code(currencyId),
-            'amount': self.safe_number(contract, 'amount'),
-            'id': self.safe_string(contract, 'billId'),
+            'amount': self.safe_number_2(contract, 'amount', 'size'),
+            'id': self.safe_string_2(contract, 'billId', 'id'),
         }
 
     def parse_funding_histories(self, contracts, market=None, since: Int = None, limit: Int = None) -> List[FundingHistory]:
