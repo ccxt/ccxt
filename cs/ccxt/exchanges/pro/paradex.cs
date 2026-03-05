@@ -259,7 +259,7 @@ public partial class paradex : ccxt.paradex
         }
         object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
-        ((IDictionary<string,object>)snapshot)["nonce"] = this.safeNumber(data, "seq_no");
+        ((IDictionary<string,object>)snapshot)["nonce"] = this.safeInteger(data, "seq_no");
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = this.safeString(parameters, "channel");
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});

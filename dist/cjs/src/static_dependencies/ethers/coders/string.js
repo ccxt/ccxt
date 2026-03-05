@@ -6,7 +6,6 @@ var utf8 = require('../utils/utf8.js');
 var typed = require('../typed.js');
 var bytes = require('./bytes.js');
 
-// ----------------------------------------------------------------------------
 /**
  *  @_ignore
  */

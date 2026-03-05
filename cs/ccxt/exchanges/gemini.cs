@@ -2208,7 +2208,7 @@ public partial class gemini : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, "publicGetV1RiskstatsSymbol", new object[] { this.extend(request, parameters) }));
+        object response = await this.publicGetV1RiskstatsSymbol(this.extend(request, parameters));
         //
         //    {
         //        product_type: 'PerpetualSwapContract',

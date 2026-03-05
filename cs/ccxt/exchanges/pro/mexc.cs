@@ -1651,7 +1651,7 @@ public partial class mexc : ccxt.mexc
         //             "frozenBalance": 0,
         //             "positionMargin": 1.36945756
         //         },
-        //         "ts": 1680059188190
+        //         "ts": 1680059188191
         //     }
         //
         object channel = this.safeString(message, "channel");
