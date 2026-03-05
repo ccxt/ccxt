@@ -20,6 +20,23 @@
         ],
         "createOrder": [
             {
+                "description": "create margin hf order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/order",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    20,
+                    0.01,
+                    {
+                        "hf": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"clientOid\":\"c1e0cace-812f-47fc-b257-855beafc25d7\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.01\"}"
+            },
+            {
                 "description": "Spot market buy order",
                 "method": "createOrder",
                 "url": "https://api.kucoin.com/api/v1/orders",
@@ -354,6 +371,19 @@
             }
         ],
         "cancelOrder": [
+            {
+                "description": "cancel margin hf order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/orders/69a9bdd75c0c71000767b6e9?symbol=DOGE-USDT",
+                "input": [
+                    "69a9bdd75c0c71000767b6e9",
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "Canceling stop order",
                 "method": "cancelOrder",
