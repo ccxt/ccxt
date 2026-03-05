@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var bitrue$1 = require('../bitrue.js');
 var Cache = require('../base/ws/Cache.js');
 
-//  ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
 class bitrue extends bitrue$1["default"] {
     describe() {

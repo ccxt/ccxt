@@ -9,6 +9,7 @@ var transfer = require('./dydxprotocol/sending/transfer.js');
 var tx$1 = require('./dydxprotocol/sending/tx.js');
 var any = require('./google/protobuf/any.js');
 
+// ----------------------------------------------------------------------------
 const registry = {
     // clob
     '/dydxprotocol.clob.MsgPlaceOrder': tx.MsgPlaceOrder,
