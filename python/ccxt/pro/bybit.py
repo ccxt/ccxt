@@ -1561,7 +1561,7 @@ class bybit(ccxt.async_support.bybit):
         """
         watch the public liquidations of a trading pair
 
-        https://bybit-exchange.github.io/docs/v5/websocket/public/liquidation
+        https://bybit-exchange.github.io/docs/v5/websocket/public/all-liquidation
 
         :param str symbol: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
@@ -1576,7 +1576,7 @@ class bybit(ccxt.async_support.bybit):
         url = await self.get_url_by_market_type(symbol, False, 'watchLiquidations', params)
         params = self.clean_params(params)
         method = None
-        method, params = self.handle_option_and_params(params, 'watchLiquidations', 'method', 'liquidation')
+        method, params = self.handle_option_and_params(params, 'watchLiquidations', 'method', 'allLiquidation')
         messageHash = 'liquidations::' + symbol
         topic = method + '.' + market['id']
         newLiquidation = await self.watch_topics(url, [messageHash], [topic], params)
@@ -1623,7 +1623,8 @@ class bybit(ccxt.async_support.bybit):
                 symbol = market['symbol']
                 liquidation = self.parse_ws_liquidation(rawLiquidation, market)
                 if self.liquidations is None:
-                    self.liquidations = ArrayCacheBySymbolBySide()
+                    limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                    self.liquidations = ArrayCache(limit)
                 cache = self.liquidations
                 cache.append(liquidation)
                 client.resolve([liquidation], 'liquidations')
@@ -1635,7 +1636,8 @@ class bybit(ccxt.async_support.bybit):
             symbol = market['symbol']
             liquidation = self.parse_ws_liquidation(rawLiquidation, market)
             if self.liquidations is None:
-                self.liquidations = ArrayCacheBySymbolBySide()
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                self.liquidations = ArrayCache(limit)
             cache = self.liquidations
             cache.append(liquidation)
             client.resolve([liquidation], 'liquidations')

@@ -94,9 +94,11 @@ class woo extends woo$1["default"] {
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
@@ -3287,12 +3289,24 @@ class woo extends woo$1["default"] {
         //         "estFundingIntervalHours": 8
         //     }
         //
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDT",
+        //         "fundingRate": 0.0001,
+        //         "fundingTs": 1771488000000
+        //     }
+        //
         const symbol = this.safeString(fundingRate, 'symbol');
         market = this.market(symbol);
-        const nextFundingTimestamp = this.safeInteger(fundingRate, 'nextFundingTime');
+        const nextFundingTimestamp = this.safeInteger2(fundingRate, 'nextFundingTime', 'fundingTs');
         const estFundingRateTimestamp = this.safeInteger(fundingRate, 'estFundingRateTimestamp');
         const lastFundingRateTimestamp = this.safeInteger(fundingRate, 'lastFundingRateTimestamp');
         const intervalString = this.safeString(fundingRate, 'estFundingIntervalHours');
+        let interval = undefined;
+        if (intervalString !== undefined) {
+            interval = intervalString + 'h';
+        }
         return {
             'info': fundingRate,
             'symbol': market['symbol'],
@@ -3302,7 +3316,7 @@ class woo extends woo$1["default"] {
             'estimatedSettlePrice': undefined,
             'timestamp': estFundingRateTimestamp,
             'datetime': this.iso8601(estFundingRateTimestamp),
-            'fundingRate': this.safeNumber(fundingRate, 'estFundingRate'),
+            'fundingRate': this.safeNumber2(fundingRate, 'estFundingRate', 'fundingRate'),
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601(nextFundingTimestamp),
             'nextFundingRate': undefined,
@@ -3311,7 +3325,7 @@ class woo extends woo$1["default"] {
             'previousFundingRate': this.safeNumber(fundingRate, 'lastFundingRate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601(lastFundingRateTimestamp),
-            'interval': intervalString + 'h',
+            'interval': interval,
         };
     }
     /**
@@ -4202,6 +4216,92 @@ class woo extends woo$1["default"] {
             };
         }
         return result;
+    }
+    /**
+     * @method
+     * @name woo#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://docs.woox.io/#get-all-position-info-new
+     * @param {string[]} [symbols] a list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true, true);
+        const response = await this.v3PrivateGetFuturesPositions(params);
+        //
+        //     {
+        //         "success": true,
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "symbol": "PERP_BTC_USDT",
+        //                     "holding": "0.001",
+        //                     "pendingLongQty": "0",
+        //                     "pendingShortQty": "0",
+        //                     "settlePrice": "90732",
+        //                     "averageOpenPrice": "90732",
+        //                     "pnl24H": "-0.001",
+        //                     "fee24H": "0.1360115",
+        //                     "markPrice": "90736",
+        //                     "estLiqPrice": "0",
+        //                     "timestamp": 1768049379264,
+        //                     "adlQuantile": 3,
+        //                     "positionSide": "BOTH",
+        //                     "marginMode": "CROSS",
+        //                     "isolatedMarginToken": "",
+        //                     "isolatedMarginAmount": "0",
+        //                     "isolatedFrozenLong": "0",
+        //                     "isolatedFrozenShort": "0",
+        //                     "leverage": 10
+        //                 },
+        //             ]
+        //         },
+        //         "timestamp": 1768049428472
+        //     }
+        //
+        const result = this.safeDict(response, 'data', {});
+        const positions = this.safeList(result, 'positions', []);
+        return this.parseADLRanks(positions, symbols);
+    }
+    parseADLRank(info, market = undefined) {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol": "PERP_BTC_USDT",
+        //         "holding": "0.001",
+        //         "pendingLongQty": "0",
+        //         "pendingShortQty": "0",
+        //         "settlePrice": "90732",
+        //         "averageOpenPrice": "90732",
+        //         "pnl24H": "-0.001",
+        //         "fee24H": "0.1360115",
+        //         "markPrice": "90736",
+        //         "estLiqPrice": "0",
+        //         "timestamp": 1768049379264,
+        //         "adlQuantile": 3,
+        //         "positionSide": "BOTH",
+        //         "marginMode": "CROSS",
+        //         "isolatedMarginToken": "",
+        //         "isolatedMarginAmount": "0",
+        //         "isolatedFrozenLong": "0",
+        //         "isolatedFrozenShort": "0",
+        //         "leverage": 10
+        //     }
+        //
+        const marketId = this.safeString(info, 'symbol');
+        const timestamp = this.safeInteger(info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
+            'rank': this.safeNumber(info, 'adlQuantile'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
     }
     defaultNetworkCodeForCurrency(code) {
         const currencyItem = this.currency(code);

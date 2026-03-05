@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.37'
+__version__ = '4.5.41'
 
 # -----------------------------------------------------------------------------
 
@@ -145,6 +145,7 @@ from ccxt.async_support.kucoin import kucoin                                    
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
+from ccxt.async_support.lighter import lighter                                  # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
@@ -161,7 +162,6 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
-from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
@@ -258,6 +258,7 @@ exchanges = [
     'kucoinfutures',
     'latoken',
     'lbank',
+    'lighter',
     'luno',
     'mercado',
     'mexc',
@@ -274,7 +275,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'probit',
     'timex',
     'tokocrypto',
     'toobit',

@@ -6,9 +6,12 @@
 
 // ----------------------------------------------------------------------------
 import * as functions from './functions.js';
-import { keys as keysFunc, values as valuesFunc, 
-// inArray as inArrayFunc,
-vwap as vwapFunc, } from './functions.js';
+// import {
+//     // keys as keysFunc,
+//     // values as valuesFunc,
+//     // inArray as inArrayFunc,
+//     // vwap as vwapFunc,
+// } from './functions.js';
 // import exceptions from "./errors.js"
 import { // eslint-disable-line object-curly-newline
 ExchangeError, BadSymbol, NullResponse, InvalidAddress, InvalidOrder, NotSupported, OperationFailed, BadResponse, AuthenticationError, DDoSProtection, RequestTimeout, NetworkError, InvalidProxySettings, ExchangeNotAvailable, ArgumentsRequired, RateLimitExceeded, BadRequest, UnsubscribeError, ExchangeClosedByUser, } from './errors.js';
@@ -33,9 +36,9 @@ import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { sha1 } from '../static_dependencies/noble-hashes/sha1.js';
 import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
-const { isNode, selfIsDefined, deepExtend, extend, clone, flatten, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, merge, binaryConcat, hash, 
+const { isNode, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
-arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, uuidv1, numberToLE, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, ordered, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, } = functions;
+arrayConcat, encode, urlencode, hmac, numberToString, roundTimeframe, parseTimeframe, safeInteger2, safeStringLower, parse8601, yyyymmdd, safeStringUpper, safeTimestamp, binaryConcatArray, ymdhms, stringToBase64, decode, uuid22, safeIntegerProduct2, safeIntegerProduct, safeStringLower2, yymmdd, base58ToBinary, binaryToBase58, safeTimestamp2, rawencode, keysort, sort, inArray, isEmpty, filterBy, uuid16, safeFloat, base64ToBinary, safeStringUpper2, urlencodeWithArrayRepeat, microseconds, binaryToBase64, strip, toArray, safeFloatN, safeIntegerN, safeIntegerProductN, safeTimestampN, safeValueN, safeStringN, safeStringLowerN, safeStringUpperN, urlencodeNested, urlencodeBase64, parseDate, ymd, base64ToString, crc32, packb, TRUNCATE, ROUND, DECIMAL_PLACES, NO_PADDING, TICK_SIZE, SIGNIFICANT_DIGITS, sleep, readFile, writeFile, existsFile, getTempDir, } = functions;
 // ----------------------------------------------------------------------------
 let protobufMexc = undefined;
 let encodeAsAny = undefined;
@@ -45,14 +48,6 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
-(async () => {
-    try {
-        protobufMexc = await import('../protobuf/mexc/compiled.cjs');
-    }
-    catch (e) {
-        // TODO: handle error
-    }
-})();
 // -----------------------------------------------------------------------------
 /**
  * @class Exchange
@@ -168,11 +163,8 @@ export default class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = keysFunc;
-        this.values = valuesFunc;
         this.extend = extend;
         this.clone = clone;
-        this.flatten = flatten;
         this.unique = unique;
         this.indexBy = indexBy;
         this.indexBySafe = indexBy;
@@ -207,8 +199,6 @@ export default class Exchange {
         this.implodeParams = implodeParams;
         this.extractParams = extractParams;
         this.json = json;
-        this.vwap = vwapFunc;
-        this.merge = merge;
         this.binaryConcat = binaryConcat;
         this.hash = hash;
         this.arrayConcat = arrayConcat;
@@ -224,8 +214,6 @@ export default class Exchange {
         this.safeStringUpper = safeStringUpper;
         this.safeTimestamp = safeTimestamp;
         this.binaryConcatArray = binaryConcatArray;
-        this.uuidv1 = uuidv1;
-        this.numberToLE = numberToLE;
         this.ymdhms = ymdhms;
         this.yymmdd = yymmdd;
         this.stringToBase64 = stringToBase64;
@@ -244,7 +232,6 @@ export default class Exchange {
         this.safeStringLower2 = safeStringLower2;
         this.safeStringUpper2 = safeStringUpper2;
         this.isEmpty = isEmpty;
-        this.ordered = ordered;
         this.filterBy = filterBy;
         this.uuid16 = uuid16;
         this.urlencodeWithArrayRepeat = urlencodeWithArrayRepeat;
@@ -267,6 +254,11 @@ export default class Exchange {
         this.crc32 = crc32;
         this.packb = packb;
         this.urlencodeBase64 = urlencodeBase64;
+        // io
+        this.readFile = readFile;
+        this.writeFile = writeFile;
+        this.existsFile = existsFile;
+        this.getTempDir = getTempDir;
         Object.assign(this, functions);
         //
         //     if (isNode) {
@@ -381,6 +373,18 @@ export default class Exchange {
         this.afterConstruct();
         if (this.safeBool(userConfig, 'sandbox') || this.safeBool(userConfig, 'testnet')) {
             this.setSandboxMode(true);
+        }
+        // exchange specific libs
+        this.loadExchangeSpecificFiles();
+    }
+    async loadExchangeSpecificFiles() {
+        if (this.id === 'mexc') {
+            try {
+                protobufMexc = await import('../protobuf/mexc/compiled.cjs');
+            }
+            catch (e) {
+                // TODO: handle error
+            }
         }
     }
     uuid5(namespace, name) {
@@ -681,6 +685,29 @@ export default class Exchange {
         }
         // set final headers
         headers = this.setHeaders(headers);
+        // multipart/form-data
+        const headersKeys = Object.keys(headers);
+        for (let i = 0; i < headersKeys.length; i++) {
+            const key = headersKeys[i];
+            if (key.toLowerCase() === 'content-type') {
+                let value = headers[key];
+                if (value === 'multipart/form-data') {
+                    const bodyKeys = Object.keys(body);
+                    const boundary = '--------------------------' + this.randomBytes(12);
+                    const eol = '\r\n';
+                    let newBody = '';
+                    for (let j = 0; j < bodyKeys.length; j++) {
+                        const bodyKey = bodyKeys[j];
+                        newBody += '--' + boundary + eol + 'Content-Disposition: form-data; name="' + bodyKey + '"' + eol + eol + body[bodyKey] + eol;
+                    }
+                    newBody += '--' + boundary + '--' + eol;
+                    value += '; boundary=' + boundary;
+                    headers[key] = value;
+                    body = newBody;
+                    break;
+                }
+            }
+        }
         // log
         if (this.verbose) {
             this.log('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
@@ -1565,6 +1592,112 @@ export default class Exchange {
     unlockId() {
         return undefined; // c# stub
     }
+    async loadLighterLibrary(libraryPath, chainId, privateKey, apiKeyIndex, accountIndex) {
+        // wasmExecPathExample: '/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js';
+        // libraryPath eg: '/Users/cjg/Git/lighter-go/lighter.wasm';
+        if (libraryPath === undefined || libraryPath === '') {
+            throw new Error('loadLighterLibrary() requires "libraryPath" that should point to "lighter.wasm".\nYou can build it from source using the official Ligher SDK or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["libraryPath"] = "/user/cjg/Git/lighter-wasm/lighter.wasm"');
+        }
+        if (!isNode) {
+            throw new NotSupported(this.id + ' loadLighterLibrary() is only supported in node environment.');
+        }
+        await functions.initFileSystem();
+        const wasmExecPath = this.safeString(this.options, 'wasmExecPath');
+        if (wasmExecPath === undefined || wasmExecPath === '') {
+            throw new Error('loadLighterLibrary() requires "wasmExecPath" that should point to `wasm_exec.js`. You can check the location of the file locally if you have GO installed or download it here https://github.com/ccxt/lighter-wasm.\nExample: exchanges.options["wasmExecPath"] = "/opt/homebrew/opt/go/libexec/lib/wasm/wasm_exec.js"');
+        }
+        await import(wasmExecPath);
+        const go = new globalThis.Go();
+        // read wasm from disks
+        const bytes = new Uint8Array(readFile(libraryPath, null)); // it should point to lighter.wasm
+        const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
+        go.run(instance);
+        // createCLient
+        const url = this.implodeHostname(this.urls['api']['public']);
+        const res = globalThis.CreateClient(url, privateKey, chainId, apiKeyIndex, accountIndex);
+        this.checkLighterSignedError(res);
+        return {}; // empty object we will read it from globalThis
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateGroupedOrders(signer, request) {
+        const orders = request['orders'];
+        const ordersArr = [];
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            ordersArr.push({
+                'MarketIndex': parseInt(order['market_index']),
+                'ClientOrderIndex': order['client_order_index'],
+                'BaseAmount': order['base_amount'],
+                'Price': order['avg_execution_price'],
+                'IsAsk': order['is_ask'],
+                'Type': order['order_type'],
+                'TimeInForce': order['time_in_force'],
+                'ReduceOnly': order['reduce_only'],
+                'TriggerPrice': order['trigger_price'],
+                'OrderExpiry': order['order_expiry'],
+            });
+        }
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateOrder(signer, request) {
+        const res = (globalThis.SignCreateOrder(parseInt(request['market_index']), request['client_order_index'], request['base_amount'], request['avg_execution_price'], request['is_ask'], request['order_type'], request['time_in_force'], request['reduce_only'], request['trigger_price'], request['order_expiry'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    checkLighterSignedError(result) {
+        if ('error' in result) {
+            throw new Error('Lighter signing error: ' + result.error);
+        }
+    }
+    lighterSignCancelOrder(signer, request) {
+        const res = (globalThis.SignCancelOrder(request['market_index'], request['order_index'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignWithdraw(signer, request) {
+        const res = (globalThis.SignWithdraw(request['asset_index'], request['route_type'], request['amount'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    // eslint-disable-next-line no-unused-vars
+    lighterSignCreateSubAccount(signer, request) {
+        const res = (globalThis.SignCreateSubAccount(request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignCancelAllOrders(signer, request) {
+        const res = (globalThis.SignCancelAllOrders(request['time_in_force'], request['time'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignModifyOrder(signer, request) {
+        const res = (globalThis.SignModifyOrder(request['market_index'], request['index'], request['base_amount'], request['price'], request['trigger_price'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignTransfer(signer, request) {
+        const res = globalThis.SignTransfer(request['to_account_index'], request['asset_index'], request['from_route_type'], request['to_route_type'], request['amount'], request['usdc_fee'], request['memo'], request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterSignUpdateLeverage(signer, request) {
+        const res = (globalThis.SignUpdateLeverage(request['market_index'], request['initial_margin_fraction'], request['margin_mode'], request['nonce'], request['api_key_index'], request['account_index']));
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
+    lighterCreateAuthToken(signer, request) {
+        const res = globalThis.CreateAuthToken(request['deadline'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return res.authToken;
+    }
+    lighterSignUpdateMargin(signer, request) {
+        const res = globalThis.SignUpdateMargin(request['market_index'], request['usdc_amount'], request['direction'], request['nonce'], request['api_key_index'], request['account_index']);
+        this.checkLighterSignedError(res);
+        return [res.txType, res.txInfo];
+    }
     /* eslint-enable */
     // ------------------------------------------------------------------------
     // ########################################################################
@@ -1691,6 +1824,7 @@ export default class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -1776,6 +1910,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
                 'fetchPositionWs': undefined,
@@ -2609,8 +2745,11 @@ export default class Exchange {
     async watchFundingRate(symbol, params = {}) {
         throw new NotSupported(this.id + ' watchFundingRate() is not supported yet');
     }
-    async watchFundingRates(symbols, params = {}) {
+    async watchFundingRates(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' watchFundingRates() is not supported yet');
+    }
+    async unWatchFundingRates(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' unWatchFundingRates() is not supported yet');
     }
     async watchFundingRatesForSymbols(symbols, params = {}) {
         return await this.watchFundingRates(symbols, params);
@@ -2681,7 +2820,13 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -4621,6 +4766,19 @@ export default class Exchange {
         }
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
+    parseADLRank(info, market = undefined) {
+        throw new NotSupported(this.id + ' parseADLRank() is not supported yet');
+    }
+    parseADLRanks(ranks, symbols = undefined, params = {}) {
+        symbols = this.marketSymbols(symbols);
+        ranks = this.toArray(ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend(this.parseADLRank(ranks[i], undefined), params);
+            result.push(rank);
+        }
+        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+    }
     parseAccounts(accounts, params = {}) {
         accounts = this.toArray(accounts);
         const result = [];
@@ -5460,6 +5618,9 @@ export default class Exchange {
     async unWatchTickers(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' unWatchTickers() is not supported yet');
     }
+    async unWatchFundingRate(symbol, params = {}) {
+        throw new NotSupported(this.id + ' unWatchFundingRate() is not supported yet');
+    }
     async fetchOrder(id, symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOrder() is not supported yet');
     }
@@ -5505,6 +5666,30 @@ export default class Exchange {
     }
     async fetchPositionMode(symbol = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchPositionMode() is not supported yet');
+    }
+    async fetchADLRank(symbol, params = {}) {
+        throw new NotSupported(this.id + ' fetchADLRank() is not supported yet');
+    }
+    async fetchPositionsADLRank(symbols = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+    async fetchPositionADLRank(symbol, params = {}) {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets();
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank([symbol], params);
+            const rank = this.safeDict(ranks, 0);
+            if (rank === undefined) {
+                throw new NullResponse(this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            }
+            else {
+                return rank;
+            }
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
     async createTrailingAmountOrder(symbol, type, side, amount, price = undefined, trailingAmount = undefined, trailingTriggerPrice = undefined, params = {}) {
         /**
@@ -7163,6 +7348,14 @@ export default class Exchange {
          * @ignore
          * @method
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
+         */
+        return this.filterByArray(objects, key, values, indexed);
+    }
+    filterByArrayADLRanks(objects, key, values = undefined, indexed = true) {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
          */
         return this.filterByArray(objects, key, values, indexed);
     }

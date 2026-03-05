@@ -154,6 +154,7 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 | [![kucoinfutures](https://user-images.githubusercontent.com/1294454/147508995-9e35030a-d046-43a1-a006-6fabd981b554.jpg)](https://futures.kucoin.com/?rcode=E5wkqe)                            | kucoinfutures         | [KuCoin Futures](https://futures.kucoin.com/?rcode=E5wkqe)                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.kucoin.com/futures)                                                    | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![latoken](https://user-images.githubusercontent.com/1294454/61511972-24c39f00-aa01-11e9-9f7c-471f1d6e5214.jpg)](https://latoken.com/invite?r=mvgp2djk)                                      | latoken               | [Latoken](https://latoken.com/invite?r=mvgp2djk)                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://api.latoken.com)                                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![lbank](https://user-images.githubusercontent.com/1294454/38063602-9605e28a-3302-11e8-81be-64b1e53c4cfb.jpg)](https://www.lbank.com/login/?icode=7QCY)                                      | lbank                 | [LBank](https://www.lbank.com/login/?icode=7QCY)                                        | [![API Version 2](https://img.shields.io/badge/2-lightgray)](https://www.lbank.com/en-US/docs/index.html)                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
+| [![lighter](https://github.com/user-attachments/assets/ff1aaf96-bffb-4545-a750-5eba716e75d0)](app.lighter.xyz/?referral=715955W9)                                                             | lighter               | [Lighter](app.lighter.xyz/?referral=715955W9)                                           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://apidocs.lighter.xyz/)                                                       | ![DEX - Distributed EXchange](https://img.shields.io/badge/DEX-blue.svg "DEX - Distributed EXchange")  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![luno](https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg)](https://www.luno.com/invite/44893A)                                            | luno                  | [luno](https://www.luno.com/invite/44893A)                                              | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.luno.com/en/api)                                                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![mercado](https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg)](https://www.mercadobitcoin.com.br)                                          | mercado               | [Mercado Bitcoin](https://www.mercadobitcoin.com.br)                                    | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.mercadobitcoin.com.br/api-doc)                                          | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![mexc](https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg)](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                       | mexc                  | [MEXC Global](https://www.mexc.com/register?inviteCode=mexc-1FQ1GNu1)                   | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://mexcdevelop.github.io/apidocs/)                                             | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -170,7 +171,6 @@ Full public and private HTTP REST APIs for all exchanges are implemented. WebSoc
 | [![paymium](https://user-images.githubusercontent.com/51840849/87153930-f0f02200-c2c0-11ea-9c0a-40337375ae89.jpg)](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)        | paymium               | [Paymium](https://www.paymium.com/page/sign-up?referral=eDAzPoRQFMvaAB8sf-qj)           | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://github.com/Paymium/api-documentation)                                       | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![phemex](https://user-images.githubusercontent.com/1294454/85225056-221eb600-b3d7-11ea-930d-564d2690e3f6.jpg)](https://phemex.com/register?referralCode=EDNVJ)                              | phemex                | [Phemex](https://phemex.com/register?referralCode=EDNVJ)                                | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://phemex-docs.github.io/#overview)                                            | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![poloniex](https://user-images.githubusercontent.com/1294454/27766817-e9456312-5ee6-11e7-9b3c-b628ca5626a5.jpg)](https://poloniex.com/signup?c=UBFZJRPJ)                                    | poloniex              | [Poloniex](https://poloniex.com/signup?c=UBFZJRPJ)                                      | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://api-docs.poloniex.com/spot/)                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![probit](https://user-images.githubusercontent.com/51840849/79268032-c4379480-7ea2-11ea-80b3-dd96bb29fd0d.jpg)](https://www.probit.com/r/34608773)                                          | probit                | [ProBit](https://www.probit.com/r/34608773)                                             | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs-en.probit.com)                                                         | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![timex](https://user-images.githubusercontent.com/1294454/70423869-6839ab00-1a7f-11ea-8f94-13ae72c31115.jpg)](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                  | timex                 | [TimeX](https://timex.io/?refcode=1x27vNkTbP1uwkCck)                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://plasma-relay-backend.timex.io/swagger-ui/index.html)                        | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![tokocrypto](https://user-images.githubusercontent.com/1294454/183870484-d3398d0c-f6a1-4cce-91b8-d58792308716.jpg)](https://tokocrypto.com)                                                 | tokocrypto            | [Tokocrypto](https://tokocrypto.com)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://www.tokocrypto.com/apidocs/)                                                | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             |                                                                              |
 | [![toobit](https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e)](https://www.toobit.com/en-US/r?i=IFFPy0)                                                         | toobit                | [Toobit](https://www.toobit.com/en-US/r?i=IFFPy0)                                       | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://toobit-docs.github.io/apidocs/spot/v1/en/)                                  | ![CEX – Centralized EXchange](https://img.shields.io/badge/CEX-green.svg "CEX – Centralized EXchange") |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
@@ -1995,6 +1995,9 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchFundingRateInterval (symbol, params)`
 - `fetchFundingRateIntervals (symbols, params)`
 - `fetchLongShortRatio (symbol, params)`
+- `fetchAutoDeLeverageRank (symbol, params)`
+- `fetchPositionAutoDeLeverageRank (symbol, params)`
+- `fetchPositionsAutoDeLeverageRank (symbols, params)`
 - ...
 
 ```text
@@ -2371,6 +2374,7 @@ if ($exchange->has['fetchMyTrades']) {
 - [Liquidations](#liquidations)
 - [Greeks](#greeks)
 - [OptionChain](#option-chain)
+- [Auto De Leverage](#auto-de-leverage)
 
 ## Order Book
 
@@ -3815,6 +3819,39 @@ Returns
 }
 ```
 
+## Auto De Leverage
+
+*contract only*
+
+Use the `fetchADLRank` method to get the public details of a symbols auto de leverage rank from the exchange.
+
+```javascript
+fetchADLRank (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "futures"}`)
+
+Returns
+
+- An [auto de leverage structure](#auto-de-leverage)
+
+### Auto De Leverage Stucture
+
+```javascript
+{
+    'info': { ... },                            // the original decoded JSON as is
+    'symbol': 'BTC/USDT:USDT',                  // unified CCXT market symbol
+    'rank': 5,                                  // a quantile rank from 1 to 5 with 5 being the highest risk
+    'rating': 'high',                           // a string risk rating as either low, medium or high
+    'percent': 72.86,                           // the risk percentage with a higher percentage being a higher risk of auto de leverage
+    'timestamp': 1699593511632,                 // unix timestamp in milliseconds
+    'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
+}
+```
+
 # Private API
 
 - [Authentication](#authentication)
@@ -3838,6 +3875,7 @@ Returns
 - [Positions](#positions)
 - [Funding History](#funding-history)
 - [Conversion](#conversion)
+- [Auto De Leverage](#auto-de-leverage)
 
 In order to be able to access your user account, perform algorithmic trading by placing market and limit orders, query balances, deposit and withdraw funds and so on, you need to obtain your API keys for authentication from each exchange you want to trade with. They usually have it available on a separate tab or page within your user account settings. API keys are exchange-specific and cannnot be interchanged under any circumstances.
 
@@ -6973,6 +7011,52 @@ Returns
     toAmount: 2.9722,
     price: 0.97,
     fee: 0.0
+}
+```
+
+## Auto De Leverage
+
+*contract only*
+
+Use the `fetchPositionADLRank` or `fetchPositionsADLRank` methods to get the private details of a positions auto de leverage rank from the exchange.
+
+```javascript
+fetchPositionADLRank (symbol, params = {})
+```
+
+Parameters
+
+- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "futures"}`)
+
+Returns
+
+- An [auto de leverage structure](#auto-de-leverage)
+
+```javascript
+fetchPositionsADLRank (symbols, params = {})
+```
+
+Parameters
+
+- **symbols** (\[String\]) A list of unified CCXT symbols (e.g. `[ "BTC/USDT:USDT" ]`)
+- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"category": "futures"}`)
+
+Returns
+
+- A list of [auto de leverage structures](#auto-de-leverage)
+
+### Auto De Leverage Stucture
+
+```javascript
+{
+    'info': { ... },                            // the original decoded JSON as is
+    'symbol': 'BTC/USDT:USDT',                  // unified CCXT market symbol
+    'rank': 5,                                  // a quantile rank from 1 to 5 with 5 being the highest risk
+    'rating': 'high',                           // a string risk rating as either low, medium or high
+    'percent': 72.86,                           // the risk percentage with a higher percentage being a higher risk of auto de leverage
+    'timestamp': 1699593511632,                 // unix timestamp in milliseconds
+    'datetime': '2023-11-10T05:18:31.632Z',     // ISO8601 datetime with milliseconds
 }
 ```
 

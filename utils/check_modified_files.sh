@@ -10,9 +10,13 @@ diff_without_statics=$(echo "$diff" | sed -e "s/^ts\/src\/test\/static.*json//")
 critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|composer\.json|ccxt\.ts|__init__.py|test' # add \/test| # remove package json temporatily todo revert this!!
 # critical_pattern='Client(Trait)?\.php|Exchange\.php|\/base|^build|static_dependencies|^run-tests|package(-lock)?\.json|composer\.json|ccxt\.ts|__init__.py|test' # add \/test|
 
+COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+
 if [[ "$GITHUB_REF" == "refs/heads/master" ]]; then
     IMPORTANT_MODIFIED="true"
     # echo "$msgPrefix Running on master branch - doing full build & test"
+elif [[ "$COMMIT_MESSAGE" == *"TRIGGER_BUILD"* ]]; then
+    IMPORTANT_MODIFIED="true"
 elif [[ "$diff_without_statics" =~ $critical_pattern ]]; then
     IMPORTANT_MODIFIED="true"
     # echo "$msgPrefix Critial changes detected - doing full build & test"

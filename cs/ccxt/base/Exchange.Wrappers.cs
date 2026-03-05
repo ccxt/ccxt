@@ -192,7 +192,7 @@ public partial class Exchange
         var res = await this.watchFundingRate(symbol, parameters);
         return new FundingRate(res);
     }
-    public async Task<FundingRates> WatchFundingRates(List<string> symbols, Dictionary<string, object> parameters = null)
+    public async Task<FundingRates> WatchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchFundingRates(symbols, parameters);
         return new FundingRates(res);
@@ -641,6 +641,21 @@ public partial class Exchange
     {
         var res = await this.fetchPositionMode(symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<ADL> FetchADLRank(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchADLRank(symbol, parameters);
+        return new ADL(res);
+    }
+    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsADLRank(symbols, parameters);
+        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
+    }
+    public async Task<ADL> FetchPositionADLRank(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionADLRank(symbol, parameters);
+        return new ADL(res);
     }
     public async Task<Order> CreateTrailingAmountOrder(string symbol, string type, string side, double amount, double? price2 = 0, double? trailingAmount2 = 0, double? trailingTriggerPrice2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -1378,6 +1393,7 @@ public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { 
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
+public class  Lighter: lighter { public Lighter(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }
@@ -1394,7 +1410,6 @@ public class  Paradex: paradex { public Paradex(object args = null) : base(args)
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
 public class  Poloniex: poloniex { public Poloniex(object args = null) : base(args) { } }
-public class  Probit: probit { public Probit(object args = null) : base(args) { } }
 public class  Timex: timex { public Timex(object args = null) : base(args) { } }
 public class  Tokocrypto: tokocrypto { public Tokocrypto(object args = null) : base(args) { } }
 public class  Toobit: toobit { public Toobit(object args = null) : base(args) { } }

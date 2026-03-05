@@ -38,7 +38,7 @@ import * as errors from './src/base/errors.js';
 import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.37';
+const version = '4.5.41';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import alp from './src/alp.js';
@@ -122,6 +122,7 @@ import kucoin from './src/kucoin.js';
 import kucoinfutures from './src/kucoinfutures.js';
 import latoken from './src/latoken.js';
 import lbank from './src/lbank.js';
+import lighter from './src/lighter.js';
 import luno from './src/luno.js';
 import mercado from './src/mercado.js';
 import mexc from './src/mexc.js';
@@ -138,7 +139,6 @@ import paradex from './src/paradex.js';
 import paymium from './src/paymium.js';
 import phemex from './src/phemex.js';
 import poloniex from './src/poloniex.js';
-import probit from './src/probit.js';
 import timex from './src/timex.js';
 import tokocrypto from './src/tokocrypto.js';
 import toobit from './src/toobit.js';
@@ -211,6 +211,7 @@ import krakenfuturesPro from './src/pro/krakenfutures.js';
 import kucoinPro from './src/pro/kucoin.js';
 import kucoinfuturesPro from './src/pro/kucoinfutures.js';
 import lbankPro from './src/pro/lbank.js';
+import lighterPro from './src/pro/lighter.js';
 import lunoPro from './src/pro/luno.js';
 import mexcPro from './src/pro/mexc.js';
 import modetradePro from './src/pro/modetrade.js';
@@ -224,7 +225,6 @@ import p2bPro from './src/pro/p2b.js';
 import paradexPro from './src/pro/paradex.js';
 import phemexPro from './src/pro/phemex.js';
 import poloniexPro from './src/pro/poloniex.js';
-import probitPro from './src/pro/probit.js';
 import toobitPro from './src/pro/toobit.js';
 import upbitPro from './src/pro/upbit.js';
 import whitebitPro from './src/pro/whitebit.js';
@@ -313,6 +313,7 @@ const exchanges = {
     'kucoinfutures': kucoinfutures,
     'latoken': latoken,
     'lbank': lbank,
+    'lighter': lighter,
     'luno': luno,
     'mercado': mercado,
     'mexc': mexc,
@@ -329,7 +330,6 @@ const exchanges = {
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
-    'probit': probit,
     'timex': timex,
     'tokocrypto': tokocrypto,
     'toobit': toobit,
@@ -403,6 +403,7 @@ const pro = {
     'kucoin': kucoinPro,
     'kucoinfutures': kucoinfuturesPro,
     'lbank': lbankPro,
+    'lighter': lighterPro,
     'luno': lunoPro,
     'mexc': mexcPro,
     'modetrade': modetradePro,
@@ -416,7 +417,6 @@ const pro = {
     'paradex': paradexPro,
     'phemex': phemexPro,
     'poloniex': poloniexPro,
-    'probit': probitPro,
     'toobit': toobitPro,
     'upbit': upbitPro,
     'whitebit': whitebitPro,
@@ -436,6 +436,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alp, alpaca, apex, arkham, ascendex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, bullish, bybit, bydfi, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, defx, delta, deribit, derive, digifinex, dydx, exmo, fmfwio, foxbit, gate, gateio, gemini, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, luno, mercado, mexc, modetrade, myokx, ndax, novadax, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, probit, timex, tokocrypto, toobit, upbit, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zebpay, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, alp, alpaca, apex, arkham, ascendex, aster, backpack, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbns, bitfinex, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitrue, bitso, bitstamp, bitteam, bittrade, bitvavo, blockchaincom, blofin, btcbox, btcmarkets, btcturk, bullish, bybit, bydfi, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincatch, coincheck, coinex, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, cryptomus, deepcoin, defx, delta, deribit, derive, digifinex, dydx, exmo, fmfwio, foxbit, gate, gateio, gemini, hashkey, hibachi, hitbtc, hollaex, htx, huobi, hyperliquid, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, latoken, lbank, lighter, luno, mercado, mexc, modetrade, myokx, ndax, novadax, okx, okxus, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, timex, tokocrypto, toobit, upbit, wavesexchange, whitebit, woo, woofipro, xt, yobit, zaif, zebpay, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------

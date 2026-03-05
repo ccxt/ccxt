@@ -205,13 +205,17 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @name coinbaseinternational#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
-     * @param {string[]|undefined} symbols list of unified market symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
      */
-    public async override Task<object> watchFundingRates(object symbols, object parameters = null)
+    public async override Task<object> watchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(symbols, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchFundingRates() requires an array of symbols")) ;
+        }
         await this.loadMarkets();
         object fundingRate = await this.subscribeMultiple("RISK", symbols, parameters);
         object symbol = this.safeString(fundingRate, "symbol");

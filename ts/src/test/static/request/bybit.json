@@ -2000,6 +2000,16 @@
                 ],
                 "output": "{\"coin\":\"BTC\",\"amount\":\"0.001\"}"
             }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api-testnet.bybit.com/v5/position/list?symbol=BTCUSDT&category=linear",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     },
     "disabled": []

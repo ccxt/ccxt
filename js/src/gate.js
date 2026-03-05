@@ -1061,7 +1061,7 @@ export default class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': InvalidOrder,
+                    'INVALID_PARAM_VALUE': BadRequest,
                     'INVALID_PROTOCOL': BadRequest,
                     'INVALID_ARGUMENT': BadRequest,
                     'INVALID_REQUEST_BODY': BadRequest,
@@ -1159,7 +1159,9 @@ export default class gate extends Exchange {
                     'NO_CHANGE': InvalidOrder,
                     'PRICE_THRESHOLD_EXCEEDED': InvalidOrder, // {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
-                'broad': {},
+                'broad': {
+                    'Your order size': InvalidOrder, // {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
+                },
             },
         });
     }
@@ -4278,6 +4280,7 @@ export default class gate extends Exchange {
      * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -4471,7 +4474,8 @@ export default class gate extends Exchange {
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        params = this.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly']);
+        let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
+        params = this.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId']);
         const isLimitOrder = (type === 'limit');
         const isMarketOrder = (type === 'market');
         if (isLimitOrder && price === undefined) {
@@ -4584,7 +4588,6 @@ export default class gate extends Exchange {
                     request['time_in_force'] = timeInForce;
                 }
             }
-            let clientOrderId = this.safeString2(params, 'text', 'clientOrderId');
             const textIsRequired = this.safeBool(params, 'textIsRequired', false);
             if (clientOrderId !== undefined) {
                 // user-defined, must follow the rules if not empty
@@ -4594,7 +4597,7 @@ export default class gate extends Exchange {
                 if (clientOrderId.length > 28) {
                     throw new BadRequest(this.id + ' createOrder () clientOrderId or text param must be up to 28 characters');
                 }
-                params = this.omit(params, ['text', 'clientOrderId', 'textIsRequired']);
+                params = this.omit(params, 'textIsRequired');
                 if (clientOrderId[0] !== 't') {
                     clientOrderId = 't-' + clientOrderId;
                 }
@@ -4608,6 +4611,9 @@ export default class gate extends Exchange {
             }
         }
         else {
+            if (clientOrderId !== undefined) {
+                request['text'] = clientOrderId;
+            }
             if (market['option']) {
                 throw new NotSupported(this.id + ' createOrder() conditional option orders are not supported');
             }
@@ -5134,6 +5140,9 @@ export default class gate extends Exchange {
         if (lastTradeTimestampStr !== undefined) {
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
+        const initial = this.safeDict(order, 'initial', {});
+        const reduceOnlyInitial = this.safeBool(initial, 'is_reduce_only');
+        const reduceOnly = this.safeBool(order, 'is_reduce_only', reduceOnlyInitial);
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
             'clientOrderId': this.safeString(order, 'text'),
@@ -5145,7 +5154,7 @@ export default class gate extends Exchange {
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': this.safeValue(order, 'is_reduce_only'),
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,

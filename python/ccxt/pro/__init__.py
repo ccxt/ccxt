@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.37'
+__version__ = '4.5.41'
 
 # ----------------------------------------------------------------------------
 
@@ -115,6 +115,7 @@ from ccxt.pro.krakenfutures import krakenfutures                          # noqa
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
+from ccxt.pro.lighter import lighter                                      # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
@@ -128,7 +129,6 @@ from ccxt.pro.p2b import p2b                                              # noqa
 from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
-from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.toobit import toobit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
@@ -195,6 +195,7 @@ exchanges = [
     'kucoin',
     'kucoinfutures',
     'lbank',
+    'lighter',
     'luno',
     'mexc',
     'modetrade',
@@ -208,7 +209,6 @@ exchanges = [
     'paradex',
     'phemex',
     'poloniex',
-    'probit',
     'toobit',
     'upbit',
     'whitebit',

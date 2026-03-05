@@ -1056,7 +1056,7 @@ class gate extends Exchange {
             // https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions' => array(
                 'exact' => array(
-                    'INVALID_PARAM_VALUE' => '\\ccxt\\InvalidOrder', // array("label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT")
+                    'INVALID_PARAM_VALUE' => '\\ccxt\\BadRequest', // array("label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT") or array("label":"INVALID_PARAM_VALUE","message":"Candlestick too long ago. Maximum 10000 points ago are allowed")
                     'INVALID_PROTOCOL' => '\\ccxt\\BadRequest',
                     'INVALID_ARGUMENT' => '\\ccxt\\BadRequest',
                     'INVALID_REQUEST_BODY' => '\\ccxt\\BadRequest',
@@ -1154,7 +1154,9 @@ class gate extends Exchange {
                     'NO_CHANGE' => '\\ccxt\\InvalidOrder', // array("label":"NO_CHANGE","message":"No change is made")
                     'PRICE_THRESHOLD_EXCEEDED' => '\\ccxt\\InvalidOrder', // array("label":"PRICE_THRESHOLD_EXCEEDED","message":" => 0.45288")
                 ),
-                'broad' => array(),
+                'broad' => array(
+                    'Your order size' => '\\ccxt\\InvalidOrder', // array("label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT")
+                ),
             ),
         ));
     }
@@ -4268,6 +4270,7 @@ class gate extends Exchange {
          * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {bool} [$params->unifiedAccount] set to true for creating an order in the unified account
+         * @param {string} [$params->clientOrderId] the clientOrderId of the order
          * @return {array|null} ~@link https://docs.ccxt.com/?id=order-structure An order structure~
          */
         $this->load_markets();
@@ -4456,7 +4459,8 @@ class gate extends Exchange {
         }
         // we only omit the unified $params here
         // this is because the other $params will get extended into the $request
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly' ));
+        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId' ));
         $isLimitOrder = ($type === 'limit');
         $isMarketOrder = ($type === 'market');
         if ($isLimitOrder && $price === null) {
@@ -4561,7 +4565,6 @@ class gate extends Exchange {
                     $request['time_in_force'] = $timeInForce;
                 }
             }
-            $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
             $textIsRequired = $this->safe_bool($params, 'textIsRequired', false);
             if ($clientOrderId !== null) {
                 // user-defined, must follow the rules if not empty
@@ -4571,7 +4574,7 @@ class gate extends Exchange {
                 if (strlen($clientOrderId) > 28) {
                     throw new BadRequest($this->id . ' createOrder () $clientOrderId or text param must be up to 28 characters');
                 }
-                $params = $this->omit($params, array( 'text', 'clientOrderId', 'textIsRequired' ));
+                $params = $this->omit($params, 'textIsRequired');
                 if ($clientOrderId[0] !== 't') {
                     $clientOrderId = 't-' . $clientOrderId;
                 }
@@ -4583,6 +4586,9 @@ class gate extends Exchange {
                 }
             }
         } else {
+            if ($clientOrderId !== null) {
+                $request['text'] = $clientOrderId;
+            }
             if ($market['option']) {
                 throw new NotSupported($this->id . ' createOrder() conditional option orders are not supported');
             }
@@ -5105,6 +5111,9 @@ class gate extends Exchange {
         if ($lastTradeTimestampStr !== null) {
             $lastTradeTimestamp = $this->parse_to_int($lastTradeTimestampStr);
         }
+        $initial = $this->safe_dict($order, 'initial', array());
+        $reduceOnlyInitial = $this->safe_bool($initial, 'is_reduce_only');
+        $reduceOnly = $this->safe_bool($order, 'is_reduce_only', $reduceOnlyInitial);
         return $this->safe_order(array(
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'text'),
@@ -5116,7 +5125,7 @@ class gate extends Exchange {
             'type' => $type,
             'timeInForce' => $timeInForce,
             'postOnly' => $postOnly,
-            'reduceOnly' => $this->safe_value($order, 'is_reduce_only'),
+            'reduceOnly' => $reduceOnly,
             'side' => $side,
             'price' => $price,
             'triggerPrice' => $triggerPrice,

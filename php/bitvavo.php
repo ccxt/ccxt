@@ -175,10 +175,18 @@ class bitvavo extends Exchange {
                         'deposit' => 1,
                         'depositHistory' => 5,
                         'withdrawalHistory' => 5,
+                        'subaccounts' => 5,
+                        'subaccounts/transfers' => 5,
+                        'subaccounts/transfers/{transferId}' => 5,
+                        'institutional/subaccounts/balance' => 5,
+                        'institutional/subaccounts/history' => 5,
+                        'institutional/subaccounts/orders/open' => array( 'cost' => 1, 'noMarket' => 25 ),
                     ),
                     'post' => array(
                         'order' => 1,
                         'withdrawal' => 1,
+                        'subaccounts' => 5,
+                        'subaccounts/transfers' => 5,
                     ),
                     'put' => array(
                         'order' => 1,
@@ -186,6 +194,8 @@ class bitvavo extends Exchange {
                     'delete' => array(
                         'order' => 1,
                         'orders' => 1,
+                        'institutional/subaccounts/order' => 1,
+                        'institutional/subaccounts/orders' => 1,
                     ),
                 ),
             ),

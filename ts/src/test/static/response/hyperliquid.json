@@ -10,6 +10,115 @@
         }
     },
     "methods": {
+        "fetchOrders": [
+            {
+                "description": "ensure orders are dedup when hl returns 2 orders with same id",
+                "method": "fetchOrders",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "A",
+                            "limitPx": "40.0",
+                            "sz": "1.0",
+                            "oid": "323550506865",
+                            "timestamp": "1771401340649",
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "1.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "canceled",
+                        "statusTimestamp": "1771402034835"
+                    },
+                    {
+                        "order": {
+                            "coin": "HYPE",
+                            "side": "A",
+                            "limitPx": "40.0",
+                            "sz": "1.0",
+                            "oid": 323550506865,
+                            "timestamp": 1771401340649,
+                            "triggerCondition": "N/A",
+                            "isTrigger": false,
+                            "triggerPx": "0.0",
+                            "children": [],
+                            "isPositionTpsl": false,
+                            "reduceOnly": false,
+                            "orderType": "Limit",
+                            "origSz": "1.0",
+                            "tif": "Gtc",
+                            "cloid": null
+                        },
+                        "status": "open",
+                        "statusTimestamp": 1771401340649
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order": {
+                                "coin": "HYPE",
+                                "side": "A",
+                                "limitPx": "40.0",
+                                "sz": "1.0",
+                                "oid": "323550506865",
+                                "timestamp": "1771401340649",
+                                "triggerCondition": "N/A",
+                                "isTrigger": false,
+                                "triggerPx": "0.0",
+                                "children": [],
+                                "isPositionTpsl": false,
+                                "reduceOnly": false,
+                                "orderType": "Limit",
+                                "origSz": "1.0",
+                                "tif": "Gtc",
+                                "cloid": null
+                            },
+                            "status": "canceled",
+                            "statusTimestamp": "1771402034835"
+                        },
+                        "id": "323550506865",
+                        "clientOrderId": null,
+                        "timestamp": 1771401340649,
+                        "datetime": "2026-02-18T07:55:40.649Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1771402034835,
+                        "symbol": "HYPE/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 40,
+                        "triggerPrice": null,
+                        "amount": 1,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 1,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order",
@@ -196,6 +305,202 @@
             }
         ],
         "fetchMyTrades": [
+            {
+                "description": "trades with builderFee",
+                "method": "fetchMyTrades",
+                "input": [
+                    "HYPE/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "coin": "HYPE",
+                        "px": "33.209",
+                        "sz": "0.73",
+                        "side": "B",
+                        "time": "1770458548926",
+                        "startPosition": "0.0",
+                        "dir": "Open Long",
+                        "closedPnl": "0.0",
+                        "hash": "0x53542a9ac057af8454cd0434d851d202028b00805b5ace56f71cd5ed7f5b896e",
+                        "oid": "314848230306",
+                        "crossed": true,
+                        "fee": "0.012896",
+                        "builderFee": "0.002424",
+                        "tid": "882779857052503",
+                        "feeToken": "USDC",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "flx:CRCL",
+                        "px": "55.877",
+                        "sz": "0.27",
+                        "side": "A",
+                        "time": "1770134398172",
+                        "startPosition": "0.27",
+                        "dir": "Close Long",
+                        "closedPnl": "-5.147253",
+                        "hash": "0x0e90e4d738497681100a04349b4a0e02013600bcd34c9553b2599029f74d506b",
+                        "oid": "310636768174",
+                        "crossed": true,
+                        "fee": "0.001173",
+                        "tid": "1019408913364172",
+                        "liquidation": {
+                            "liquidatedUser": "0x193bd350ec838b1e22d6f302da5343b920aa1c2b",
+                            "markPx": "55.92",
+                            "method": "market"
+                        },
+                        "feeToken": "USDH",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "flx:CRCL",
+                        "px": "70.0",
+                        "sz": "0.14",
+                        "side": "B",
+                        "time": "1769178808067",
+                        "startPosition": "0.13",
+                        "dir": "Open Long",
+                        "closedPnl": "0.0",
+                        "hash": "0x83750d8e924aa58584ee0433e6631e020e8600742d4dc457273db8e1514e7f70",
+                        "oid": "251733169011",
+                        "crossed": false,
+                        "fee": "0.000282",
+                        "tid": "202031760494687",
+                        "feeToken": "USDH",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "HYPE",
+                        "px": "21.147",
+                        "sz": "5.2",
+                        "side": "A",
+                        "time": "1768931202995",
+                        "startPosition": "5.2",
+                        "dir": "Close Long",
+                        "closedPnl": "-46.0356",
+                        "hash": "0xc0de326d5c05d659c2570433b86b0f02040d0052f708f52b64a6ddc01b09b044",
+                        "oid": "298509207410",
+                        "crossed": true,
+                        "fee": "0.047504",
+                        "tid": "345752513742025",
+                        "liquidation": {
+                            "liquidatedUser": "0x193bd350ec838b1e22d6f302da5343b920aa1c2b",
+                            "markPx": "21.193",
+                            "method": "market"
+                        },
+                        "feeToken": "USDC",
+                        "twapId": null
+                    },
+                    {
+                        "coin": "HYPE",
+                        "px": "25.585",
+                        "sz": "1.0",
+                        "side": "A",
+                        "time": "1768713164026",
+                        "startPosition": "6.2",
+                        "dir": "Close Long",
+                        "closedPnl": "-4.415",
+                        "hash": "0x9241b58cca43e2e993bb04338fc60f0201910072654701bb360a60df8947bcd4",
+                        "oid": "296683658818",
+                        "crossed": true,
+                        "fee": "0.01361",
+                        "builderFee": "0.002558",
+                        "tid": "727991321631002",
+                        "feeToken": "USDC",
+                        "twapId": null
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "coin": "HYPE",
+                            "px": "21.147",
+                            "sz": "5.2",
+                            "side": "A",
+                            "time": "1768931202995",
+                            "startPosition": "5.2",
+                            "dir": "Close Long",
+                            "closedPnl": "-46.0356",
+                            "hash": "0xc0de326d5c05d659c2570433b86b0f02040d0052f708f52b64a6ddc01b09b044",
+                            "oid": "298509207410",
+                            "crossed": true,
+                            "fee": "0.047504",
+                            "tid": "345752513742025",
+                            "liquidation": {
+                                "liquidatedUser": "0x193bd350ec838b1e22d6f302da5343b920aa1c2b",
+                                "markPx": "21.193",
+                                "method": "market"
+                            },
+                            "feeToken": "USDC",
+                            "twapId": null
+                        },
+                        "timestamp": 1768931202995,
+                        "datetime": "2026-01-20T17:46:42.995Z",
+                        "symbol": "HYPE/USDC:USDC",
+                        "id": "345752513742025",
+                        "order": "298509207410",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 21.147,
+                        "amount": 5.2,
+                        "cost": 109.9644,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.047504
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.047504
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "coin": "HYPE",
+                            "px": "33.209",
+                            "sz": "0.73",
+                            "side": "B",
+                            "time": "1770458548926",
+                            "startPosition": "0.0",
+                            "dir": "Open Long",
+                            "closedPnl": "0.0",
+                            "hash": "0x53542a9ac057af8454cd0434d851d202028b00805b5ace56f71cd5ed7f5b896e",
+                            "oid": "314848230306",
+                            "crossed": true,
+                            "fee": "0.012896",
+                            "builderFee": "0.002424",
+                            "tid": "882779857052503",
+                            "feeToken": "USDC",
+                            "twapId": null
+                        },
+                        "timestamp": 1770458548926,
+                        "datetime": "2026-02-07T10:02:28.926Z",
+                        "symbol": "HYPE/USDC:USDC",
+                        "id": "882779857052503",
+                        "order": "314848230306",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 33.209,
+                        "amount": 0.73,
+                        "cost": 24.24257,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.01532
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.01532
+                            }
+                        ]
+                    }
+                ]
+            },
             {
                 "description": "user trades",
                 "method": "fetchMyTrades",

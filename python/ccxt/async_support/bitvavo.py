@@ -194,10 +194,18 @@ class bitvavo(Exchange, ImplicitAPI):
                         'deposit': 1,
                         'depositHistory': 5,
                         'withdrawalHistory': 5,
+                        'subaccounts': 5,
+                        'subaccounts/transfers': 5,
+                        'subaccounts/transfers/{transferId}': 5,
+                        'institutional/subaccounts/balance': 5,
+                        'institutional/subaccounts/history': 5,
+                        'institutional/subaccounts/orders/open': {'cost': 1, 'noMarket': 25},
                     },
                     'post': {
                         'order': 1,
                         'withdrawal': 1,
+                        'subaccounts': 5,
+                        'subaccounts/transfers': 5,
                     },
                     'put': {
                         'order': 1,
@@ -205,6 +213,8 @@ class bitvavo(Exchange, ImplicitAPI):
                     'delete': {
                         'order': 1,
                         'orders': 1,
+                        'institutional/subaccounts/order': 1,
+                        'institutional/subaccounts/orders': 1,
                     },
                 },
             },
