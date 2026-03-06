@@ -760,7 +760,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *stop orders only* Comma seperated order IDs
+    /// string : *stop orders only* Comma separated order IDs
     /// </description>
     /// </item>
     /// <item>
@@ -837,7 +837,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *trigger orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma separated order ID list
     /// </description>
     /// </item>
     /// <item>
@@ -1007,7 +1007,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *trigger orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma separated order ID list
     /// </description>
     /// </item>
     /// <item>

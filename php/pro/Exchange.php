@@ -77,6 +77,7 @@ Exchange::$exchanges = array(
     'kucoin',
     'kucoinfutures',
     'lbank',
+    'lighter',
     'luno',
     'mexc',
     'modetrade',

@@ -158,7 +158,7 @@ func  (this *BinanceCore) DescribeData() interface{}  {
                 "name": "ticker",
             },
             "watchTickers": map[string]interface{} {
-                "name": "ticker",
+                "name": "miniTicker",
             },
             "watchOHLCV": map[string]interface{} {
                 "name": "kline",
@@ -2320,7 +2320,7 @@ func  (this *BinanceCore) WatchTickers(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
             var channelName interface{} = nil
-            channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "ticker")
+            channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "miniTicker")
             channelName = ccxt.GetValue(channelNameparamsVariable,0)
             params = ccxt.GetValue(channelNameparamsVariable,1)
             if ccxt.IsTrue(ccxt.IsEqual(channelName, "bookTicker")) {

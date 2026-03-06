@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.40';
+const version = '4.5.42';
 
 (Exchange as any).ccxtVersion = version
 
@@ -127,6 +127,7 @@ import kucoin from  './src/kucoin.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
+import lighter from  './src/lighter.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
@@ -217,6 +218,7 @@ import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
+import lighterPro from  './src/pro/lighter.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
@@ -319,6 +321,7 @@ const exchanges = {
     'kucoinfutures':          kucoinfutures,
     'latoken':                latoken,
     'lbank':                  lbank,
+    'lighter':                lighter,
     'luno':                   luno,
     'mercado':                mercado,
     'mexc':                   mexc,
@@ -409,6 +412,7 @@ const pro = {
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
     'lbank':                  lbankPro,
+    'lighter':                lighterPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'modetrade':              modetradePro,
@@ -654,6 +658,7 @@ export {
     kucoinfutures,
     latoken,
     lbank,
+    lighter,
     luno,
     mercado,
     mexc,

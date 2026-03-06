@@ -7,262 +7,262 @@
 
 package ccxt
 
-func (this *DefxCore) V1PublicGetHealthcheckPing(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetHealthcheckPing", args...)
+func (this *DefxCore) V1PublicGetHealthcheckPing (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetHealthcheckPing", args...)
 }
 
-func (this *DefxCore) V1PublicGetSymbolsSymbolOhlc(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetSymbolsSymbolOhlc", args...)
+func (this *DefxCore) V1PublicGetSymbolsSymbolOhlc (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetSymbolsSymbolOhlc", args...)
 }
 
-func (this *DefxCore) V1PublicGetSymbolsSymbolTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetSymbolsSymbolTrades", args...)
+func (this *DefxCore) V1PublicGetSymbolsSymbolTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetSymbolsSymbolTrades", args...)
 }
 
-func (this *DefxCore) V1PublicGetSymbolsSymbolPrices(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetSymbolsSymbolPrices", args...)
+func (this *DefxCore) V1PublicGetSymbolsSymbolPrices (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetSymbolsSymbolPrices", args...)
 }
 
-func (this *DefxCore) V1PublicGetSymbolsSymbolTicker24hr(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetSymbolsSymbolTicker24hr", args...)
+func (this *DefxCore) V1PublicGetSymbolsSymbolTicker24hr (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetSymbolsSymbolTicker24hr", args...)
 }
 
-func (this *DefxCore) V1PublicGetSymbolsSymbolDepthLevelSlab(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetSymbolsSymbolDepthLevelSlab", args...)
+func (this *DefxCore) V1PublicGetSymbolsSymbolDepthLevelSlab (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetSymbolsSymbolDepthLevelSlab", args...)
 }
 
-func (this *DefxCore) V1PublicGetTicker24HrAgg(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetTicker24HrAgg", args...)
+func (this *DefxCore) V1PublicGetTicker24HrAgg (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetTicker24HrAgg", args...)
 }
 
-func (this *DefxCore) V1PublicGetCMarkets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetCMarkets", args...)
+func (this *DefxCore) V1PublicGetCMarkets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetCMarkets", args...)
 }
 
-func (this *DefxCore) V1PublicGetCMarketsMetadata(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetCMarketsMetadata", args...)
+func (this *DefxCore) V1PublicGetCMarketsMetadata (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetCMarketsMetadata", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsNewUsers(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsNewUsers", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsNewUsers (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsNewUsers", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsTvl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsTvl", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsTvl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsTvl", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsVolumeByInstrument(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsVolumeByInstrument", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsVolumeByInstrument (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsVolumeByInstrument", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsLiquidation(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsLiquidation", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsLiquidation (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsLiquidation", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsTotalVolume(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsTotalVolume", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsTotalVolume (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsTotalVolume", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsOpenInterest(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsOpenInterest", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsOpenInterest (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsOpenInterest", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsTotalTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsTotalTrades", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsTotalTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsTotalTrades", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsBasis(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsBasis", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsBasis (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsBasis", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsInsuranceFund(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsInsuranceFund", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsInsuranceFund (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsInsuranceFund", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsLongAndShortRatio(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsLongAndShortRatio", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsLongAndShortRatio (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsLongAndShortRatio", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketStatsFundingRate(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsFundingRate", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketStatsFundingRate (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketStatsFundingRate", args...)
 }
 
-func (this *DefxCore) V1PublicGetAnalyticsMarketOverview(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetAnalyticsMarketOverview", args...)
+func (this *DefxCore) V1PublicGetAnalyticsMarketOverview (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetAnalyticsMarketOverview", args...)
 }
 
-func (this *DefxCore) V1PublicGetExplorerSearch(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetExplorerSearch", args...)
+func (this *DefxCore) V1PublicGetExplorerSearch (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetExplorerSearch", args...)
 }
 
-func (this *DefxCore) V1PublicGetExplorerTransactions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetExplorerTransactions", args...)
+func (this *DefxCore) V1PublicGetExplorerTransactions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetExplorerTransactions", args...)
 }
 
-func (this *DefxCore) V1PublicGetExplorerBlocks(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PublicGetExplorerBlocks", args...)
+func (this *DefxCore) V1PublicGetExplorerBlocks (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PublicGetExplorerBlocks", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiOrderOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiOrderOrderId", args...)
+func (this *DefxCore) V1PrivateGetApiOrderOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiOrderOrderId", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiOrders(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiOrders", args...)
+func (this *DefxCore) V1PrivateGetApiOrders (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiOrders", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiOrdersOcoParentOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiOrdersOcoParentOrderId", args...)
+func (this *DefxCore) V1PrivateGetApiOrdersOcoParentOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiOrdersOcoParentOrderId", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiTrades(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiTrades", args...)
+func (this *DefxCore) V1PrivateGetApiTrades (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiTrades", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiPositionActive(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiPositionActive", args...)
+func (this *DefxCore) V1PrivateGetApiPositionActive (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiPositionActive", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiUsersMetadataLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiUsersMetadataLeverage", args...)
+func (this *DefxCore) V1PrivateGetApiUsersMetadataLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiUsersMetadataLeverage", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiUsersMetadataFeeMultiplier(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiUsersMetadataFeeMultiplier", args...)
+func (this *DefxCore) V1PrivateGetApiUsersMetadataFeeMultiplier (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiUsersMetadataFeeMultiplier", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiUsersMetadataSlippage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiUsersMetadataSlippage", args...)
+func (this *DefxCore) V1PrivateGetApiUsersMetadataSlippage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiUsersMetadataSlippage", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiUsersReferral(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiUsersReferral", args...)
+func (this *DefxCore) V1PrivateGetApiUsersReferral (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiUsersReferral", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiUsersApikeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiUsersApikeys", args...)
+func (this *DefxCore) V1PrivateGetApiUsersApikeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiUsersApikeys", args...)
 }
 
-func (this *DefxCore) V1PrivateGetConnectionSignatureMessageEvm(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetConnectionSignatureMessageEvm", args...)
+func (this *DefxCore) V1PrivateGetConnectionSignatureMessageEvm (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetConnectionSignatureMessageEvm", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiUsersProfileWallets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiUsersProfileWallets", args...)
+func (this *DefxCore) V1PrivateGetApiUsersProfileWallets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiUsersProfileWallets", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiNotifications(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiNotifications", args...)
+func (this *DefxCore) V1PrivateGetApiNotifications (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiNotifications", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiWalletBalance(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiWalletBalance", args...)
+func (this *DefxCore) V1PrivateGetApiWalletBalance (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiWalletBalance", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiWalletTransactions(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiWalletTransactions", args...)
+func (this *DefxCore) V1PrivateGetApiWalletTransactions (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiWalletTransactions", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiAnalyticsUserOverview(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiAnalyticsUserOverview", args...)
+func (this *DefxCore) V1PrivateGetApiAnalyticsUserOverview (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiAnalyticsUserOverview", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiAnalyticsUserPnl(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiAnalyticsUserPnl", args...)
+func (this *DefxCore) V1PrivateGetApiAnalyticsUserPnl (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiAnalyticsUserPnl", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiAnalyticsPointsOverview(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiAnalyticsPointsOverview", args...)
+func (this *DefxCore) V1PrivateGetApiAnalyticsPointsOverview (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiAnalyticsPointsOverview", args...)
 }
 
-func (this *DefxCore) V1PrivateGetApiAnalyticsPointsHistory(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateGetApiAnalyticsPointsHistory", args...)
+func (this *DefxCore) V1PrivateGetApiAnalyticsPointsHistory (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateGetApiAnalyticsPointsHistory", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiOrder(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiOrder", args...)
+func (this *DefxCore) V1PrivatePostApiOrder (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiOrder", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiPositionOco(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiPositionOco", args...)
+func (this *DefxCore) V1PrivatePostApiPositionOco (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiPositionOco", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersSocketListenKeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersSocketListenKeys", args...)
+func (this *DefxCore) V1PrivatePostApiUsersSocketListenKeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersSocketListenKeys", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersMetadataLeverage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersMetadataLeverage", args...)
+func (this *DefxCore) V1PrivatePostApiUsersMetadataLeverage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersMetadataLeverage", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersMetadataFeeMultiplier(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersMetadataFeeMultiplier", args...)
+func (this *DefxCore) V1PrivatePostApiUsersMetadataFeeMultiplier (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersMetadataFeeMultiplier", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersMetadataSlippage(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersMetadataSlippage", args...)
+func (this *DefxCore) V1PrivatePostApiUsersMetadataSlippage (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersMetadataSlippage", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersReferralRecordReferralSignup(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersReferralRecordReferralSignup", args...)
+func (this *DefxCore) V1PrivatePostApiUsersReferralRecordReferralSignup (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersReferralRecordReferralSignup", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersApikeys(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersApikeys", args...)
+func (this *DefxCore) V1PrivatePostApiUsersApikeys (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersApikeys", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiUsersProfileWallets(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiUsersProfileWallets", args...)
+func (this *DefxCore) V1PrivatePostApiUsersProfileWallets (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiUsersProfileWallets", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiTransfersWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiTransfersWithdrawal", args...)
+func (this *DefxCore) V1PrivatePostApiTransfersWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiTransfersWithdrawal", args...)
 }
 
-func (this *DefxCore) V1PrivatePostApiTransfersBridgeWithdrawal(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePostApiTransfersBridgeWithdrawal", args...)
+func (this *DefxCore) V1PrivatePostApiTransfersBridgeWithdrawal (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePostApiTransfersBridgeWithdrawal", args...)
 }
 
-func (this *DefxCore) V1PrivatePutApiPositionUpdatePositionMargin(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutApiPositionUpdatePositionMargin", args...)
+func (this *DefxCore) V1PrivatePutApiPositionUpdatePositionMargin (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePutApiPositionUpdatePositionMargin", args...)
 }
 
-func (this *DefxCore) V1PrivatePutApiUsersSocketListenKeysListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutApiUsersSocketListenKeysListenKey", args...)
+func (this *DefxCore) V1PrivatePutApiUsersSocketListenKeysListenKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePutApiUsersSocketListenKeysListenKey", args...)
 }
 
-func (this *DefxCore) V1PrivatePutApiUsersApikeysAccessKeyStatus(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutApiUsersApikeysAccessKeyStatus", args...)
+func (this *DefxCore) V1PrivatePutApiUsersApikeysAccessKeyStatus (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePutApiUsersApikeysAccessKeyStatus", args...)
 }
 
-func (this *DefxCore) V1PrivatePutApiUsersReferral(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePutApiUsersReferral", args...)
+func (this *DefxCore) V1PrivatePutApiUsersReferral (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePutApiUsersReferral", args...)
 }
 
-func (this *DefxCore) V1PrivatePatchApiUsersApikeysAccessKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivatePatchApiUsersApikeysAccessKey", args...)
+func (this *DefxCore) V1PrivatePatchApiUsersApikeysAccessKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivatePatchApiUsersApikeysAccessKey", args...)
 }
 
-func (this *DefxCore) V1PrivateDeleteApiOrdersAllOpen(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteApiOrdersAllOpen", args...)
+func (this *DefxCore) V1PrivateDeleteApiOrdersAllOpen (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateDeleteApiOrdersAllOpen", args...)
 }
 
-func (this *DefxCore) V1PrivateDeleteApiOrderOrderId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteApiOrderOrderId", args...)
+func (this *DefxCore) V1PrivateDeleteApiOrderOrderId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateDeleteApiOrderOrderId", args...)
 }
 
-func (this *DefxCore) V1PrivateDeleteApiPositionPositionId(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteApiPositionPositionId", args...)
+func (this *DefxCore) V1PrivateDeleteApiPositionPositionId (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateDeleteApiPositionPositionId", args...)
 }
 
-func (this *DefxCore) V1PrivateDeleteApiPositionAll(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteApiPositionAll", args...)
+func (this *DefxCore) V1PrivateDeleteApiPositionAll (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateDeleteApiPositionAll", args...)
 }
 
-func (this *DefxCore) V1PrivateDeleteApiUsersSocketListenKeysListenKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteApiUsersSocketListenKeysListenKey", args...)
+func (this *DefxCore) V1PrivateDeleteApiUsersSocketListenKeysListenKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateDeleteApiUsersSocketListenKeysListenKey", args...)
 }
 
-func (this *DefxCore) V1PrivateDeleteApiUsersApikeysAccessKey(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("v1PrivateDeleteApiUsersApikeysAccessKey", args...)
+func (this *DefxCore) V1PrivateDeleteApiUsersApikeysAccessKey (args ...interface{}) <-chan interface{} {
+   return this.callEndpointAsync("v1PrivateDeleteApiUsersApikeysAccessKey", args...)
 }

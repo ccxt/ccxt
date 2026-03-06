@@ -394,6 +394,33 @@
         ],
     "fetchTickers": [
             {
+                "description": "swap tickers",
+                "method": "fetchTickers",
+                "url": "https://whitebit.com/api/v4/public/futures",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "output": null
+            },
+            {
+                "description": "swap tickers using v4PublicGetTicker",
+                "method": "fetchTickers",
+                "url": "https://whitebit.com/api/v4/public/ticker",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ],
+                    {
+                        "method": "v4PublicGetTicker"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchTickers using v2",
                 "method": "fetchTickers",
                 "url": "https://whitebit.com/api/v2/public/ticker",
@@ -413,17 +440,6 @@
                     [
                         "BTC/USDT",
                         "ETH/USDT"
-                    ]
-                ]
-            },
-            {
-                "description": "swap tickers",
-                "method": "fetchTickers",
-                "url": "https://whitebit.com/api/v4/public/ticker",
-                "input": [
-                    [
-                        "BTC/USDT:USDT",
-                        "ETH/USDT:USDT"
                     ]
                 ]
             }
@@ -465,7 +481,7 @@
                   "USDT"
                 ],
                 "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1714156110333\",\"ticker\":\"USDT\"}"
-            }  
+            }
         ],
         "fetchConvertQuote": [
             {

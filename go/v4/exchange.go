@@ -486,28 +486,6 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 	return ch
 }
 
-func Unique(obj interface{}) []string {
-	// Type assertion to check if obj is of type []string
-	strList, ok := obj.([]string)
-	if !ok {
-		return nil
-	}
-
-	// Use a map to ensure uniqueness
-	uniqueMap := make(map[string]struct{})
-	var result []string
-
-	for _, str := range strList {
-		// Check if the string is already in the map
-		if _, exists := uniqueMap[str]; !exists {
-			uniqueMap[str] = struct{}{}
-			result = append(result, str)
-		}
-	}
-
-	return result
-}
-
 func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
 	fmt.Println(args...)
@@ -1233,26 +1211,29 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}) interfa
 	}
 }
 
-func (this *Exchange) Unique(obj interface{}) []string {
-	// Type assertion to check if obj is a slice of strings
-	if list, ok := obj.([]string); ok {
-		// Create a map to track unique strings
-		uniqueMap := make(map[string]bool)
-		var uniqueList []string
+func (this *Exchange) Unique(obj interface{}) []interface{} {
+	var list []interface{}
 
-		// Iterate over the list and add only unique elements
-		for _, item := range list {
-			if !uniqueMap[item] {
-				uniqueMap[item] = true
-				uniqueList = append(uniqueList, item)
-			}
+	switch v := obj.(type) {
+	case []string:
+		for _, item := range v {
+			list = append(list, item)
 		}
-
-		return uniqueList
+	case []interface{}:
+		list = v
+	default:
+		return []interface{}{}
 	}
 
-	// If obj is not a []string, return an empty slice
-	return []string{}
+	uniqueMap := make(map[interface{}]bool)
+	uniqueList := []interface{}{}
+	for _, item := range list {
+		if !uniqueMap[item] {
+			uniqueMap[item] = true
+			uniqueList = append(uniqueList, item)
+		}
+	}
+	return uniqueList
 }
 
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {

@@ -770,9 +770,9 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         $parsed = array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
-            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),
             $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 6), // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         );
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());

@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
+use ccxt\Precise;
 use \React\Async;
 use \React\Promise\PromiseInterface;
 
@@ -29,12 +30,18 @@ class bingx extends \ccxt\async\bingx {
                 'watchTicker' => true,
                 'watchTickers' => false, // no longer supported
                 'watchBalance' => true,
+                'watchPositions' => true,
                 'unWatchOHLCV' => true,
                 'unWatchOrderBook' => true,
                 'unWatchTicker' => true,
                 'unWatchTrades' => true,
             ),
             'urls' => array(
+                'test' => array(
+                    'ws' => array(
+                        'linear' => 'wss://vst-open-api-ws.bingx.com/swap-market',
+                    ),
+                ),
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://open-api-ws.bingx.com/market',
@@ -78,7 +85,11 @@ class bingx extends \ccxt\async\bingx {
                 ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => true, // needed to be true to keep track of used and free balance
-                    'awaitBalanceSnapshot' => false, // whether to wait for the balance snapshot before providing updates
+                    'awaitBalanceSnapshot' => true, // whether to wait for the balance snapshot before providing updates
+                ),
+                'watchPositions' => array(
+                    'fetchPositionsSnapshot' => true,
+                    'awaitPositionsSnapshot' => false,
                 ),
                 'watchOrderBook' => array(
                     'depth' => 100, // 5, 10, 20, 50, 100
@@ -1178,6 +1189,210 @@ class bingx extends \ccxt\async\bingx {
         }) ();
     }
 
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * watch all open positions
+             *
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+             *
+             * @param {string[]|null} [$symbols] list of unified $market $symbols
+             * @param {int} [$since] the earliest time in ms to fetch positions for
+             * @param {int} [$limit] the maximum number of position structures to retrieve
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            Async\await($this->authenticate());
+            $market = null;
+            $messageHash = '';
+            $symbols = $this->market_symbols($symbols);
+            if (!$this->is_empty($symbols)) {
+                $market = $this->get_market_from_symbols($symbols);
+                $messageHash = '::' . implode(',', $symbols);
+            }
+            $type = null;
+            $subType = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('watchPositions', $market, $params, 'linear');
+            if ($type === 'spot') {
+                throw new NotSupported($this->id . ' watchPositions is not supported for spot markets');
+            }
+            if ($subType === 'inverse') {
+                throw new NotSupported($this->id . ' watchPositions is not supported for inverse swap markets yet');
+            }
+            $subscriptionHash = 'swap:private';
+            $messageHash = 'swap:positions' . $messageHash;
+            $baseUrl = $this->safe_string($this->urls['api']['ws'], $subType);
+            $url = $baseUrl . '?listenKey=' . $this->options['listenKey'];
+            $client = $this->client($url);
+            $this->set_positions_cache($client, $type, $symbols);
+            $fetchPositionsSnapshot = null;
+            $awaitPositionsSnapshot = null;
+            list($fetchPositionsSnapshot, $params) = $this->handle_option_and_params($params, 'watchPositions', 'fetchPositionsSnapshot', true);
+            list($awaitPositionsSnapshot, $params) = $this->handle_option_and_params($params, 'watchPositions', 'awaitPositionsSnapshot', false);
+            $uuid = $this->uuid();
+            $subscription = array(
+                'unsubscribe' => false,
+                'id' => $uuid,
+            );
+            if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
+                $snapshot = Async\await($client->future ($type . ':fetchPositionsSnapshot'));
+                return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
+            }
+            $newPositions = Async\await($this->watch($url, $messageHash, null, $subscriptionHash, $subscription));
+            if ($this->newUpdates) {
+                return $newPositions;
+            }
+            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+        }) ();
+    }
+
+    public function set_positions_cache(Client $client, $type, ?array $symbols = null) {
+        if ($this->positions !== null) {
+            return;
+        }
+        $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
+        if ($fetchPositionsSnapshot) {
+            $messageHash = $type . ':fetchPositionsSnapshot';
+            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+                $client->future ($messageHash);
+                $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $type);
+            }
+        } else {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    public function load_positions_snapshot($client, $messageHash, $type) {
+        return Async\async(function () use ($client, $messageHash, $type) {
+            $positions = Async\await($this->fetch_positions(null, array( 'type' => $type, 'subType' => 'linear' )));
+            $this->positions = new ArrayCacheBySymbolBySide ();
+            $cache = $this->positions;
+            for ($i = 0; $i < count($positions); $i++) {
+                $position = $positions[$i];
+                $contracts = $this->safe_number($position, 'contracts', 0);
+                if ($contracts > 0) {
+                    $cache->append ($position);
+                }
+            }
+            // don't remove the $future from the .futures $cache
+            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
+                $future = $client->futures[$messageHash];
+                $future->resolve ($cache);
+                $client->resolve ($cache, 'swap:positions');
+            }
+        }) ();
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        //
+        //     {
+        //         "s" => "LINK-USDT",     // Symbol
+        //         "pa" => "5.000",        // Position Amount
+        //         "ep" => "11.2345",      // Entry Price
+        //         "up" => "0.5000",       // Unrealized PnL
+        //         "mt" => "isolated",     // Margin Type
+        //         "iw" => "50.00000000",  // Isolated Wallet
+        //         "ps" => "LONG"          // Position Side
+        //     }
+        //
+        $marketId = $this->safe_string($position, 's');
+        $contracts = $this->safe_string($position, 'pa');
+        $contractsAbs = Precise::string_abs($contracts);
+        $positionSide = $this->safe_string_lower($position, 'ps');
+        $hedged = true;
+        if ($positionSide === 'both') {
+            $hedged = false;
+            if (!Precise::string_eq($contracts, '0')) {
+                if (Precise::string_lt($contracts, '0')) {
+                    $positionSide = 'short';
+                } else {
+                    $positionSide = 'long';
+                }
+            }
+        }
+        $marginMode = $this->safe_string($position, 'mt');
+        $collateral = ($marginMode === 'isolated') ? $this->safe_number($position, 'iw') : null;
+        return $this->safe_position(array(
+            'info' => $position,
+            'id' => null,
+            'symbol' => $this->safe_symbol($marketId, null, null, 'swap'),
+            'notional' => null,
+            'marginMode' => $marginMode,
+            'liquidationPrice' => null,
+            'entryPrice' => $this->safe_number($position, 'ep'),
+            'unrealizedPnl' => $this->safe_number($position, 'up'),
+            'percentage' => null,
+            'contracts' => $this->parse_number($contractsAbs),
+            'contractSize' => null,
+            'markPrice' => null,
+            'side' => $positionSide,
+            'hedged' => $hedged,
+            'timestamp' => null,
+            'datetime' => null,
+            'maintenanceMargin' => null,
+            'maintenanceMarginPercentage' => null,
+            'collateral' => $collateral,
+            'initialMargin' => null,
+            'initialMarginPercentage' => null,
+            'leverage' => null,
+            'marginRatio' => null,
+        ));
+    }
+
+    public function handle_positions(Client $client, $message) {
+        //
+        //     {
+        //         "e" => "ACCOUNT_UPDATE",
+        //         "E" => 1696244249320,
+        //         "a" => {
+        //             "m" => "ORDER",
+        //             "B" => [...],
+        //             "P" => array(
+        //                 {
+        //                     "s" => "LINK-USDT",
+        //                     "pa" => "5.000",
+        //                     "ep" => "11.2345",
+        //                     "up" => "0.5000",
+        //                     "mt" => "isolated",
+        //                     "iw" => "50.00000000",
+        //                     "ps" => "LONG"
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        if ($this->positions === null) {
+            $this->positions = new ArrayCacheBySymbolBySide ();
+        }
+        $cache = $this->positions;
+        $data = $this->safe_dict($message, 'a', array());
+        $rawPositions = $this->safe_list($data, 'P', array());
+        $newPositions = array();
+        for ($i = 0; $i < count($rawPositions); $i++) {
+            $rawPosition = $rawPositions[$i];
+            $position = $this->parse_ws_position($rawPosition);
+            $timestamp = $this->safe_integer($message, 'E');
+            $position['timestamp'] = $timestamp;
+            $position['datetime'] = $this->iso8601($timestamp);
+            $newPositions[] = $position;
+            $cache->append ($position);
+        }
+        $messageHashes = $this->find_message_hashes($client, 'swap:$positions::');
+        for ($i = 0; $i < count($messageHashes); $i++) {
+            $messageHash = $messageHashes[$i];
+            $parts = explode('::', $messageHash);
+            $symbolsString = $parts[1];
+            $filteredSymbols = explode(',', $symbolsString);
+            $positions = $this->filter_by_array($newPositions, 'symbol', $filteredSymbols, false);
+            if (!$this->is_empty($positions)) {
+                $client->resolve ($positions, $messageHash);
+            }
+        }
+        $client->resolve ($newPositions, 'swap:positions');
+    }
+
     public function handle_error_message($client, $message) {
         //
         // array( $code => 100400, msg => '', timestamp => 1696245808833 )
@@ -1213,7 +1428,11 @@ class bingx extends \ccxt\async\bingx {
                 $types = array( 'spot', 'linear', 'inverse' );
                 for ($i = 0; $i < count($types); $i++) {
                     $type = $types[$i];
-                    $url = $this->urls['api']['ws'][$type] . '?$listenKey=' . $listenKey;
+                    $baseUrl = $this->safe_string($this->urls['api']['ws'], $type);
+                    if ($baseUrl === null) {
+                        continue;
+                    }
+                    $url = $baseUrl . '?$listenKey=' . $listenKey;
                     $client = $this->client($url);
                     $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
                     for ($j = 0; $j < count($messageHashes); $j++) {
@@ -1552,6 +1771,7 @@ class bingx extends \ccxt\async\bingx {
         $e = $this->safe_string($message, 'e');
         if ($e === 'ACCOUNT_UPDATE') {
             $this->handle_balance($client, $message);
+            $this->handle_positions($client, $message);
         }
         if ($e === 'ORDER_TRADE_UPDATE') {
             $this->handle_order($client, $message);

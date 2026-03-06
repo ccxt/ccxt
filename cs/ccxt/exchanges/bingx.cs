@@ -131,7 +131,17 @@ public partial class bingx : Exchange
                     { "api", "https://open-api.{hostname}/openApi" },
                 } },
                 { "test", new Dictionary<string, object>() {
+                    { "fund", "https://open-api-vst.{hostname}/openApi" },
+                    { "spot", "https://open-api-vst.{hostname}/openApi" },
                     { "swap", "https://open-api-vst.{hostname}/openApi" },
+                    { "contract", "https://open-api-vst.{hostname}/openApi" },
+                    { "wallets", "https://open-api-vst.{hostname}/openApi" },
+                    { "user", "https://open-api-vst.{hostname}/openApi" },
+                    { "subAccount", "https://open-api-vst.{hostname}/openApi" },
+                    { "account", "https://open-api-vst.{hostname}/openApi" },
+                    { "copyTrading", "https://open-api-vst.{hostname}/openApi" },
+                    { "cswap", "https://open-api-vst.{hostname}/openApi" },
+                    { "api", "https://open-api-vst.{hostname}/openApi" },
                 } },
                 { "www", "https://bingx.com/" },
                 { "doc", "https://bingx-api.github.io/docs/" },
@@ -6414,11 +6424,11 @@ public partial class bingx : Exchange
         object version = getValue(section, 1);
         object access = getValue(section, 2);
         object isSandbox = this.safeBool(this.options, "sandboxMode", false);
-        if (isTrue(isTrue(isSandbox) && isTrue((!isEqual(type, "swap")))))
+        object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
+        if (isTrue(isTrue(isSandbox) && isTrue(isEqual(url, null))))
         {
             throw new NotSupported ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
         }
-        object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
         path = this.implodeParams(path, parameters);
         object versionIsTransfer = (isEqual(version, "transfer"));
         object versionIsAsset = (isEqual(version, "asset"));

@@ -1020,6 +1020,16 @@ public partial class krakenfutures : Exchange
                 takerOrMaker = "taker";
             }
         }
+        object fee = null;
+        if (isTrue(isTrue((!isEqual(takerOrMaker, null))) && isTrue((!isEqual(cost, null)))))
+        {
+            object feeRate = this.safeString(market, takerOrMaker);
+            fee = new Dictionary<string, object>() {
+                { "cost", Precise.stringMul(cost, feeRate) },
+                { "currency", this.safeString(market, "quote") },
+                { "rate", feeRate },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1033,7 +1043,7 @@ public partial class krakenfutures : Exchange
             { "price", price },
             { "amount", ((bool) isTrue(linear)) ? amount : null },
             { "cost", cost },
-            { "fee", null },
+            { "fee", fee },
         });
     }
 
@@ -1170,6 +1180,41 @@ public partial class krakenfutures : Exchange
         //        },
         //        "serverTime": "2022-02-28T19:32:17.122Z"
         //    }
+        //
+        // MARKET
+        //
+        //     {
+        //         "result": "success",
+        //         "serverTime": "2026-03-02T06:10:31.955Z",
+        //         "sendStatus": {
+        //             "status": "placed",
+        //             "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //             "receivedTime": "2026-03-02T06:10:31.954Z",
+        //             "orderEvents": [
+        //                 {
+        //                     "type": "EXECUTION",
+        //                     "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                     "price": 66596.0,
+        //                     "amount": 0.001,
+        //                     "orderPriorEdit": null,
+        //                     "orderPriorExecution": {
+        //                         "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                         "cliOrdId": null,
+        //                         "type": "ioc",
+        //                         "symbol": "PF_XBTUSD",
+        //                         "side": "buy",
+        //                         "quantity": 0.001,
+        //                         "filled": 0,
+        //                         "limitPrice": 67261.000,
+        //                         "reduceOnly": false,
+        //                         "timestamp": "2026-03-02T06:10:31.954Z",
+        //                         "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                     },
+        //                     "takerReducedQuantity": null
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
         object sendStatus = this.safeValue(response, "sendStatus");
         object status = this.safeString(sendStatus, "status");
@@ -1495,8 +1540,8 @@ public partial class krakenfutures : Exchange
     /**
      * @method
      * @name krakenfutures#fetchOrders
-     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @description Gets all orders for an account from the exchange api
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
      * @param {string} symbol Unified market symbol
      * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
      * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -1792,6 +1837,37 @@ public partial class krakenfutures : Exchange
         //        ]
         //    }
         //
+        // MARKET
+        //
+        //     {
+        //         "status": "placed",
+        //         "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //         "receivedTime": "2026-03-02T06:10:31.954Z",
+        //         "orderEvents": [
+        //             {
+        //                 "type": "EXECUTION",
+        //                 "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        //                 "price": 66596.0,
+        //                 "amount": 0.001,
+        //                 "orderPriorEdit": null,
+        //                 "orderPriorExecution": {
+        //                     "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        //                     "cliOrdId": null,
+        //                     "type": "ioc",
+        //                     "symbol": "PF_XBTUSD",
+        //                     "side": "buy",
+        //                     "quantity": 0.001,
+        //                     "filled": 0,
+        //                     "limitPrice": 67261.000,
+        //                     "reduceOnly": false,
+        //                     "timestamp": "2026-03-02T06:10:31.954Z",
+        //                     "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        //                 },
+        //                 "takerReducedQuantity": null
+        //             }
+        //         ]
+        //     }
+        //
         // CONDITIONAL
         //
         //    {
@@ -2036,6 +2112,11 @@ public partial class krakenfutures : Exchange
             //
             object datetime = this.safeString(orderDictFromFetchOrder, "timestamp");
             object innerStatus = this.safeString(order, "status");
+            object filledOrder = this.safeString(orderDictFromFetchOrder, "filled", "0");
+            if (isTrue(isTrue((isEqual(filledOrder, "0"))) || isTrue((isEqual(filledOrder, "0.0")))))
+            {
+                filledOrder = null;
+            }
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
@@ -2055,7 +2136,7 @@ public partial class krakenfutures : Exchange
                 { "amount", this.safeString(orderDictFromFetchOrder, "quantity") },
                 { "cost", null },
                 { "average", null },
-                { "filled", this.safeString(orderDictFromFetchOrder, "filled") },
+                { "filled", filledOrder },
                 { "remaining", null },
                 { "status", this.parseOrderStatus(innerStatus) },
                 { "fee", null },
@@ -2101,9 +2182,16 @@ public partial class krakenfutures : Exchange
                         fixedVar = true;
                     } else if (!isTrue(fixedVar))
                     {
+                        object executedPrice = this.safeString(item, "price");
                         object orderPriorExecution = this.safeValue(item, "orderPriorExecution");
                         details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
-                        price = this.safeString(orderPriorExecution, "limitPrice");
+                        if (isTrue(isEqual(executedPrice, null)))
+                        {
+                            price = this.safeString(orderPriorExecution, "limitPrice");
+                        } else
+                        {
+                            price = executedPrice;
+                        }
                         if (isTrue(!isEqual(details, null)))
                         {
                             isPrior = true;
@@ -2216,6 +2304,12 @@ public partial class krakenfutures : Exchange
             symbol = this.safeSymbol(this.safeString(details, "tradeable"), market);
         }
         object ts = this.safeInteger(details, "timestamp", timestamp);
+        object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new Dictionary<string, object>() {});
+        object triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            triggerPrice = this.safeString(priceTriggerOptions, "triggerPrice");
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -2231,7 +2325,8 @@ public partial class krakenfutures : Exchange
             { "reduceOnly", this.safeBool2(details, "reduceOnly", "reduce_only") },
             { "side", this.safeStringLower2(details, "side", "direction") },
             { "price", price },
-            { "triggerPrice", this.safeString(details, "triggerPrice") },
+            { "triggerPrice", triggerPrice },
+            { "stopPrice", triggerPrice },
             { "amount", amount },
             { "cost", cost },
             { "average", average },
