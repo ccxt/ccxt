@@ -70,7 +70,7 @@
                         "numericId": null,
                         "code": "USDC",
                         "precision": 1e-9,
-                        "type": null,
+                        "type": "crypto",
                         "name": "USDC",
                         "active": true,
                         "deposit": true,
@@ -690,39 +690,51 @@
         ],
         "fetchTrades": [
             {
-                "description": "fetchTrades",
+                "description": "swap trade",
                 "method": "fetchTrades",
                 "input": [
-                    "BTC/USD:USDC"
+                    "BTC/USD:USDC",
+                    null,
+                    1
                 ],
                 "httpResponse": {
                     "trades": [
                         {
-                            "amount": 0.03378,
-                            "datetime": "2025-12-29 22:43:54.639 UTC",
-                            "price": 87239.09499000001,
-                            "timestamp": 1767048234639,
-                            "side": "buy",
+                            "amount": "0.00675246",
+                            "datetime": "2026-03-06 14:52:24.923 UTC",
+                            "price": "68730.5008",
+                            "timestamp": "1772808744923",
+                            "side": "sell",
                             "symbol": "BTC/USD:USDC"
                         }
                     ],
-                    "nextCursor": 592
+                    "nextCursor": "1772808744923"
                 },
                 "parsedResponse": [
                     {
-                        "amount": 0.03378,
-                        "datetime": "2025-12-29 22:43:54.639 UTC",
-                        "price": 87239.09499000001,
-                        "timestamp": 1767048234639,
-                        "side": "buy",
+                        "info": {
+                            "amount": "0.00675246",
+                            "datetime": "2026-03-06 14:52:24.923 UTC",
+                            "price": "68730.5008",
+                            "timestamp": "1772808744923",
+                            "side": "sell",
+                            "symbol": "BTC/USD:USDC"
+                        },
+                        "amount": 0.00675246,
+                        "datetime": "2026-03-06 14:52:24.923 UTC",
+                        "price": 68730.5008,
+                        "timestamp": 1772808744923,
+                        "side": "sell",
                         "symbol": "BTC/USD:USDC",
                         "fee": {
                             "cost": null,
                             "currency": null
                         },
                         "fees": [],
-                        "cost": 2946.9366287622,
-                        "id": ""
+                        "cost": 464.099957431968,
+                        "id": "",
+                        "order": null,
+                        "takerOrMaker": null
                     }
                 ]
             }

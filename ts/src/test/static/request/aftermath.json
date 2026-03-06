@@ -42,6 +42,17 @@
         ],
         "fetchTrades": [
             {
+                "description": "swap trade",
+                "method": "fetchTrades",
+                "url": "https://aftermath.finance/api/ccxt/trades",
+                "input": [
+                    "BTC/USD:USDC",
+                    null,
+                    1
+                ],
+                "output": "{\"chId\":\"0x95969906ca735c9d44e8a44b5b7791b4dacaddf70fbdfbda40ccd3f8a9fd4920\",\"limit\":1}"
+            },
+            {
                 "description": "fetchTrades",
                 "method": "fetchTrades",
                 "url": "http://testnet.aftermath.finance/api/ccxt/trades",
