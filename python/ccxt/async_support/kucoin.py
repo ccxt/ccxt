@@ -3107,7 +3107,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: *invalid for isolated margin* True if cancelling all stop orders
         :param str [params.marginMode]: 'cross' or 'isolated'
-        :param str [params.orderIds]: *stop orders only* Comma seperated order IDs
+        :param str [params.orderIds]: *stop orders only* Comma separated order IDs
         :param bool [params.hf]: False,  # True for hf order
         :returns: Response from the exchange
         """
@@ -3155,7 +3155,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param int [params.currentPage]: *trigger orders only* current page
-        :param str [params.orderIds]: *trigger orders only* comma seperated order ID list
+        :param str [params.orderIds]: *trigger orders only* comma separated order ID list
         :param bool [params.trigger]: True if fetching a trigger order
         :param bool [params.hf]: False,  # True for hf order
         :returns: An `array of order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -3296,7 +3296,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str [params.type]: limit, market, limit_stop or market_stop
         :param str [params.tradeType]: TRADE for spot trading, MARGIN_TRADE for Margin Trading
         :param int [params.currentPage]: *trigger orders only* current page
-        :param str [params.orderIds]: *trigger orders only* comma seperated order ID list
+        :param str [params.orderIds]: *trigger orders only* comma separated order ID list
         :param bool [params.hf]: False,  # True for hf order
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`

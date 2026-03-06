@@ -234,7 +234,7 @@ export default class paradex extends paradexRest {
         }
         const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, 'bids', 'asks');
-        snapshot['nonce'] = this.safeNumber(data, 'seq_no');
+        snapshot['nonce'] = this.safeInteger(data, 'seq_no');
         orderbook.reset(snapshot);
         const messageHash = this.safeString(params, 'channel');
         client.resolve(orderbook, messageHash);

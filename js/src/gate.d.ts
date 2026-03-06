@@ -466,6 +466,7 @@ export default class gate extends Exchange {
      * @param {int} [params.price_type] *contract only* 0 latest deal price, 1 mark price, 2 index price
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {bool} [params.unifiedAccount] set to true for creating an order in the unified account
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;

@@ -6399,6 +6399,7 @@ class binance extends Exchange {
              * @param {string} [$params->stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
              * @param {string} [$params->positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
              * @param {bool} [$params->hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
+             * @param {string} [$params->clientOrderId] the clientOrderId of the order
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
             Async\await($this->load_markets());

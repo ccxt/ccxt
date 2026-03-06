@@ -145,11 +145,13 @@ class gemini extends Exchange {
                         'v1/earn/rates' => 5,
                         'v2/derivatives/candles/{symbol}/{time_frame}' => 5,
                         'v2/fxrate/{symbol}/{timestamp}' => 5,
-                        'v1/perpetuals/fundingpaymentreport/records.xlsx' => 5,
                         'v1/riskstats/{symbol}' => 5,
                     ),
                 ),
                 'private' => array(
+                    'get' => array(
+                        'v1/perpetuals/fundingpaymentreport/records.xlsx' => 1,
+                    ),
                     'post' => array(
                         'v1/staking/unstake' => 1,
                         'v1/staking/stake' => 1,

@@ -111,14 +111,14 @@ public partial class gemini : Exchange
         return await this.callAsync ("publicGetV2FxrateSymbolTimestamp",parameters);
     }
 
-    public async Task<object> publicGetV1PerpetualsFundingpaymentreportRecordsXlsx (object parameters = null)
-    {
-        return await this.callAsync ("publicGetV1PerpetualsFundingpaymentreportRecordsXlsx",parameters);
-    }
-
     public async Task<object> publicGetV1RiskstatsSymbol (object parameters = null)
     {
         return await this.callAsync ("publicGetV1RiskstatsSymbol",parameters);
+    }
+
+    public async Task<object> privateGetV1PerpetualsFundingpaymentreportRecordsXlsx (object parameters = null)
+    {
+        return await this.callAsync ("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx",parameters);
     }
 
     public async Task<object> privatePostV1StakingUnstake (object parameters = null)
