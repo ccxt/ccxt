@@ -585,6 +585,8 @@
         }
     },
     "btcbox": {
+        "skip": "internal maintenance",
+        "until": "2026-03-29",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
