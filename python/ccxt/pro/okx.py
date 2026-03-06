@@ -339,16 +339,18 @@ class okx(ccxt.async_support.okx):
         fr = await self.watch_funding_rates([symbol], params)
         return fr[symbol]
 
-    async def watch_funding_rates(self, symbols: List[str], params={}) -> FundingRates:
+    async def watch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
         """
         watch the funding rate for multiple markets
 
         https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
 
-        :param str[] symbols: list of unified market symbols
+        :param str[] symbols: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexe by market symbols
+        :returns dict: a dictionary of `funding rates structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbols
         """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' watchFundingRates() requires an array of symbols')
         await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'funding-rate'
@@ -734,12 +736,11 @@ class okx(ccxt.async_support.okx):
             rawLiquidation = rawLiquidations[i]
             liquidation = self.parse_ws_liquidation(rawLiquidation)
             symbol = self.safe_string(liquidation, 'symbol')
-            liquidations = self.safe_value(self.liquidations, symbol)
-            if liquidations is None:
+            if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-                liquidations = ArrayCache(limit)
-            liquidations.append(liquidation)
-            self.liquidations[symbol] = liquidations
+                self.liquidations = ArrayCache(limit)
+            cache = self.liquidations
+            cache.append(liquidation)
             client.resolve([liquidation], 'liquidations')
             client.resolve([liquidation], 'liquidations::' + symbol)
 
@@ -826,12 +827,11 @@ class okx(ccxt.async_support.okx):
                 return
             liquidation = self.parse_ws_my_liquidation(rawLiquidation)
             symbol = self.safe_string(liquidation, 'symbol')
-            liquidations = self.safe_value(self.liquidations, symbol)
-            if liquidations is None:
-                limit = self.safe_integer(self.options, 'myLiquidationsLimit', 1000)
-                liquidations = ArrayCache(limit)
-            liquidations.append(liquidation)
-            self.liquidations[symbol] = liquidations
+            if self.liquidations is None:
+                limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
+                self.liquidations = ArrayCache(limit)
+            cache = self.liquidations
+            cache.append(liquidation)
             client.resolve([liquidation], 'myLiquidations')
             client.resolve([liquidation], 'myLiquidations::' + symbol)
 
@@ -1705,7 +1705,7 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
-            if position['contracts'] == 0:
+            if position['contracts'] == 0 and rawPosition['posSide'] == 'net':
                 position['side'] = 'long'
                 shortPosition = self.clone(position)
                 shortPosition['side'] = 'short'

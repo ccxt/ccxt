@@ -350,14 +350,17 @@ export default class okx extends okxRest {
     }
     /**
      * @method
-     * @name coinbaseinternational#watchFundingRates
+     * @name okx#watchFundingRates
      * @description watch the funding rate for multiple markets
      * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
-     * @param {string[]} symbols list of unified market symbols
+     * @param {string[]} symbols a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
+     * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbols
      */
-    async watchFundingRates(symbols, params = {}) {
+    async watchFundingRates(symbols = undefined, params = {}) {
+        if (symbols === undefined) {
+            throw new ArgumentsRequired(this.id + ' watchFundingRates() requires an array of symbols');
+        }
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         const channel = 'funding-rate';
@@ -758,13 +761,12 @@ export default class okx extends okxRest {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
+            if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache(limit);
+                this.liquidations = new ArrayCache(limit);
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'liquidations');
             client.resolve([liquidation], 'liquidations::' + symbol);
         }
@@ -857,13 +859,12 @@ export default class okx extends okxRest {
             }
             const liquidation = this.parseWsMyLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
-                liquidations = new ArrayCache(limit);
+            if (this.liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new ArrayCache(limit);
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'myLiquidations');
             client.resolve([liquidation], 'myLiquidations::' + symbol);
         }
@@ -1798,7 +1799,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (position['contracts'] === 0) {
+            if (position['contracts'] === 0 && rawPosition['posSide'] === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';

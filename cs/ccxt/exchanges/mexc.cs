@@ -143,8 +143,8 @@ public partial class mexc : Exchange
                         { "private", "https://www.mexc.com/open/api/v2" },
                     } },
                     { "contract", new Dictionary<string, object>() {
-                        { "public", "https://contract.mexc.com/api/v1/contract" },
-                        { "private", "https://contract.mexc.com/api/v1/private" },
+                        { "public", "https://api.mexc.com/api/v1/contract" },
+                        { "private", "https://api.mexc.com/api/v1/private" },
                     } },
                     { "broker", new Dictionary<string, object>() {
                         { "private", "https://api.mexc.com/api/v3/broker" },
@@ -4300,7 +4300,15 @@ public partial class mexc : Exchange
         //         "timestamp": 1643240373359
         //     }
         //
-        object nextFundingRate = this.safeNumber(contract, "fundingRate");
+        // watchFundingRate
+        //
+        //     {
+        //         "symbol": "BTC_USDT",
+        //         "rate": -0.000021,
+        //         "nextSettleTime": 1771084800000
+        //     }
+        //
+        object nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
         object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         object marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "contract");
@@ -4618,7 +4626,6 @@ public partial class mexc : Exchange
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
         object networkId = this.safeString(depositAddress, "netWork");
-        this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", this.safeCurrencyCode(currencyId, currency) },

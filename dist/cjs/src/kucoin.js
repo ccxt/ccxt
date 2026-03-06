@@ -128,6 +128,7 @@ class kucoin extends kucoin$1["default"] {
                     'broker': 'https://api-broker.kucoin.com',
                     'earn': 'https://api.kucoin.com',
                     'uta': 'https://api.kucoin.com',
+                    'utaPrivate': 'https://api.kucoin.com',
                 },
                 'www': 'https://www.kucoin.com',
                 'doc': [
@@ -484,15 +485,53 @@ class kucoin extends kucoin$1["default"] {
                     'get': {
                         'market/announcement': 20,
                         'market/currency': 3,
+                        'market/currencies': 3,
                         'market/instrument': 4,
                         'market/ticker': 15,
-                        'market/orderbook': 3,
                         'market/trade': 3,
                         'market/kline': 3,
                         'market/funding-rate': 2,
                         'market/funding-rate-history': 5,
                         'market/cross-config': 25,
+                        'market/collateral-discount-ratio': 10,
+                        'market/index-price': 20,
+                        'market/position-tiers': 20,
+                        'market/open-interest': 10,
                         'server/status': 3,
+                    },
+                },
+                'utaPrivate': {
+                    'get': {
+                        'market/orderbook': 3,
+                        'account/balance': 5,
+                        'account/transfer-quota': 20,
+                        'account/mode': 30,
+                        'account/ledger': 2,
+                        'account/interest-history': 15,
+                        'account/deposit/address': 5,
+                        '{accountMode}/account/balance': 5,
+                        '{accountMode}/account/overview': 5,
+                        '{accountMode}/order/detail': 4,
+                        '{accountMode}/order/open-list': 4,
+                        '{accountMode}/order/history': 4,
+                        '{accountMode}/order/execution': 4,
+                        '{accountMode}/position/open-list': 3,
+                        '{accountMode}/position/history': 2,
+                        '{accountMode}/position/tiers': 20,
+                        'sub-account/balance': 5,
+                        'user/fee-rate': 3,
+                        'dcp/query': 2,
+                    },
+                    'post': {
+                        'account/transfer': 4,
+                        'account/mode': 30,
+                        '{accountMode}/account/modify-leverage': 20,
+                        '{accountMode}/order/place': 1,
+                        '{accountMode}/order/place-batch': 4,
+                        '{accountMode}/order/cancel': 1,
+                        '{accountMode}/order/cancel-batch': 4,
+                        'sub-account/canTransferOut': 5,
+                        'dcp/set': 2,
                     },
                 },
             },
@@ -625,7 +664,7 @@ class kucoin extends kucoin$1["default"] {
                     '400370': errors.InvalidOrder,
                     '400400': errors.BadRequest,
                     '400401': errors.AuthenticationError,
-                    '400500': errors.InvalidOrder,
+                    '400500': errors.RestrictedLocation,
                     '400600': errors.BadSymbol,
                     '400760': errors.InvalidOrder,
                     '401000': errors.BadRequest,
@@ -2579,7 +2618,7 @@ class kucoin extends kucoin$1["default"] {
             else {
                 request['tradeType'] = 'FUTURES';
             }
-            response = await this.utaGetMarketOrderbook(this.extend(request, params));
+            response = await this.utaPrivateGetMarketOrderbook(this.extend(request, params));
             //
             //     {
             //         "code": "200000",
@@ -3165,7 +3204,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
+     * @param {string} [params.orderIds] *stop orders only* Comma separated order IDs
      * @param {bool} [params.hf] false, // true for hf order
      * @returns Response from the exchange
      */
@@ -3221,7 +3260,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3376,7 +3415,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -5757,9 +5796,9 @@ class kucoin extends kucoin$1["default"] {
             endpoint = '/api/v1/' + this.implodeParams(path, params);
         }
         let isUtaPrivate = false;
-        if (api === 'uta') {
+        if ((api === 'uta') || (api === 'utaPrivate')) {
             endpoint = '/api/ua/v1/' + this.implodeParams(path, params);
-            if (path === 'market/orderbook') {
+            if (api === 'utaPrivate') {
                 isUtaPrivate = true;
             }
         }

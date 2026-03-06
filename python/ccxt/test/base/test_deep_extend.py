@@ -19,5 +19,76 @@ def test_deep_extend():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
-    assert exchange.parse_to_numeric('1') == 1
-    return True   # dummy for now
+    obj1 = {
+        'a': 1,
+        'b': [1, 2, 3],
+        'c': [{
+    'test1': 1,
+    'test2': 1,
+}],
+        'd': None,
+        'e': 'not_undefined',
+        'sub': {
+            'a': 1,
+            'b': [1, 2],
+            'c': [{
+    'test1': 1,
+    'test2': 2,
+}],
+            'd': None,
+            'e': 'not_undefined',
+            'other1': 'x',
+        },
+        'other1': 'x',
+    }
+    obj2 = {
+        'a': 2,
+        'b': [3, 4],
+        'c': [{
+    'test1': 2,
+    'test3': 3,
+}],
+        'd': 'not_undefined',
+        'e': None,
+        'sub': {
+            'a': 2,
+            'b': [3, 4],
+            'c': [{
+    'test1': 2,
+    'test3': 3,
+}],
+            'd': 'not_undefined',
+            'e': None,
+            'other2': 'y',
+        },
+        'other2': 'y',
+    }
+    # deepExtend
+    deep_extended = exchange.deep_extend(obj1, obj2)
+    compare_to = {
+        'a': 2,
+        'b': [3, 4],
+        'c': [{
+    'test1': 2,
+    'test3': 3,
+}],
+        'd': 'not_undefined',
+        'e': None,
+        'sub': {
+            'a': 2,
+            'b': [3, 4],
+            'c': [{
+    'test1': 2,
+    'test3': 3,
+}],
+            'd': 'not_undefined',
+            'e': None,
+            'other1': 'x',
+            'other2': 'y',
+        },
+        'other1': 'x',
+        'other2': 'y',
+    }
+    # todo: results are different across langs.
+    # to avoid delay to this PR, I comment out this now, but will return to this after this PR merged
+    test_shared_methods.assert_deep_equal(exchange, None, 'testDeepExtend', deep_extended, compare_to)

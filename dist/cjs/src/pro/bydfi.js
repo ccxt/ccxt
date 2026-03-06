@@ -617,30 +617,19 @@ class bydfi extends bydfi$1["default"] {
         const marketId = this.safeString(rawOrder, 's');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
-        let match = false;
         const messageHash = 'orders';
         const symbolMessageHash = messageHash + '::' + symbol;
-        const messageHashes = this.findMessageHashes(client, messageHash);
-        for (let i = 0; i < messageHashes.length; i++) {
-            const hash = messageHashes[i];
-            if (hash === symbolMessageHash || hash === messageHash) {
-                match = true;
-                break;
-            }
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
-        if (match) {
-            if (this.orders === undefined) {
-                const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
-                this.orders = new Cache.ArrayCacheBySymbolById(limit);
-            }
-            const orders = this.orders;
-            const order = this.parseWsOrder(rawOrder, market);
-            const lastUpdateTimestamp = this.safeInteger(message, 'T');
-            order['lastUpdateTimestamp'] = lastUpdateTimestamp;
-            orders.append(order);
-            client.resolve(orders, messageHash);
-            client.resolve(orders, symbolMessageHash);
-        }
+        const orders = this.orders;
+        const order = this.parseWsOrder(rawOrder, market);
+        const lastUpdateTimestamp = this.safeInteger(message, 'T');
+        order['lastUpdateTimestamp'] = lastUpdateTimestamp;
+        orders.append(order);
+        client.resolve(orders, messageHash);
+        client.resolve(orders, symbolMessageHash);
     }
     parseWsOrder(order, market = undefined) {
         //
@@ -786,29 +775,17 @@ class bydfi extends bydfi$1["default"] {
         const symbol = market['symbol'];
         const messageHash = 'positions';
         const symbolMessageHash = messageHash + '::' + symbol;
-        const messageHashes = this.findMessageHashes(client, messageHash);
-        let match = false;
-        for (let i = 0; i < messageHashes.length; i++) {
-            const hash = messageHashes[i];
-            if (hash === symbolMessageHash || hash === messageHash) {
-                match = true;
-                break;
-            }
+        if (this.positions === undefined) {
+            this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
-        if (match) {
-            if (this.positions === undefined) {
-                this.positions = new Cache.ArrayCacheBySymbolBySide();
-            }
-            const cache = this.positions;
-            const parsedPosition = this.parseWsPosition(rawPosition, market);
-            const timestamp = this.safeInteger(message, 'T');
-            parsedPosition['timestamp'] = timestamp;
-            parsedPosition['datetime'] = this.iso8601(timestamp);
-            cache.append(parsedPosition);
-            const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
-            client.resolve([parsedPosition], messageHash);
-            client.resolve([parsedPosition], symbolSpecificMessageHash);
-        }
+        const cache = this.positions;
+        const parsedPosition = this.parseWsPosition(rawPosition, market);
+        const timestamp = this.safeInteger(message, 'T');
+        parsedPosition['timestamp'] = timestamp;
+        parsedPosition['datetime'] = this.iso8601(timestamp);
+        cache.append(parsedPosition);
+        client.resolve([parsedPosition], messageHash);
+        client.resolve([parsedPosition], symbolMessageHash);
     }
     parseWsPosition(position, market = undefined) {
         //

@@ -178,7 +178,13 @@ var WithWatchFundingRateParams = ccxt.WithWatchFundingRateParams
 
 type WatchFundingRatesOptionsStruct = ccxt.WatchFundingRatesOptionsStruct
 type WatchFundingRatesOptions = ccxt.WatchFundingRatesOptions
+var WithWatchFundingRatesSymbols = ccxt.WithWatchFundingRatesSymbols
 var WithWatchFundingRatesParams = ccxt.WithWatchFundingRatesParams
+
+type UnWatchFundingRatesOptionsStruct = ccxt.UnWatchFundingRatesOptionsStruct
+type UnWatchFundingRatesOptions = ccxt.UnWatchFundingRatesOptions
+var WithUnWatchFundingRatesSymbols = ccxt.WithUnWatchFundingRatesSymbols
+var WithUnWatchFundingRatesParams = ccxt.WithUnWatchFundingRatesParams
 
 type WatchFundingRatesForSymbolsOptionsStruct = ccxt.WatchFundingRatesForSymbolsOptionsStruct
 type WatchFundingRatesForSymbolsOptions = ccxt.WatchFundingRatesForSymbolsOptions
@@ -500,6 +506,10 @@ type UnWatchTickersOptions = ccxt.UnWatchTickersOptions
 var WithUnWatchTickersSymbols = ccxt.WithUnWatchTickersSymbols
 var WithUnWatchTickersParams = ccxt.WithUnWatchTickersParams
 
+type UnWatchFundingRateOptionsStruct = ccxt.UnWatchFundingRateOptionsStruct
+type UnWatchFundingRateOptions = ccxt.UnWatchFundingRateOptions
+var WithUnWatchFundingRateParams = ccxt.WithUnWatchFundingRateParams
+
 type FetchOrderOptionsStruct = ccxt.FetchOrderOptionsStruct
 type FetchOrderOptions = ccxt.FetchOrderOptions
 var WithFetchOrderSymbol = ccxt.WithFetchOrderSymbol
@@ -529,6 +539,10 @@ type CreateOrderOptions = ccxt.CreateOrderOptions
 var WithCreateOrderPrice = ccxt.WithCreateOrderPrice
 var WithCreateOrderParams = ccxt.WithCreateOrderParams
 
+type CreateTwapOrderOptionsStruct = ccxt.CreateTwapOrderOptionsStruct
+type CreateTwapOrderOptions = ccxt.CreateTwapOrderOptions
+var WithCreateTwapOrderParams = ccxt.WithCreateTwapOrderParams
+
 type CreateConvertTradeOptionsStruct = ccxt.CreateConvertTradeOptionsStruct
 type CreateConvertTradeOptions = ccxt.CreateConvertTradeOptions
 var WithCreateConvertTradeAmount = ccxt.WithCreateConvertTradeAmount
@@ -550,6 +564,19 @@ type FetchPositionModeOptionsStruct = ccxt.FetchPositionModeOptionsStruct
 type FetchPositionModeOptions = ccxt.FetchPositionModeOptions
 var WithFetchPositionModeSymbol = ccxt.WithFetchPositionModeSymbol
 var WithFetchPositionModeParams = ccxt.WithFetchPositionModeParams
+
+type FetchADLRankOptionsStruct = ccxt.FetchADLRankOptionsStruct
+type FetchADLRankOptions = ccxt.FetchADLRankOptions
+var WithFetchADLRankParams = ccxt.WithFetchADLRankParams
+
+type FetchPositionsADLRankOptionsStruct = ccxt.FetchPositionsADLRankOptionsStruct
+type FetchPositionsADLRankOptions = ccxt.FetchPositionsADLRankOptions
+var WithFetchPositionsADLRankSymbols = ccxt.WithFetchPositionsADLRankSymbols
+var WithFetchPositionsADLRankParams = ccxt.WithFetchPositionsADLRankParams
+
+type FetchPositionADLRankOptionsStruct = ccxt.FetchPositionADLRankOptionsStruct
+type FetchPositionADLRankOptions = ccxt.FetchPositionADLRankOptions
+var WithFetchPositionADLRankParams = ccxt.WithFetchPositionADLRankParams
 
 type CreateTrailingAmountOrderOptionsStruct = ccxt.CreateTrailingAmountOrderOptionsStruct
 type CreateTrailingAmountOrderOptions = ccxt.CreateTrailingAmountOrderOptions

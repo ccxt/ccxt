@@ -16,10 +16,26 @@ import ccxt.async_support as ccxt  # noqa: F402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_sort():
-    # todo: other argument checks
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
     })
-    arr = ['b', 'a', 'c', 'd']
-    sorted_arr = exchange.sort(arr)
-    test_shared_methods.assert_deep_equal(exchange, None, 'sort', sorted_arr, ['a', 'b', 'c', 'd'])
+    # empty array
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort([]), [])
+    # single element
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort(['a']), ['a'])
+    # already sorted (idempotent)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort(['a', 'b', 'c']), ['a', 'b', 'c'])
+    # duplicates
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort(['b', 'a', 'b', 'c']), ['a', 'b', 'b', 'c'])
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort(['b', 'a', 'c', 'd']), ['a', 'b', 'c', 'd'])
+    # integers (single-digit, safe for cross-language lexicographic/numeric consistency)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort([3, 1, 2]), [1, 2, 3])
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort([5, 3, 1, 4, 2]), [1, 2, 3, 4, 5])
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort([0, 3, 1, 2]), [0, 1, 2, 3])
+    # floats (values chosen so lexicographic order matches numeric order)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort([1.5, 0.5, 2.5]), [0.5, 1.5, 2.5])
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', exchange.sort([3.3, 1.1, 2.2]), [1.1, 2.2, 3.3])
+    # immutability - original array should not be modified
+    original = ['b', 'a', 'c']
+    exchange.sort(original)
+    test_shared_methods.assert_deep_equal(exchange, None, 'sort', original, ['b', 'a', 'c'])

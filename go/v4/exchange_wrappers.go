@@ -855,12 +855,17 @@ func (this *ExchangeTyped) WatchFundingRate(symbol string, options ...WatchFundi
 	}
 	return NewFundingRate(res), nil
 }
-func (this *ExchangeTyped) WatchFundingRates(symbols []string, options ...WatchFundingRatesOptions) (FundingRates, error) {
+func (this *ExchangeTyped) WatchFundingRates(options ...WatchFundingRatesOptions) (FundingRates, error) {
 
 	opts := WatchFundingRatesOptionsStruct{}
 
 	for _, opt := range options {
 		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
 	}
 
 	var params interface{} = nil
@@ -872,6 +877,29 @@ func (this *ExchangeTyped) WatchFundingRates(symbols []string, options ...WatchF
 		return FundingRates{}, CreateReturnError(res)
 	}
 	return NewFundingRates(res), nil
+}
+func (this *ExchangeTyped) UnWatchFundingRates(options ...UnWatchFundingRatesOptions) (interface{}, error) {
+
+	opts := UnWatchFundingRatesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.UnWatchFundingRates(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
 }
 func (this *ExchangeTyped) WatchFundingRatesForSymbols(symbols []string, options ...WatchFundingRatesForSymbolsOptions) (map[string]interface{}, error) {
 
@@ -2405,6 +2433,24 @@ func (this *ExchangeTyped) UnWatchTickers(options ...UnWatchTickersOptions) (int
 	}
 	return res, nil
 }
+func (this *ExchangeTyped) UnWatchFundingRate(symbol string, options ...UnWatchFundingRateOptions) (interface{}, error) {
+
+	opts := UnWatchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.UnWatchFundingRate(symbol, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return res, nil
+}
 func (this *ExchangeTyped) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
 	opts := FetchOrderOptionsStruct{}
@@ -2538,6 +2584,24 @@ func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side strin
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
+
+	opts := CreateTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTwapOrder(symbol, side, amount, duration, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
 func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
 	opts := CreateConvertTradeOptionsStruct{}
@@ -2639,6 +2703,65 @@ func (this *ExchangeTyped) FetchPositionMode(options ...FetchPositionModeOptions
 		return map[string]interface{}{}, CreateReturnError(res)
 	}
 	return res.(map[string]interface{}), nil
+}
+func (this *ExchangeTyped) FetchADLRank(symbol string, options ...FetchADLRankOptions) (ADL, error) {
+
+	opts := FetchADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchADLRank(symbol, params)
+	if IsError(res) {
+		return ADL{}, CreateReturnError(res)
+	}
+	return NewADL(res), nil
+}
+func (this *ExchangeTyped) FetchPositionsADLRank(options ...FetchPositionsADLRankOptions) ([]ADL, error) {
+
+	opts := FetchPositionsADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols interface{} = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionsADLRank(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewADLArray(res), nil
+}
+func (this *ExchangeTyped) FetchPositionADLRank(symbol string, options ...FetchPositionADLRankOptions) (ADL, error) {
+
+	opts := FetchPositionADLRankOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchPositionADLRank(symbol, params)
+	if IsError(res) {
+		return ADL{}, CreateReturnError(res)
+	}
+	return NewADL(res), nil
 }
 func (this *ExchangeTyped) CreateTrailingAmountOrder(symbol string, typeVar string, side string, amount float64, options ...CreateTrailingAmountOrderOptions) (Order, error) {
 

@@ -88,8 +88,9 @@ class ascendex(Exchange, ImplicitAPI):
                 'fetchMarkOHLCV': False,
                 'fetchMySettlementHistory': False,
                 'fetchOHLCV': True,
-                'fetchOpenInterest': False,
+                'fetchOpenInterest': 'emulated',
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
                 'fetchOptionChain': False,
@@ -3447,6 +3448,77 @@ class ascendex(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         leverages = self.safe_list(data, 'contracts', [])
         return self.parse_leverages(leverages, symbols, 'symbol')
+
+    async def fetch_open_interests(self, symbols: Strings = None, params={}):
+        """
+        Retrieves the open interest for a list of symbols
+
+        https://ascendex.github.io/ascendex-futures-pro-api-v2/#futures-pricing-data
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: exchange specific parameters
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        await self.load_markets()
+        request: dict = {}
+        response = None
+        response = await self.v2PublicGetFuturesPricingData(self.extend(request, params))
+        #
+        #    {
+        #        code: '0',
+        #        data: {
+        #            contracts: [
+        #                {
+        #                    time: '1772138885616',
+        #                    symbol: 'ZIL-PERP',
+        #                    markPrice: '0.004167783',
+        #                    indexPrice: '0.004168',
+        #                    lastPrice: '0.00416',
+        #                    openInterest: '7685003',
+        #                    fundingRate: '0.0003',
+        #                    nextFundingTime: '1772139600000'
+        #                },
+        #            ]
+        #            collaterals: [
+        #                {asset: 'TAO', referencePrice: '182.15'},
+        #                ...
+        #            ]
+        #        }
+        #    }
+        #
+        symbols = self.market_symbols(symbols)
+        data = self.safe_dict(response, 'data', {})
+        contracts = self.safe_list(data, 'contracts', [])
+        return self.parse_open_interests(contracts, symbols)
+
+    def parse_open_interest(self, interest, market: Market = None):
+        #
+        # fetchOpenInterests
+        #
+        #    {
+        #        time: '1772138885616',
+        #        symbol: 'ZIL-PERP',
+        #        markPrice: '0.004167783',
+        #        indexPrice: '0.004168',
+        #        lastPrice: '0.00416',
+        #        openInterest: '7685003',
+        #        fundingRate: '0.0003',
+        #        nextFundingTime: '1772139600000'
+        #    }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        timestamp = self.safe_integer(interest, 'time')
+        openInterest = self.safe_number(interest, 'openInterest')
+        return self.safe_open_interest({
+            'info': interest,
+            'symbol': self.safe_symbol(marketId, market, None, 'swap'),
+            'baseVolume': openInterest,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': openInterest,
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')

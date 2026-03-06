@@ -1898,8 +1898,8 @@ class xt extends Exchange {
             'change' => $this->safe_number($ticker, 'cv'),
             'percentage' => $this->parse_number($percentage),
             'average' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $this->safe_number_2($ticker, 'a', 'v'),
+            'baseVolume' => $this->safe_number($ticker, 'a'),
+            'quoteVolume' => $this->safe_number($ticker, 'v'),
             'info' => $ticker,
         ), $market);
     }
@@ -3692,7 +3692,7 @@ class xt extends Exchange {
         //             "hasNext" => false,
         //             "items" => array(
         //                 array(
-        //                     "id" => "207260567109387524",
+        //                     "id" => "207260567109387525",
         //                     "coin" => "usdt",
         //                     "symbol" => "btc_usdt",
         //                     "type" => "FEE",

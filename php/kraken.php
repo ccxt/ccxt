@@ -1690,7 +1690,7 @@ class kraken extends Exchange {
         $result = $this->safe_dict($response, 'result');
         $result['usingCost'] = $isUsingCost;
         // it's impossible to know if the order was created using cost or base currency
-        // becuase kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
+        // because kraken only returns something like this => array( order => 'buy 10.00000000 LTCUSD @ market' )
         // this usingCost flag is used to help the parsing but omited from the order
         return $this->parse_order($result);
     }

@@ -75,6 +75,8 @@
 * [unWatchOrderBook](#unwatchorderbook)
 * [watchOrderBookForSymbols](#watchorderbookforsymbols)
 * [unWatchOrderBookForSymbols](#unwatchorderbookforsymbols)
+* [watchFundingRate](#watchfundingrate)
+* [watchFundingRates](#watchfundingrates)
 
 <a name="fetchTime" id="fetchtime"></a>
 
@@ -1816,5 +1818,47 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 ```javascript
 bitmart.unWatchOrderBookForSymbols (symbols[, params])
+```
+
+
+<a name="watchFundingRate" id="watchfundingrate"></a>
+
+### watchFundingRate{docsify-ignore}
+watch the current funding rate
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.watchFundingRate (symbol[, params])
+```
+
+
+<a name="watchFundingRates" id="watchfundingrates"></a>
+
+### watchFundingRates{docsify-ignore}
+watch the funding rate for multiple markets
+
+**Kind**: instance method of [<code>bitmart</code>](#bitmart)  
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
+
+**See**: https://developer-pro.bitmart.com/en/futuresv2/#public-funding-rate-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitmart.watchFundingRates (symbols[, params])
 ```
 

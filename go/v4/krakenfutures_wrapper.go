@@ -495,8 +495,8 @@ func (this *Krakenfutures) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([
 /**
  * @method
  * @name krakenfutures#fetchOrders
- * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
  * @description Gets all orders for an account from the exchange api
+ * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
  * @param {string} symbol Unified market symbol
  * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
  * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
@@ -580,6 +580,7 @@ func (this *Krakenfutures) FetchOrder(id string, options ...FetchOrderOptions) (
  * @param {int} [since] Timestamp (ms) of earliest order.
  * @param {int} [limit] How many orders to return.
  * @param {object} [params] Exchange specific parameters
+ * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -625,6 +626,7 @@ func (this *Krakenfutures) FetchClosedOrders(options ...FetchClosedOrdersOptions
  * @param {int} [since] Timestamp (ms) of earliest order.
  * @param {int} [limit] How many orders to return.
  * @param {object} [params] Exchange specific parameters
+ * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
  * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Krakenfutures) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {

@@ -110,8 +110,10 @@ class bybit extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPositionsHistory' => true,
                 'fetchPremiumIndexOHLCV' => true,
                 'fetchSettlementHistory' => true,
@@ -343,7 +345,7 @@ class bybit extends Exchange {
                         'v5/asset/coin-greeks' => 1,
                         'v5/account/fee-rate' => 10, // 5/s = 1000 / (20 * 10)
                         'v5/account/info' => 5,
-                        'v5/account/transaction-log' => 1,
+                        'v5/account/transaction-log' => 1.66, // 30/s = 50 / 30
                         'v5/account/contract-transaction-log' => 1,
                         'v5/account/smp-group' => 1,
                         'v5/account/mmp-state' => 5,
@@ -539,6 +541,7 @@ class bybit extends Exchange {
                         'v5/account/borrow' => 5,
                         'v5/account/repay' => 5,
                         'v5/account/no-convert-repay' => 5,
+                        'v5/account/set-limit-px-action' => 5,
                         // asset
                         'v5/asset/exchange/quote-apply' => 1, // 50/s
                         'v5/asset/exchange/convert-execute' => 1, // 50/s
@@ -897,6 +900,7 @@ class bybit extends Exchange {
                     '170203' => '\\ccxt\\InvalidOrder', // Please enter the TP/SL price.
                     '170204' => '\\ccxt\\InvalidOrder', // trigger price cannot be higher than 110% price.
                     '170206' => '\\ccxt\\InvalidOrder', // trigger price cannot be lower than 90% of qty.
+                    '170209' => '\\ccxt\\RestrictedLocation', // array("retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea (Cambodia ],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":array(),"retExtInfo":array(),"time":1769526868171)
                     '170210' => '\\ccxt\\InvalidOrder', // New order rejected.
                     '170213' => '\\ccxt\\OrderNotFound', // Order does not exist.
                     '170217' => '\\ccxt\\InvalidOrder', // Only LIMIT-MAKER order is supported for the current pair.
@@ -2895,7 +2899,7 @@ class bybit extends Exchange {
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params, 200);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $params, 200);
         }
         if ($limit === null) {
             $limit = 200;
@@ -2908,6 +2912,7 @@ class bybit extends Exchange {
             'limit' => $limit, // Limit for data size per page. [1, 200]. Default => 200
         );
         $market = $this->market($symbol);
+        $fundingTimeFrameMins = $this->safe_integer($market['info'], 'fundingInterval');
         $symbol = $market['symbol'];
         $request['symbol'] = $market['id'];
         $type = null;
@@ -2928,7 +2933,10 @@ class bybit extends Exchange {
             if ($since !== null) {
                 // end time is required when $since is not empty
                 $fundingInterval = 60 * 60 * 8 * 1000;
-                $request['endTime'] = $since . $limit * $fundingInterval;
+                if ($fundingTimeFrameMins !== null) {
+                    $fundingInterval = $fundingTimeFrameMins * 60 * 1000;
+                }
+                $request['endTime'] = $this->sum($since, $limit * $fundingInterval);
             }
         }
         $response = $this->publicGetV5MarketFundingHistory ($this->extend($request, $params));
@@ -4160,11 +4168,15 @@ class bybit extends Exchange {
                         }
                     }
                 }
-                if ($tpslModeSl !== $tpslModeTp) {
+                if ($isTakeProfitOrder && $isStopLossOrder && $tpslModeSl !== $tpslModeTp) {
                     throw new InvalidOrder($this->id . ' createOrder() requires both $stopLoss and $takeProfit to be full or partial when using combination');
                 }
-                $request['tpslMode'] = $tpslModeSl; // same
-                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice' ));
+                if ($tpslModeSl !== null) {
+                    $request['tpslMode'] = $tpslModeSl;
+                } else {
+                    $request['tpslMode'] = $tpslModeTp;
+                }
+                $params = $this->omit($params, array( 'stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint' ));
             }
         } else {
             $request['side'] = $this->capitalize($side);
@@ -6819,7 +6831,7 @@ class bybit extends Exchange {
             'notional' => $this->parse_number($notional),
             'leverage' => $this->parse_number($leverage),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
-            'realizedPnl' => $this->safe_number($position, 'closedPnl'),
+            'realizedPnl' => $this->safe_number_2($position, 'curRealisedPnl', 'closedPnl'),
             'contracts' => $this->parse_number($size), // in USD for inverse swaps
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'marginRatio' => $this->parse_number($marginRatio),
@@ -9444,6 +9456,141 @@ class bybit extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'timeframe' => null,
             'longShortRatio' => $this->parse_to_numeric(Precise::string_div($longString, $shortString)),
+        );
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://bybit-exchange.github.io/docs/v5/position#$response-parameters
+         *
+         * @param {string[]} [$symbols] list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+         */
+        if ($symbols === null) {
+            throw new ArgumentsRequired($this->id . ' fetchPositionsADLRank() requires a $symbols argument');
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $market = $this->get_market_from_symbols($symbols);
+        $request = array();
+        if ($market !== null) {
+            $request['symbol'] = $market['id'];
+        }
+        $type = null;
+        list($type, $params) = $this->get_bybit_type('fetchPositionsADLRank', $market, $params);
+        $request['category'] = $type;
+        $response = $this->privateGetV5PositionList ($this->extend($request, $params));
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "OK",
+        //         "result" => {
+        //             "nextPageCursor" => "BTCUSDT%2C1767085496112%2C0",
+        //             "category" => "linear",
+        //             "list" => array(
+        //                 array(
+        //                     "symbol" => "BTCUSDT",
+        //                     "leverage" => "",
+        //                     "autoAddMargin" => 0,
+        //                     "avgPrice" => "177489.6",
+        //                     "liqPrice" => "",
+        //                     "riskLimitValue" => "",
+        //                     "takeProfit" => "",
+        //                     "positionValue" => "1774.896",
+        //                     "isReduceOnly" => false,
+        //                     "positionIMByMp" => "",
+        //                     "tpslMode" => "Full",
+        //                     "riskId" => 0,
+        //                     "trailingStop" => "0",
+        //                     "unrealisedPnl" => "-3.016",
+        //                     "markPrice" => "177188",
+        //                     "adlRankIndicator" => 2,
+        //                     "cumRealisedPnl" => "-9782.391468",
+        //                     "positionMM" => "",
+        //                     "createdTime" => "1699928551230",
+        //                     "positionIdx" => 0,
+        //                     "positionIM" => "",
+        //                     "positionMMByMp" => "",
+        //                     "seq" => 9558506126,
+        //                     "updatedTime" => "1767085496112",
+        //                     "side" => "Buy",
+        //                     "bustPrice" => "",
+        //                     "positionBalance" => "",
+        //                     "leverageSysUpdatedTime" => "",
+        //                     "curRealisedPnl" => "-0.9761928",
+        //                     "size" => "0.01",
+        //                     "positionStatus" => "Normal",
+        //                     "mmrSysUpdatedTime" => "",
+        //                     "stopLoss" => "",
+        //                     "tradeMode" => 0,
+        //                     "sessionAvgPrice" => ""
+        //                 }
+        //             )
+        //         ),
+        //         "retExtInfo" => array(),
+        //         "time" => 1767085741416
+        //     }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        $ranks = $this->safe_list($result, 'list', array());
+        return $this->parse_adl_ranks($ranks, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "symbol" => "BTCUSDT",
+        //         "leverage" => "",
+        //         "autoAddMargin" => 0,
+        //         "avgPrice" => "177489.6",
+        //         "liqPrice" => "",
+        //         "riskLimitValue" => "",
+        //         "takeProfit" => "",
+        //         "positionValue" => "1774.896",
+        //         "isReduceOnly" => false,
+        //         "positionIMByMp" => "",
+        //         "tpslMode" => "Full",
+        //         "riskId" => 0,
+        //         "trailingStop" => "0",
+        //         "unrealisedPnl" => "-3.016",
+        //         "markPrice" => "177188",
+        //         "adlRankIndicator" => 2,
+        //         "cumRealisedPnl" => "-9782.391468",
+        //         "positionMM" => "",
+        //         "createdTime" => "1699928551230",
+        //         "positionIdx" => 0,
+        //         "positionIM" => "",
+        //         "positionMMByMp" => "",
+        //         "seq" => 9558506126,
+        //         "updatedTime" => "1767085496112",
+        //         "side" => "Buy",
+        //         "bustPrice" => "",
+        //         "positionBalance" => "",
+        //         "leverageSysUpdatedTime" => "",
+        //         "curRealisedPnl" => "-0.9761928",
+        //         "size" => "0.01",
+        //         "positionStatus" => "Normal",
+        //         "mmrSysUpdatedTime" => "",
+        //         "stopLoss" => "",
+        //         "tradeMode" => 0,
+        //         "sessionAvgPrice" => ""
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'symbol');
+        $timestamp = $this->safe_integer($info, 'updatedTime');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adlRankIndicator'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
         );
     }
 

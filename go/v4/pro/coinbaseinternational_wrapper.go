@@ -52,17 +52,22 @@ func (this *Coinbaseinternational) WatchFundingRate(symbol string, options ...cc
  * @method
  * @name coinbaseinternational#watchFundingRates
  * @description watch the funding rate for multiple markets
- * @see https://www.okx.com/docs-v5/en/#public-data-websocket-funding-rate-channel
- * @param {string[]} symbols list of unified market symbols
+ * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#funding-channel
+ * @param {string[]} symbols a list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols
  */
-func (this *Coinbaseinternational) WatchFundingRates(symbols []string, options ...ccxt.WatchFundingRatesOptions) (ccxt.FundingRates, error) {
+func (this *Coinbaseinternational) WatchFundingRates(options ...ccxt.WatchFundingRatesOptions) (ccxt.FundingRates, error) {
 
     opts := ccxt.WatchFundingRatesOptionsStruct{}
 
     for _, opt := range options {
         opt(&opts)
+    }
+
+    var symbols interface{} = nil
+    if opts.Symbols != nil {
+        symbols = *opts.Symbols
     }
 
     var params interface{} = nil

@@ -302,6 +302,7 @@ export default class bitget extends Exchange {
                             'v3/market/tickers': 1,
                             'v3/market/orderbook': 1,
                             'v3/market/fills': 1,
+                            'v3/market/proof-of-reserves': 1,
                             'v3/market/open-interest': 1,
                             'v3/market/candles': 1,
                             'v3/market/history-candles': 1,
@@ -312,6 +313,7 @@ export default class bitget extends Exchange {
                             'v3/market/margin-loans': 1,
                             'v3/market/position-tier': 1,
                             'v3/market/oi-limit': 2,
+                            'v3/market/index-components': 2,
                         },
                     },
                 },
@@ -349,6 +351,7 @@ export default class bitget extends Exchange {
                             'v2/spot/wallet/deposit-address': 2,
                             'v2/spot/wallet/deposit-records': 2,
                             'v2/spot/wallet/withdrawal-records': 2,
+                            'v2/spot/account/upgrade-status': 20,
                         },
                         'post': {
                             'spot/v1/wallet/transfer': 4,
@@ -418,6 +421,7 @@ export default class bitget extends Exchange {
                             'v2/spot/wallet/withdrawal': 2,
                             'v2/spot/wallet/cancel-withdrawal': 2,
                             'v2/spot/wallet/modify-deposit-account': 2,
+                            'v2/spot/account/upgrade': 20,
                         },
                     },
                     'mix': {
@@ -826,14 +830,29 @@ export default class bitget extends Exchange {
                     'uta': {
                         'get': {
                             'v3/account/assets': 1,
+                            'v3/account/funding-assets': 1,
                             'v3/account/settings': 1,
-                            'v3/account/deposit-records': 2,
                             'v3/account/financial-records': 1,
                             'v3/account/repayable-coins': 2,
                             'v3/account/payment-coins': 2,
                             'v3/account/convert-records': 1,
+                            'v3/account/deduct-info': 20,
+                            'v3/account/fee-rate': 6.6667,
+                            'v3/account/switch-status': 4,
+                            'v3/account/max-transferable': 6.6667,
+                            'v3/account/open-interest-limit': 4,
+                            'v3/account/sub-unified-assets': 20,
                             'v3/account/transferable-coins': 2,
                             'v3/account/sub-transfer-record': 4,
+                            'v3/account/deposit-address': 2,
+                            'v3/account/sub-deposit-address': 2,
+                            'v3/account/deposit-records': 2,
+                            'v3/account/sub-deposit-records': 2,
+                            'v3/account/withdrawal-records': 2,
+                            'v3/broker/sub-list': 1,
+                            'v3/broker/all-sub-deposit-withdrawal': 1,
+                            'v3/broker/commission': 1,
+                            'v3/broker/query-sub-apikey': 1,
                             'v3/ins-loan/transfered': 6.6667,
                             'v3/ins-loan/symbols': 6.6667,
                             'v3/ins-loan/risk-unit': 6.6667,
@@ -842,8 +861,18 @@ export default class bitget extends Exchange {
                             'v3/ins-loan/loan-order': 6.6667,
                             'v3/ins-loan/ltv-convert': 6.6667,
                             'v3/ins-loan/ensure-coins-convert': 6.6667,
+                            'v3/loan/coins': 2,
+                            'v3/loan/interest': 2,
+                            'v3/loan/borrow-ongoing': 2,
+                            'v3/loan/borrow-history': 2,
+                            'v3/loan/repay-history': 2,
+                            'v3/loan/pledge-rate-history': 2,
+                            'v3/loan/debts': 2,
+                            'v3/loan/reduces': 2,
                             'v3/position/current-position': 1,
                             'v3/position/history-position': 1,
+                            'v3/position/adlRank': 20,
+                            'v3/tax/records': 20,
                             'v3/trade/order-info': 1,
                             'v3/trade/unfilled-orders': 1,
                             'v3/trade/unfilled-strategy-orders': 1,
@@ -857,10 +886,26 @@ export default class bitget extends Exchange {
                             'v3/account/set-leverage': 2,
                             'v3/account/set-hold-mode': 2,
                             'v3/account/repay': 4,
+                            'v3/account/switch-deduct': 20,
+                            'v3/account/deposit-account': 20,
+                            'v3/account/switch': 20,
+                            'v3/account/adjust-account-mode': 20,
                             'v3/account/transfer': 4,
                             'v3/account/sub-transfer': 4,
+                            'v3/account/sub-master-transfer': 4,
                             'v3/account/max-open-available': 4,
+                            'v3/account/withdrawal': 20,
+                            'v3/broker/create-sub': 1,
+                            'v3/broker/modify-sub': 1,
+                            'v3/broker/sub-withdrawal': 1,
+                            'v3/broker/sub-deposit-address': 1,
+                            'v3/broker/create-sub-apikey': 1,
+                            'v3/broker/modify-sub-apikey': 1,
+                            'v3/broker/delete-sub-apikey': 1,
                             'v3/ins-loan/bind-uid': 6.6667,
+                            'v3/loan/borrow': 2,
+                            'v3/loan/repay': 2,
+                            'v3/loan/revise-pledge': 2,
                             'v3/trade/place-order': 2,
                             'v3/trade/place-strategy-order': 2,
                             'v3/trade/modify-order': 2,
@@ -872,6 +917,7 @@ export default class bitget extends Exchange {
                             'v3/trade/cancel-batch': 4,
                             'v3/trade/cancel-symbol-order': 4,
                             'v3/trade/close-positions': 4,
+                            'v3/trade/countdown-cancel-all': 20,
                             'v3/user/create-sub': 2,
                             'v3/user/freeze-sub': 2,
                             'v3/user/create-sub-api': 2,
@@ -3279,7 +3325,6 @@ export default class bitget extends Exchange {
         const marketId = this.safeString (ticker, 'symbol');
         const close = this.safeString2 (ticker, 'lastPr', 'lastPrice');
         const timestamp = this.safeIntegerOmitZero (ticker, 'ts'); // exchange bitget provided 0
-        const change = this.safeString (ticker, 'change24h');
         const category = this.safeString (ticker, 'category');
         const markPrice = this.safeString (ticker, 'markPrice');
         let marketType: string;
@@ -3290,7 +3335,8 @@ export default class bitget extends Exchange {
         }
         let percentage = this.safeString (ticker, 'price24hPcnt');
         if (percentage === undefined) {
-            percentage = Precise.stringMul (change, '100');
+            const change24h = this.safeString (ticker, 'change24h');
+            percentage = Precise.stringMul (change24h, '100');
         }
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market, undefined, marketType),
@@ -3307,7 +3353,7 @@ export default class bitget extends Exchange {
             'close': close,
             'last': close,
             'previousClose': undefined,
-            'change': change,
+            'change': undefined,
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'baseVolume', 'volume24h'),

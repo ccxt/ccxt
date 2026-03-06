@@ -1075,7 +1075,7 @@ class gate(Exchange, ImplicitAPI):
             # https://www.gate.com/docs/developers/apiv4/en/#label-list
             'exceptions': {
                 'exact': {
-                    'INVALID_PARAM_VALUE': InvalidOrder,  # {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
+                    'INVALID_PARAM_VALUE': BadRequest,  # {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"} or {"label":"INVALID_PARAM_VALUE","message":"Candlestick too long ago. Maximum 10000 points ago are allowed"}
                     'INVALID_PROTOCOL': BadRequest,
                     'INVALID_ARGUMENT': BadRequest,
                     'INVALID_REQUEST_BODY': BadRequest,
@@ -1173,7 +1173,9 @@ class gate(Exchange, ImplicitAPI):
                     'NO_CHANGE': InvalidOrder,  # {"label":"NO_CHANGE","message":"No change is made"}
                     'PRICE_THRESHOLD_EXCEEDED': InvalidOrder,  # {"label":"PRICE_THRESHOLD_EXCEEDED","message":": 0.45288"}
                 },
-                'broad': {},
+                'broad': {
+                    'Your order size': InvalidOrder,  # {"label":"INVALID_PARAM_VALUE","message":"Your order size 0.003749448 USDT is too small. The minimum is 3 USDT"}
+                },
             },
         })
 
@@ -4106,6 +4108,7 @@ class gate(Exchange, ImplicitAPI):
         :param int [params.price_type]: *contract only* 0 latest deal price, 1 mark price, 2 index price
         :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
         :param bool [params.unifiedAccount]: set to True for creating an order in the unified account
+        :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict|None: `An order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
@@ -4279,7 +4282,8 @@ class gate(Exchange, ImplicitAPI):
             timeInForce = 'poc'
         # we only omit the unified params here
         # self is because the other params will get extended into the request
-        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly'])
+        clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
+        params = self.omit(params, ['stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'timeInForce', 'postOnly', 'clientOrderId'])
         isLimitOrder = (type == 'limit')
         isMarketOrder = (type == 'market')
         if isLimitOrder and price is None:
@@ -4367,7 +4371,6 @@ class gate(Exchange, ImplicitAPI):
                     request['price'] = self.price_to_precision(symbol, price)
                 if timeInForce is not None:
                     request['time_in_force'] = timeInForce
-            clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
             textIsRequired = self.safe_bool(params, 'textIsRequired', False)
             if clientOrderId is not None:
                 # user-defined, must follow the rules if not empty
@@ -4376,7 +4379,7 @@ class gate(Exchange, ImplicitAPI):
                 #     can only include 0-9, A-Z, a-z, underscores(_), hyphens(-) or dots(.)
                 if len(clientOrderId) > 28:
                     raise BadRequest(self.id + ' createOrder() clientOrderId or text param must be up to 28 characters')
-                params = self.omit(params, ['text', 'clientOrderId', 'textIsRequired'])
+                params = self.omit(params, 'textIsRequired')
                 if clientOrderId[0] != 't':
                     clientOrderId = 't-' + clientOrderId
                 request['text'] = clientOrderId
@@ -4385,6 +4388,8 @@ class gate(Exchange, ImplicitAPI):
                     # batchOrders requires text in the request
                     request['text'] = 't-' + self.uuid16()
         else:
+            if clientOrderId is not None:
+                request['text'] = clientOrderId
             if market['option']:
                 raise NotSupported(self.id + ' createOrder() conditional option orders are not supported')
             if contract:
@@ -4862,6 +4867,9 @@ class gate(Exchange, ImplicitAPI):
             timestamp = self.parse_to_int(timestampStr)
         if lastTradeTimestampStr is not None:
             lastTradeTimestamp = self.parse_to_int(lastTradeTimestampStr)
+        initial = self.safe_dict(order, 'initial', {})
+        reduceOnlyInitial = self.safe_bool(initial, 'is_reduce_only')
+        reduceOnly = self.safe_bool(order, 'is_reduce_only', reduceOnlyInitial)
         return self.safe_order({
             'id': self.safe_string(order, 'id'),
             'clientOrderId': self.safe_string(order, 'text'),
@@ -4873,7 +4881,7 @@ class gate(Exchange, ImplicitAPI):
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
-            'reduceOnly': self.safe_value(order, 'is_reduce_only'),
+            'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
             'triggerPrice': triggerPrice,

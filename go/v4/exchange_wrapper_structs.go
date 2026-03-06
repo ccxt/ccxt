@@ -668,13 +668,39 @@ func WithWatchFundingRateParams(params map[string]interface{}) WatchFundingRateO
 }
 
 type WatchFundingRatesOptionsStruct struct {
-	Params *map[string]interface{}
+	Symbols *[]string
+	Params  *map[string]interface{}
 }
 
 type WatchFundingRatesOptions func(opts *WatchFundingRatesOptionsStruct)
 
+func WithWatchFundingRatesSymbols(symbols []string) WatchFundingRatesOptions {
+	return func(opts *WatchFundingRatesOptionsStruct) {
+		opts.Symbols = &symbols
+	}
+}
+
 func WithWatchFundingRatesParams(params map[string]interface{}) WatchFundingRatesOptions {
 	return func(opts *WatchFundingRatesOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type UnWatchFundingRatesOptionsStruct struct {
+	Symbols *[]string
+	Params  *map[string]interface{}
+}
+
+type UnWatchFundingRatesOptions func(opts *UnWatchFundingRatesOptionsStruct)
+
+func WithUnWatchFundingRatesSymbols(symbols []string) UnWatchFundingRatesOptions {
+	return func(opts *UnWatchFundingRatesOptionsStruct) {
+		opts.Symbols = &symbols
+	}
+}
+
+func WithUnWatchFundingRatesParams(params map[string]interface{}) UnWatchFundingRatesOptions {
+	return func(opts *UnWatchFundingRatesOptionsStruct) {
 		opts.Params = &params
 	}
 }
@@ -1927,6 +1953,18 @@ func WithUnWatchTickersParams(params map[string]interface{}) UnWatchTickersOptio
 	}
 }
 
+type UnWatchFundingRateOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type UnWatchFundingRateOptions func(opts *UnWatchFundingRateOptionsStruct)
+
+func WithUnWatchFundingRateParams(params map[string]interface{}) UnWatchFundingRateOptions {
+	return func(opts *UnWatchFundingRateOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchOrderOptionsStruct struct {
 	Symbol *string
 	Params *map[string]interface{}
@@ -2034,6 +2072,18 @@ func WithCreateOrderParams(params map[string]interface{}) CreateOrderOptions {
 	}
 }
 
+type CreateTwapOrderOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type CreateTwapOrderOptions func(opts *CreateTwapOrderOptionsStruct)
+
+func WithCreateTwapOrderParams(params map[string]interface{}) CreateTwapOrderOptions {
+	return func(opts *CreateTwapOrderOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type CreateConvertTradeOptionsStruct struct {
 	Amount *float64
 	Params *map[string]interface{}
@@ -2120,6 +2170,49 @@ func WithFetchPositionModeSymbol(symbol string) FetchPositionModeOptions {
 
 func WithFetchPositionModeParams(params map[string]interface{}) FetchPositionModeOptions {
 	return func(opts *FetchPositionModeOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchADLRankOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchADLRankOptions func(opts *FetchADLRankOptionsStruct)
+
+func WithFetchADLRankParams(params map[string]interface{}) FetchADLRankOptions {
+	return func(opts *FetchADLRankOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchPositionsADLRankOptionsStruct struct {
+	Symbols *[]string
+	Params  *map[string]interface{}
+}
+
+type FetchPositionsADLRankOptions func(opts *FetchPositionsADLRankOptionsStruct)
+
+func WithFetchPositionsADLRankSymbols(symbols []string) FetchPositionsADLRankOptions {
+	return func(opts *FetchPositionsADLRankOptionsStruct) {
+		opts.Symbols = &symbols
+	}
+}
+
+func WithFetchPositionsADLRankParams(params map[string]interface{}) FetchPositionsADLRankOptions {
+	return func(opts *FetchPositionsADLRankOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchPositionADLRankOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchPositionADLRankOptions func(opts *FetchPositionADLRankOptionsStruct)
+
+func WithFetchPositionADLRankParams(params map[string]interface{}) FetchPositionADLRankOptions {
+	return func(opts *FetchPositionADLRankOptionsStruct) {
 		opts.Params = &params
 	}
 }
@@ -6025,6 +6118,25 @@ func WithCreateSpotOrderRequestParams(params map[string]interface{}) CreateSpotO
 	}
 }
 
+type CancelTwapOrderOptionsStruct struct {
+	Symbol *string
+	Params *map[string]interface{}
+}
+
+type CancelTwapOrderOptions func(opts *CancelTwapOrderOptionsStruct)
+
+func WithCancelTwapOrderSymbol(symbol string) CancelTwapOrderOptions {
+	return func(opts *CancelTwapOrderOptionsStruct) {
+		opts.Symbol = &symbol
+	}
+}
+
+func WithCancelTwapOrderParams(params map[string]interface{}) CancelTwapOrderOptions {
+	return func(opts *CancelTwapOrderOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchLedgerEntriesByIdsOptionsStruct struct {
 	Code   *string
 	Params *map[string]interface{}
@@ -6228,6 +6340,18 @@ func WithFetchPublicDepositWithdrawFeesCodes(codes interface{}) FetchPublicDepos
 
 func WithFetchPublicDepositWithdrawFeesParams(params map[string]interface{}) FetchPublicDepositWithdrawFeesOptions {
 	return func(opts *FetchPublicDepositWithdrawFeesOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchNonceOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchNonceOptions func(opts *FetchNonceOptionsStruct)
+
+func WithFetchNonceParams(params map[string]interface{}) FetchNonceOptions {
+	return func(opts *FetchNonceOptionsStruct) {
 		opts.Params = &params
 	}
 }

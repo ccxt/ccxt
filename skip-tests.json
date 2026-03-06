@@ -466,8 +466,6 @@
         }
     },
     "bitrue": {
-        "skip": "tmp",
-        "until": "2025-07-10",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "broken currencies",
@@ -482,7 +480,8 @@
                 "compareQuoteVolumeBaseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269454230#L4164"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo"
+                "checkActiveSymbols": "todo",
+                "spread": "broken on exchange side https://github.com/ccxt/ccxt/actions/runs/21364685831/job/61493525089?pr=27750#step:10:238"
             }
         }
     },
@@ -504,6 +503,9 @@
     },
     "bitstamp": {
         "skipMethods": {
+            "loadMarkets": {
+                "contractSize": "not provided"
+            },
             "fetchCurrencies": {
                 "withdraw": "not provided",
                 "deposit": "not provided",
@@ -557,6 +559,13 @@
             },
             "orderBook": {
                 "timestamp": "https://app.travis-ci.com/github/ccxt/ccxt/builds/269572350#L4685"
+            }
+        }
+    },
+    "blofin": {
+        "skipMethods": {
+            "fetchTickers": {
+                "checkActiveSymbols": "todo https://github.com/ccxt/ccxt/actions/runs/22588349073/job/65440134952?pr=28035#step:10:231"
             }
         }
     },
@@ -669,7 +678,8 @@
                 "compareOHLC": "open below low https://github.com/ccxt/ccxt/actions/runs/17983223201/job/51154949662?pr=25258#step:9:228"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo"
+                "checkActiveSymbols": "todo",
+                "maxIncrease": "frequently added symbols are annoying"
             },
             "orderBook": {
                 "timestamp": "not present"
@@ -919,8 +929,6 @@
         }
     },
     "cryptomus": {
-        "skip": "their api seems down",
-        "until": "2025-12-31",
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided",
@@ -932,7 +940,7 @@
                 "currencyIdAndCode": "messed codes"
             },
             "fetchOrderBook": {
-                "compareBidAsk": "sometimes bid is greater than ask"
+                "spread": "sometimes bid is greater than ask"
             },
             "fetchTrades": {
                 "price": "sometimes is not set",
@@ -965,6 +973,7 @@
         }
     },
     "defx": {
+        "skipWs": true,
         "skipMethods": {
             "ohlcv": {
                 "1": "distorted open: https://github.com/ccxt/ccxt/actions/runs/14648217027/job/41107795879?pr=25786#step:9:458"
@@ -1101,7 +1110,7 @@
                 "timestamp": "not provided"
             },
             "watchOrderBook": {
-                "compareBidAsk": "sometimes bid is greater than ask"
+                "spread": "sometimes bid is greater than ask https://github.com/ccxt/ccxt/actions/runs/21364685838/job/61493659809?pr=27750#step:11:499"
             }
         }
     },
@@ -2009,6 +2018,9 @@
                 "networks":"missing",
                 "limits": "broken for some markets",
                 "type": "todo"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -2077,7 +2089,8 @@
             },
             "ticker": {
                 "maxIncrease": "too much increases https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:925",
-                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317"
+                "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16059129227/job/45320923643?pr=26334#step:9:317",
+                "compareQuoteVolumeBaseVolume": "failing sometimes https://github.com/ccxt/ccxt/actions/runs/21397208678/job/61598962915?pr=25258#step:10:243"
             },
             "fetchTickers": {
                 "ask": "weird values",
@@ -2185,6 +2198,29 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "precision":"is undefined"
+            }
+        }
+    },
+    "lighter": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing",
+                "compareToNextItem": "tmp"
+
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
+            },
+            "orderBook": {
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp": "not provided"
             }
         }
     }

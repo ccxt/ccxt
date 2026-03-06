@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -18,6 +18,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NoChange
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import ManualInteractionNeeded
+from ccxt.base.errors import RestrictedLocation
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -131,8 +132,10 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsHistory': True,
                 'fetchPremiumIndexOHLCV': True,
                 'fetchSettlementHistory': True,
@@ -364,7 +367,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/asset/coin-greeks': 1,
                         'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
                         'v5/account/info': 5,
-                        'v5/account/transaction-log': 1,
+                        'v5/account/transaction-log': 1.66,  # 30/s = 50 / 30
                         'v5/account/contract-transaction-log': 1,
                         'v5/account/smp-group': 1,
                         'v5/account/mmp-state': 5,
@@ -560,6 +563,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
+                        'v5/account/set-limit-px-action': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -918,6 +922,7 @@ class bybit(Exchange, ImplicitAPI):
                     '170203': InvalidOrder,  # Please enter the TP/SL price.
                     '170204': InvalidOrder,  # trigger price cannot be higher than 110% price.
                     '170206': InvalidOrder,  # trigger price cannot be lower than 90% of qty.
+                    '170209': RestrictedLocation,  # {"retCode":170209,"retMsg":"This trading pair is only available to the Brunei,Kampuchea(Cambodia],Indonesia,Laos,Malaysia,Burma,Philippines,Thailand,Timor-Leste,Vietnam region.","result":{},"retExtInfo":{},"time":1769526868171}
                     '170210': InvalidOrder,  # New order rejected.
                     '170213': OrderNotFound,  # Order does not exist.
                     '170217': InvalidOrder,  # Only LIMIT-MAKER order is supported for the current pair.
@@ -2820,7 +2825,7 @@ class bybit(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 200)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, params, 200)
         if limit is None:
             limit = 200
         request: dict = {
@@ -2831,6 +2836,7 @@ class bybit(Exchange, ImplicitAPI):
             'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
         }
         market = self.market(symbol)
+        fundingTimeFrameMins = self.safe_integer(market['info'], 'fundingInterval')
         symbol = market['symbol']
         request['symbol'] = market['id']
         type = None
@@ -2849,7 +2855,9 @@ class bybit(Exchange, ImplicitAPI):
             if since is not None:
                 # end time is required when since is not empty
                 fundingInterval = 60 * 60 * 8 * 1000
-                request['endTime'] = since + limit * fundingInterval
+                if fundingTimeFrameMins is not None:
+                    fundingInterval = fundingTimeFrameMins * 60 * 1000
+                request['endTime'] = self.sum(since, limit * fundingInterval)
         response = self.publicGetV5MarketFundingHistory(self.extend(request, params))
         #
         #     {
@@ -4007,10 +4015,13 @@ class bybit(Exchange, ImplicitAPI):
                             tpslModeTp = 'Partial'
                         else:
                             tpslModeTp = 'Full'
-                if tpslModeSl != tpslModeTp:
+                if isTakeProfitOrder and isStopLossOrder and tpslModeSl != tpslModeTp:
                     raise InvalidOrder(self.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination')
-                request['tpslMode'] = tpslModeSl  # same
-                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice'])
+                if tpslModeSl is not None:
+                    request['tpslMode'] = tpslModeSl
+                else:
+                    request['tpslMode'] = tpslModeTp
+                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint'])
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
@@ -6480,7 +6491,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'notional': self.parse_number(notional),
             'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'realizedPnl': self.safe_number(position, 'closedPnl'),
+            'realizedPnl': self.safe_number_2(position, 'curRealisedPnl', 'closedPnl'),
             'contracts': self.parse_number(size),  # in USD for inverse swaps
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': self.parse_number(marginRatio),
@@ -8968,6 +8979,137 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
             'timeframe': None,
             'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
+        }
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://bybit-exchange.github.io/docs/v5/position#response-parameters
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        if symbols is None:
+            raise ArgumentsRequired(self.id + ' fetchPositionsADLRank() requires a symbols argument')
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        market = self.get_market_from_symbols(symbols)
+        request: dict = {}
+        if market is not None:
+            request['symbol'] = market['id']
+        type = None
+        type, params = self.get_bybit_type('fetchPositionsADLRank', market, params)
+        request['category'] = type
+        response = self.privateGetV5PositionList(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "nextPageCursor": "BTCUSDT%2C1767085496112%2C0",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "symbol": "BTCUSDT",
+        #                     "leverage": "",
+        #                     "autoAddMargin": 0,
+        #                     "avgPrice": "177489.6",
+        #                     "liqPrice": "",
+        #                     "riskLimitValue": "",
+        #                     "takeProfit": "",
+        #                     "positionValue": "1774.896",
+        #                     "isReduceOnly": False,
+        #                     "positionIMByMp": "",
+        #                     "tpslMode": "Full",
+        #                     "riskId": 0,
+        #                     "trailingStop": "0",
+        #                     "unrealisedPnl": "-3.016",
+        #                     "markPrice": "177188",
+        #                     "adlRankIndicator": 2,
+        #                     "cumRealisedPnl": "-9782.391468",
+        #                     "positionMM": "",
+        #                     "createdTime": "1699928551230",
+        #                     "positionIdx": 0,
+        #                     "positionIM": "",
+        #                     "positionMMByMp": "",
+        #                     "seq": 9558506126,
+        #                     "updatedTime": "1767085496112",
+        #                     "side": "Buy",
+        #                     "bustPrice": "",
+        #                     "positionBalance": "",
+        #                     "leverageSysUpdatedTime": "",
+        #                     "curRealisedPnl": "-0.9761928",
+        #                     "size": "0.01",
+        #                     "positionStatus": "Normal",
+        #                     "mmrSysUpdatedTime": "",
+        #                     "stopLoss": "",
+        #                     "tradeMode": 0,
+        #                     "sessionAvgPrice": ""
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1767085741416
+        #     }
+        #
+        result = self.safe_dict(response, 'result', {})
+        ranks = self.safe_list(result, 'list', [])
+        return self.parse_adl_ranks(ranks, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "leverage": "",
+        #         "autoAddMargin": 0,
+        #         "avgPrice": "177489.6",
+        #         "liqPrice": "",
+        #         "riskLimitValue": "",
+        #         "takeProfit": "",
+        #         "positionValue": "1774.896",
+        #         "isReduceOnly": False,
+        #         "positionIMByMp": "",
+        #         "tpslMode": "Full",
+        #         "riskId": 0,
+        #         "trailingStop": "0",
+        #         "unrealisedPnl": "-3.016",
+        #         "markPrice": "177188",
+        #         "adlRankIndicator": 2,
+        #         "cumRealisedPnl": "-9782.391468",
+        #         "positionMM": "",
+        #         "createdTime": "1699928551230",
+        #         "positionIdx": 0,
+        #         "positionIM": "",
+        #         "positionMMByMp": "",
+        #         "seq": 9558506126,
+        #         "updatedTime": "1767085496112",
+        #         "side": "Buy",
+        #         "bustPrice": "",
+        #         "positionBalance": "",
+        #         "leverageSysUpdatedTime": "",
+        #         "curRealisedPnl": "-0.9761928",
+        #         "size": "0.01",
+        #         "positionStatus": "Normal",
+        #         "mmrSysUpdatedTime": "",
+        #         "stopLoss": "",
+        #         "tradeMode": 0,
+        #         "sessionAvgPrice": ""
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        timestamp = self.safe_integer(info, 'updatedTime')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adlRankIndicator'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
         }
 
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:

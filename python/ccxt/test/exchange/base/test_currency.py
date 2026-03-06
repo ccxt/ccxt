@@ -60,8 +60,17 @@ def test_currency(exchange, skipped_properties, method, entry):
     network_keys_length = len(network_keys)
     if network_keys_length == 0 and ('skipCurrenciesWithoutNetworks' in skipped_properties):
         return
-    #
-    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    try:
+        test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    except Exception as e:
+        message = exchange.exception_message(e)
+        # check structure if key is numeric, not string
+        if '"id" key' in message:
+            # @ts-ignore
+            format['id'] = 123
+            test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+        else:
+            assert message == '', message
     #
     test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, entry, 'precision')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'fee', '0')

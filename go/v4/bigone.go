@@ -1511,7 +1511,7 @@ func (this *BigoneCore) ParseType(typeVar interface{}) interface{} {
 func (this *BigoneCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
 	//
 	//    {
-	//        "id": "42154072251",
+	//        "id": "42154072252",
 	//        "asset_pair_name": "SOL-USDT",
 	//        "price": "20",
 	//        "amount": "0.5",

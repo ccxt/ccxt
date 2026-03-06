@@ -686,7 +686,7 @@ export default class independentreserve extends Exchange {
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const request = this.ordered ({});
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -715,7 +715,7 @@ export default class independentreserve extends Exchange {
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        const request = this.ordered ({});
+        const request = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -748,10 +748,10 @@ export default class independentreserve extends Exchange {
         if (limit === undefined) {
             limit = 50;
         }
-        const request = this.ordered ({
+        const request = {
             'pageIndex': pageIndex,
             'pageSize': limit,
-        });
+        };
         const response = await this.privatePostGetTrades (this.extend (request, params));
         let market = undefined;
         if (symbol !== undefined) {
@@ -887,11 +887,11 @@ export default class independentreserve extends Exchange {
         const market = this.market (symbol);
         let orderType = this.capitalize (type);
         orderType += (side === 'sell') ? 'Offer' : 'Bid';
-        const request = this.ordered ({
+        const request = {
             'primaryCurrencyCode': market['baseId'],
             'secondaryCurrencyCode': market['quoteId'],
             'orderType': orderType,
-        });
+        };
         let response = undefined;
         request['volume'] = amount;
         if (type === 'limit') {
@@ -1115,7 +1115,7 @@ export default class independentreserve extends Exchange {
             }
             const message = auth.join (',');
             const signature = this.hmac (this.encode (message), this.encode (this.secret), sha256);
-            const query = this.ordered ({});
+            const query = {};
             query['apiKey'] = this.apiKey;
             query['nonce'] = nonce;
             query['signature'] = signature.toUpperCase ();

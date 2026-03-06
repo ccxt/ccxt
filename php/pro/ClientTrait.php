@@ -27,10 +27,6 @@ trait ClientTrait {
         return \ccxt\pro\inflate($data); // zlib_decode($data);
     }
 
-    public function inflate64($data) {
-        return \ccxt\pro\inflate64($data); // zlib_decode(base64_decode($data));
-    }
-
     public function gunzip($data) {
         return \ccxt\pro\gunzip($data);
     }

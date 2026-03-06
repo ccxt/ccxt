@@ -12,6 +12,7 @@ require('../utils/utf8.js');
 require('../../../base/functions/platform.js');
 require('../../../base/functions/encode.js');
 require('../../../base/functions/crypto.js');
+require('../../../base/functions/io.js');
 require('../../noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------

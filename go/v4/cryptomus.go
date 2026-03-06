@@ -855,7 +855,7 @@ func (this *CryptomusCore) CreateOrder(symbol interface{}, typeVar interface{}, 
 
 		//
 		//     {
-		//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+		//         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
 		//     }
 		//
 		ch <- this.ParseOrder(response, market)
