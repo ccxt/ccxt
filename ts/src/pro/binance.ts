@@ -87,9 +87,6 @@ export default class binance extends binanceRest {
                         'margin': 'wss://stream.testnet.binance.vision/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://fstream.binancefuture.com/public/ws',
-                        'optionMarket': 'wss://fstream.binancefuture.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binancefuture.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://ws-api.testnet.binance.vision/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -103,9 +100,6 @@ export default class binance extends binanceRest {
                         'margin': 'wss://demo-stream.binance.com/ws',
                         'future': 'wss://fstream.binancefuture.com/ws',
                         'delivery': 'wss://dstream.binancefuture.com/ws',
-                        'option': 'wss://fstream.binance.com/public/ws',
-                        'optionMarket': 'wss://fstream.binance.com/market/ws',
-                        'optionPrivate': 'wss://fstream.binance.com/private/ws',
                         'ws-api': {
                             'spot': 'wss://demo-ws-api.binance.com/ws-api/v3',
                             'future': 'wss://testnet.binancefuture.com/ws-fapi/v1',
@@ -3148,6 +3142,10 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             } else if (type === 'option') {
+                const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
+                if (demoMode || this.isSandboxModeEnabled) {
+                    throw new NotSupported (this.id + ' watchBalance() does not support option markets in demo/testnet mode');
+                }
                 urlType = 'optionPrivate';
             }
             url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
@@ -3938,6 +3936,10 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             } else if (type === 'option') {
+                const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
+                if (demoMode || this.isSandboxModeEnabled) {
+                    throw new NotSupported (this.id + ' watchOrders() does not support option markets in demo/testnet mode');
+                }
                 urlType = 'optionPrivate';
             }
             url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
@@ -4395,6 +4397,10 @@ export default class binance extends binanceRest {
         if (isPortfolioMargin) {
             urlType = 'papi';
         } else if (type === 'option') {
+            const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
+            if (demoMode || this.isSandboxModeEnabled) {
+                throw new NotSupported (this.id + ' watchPositions() does not support option markets in demo/testnet mode');
+            }
             urlType = 'optionPrivate';
         }
         const url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
@@ -4829,6 +4835,10 @@ export default class binance extends binanceRest {
             if (isPortfolioMargin) {
                 urlType = 'papi';
             } else if (type === 'option') {
+                const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
+                if (demoMode || this.isSandboxModeEnabled) {
+                    throw new NotSupported (this.id + ' watchMyTrades() does not support option markets in demo/testnet mode');
+                }
                 urlType = 'optionPrivate';
             }
             url = this.urls['api']['ws'][urlType] + '/' + this.options[type]['listenKey'];
