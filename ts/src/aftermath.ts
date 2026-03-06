@@ -583,11 +583,10 @@ export default class aftermath extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        const account = this.safeString (params, 'account');
+        const account = this.handleOptionAndParams (params, 'fetchBalance', 'account');
         const request = {
             'account': account,
         };
-        params = this.omit (params, 'account');
         if (account === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires account');
         }
@@ -679,7 +678,7 @@ export default class aftermath extends Exchange {
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const accountNumber = this.safeNumber (params, 'accountNumber');
+        const accountNumber = this.handleOptionAndParams (params, 'fetchOpenOrders', 'accountNumber');
         if (accountNumber === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires an accountNumber parameter in params');
         }
@@ -687,7 +686,6 @@ export default class aftermath extends Exchange {
             'chId': this.safeString (market, 'id'),
             'accountNumber': accountNumber,
         };
-        params = this.omit (params, 'accountNumber');
         const response = await this.privatePostMyPendingOrders (this.extend (request, params));
         //
         // [
@@ -739,14 +737,13 @@ export default class aftermath extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}) {
         await this.loadMarkets ();
-        const accountNumber = this.safeNumber (params, 'accountNumber');
+        const accountNumber = this.handleOptionAndParams (params, 'fetchPositions', 'accountNumber');
         if (accountNumber === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPositions() requires an accountNumber parameter in params');
         }
         const request = {
             'accountNumber': accountNumber,
         };
-        params = this.omit (params, 'accountNumber');
         const response = await this.privatePostPositions (this.extend (request, params));
         //
         // [
@@ -815,8 +812,7 @@ export default class aftermath extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
-        const account = this.safeString (params, 'account');
-        params = this.omit (params, 'account');
+        const account = this.handleOptionAndParams (params, 'createOrder', 'account');
         const order = this.parseCreateEditOrderArgs (undefined, symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order as any ], { 'account': account });
         return orders[0];
@@ -856,8 +852,7 @@ export default class aftermath extends Exchange {
             order['amount'] = this.parseToNumeric (this.amountToPrecision (symbol, amount));
             ordersRequest.push (order);
         }
-        const account = this.safeString (params, 'account');
-        params = this.omit (params, 'account');
+        const account = this.handleOptionAndParams (params, 'createOrders', 'account');
         const txRequest = {
             'accountId': account,
             'metadata': {
@@ -924,8 +919,7 @@ export default class aftermath extends Exchange {
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const account = this.safeString (params, 'account');
-        params = this.omit (params, 'account');
+        const account = this.handleOptionAndParams (params, 'cancelOrders', 'account');
         const txRequest = {
             'accountId': account,
             'metadata': {
@@ -1007,8 +1001,7 @@ export default class aftermath extends Exchange {
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const account = this.safeString2 (params, 'account', 'accountId');
-        params = this.omit (params, [ 'account', 'accountId' ]);
+        const account = this.handleOptionAndParams2 (params, 'addMargin', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
@@ -1055,8 +1048,7 @@ export default class aftermath extends Exchange {
     async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const account = this.safeString2 (params, 'account', 'accountId');
-        params = this.omit (params, [ 'account', 'accountId' ]);
+        const account = this.handleOptionAndParams2 (params, 'reduceMargin', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
@@ -1162,8 +1154,7 @@ export default class aftermath extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const account = this.safeString (params, 'account');
-        params = this.omit (params, [ 'account' ]);
+        const account = this.handleOptionAndParams (params, 'withdraw', 'account');
         if (account === undefined) {
             throw new ArgumentsRequired (this.id + ' withdraw() requires a account parameter in params');
         }
@@ -1235,8 +1226,7 @@ export default class aftermath extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const account = this.safeString2 (params, 'account', 'accountId');
-        params = this.omit (params, [ 'account', 'accountId' ]);
+        const account = this.handleOptionAndParams2 (params, 'setLeverage', 'account', 'accountId');
         const txRequest = {
             'accountId': account,
             'chId': market['id'],
