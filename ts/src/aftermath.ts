@@ -154,7 +154,6 @@ export default class aftermath extends Exchange {
                         'iceberg': false,
                     },
                 },
-
             },
         });
     }
