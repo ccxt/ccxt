@@ -329,3 +329,37 @@ lighter = ccxt.lighter({
 ### GO users
 
 - Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+
+## How to use the DyDx Exchange in CCXT?
+
+
+DyDx is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+## Credentials requirements
+
+DyDx requires the following :
+- `privateKey`: the l1 private key (hex) used on dydx, or you can set l2 mnemonic in options
+- `mnemonic` in `exchange.options`: the 24 words to retrieve your l2 private key, you can find it on the web UI
+
+Example
+
+```Python
+dydx = ccxt.dydx({
+	'privateKey': 'XXXXXXX',
+})
+
+# or
+dydx = ccxt.dydx({
+	'options': {
+		'mnemonic': 'test test ...',
+	}
+})
+```
+
+### Dependencies requirements
+
+DyDx required another dependency for python user. Before use it, you need to install pycryptodom locally.
+
+```BASH
+$ pip3 install pycryptodom
+```
