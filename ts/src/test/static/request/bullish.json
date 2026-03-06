@@ -339,6 +339,16 @@
                 "url": "https://api.simnext.bullish-test.com/trading-api/v1/markets",
                 "input": []
             }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "Fetch Open Interest",
+                "method": "fetchOpenInterest",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/markets/BTC-USDC-20260626-160000-P/tick",
+                "input": [
+                    "BTC/USDC:USDC-20260626-160000-P"
+                ]
+            }
         ]
     }
 }
