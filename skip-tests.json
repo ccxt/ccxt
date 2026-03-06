@@ -2223,5 +2223,28 @@
                 "timestamp": "not provided"
             }
         }
+    },
+    "aftermath": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing",
+                "compareToNextItem": "tmp"
+
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
+            },
+            "orderBook": {
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp": "not provided"
+            }
+        }
     }
 }
