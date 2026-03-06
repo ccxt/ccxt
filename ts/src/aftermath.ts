@@ -200,6 +200,7 @@ export default class aftermath extends Exchange {
             'deposit': this.safeBool (rawCurrency, 'deposit'),
             'withdraw': this.safeBool (rawCurrency, 'withdraw'),
             'precision': this.safeNumber (rawCurrency, 'precision'),
+            'type': 'crypto',
             'info': rawCurrency,
         });
     }
@@ -545,8 +546,10 @@ export default class aftermath extends Exchange {
     }
 
     parseTrade (rawTrade: Dict, market: Market = undefined): Trade {
-        const trade = this.safeTrade (rawTrade);
+        const trade = this.safeTrade (this.extend ({ 'info': rawTrade }, rawTrade));
         trade['id'] = '';
+        trade['order'] = undefined;
+        trade['takerOrMaker'] = undefined;
         trade['timestamp'] = this.safeInteger (rawTrade, 'timestamp');
         return trade;
     }
