@@ -1,3 +1,16 @@
+<a id="v4.5.42"></a>
+# [v4.5.42](https://github.com/ccxt/ccxt/releases/tag/v4.5.42) - 2026-03-06
+
+## What's Changed
+* chore: fix type in faq by [@carlosmiei](https://github.com/carlosmiei) in [#28064](https://github.com/ccxt/ccxt/pull/28064)
+* chore: fix missing lighter folder from python package by [@carlosmiei](https://github.com/carlosmiei) in [#28072](https://github.com/ccxt/ccxt/pull/28072)
+
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.41...v4.5.42
+
+[Changes][v4.5.42]
+
+
 <a id="v4.5.41"></a>
 # [v4.5.41](https://github.com/ccxt/ccxt/releases/tag/v4.5.41) - 2026-03-05
 
@@ -12554,6 +12567,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.42]: https://github.com/ccxt/ccxt/compare/v4.5.41...v4.5.42
 [v4.5.41]: https://github.com/ccxt/ccxt/compare/v4.5.40...v4.5.41
 [v4.5.40]: https://github.com/ccxt/ccxt/compare/v4.5.39...v4.5.40
 [v4.5.39]: https://github.com/ccxt/ccxt/compare/v4.5.38...v4.5.39
