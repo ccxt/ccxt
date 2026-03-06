@@ -1962,7 +1962,7 @@ export default class lighter extends Exchange {
         //         "owner_account_index": 1077,
         //         "initial_base_amount": "36.0386",
         //         "price": "2221.60",
-        //         "nonce": 643418,
+        //         "nonce": 643419,
         //         "remaining_base_amount": "0.0000",
         //         "is_ask": true,
         //         "base_size": 0,
