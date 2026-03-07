@@ -673,7 +673,7 @@ class coinbase(ccxt.async_support.coinbase):
             currentEvent = events[i]
             currentTrades = self.safe_list(currentEvent, 'trades')
             for j in range(0, len(currentTrades)):
-                item = currentTrades[i]
+                item = currentTrades[j]
                 tradesArray.append(self.parse_trade(item))
         client.resolve(tradesArray, messageHash)
         self.try_resolve_usdc(client, messageHash, tradesArray)
