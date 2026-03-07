@@ -815,6 +815,31 @@
         ],
         "cancelAllOrders": [
             {
+                "description": "cancel all margin trigger orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/cancel?tradeType=MARGIN_TRADE&trigger=true",
+                "input": [
+                    null,
+                    {
+                        "marginMode": "cross",
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel all margin orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/orders?symbol=DOGE-USDT&tradeType=MARGIN_TRADE",
+                "input": [
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",
                 "url": "https://api-futures.kucoin.com/api/v1/orders?symbol=LTCUSDTM",
