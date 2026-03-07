@@ -1,5 +1,7 @@
 {
     "alp": {
+        "skip": "needs api1 to api3 update",
+        "until": "2026-04-01",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -1558,6 +1560,7 @@
         }
     },
     "lbank": {
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
