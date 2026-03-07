@@ -162,6 +162,7 @@ public partial class coinbaseinternational : Exchange
                     { "is a required field", typeof(BadRequest) },
                     { "Not Found", typeof(BadRequest) },
                     { "ip not allowed", typeof(AuthenticationError) },
+                    { "cbe spot routing instrument not supported", typeof(NotSupported) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
