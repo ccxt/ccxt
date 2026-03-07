@@ -4567,6 +4567,9 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
      * @param {string} status 'active' or 'closed', only 'active' is valid for stop orders
@@ -4607,6 +4610,9 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-open-orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-closed-orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
      * @param {string} status *not used for stop orders* 'open' or 'closed'
      * @param {string} symbol unified market symbol
      * @param {int} [since] timestamp in ms of the earliest order
@@ -4615,11 +4621,12 @@ export default class kucoin extends Exchange {
      * @param {int} [params.until] end time in ms
      * @param {string} [params.side] buy or sell
      * @param {string} [params.type] limit, market, limit_stop or market_stop
-     * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
+     * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE or MARGIN_ISOLATED_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
      * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
+     * @param {string} [params.marginMode] 'cross' or 'isolated', only for margin orders
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchSpotOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -4634,84 +4641,97 @@ export default class kucoin extends Exchange {
         }
         params = this.omit (params, [ 'stop', 'trigger', 'till', 'until' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
+        const isMarginOrder = marginMode !== undefined;
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
         } else if (lowercaseStatus === 'closed') {
             lowercaseStatus = 'done';
         }
-        const request: Dict = {
-            'status': lowercaseStatus,
-        };
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['startAt'] = since;
-        }
-        if (limit !== undefined) {
-            request['pageSize'] = limit;
-        }
-        if (until) {
-            request['endAt'] = until;
-        }
         request['tradeType'] = this.safeString (this.options['marginModes'], marginMode, 'TRADE');
         let response = undefined;
-        if (trigger) {
-            response = await this.privateGetStopOrder (this.extend (request, query));
-        } else if (hf) {
-            if (lowercaseStatus === 'active') {
-                response = await this.privateGetHfOrdersActive (this.extend (request, query));
-            } else if (lowercaseStatus === 'done') {
-                response = await this.privateGetHfOrdersDone (this.extend (request, query));
-            }
+        if (isMarginOrder && lowercaseStatus === 'active' && (!trigger)) {
+            // hf margin open non-trigger orders require only symbol and tradeType params
+            response = await this.privateGetHfMarginOrdersActive (this.extend (request, query));
         } else {
-            response = await this.privateGetOrders (this.extend (request, query));
+            if (!isMarginOrder) {
+                request['status'] = lowercaseStatus;
+            }
+            if (since !== undefined) {
+                request['startAt'] = since;
+            }
+            if (limit !== undefined) {
+                request['pageSize'] = limit;
+            }
+            if (until) {
+                request['endAt'] = until;
+            }
+            if (trigger) {
+                if (isMarginOrder) {
+                    response = await this.privateGetHfMarginStopOrders (this.extend (request, query));
+                } else {
+                    response = await this.privateGetStopOrder (this.extend (request, query));
+                }
+            } else if (isMarginOrder) {
+                response = await this.privateGetHfMarginOrdersDone (this.extend (request, query));
+            } else if (hf) {
+                if (lowercaseStatus === 'active') {
+                    response = await this.privateGetHfOrdersActive (this.extend (request, query));
+                } else if (lowercaseStatus === 'done') {
+                    response = await this.privateGetHfOrdersDone (this.extend (request, query));
+                }
+            } else {
+                response = await this.privateGetOrders (this.extend (request, query));
+            }
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "currentPage": 1,
+            //             "pageSize": 1,
+            //             "totalNum": 153408,
+            //             "totalPage": 153408,
+            //             "items": [
+            //                 {
+            //                     "id": "5c35c02703aa673ceec2a168",   //orderid
+            //                     "symbol": "BTC-USDT",   //symbol
+            //                     "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
+            //                     "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
+            //                     "side": "buy",         // transaction direction,include buy and sell
+            //                     "price": "10",         // order price
+            //                     "size": "2",           // order quantity
+            //                     "funds": "0",          // order funds
+            //                     "dealFunds": "0.166",  // deal funds
+            //                     "dealSize": "2",       // deal quantity
+            //                     "fee": "0",            // fee
+            //                     "feeCurrency": "USDT", // charge fee currency
+            //                     "stp": "",             // self trade prevention,include CN,CO,DC,CB
+            //                     "stop": "",            // stop type
+            //                     "stopTriggered": false,  // stop order is triggered
+            //                     "stopPrice": "0",      // stop price
+            //                     "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
+            //                     "postOnly": false,     // postOnly
+            //                     "hidden": false,       // hidden order
+            //                     "iceberg": false,      // iceberg order
+            //                     "visibleSize": "0",    // display quantity for iceberg order
+            //                     "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
+            //                     "channel": "IOS",      // order source
+            //                     "clientOid": "",       // user-entered order unique mark
+            //                     "remark": "",          // remark
+            //                     "tags": "",            // tag order source
+            //                     "isActive": false,     // status before unfilled or uncancelled
+            //                     "cancelExist": false,   // order cancellation transaction record
+            //                     "createdAt": 1547026471000  // time
+            //                 },
+            //             ]
+            //         }
+            //    }
         }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "currentPage": 1,
-        //             "pageSize": 1,
-        //             "totalNum": 153408,
-        //             "totalPage": 153408,
-        //             "items": [
-        //                 {
-        //                     "id": "5c35c02703aa673ceec2a168",   //orderid
-        //                     "symbol": "BTC-USDT",   //symbol
-        //                     "opType": "DEAL",      // operation type,deal is pending order,cancel is cancel order
-        //                     "type": "limit",       // order type,e.g. limit,markrt,stop_limit.
-        //                     "side": "buy",         // transaction direction,include buy and sell
-        //                     "price": "10",         // order price
-        //                     "size": "2",           // order quantity
-        //                     "funds": "0",          // order funds
-        //                     "dealFunds": "0.166",  // deal funds
-        //                     "dealSize": "2",       // deal quantity
-        //                     "fee": "0",            // fee
-        //                     "feeCurrency": "USDT", // charge fee currency
-        //                     "stp": "",             // self trade prevention,include CN,CO,DC,CB
-        //                     "stop": "",            // stop type
-        //                     "stopTriggered": false,  // stop order is triggered
-        //                     "stopPrice": "0",      // stop price
-        //                     "timeInForce": "GTC",  // time InForce,include GTC,GTT,IOC,FOK
-        //                     "postOnly": false,     // postOnly
-        //                     "hidden": false,       // hidden order
-        //                     "iceberg": false,      // iceberg order
-        //                     "visibleSize": "0",    // display quantity for iceberg order
-        //                     "cancelAfter": 0,      // cancel orders time，requires timeInForce to be GTT
-        //                     "channel": "IOS",      // order source
-        //                     "clientOid": "",       // user-entered order unique mark
-        //                     "remark": "",          // remark
-        //                     "tags": "",            // tag order source
-        //                     "isActive": false,     // status before unfilled or uncancelled
-        //                     "cancelExist": false,   // order cancellation transaction record
-        //                     "createdAt": 1547026471000  // time
-        //                 },
-        //             ]
-        //         }
-        //    }
         const listData = this.safeList (response, 'data');
         if (listData !== undefined) {
             return this.parseOrders (listData, market, since, limit);
@@ -4841,6 +4861,8 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4872,6 +4894,9 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-orders-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-order-list
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-stop-order-list
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-open-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-closed-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-list
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
