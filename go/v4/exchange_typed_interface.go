@@ -220,6 +220,9 @@ func CreateExchange(exchangeId string, options map[string]interface{}) IExchange
 	case "exchange":
 		itf := NewExchangeTyped(nil)
 		return itf
+	case "aftermath":
+		itf := NewAftermath(options)
+		return itf
 	case "alp":
 		itf := NewAlp(options)
 		return itf

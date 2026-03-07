@@ -8,6 +8,7 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
+var aftermath = require('./src/aftermath.js');
 var alp = require('./src/alp.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
@@ -119,6 +120,7 @@ var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zebpay = require('./src/zebpay.js');
 var zonda = require('./src/zonda.js');
+var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var arkham$1 = require('./src/pro/arkham.js');
@@ -200,9 +202,10 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.41';
+const version = '4.5.42';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
+    'aftermath': aftermath["default"],
     'alp': alp["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -316,6 +319,7 @@ const exchanges = {
     'zonda': zonda["default"],
 };
 const pro = {
+    'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
     'arkham': arkham$1["default"],
@@ -446,6 +450,7 @@ exports.RequestTimeout = errors.RequestTimeout;
 exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
+exports.aftermath = aftermath["default"];
 exports.alp = alp["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];

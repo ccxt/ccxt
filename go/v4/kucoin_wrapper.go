@@ -717,6 +717,7 @@ func (this *Kucoin) EditOrder(id string, symbol string, typeVar string, side str
  * @param {bool} [params.trigger] True if cancelling a stop order
  * @param {bool} [params.hf] false, // true for hf order
  * @param {bool} [params.sync] false, // true to use the hf sync call
+ * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
  * @returns Response from the exchange
  */
 func (this *Kucoin) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {

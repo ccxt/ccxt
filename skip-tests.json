@@ -1,5 +1,7 @@
 {
     "alp": {
+        "skip": "needs api1 to api3 update",
+        "until": "2026-04-01",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -585,6 +587,8 @@
         }
     },
     "btcbox": {
+        "skip": "internal maintenance",
+        "until": "2026-03-29",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -1556,6 +1560,7 @@
         }
     },
     "lbank": {
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
@@ -2202,6 +2207,29 @@
         }
     },
     "lighter": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing",
+                "compareToNextItem": "tmp"
+
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
+            },
+            "orderBook": {
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp": "not provided"
+            }
+        }
+    },
+    "aftermath": {
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"
