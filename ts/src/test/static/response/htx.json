@@ -375,7 +375,7 @@
                         "marginMode": "cross",
                         "notional": 6.827,
                         "markPrice": null,
-                        "lastPrice": null,
+                        "lastPrice": "68.27",
                         "liquidationPrice": null,
                         "initialMargin": 6.827,
                         "initialMarginPercentage": 1,
