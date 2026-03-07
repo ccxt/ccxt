@@ -2128,7 +2128,7 @@ class lbank(Exchange, ImplicitAPI):
         #              },
         #          ],
         #          "error_code":0,
-        #          "ts":1648506641469
+        #          "ts":1648506641468
         #      }
         #
         data = self.safe_list(response, 'data', [])

@@ -998,14 +998,10 @@ class woo(ccxt.async_support.woo):
         avgPrice = self.safe_number(order, 'avgPrice')
         if Precise.string_eq(priceString, '0') and (avgPrice is not None):
             price = avgPrice
-        amount = self.safe_float(order, 'quantity')
+        amount = self.safe_string(order, 'quantity')
         side = self.safe_string_lower(order, 'side')
         type = self.safe_string_lower(order, 'type')
-        filled = self.safe_number(order, 'totalExecutedQuantity')
-        totalExecQuantity = self.safe_float(order, 'totalExecutedQuantity')
-        remaining = amount
-        if amount >= totalExecQuantity:
-            remaining -= totalExecQuantity
+        filled = self.safe_string_2(order, 'totalExecutedQuantity', 'executed')
         rawStatus = self.safe_string_2(order, 'status', 'algoStatus')
         status = self.parse_order_status(rawStatus)
         trades = None
@@ -1031,7 +1027,7 @@ class woo(ccxt.async_support.woo):
             'cost': None,
             'average': avgPrice,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': fee,
             'trades': trades,

@@ -115,7 +115,7 @@ export default class htx extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': true,
+                'fetchStatus': false, // none of `summary.json` endpoint work atm. revise in near future
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,

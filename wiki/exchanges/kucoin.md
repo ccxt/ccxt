@@ -669,6 +669,7 @@ cancels an open order
 | params.trigger | <code>bool</code> | No | True if cancelling a stop order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.sync | <code>bool</code> | No | false, // true to use the hf sync call |
+| params.marginMode | <code>string</code> | No | 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned |
 
 
 ```javascript

@@ -8818,9 +8818,14 @@ class bitget extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
             }
+            $uta = null;
+            list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'uta', false);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
             if ($paginate) {
+                if ($uta) {
+                    return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'cursor', 'cursor'));
+                }
                 return Async\await($this->fetch_paginated_call_cursor('fetchFundingHistory', $symbol, $since, $limit, $params, 'endId', 'idLessThan'));
             }
             $market = $this->market($symbol);
@@ -8829,12 +8834,7 @@ class bitget extends Exchange {
             }
             $productType = null;
             list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-            $request = array(
-                'symbol' => $market['id'],
-                'marginCoin' => $market['settleId'],
-                'businessType' => 'contract_settle_fee',
-                'productType' => $productType,
-            );
+            $request = array();
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -8842,32 +8842,69 @@ class bitget extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateMixGetV2MixAccountBill ($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700795977890,
-            //         "data" => {
-            //             "bills" => array(
-            //                 array(
-            //                     "billId" => "1111499428100472833",
-            //                     "symbol" => "BTCUSDT",
-            //                     "amount" => "-0.004992",
-            //                     "fee" => "0",
-            //                     "feeByCoupon" => "",
-            //                     "businessType" => "contract_settle_fee",
-            //                     "coin" => "USDT",
-            //                     "cTime" => "1700728034996"
-            //                 ),
-            //             ),
-            //             "endId" => "1098396773329305606"
-            //         }
-            //     }
-            //
+            $response = null;
+            if ($uta) {
+                $request['coin'] = $market['settleId'];
+                $request['category'] = $productType;
+                $response = Async\await($this->privateUtaGetV3AccountFinancialRecords ($this->extend($request, $params)));
+                //
+                // {
+                //     "code" => "00000",
+                //     "msg" => "success",
+                //     "requestTime" => 1750135478641,
+                //     "data" => {
+                //         "list" => array(
+                //             {
+                //                 "category" => "Margin",
+                //                 "id" => "13111111111111111",
+                //                 "symbol" => "BTCUSDT",
+                //                 "coin" => "BTC",
+                //                 "type" => "ORDER_DEALT_IN",
+                //                 "amount" => "0.00531168",
+                //                 "fee" => "-0.00000531",
+                //                 "balance" => "55.10017801",
+                //                 "ts" => "1745853486185"
+                //             }
+                //         ),
+                //         "cursor" => "122222222222222222"
+                //     }
+                // }
+                //
+            } else {
+                $request['symbol'] = $market['id'];
+                $request['marginCoin'] = $market['settleId'];
+                $request['businessType'] = 'contract_settle_fee';
+                $request['productType'] = $productType;
+                $response = Async\await($this->privateMixGetV2MixAccountBill ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => 1700795977890,
+                //         "data" => {
+                //             "bills" => array(
+                //                 array(
+                //                     "billId" => "1111499428100472833",
+                //                     "symbol" => "BTCUSDT",
+                //                     "amount" => "-0.004992",
+                //                     "fee" => "0",
+                //                     "feeByCoupon" => "",
+                //                     "businessType" => "contract_settle_fee",
+                //                     "coin" => "USDT",
+                //                     "cTime" => "1700728034996"
+                //                 ),
+                //             ),
+                //             "endId" => "1098396773329305606"
+                //         }
+                //     }
+                //
+            }
             $data = $this->safe_value($response, 'data', array());
-            $result = $this->safe_value($data, 'bills', array());
-            return $this->parse_funding_histories($result, $market, $since, $limit);
+            $bills = $this->safe_list_2($data, 'bills', 'list', array());
+            if ($uta) {
+                $bills = $this->filter_by_array($bills, 'type', array( 'CONTRACT_MAIN_SETTLE_FEE_USER_IN', 'CONTRACT_MAIN_SETTLE_FEE_USER_OUT' ), false);
+            }
+            return $this->parse_funding_histories($bills, $market, $since, $limit);
         }) ();
     }
 
@@ -8884,9 +8921,21 @@ class bitget extends Exchange {
         //         "cTime" => "1700728034996"
         //     }
         //
+        //     {
+        //         "category" => "Margin",
+        //         "id" => "13111111111111111",
+        //         "symbol" => "BTCUSDT",
+        //         "coin" => "BTC",
+        //         "type" => "ORDER_DEALT_IN",
+        //         "amount" => "0.00531168",
+        //         "fee" => "-0.00000531",
+        //         "balance" => "55.10017801",
+        //         "ts" => "1745853486185"
+        //     }
+        //
         $marketId = $this->safe_string($contract, 'symbol');
         $currencyId = $this->safe_string($contract, 'coin');
-        $timestamp = $this->safe_integer($contract, 'cTime');
+        $timestamp = $this->safe_integer_2($contract, 'cTime', 'ts');
         return array(
             'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
@@ -8894,7 +8943,7 @@ class bitget extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'code' => $this->safe_currency_code($currencyId),
             'amount' => $this->safe_number($contract, 'amount'),
-            'id' => $this->safe_string($contract, 'billId'),
+            'id' => $this->safe_string_2($contract, 'billId', 'id'),
         );
     }
 
@@ -8902,10 +8951,11 @@ class bitget extends Exchange {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
-            $business = $this->safe_string($contract, 'businessType');
-            if ($business !== 'contract_settle_fee') {
-                continue;
-            }
+            // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
+            // $business = $this->safe_string($contract, 'businessType');
+            // if ($business !== 'contract_settle_fee') {
+            //     continue;
+            // }
             $result[] = $this->parse_funding_history($contract, $market);
         }
         $sorted = $this->sort_by($result, 'timestamp');

@@ -7,186 +7,186 @@
 
 package ccxt
 
-func (this *LighterCore) RootGet (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("rootGet", args...)
+func (this *LighterCore) RootGet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("rootGet", args...)
 }
 
-func (this *LighterCore) RootGetInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("rootGetInfo", args...)
+func (this *LighterCore) RootGetInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("rootGetInfo", args...)
 }
 
-func (this *LighterCore) PublicGetAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAccount", args...)
+func (this *LighterCore) PublicGetAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAccount", args...)
 }
 
-func (this *LighterCore) PublicGetAccountsByL1Address (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAccountsByL1Address", args...)
+func (this *LighterCore) PublicGetAccountsByL1Address(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAccountsByL1Address", args...)
 }
 
-func (this *LighterCore) PublicGetApikeys (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetApikeys", args...)
+func (this *LighterCore) PublicGetApikeys(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetApikeys", args...)
 }
 
-func (this *LighterCore) PublicGetExchangeStats (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetExchangeStats", args...)
+func (this *LighterCore) PublicGetExchangeStats(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetExchangeStats", args...)
 }
 
-func (this *LighterCore) PublicGetAssetDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAssetDetails", args...)
+func (this *LighterCore) PublicGetAssetDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetDetails", args...)
 }
 
-func (this *LighterCore) PublicGetOrderBookDetails (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBookDetails", args...)
+func (this *LighterCore) PublicGetOrderBookDetails(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBookDetails", args...)
 }
 
-func (this *LighterCore) PublicGetOrderBookOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBookOrders", args...)
+func (this *LighterCore) PublicGetOrderBookOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBookOrders", args...)
 }
 
-func (this *LighterCore) PublicGetOrderBooks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetOrderBooks", args...)
+func (this *LighterCore) PublicGetOrderBooks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBooks", args...)
 }
 
-func (this *LighterCore) PublicGetRecentTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetRecentTrades", args...)
+func (this *LighterCore) PublicGetRecentTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetRecentTrades", args...)
 }
 
-func (this *LighterCore) PublicGetBlockTxs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBlockTxs", args...)
+func (this *LighterCore) PublicGetBlockTxs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBlockTxs", args...)
 }
 
-func (this *LighterCore) PublicGetNextNonce (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetNextNonce", args...)
+func (this *LighterCore) PublicGetNextNonce(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetNextNonce", args...)
 }
 
-func (this *LighterCore) PublicGetTx (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTx", args...)
+func (this *LighterCore) PublicGetTx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTx", args...)
 }
 
-func (this *LighterCore) PublicGetTxFromL1TxHash (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTxFromL1TxHash", args...)
+func (this *LighterCore) PublicGetTxFromL1TxHash(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTxFromL1TxHash", args...)
 }
 
-func (this *LighterCore) PublicGetTxs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetTxs", args...)
+func (this *LighterCore) PublicGetTxs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTxs", args...)
 }
 
-func (this *LighterCore) PublicGetAnnouncement (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetAnnouncement", args...)
+func (this *LighterCore) PublicGetAnnouncement(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAnnouncement", args...)
 }
 
-func (this *LighterCore) PublicGetBlock (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBlock", args...)
+func (this *LighterCore) PublicGetBlock(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBlock", args...)
 }
 
-func (this *LighterCore) PublicGetBlocks (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetBlocks", args...)
+func (this *LighterCore) PublicGetBlocks(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetBlocks", args...)
 }
 
-func (this *LighterCore) PublicGetCurrentHeight (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCurrentHeight", args...)
+func (this *LighterCore) PublicGetCurrentHeight(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrentHeight", args...)
 }
 
-func (this *LighterCore) PublicGetCandles (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetCandles", args...)
+func (this *LighterCore) PublicGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandles", args...)
 }
 
-func (this *LighterCore) PublicGetFundings (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFundings", args...)
+func (this *LighterCore) PublicGetFundings(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundings", args...)
 }
 
-func (this *LighterCore) PublicGetFastbridgeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFastbridgeInfo", args...)
+func (this *LighterCore) PublicGetFastbridgeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFastbridgeInfo", args...)
 }
 
-func (this *LighterCore) PublicGetFundingRates (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetFundingRates", args...)
+func (this *LighterCore) PublicGetFundingRates(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFundingRates", args...)
 }
 
-func (this *LighterCore) PublicGetWithdrawalDelay (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicGetWithdrawalDelay", args...)
+func (this *LighterCore) PublicGetWithdrawalDelay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetWithdrawalDelay", args...)
 }
 
-func (this *LighterCore) PublicPostSendTx (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostSendTx", args...)
+func (this *LighterCore) PublicPostSendTx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostSendTx", args...)
 }
 
-func (this *LighterCore) PublicPostSendTxBatch (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("publicPostSendTxBatch", args...)
+func (this *LighterCore) PublicPostSendTxBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostSendTxBatch", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountLimits (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountLimits", args...)
+func (this *LighterCore) PrivateGetAccountLimits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountLimits", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountMetadata (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountMetadata", args...)
+func (this *LighterCore) PrivateGetAccountMetadata(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountMetadata", args...)
 }
 
-func (this *LighterCore) PrivateGetPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPnl", args...)
+func (this *LighterCore) PrivateGetPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPnl", args...)
 }
 
-func (this *LighterCore) PrivateGetL1Metadata (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetL1Metadata", args...)
+func (this *LighterCore) PrivateGetL1Metadata(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetL1Metadata", args...)
 }
 
-func (this *LighterCore) PrivateGetLiquidations (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetLiquidations", args...)
+func (this *LighterCore) PrivateGetLiquidations(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLiquidations", args...)
 }
 
-func (this *LighterCore) PrivateGetPositionFunding (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPositionFunding", args...)
+func (this *LighterCore) PrivateGetPositionFunding(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPositionFunding", args...)
 }
 
-func (this *LighterCore) PrivateGetPublicPoolsMetadata (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetPublicPoolsMetadata", args...)
+func (this *LighterCore) PrivateGetPublicPoolsMetadata(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetPublicPoolsMetadata", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountActiveOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountActiveOrders", args...)
+func (this *LighterCore) PrivateGetAccountActiveOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountActiveOrders", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountInactiveOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountInactiveOrders", args...)
+func (this *LighterCore) PrivateGetAccountInactiveOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountInactiveOrders", args...)
 }
 
-func (this *LighterCore) PrivateGetExport (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetExport", args...)
+func (this *LighterCore) PrivateGetExport(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetExport", args...)
 }
 
-func (this *LighterCore) PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTrades", args...)
+func (this *LighterCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *LighterCore) PrivateGetAccountTxs (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetAccountTxs", args...)
+func (this *LighterCore) PrivateGetAccountTxs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountTxs", args...)
 }
 
-func (this *LighterCore) PrivateGetDepositHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetDepositHistory", args...)
+func (this *LighterCore) PrivateGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDepositHistory", args...)
 }
 
-func (this *LighterCore) PrivateGetTransferHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransferHistory", args...)
+func (this *LighterCore) PrivateGetTransferHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransferHistory", args...)
 }
 
-func (this *LighterCore) PrivateGetWithdrawHistory (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetWithdrawHistory", args...)
+func (this *LighterCore) PrivateGetWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawHistory", args...)
 }
 
-func (this *LighterCore) PrivateGetReferralPoints (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetReferralPoints", args...)
+func (this *LighterCore) PrivateGetReferralPoints(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetReferralPoints", args...)
 }
 
-func (this *LighterCore) PrivateGetTransferFeeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetTransferFeeInfo", args...)
+func (this *LighterCore) PrivateGetTransferFeeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTransferFeeInfo", args...)
 }
 
-func (this *LighterCore) PrivatePostChangeAccountTier (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostChangeAccountTier", args...)
+func (this *LighterCore) PrivatePostChangeAccountTier(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostChangeAccountTier", args...)
 }
 
-func (this *LighterCore) PrivatePostNotificationAck (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostNotificationAck", args...)
+func (this *LighterCore) PrivatePostNotificationAck(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostNotificationAck", args...)
 }
