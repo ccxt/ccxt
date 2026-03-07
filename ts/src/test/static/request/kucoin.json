@@ -1514,6 +1514,66 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetch hf margin order",
+                "method": "fetchOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/orders/69ac49f976b7fd0007866fca?symbol=DOGE-USDT",
+                "input": [
+                    "69ac49f976b7fd0007866fca",
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross",
+                        "hf": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch hf margin order by client order id",
+                "method": "fetchOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/orders/client-order/5285800d-9178-40b9-bb35-80ddfea3c8aa?symbol=DOGE-USDT",
+                "input": [
+                    "",
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "clientOrderId": "5285800d-9178-40b9-bb35-80ddfea3c8aa"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch hf margin stop order by client order id",
+                "method": "fetchOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/clientOid?clientOid=2d161dad-85be-4ce6-ab7c-e8018f4c9482",
+                "input": [
+                    "",
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "trigger": true,
+                        "clientOrderId": "2d161dad-85be-4ce6-ab7c-e8018f4c9482"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetch hf margin stop order",
+                "method": "fetchOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/orderId?orderId=vs9j2qdc799178r3003r5qk9",
+                "input": [
+                    "vs9j2qdc799178r3003r5qk9",
+                    null,
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "Fetch swap order by order id",
                 "method": "fetchOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/1234567890",
