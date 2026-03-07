@@ -46,7 +46,7 @@
     "buildCSTests": "dotnet build cs/tests/tests.csproj",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",
-    "go": "npm run transpileGO && npm run buildGO && npm run build-go-cli",
+    "go": "npm run transpileGO && npm run buildGO",
     "force-build//WithoutGo": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run post-transpile && npm run update-badges",
     "force-build": "npm run pre-transpile && npm run go && npm run force-transpile-fast && npm run csharp && npm run post-transpile && npm run update-badges",
     "//TMPCommentforce-build": "npm run pre-transpile && npm run force-transpile-fast && npm run csharp && npm run go && npm run post-transpile && npm run update-badges",
