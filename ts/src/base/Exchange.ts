@@ -2842,16 +2842,17 @@ export default class Exchange {
     }
 
     marketsCacheFilePath () {
-        return this.getTempDir () + 'ccxt_' + this.id + '_loaded_markets_cache.json';
+        return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies_.json';
     }
 
     marketsCacheRead () {
         // only write if user has enabled caching
         if (this.marketsCacheMinutes > 0) {
             const cacheFilePath = this.marketsCacheFilePath ();
-            if (this.fileExists (cacheFilePath)) {
-                const content = this.fileRead (cacheFilePath);
+            if (this.existsFile (cacheFilePath)) {
+                const content = this.readFile (cacheFilePath);
                 if (content !== undefined && content !== '' && content !== '{}') {
+                    // @ts-expect-error
                     const values = JSON.parse (content);
                     // if not expired
                     const expirationMs = this.marketsCacheMinutes * 60 * 1000; // milliseconds
@@ -2874,7 +2875,7 @@ export default class Exchange {
                 'currencies': currencies,
             };
             // write cache file
-            this.fileWrite (cacheFile, this.json (values));
+            this.writeFile (cacheFile, this.json (values));
         }
     }
 
