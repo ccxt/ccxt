@@ -247,6 +247,8 @@ export default class kucoin extends Exchange {
                         'hf/margin/orders/{orderId}': 4, // 4SW
                         'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
                         'hf/margin/fills': 5, // 5SW
+                        'hf/margin/stop-order/orderId': 7.5,
+                        'hf/margin/stop-order/clientOid': 7.5,
                         'etf/info': 25, // 25SW
                         'margin/currencies': 20, // 20SW
                         'risk/limit/strategy': 20, // 20SW (Deprecate)
@@ -939,6 +941,8 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/fills': 'v3',
+                            'hf/margin/stop-order/orderId': 'v3',
+                            'hf/margin/stop-order/clientOid': 'v3',
                             'etf/info': 'v3',
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
@@ -4876,12 +4880,17 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-stop-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/get-stop-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-stop-order-by-clientoid
      * @param {string} id Order id
      * @param {string} symbol not sent to exchange except for trigger orders with clientOid, but used internally by CCXT to filter
      * @param {object} [params] exchange specific parameters
      * @param {bool} [params.trigger] true if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.clientOid] unique order id created by users to identify their orders
+     * @param {object} [params.marginMode] 'cross' or 'isolated'
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchSpotOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -4891,25 +4900,36 @@ export default class kucoin extends Exchange {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        const isMarginOrder = marginMode !== undefined;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        if (hf) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol parameter for hf orders');
+        if (hf || isMarginOrder) {
+            if (!trigger) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol parameter for hf and margin orders');
+                }
+                request['symbol'] = market['id'];
             }
-            request['symbol'] = market['id'];
         }
         params = this.omit (params, [ 'stop', 'clientOid', 'clientOrderId', 'trigger' ]);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (trigger) {
-                if (symbol !== undefined) {
-                    request['symbol'] = market['id'];
+                if (isMarginOrder) {
+                    response = await this.privateGetHfMarginStopOrderClientOid (this.extend (request, params));
+                } else {
+                    if (symbol !== undefined) {
+                        request['symbol'] = market['id'];
+                    }
+                    response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
                 }
-                response = await this.privateGetStopOrderQueryOrderByClientOid (this.extend (request, params));
+            } else if (isMarginOrder) {
+                response = await this.privateGetHfMarginOrdersClientOrderClientOid (this.extend (request, params));
             } else if (hf) {
                 response = await this.privateGetHfOrdersClientOrderClientOid (this.extend (request, params));
             } else {
@@ -4924,7 +4944,13 @@ export default class kucoin extends Exchange {
             }
             request['orderId'] = id;
             if (trigger) {
-                response = await this.privateGetStopOrderOrderId (this.extend (request, params));
+                if (isMarginOrder) {
+                    response = await this.privateGetHfMarginStopOrderOrderId (this.extend (request, params));
+                } else {
+                    response = await this.privateGetStopOrderOrderId (this.extend (request, params));
+                }
+            } else if (isMarginOrder) {
+                response = await this.privateGetHfMarginOrdersOrderId (this.extend (request, params));
             } else if (hf) {
                 response = await this.privateGetHfOrdersOrderId (this.extend (request, params));
             } else {
