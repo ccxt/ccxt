@@ -888,6 +888,66 @@
         ],
         "cancelOrder": [
             {
+                "description": "cancel hf margin order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/orders/69ac6543a1c4220007409efe?symbol=DOGE-USDT",
+                "input": [
+                    "69ac6543a1c4220007409efe",
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross",
+                        "hf": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel hf margin order with client order id",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/orders/client-order/5285800d-9178-40b9-bb35-80ddfea3c8aa?symbol=DOGE-USDT",
+                "input": [
+                    "",
+                    "DOGE/USDT",
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "clientOrderId": "5285800d-9178-40b9-bb35-80ddfea3c8aa"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel hf margin stop order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/cancel-by-id?orderId=vs9j2qdccfpv310l003g6s94",
+                "input": [
+                    "vs9j2qdccfpv310l003g6s94",
+                    null,
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "trigger": true
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "cancel hf margin stop order with client order id",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/cancel-by-clientOid?clientOid=2d161dad-85be-4ce6-ab7c-e8018f4c9482",
+                "input": [
+                    "",
+                    null,
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "trigger": true,
+                        "clientOrderId": "2d161dad-85be-4ce6-ab7c-e8018f4c9482"
+                    }
+                ],
+                "output": null
+            },
+            {
                 "description": "cancel swap order",
                 "method": "cancelOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders/126611245292855296",
