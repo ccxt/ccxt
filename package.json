@@ -38,6 +38,7 @@
     "transpileCSWs": "tsx build/csharpTranspiler.ts --ws",
     "buildCS": "dotnet build cs/ccxt.sln",
     "buildGO": "go build -C go ./v4 && go build -C go ./v4/pro",
+    "build-go-cli": "go build -C go/cli",
     "formatGO": "go fmt -C go v4 tests",
     "transpileGOWs": "tsx build/goTranspiler.ts --ws",
     "transpileGORest": "tsx build/goTranspiler.ts",
