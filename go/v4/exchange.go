@@ -180,6 +180,7 @@ type Exchange struct {
 	FetchResponse interface{}
 
 	IsSandboxModeEnabled bool
+	marketsCacheMinutes  float64
 
 	// ws
 	WsClients   map[string]interface{} // one websocket client per URL

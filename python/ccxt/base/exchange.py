@@ -262,6 +262,7 @@ class Exchange(object):
         'chrome100': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36',
     }
     headers = None
+    marketsCacheMinutes = 0.0
     returnResponseHeaders = False
     origin = '*'  # CORS origin
     MAX_VALUE = float('inf')

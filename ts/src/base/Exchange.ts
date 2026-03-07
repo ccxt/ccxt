@@ -224,7 +224,7 @@ export default class Exchange {
     };
 
     headers: Dictionary<string> = {};
-    marketsCacheMinutes: number = 0;
+    marketsCacheMinutes: number = 0.0;
     returnResponseHeaders: boolean = false;
     origin: string = '*';  // CORS origin
     MAX_VALUE: number = Number.MAX_VALUE;

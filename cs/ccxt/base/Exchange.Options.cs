@@ -132,6 +132,7 @@ public partial class Exchange
     public object name { get; set; }
 
     public object headers { get; set; } = new dict();
+    public double marketsCacheMinutes { get; set; } = 0.0;
     public bool returnResponseHeaders { get; set; } = false;
 
     public dict httpExceptions { get; set; } = new dict();
