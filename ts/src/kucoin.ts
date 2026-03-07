@@ -250,6 +250,10 @@ export default class kucoin extends Exchange {
                         'hf/margin/stop-orders': 10,
                         'hf/margin/stop-order/orderId': 7.5,
                         'hf/margin/stop-order/clientOid': 7.5,
+                        'hf/margin/oco-order/orderId': 2,
+                        'hf/margin/oco-order/clientOid': 2,
+                        'hf/margin/oco-order/detail/orderId': 2,
+                        'hf/margin/oco-orders': 2,
                         'etf/info': 25, // 25SW
                         'margin/currencies': 20, // 20SW
                         'risk/limit/strategy': 20, // 20SW (Deprecate)
@@ -311,6 +315,7 @@ export default class kucoin extends Exchange {
                         'hf/margin/stop-order': 7.5,
                         'margin/order': 5, // 5SW
                         'margin/order/test': 5, // 5SW
+                        'hf/margin/oco-order': 3,
                         'margin/borrow': 15, // 15SW
                         'margin/repay': 10, // 10SW
                         'purchase': 15, // 15SW
@@ -353,6 +358,9 @@ export default class kucoin extends Exchange {
                         'hf/margin/stop-order/cancel-by-id': 5,
                         'hf/margin/stop-order/cancel-by-clientOid': 7.5,
                         'hf/margin/stop-order/cancel': 5,
+                        'hf/margin/oco-order/cancel-by-id': 3,
+                        'hf/margin/oco-order/cancel-by-clientOid': 3,
+                        'hf/margin/oco-order/cancel': 3,
                         // convert
                         'convert/limit/order/cancel': 5,
                     },
@@ -948,6 +956,10 @@ export default class kucoin extends Exchange {
                             'hf/margin/stop-orders': 'v3',
                             'hf/margin/stop-order/orderId': 'v3',
                             'hf/margin/stop-order/clientOid': 'v3',
+                            'hf/margin/oco-order/orderId': 'v3',
+                            'hf/margin/oco-order/clientOid': 'v3',
+                            'hf/margin/oco-order/detail/orderId': 'v3',
+                            'hf/margin/oco-orders': 'v3',
                             'etf/info': 'v3',
                             'margin/currencies': 'v3',
                             'margin/borrow': 'v3',
@@ -979,6 +991,7 @@ export default class kucoin extends Exchange {
                             'hf/margin/stop-order': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
+                            'hf/margin/oco-order': 'v3',
                             'purchase': 'v3',
                             'redeem': 'v3',
                             'lend/purchase/update': 'v3',
@@ -986,9 +999,6 @@ export default class kucoin extends Exchange {
                             'withdrawals': 'v3',
                         },
                         'DELETE': {
-                            // account
-                            // funding
-                            // spot trading
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/orders': 'v3',
@@ -998,7 +1008,9 @@ export default class kucoin extends Exchange {
                             'oco/order/{orderId}': 'v3',
                             'oco/client-order/{clientOid}': 'v3',
                             'oco/orders': 'v3',
-                            // margin trading
+                            'hf/margin/oco-order/cancel-by-id': 'v3',
+                            'hf/margin/oco-order/cancel-by-clientOid': 'v3',
+                            'hf/margin/oco-order/cancel': 'v3',
                         },
                     },
                     'futuresPrivate': {
@@ -5456,6 +5468,7 @@ export default class kucoin extends Exchange {
      * @description fetch all the trades made from a single order
      * @see https://docs.kucoin.com/#list-fills
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -5475,6 +5488,7 @@ export default class kucoin extends Exchange {
      * @method
      * @name kucoin#fetchMyTrades
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
