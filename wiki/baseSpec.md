@@ -5,7 +5,7 @@
 add margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -13,8 +13,10 @@ add margin
 | symbol | <code>string</code> | Yes | unified market symbol |
 | amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#addmargin)
 * [ascendex](/exchanges/ascendex.md#addmargin)
 * [aster](/exchanges/aster.md#addmargin)
 * [binance](/exchanges/binance.md#addmargin)
@@ -274,7 +276,7 @@ cancel all open orders in a market
 cancels an open order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -284,6 +286,7 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#cancelorder)
 * [alp](/exchanges/alp.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
@@ -422,18 +425,18 @@ cancel multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | No | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
-| params.origClientOrderIdList | <code>Array&lt;string&gt;</code> | No | max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma |
-| params.recvWindow | <code>Array&lt;int&gt;</code> | No |  |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account to cancel orders for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#cancelorders)
 * [aster](/exchanges/aster.md#cancelorders)
 * [binance](/exchanges/binance.md#cancelorders)
 * [bingx](/exchanges/bingx.md#cancelorders)
@@ -873,19 +876,22 @@ create a market sell order by providing the symbol and cost
 create a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'limit' |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#createorder)
 * [alp](/exchanges/alp.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
@@ -1054,18 +1060,17 @@ create a trade order
 create a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.timeInForce | <code>string</code> | No | "GTC", "IOC", "FOK", or "PO" |
-| params.postOnly | <code>bool</code> | No | true or false |
-| params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#createorders)
 * [ascendex](/exchanges/ascendex.md#createorders)
 * [aster](/exchanges/aster.md#createorders)
 * [backpack](/exchanges/backpack.md#createorders)
@@ -1567,10 +1572,10 @@ fetch all the accounts by a type and marginModeassociated with a profile
 <a name="fetchAccounts" id="fetchaccounts"></a>
 
 ## fetchAccounts
-fetch all the accounts associated with a profile
+query for accounts owned by the walletAddress. An Account is needed for all trading methods.
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
+**Returns**: <code>Array</code> - a list of [account structures](https://github.com/ccxt/ccxt/wiki/Manual#accounts)
 
 
 | Param | Type | Required | Description |
@@ -1578,6 +1583,7 @@ fetch all the accounts associated with a profile
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchaccounts)
 * [arkham](/exchanges/arkham.md#fetchaccounts)
 * [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
@@ -1628,17 +1634,19 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ## fetchBalance
-query for balance and get the amount of funds available for trading or funds locked in orders
+query for balance and get the amount of funds available for trading or funds locked in positions
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | account object ID, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchbalance)
 * [alp](/exchanges/alp.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
@@ -2242,6 +2250,7 @@ fetches all available currencies on an exchange
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchcurrencies)
 * [apex](/exchanges/apex.md#fetchcurrencies)
 * [arkham](/exchanges/arkham.md#fetchcurrencies)
 * [ascendex](/exchanges/ascendex.md#fetchcurrencies)
@@ -3562,7 +3571,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ## fetchMarkets
-retrieves data on all markets for alp
+retrieves data on all markets for woo
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -3573,6 +3582,7 @@ retrieves data on all markets for alp
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchmarkets)
 * [alp](/exchanges/alp.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
@@ -3917,10 +3927,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| limit | <code>int</code> | No | max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms))) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchohlcv)
 * [alp](/exchanges/alp.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
@@ -4159,7 +4170,7 @@ fetch an open order by the id
 fetch all unfilled currently open orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4168,8 +4179,10 @@ fetch all unfilled currently open orders
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchopenorders)
 * [alp](/exchanges/alp.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
@@ -4472,7 +4485,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -4482,6 +4495,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchorderbook)
 * [alp](/exchanges/alp.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
@@ -4942,15 +4956,17 @@ fetch all the portfolios
 fetch data on an open position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchposition)
 * [binance](/exchanges/binance.md#fetchposition)
 * [bingx](/exchanges/bingx.md#fetchposition)
 * [bitget](/exchanges/bitget.md#fetchposition)
@@ -5083,15 +5099,17 @@ fetch data on an open position
 fetch all open positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchpositions)
 * [apex](/exchanges/apex.md#fetchpositions)
 * [arkkm](/exchanges/arkkm.md#fetchpositions)
 * [ascendex](/exchanges/ascendex.md#fetchpositions)
@@ -5382,7 +5400,7 @@ retrieves data on all swap markets for hyperliquid
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -5391,6 +5409,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchticker)
 * [alp](/exchanges/alp.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
@@ -5686,7 +5705,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -5695,8 +5714,10 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchtrades)
 * [alp](/exchanges/alp.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
@@ -5835,6 +5856,7 @@ fetch the trading fees for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchtradingfee)
 * [aster](/exchanges/aster.md#fetchtradingfee)
 * [binance](/exchanges/binance.md#fetchtradingfee)
 * [bingx](/exchanges/bingx.md#fetchtradingfee)
@@ -6377,16 +6399,18 @@ redeem gift code
 remove margin from a position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | the amount of margin to remove |
+| amount | <code>float</code> | Yes | amount of margin to remove |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#reducemargin)
 * [ascendex](/exchanges/ascendex.md#reducemargin)
 * [aster](/exchanges/aster.md#reducemargin)
 * [binance](/exchanges/binance.md#reducemargin)
@@ -6540,8 +6564,10 @@ set the level of leverage for a market
 | leverage | <code>float</code> | Yes | the rate of leverage |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#setleverage)
 * [apex](/exchanges/apex.md#setleverage)
 * [arkham](/exchanges/arkham.md#setleverage)
 * [ascendex](/exchanges/ascendex.md#setleverage)
@@ -6743,13 +6769,31 @@ sign in, must be called prior to using other authenticated methods
 
 ---
 
+<a name="signTxEd25519" id="signtxed25519"></a>
+
+## signTxEd25519
+Helper to sign some transaction bytes and return a generic transaction execution request.
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the input transaction bytes and the signed digest
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| tx | <code>object</code> | No | transaction bytes and the signing digest for them |
+
+##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#signtxed25519)
+
+---
+
 <a name="transfer" id="transfer"></a>
 
 ## transfer
 transfer currency internally between wallets on the same account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -6759,9 +6803,9 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.transferId | <code>string</code> | No | UUID, which is unique across the platform |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#transfer)
 * [apex](/exchanges/apex.md#transfer)
 * [ascendex](/exchanges/ascendex.md#transfer)
 * [aster](/exchanges/aster.md#transfer)
@@ -8277,7 +8321,7 @@ get the list of most recent trades for a list of symbols
 make a withdrawal
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -8285,10 +8329,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes | a memo for the transaction |
+| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#withdraw)
 * [alpaca](/exchanges/alpaca.md#withdraw)
 * [arkkm](/exchanges/arkkm.md#withdraw)
 * [aster](/exchanges/aster.md#withdraw)
