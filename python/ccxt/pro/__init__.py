@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.19'
+__version__ = '4.5.42'
 
 # ----------------------------------------------------------------------------
 
@@ -57,10 +57,12 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
 
+from ccxt.pro.aftermath import aftermath                                  # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
 from ccxt.pro.arkham import arkham                                        # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
+from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -80,7 +82,9 @@ from ccxt.pro.bittrade import bittrade                                    # noqa
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.blockchaincom import blockchaincom                          # noqa: F401
 from ccxt.pro.blofin import blofin                                        # noqa: F401
+from ccxt.pro.bullish import bullish                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
+from ccxt.pro.bydfi import bydfi                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
 from ccxt.pro.coinbaseadvanced import coinbaseadvanced                    # noqa: F401
@@ -112,6 +116,7 @@ from ccxt.pro.krakenfutures import krakenfutures                          # noqa
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
+from ccxt.pro.lighter import lighter                                      # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
@@ -125,7 +130,6 @@ from ccxt.pro.p2b import p2b                                              # noqa
 from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
-from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.toobit import toobit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
@@ -134,10 +138,12 @@ from ccxt.pro.woofipro import woofipro                                    # noqa
 from ccxt.pro.xt import xt                                                # noqa: F401
 
 exchanges = [
+    'aftermath',
     'alpaca',
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'binance',
@@ -157,7 +163,9 @@ exchanges = [
     'bitvavo',
     'blockchaincom',
     'blofin',
+    'bullish',
     'bybit',
+    'bydfi',
     'cex',
     'coinbase',
     'coinbaseadvanced',
@@ -189,6 +197,7 @@ exchanges = [
     'kucoin',
     'kucoinfutures',
     'lbank',
+    'lighter',
     'luno',
     'mexc',
     'modetrade',
@@ -202,7 +211,6 @@ exchanges = [
     'paradex',
     'phemex',
     'poloniex',
-    'probit',
     'toobit',
     'upbit',
     'whitebit',

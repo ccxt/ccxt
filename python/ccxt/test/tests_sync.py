@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close, get_env_vars, get_lang, get_ext  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
@@ -759,6 +759,10 @@ class testMainClass:
             return True
         if not new_output and not stored_output:
             return True
+        # if needed convert stringified jsons to objects
+        if (isinstance(stored_output, str)) and (isinstance(new_output, str)) and stored_output.startswith('{') and new_output.startswith('{'):
+            stored_output = json_parse(stored_output)
+            new_output = json_parse(new_output)
         if (isinstance(stored_output, dict)) and (isinstance(new_output, dict)):
             stored_output_keys = list(stored_output.keys())
             new_output_keys = list(new_output.keys())
@@ -959,8 +963,30 @@ class testMainClass:
     def init_offline_exchange(self, exchange_name):
         markets = self.load_markets_from_file(exchange_name)
         currencies = self.load_currencies_from_file(exchange_name)
+        wasm_exec_path = None
+        library_path = None
+        # const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        # const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        # const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        # const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         # we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        exchange = init_exchange(exchange_name, {
+        base_path = get_root_dir() + 'ts/src/test/static/binaries/'
+        if exchange_name == 'lighter':
+            if self.lang == 'JS':
+                wasm_exec_path = get_root_dir() + '/src/test/static/binaries/wasm_exec.js'
+                library_path = base_path + 'lighter.wasm'
+            else:
+                if is_windows():
+                    library_path = base_path + 'lighter-signer-windows-amd64.dll'
+                elif is_linux():
+                    if is_amd64():
+                        library_path = base_path + 'lighter-signer-linux-amd64.so'
+                    else:
+                        library_path = base_path + 'lighter-signer-linux-arm64.so'
+                else:
+                    # assume macos arm64
+                    library_path = base_path + 'lighter-signer-darwin-arm64.dylib'
+        options = {
             'markets': markets,
             'currencies': currencies,
             'enableRateLimit': False,
@@ -989,8 +1015,11 @@ class testMainClass:
                 'accessToken': 'token',
                 'expires': 999999999999999,
                 'leverageBrackets': {},
+                'libraryPath': library_path,
+                'wasmExecPath': wasm_exec_path,
             },
-        })
+        }
+        exchange = init_exchange(exchange_name, options)
         exchange.currencies = currencies
         # not working in python if assigned  in the config dict
         return exchange
@@ -1231,6 +1260,20 @@ class testMainClass:
         # inverse swap
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(inverse_swap_id), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + inverse_swap_id
+        # linear swap conditional order
+        swap_algo_order_request = None
+        try:
+            exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, {
+                'triggerPrice': 101000,
+            })
+            check_order_request = self.urlencoded_to_dict(exchange.last_request_body)
+            algo_order_id_defined = (check_order_request['algoOrderId'] is not None)
+            assert algo_order_id_defined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined'
+            client_algo_id_swap = swap_algo_order_request['clientAlgoId']
+            swap_algo_id_string = str(swap_id)
+            assert client_algo_id_swap.startswith(swap_algo_id_string), 'binance - swap clientOrderId: ' + client_algo_id_swap + ' does not start with swapId' + swap_algo_id_string
+        except Exception as e:
+            swap_algo_order_request = self.urlencoded_to_dict(exchange.last_request_body)
         create_orders_request = None
         try:
             orders = [{

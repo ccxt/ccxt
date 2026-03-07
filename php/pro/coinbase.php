@@ -77,7 +77,7 @@ class coinbase extends \ccxt\async\coinbase {
             $market = null;
             $messageHash = $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -126,7 +126,7 @@ class coinbase extends \ccxt\async\coinbase {
             $watchMessageHash = $name;
             $unWatchMessageHash = 'unsubscribe:' . $name;
             $productIds = array();
-            if (gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol))) {
+            if ((gettype($symbol) === 'array' && array_keys($symbol) === array_keys(array_keys($symbol)))) {
                 $symbols = $this->market_symbols($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $productIds = $marketIds;
@@ -294,7 +294,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $name = 'ticker';
@@ -311,7 +311,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string} [$symbol] unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             $name = 'ticker';
@@ -328,7 +328,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string[]} [$symbols] unified $symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
             Async\await($this->load_markets());
             if ($symbols === null) {
@@ -355,7 +355,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string[]} [$symbols] unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             Async\await($this->load_markets());
             if ($symbols === null) {
@@ -539,7 +539,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -561,7 +561,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $name = 'market_trades';
@@ -580,7 +580,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
             $name = 'market_trades';
@@ -603,7 +603,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string[]} $symbols unified symbol of the market to fetch trades for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $name = 'market_trades';
@@ -622,7 +622,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'user';
@@ -643,7 +643,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string} [$symbol] unified market $symbol of the market orders were made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $name = 'user';
@@ -661,7 +661,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
              */
             Async\await($this->load_markets());
             $name = 'level2';
@@ -681,7 +681,7 @@ class coinbase extends \ccxt\async\coinbase {
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
              */
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
@@ -700,7 +700,7 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
              */
             Async\await($this->load_markets());
             $name = 'level2';
@@ -850,7 +850,7 @@ class coinbase extends \ccxt\async\coinbase {
             'type' => $this->safe_string($order, 'order_type'),
             'timeInForce' => null,
             'postOnly' => null,
-            'side' => $this->safe_string_2($order, 'side', 'order_side'),
+            'side' => $this->safe_string_lower_2($order, 'side', 'order_side'),
             'price' => $this->safe_string($order, 'limit_price'),
             'stopPrice' => $stopPrice,
             'triggerPrice' => $stopPrice,
@@ -859,7 +859,7 @@ class coinbase extends \ccxt\async\coinbase {
             'average' => $this->safe_string($order, 'avg_price'),
             'filled' => $this->safe_string($order, 'cumulative_quantity'),
             'remaining' => $this->safe_string($order, 'leaves_quantity'),
-            'status' => $this->safe_string_lower($order, 'status'),
+            'status' => $this->parse_order_status($this->safe_string($order, 'status')),
             'fee' => array(
                 'amount' => $this->safe_string($order, 'total_fees'),
                 'currency' => $this->safe_string($market, 'quote'),

@@ -18,6 +18,8 @@ using dict = Dictionary<string, object>;
 public partial class Exchange
 {
 
+    protected readonly object idLock = new object();
+
     public Exchange(object userConfig2 = null)
     {
         var userConfig = (dict)userConfig2;
@@ -262,12 +264,22 @@ public partial class Exchange
                 var contentTypeHeader = contentType;
 #endif
 
-                var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
-                if (stringContent != null)
-                {
-                    stringContent.Headers.ContentType.CharSet = "";
+                if (contentType == "multipart/form-data") {
+                    var formdata = new MultipartFormDataContent();
+                    var body3 = body2 as dict;
+                    var bodyList = body3.Keys;
+                    foreach (string key in bodyList) {
+                        formdata.Add(new StringContent(getValue(body3, key).ToString(), Encoding.UTF8), key);
+                    }
+                    request.Content = formdata;
+                } else {
+                    var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                    if (stringContent != null)
+                    {
+                        stringContent.Headers.ContentType.CharSet = "";
+                    }
+                    request.Content = stringContent;
                 }
-                request.Content = stringContent;
 
                 if (method == "POST")
                 {
@@ -432,6 +444,7 @@ public partial class Exchange
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     }
 
+    // it's 32 bits
     public int randNumber(int size)
     {
         Random random = new Random();
@@ -1043,6 +1056,24 @@ public partial class Exchange
             prop.SetValue(obj, defaultValue);
         }
     }
+
+    public string exceptionMessage(object exc, bool includeStack = true)
+    {
+        var e = exc as Exception;
+        if (e != null && e is System.AggregateException)
+        {
+            //     foreach (var innerExc in e.InnerExceptions) {
+            //         message += innerExc.Message + '\n';
+            var inner = e.InnerException;
+            if (inner != null)
+            {
+                e = inner;
+            }
+        }
+        var message = e != null ? (includeStack ? e.ToString() : e.Message) : "Exception occurred, but no message available.";
+        return message.Substring(0, Math.Min(100000, message.Length));
+    }
+
     public object getProperty(object obj, object property, object defaultValue = null)
     {
         var type = obj.GetType();
@@ -1312,6 +1343,16 @@ public partial class Exchange
             }
         }
         throw new Exception("Data is not a valid byte array for protobuf decoding.");
+    }
+
+    public void lockId()
+    {
+        Monitor.Enter(this.idLock);
+    }
+
+    public void unlockId()
+    {
+        Monitor.Exit(this.idLock);
     }
 
 

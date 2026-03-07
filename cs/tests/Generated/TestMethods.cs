@@ -1113,6 +1113,12 @@ public partial class testMainClass
         {
             return true;
         }
+        // if needed convert stringified jsons to objects
+        if (isTrue(isTrue(isTrue(isTrue(((storedOutput is string))) && isTrue(((newOutput is string)))) && isTrue(((string)storedOutput).StartsWith(((string)"{")))) && isTrue(((string)newOutput).StartsWith(((string)"{")))))
+        {
+            storedOutput = jsonParse(storedOutput);
+            newOutput = jsonParse(newOutput);
+        }
         if (isTrue(isTrue(((storedOutput is IDictionary<string, object>))) && isTrue(((newOutput is IDictionary<string, object>)))))
         {
             object storedOutputKeys = new List<object>(((IDictionary<string,object>)storedOutput).Keys);
@@ -1416,8 +1422,42 @@ public partial class testMainClass
     {
         object markets = this.loadMarketsFromFile(exchangeName);
         object currencies = this.loadCurrenciesFromFile(exchangeName);
+        object wasmExecPath = null;
+        object libraryPath = null;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        Exchange exchange = initExchange(exchangeName, new Dictionary<string, object>() {
+        object basePath = add(getRootDir(), "ts/src/test/static/binaries/");
+        if (isTrue(isEqual(exchangeName, "lighter")))
+        {
+            if (isTrue(isEqual(this.lang, "JS")))
+            {
+                wasmExecPath = add(getRootDir(), "/src/test/static/binaries/wasm_exec.js");
+                libraryPath = add(basePath, "lighter.wasm");
+            } else
+            {
+                if (isTrue(isWindows()))
+                {
+                    libraryPath = add(basePath, "lighter-signer-windows-amd64.dll");
+                } else if (isTrue(isLinux()))
+                {
+                    if (isTrue(isAmd64()))
+                    {
+                        libraryPath = add(basePath, "lighter-signer-linux-amd64.so");
+                    } else
+                    {
+                        libraryPath = add(basePath, "lighter-signer-linux-arm64.so");
+                    }
+                } else
+                {
+                    // assume macos arm64
+                    libraryPath = add(basePath, "lighter-signer-darwin-arm64.dylib");
+                }
+            }
+        }
+        object options = new Dictionary<string, object>() {
             { "markets", markets },
             { "currencies", currencies },
             { "enableRateLimit", false },
@@ -1446,8 +1486,11 @@ public partial class testMainClass
                 { "accessToken", "token" },
                 { "expires", 999999999999999 },
                 { "leverageBrackets", new Dictionary<string, object>() {} },
+                { "libraryPath", libraryPath },
+                { "wasmExecPath", wasmExecPath },
             } },
-        });
+        };
+        Exchange exchange = initExchange(exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;
@@ -1808,6 +1851,23 @@ public partial class testMainClass
         // inverse swap
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)inverseSwapId)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), inverseSwapId));
+        // linear swap conditional order
+        object swapAlgoOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
+                { "triggerPrice", 101000 },
+            });
+            object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+            object algoOrderIdDefined = (!isEqual(getValue(checkOrderRequest, "algoOrderId"), null));
+            assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
+            object clientAlgoIdSwap = getValue(swapAlgoOrderRequest, "clientAlgoId");
+            object swapAlgoIdString = ((object)swapId).ToString();
+            assert(((string)clientAlgoIdSwap).StartsWith(((string)swapAlgoIdString)), add(add(add("binance - swap clientOrderId: ", clientAlgoIdSwap), " does not start with swapId"), swapAlgoIdString));
+        } catch(Exception e)
+        {
+            swapAlgoOrderRequest = this.urlencodedToDict(exchange.last_request_body);
+        }
         object createOrdersRequest = null;
         try
         {

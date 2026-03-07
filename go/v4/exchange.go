@@ -59,6 +59,8 @@ type Exchange struct {
 	Timeout                int64
 	MAX_VALUE              float64
 	RateLimit              float64
+	RollingWindowSize      float64 // set to 0.0 to use leaky bucket rate limiter
+	RateLimiterAlgorithm   string
 	TokenBucket            map[string]interface{}
 	Throttler              *Throttler
 	NewUpdates             bool
@@ -89,6 +91,8 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_response_headers    interface{}
+	LastResponseHeaders      interface{}
 	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
@@ -105,7 +109,7 @@ type Exchange struct {
 	Password      string
 	Uid           string
 	AccountId     string
-	Token         string
+	Token         interface{}
 	Login         string
 	PrivateKey    string
 	WalletAddress string
@@ -160,12 +164,12 @@ type Exchange struct {
 	Orders         interface{} // *ArrayCache  // cache object, not a map
 	MyTrades       interface{} // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   *sync.Map
+	Liquidations   interface{} // *ArrayCacheBySymbolBySide
 	FundingRates   interface{}
 	Bidsasks       *sync.Map
 	TriggerOrders  interface{} // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations *sync.Map
+	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
 
@@ -187,6 +191,9 @@ type Exchange struct {
 	Clients     map[string]interface{}
 	newUpdates  bool
 	streaming   map[string]interface{}
+
+	// id lock
+	idMutex sync.Mutex
 }
 
 const (
@@ -228,10 +235,12 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 
 	limit := 10000
 	// Initialize WebSocket data structures with thread-safe sync.Map
-	this.Trades = make(map[string]*ArrayCache)
+	// this.Trades = make(map[string]*ArrayCache)
+	this.Trades = &sync.Map{}
 	this.Tickers = &sync.Map{}
 	this.Orderbooks = &sync.Map{}
-	this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	// this.Ohlcvs = make(map[string]map[string]*ArrayCacheByTimestamp)
+	this.Ohlcvs = &sync.Map{}
 	this.Orders = NewArrayCache(limit)
 	this.TriggerOrders = NewArrayCache(limit)
 	this.MyTrades = NewArrayCache(limit)
@@ -239,7 +248,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	this.Liquidations = &sync.Map{}
 	this.MyLiquidations = &sync.Map{}
 	this.Clients = make(map[string]interface{})
-	this.Balance = make(map[string]interface{})
+	// this.Balance = make(map[string]interface{})
+	this.Balance = &sync.Map{}
 
 	// beforeNs := time.Now().UnixNano()
 	// this.WarmUpCache(this.Itf)
@@ -247,7 +257,8 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 	// fmt.Println("Warmup cache took: ", afterNs-beforeNs)
 
 	this.Currencies = &sync.Map{}
-	this.FundingRates = make(map[string]interface{})
+	// this.FundingRates = make(map[string]interface{})
+	this.FundingRates = &sync.Map{}
 	this.Bidsasks = &sync.Map{}
 	this.ProxyDictionaries = make(map[string]interface{})
 	this.AccountsById = make(map[string]interface{})
@@ -265,15 +276,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-	userOptions := this.SafeDict(userConfig, "options")
-	if userOptions == nil {
-		userOptions = map[string]interface{}{}
-	}
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
-		this.SetSandboxMode(true)
-	}
-
-	// fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {
@@ -497,31 +499,10 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
+		ch <- true
 		return true
 	}()
 	return ch
-}
-
-func Unique(obj interface{}) []string {
-	// Type assertion to check if obj is of type []string
-	strList, ok := obj.([]string)
-	if !ok {
-		return nil
-	}
-
-	// Use a map to ensure uniqueness
-	uniqueMap := make(map[string]struct{})
-	var result []string
-
-	for _, str := range strList {
-		// Check if the string is already in the map
-		if _, exists := uniqueMap[str]; !exists {
-			uniqueMap[str] = struct{}{}
-			result = append(result, str)
-		}
-	}
-
-	return result
 }
 
 func (this *Exchange) Log(args ...interface{}) {
@@ -592,6 +573,8 @@ func NewError(errType interface{}, message ...interface{}) error {
 	stack := ""
 	if len(message) > 0 {
 		msg = ToString(message[0])
+		msgParts := strings.Split(msg, "]\nStack:")
+		msg = msgParts[0]
 		if len(message) > 1 {
 			stack = ToString(message[1])
 		}
@@ -1132,6 +1115,9 @@ func (this *Exchange) StringToCharsArray(value interface{}) []string {
 }
 
 func (this *Exchange) GetMarket(symbol string) MarketInterface {
+	if this.Markets == nil {
+		panic("Markets not loaded, please call LoadMarkets() first")
+	}
 	// market := this.Markets[symbol]
 	market, ok := this.Markets.Load(symbol)
 	if !ok {
@@ -1198,6 +1184,28 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	}
 }
 
+func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{} {
+	include := true
+	if len(includeStack) > 0 {
+		include = includeStack[0].(bool)
+	}
+
+	var message string
+
+	if include {
+		message = fmt.Sprintf("[%T] %+v", exc, exc)
+	} else {
+		message = fmt.Sprintf("[%T] %v", exc, exc)
+	}
+
+	length := len(message)
+	if length > 100000 {
+		length = 100000
+	}
+
+	return message[:length]
+}
+
 func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)
@@ -1222,26 +1230,29 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}) interfa
 	}
 }
 
-func (this *Exchange) Unique(obj interface{}) []string {
-	// Type assertion to check if obj is a slice of strings
-	if list, ok := obj.([]string); ok {
-		// Create a map to track unique strings
-		uniqueMap := make(map[string]bool)
-		var uniqueList []string
+func (this *Exchange) Unique(obj interface{}) []interface{} {
+	var list []interface{}
 
-		// Iterate over the list and add only unique elements
-		for _, item := range list {
-			if !uniqueMap[item] {
-				uniqueMap[item] = true
-				uniqueList = append(uniqueList, item)
-			}
+	switch v := obj.(type) {
+	case []string:
+		for _, item := range v {
+			list = append(list, item)
 		}
-
-		return uniqueList
+	case []interface{}:
+		list = v
+	default:
+		return []interface{}{}
 	}
 
-	// If obj is not a []string, return an empty slice
-	return []string{}
+	uniqueMap := make(map[interface{}]bool)
+	uniqueList := []interface{}{}
+	for _, item := range list {
+		if !uniqueMap[item] {
+			uniqueMap[item] = true
+			uniqueList = append(uniqueList, item)
+		}
+	}
+	return uniqueList
 }
 
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
@@ -2005,15 +2016,16 @@ func (this *Exchange) LoadOrderBook(client interface{}, messageHash interface{},
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
 	tries := 0
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
+		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			cache := this.GetProperty(stored, "Cache")
 			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			cache := (*orderBookInterface.GetCache()).([]interface{})
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
 				// Call Reset method on stored orderbook
-				stored.(OrderBookInterface).Reset(orderBook)
-				this.DerivedExchange.HandleDeltas(stored, cache.([]interface{})[int(index):])
-				stored.(OrderBookInterface).SetCache(map[string]interface{}{})
+				orderBookInterface.Reset(orderBook)
+				this.DerivedExchange.HandleDeltas(stored, cache[int(index):])
+				orderBookInterface.SetCache(map[string]interface{}{})
 				// this.SetProperty(cache, "length", 0)
 				client.(*Client).Resolve(stored, messageHash)
 				return nil
@@ -2106,4 +2118,14 @@ func (this *Exchange) DecodeProtoMsg(message interface{}) interface{} {
 
 func (this *Exchange) Uuid5(namespace interface{}, name interface{}) string {
 	return ""
+}
+
+func (this *Exchange) LockId() bool {
+	this.idMutex.Lock()
+	return true
+}
+
+func (this *Exchange) UnlockId() bool {
+	this.idMutex.Unlock()
+	return true
 }

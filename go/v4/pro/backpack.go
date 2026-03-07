@@ -210,7 +210,7 @@ func  (this *BackpackCore) HandleUnsubscriptions(url interface{}, messageHashes 
  * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -242,7 +242,7 @@ func  (this *BackpackCore) WatchTicker(symbol interface{}, optionalArgs ...inter
  * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) UnWatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -267,7 +267,7 @@ func  (this *BackpackCore) UnWatchTicker(symbol interface{}, optionalArgs ...int
  * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -307,7 +307,7 @@ func  (this *BackpackCore) WatchTickers(optionalArgs ...interface{}) <- chan int
  * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) UnWatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -420,7 +420,7 @@ func  (this *BackpackCore) ParseWsTicker(ticker interface{}, optionalArgs ...int
  * @see https://docs.backpack.exchange/#tag/Streams/Public/Book-ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -459,7 +459,7 @@ func  (this *BackpackCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan in
  * @description unWatches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) UnWatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -784,7 +784,7 @@ func  (this *BackpackCore) ParseWsOHLCV(ohlcv interface{}, optionalArgs ...inter
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -813,7 +813,7 @@ func  (this *BackpackCore) WatchTrades(symbol interface{}, optionalArgs ...inter
  * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Trade
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BackpackCore) UnWatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -840,7 +840,7 @@ func  (this *BackpackCore) UnWatchTrades(symbol interface{}, optionalArgs ...int
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BackpackCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -877,8 +877,9 @@ func  (this *BackpackCore) WatchTradesForSymbols(symbols interface{}, optionalAr
                 var tradeSymbol interface{} = this.SafeString(first, "symbol")
                 limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
             }
+            var result interface{} = this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
         
-            ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+            ch <- this.SortBy(result, "timestamp")  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
             return nil
         
             }()
@@ -891,7 +892,7 @@ func  (this *BackpackCore) WatchTradesForSymbols(symbols interface{}, optionalAr
  * @see https://docs.backpack.exchange/#tag/Streams/Public/ccxt.Trade
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BackpackCore) UnWatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -901,8 +902,8 @@ func  (this *BackpackCore) UnWatchTradesForSymbols(symbols interface{}, optional
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6678 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6678)
+            retRes6688 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6688)
             symbols = this.MarketSymbols(symbols)
             var symbolsLength interface{} =     ccxt.GetArrayLength(symbols)
             if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
@@ -917,9 +918,9 @@ func  (this *BackpackCore) UnWatchTradesForSymbols(symbols interface{}, optional
                 ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trades:", symbol))
             }
         
-                retRes68115 :=  (<-this.WatchPublic(topics, messageHashes, params, true))
-                ccxt.PanicOnError(retRes68115)
-                ch <- retRes68115
+                retRes68215 :=  (<-this.WatchPublic(topics, messageHashes, params, true))
+                ccxt.PanicOnError(retRes68215)
+                ch <- retRes68215
                 return nil
         
             }()
@@ -1019,7 +1020,7 @@ func  (this *BackpackCore) ParseWsTrade(trade interface{}, optionalArgs ...inter
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BackpackCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1031,9 +1032,9 @@ func  (this *BackpackCore) WatchOrderBook(symbol interface{}, optionalArgs ...in
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes78115 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes78115)
-                ch <- retRes78115
+                retRes78215 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes78215)
+                ch <- retRes78215
                 return nil
         
             }()
@@ -1048,7 +1049,7 @@ func  (this *BackpackCore) WatchOrderBook(symbol interface{}, optionalArgs ...in
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BackpackCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1060,8 +1061,8 @@ func  (this *BackpackCore) WatchOrderBookForSymbols(symbols interface{}, optiona
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes7968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7968)
+            retRes7978 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7978)
             symbols = this.MarketSymbols(symbols, nil, false)
             var marketIds interface{} = this.MarketIds(symbols)
             var messageHashes interface{} = []interface{}{}
@@ -1089,7 +1090,7 @@ func  (this *BackpackCore) WatchOrderBookForSymbols(symbols interface{}, optiona
  * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BackpackCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1099,9 +1100,9 @@ func  (this *BackpackCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-                retRes82115 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
-                ccxt.PanicOnError(retRes82115)
-                ch <- retRes82115
+                retRes82215 :=  (<-this.UnWatchOrderBookForSymbols([]interface{}{symbol}, params))
+                ccxt.PanicOnError(retRes82215)
+                ch <- retRes82215
                 return nil
         
             }()
@@ -1114,7 +1115,7 @@ func  (this *BackpackCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BackpackCore) UnWatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1124,8 +1125,8 @@ func  (this *BackpackCore) UnWatchOrderBookForSymbols(symbols interface{}, optio
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes8348 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8348)
+            retRes8358 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8358)
             symbols = this.MarketSymbols(symbols, nil, false)
             var marketIds interface{} = this.MarketIds(symbols)
             var messageHashes interface{} = []interface{}{}
@@ -1138,9 +1139,9 @@ func  (this *BackpackCore) UnWatchOrderBookForSymbols(symbols interface{}, optio
                 ccxt.AppendToArray(&topics, topic)
             }
         
-                retRes84615 :=  (<-this.WatchPublic(topics, messageHashes, params, true))
-                ccxt.PanicOnError(retRes84615)
-                ch <- retRes84615
+                retRes84715 :=  (<-this.WatchPublic(topics, messageHashes, params, true))
+                ccxt.PanicOnError(retRes84715)
+                ch <- retRes84715
                 return nil
         
             }()
@@ -1237,7 +1238,7 @@ func  (this *BackpackCore) GetCacheIndex(orderbook interface{}, cache interface{
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *BackpackCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1253,8 +1254,8 @@ func  (this *BackpackCore) WatchOrders(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes9478 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9478)
+            retRes9488 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9488)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1286,7 +1287,7 @@ func  (this *BackpackCore) WatchOrders(optionalArgs ...interface{}) <- chan inte
  * @see https://docs.backpack.exchange/#tag/Streams/Private/ccxt.Order-update
  * @param {string} [symbol] unified market symbol of the market orders were made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *BackpackCore) UnWatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1298,8 +1299,8 @@ func  (this *BackpackCore) UnWatchOrders(optionalArgs ...interface{}) <- chan in
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes9768 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9768)
+            retRes9778 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes9778)
             var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1312,9 +1313,9 @@ func  (this *BackpackCore) UnWatchOrders(optionalArgs ...interface{}) <- chan in
                 messageHash = ccxt.Add("unsubscribe:orders:", symbol)
             }
         
-                retRes98815 :=  (<-this.WatchPrivate([]interface{}{topic}, []interface{}{messageHash}, params, true))
-                ccxt.PanicOnError(retRes98815)
-                ch <- retRes98815
+                retRes98915 :=  (<-this.WatchPrivate([]interface{}{topic}, []interface{}{messageHash}, params, true))
+                ccxt.PanicOnError(retRes98915)
+                ch <- retRes98915
                 return nil
         
             }()
@@ -1485,8 +1486,8 @@ func  (this *BackpackCore) WatchPositions(optionalArgs ...interface{}) <- chan i
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes11438 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11438)
+            retRes11448 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11448)
             symbols = this.MarketSymbols(symbols)
             var messageHashes interface{} = []interface{}{}
             var topics interface{} = []interface{}{}
@@ -1534,8 +1535,8 @@ func  (this *BackpackCore) UnWatchPositions(optionalArgs ...interface{}) <- chan
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes11748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11748)
+            retRes11758 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes11758)
             symbols = this.MarketSymbols(symbols)
             var messageHashes interface{} = []interface{}{}
             var topics interface{} = []interface{}{}
@@ -1550,9 +1551,9 @@ func  (this *BackpackCore) UnWatchPositions(optionalArgs ...interface{}) <- chan
                 ccxt.AppendToArray(&topics, "account.positionUpdate")
             }
         
-                retRes118815 :=  (<-this.WatchPrivate(topics, messageHashes, params, true))
-                ccxt.PanicOnError(retRes118815)
-                ch <- retRes118815
+                retRes118915 :=  (<-this.WatchPrivate(topics, messageHashes, params, true))
+                ccxt.PanicOnError(retRes118915)
+                ch <- retRes118915
                 return nil
         
             }()

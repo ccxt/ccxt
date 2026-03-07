@@ -65,8 +65,10 @@ class delta extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => true,
+                'fetchPositionADLRank' => true,
                 'fetchPositionMode' => false,
                 'fetchPositions' => true,
+                'fetchPositionsADLRank' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => true,
                 'fetchStatus' => true,
@@ -430,7 +432,7 @@ class delta extends Exchange {
         /**
          * the latest known information on the availability of the exchange API
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
         $response = $this->publicGetSettings ($params);
         //
@@ -1112,7 +1114,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1256,7 +1258,7 @@ class delta extends Exchange {
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1410,7 +1412,7 @@ class delta extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1553,7 +1555,7 @@ class delta extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1684,7 +1686,7 @@ class delta extends Exchange {
          * @see https://docs.delta.exchange/#get-wallet-balances
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetWalletBalances ($params);
@@ -1720,7 +1722,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1750,7 +1752,7 @@ class delta extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $response = $this->privateGetPositionsMargined ($params);
@@ -1991,7 +1993,7 @@ class delta extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->reduceOnly] *contract only* indicates if this order is to reduce the size of a position
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $orderType = $type . '_order';
@@ -2074,7 +2076,7 @@ class delta extends Exchange {
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2121,7 +2123,7 @@ class delta extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -2181,7 +2183,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -2218,7 +2220,7 @@ class delta extends Exchange {
          * @param {string} [$symbol] unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order $id of the order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $market = null;
@@ -2274,7 +2276,7 @@ class delta extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         return $this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params);
     }
@@ -2289,7 +2291,7 @@ class delta extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         return $this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params);
     }
@@ -2360,7 +2362,7 @@ class delta extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $request = array(
@@ -2443,7 +2445,7 @@ class delta extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $request = array(
@@ -2566,7 +2568,7 @@ class delta extends Exchange {
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] unified network $code
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2636,7 +2638,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2704,7 +2706,7 @@ class delta extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -2841,7 +2843,7 @@ class delta extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
@@ -2855,7 +2857,7 @@ class delta extends Exchange {
          * @param {string} $symbol unified market $symbol
          * @param {float} $amount the $amount of margin to remove
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         return $this->modify_margin_helper($symbol, $amount, 'reduce', $params);
     }
@@ -2944,7 +2946,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3083,7 +3085,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3164,7 +3166,7 @@ class delta extends Exchange {
          * @param {int} [$since] timestamp in ms
          * @param {int} [$limit] number of records
          * @param {array} [$params] exchange specific $params
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
          */
         $this->load_markets();
         $market = null;
@@ -3323,7 +3325,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch greeks for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3473,7 +3475,7 @@ class delta extends Exchange {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->user_id] the users id
-         * @return {array[]} A list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structures~
+         * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=$position-structure $position structures~
          */
         $this->load_markets();
         $request = array(
@@ -3497,7 +3499,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         $this->load_markets();
         $market = null;
@@ -3592,7 +3594,7 @@ class delta extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=option-chain-structure option chain structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3728,6 +3730,373 @@ class delta extends Exchange {
             'percentage' => null,
             'baseVolume' => $this->safe_number($chain, 'volume'),
             'quoteVolume' => null,
+        );
+    }
+
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches the auto deleveraging rank and risk percentage for a list of $symbols
+         *
+         * @see https://docs.delta.exchange/#get-margined-positions
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $response = $this->privateGetPositionsMargined ($params);
+        //
+        //     {
+        //         "result":
+        //             array(
+        //                 {
+        //                     "adl_level" => null,
+        //                     "auto_topup" => false,
+        //                     "bankruptcy_price" => "88618.22667",
+        //                     "commission" => "0.03797924",
+        //                     "created_at" => "2026-01-14T11:24:35.801586Z",
+        //                     "entry_price" => "94948.1",
+        //                     "liquidation_price" => "89092.96717",
+        //                     "margin" => "6.32987333",
+        //                     "margin_mode" => "isolated",
+        //                     "mark_price" => "94942.90888022",
+        //                     "product" => {
+        //                         "trading_status" => "operational",
+        //                         "short_description" => null,
+        //                         "quoting_asset" => array(
+        //                             "base_withdrawal_fee" => "0.000000000000000000",
+        //                             "id" => 4,
+        //                             "interest_credit" => false,
+        //                             "interest_slabs" => null,
+        //                             "kyc_deposit_limit" => "0.000000000000000000",
+        //                             "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                             "min_withdrawal_amount" => "0.000000000000000000",
+        //                             "minimum_precision" => 2,
+        //                             "name" => "Tether",
+        //                             "networks" => array(),
+        //                             "precision" => 8,
+        //                             "sort_priority" => null,
+        //                             "symbol" => "USDT",
+        //                             "variable_withdrawal_fee" => "0.000000000000000000"
+        //                         ),
+        //                         "symbol" => "BTCUSDT",
+        //                         "taker_commission_rate" => "0.0004",
+        //                         "maintenance_margin_scaling_factor" => "0",
+        //                         "spot_index" => array(
+        //                             "config" => array(
+        //                                 "impact_size" => array(
+        //                                     "max_impact_size" => 150000,
+        //                                     "min_impact_size" => 5000,
+        //                                     "step_value" => 5000
+        //                                 ),
+        //                                 "quoting_asset" => "USDT",
+        //                                 "service_id" => 1,
+        //                                 "underlying_asset" => "BTC"
+        //                             ),
+        //                             "constituent_exchanges" => [
+        //                                 array(
+        //                                     "exchange" => "binance",
+        //                                     "health_interval" => 3000,
+        //                                     "health_priority" => 1,
+        //                                     "weight" => 1
+        //                                 ),
+        //                                 array(
+        //                                     "exchange" => "gateio",
+        //                                     "health_interval" => 3000,
+        //                                     "health_priority" => 3,
+        //                                     "weight" => 1
+        //                                 ),
+        //                                 array(
+        //                                     "exchange" => "bybit",
+        //                                     "health_interval" => 3000,
+        //                                     "health_priority" => 2,
+        //                                     "weight" => 1
+        //                                 }
+        //                             ),
+        //                             "constituent_indices" => null,
+        //                             "description" => "BTC Spot",
+        //                             "health_interval" => 300,
+        //                             "id" => 2,
+        //                             "impact_size" => "1.000000000000000000",
+        //                             "index_type" => "spot_pair",
+        //                             "is_composite" => false,
+        //                             "price_method" => "ltp",
+        //                             "quoting_asset_id" => 4,
+        //                             "symbol" => ".DEXBTUSDT",
+        //                             "tick_size" => "0.100000000000000000",
+        //                             "underlying_asset_id" => 2
+        //                         ),
+        //                         "liquidation_penalty_factor" => "1",
+        //                         "auction_start_time" => "2025-12-22T12:18:52Z",
+        //                         "is_quanto" => false,
+        //                         "state" => "live",
+        //                         "id" => 84,
+        //                         "settling_asset" => array(
+        //                             "base_withdrawal_fee" => "0.000000000000000000",
+        //                             "id" => 4,
+        //                             "interest_credit" => false,
+        //                             "interest_slabs" => null,
+        //                             "kyc_deposit_limit" => "0.000000000000000000",
+        //                             "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                             "min_withdrawal_amount" => "0.000000000000000000",
+        //                             "minimum_precision" => 2,
+        //                             "name" => "Tether",
+        //                             "networks" => array(),
+        //                             "precision" => 8,
+        //                             "sort_priority" => null,
+        //                             "symbol" => "USDT",
+        //                             "variable_withdrawal_fee" => "0.000000000000000000"
+        //                         ),
+        //                         "tick_size" => "0.1",
+        //                         "impact_size" => 4000,
+        //                         "insurance_fund_margin_contribution" => "5",
+        //                         "maker_commission_rate" => "0.0002",
+        //                         "ui_config" => array(
+        //                             "default_trading_view_candle" => "15",
+        //                             "leverage_slider_values" => [1,2,3,5,10,50,100],
+        //                             "price_clubbing_values" => [0.1,1,10,50],
+        //                             "show_bracket_orders" => false,
+        //                             "sort_priority" => 1
+        //                         ),
+        //                         "annualized_funding" => "0",
+        //                         "strike_price" => null,
+        //                         "price_band" => "100",
+        //                         "funding_method" => "mark_price",
+        //                         "contract_value" => "0.001",
+        //                         "auction_finish_time" => null,
+        //                         "product_specs" => array(
+        //                             "vol_expiry_time" => 172800
+        //                         ),
+        //                         "launch_time" => "2020-04-20T08:37:05Z",
+        //                         "basis_factor_max_limit" => "1000",
+        //                         "initial_margin" => "1",
+        //                         "notional_type" => "vanilla",
+        //                         "contract_unit_currency" => "BTC",
+        //                         "disruption_reason" => null,
+        //                         "underlying_asset" => array(
+        //                             "base_withdrawal_fee" => "0.000000000000000000",
+        //                             "id" => 2,
+        //                             "interest_credit" => false,
+        //                             "interest_slabs" => null,
+        //                             "kyc_deposit_limit" => "0.000000000000000000",
+        //                             "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                             "min_withdrawal_amount" => "0.000000000000000000",
+        //                             "minimum_precision" => 4,
+        //                             "name" => "Bitcoin",
+        //                             "networks" => array(),
+        //                             "precision" => 8,
+        //                             "sort_priority" => 1,
+        //                             "symbol" => "BTC",
+        //                             "variable_withdrawal_fee" => "0.000000000000000000"
+        //                         ),
+        //                         "initial_margin_scaling_factor" => "0",
+        //                         "position_size_limit" => 10000000,
+        //                         "max_leverage_notional" => "10000",
+        //                         "settlement_price" => null,
+        //                         "barrier_price" => null,
+        //                         "maintenance_margin" => "0.5",
+        //                         "default_leverage" => "50.000000000000000000",
+        //                         "settlement_time" => null,
+        //                         "description" => "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //                         "contract_type" => "perpetual_futures"
+        //                     ),
+        //                     "product_id" => 84,
+        //                     "product_symbol" => "BTCUSDT",
+        //                     "realized_cashflow" => "0.000000000000000000",
+        //                     "realized_funding" => "0",
+        //                     "realized_holding_cost" => "0",
+        //                     "realized_pnl" => "0",
+        //                     "size" => 1,
+        //                     "unrealized_pnl" => "-0.00519112",
+        //                     "updated_at" => "2026-01-14T11:24:35.801586Z",
+        //                     "user_id" => 30084879
+        //                 }
+        //             ],
+        //         "success" => true
+        //     }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_adl_ranks($result, $symbols);
+    }
+
+    public function parse_adl_rank(array $info, ?array $market = null): array {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "adl_level" => null,
+        //         "auto_topup" => false,
+        //         "bankruptcy_price" => "88618.22667",
+        //         "commission" => "0.03797924",
+        //         "created_at" => "2026-01-14T11:24:35.801586Z",
+        //         "entry_price" => "94948.1",
+        //         "liquidation_price" => "89092.96717",
+        //         "margin" => "6.32987333",
+        //         "margin_mode" => "isolated",
+        //         "mark_price" => "94942.90888022",
+        //         "product" => {
+        //             "trading_status" => "operational",
+        //             "short_description" => null,
+        //             "quoting_asset" => array(
+        //                 "base_withdrawal_fee" => "0.000000000000000000",
+        //                 "id" => 4,
+        //                 "interest_credit" => false,
+        //                 "interest_slabs" => null,
+        //                 "kyc_deposit_limit" => "0.000000000000000000",
+        //                 "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                 "min_withdrawal_amount" => "0.000000000000000000",
+        //                 "minimum_precision" => 2,
+        //                 "name" => "Tether",
+        //                 "networks" => array(),
+        //                 "precision" => 8,
+        //                 "sort_priority" => null,
+        //                 "symbol" => "USDT",
+        //                 "variable_withdrawal_fee" => "0.000000000000000000"
+        //             ),
+        //             "symbol" => "BTCUSDT",
+        //             "taker_commission_rate" => "0.0004",
+        //             "maintenance_margin_scaling_factor" => "0",
+        //             "spot_index" => array(
+        //                 "config" => array(
+        //                     "impact_size" => array(
+        //                         "max_impact_size" => 150000,
+        //                         "min_impact_size" => 5000,
+        //                         "step_value" => 5000
+        //                     ),
+        //                     "quoting_asset" => "USDT",
+        //                     "service_id" => 1,
+        //                     "underlying_asset" => "BTC"
+        //                 ),
+        //                 "constituent_exchanges" => array(
+        //                     array(
+        //                         "exchange" => "binance",
+        //                         "health_interval" => 3000,
+        //                         "health_priority" => 1,
+        //                         "weight" => 1
+        //                     ),
+        //                     array(
+        //                         "exchange" => "gateio",
+        //                         "health_interval" => 3000,
+        //                         "health_priority" => 3,
+        //                         "weight" => 1
+        //                     ),
+        //                     array(
+        //                         "exchange" => "bybit",
+        //                         "health_interval" => 3000,
+        //                         "health_priority" => 2,
+        //                         "weight" => 1
+        //                     }
+        //                 ),
+        //                 "constituent_indices" => null,
+        //                 "description" => "BTC Spot",
+        //                 "health_interval" => 300,
+        //                 "id" => 2,
+        //                 "impact_size" => "1.000000000000000000",
+        //                 "index_type" => "spot_pair",
+        //                 "is_composite" => false,
+        //                 "price_method" => "ltp",
+        //                 "quoting_asset_id" => 4,
+        //                 "symbol" => ".DEXBTUSDT",
+        //                 "tick_size" => "0.100000000000000000",
+        //                 "underlying_asset_id" => 2
+        //             ),
+        //             "liquidation_penalty_factor" => "1",
+        //             "auction_start_time" => "2025-12-22T12:18:52Z",
+        //             "is_quanto" => false,
+        //             "state" => "live",
+        //             "id" => 84,
+        //             "settling_asset" => array(
+        //                 "base_withdrawal_fee" => "0.000000000000000000",
+        //                 "id" => 4,
+        //                 "interest_credit" => false,
+        //                 "interest_slabs" => null,
+        //                 "kyc_deposit_limit" => "0.000000000000000000",
+        //                 "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                 "min_withdrawal_amount" => "0.000000000000000000",
+        //                 "minimum_precision" => 2,
+        //                 "name" => "Tether",
+        //                 "networks" => array(),
+        //                 "precision" => 8,
+        //                 "sort_priority" => null,
+        //                 "symbol" => "USDT",
+        //                 "variable_withdrawal_fee" => "0.000000000000000000"
+        //             ),
+        //             "tick_size" => "0.1",
+        //             "impact_size" => 4000,
+        //             "insurance_fund_margin_contribution" => "5",
+        //             "maker_commission_rate" => "0.0002",
+        //             "ui_config" => array(
+        //                 "default_trading_view_candle" => "15",
+        //                 "leverage_slider_values" => [1,2,3,5,10,50,100],
+        //                 "price_clubbing_values" => [0.1,1,10,50],
+        //                 "show_bracket_orders" => false,
+        //                 "sort_priority" => 1
+        //             ),
+        //             "annualized_funding" => "0",
+        //             "strike_price" => null,
+        //             "price_band" => "100",
+        //             "funding_method" => "mark_price",
+        //             "contract_value" => "0.001",
+        //             "auction_finish_time" => null,
+        //             "product_specs" => array(
+        //                 "vol_expiry_time" => 172800
+        //             ),
+        //             "launch_time" => "2020-04-20T08:37:05Z",
+        //             "basis_factor_max_limit" => "1000",
+        //             "initial_margin" => "1",
+        //             "notional_type" => "vanilla",
+        //             "contract_unit_currency" => "BTC",
+        //             "disruption_reason" => null,
+        //             "underlying_asset" => array(
+        //                 "base_withdrawal_fee" => "0.000000000000000000",
+        //                 "id" => 2,
+        //                 "interest_credit" => false,
+        //                 "interest_slabs" => null,
+        //                 "kyc_deposit_limit" => "0.000000000000000000",
+        //                 "kyc_withdrawal_limit" => "0.000000000000000000",
+        //                 "min_withdrawal_amount" => "0.000000000000000000",
+        //                 "minimum_precision" => 4,
+        //                 "name" => "Bitcoin",
+        //                 "networks" => array(),
+        //                 "precision" => 8,
+        //                 "sort_priority" => 1,
+        //                 "symbol" => "BTC",
+        //                 "variable_withdrawal_fee" => "0.000000000000000000"
+        //             ),
+        //             "initial_margin_scaling_factor" => "0",
+        //             "position_size_limit" => 10000000,
+        //             "max_leverage_notional" => "10000",
+        //             "settlement_price" => null,
+        //             "barrier_price" => null,
+        //             "maintenance_margin" => "0.5",
+        //             "default_leverage" => "50.000000000000000000",
+        //             "settlement_time" => null,
+        //             "description" => "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        //             "contract_type" => "perpetual_futures"
+        //         ),
+        //         "product_id" => 84,
+        //         "product_symbol" => "BTCUSDT",
+        //         "realized_cashflow" => "0.000000000000000000",
+        //         "realized_funding" => "0",
+        //         "realized_holding_cost" => "0",
+        //         "realized_pnl" => "0",
+        //         "size" => 1,
+        //         "unrealized_pnl" => "-0.00519112",
+        //         "updated_at" => "2026-01-14T11:24:35.801586Z",
+        //         "user_id" => 30084879
+        //     }
+        //
+        $marketId = $this->safe_string($info, 'product_symbol');
+        $datetime = $this->safe_string($info, 'created_at');
+        return array(
+            'info' => $info,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
+            'rank' => $this->safe_integer($info, 'adl_level'),
+            'rating' => null,
+            'percentage' => null,
+            'timestamp' => $this->parse8601($datetime),
+            'datetime' => $datetime,
         );
     }
 

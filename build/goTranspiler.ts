@@ -235,6 +235,8 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'watchTradesForSymbols': true,
     'withdrawWs': true,
     "parseLastPrice": false,
+    'fetchPositionsADLRank': true,
+    'parseADLRank': false
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
 }
@@ -2090,8 +2092,14 @@ ${caseStatements.join('\n')}
             'PAD_WITH_ZERO',
             'TRUNCATE',
             'ROUND',
+            'ROUND_UP',
+            'ROUND_DOWN',
             'toFixed',
-            'throwDynamicException'
+            'throwDynamicException',
+            'NewArrayCache',
+            'NewArrayCacheByTimestamp',
+            'NewArrayCacheBySymbolById',
+            'NewArrayCacheBySymbolBySide'
         ]);
 
         const files = fs.readdirSync(dirPath);
@@ -2404,7 +2412,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         for (const testName of baseFunctionTests) {
             const tsFile = `${baseFolders.ts}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (tsContent.includes ('// NO_AUTO_TRANSPILE')) {
                 continue;
             }
 
@@ -2424,8 +2432,24 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 [ /Assert\("GO_SKIP_START"\)[\S\s]+?Assert\("GO_SKIP_END"\)/gm, '' ], // remove equals
+                // Match ArrayCache variables and cast to appropriate type based on variable name
+                // Order matters: check most specific types first
+                [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
+                [/(\w*ArrayCacheByTimestamp\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheByTimestamp).Hashmap'],
+                [/(\w*ArrayCacheBySymbolById\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
+                // General ArrayCache pattern (must not match the specific types above)
+                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
+                // Match stored/cached/orders patterns - explicit patterns for common variable names
+                [/\bstored\.Hashmap/g, 'stored.(*ccxt.ArrayCache).Hashmap'],
+                [/\bcached\.Hashmap/g, 'cached.(*ccxt.ArrayCache).Hashmap'],
+                [/\b([Oo]rders)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
 
             ]).trim ();
+
+            if (testName !== 'tests.init') {
+                // Add package prefix to functions and types from the ccxt package
+                content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
+            }
 
             const file = [
                 'package base',
@@ -2575,7 +2599,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/func\((message interface\{\})\)/g, 'func(message *ccxt.Message)'],
                 // Capitalize subscribe methods for Go
                 [/exchange\.subscribe([A-Z]\w+)/g, 'exchange.Subscribe$1'],
-
+                // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
+                [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
 
 
                 // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],

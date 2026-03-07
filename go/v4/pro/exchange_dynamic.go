@@ -7,6 +7,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ccxt.ICoreExchange, bool) {
     switch exchangeId {
+    case "aftermath":
+        aftermathItf := NewAftermathCore()
+        aftermathItf.Init(exchangeArgs)
+        return aftermathItf, true
     case "alpaca":
         alpacaItf := NewAlpacaCore()
         alpacaItf.Init(exchangeArgs)
@@ -23,6 +27,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         ascendexItf := NewAscendexCore()
         ascendexItf.Init(exchangeArgs)
         return ascendexItf, true
+    case "aster":
+        asterItf := NewAsterCore()
+        asterItf.Init(exchangeArgs)
+        return asterItf, true
     case "backpack":
         backpackItf := NewBackpackCore()
         backpackItf.Init(exchangeArgs)
@@ -99,10 +107,18 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         blofinItf := NewBlofinCore()
         blofinItf.Init(exchangeArgs)
         return blofinItf, true
+    case "bullish":
+        bullishItf := NewBullishCore()
+        bullishItf.Init(exchangeArgs)
+        return bullishItf, true
     case "bybit":
         bybitItf := NewBybitCore()
         bybitItf.Init(exchangeArgs)
         return bybitItf, true
+    case "bydfi":
+        bydfiItf := NewBydfiCore()
+        bydfiItf.Init(exchangeArgs)
+        return bydfiItf, true
     case "cex":
         cexItf := NewCexCore()
         cexItf.Init(exchangeArgs)
@@ -227,6 +243,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         lbankItf := NewLbankCore()
         lbankItf.Init(exchangeArgs)
         return lbankItf, true
+    case "lighter":
+        lighterItf := NewLighterCore()
+        lighterItf.Init(exchangeArgs)
+        return lighterItf, true
     case "luno":
         lunoItf := NewLunoCore()
         lunoItf.Init(exchangeArgs)
@@ -279,10 +299,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         poloniexItf := NewPoloniexCore()
         poloniexItf.Init(exchangeArgs)
         return poloniexItf, true
-    case "probit":
-        probitItf := NewProbitCore()
-        probitItf.Init(exchangeArgs)
-        return probitItf, true
     case "toobit":
         toobitItf := NewToobitCore()
         toobitItf.Init(exchangeArgs)

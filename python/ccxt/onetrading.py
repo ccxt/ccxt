@@ -411,7 +411,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.onetrading.com/#time
+        https://docs.onetrading.com/rest/public/time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -429,7 +429,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://docs.onetrading.com/#currencies
+        https://docs.onetrading.com/rest/public/currencies
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -473,7 +473,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for onetrading
 
-        https://docs.onetrading.com/#instruments
+        https://docs.onetrading.com/rest/public/instruments
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -601,12 +601,12 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://docs.onetrading.com/#fee-groups
-        https://docs.onetrading.com/#fees
+        https://docs.onetrading.com/rest/public/fee-groups
+        https://docs.onetrading.com/rest/trading/fees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: fetchPrivateTradingFees or fetchPublicTradingFees
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         method = self.safe_string(params, 'method')
         params = self.omit(params, 'method')
@@ -826,11 +826,11 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.onetrading.com/#market-ticker-for-instrument
+        https://docs.onetrading.com/rest/public/market-ticker-instrument
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -862,11 +862,11 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://docs.onetrading.com/#market-ticker
+        https://docs.onetrading.com/rest/public/market-ticker
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -902,12 +902,12 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.onetrading.com/#order-book
+        https://docs.onetrading.com/rest/public/orderbook
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1027,7 +1027,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.onetrading.com/#candlesticks
+        https://docs.onetrading.com/rest/public/candlesticks
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1165,10 +1165,10 @@ class onetrading(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.onetrading.com/#balances
+        https://docs.onetrading.com/rest/trading/balances
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetAccountBalances(params)
@@ -1331,7 +1331,7 @@ class onetrading(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.onetrading.com/#create-order
+        https://docs.onetrading.com/rest/trading/create-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'limit'
@@ -1340,7 +1340,7 @@ class onetrading(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: onetrading only does stop limit orders and does not do stop market
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1400,12 +1400,13 @@ class onetrading(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://docs.onetrading.com/#close-order-by-order-id
+        https://docs.onetrading.com/rest/trading/cancel-order-order-id
+        https://docs.onetrading.com/rest/trading/cancel-order-client-id
 
         :param str id: order id
         :param str symbol: not used by bitmex cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
@@ -1431,11 +1432,11 @@ class onetrading(Exchange, ImplicitAPI):
         """
         cancel all open orders
 
-        https://docs.onetrading.com/#close-all-orders
+        https://docs.onetrading.com/rest/trading/cancel-all-orders
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -1454,12 +1455,12 @@ class onetrading(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://docs.onetrading.com/#close-all-orders
+        https://docs.onetrading.com/rest/trading/cancel-all-orders
 
         :param str[] ids: order ids
         :param str symbol: unified market symbol, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1478,12 +1479,12 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://docs.onetrading.com/#get-order
+        https://docs.onetrading.com/rest/trading/get-order-order-id
 
         :param str id: the order id
         :param str symbol: not used by onetrading fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1537,13 +1538,13 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://docs.onetrading.com/#get-orders
+        https://docs.onetrading.com/rest/trading/get-orders
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1654,13 +1655,13 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.onetrading.com/#get-orders
+        https://docs.onetrading.com/rest/trading/get-orders
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         request: dict = {
             'with_cancelled_and_rejected': True,  # default is False, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
@@ -1671,14 +1672,14 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://docs.onetrading.com/#trades-for-order
+        https://docs.onetrading.com/rest/trading/get-trades-for-order
 
         :param str id: order id
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -1729,13 +1730,13 @@ class onetrading(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.onetrading.com/#all-trades
+        https://docs.onetrading.com/rest/trading/get-trades
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {

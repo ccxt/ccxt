@@ -7,11 +7,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
-function test_sort_by() {
+
+function test_sort_by_1() {
     // todo: other argument checks
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'sampleexchange',
     ));
     $arr = [array(
@@ -57,4 +57,166 @@ function test_sort_by() {
 )]);
     $empty_array = $exchange->sort_by([], 'x');
     assert_deep_equal($exchange, null, 'sortBy', $empty_array, []);
+}
+
+
+function test_sort_by_2() {
+    $exchange = new \ccxt\async\Exchange(array(
+        'id' => 'sampleexchange',
+    ));
+    // sort ascending by key1, then key2 (key1 values are all distinct here)
+    $arr = [array(
+    'x' => 3,
+    'y' => 1,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 2,
+    'y' => 3,
+), array(
+    'x' => 0,
+    'y' => 4,
+)];
+    $sorted = $exchange->sort_by_2($arr, 'x', 'y');
+    assert_deep_equal($exchange, null, 'sortBy2', $sorted, [array(
+    'x' => 0,
+    'y' => 4,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 2,
+    'y' => 3,
+), array(
+    'x' => 3,
+    'y' => 1,
+)]);
+    // sort descending by key1
+    $arr2 = [array(
+    'x' => 3,
+    'y' => 1,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 2,
+    'y' => 3,
+), array(
+    'x' => 0,
+    'y' => 4,
+)];
+    $sorted_descending = $exchange->sort_by_2($arr2, 'x', 'y', true);
+    assert_deep_equal($exchange, null, 'sortBy2', $sorted_descending, [array(
+    'x' => 3,
+    'y' => 1,
+), array(
+    'x' => 2,
+    'y' => 3,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 0,
+    'y' => 4,
+)]);
+    // when key1 values are equal, sort by key2 ascending
+    $arr3 = [array(
+    'x' => 1,
+    'y' => 5,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 1,
+    'y' => 9,
+), array(
+    'x' => 1,
+    'y' => 1,
+)];
+    $sorted_by_key_2 = $exchange->sort_by_2($arr3, 'x', 'y');
+    assert_deep_equal($exchange, null, 'sortBy2', $sorted_by_key_2, [array(
+    'x' => 1,
+    'y' => 1,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 1,
+    'y' => 5,
+), array(
+    'x' => 1,
+    'y' => 9,
+)]);
+    // when key1 values are equal, sort by key2 descending
+    $arr4 = [array(
+    'x' => 1,
+    'y' => 5,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 1,
+    'y' => 9,
+), array(
+    'x' => 1,
+    'y' => 1,
+)];
+    $sorted_by_key2_descending = $exchange->sort_by_2($arr4, 'x', 'y', true);
+    assert_deep_equal($exchange, null, 'sortBy2', $sorted_by_key2_descending, [array(
+    'x' => 1,
+    'y' => 9,
+), array(
+    'x' => 1,
+    'y' => 5,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 1,
+    'y' => 1,
+)]);
+    // mixed: sort by key1 first, then key2 as tiebreaker
+    $arr5 = [array(
+    'x' => 2,
+    'y' => 3,
+), array(
+    'x' => 1,
+    'y' => 5,
+), array(
+    'x' => 2,
+    'y' => 1,
+), array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 2,
+    'y' => 2,
+)];
+    $sorted_mixed = $exchange->sort_by_2($arr5, 'x', 'y');
+    assert_deep_equal($exchange, null, 'sortBy2', $sorted_mixed, [array(
+    'x' => 1,
+    'y' => 2,
+), array(
+    'x' => 1,
+    'y' => 5,
+), array(
+    'x' => 2,
+    'y' => 1,
+), array(
+    'x' => 2,
+    'y' => 2,
+), array(
+    'x' => 2,
+    'y' => 3,
+)]);
+    // empty array
+    $empty_array = $exchange->sort_by_2([], 'x', 'y');
+    assert_deep_equal($exchange, null, 'sortBy2', $empty_array, []);
+}
+
+
+function test_sort_by() {
+    test_sort_by_1();
+    test_sort_by_2();
 }

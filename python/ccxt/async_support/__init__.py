@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.19'
+__version__ = '4.5.42'
 
 # -----------------------------------------------------------------------------
 
@@ -64,10 +64,13 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
+from ccxt.async_support.aftermath import aftermath                              # noqa: F401
+from ccxt.async_support.alp import alp                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
 from ccxt.async_support.arkham import arkham                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
+from ccxt.async_support.aster import aster                                      # noqa: F401
 from ccxt.async_support.backpack import backpack                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
 from ccxt.async_support.bigone import bigone                                    # noqa: F401
@@ -94,11 +97,12 @@ from ccxt.async_support.bittrade import bittrade                                
 from ccxt.async_support.bitvavo import bitvavo                                  # noqa: F401
 from ccxt.async_support.blockchaincom import blockchaincom                      # noqa: F401
 from ccxt.async_support.blofin import blofin                                    # noqa: F401
-from ccxt.async_support.btcalpha import btcalpha                                # noqa: F401
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
+from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
+from ccxt.async_support.bydfi import bydfi                                      # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseadvanced import coinbaseadvanced                # noqa: F401
@@ -142,6 +146,7 @@ from ccxt.async_support.kucoin import kucoin                                    
 from ccxt.async_support.kucoinfutures import kucoinfutures                      # noqa: F401
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
+from ccxt.async_support.lighter import lighter                                  # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
 from ccxt.async_support.mexc import mexc                                        # noqa: F401
@@ -149,7 +154,6 @@ from ccxt.async_support.modetrade import modetrade                              
 from ccxt.async_support.myokx import myokx                                      # noqa: F401
 from ccxt.async_support.ndax import ndax                                        # noqa: F401
 from ccxt.async_support.novadax import novadax                                  # noqa: F401
-from ccxt.async_support.oceanex import oceanex                                  # noqa: F401
 from ccxt.async_support.okx import okx                                          # noqa: F401
 from ccxt.async_support.okxus import okxus                                      # noqa: F401
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
@@ -159,7 +163,6 @@ from ccxt.async_support.paradex import paradex                                  
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
-from ccxt.async_support.probit import probit                                    # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
 from ccxt.async_support.toobit import toobit                                    # noqa: F401
@@ -171,13 +174,17 @@ from ccxt.async_support.woofipro import woofipro                                
 from ccxt.async_support.xt import xt                                            # noqa: F401
 from ccxt.async_support.yobit import yobit                                      # noqa: F401
 from ccxt.async_support.zaif import zaif                                        # noqa: F401
+from ccxt.async_support.zebpay import zebpay                                    # noqa: F401
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
+    'aftermath',
+    'alp',
     'alpaca',
     'apex',
     'arkham',
     'ascendex',
+    'aster',
     'backpack',
     'bequant',
     'bigone',
@@ -204,11 +211,12 @@ exchanges = [
     'bitvavo',
     'blockchaincom',
     'blofin',
-    'btcalpha',
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'bullish',
     'bybit',
+    'bydfi',
     'cex',
     'coinbase',
     'coinbaseadvanced',
@@ -252,6 +260,7 @@ exchanges = [
     'kucoinfutures',
     'latoken',
     'lbank',
+    'lighter',
     'luno',
     'mercado',
     'mexc',
@@ -259,7 +268,6 @@ exchanges = [
     'myokx',
     'ndax',
     'novadax',
-    'oceanex',
     'okx',
     'okxus',
     'onetrading',
@@ -269,7 +277,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'probit',
     'timex',
     'tokocrypto',
     'toobit',
@@ -281,6 +288,7 @@ exchanges = [
     'xt',
     'yobit',
     'zaif',
+    'zebpay',
     'zonda',
 ]
 

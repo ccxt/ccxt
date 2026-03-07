@@ -626,10 +626,14 @@ func GetArrayLength(value interface{}) int {
 		return len(v)
 	case []int:
 		return len(v)
+	case []map[string]interface{}:
+		return len(v)
 	case string:
 		return len(v) // should we do it here?
 	case IOrderBookSide:
 		return v.Len()
+	case IArrayCache:
+		return len(v.ToArray())
 	case interface{}:
 		if array, ok := value.([]interface{}); ok {
 			return len(array)
@@ -651,6 +655,10 @@ func GetArrayLength(value interface{}) int {
 		// In typescript OrderBookSide extends Array, so some work arounds are made so that the expected behaviour is achieved in the transpiled code
 		if obs, ok := value.(IOrderBookSide); ok {
 			return obs.Len()
+		}
+		// Check for IArrayCache in default case
+		if cache, ok := value.(IArrayCache); ok {
+			return len(cache.ToArray())
 		}
 	}
 
@@ -776,9 +784,6 @@ func IsEqual(a, b interface{}) bool {
 	if a == nil && b == nil {
 		return true
 	}
-	if a == nil || b == nil {
-		return false
-	}
 
 	if (a == true && b == false) || (a == false && b == true) {
 		return false
@@ -797,6 +802,15 @@ func IsEqual(a, b interface{}) bool {
 	case int:
 		switch bVal := b.(type) {
 		case int:
+			return aVal == bVal
+		case int64:
+			return int64(aVal) == bVal
+		case float64:
+			return float64(aVal) == bVal
+		}
+	case uint8:
+		switch bVal := b.(type) {
+		case uint8:
 			return aVal == bVal
 		case int64:
 			return int64(aVal) == bVal
@@ -829,6 +843,10 @@ func IsEqual(a, b interface{}) bool {
 		if aVal == nil {
 			return true
 		}
+	}
+
+	if a == nil || b == nil {
+		return false
 	}
 
 	// If types don't match or aren't handled, return false
@@ -877,6 +895,8 @@ func ToFloat64(v interface{}) float64 {
 		if err == nil {
 			return result
 		}
+		// result could be changed
+		result = math.NaN()
 	}
 	return result
 }
@@ -1720,6 +1740,8 @@ func IsArray(v interface{}) bool {
 	switch v.(type) {
 	case []interface{}, [][]interface{}:
 		return true
+	case []map[string]interface{}:
+		return true
 	case []string, []bool:
 		return true
 	case []int, []int8, []int16, []int32, []int64, []float32, []float64, []uint, []uint8, []uint16, []uint32, []uint64:
@@ -2272,12 +2294,9 @@ func mathMin(a, b interface{}) interface{} {
 }
 
 func MathPow(base interface{}, exp interface{}) float64 {
-	baseFloat, baseOk := base.(float64)
-	expFloat, expOk := exp.(float64)
-	if baseOk && expOk {
-		return math.Pow(baseFloat, expFloat)
-	}
-	return 0
+	base64 := ToFloat64(base)
+	exp64 := ToFloat64(exp)
+	return math.Pow(base64, exp64)
 }
 
 func MathAbs(v interface{}) float64 {

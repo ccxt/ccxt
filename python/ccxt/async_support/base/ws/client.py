@@ -72,6 +72,7 @@ class Client(object):
             else:
                 setattr(self, key, settings[key])
         # connection-related Future
+        self.options = config
         self.connected = Future()
 
     def future(self, message_hash):
@@ -234,9 +235,8 @@ class Client(object):
     def handle_text_or_binary_message(self, data):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
-        if isinstance(data, bytes):
-            if self.decompressBinary:
-                data = data.decode()
+        if self.decompressBinary and isinstance(data, bytes):
+            data = data.decode()
         # decoded = json.loads(data) if is_json_encoded_object(data) else data
         decode = None
         if is_json_encoded_object(data):
@@ -289,6 +289,10 @@ class Client(object):
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         # call aenter here to simulate async with otherwise we get the error "await not called with future"
         # if connecting to a non-existent endpoint
+        # set cookies if defined
+        if 'cookies' in self.options:
+            for key, value in self.options['cookies'].items():
+                session.cookie_jar.update_cookies({key: value})
         if (self.proxy):
             return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), proxy=self.proxy, max_msg_size=10485760).__aenter__()
         return session.ws_connect(self.url, autoping=False, autoclose=False, headers=self.options.get('headers'), max_msg_size=10485760).__aenter__()

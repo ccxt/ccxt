@@ -8,6 +8,8 @@ class ImplicitAPI:
     public_get_products = publicGetProducts = Entry('products', 'public', 'GET', {})
     public_get_transactions = publicGetTransactions = Entry('transactions', 'public', 'GET', {})
     public_get_tradingpairs = publicGetTradingPairs = Entry('tradingPairs', 'public', 'GET', {})
+    public_get_system_time = publicGetSystemTime = Entry('system/time', 'public', 'GET', {})
+    private_post_currencies = privatePostCurrencies = Entry('currencies', 'private', 'POST', {})
     private_post_balances = privatePostBalances = Entry('balances', 'private', 'POST', {})
     private_post_bitcoincashwithdrawal = privatePostBitcoinCashWithdrawal = Entry('bitcoinCashWithdrawal', 'private', 'POST', {})
     private_post_bitcoincashdepositaddresses = privatePostBitcoinCashDepositAddresses = Entry('bitcoinCashDepositAddresses', 'private', 'POST', {})
@@ -60,3 +62,4 @@ class ImplicitAPI:
     private_post_solwithdrawal = privatePostSolWithdrawal = Entry('solWithdrawal', 'private', 'POST', {})
     private_post_soldepositaddresses = privatePostSolDepositAddresses = Entry('solDepositAddresses', 'private', 'POST', {})
     private_post_unconfirmedsoldeposits = privatePostUnconfirmedSolDeposits = Entry('unconfirmedSolDeposits', 'private', 'POST', {})
+    private_post_bankwirewithdrawal = privatePostBankWireWithdrawal = Entry('bankWireWithdrawal', 'private', 'POST', {})

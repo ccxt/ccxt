@@ -6,6 +6,7 @@ var index$1 = require('../scure-bip32/index.js');
 var index = require('../scure-bip39/index.js');
 var english = require('../scure-bip39/wordlists/english.js');
 
+// ----------------------------------------------------------------------------
 /**
  * @description Get Mnemonic and priv/pub keys from privateKeyBytes and BIP44 HD path
  *

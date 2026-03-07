@@ -20,19 +20,10 @@ jobs:
         if: github.ref != 'refs/heads/master'
         with:
           fetch-depth: 2
-      - name: Setup Go
-        uses: actions/setup-go@v5
+      - name: Setup Golang with cache
+        uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: "1.24.x"
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/go/pkg/mod       # module download cache
-            ~/.cache/go-build  # build cache
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          go-version: ~1.24
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
@@ -79,6 +70,10 @@ jobs:
           #   echo "No websocket files to process; skipping."
           # fi
           read -r -a files <<<"$(printf '%s %s' "${{ env.rest_files }}" "${{ env.ws_files }}" | xargs)"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files to process; skipping."
+            exit 0
+          fi
           echo "Files to process: ${files[*]}"
           tsx utils/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies

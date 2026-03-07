@@ -283,7 +283,7 @@ func  (this *KrakenCore) OrderRequestWs(method interface{}, symbol interface{}, 
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KrakenCore) CreateOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -371,7 +371,7 @@ func  (this *KrakenCore) HandleCreateEditOrder(client interface{}, message inter
  * @param {float} amount how much of the currency you want to trade in units of the base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KrakenCore) EditOrderWs(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -422,7 +422,7 @@ func  (this *KrakenCore) EditOrderWs(id interface{}, symbol interface{}, typeVar
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KrakenCore) CancelOrdersWs(ids interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -470,7 +470,7 @@ func  (this *KrakenCore) CancelOrdersWs(ids interface{}, optionalArgs ...interfa
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KrakenCore) CancelOrderWs(id interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -533,7 +533,7 @@ func  (this *KrakenCore) HandleCancelOrder(client interface{}, message interface
  * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
  * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KrakenCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -734,8 +734,10 @@ func  (this *KrakenCore) HandleOHLCV(client interface{}, message interface{})  {
 }
 func  (this *KrakenCore) RequestId() interface{}  {
     // their support said that reqid must be an int32, not documented
+    this.LockId()
     var reqid interface{} = this.Sum(this.SafeInteger(this.Options, "reqid", 0), 1)
     ccxt.AddElementToObject(this.Options, "reqid", reqid)
+    this.UnlockId()
     return reqid
 }
 /**
@@ -745,7 +747,7 @@ func  (this *KrakenCore) RequestId() interface{}  {
  * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *KrakenCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -755,8 +757,8 @@ func  (this *KrakenCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes6618 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6618)
+            retRes6638 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6638)
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]interface{}{symbol}, params))
@@ -775,7 +777,7 @@ func  (this *KrakenCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
  * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
  * @param {string[]} symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *KrakenCore) WatchTickers(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -787,8 +789,8 @@ func  (this *KrakenCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6778 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6778)
+            retRes6798 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes6798)
             symbols = this.MarketSymbols(symbols, nil, false)
         
             ticker:= (<-this.WatchMultiHelper("ticker", "ticker", symbols, nil, params))
@@ -814,7 +816,7 @@ func  (this *KrakenCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
  * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *KrakenCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -826,8 +828,8 @@ func  (this *KrakenCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes6988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6988)
+            retRes7008 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7008)
             symbols = this.MarketSymbols(symbols, nil, false)
             ccxt.AddElementToObject(params, "event_trigger", "bbo")
         
@@ -856,7 +858,7 @@ func  (this *KrakenCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *KrakenCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -870,9 +872,9 @@ func  (this *KrakenCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-                retRes72215 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes72215)
-                ch <- retRes72215
+                retRes72415 :=  (<-this.WatchTradesForSymbols([]interface{}{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes72415)
+                ch <- retRes72415
                 return nil
         
             }()
@@ -887,7 +889,7 @@ func  (this *KrakenCore) WatchTrades(symbol interface{}, optionalArgs ...interfa
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *KrakenCore) WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -923,7 +925,7 @@ func  (this *KrakenCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *KrakenCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -935,9 +937,9 @@ func  (this *KrakenCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-                retRes75715 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
-                ccxt.PanicOnError(retRes75715)
-                ch <- retRes75715
+                retRes75915 :=  (<-this.WatchOrderBookForSymbols([]interface{}{symbol}, limit, params))
+                ccxt.PanicOnError(retRes75915)
+                ch <- retRes75915
                 return nil
         
             }()
@@ -951,7 +953,7 @@ func  (this *KrakenCore) WatchOrderBook(symbol interface{}, optionalArgs ...inte
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *KrakenCore) WatchOrderBookForSymbols(symbols interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1008,8 +1010,8 @@ func  (this *KrakenCore) WatchOHLCV(symbol interface{}, optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes7968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7968)
+            retRes7988 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes7988)
             var name interface{} = "ohlc"
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -1092,14 +1094,14 @@ func  (this *KrakenCore) WatchHeartbeat(optionalArgs ...interface{}) <- chan int
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes8548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8548)
+            retRes8568 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes8568)
             var event interface{} = "heartbeat"
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
         
-                retRes85715 :=  (<-this.Watch(url, event))
-                ccxt.PanicOnError(retRes85715)
-                ch <- retRes85715
+                retRes85915 :=  (<-this.Watch(url, event))
+                ccxt.PanicOnError(retRes85915)
+                ch <- retRes85915
                 return nil
         
             }()
@@ -1347,8 +1349,8 @@ func  (this *KrakenCore) WatchPrivate(name interface{}, optionalArgs ...interfac
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes10908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10908)
+            retRes10928 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes10928)
         
             token:= (<-this.Authenticate())
             ccxt.PanicOnError(token)
@@ -1393,7 +1395,7 @@ func  (this *KrakenCore) WatchPrivate(name interface{}, optionalArgs ...interfac
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trade structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func  (this *KrakenCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1410,9 +1412,9 @@ func  (this *KrakenCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
             _ = params
             ccxt.AddElementToObject(params, "snap_trades", true)
         
-                retRes113115 :=  (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
-                ccxt.PanicOnError(retRes113115)
-                ch <- retRes113115
+                retRes113315 :=  (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
+                ccxt.PanicOnError(retRes113315)
+                ch <- retRes113315
                 return nil
         
             }()
@@ -1545,7 +1547,7 @@ func  (this *KrakenCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of  orde structures to retrieve
  * @param {object} [params] maximum number of orderic to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func  (this *KrakenCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1561,11 +1563,11 @@ func  (this *KrakenCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-                retRes126215 :=  (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]interface{} {
+                retRes126415 :=  (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]interface{} {
                 "snap_orders": true,
             })))
-                ccxt.PanicOnError(retRes126215)
-                ch <- retRes126215
+                ccxt.PanicOnError(retRes126415)
+                ch <- retRes126415
                 return nil
         
             }()
@@ -1729,8 +1731,8 @@ func  (this *KrakenCore) WatchMultiHelper(unifiedName interface{}, channelName i
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes14108 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14108)
+            retRes14128 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14128)
             // symbols are required
             symbols = this.MarketSymbols(symbols, nil, false, true, false)
             var messageHashes interface{} = []interface{}{}
@@ -1753,9 +1755,9 @@ func  (this *KrakenCore) WatchMultiHelper(unifiedName interface{}, channelName i
             ccxt.AddElementToObject(request, "params", this.DeepExtend(ccxt.GetValue(request, "params"), params))
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
         
-                retRes143215 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
-                ccxt.PanicOnError(retRes143215)
-                ch <- retRes143215
+                retRes143415 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
+                ccxt.PanicOnError(retRes143415)
+                ch <- retRes143415
                 return nil
         
             }()
@@ -1767,7 +1769,7 @@ func  (this *KrakenCore) WatchMultiHelper(unifiedName interface{}, channelName i
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://docs.kraken.com/api/docs/websocket-v2/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func  (this *KrakenCore) WatchBalance(optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -1777,8 +1779,8 @@ func  (this *KrakenCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes14448 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes14448)
+            retRes14468 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes14468)
         
             token:= (<-this.Authenticate())
             ccxt.PanicOnError(token)
@@ -1795,9 +1797,9 @@ func  (this *KrakenCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
             }
             var request interface{} = this.DeepExtend(subscribe, params)
         
-                retRes145815 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes145815)
-                ch <- retRes145815
+                retRes146015 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes146015)
+                ch <- retRes146015
                 return nil
         
             }()

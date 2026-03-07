@@ -16,7 +16,9 @@ include_once (__DIR__.'/test_stream.php');
 
 
 function base_tests_init_ws() {
-    test_ws_order_book();
-    test_ws_cache();
-    test_stream();
+    return \React\Async\async(function () {
+        test_ws_order_book();
+        test_ws_cache();
+        test_stream();
+    })();
 }

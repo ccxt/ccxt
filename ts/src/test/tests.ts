@@ -42,6 +42,9 @@ import {
     getEnvVars,
     getLang,
     getExt,
+    isWindows,
+    isLinux,
+    isAmd64,
 } from './tests.helpers.js';
 
 
@@ -94,7 +97,6 @@ class testMainClass {
             throw e;
         }
     }
-    
 
     async initInner (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgsAndProps ();
@@ -1051,6 +1053,13 @@ class testMainClass {
             return true;
             // c# requirement
         }
+
+        // if needed convert stringified jsons to objects
+        if ((typeof storedOutput === 'string') && (typeof newOutput === 'string') && storedOutput.startsWith ('{') && newOutput.startsWith ('{')) {
+            storedOutput = jsonParse (storedOutput);
+            newOutput = jsonParse (newOutput);
+        }
+
         if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
@@ -1298,8 +1307,71 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
+        let wasmExecPath = undefined;
+        let libraryPath = undefined;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        const exchange = initExchange (exchangeName, { 'markets': markets, 'currencies': currencies, 'enableRateLimit': false, 'rateLimit': 1, 'httpProxy': 'http://fake:8080', 'httpsProxy': 'http://fake:8080', 'apiKey': 'key', 'secret': 'secretsecret', 'password': 'password', 'walletAddress': 'wallet', 'privateKey': '0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771', 'uid': 'uid', 'token': 'token', 'login': 'login', 'accountId':'12345', 'accounts': [ { 'id': 'myAccount', 'code': 'USDT' }, { 'id': 'myAccount', 'code': 'USDC' } ], 'options': { 'enableUnifiedAccount': true, 'enableUnifiedMargin': false, 'accessToken': 'token', 'expires': 999999999999999, 'leverageBrackets': {}}});
+        const basePath = getRootDir () + 'ts/src/test/static/binaries/';
+        if (exchangeName === 'lighter') {
+            if (this.lang === 'JS') {
+                wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+                libraryPath = basePath + 'lighter.wasm';
+            } else {
+                if (isWindows ()) {
+                    libraryPath = basePath + 'lighter-signer-windows-amd64.dll';
+                } else if (isLinux ()) {
+                    if (isAmd64 ()) {
+                        libraryPath = basePath + 'lighter-signer-linux-amd64.so';
+                    } else {
+                        libraryPath = basePath + 'lighter-signer-linux-arm64.so';
+                    }
+                } else {
+                    // assume macos arm64
+                    libraryPath = basePath + 'lighter-signer-darwin-arm64.dylib';
+                }
+            }
+        }
+        const options = {
+            "markets":markets,
+            "currencies":currencies,
+            "enableRateLimit":false,
+            "rateLimit":1,
+            "httpProxy":"http://fake:8080",
+            "httpsProxy":"http://fake:8080",
+            "apiKey":"key",
+            "secret":"secretsecret",
+            "password":"password",
+            "walletAddress":"wallet",
+            "privateKey":"0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+            "uid":"uid",
+            "token":"token",
+            "login":"login",
+            "accountId":"12345",
+            "accounts":[
+                {
+                    "id":"myAccount",
+                    "code":"USDT"
+                },
+                {
+                    "id":"myAccount",
+                    "code":"USDC"
+                }
+            ],
+            "options":{
+                "enableUnifiedAccount":true,
+                "enableUnifiedMargin":false,
+                "accessToken":"token",
+                "expires":999999999999999,
+                "leverageBrackets":{
+                },
+                "libraryPath": libraryPath,
+                "wasmExecPath": wasmExecPath
+            }
+        };
+        const exchange = initExchange (exchangeName, options);
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;
@@ -1635,6 +1707,19 @@ class testMainClass {
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        // linear swap conditional order
+        let swapAlgoOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
+            const checkOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            const algoOrderIdDefined = (checkOrderRequest['algoOrderId'] !== undefined);
+            assert (algoOrderIdDefined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+            const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
+            const swapAlgoIdString = swapId.toString ();
+            assert (clientAlgoIdSwap.startsWith (swapAlgoIdString), 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
+        } catch (e) {
+            swapAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
         let createOrdersRequest = undefined;
         try {
             const orders = [

@@ -7,238 +7,238 @@
 
 package ccxt
 
-func (this *ToobitCore) CommonGetApiV1Time (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetApiV1Time", args...)
+func (this *ToobitCore) CommonGetApiV1Time(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetApiV1Time", args...)
 }
 
-func (this *ToobitCore) CommonGetApiV1Ping (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetApiV1Ping", args...)
+func (this *ToobitCore) CommonGetApiV1Ping(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetApiV1Ping", args...)
 }
 
-func (this *ToobitCore) CommonGetApiV1ExchangeInfo (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetApiV1ExchangeInfo", args...)
+func (this *ToobitCore) CommonGetApiV1ExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetApiV1ExchangeInfo", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1Depth (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1Depth", args...)
+func (this *ToobitCore) CommonGetQuoteV1Depth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1Depth", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1DepthMerged (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1DepthMerged", args...)
+func (this *ToobitCore) CommonGetQuoteV1DepthMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1DepthMerged", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1Trades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1Trades", args...)
+func (this *ToobitCore) CommonGetQuoteV1Trades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1Trades", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1Klines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1Klines", args...)
+func (this *ToobitCore) CommonGetQuoteV1Klines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1Klines", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1IndexKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1IndexKlines", args...)
+func (this *ToobitCore) CommonGetQuoteV1IndexKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1IndexKlines", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1MarkPriceKlines (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1MarkPriceKlines", args...)
+func (this *ToobitCore) CommonGetQuoteV1MarkPriceKlines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1MarkPriceKlines", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1MarkPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1MarkPrice", args...)
+func (this *ToobitCore) CommonGetQuoteV1MarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1MarkPrice", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1Index (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1Index", args...)
+func (this *ToobitCore) CommonGetQuoteV1Index(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1Index", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1Ticker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1Ticker24hr", args...)
+func (this *ToobitCore) CommonGetQuoteV1Ticker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1Ticker24hr", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1ContractTicker24hr (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1ContractTicker24hr", args...)
+func (this *ToobitCore) CommonGetQuoteV1ContractTicker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1ContractTicker24hr", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1TickerPrice (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1TickerPrice", args...)
+func (this *ToobitCore) CommonGetQuoteV1TickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1TickerPrice", args...)
 }
 
-func (this *ToobitCore) CommonGetQuoteV1TickerBookTicker (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetQuoteV1TickerBookTicker", args...)
+func (this *ToobitCore) CommonGetQuoteV1TickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetQuoteV1TickerBookTicker", args...)
 }
 
-func (this *ToobitCore) CommonGetApiV1FuturesFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetApiV1FuturesFundingRate", args...)
+func (this *ToobitCore) CommonGetApiV1FuturesFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetApiV1FuturesFundingRate", args...)
 }
 
-func (this *ToobitCore) CommonGetApiV1FuturesHistoryFundingRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("commonGetApiV1FuturesHistoryFundingRate", args...)
+func (this *ToobitCore) CommonGetApiV1FuturesHistoryFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("commonGetApiV1FuturesHistoryFundingRate", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1Account (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1Account", args...)
+func (this *ToobitCore) PrivateGetApiV1Account(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1AccountCheckApiKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1AccountCheckApiKey", args...)
+func (this *ToobitCore) PrivateGetApiV1AccountCheckApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountCheckApiKey", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1SpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1SpotOrder", args...)
+func (this *ToobitCore) PrivateGetApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotOrder", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1SpotOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1SpotOpenOrders", args...)
+func (this *ToobitCore) PrivateGetApiV1SpotOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotOpenOrders", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesOpenOrders", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesOpenOrders", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1SpotTradeOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1SpotTradeOrders", args...)
+func (this *ToobitCore) PrivateGetApiV1SpotTradeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotTradeOrders", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesHistoryOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesHistoryOrders", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesHistoryOrders", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1AccountTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1AccountTrades", args...)
+func (this *ToobitCore) PrivateGetApiV1AccountTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountTrades", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1AccountBalanceFlow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1AccountBalanceFlow", args...)
+func (this *ToobitCore) PrivateGetApiV1AccountBalanceFlow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountBalanceFlow", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1AccountDepositOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1AccountDepositOrders", args...)
+func (this *ToobitCore) PrivateGetApiV1AccountDepositOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountDepositOrders", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1AccountWithdrawOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1AccountWithdrawOrders", args...)
+func (this *ToobitCore) PrivateGetApiV1AccountWithdrawOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountWithdrawOrders", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1AccountDepositAddress (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1AccountDepositAddress", args...)
+func (this *ToobitCore) PrivateGetApiV1AccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountDepositAddress", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1SubAccount (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1SubAccount", args...)
+func (this *ToobitCore) PrivateGetApiV1SubAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SubAccount", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesAccountLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesAccountLeverage", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesAccountLeverage", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesOrder", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesOrder", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesPositions (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesPositions", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesPositions", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesBalance (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesBalance", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesBalance", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesUserTrades (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesUserTrades", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesUserTrades", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesBalanceFlow (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesBalanceFlow", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesBalanceFlow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesBalanceFlow", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesCommissionRate (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesCommissionRate", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesCommissionRate", args...)
 }
 
-func (this *ToobitCore) PrivateGetApiV1FuturesTodayPnl (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateGetApiV1FuturesTodayPnl", args...)
+func (this *ToobitCore) PrivateGetApiV1FuturesTodayPnl(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesTodayPnl", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1SpotOrderTest (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)
+func (this *ToobitCore) PrivatePostApiV1SpotOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1SpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1SpotOrder", args...)
+func (this *ToobitCore) PrivatePostApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SpotOrder", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1FuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
+func (this *ToobitCore) PrivatePostApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1SpotBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1SpotBatchOrders", args...)
+func (this *ToobitCore) PrivatePostApiV1SpotBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SpotBatchOrders", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1SubAccountTransfer (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1SubAccountTransfer", args...)
+func (this *ToobitCore) PrivatePostApiV1SubAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SubAccountTransfer", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1AccountWithdraw (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1AccountWithdraw", args...)
+func (this *ToobitCore) PrivatePostApiV1AccountWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1AccountWithdraw", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1FuturesMarginType (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1FuturesMarginType", args...)
+func (this *ToobitCore) PrivatePostApiV1FuturesMarginType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesMarginType", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1FuturesLeverage (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1FuturesLeverage", args...)
+func (this *ToobitCore) PrivatePostApiV1FuturesLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesLeverage", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1FuturesBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1FuturesBatchOrders", args...)
+func (this *ToobitCore) PrivatePostApiV1FuturesBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesBatchOrders", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1FuturesPositionTradingStop (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1FuturesPositionTradingStop", args...)
+func (this *ToobitCore) PrivatePostApiV1FuturesPositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesPositionTradingStop", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1FuturesPositionMargin (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1FuturesPositionMargin", args...)
+func (this *ToobitCore) PrivatePostApiV1FuturesPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesPositionMargin", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1UserDataStream (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1UserDataStream", args...)
+func (this *ToobitCore) PrivatePostApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1UserDataStream", args...)
 }
 
-func (this *ToobitCore) PrivatePostApiV1ListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePostApiV1ListenKey", args...)
+func (this *ToobitCore) PrivatePostApiV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1ListenKey", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1SpotOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1SpotOrder", args...)
+func (this *ToobitCore) PrivateDeleteApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1SpotOrder", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1FuturesOrder (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
+func (this *ToobitCore) PrivateDeleteApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1SpotOpenOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1SpotOpenOrders", args...)
+func (this *ToobitCore) PrivateDeleteApiV1SpotOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1SpotOpenOrders", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1FuturesBatchOrders (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1FuturesBatchOrders", args...)
+func (this *ToobitCore) PrivateDeleteApiV1FuturesBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesBatchOrders", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1SpotCancelOrderByIds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
+func (this *ToobitCore) PrivateDeleteApiV1SpotCancelOrderByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1FuturesCancelOrderByIds (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
+func (this *ToobitCore) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
 }
 
-func (this *ToobitCore) PrivateDeleteApiV1ListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privateDeleteApiV1ListenKey", args...)
+func (this *ToobitCore) PrivateDeleteApiV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1ListenKey", args...)
 }
 
-func (this *ToobitCore) PrivatePutApiV1ListenKey (args ...interface{}) <-chan interface{} {
-   return this.callEndpointAsync("privatePutApiV1ListenKey", args...)
+func (this *ToobitCore) PrivatePutApiV1ListenKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutApiV1ListenKey", args...)
 }

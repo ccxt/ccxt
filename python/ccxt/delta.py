@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.delta import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
+from ccxt.base.types import Any, ADL, Balances, Currencies, Currency, DepositAddress, Greeks, Int, LedgerEntry, Leverage, MarginMode, MarginModification, Market, Num, Option, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, MarketInterface
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -78,8 +78,10 @@ class delta(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': True,
+                'fetchPositionADLRank': True,
                 'fetchPositionMode': False,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchSettlementHistory': True,
                 'fetchStatus': True,
@@ -436,7 +438,7 @@ class delta(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         response = self.publicGetSettings(params)
         #
@@ -1098,7 +1100,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1241,7 +1243,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1393,7 +1395,7 @@ class delta(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1529,7 +1531,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1652,7 +1654,7 @@ class delta(Exchange, ImplicitAPI):
         https://docs.delta.exchange/#get-wallet-balances
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         response = self.privateGetWalletBalances(params)
@@ -1687,7 +1689,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1716,7 +1718,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         response = self.privateGetPositionsMargined(params)
@@ -1946,7 +1948,7 @@ class delta(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: *contract only* indicates if self order is to reduce the size of a position
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         orderType = type + '_order'
@@ -2025,7 +2027,7 @@ class delta(Exchange, ImplicitAPI):
         :param float amount: how much of the currency you want to trade in units of the base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2069,7 +2071,7 @@ class delta(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2127,7 +2129,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2162,7 +2164,7 @@ class delta(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id of the order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -2215,7 +2217,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         return self.fetch_orders_with_method('privateGetOrders', symbol, since, limit, params)
 
@@ -2229,7 +2231,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         return self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
@@ -2294,7 +2296,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2373,7 +2375,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -2490,7 +2492,7 @@ class delta(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: unified network code
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -2557,7 +2559,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2623,7 +2625,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2758,7 +2760,7 @@ class delta(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
@@ -2771,7 +2773,7 @@ class delta(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/#/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
@@ -2856,7 +2858,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2992,7 +2994,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
+        :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3069,7 +3071,7 @@ class delta(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms
         :param int [limit]: number of records
         :param dict [params]: exchange specific params
-        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/#/?id=settlement-history-structure>`
+        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
         """
         self.load_markets()
         market = None
@@ -3222,7 +3224,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch greeks for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/#/?id=greeks-structure>`
+        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3370,7 +3372,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.user_id]: the users id
-        :returns dict[]: A list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: A list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         request: dict = {
@@ -3393,7 +3395,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         self.load_markets()
         market = None
@@ -3484,7 +3486,7 @@ class delta(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `option chain structure <https://docs.ccxt.com/#/?id=option-chain-structure>`
+        :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -3619,6 +3621,371 @@ class delta(Exchange, ImplicitAPI):
             'percentage': None,
             'baseVolume': self.safe_number(chain, 'volume'),
             'quoteVolume': None,
+        }
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://docs.delta.exchange/#get-margined-positions
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        response = self.privateGetPositionsMargined(params)
+        #
+        #     {
+        #         "result":
+        #             [
+        #                 {
+        #                     "adl_level": null,
+        #                     "auto_topup": False,
+        #                     "bankruptcy_price": "88618.22667",
+        #                     "commission": "0.03797924",
+        #                     "created_at": "2026-01-14T11:24:35.801586Z",
+        #                     "entry_price": "94948.1",
+        #                     "liquidation_price": "89092.96717",
+        #                     "margin": "6.32987333",
+        #                     "margin_mode": "isolated",
+        #                     "mark_price": "94942.90888022",
+        #                     "product": {
+        #                         "trading_status": "operational",
+        #                         "short_description": null,
+        #                         "quoting_asset": {
+        #                             "base_withdrawal_fee": "0.000000000000000000",
+        #                             "id": 4,
+        #                             "interest_credit": False,
+        #                             "interest_slabs": null,
+        #                             "kyc_deposit_limit": "0.000000000000000000",
+        #                             "kyc_withdrawal_limit": "0.000000000000000000",
+        #                             "min_withdrawal_amount": "0.000000000000000000",
+        #                             "minimum_precision": 2,
+        #                             "name": "Tether",
+        #                             "networks": [],
+        #                             "precision": 8,
+        #                             "sort_priority": null,
+        #                             "symbol": "USDT",
+        #                             "variable_withdrawal_fee": "0.000000000000000000"
+        #                         },
+        #                         "symbol": "BTCUSDT",
+        #                         "taker_commission_rate": "0.0004",
+        #                         "maintenance_margin_scaling_factor": "0",
+        #                         "spot_index": {
+        #                             "config": {
+        #                                 "impact_size": {
+        #                                     "max_impact_size": 150000,
+        #                                     "min_impact_size": 5000,
+        #                                     "step_value": 5000
+        #                                 },
+        #                                 "quoting_asset": "USDT",
+        #                                 "service_id": 1,
+        #                                 "underlying_asset": "BTC"
+        #                             },
+        #                             "constituent_exchanges": [
+        #                                 {
+        #                                     "exchange": "binance",
+        #                                     "health_interval": 3000,
+        #                                     "health_priority": 1,
+        #                                     "weight": 1
+        #                                 },
+        #                                 {
+        #                                     "exchange": "gateio",
+        #                                     "health_interval": 3000,
+        #                                     "health_priority": 3,
+        #                                     "weight": 1
+        #                                 },
+        #                                 {
+        #                                     "exchange": "bybit",
+        #                                     "health_interval": 3000,
+        #                                     "health_priority": 2,
+        #                                     "weight": 1
+        #                                 }
+        #                             ],
+        #                             "constituent_indices": null,
+        #                             "description": "BTC Spot",
+        #                             "health_interval": 300,
+        #                             "id": 2,
+        #                             "impact_size": "1.000000000000000000",
+        #                             "index_type": "spot_pair",
+        #                             "is_composite": False,
+        #                             "price_method": "ltp",
+        #                             "quoting_asset_id": 4,
+        #                             "symbol": ".DEXBTUSDT",
+        #                             "tick_size": "0.100000000000000000",
+        #                             "underlying_asset_id": 2
+        #                         },
+        #                         "liquidation_penalty_factor": "1",
+        #                         "auction_start_time": "2025-12-22T12:18:52Z",
+        #                         "is_quanto": False,
+        #                         "state": "live",
+        #                         "id": 84,
+        #                         "settling_asset": {
+        #                             "base_withdrawal_fee": "0.000000000000000000",
+        #                             "id": 4,
+        #                             "interest_credit": False,
+        #                             "interest_slabs": null,
+        #                             "kyc_deposit_limit": "0.000000000000000000",
+        #                             "kyc_withdrawal_limit": "0.000000000000000000",
+        #                             "min_withdrawal_amount": "0.000000000000000000",
+        #                             "minimum_precision": 2,
+        #                             "name": "Tether",
+        #                             "networks": [],
+        #                             "precision": 8,
+        #                             "sort_priority": null,
+        #                             "symbol": "USDT",
+        #                             "variable_withdrawal_fee": "0.000000000000000000"
+        #                         },
+        #                         "tick_size": "0.1",
+        #                         "impact_size": 4000,
+        #                         "insurance_fund_margin_contribution": "5",
+        #                         "maker_commission_rate": "0.0002",
+        #                         "ui_config": {
+        #                             "default_trading_view_candle": "15",
+        #                             "leverage_slider_values": [1,2,3,5,10,50,100],
+        #                             "price_clubbing_values": [0.1,1,10,50],
+        #                             "show_bracket_orders": False,
+        #                             "sort_priority": 1
+        #                         },
+        #                         "annualized_funding": "0",
+        #                         "strike_price": null,
+        #                         "price_band": "100",
+        #                         "funding_method": "mark_price",
+        #                         "contract_value": "0.001",
+        #                         "auction_finish_time": null,
+        #                         "product_specs": {
+        #                             "vol_expiry_time": 172800
+        #                         },
+        #                         "launch_time": "2020-04-20T08:37:05Z",
+        #                         "basis_factor_max_limit": "1000",
+        #                         "initial_margin": "1",
+        #                         "notional_type": "vanilla",
+        #                         "contract_unit_currency": "BTC",
+        #                         "disruption_reason": null,
+        #                         "underlying_asset": {
+        #                             "base_withdrawal_fee": "0.000000000000000000",
+        #                             "id": 2,
+        #                             "interest_credit": False,
+        #                             "interest_slabs": null,
+        #                             "kyc_deposit_limit": "0.000000000000000000",
+        #                             "kyc_withdrawal_limit": "0.000000000000000000",
+        #                             "min_withdrawal_amount": "0.000000000000000000",
+        #                             "minimum_precision": 4,
+        #                             "name": "Bitcoin",
+        #                             "networks": [],
+        #                             "precision": 8,
+        #                             "sort_priority": 1,
+        #                             "symbol": "BTC",
+        #                             "variable_withdrawal_fee": "0.000000000000000000"
+        #                         },
+        #                         "initial_margin_scaling_factor": "0",
+        #                         "position_size_limit": 10000000,
+        #                         "max_leverage_notional": "10000",
+        #                         "settlement_price": null,
+        #                         "barrier_price": null,
+        #                         "maintenance_margin": "0.5",
+        #                         "default_leverage": "50.000000000000000000",
+        #                         "settlement_time": null,
+        #                         "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        #                         "contract_type": "perpetual_futures"
+        #                     },
+        #                     "product_id": 84,
+        #                     "product_symbol": "BTCUSDT",
+        #                     "realized_cashflow": "0.000000000000000000",
+        #                     "realized_funding": "0",
+        #                     "realized_holding_cost": "0",
+        #                     "realized_pnl": "0",
+        #                     "size": 1,
+        #                     "unrealized_pnl": "-0.00519112",
+        #                     "updated_at": "2026-01-14T11:24:35.801586Z",
+        #                     "user_id": 30084879
+        #                 }
+        #             ],
+        #         "success": True
+        #     }
+        #
+        result = self.safe_list(response, 'result', [])
+        return self.parse_adl_ranks(result, symbols)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionsADLRank
+        #
+        #     {
+        #         "adl_level": null,
+        #         "auto_topup": False,
+        #         "bankruptcy_price": "88618.22667",
+        #         "commission": "0.03797924",
+        #         "created_at": "2026-01-14T11:24:35.801586Z",
+        #         "entry_price": "94948.1",
+        #         "liquidation_price": "89092.96717",
+        #         "margin": "6.32987333",
+        #         "margin_mode": "isolated",
+        #         "mark_price": "94942.90888022",
+        #         "product": {
+        #             "trading_status": "operational",
+        #             "short_description": null,
+        #             "quoting_asset": {
+        #                 "base_withdrawal_fee": "0.000000000000000000",
+        #                 "id": 4,
+        #                 "interest_credit": False,
+        #                 "interest_slabs": null,
+        #                 "kyc_deposit_limit": "0.000000000000000000",
+        #                 "kyc_withdrawal_limit": "0.000000000000000000",
+        #                 "min_withdrawal_amount": "0.000000000000000000",
+        #                 "minimum_precision": 2,
+        #                 "name": "Tether",
+        #                 "networks": [],
+        #                 "precision": 8,
+        #                 "sort_priority": null,
+        #                 "symbol": "USDT",
+        #                 "variable_withdrawal_fee": "0.000000000000000000"
+        #             },
+        #             "symbol": "BTCUSDT",
+        #             "taker_commission_rate": "0.0004",
+        #             "maintenance_margin_scaling_factor": "0",
+        #             "spot_index": {
+        #                 "config": {
+        #                     "impact_size": {
+        #                         "max_impact_size": 150000,
+        #                         "min_impact_size": 5000,
+        #                         "step_value": 5000
+        #                     },
+        #                     "quoting_asset": "USDT",
+        #                     "service_id": 1,
+        #                     "underlying_asset": "BTC"
+        #                 },
+        #                 "constituent_exchanges": [
+        #                     {
+        #                         "exchange": "binance",
+        #                         "health_interval": 3000,
+        #                         "health_priority": 1,
+        #                         "weight": 1
+        #                     },
+        #                     {
+        #                         "exchange": "gateio",
+        #                         "health_interval": 3000,
+        #                         "health_priority": 3,
+        #                         "weight": 1
+        #                     },
+        #                     {
+        #                         "exchange": "bybit",
+        #                         "health_interval": 3000,
+        #                         "health_priority": 2,
+        #                         "weight": 1
+        #                     }
+        #                 ],
+        #                 "constituent_indices": null,
+        #                 "description": "BTC Spot",
+        #                 "health_interval": 300,
+        #                 "id": 2,
+        #                 "impact_size": "1.000000000000000000",
+        #                 "index_type": "spot_pair",
+        #                 "is_composite": False,
+        #                 "price_method": "ltp",
+        #                 "quoting_asset_id": 4,
+        #                 "symbol": ".DEXBTUSDT",
+        #                 "tick_size": "0.100000000000000000",
+        #                 "underlying_asset_id": 2
+        #             },
+        #             "liquidation_penalty_factor": "1",
+        #             "auction_start_time": "2025-12-22T12:18:52Z",
+        #             "is_quanto": False,
+        #             "state": "live",
+        #             "id": 84,
+        #             "settling_asset": {
+        #                 "base_withdrawal_fee": "0.000000000000000000",
+        #                 "id": 4,
+        #                 "interest_credit": False,
+        #                 "interest_slabs": null,
+        #                 "kyc_deposit_limit": "0.000000000000000000",
+        #                 "kyc_withdrawal_limit": "0.000000000000000000",
+        #                 "min_withdrawal_amount": "0.000000000000000000",
+        #                 "minimum_precision": 2,
+        #                 "name": "Tether",
+        #                 "networks": [],
+        #                 "precision": 8,
+        #                 "sort_priority": null,
+        #                 "symbol": "USDT",
+        #                 "variable_withdrawal_fee": "0.000000000000000000"
+        #             },
+        #             "tick_size": "0.1",
+        #             "impact_size": 4000,
+        #             "insurance_fund_margin_contribution": "5",
+        #             "maker_commission_rate": "0.0002",
+        #             "ui_config": {
+        #                 "default_trading_view_candle": "15",
+        #                 "leverage_slider_values": [1,2,3,5,10,50,100],
+        #                 "price_clubbing_values": [0.1,1,10,50],
+        #                 "show_bracket_orders": False,
+        #                 "sort_priority": 1
+        #             },
+        #             "annualized_funding": "0",
+        #             "strike_price": null,
+        #             "price_band": "100",
+        #             "funding_method": "mark_price",
+        #             "contract_value": "0.001",
+        #             "auction_finish_time": null,
+        #             "product_specs": {
+        #                 "vol_expiry_time": 172800
+        #             },
+        #             "launch_time": "2020-04-20T08:37:05Z",
+        #             "basis_factor_max_limit": "1000",
+        #             "initial_margin": "1",
+        #             "notional_type": "vanilla",
+        #             "contract_unit_currency": "BTC",
+        #             "disruption_reason": null,
+        #             "underlying_asset": {
+        #                 "base_withdrawal_fee": "0.000000000000000000",
+        #                 "id": 2,
+        #                 "interest_credit": False,
+        #                 "interest_slabs": null,
+        #                 "kyc_deposit_limit": "0.000000000000000000",
+        #                 "kyc_withdrawal_limit": "0.000000000000000000",
+        #                 "min_withdrawal_amount": "0.000000000000000000",
+        #                 "minimum_precision": 4,
+        #                 "name": "Bitcoin",
+        #                 "networks": [],
+        #                 "precision": 8,
+        #                 "sort_priority": 1,
+        #                 "symbol": "BTC",
+        #                 "variable_withdrawal_fee": "0.000000000000000000"
+        #             },
+        #             "initial_margin_scaling_factor": "0",
+        #             "position_size_limit": 10000000,
+        #             "max_leverage_notional": "10000",
+        #             "settlement_price": null,
+        #             "barrier_price": null,
+        #             "maintenance_margin": "0.5",
+        #             "default_leverage": "50.000000000000000000",
+        #             "settlement_time": null,
+        #             "description": "BTCUSDT-Bitcoin Perpetual futures, quoted,settled & margined in Tether(USDT)",
+        #             "contract_type": "perpetual_futures"
+        #         },
+        #         "product_id": 84,
+        #         "product_symbol": "BTCUSDT",
+        #         "realized_cashflow": "0.000000000000000000",
+        #         "realized_funding": "0",
+        #         "realized_holding_cost": "0",
+        #         "realized_pnl": "0",
+        #         "size": 1,
+        #         "unrealized_pnl": "-0.00519112",
+        #         "updated_at": "2026-01-14T11:24:35.801586Z",
+        #         "user_id": 30084879
+        #     }
+        #
+        marketId = self.safe_string(info, 'product_symbol')
+        datetime = self.safe_string(info, 'created_at')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': self.safe_integer(info, 'adl_level'),
+            'rating': None,
+            'percentage': None,
+            'timestamp': self.parse8601(datetime),
+            'datetime': datetime,
         }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):

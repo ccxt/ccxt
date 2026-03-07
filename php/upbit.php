@@ -14,7 +14,7 @@ class upbit extends Exchange {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'upbit',
             'name' => 'Upbit',
-            'countries' => array( 'KR' ),
+            'countries' => array( 'KR', 'ID', 'SG', 'TH' ),
             'version' => 'v1',
             'rateLimit' => 50,
             'pro' => true,
@@ -87,7 +87,7 @@ class upbit extends Exchange {
                 '1M' => 'months',
                 '1y' => 'years',
             ),
-            'hostname' => 'api.upbit.com',
+            'hostname' => 'api.upbit.com', // 'api.upbit.com' for KR, '{countryCode}-api.upbit.com' for ID, SG, TH
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/49245610-eeaabe00-f423-11e8-9cba-4b0aed794799.jpg',
                 'api' => array(
@@ -95,7 +95,7 @@ class upbit extends Exchange {
                     'private' => 'https://{hostname}',
                 ),
                 'www' => 'https://upbit.com',
-                'doc' => 'https://docs.upbit.com/docs/%EC%9A%94%EC%B2%AD-%EC%88%98-%EC%A0%9C%ED%95%9C',
+                'doc' => array( 'https://docs.upbit.com/kr', 'https://global-docs.upbit.com' ),
                 'fees' => 'https://upbit.com/service_center/guide',
             ),
             'api' => array(
@@ -125,7 +125,6 @@ class upbit extends Exchange {
                         'ticker/all' => 2,
                         'orderbook' => 2,
                         'orderbook/instruments' => 2,
-                        'orderbook/supported_levels' => 2, // Upbit KR only, deprecatd
                     ),
                 ),
                 'private' => array(
@@ -146,11 +145,12 @@ class upbit extends Exchange {
                         'deposits/coin_addresses' => 0.67,
                         'deposits/coin_address' => 0.67,
                         'travel_rule/vasps' => 0.67,
-                        'status/wallet' => 0.67, // Upbit KR only
+                        'status/wallet' => 0.67,
                         'api_keys' => 0.67, // Upbit KR only
                     ),
                     'post' => array(
                         'orders' => 2.5, // RPS => 8
+                        'orders/test' => 2.5, // RPS => 8
                         'orders/cancel_and_new' => 2.5, // RPS => 8
                         'withdraws/coin' => 0.67,
                         'withdraws/krw' => 0.67, // Upbit KR only.
@@ -163,6 +163,7 @@ class upbit extends Exchange {
                         'order' => 0.67,
                         'orders/open' => 40, // RPS => 0.5
                         'orders/uuids' => 0.67,
+                        'withdraws/coin' => 0.67,
                     ),
                 ),
             ),
@@ -488,8 +489,8 @@ class upbit extends Exchange {
     public function fetch_markets($params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/마켓-코드-조회
-         * @see https://global-docs.upbit.com/reference/listing-market-list
+         * @see https://docs.upbit.com/kr/reference/list-trading-pairs
+         * @see https://global-docs.upbit.com/reference/list-trading-pairs
          *
          * retrieves data on all markets for upbit
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -588,12 +589,12 @@ class upbit extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/전체-계좌-조회
-         * @see https://global-docs.upbit.com/reference/overall-account-inquiry
+         * @see https://docs.upbit.com/kr/reference/get-balance
+         * @see https://global-docs.upbit.com/reference/get-balance
          *
          * query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         $response = $this->privateGetAccounts ($params);
@@ -615,14 +616,14 @@ class upbit extends Exchange {
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array ()): OrderBooks {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-         * @see https://global-docs.upbit.com/reference/order-book-list
+         * @see https://docs.upbit.com/kr/reference/list-orderbooks
+         * @see https://global-docs.upbit.com/reference/list-orderbooks
          *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
          * @param {string[]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbol
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbol
          */
         $this->load_markets();
         $ids = null;
@@ -689,14 +690,14 @@ class upbit extends Exchange {
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/호가-정보-조회
-         * @see https://global-docs.upbit.com/reference/order-book-list
+         * @see https://docs.upbit.com/kr/reference/list-$orderbooks
+         * @see https://global-docs.upbit.com/reference/list-$orderbooks
          *
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
          */
         $orderbooks = $this->fetch_order_books(array( $symbol ), $limit, $params);
         return $this->safe_value($orderbooks, $symbol);
@@ -762,13 +763,13 @@ class upbit extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-         * @see https://global-docs.upbit.com/reference/tickers
+         * @see https://docs.upbit.com/kr/reference/list-tickers
+         * @see https://global-docs.upbit.com/reference/list-tickers
          *
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -823,13 +824,13 @@ class upbit extends Exchange {
     public function fetch_ticker(string $symbol, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/ticker현재가-정보
-         * @see https://global-docs.upbit.com/reference/tickers
+         * @see https://docs.upbit.com/kr/reference/list-$tickers
+         * @see https://global-docs.upbit.com/reference/list-$tickers
          *
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} $symbol unified $symbol of the market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $this->safe_value($tickers, $symbol);
@@ -910,15 +911,15 @@ class upbit extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/최근-체결-내역
-         * @see https://global-docs.upbit.com/reference/today-trades-history
+         * @see https://docs.upbit.com/kr/reference/list-pair-trades
+         * @see https://global-docs.upbit.com/reference/list-pair-trades
          *
          * get the list of most recent trades for a particular $symbol
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -958,13 +959,13 @@ class upbit extends Exchange {
     public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/주문-가능-정보
+         * @see https://docs.upbit.com/kr/reference/available-order-information
          * @see https://global-docs.upbit.com/reference/available-order-information
          *
          * fetch the trading fees for a $market
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1026,7 +1027,7 @@ class upbit extends Exchange {
         /**
          * fetch the trading fees for markets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=trading-fee-structure trading fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=trading-fee-structure trading fee structure~
          */
         $this->load_markets();
         $fetchMarketResponse = $this->fetch_markets($params);
@@ -1073,8 +1074,8 @@ class upbit extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/분minute-캔들-1
-         * @see https://global-docs.upbit.com/reference/minutes
+         * @see https://docs.upbit.com/kr/reference/list-candles-minutes
+         * @see https://global-docs.upbit.com/reference/list-candles-minutes
          *
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1168,8 +1169,10 @@ class upbit extends Exchange {
         /**
          * create a trade order
          *
-         * @see https://docs.upbit.com/kr/reference/주문하기
-         * @see https://global-docs.upbit.com/reference/order
+         * @see https://docs.upbit.com/kr/reference/new-order
+         * @see https://global-docs.upbit.com/reference/new-order
+         * @see https://docs.upbit.com/kr/reference/order-$test
+         * @see https://global-docs.upbit.com/reference/order-$test
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type supports 'market' and 'limit'. if $params->ordType is set to best, a best-$type order will be created regardless of the value of $type->
@@ -1181,7 +1184,8 @@ class upbit extends Exchange {
          * @param {string} [$params->ordType] this field can be used to place a ‘best’ $type order
          * @param {string} [$params->timeInForce] 'IOC' or 'FOK' for limit or best $type orders, 'PO' for limit orders. this field is required when the order $type is 'best'.
          * @param {string} [$params->selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' array(@link https://global-docs.upbit.com/docs/smp)
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {boolean} [$params->test] If $test is true, testOrder will be executed. It allows you to validate the $request without creating an actual order. Default is false.
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1190,6 +1194,7 @@ class upbit extends Exchange {
         $postOnly = $this->is_post_only($type === 'market', false, $params);
         $timeInForce = $this->safe_string_lower_2($params, 'timeInForce', 'time_in_force');
         $selfTradePrevention = $this->safe_string_2($params, 'selfTradePrevention', 'smp_type');
+        $test = $this->safe_bool($params, 'test', false);
         if ($postOnly && ($selfTradePrevention !== null)) {
             throw new ExchangeError($this->id . ' createOrder() does not support post_only and $selfTradePrevention simultaneously.');
         }
@@ -1258,8 +1263,13 @@ class upbit extends Exchange {
         if ($request['ord_type'] === 'best' && $timeInForce === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $timeInForce parameter for best $type orders');
         }
-        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type' ));
-        $response = $this->privatePostOrders ($this->extend($request, $params));
+        $response = null;
+        $params = $this->omit($params, array( 'timeInForce', 'time_in_force', 'postOnly', 'clientOrderId', 'cost', 'selfTradePrevention', 'smp_type', 'test' ));
+        if ($test) {
+            $response = $this->privatePostOrdersTest ($this->extend($request, $params));
+        } else {
+            $response = $this->privatePostOrders ($this->extend($request, $params));
+        }
         //
         //     {
         //         "uuid" => "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1286,14 +1296,14 @@ class upbit extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/주문-취소
-         * @see https://global-docs.upbit.com/reference/order-cancel
+         * @see https://docs.upbit.com/kr/reference/cancel-order
+         * @see https://global-docs.upbit.com/reference/cancel-order
          *
          * cancels an open order
          * @param {string} $id order $id
          * @param {string} $symbol not used by upbit cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -1325,8 +1335,8 @@ class upbit extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/취소-후-재주문
-         * @see https://global-docs.upbit.com/reference/cancel-and-new
+         * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
+         * @see https://global-docs.upbit.com/reference/cancel-and-new-order
          *
          * canceled existing order and create new order. It's only generated same $side and $symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
          * @param {string} $id the uuid of the previous order you want to edit.
@@ -1342,7 +1352,7 @@ class upbit extends Exchange {
          * @param {string} [$params->newClientOrderId] the order ID that the user can define.
          * @param {string} [$params->newOrdType] this field only accepts limit, $price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
          * @param {string} [$params->selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' array(@link https://global-docs.upbit.com/docs/smp)
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
@@ -1452,15 +1462,15 @@ class upbit extends Exchange {
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/입금-리스트-조회
-         * @see https://global-docs.upbit.com/reference/deposit-list-inquiry
+         * @see https://docs.upbit.com/kr/reference/list-deposits
+         * @see https://global-docs.upbit.com/reference/list-deposits
          *
          * fetch all deposits made to an account
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -1499,14 +1509,14 @@ class upbit extends Exchange {
         /**
          * fetch information on a deposit
          *
-         * @see https://docs.upbit.com/kr/reference/개별-입금-조회
-         * @see https://global-docs.upbit.com/reference/individual-deposit-inquiry
+         * @see https://docs.upbit.com/kr/reference/get-deposit
+         * @see https://global-docs.upbit.com/reference/get-deposit
          *
          * @param {string} $id the unique $id for the deposit
          * @param {string} [$code] unified $currency $code of the $currency deposited
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->txid] withdrawal transaction $id, the $id argument is reserved for uuid
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $request = array(
@@ -1539,15 +1549,15 @@ class upbit extends Exchange {
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/전체-출금-조회
-         * @see https://global-docs.upbit.com/reference/withdrawal-list-inquiry
+         * @see https://docs.upbit.com/kr/reference/list-withdrawals
+         * @see https://global-docs.upbit.com/reference/list-withdrawals
          *
          * fetch all withdrawals made from an account
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array(
@@ -1586,14 +1596,14 @@ class upbit extends Exchange {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          *
-         * @see https://docs.upbit.com/kr/reference/개별-출금-조회
-         * @see https://global-docs.upbit.com/reference/individual-withdrawal-inquiry
+         * @see https://docs.upbit.com/kr/reference/get-withdrawal
+         * @see https://global-docs.upbit.com/reference/get-withdrawal
          *
          * @param {string} $id the unique $id for the withdrawal
          * @param {string} [$code] unified $currency $code of the $currency withdrawn
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->txid] withdrawal transaction $id, the $id argument is reserved for uuid
-         * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?$id=transaction-structure transaction structure~
          */
         $this->load_markets();
         $request = array(
@@ -1878,15 +1888,15 @@ class upbit extends Exchange {
         /**
          * fetch all unfilled currently open orders
          *
-         * @see https://docs.upbit.com/kr/reference/대기-주문-조회
-         * @see https://global-docs.upbit.com/reference/open-order
+         * @see https://docs.upbit.com/kr/reference/list-open-orders
+         * @see https://global-docs.upbit.com/reference/list-open-orders
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->state] default is 'wait', set to 'watch' for stop $limit orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array();
@@ -1928,15 +1938,15 @@ class upbit extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          *
-         * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-         * @see https://global-docs.upbit.com/reference/closed-order
+         * @see https://docs.upbit.com/kr/reference/list-closed-orders
+         * @see https://global-docs.upbit.com/reference/list-closed-orders
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest order
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -1985,15 +1995,15 @@ class upbit extends Exchange {
         /**
          * fetches information on multiple canceled orders made by the user
          *
-         * @see https://docs.upbit.com/kr/reference/종료-주문-조회
-         * @see https://global-docs.upbit.com/reference/closed-order
+         * @see https://docs.upbit.com/kr/reference/list-closed-orders
+         * @see https://global-docs.upbit.com/reference/list-closed-orders
          *
          * @param {string} $symbol unified $market $symbol of the $market orders were made in
          * @param {int} [$since] timestamp in ms of the earliest order, default is null
          * @param {int} [$limit] max number of orders to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest order
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $request = array(
@@ -2041,14 +2051,14 @@ class upbit extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/개별-주문-조회
-         * @see https://global-docs.upbit.com/reference/individual-order-inquiry
+         * @see https://docs.upbit.com/kr/reference/get-order
+         * @see https://global-docs.upbit.com/reference/get-order
          *
          * fetches information on an order made by the user
          * @param {string} $id order $id
          * @param {string} $symbol not used by upbit fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array(
@@ -2104,13 +2114,13 @@ class upbit extends Exchange {
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/전체-입금-주소-조회
-         * @see https://global-docs.upbit.com/reference/general-deposit-address-inquiry
+         * @see https://docs.upbit.com/kr/reference/list-deposit-addresses
+         * @see https://global-docs.upbit.com/reference/list-deposit-addresses
          *
          * fetch deposit addresses for multiple currencies and chain types
          * @param {string[]|null} $codes list of unified currency $codes, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=address-structure address structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=address-structure address structures~
          */
         $this->load_markets();
         $response = $this->privateGetDepositsCoinAddresses ($params);
@@ -2163,14 +2173,14 @@ class upbit extends Exchange {
     public function fetch_deposit_address(string $code, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/개별-입금-주소-조회
-         * @see https://global-docs.upbit.com/reference/individual-deposit-address-inquiry
+         * @see https://docs.upbit.com/kr/reference/get-deposit-address
+         * @see https://global-docs.upbit.com/reference/get-deposit-address
          *
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->network deposit chain, can view all chains via $this->publicGetWalletAssets, default is eth, unless the $currency has a default chain within $this->options['networks']
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2197,13 +2207,13 @@ class upbit extends Exchange {
     public function create_deposit_address(string $code, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/입금-주소-생성-요청
-         * @see https://global-docs.upbit.com/reference/deposit-address-generation
+         * @see https://docs.upbit.com/kr/reference/create-deposit-address
+         * @see https://global-docs.upbit.com/reference/create-deposit-address
          *
          * create a $currency deposit address
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2237,8 +2247,8 @@ class upbit extends Exchange {
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/디지털자산-출금하기
-         * @see https://global-docs.upbit.com/reference/withdrawal-digital-assets
+         * @see https://docs.upbit.com/kr/reference/withdraw
+         * @see https://global-docs.upbit.com/reference/withdraw
          *
          * make a withdrawal
          * @param {string} $code unified $currency $code
@@ -2246,7 +2256,7 @@ class upbit extends Exchange {
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->load_markets();

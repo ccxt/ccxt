@@ -1605,6 +1605,53 @@
                 ],
                 "output": "{\"contract_code\":\"ADA-USDT\",\"direction\":\"buy\"}"
               }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap cross fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A15%3A22&Signature=UkzXGNGkdFHkVIteJl1A7As0fUNWZO1aoRk72b3tuII%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "linear swap isolated fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A20%3A10&Signature=HJChVCwYdewtpyNA4umdQOx3VMxd5VZ6OCDSAf35MzQ%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "{}"
+            },
+            {
+                "description": "linear future fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://api.hbdm.com/linear-swap-api/v1/swap_cross_position_info?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-01-15T15%3A46%3A04&Signature=UNr71QNQEq3F5INgkbrXAw%2FqGsOoaVQ3j0L2tskX%2Bv0%3D",
+                "input": [
+                    "BTC/USDT:USDT-240329"
+                ],
+                "output": "{}"
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance multi asset mode",
+                "method": "fetchBalance",
+                "url": "https://api.hbdm.vn/v5/account/balance?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-02-05T12%3A12%3A36&Signature=b6wRf3vfL74%2BqrNQHfBFK%2FwY0Dn1DfxtKVsA5vIyf6c%3D",
+                "input": [
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
+            }
         ]
     }
 }

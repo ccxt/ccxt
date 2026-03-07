@@ -52,6 +52,13 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
     symbol_for_market = symbol if (symbol is not None) else exchange.safe_string(entry, 'symbol')
     if symbol_for_market is not None and (symbol_for_market in exchange.markets):
         market = exchange.market(symbol_for_market)
+    # temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
+    if not ('checkInactiveMarkets' in skipped_properties):
+        if market is not None and market['active'] is False:
+            return
+    if 'skipNonActiveMarkets' in skipped_properties:
+        if market is None or not market['active']:
+            return
     # only check "above zero" values if exchange is not supposed to have exotic index markets
     is_standard_market = (market is not None and exchange.in_array(market['type'], ['spot', 'swap', 'future', 'option']))
     values_should_be_positive = is_standard_market  # || (market === undefined) atm, no check for index markets

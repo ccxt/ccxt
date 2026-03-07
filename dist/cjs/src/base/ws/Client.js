@@ -10,8 +10,10 @@ var generic = require('../functions/generic.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/io.js');
 var index = require('../../static_dependencies/scure-base/index.js');
 
+// ----------------------------------------------------------------------------
 class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -156,7 +158,9 @@ class Client {
                 if (this.ping) {
                     message = this.ping(this);
                 }
-                this.log(new Date(), 'OnPingInterval', this.url);
+                if (this.verbose) {
+                    this.log(new Date(), 'onPingInterval', '|', this.url);
+                }
                 if (message) {
                     this.send(message).catch((error) => {
                         this.onError(error);

@@ -51,8 +51,10 @@ func  (this *BittradeCore) Describe() interface{}  {
     })
 }
 func  (this *BittradeCore) RequestId() interface{}  {
+    this.LockId()
     var requestId interface{} = this.Sum(this.SafeInteger(this.Options, "requestId", 0), 1)
     ccxt.AddElementToObject(this.Options, "requestId", requestId)
+    this.UnlockId()
     return ccxt.ToString(requestId)
 }
 /**
@@ -61,7 +63,7 @@ func  (this *BittradeCore) RequestId() interface{}  {
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func  (this *BittradeCore) WatchTicker(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -71,8 +73,8 @@ func  (this *BittradeCore) WatchTicker(symbol interface{}, optionalArgs ...inter
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
         
-            retRes608 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes608)
+            retRes628 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes628)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             // only supports a limit of 150 at this time
@@ -94,9 +96,9 @@ func  (this *BittradeCore) WatchTicker(symbol interface{}, optionalArgs ...inter
                 "params": params,
             }
         
-                retRes7915 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-                ccxt.PanicOnError(retRes7915)
-                ch <- retRes7915
+                retRes8115 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+                ccxt.PanicOnError(retRes8115)
+                ch <- retRes8115
                 return nil
         
             }()
@@ -142,7 +144,7 @@ func  (this *BittradeCore) HandleTicker(client interface{}, message interface{})
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func  (this *BittradeCore) WatchTrades(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -156,8 +158,8 @@ func  (this *BittradeCore) WatchTrades(symbol interface{}, optionalArgs ...inter
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes1268 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1268)
+            retRes1288 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1288)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             // only supports a limit of 150 at this time
@@ -257,8 +259,8 @@ func  (this *BittradeCore) WatchOHLCV(symbol interface{}, optionalArgs ...interf
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
         
-            retRes2068 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2068)
+            retRes2088 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2088)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var interval interface{} = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -336,7 +338,7 @@ func  (this *BittradeCore) HandleOHLCV(client interface{}, message interface{}) 
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
  */
 func  (this *BittradeCore) WatchOrderBook(symbol interface{}, optionalArgs ...interface{}) <- chan interface{} {
             ch := make(chan interface{})
@@ -351,8 +353,8 @@ func  (this *BittradeCore) WatchOrderBook(symbol interface{}, optionalArgs ...in
                 panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook accepts limit = 150 only")))
             }
         
-            retRes2838 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2838)
+            retRes2858 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2858)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             // only supports a limit of 150 at this time
@@ -660,10 +662,10 @@ func  (this *BittradeCore) Pong(client interface{}, message interface{}) <- chan
             //     { ping: 1583491673714 }
             //
         
-            retRes5598 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+            retRes5618 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                 "pong": this.SafeInteger(message, "ping"),
             }))
-            ccxt.PanicOnError(retRes5598)
+            ccxt.PanicOnError(retRes5618)
                 return nil
             }()
             return ch

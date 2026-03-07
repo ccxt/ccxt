@@ -7,10 +7,13 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheByTimestamp;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
 
 function test_safe_methods() {
-    $exchange = new \ccxt\Exchange(array(
+    $exchange = new \ccxt\async\Exchange(array(
         'id' => 'regirock',
     ));
     $input_dict = array(
@@ -21,6 +24,9 @@ function test_safe_methods() {
         'dict' => array(
             'a' => 1,
         ),
+        'listOfDicts' => [array(
+    'a' => 1,
+)],
         'str' => 'heLlo',
         'strNumber' => '3',
         'zeroNumeric' => 0,
@@ -90,6 +96,10 @@ function test_safe_methods() {
     assert(equals($dict_object, $compare_dict));
     assert($exchange->safe_list($input_dict, 'dict') === null);
     assert($exchange->safe_list($input_list, 1) === null);
+    $array_of_dicts = $exchange->safe_list($input_dict, 'listOfDicts');
+    assert(equals($array_of_dicts[0], array(
+        'a' => 1,
+    )));
     // safeList2
     $list_object = $exchange->safe_list_2($input_dict, 'a', 'list');
     assert(equals($dict_object, $compare_dict));
@@ -265,4 +275,89 @@ function test_safe_methods() {
     assert($exchange->safe_number_omit_zero($input_dict, 'emptyString') === null);
     assert($exchange->safe_number_omit_zero($input_dict, 'floatNumeric') !== null);
     assert($exchange->safe_number_omit_zero($input_dict, 'floatString') !== null);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
+    // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
+    // Test cache types - ArrayCache
+    $array_cache = new ArrayCache(100);
+    $array_cache->append(array(
+        'symbol' => 'BTC/USDT',
+        'id' => 'order1',
+        'price' => 50000,
+    ));
+    assert(count($array_cache) > 0);
+    // Test cache types - ArrayCacheByTimestamp
+    $array_cache_by_timestamp = new ArrayCacheByTimestamp(100);
+    $array_cache_by_timestamp->append([1000, 50000, 1, 2, 3]);
+    $array_cache_by_timestamp_data = $exchange->safe_value($array_cache_by_timestamp, 'Data');
+    $cache_by_timestamp_data = $array_cache_by_timestamp_data !== null ? $array_cache_by_timestamp_data : $array_cache_by_timestamp;
+    assert(count($cache_by_timestamp_data) > 0);
+    // Test cache types - ArrayCacheBySymbolById
+    $array_cache_by_symbol_by_id = new ArrayCacheBySymbolById(100);
+    $array_cache_by_symbol_by_id->append(array(
+        'symbol' => 'ETH/USDT',
+        'id' => 'order2',
+        'price' => 3000,
+    ));
+    // Use direct property access for object attributes
+    $array_cache_by_symbol_by_id_hashmap = $array_cache_by_symbol_by_id->hashmap;
+    assert($array_cache_by_symbol_by_id_hashmap['ETH/USDT'] !== null);
+    assert($array_cache_by_symbol_by_id_hashmap['ETH/USDT']['order2'] !== null);
+    $array_cache_by_symbol_by_id_data = $exchange->safe_value($array_cache_by_symbol_by_id, 'Data');
+    $cache_by_symbol_by_id_data = $array_cache_by_symbol_by_id_data !== null ? $array_cache_by_symbol_by_id_data : $array_cache_by_symbol_by_id;
+    assert(count($cache_by_symbol_by_id_data) > 0);
+    // Test cache types - ArrayCacheBySymbolBySide
+    $array_cache_by_symbol_by_side = new ArrayCacheBySymbolBySide();
+    $array_cache_by_symbol_by_side->append(array(
+        'symbol' => 'BNB/USDT',
+        'side' => 'buy',
+        'price' => 400,
+    ));
+    // Use direct property access for object attributes
+    $array_cache_by_symbol_by_side_hashmap = $array_cache_by_symbol_by_side->hashmap;
+    assert($array_cache_by_symbol_by_side_hashmap['BNB/USDT'] !== null);
+    $array_cache_by_symbol_by_side_data = $exchange->safe_value($array_cache_by_symbol_by_side, 'Data');
+    $cache_by_symbol_by_side_data = $array_cache_by_symbol_by_side_data !== null ? $array_cache_by_symbol_by_side_data : $array_cache_by_symbol_by_side;
+    assert(count($cache_by_symbol_by_side_data) > 0);
+    // Test map[string]map[string]interface{} (ArrayCache.hashmap)
+    // Use direct property access for object attributes
+    $array_cache_hashmap_direct = $array_cache->hashmap;
+    $nested_map = $array_cache_hashmap_direct;
+    assert($exchange->safe_value($nested_map, 'NONEXISTENT') === null);
+    // Test map[string]*ArrayCache (Trades structure)
+    $trades_map = array(
+        'BTC/USDT' => $array_cache,
+        'ETH/USDT' => $array_cache_by_symbol_by_id,
+    );
+    $stored = $exchange->safe_value($trades_map, 'BTC/USDT');
+    assert($stored !== null);
+    // Use direct property access for hashmap (object attribute)
+    $retrieved_array_cache_hashmap = $stored->hashmap;
+    assert($retrieved_array_cache_hashmap !== null);
+    $retrieved_array_cache_by_symbol_by_id = $exchange->safe_value($trades_map, 'ETH/USDT');
+    assert($retrieved_array_cache_by_symbol_by_id !== null);
+    // Use direct property access for hashmap (object attribute)
+    $retrieved_array_cache_by_symbol_by_id_hashmap = $retrieved_array_cache_by_symbol_by_id->hashmap;
+    assert($retrieved_array_cache_by_symbol_by_id_hashmap !== null);
+    assert($exchange->safe_value($trades_map, 'NONEXISTENT') === null);
+    // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
+    $ohlcv_inner_map = array(
+        '1m' => $array_cache_by_timestamp,
+        '5m' => new ArrayCacheByTimestamp(100),
+    );
+    $retrieved_array_cache_by_timestamp = $exchange->safe_value($ohlcv_inner_map, '1m');
+    assert($retrieved_array_cache_by_timestamp !== null);
+    // Use direct property access for object attributes
+    $retrieved_array_cache_by_timestamp_hashmap = $retrieved_array_cache_by_timestamp->hashmap;
+    assert($retrieved_array_cache_by_timestamp_hashmap !== null);
+    assert($exchange->safe_value($ohlcv_inner_map, '5m') !== null);
+    assert($exchange->safe_value($ohlcv_inner_map, 'NONEXISTENT') === null);
+    // Test map[string]*ArrayCacheBySymbolBySide
+    $cache_by_side_map = array(
+        'BTC/USDT' => $array_cache_by_symbol_by_side,
+    );
+    $retrieved_array_cache_by_symbol_by_side = $exchange->safe_value($cache_by_side_map, 'BTC/USDT');
+    assert($retrieved_array_cache_by_symbol_by_side !== null);
+    $retrieved_array_cache_by_symbol_by_side_hashmap = $retrieved_array_cache_by_symbol_by_side->hashmap;
+    assert($retrieved_array_cache_by_symbol_by_side_hashmap !== null);
+    assert($exchange->safe_value($cache_by_side_map, 'NONEXISTENT') === null);
 }
