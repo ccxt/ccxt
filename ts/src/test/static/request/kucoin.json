@@ -249,6 +249,59 @@
         ],
         "createOrder": [
             {
+                "description": "create hf margin order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/order",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    20,
+                    0.01,
+                    {
+                        "hf": true,
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "{\"clientOid\":\"c1e0cace-812f-47fc-b257-855beafc25d7\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.01\"}"
+            },
+            {
+                "description": "create hf margin trigger order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    100,
+                    0.01,
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "triggerPrice": 0.04
+                    }
+                ],
+                "output": "{\"clientOid\":\"2d161dad-85be-4ce6-ab7c-e8018f4c9482\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"100\",\"price\":\"0.01\",\"stopPrice\":\"0.04\",\"tradeType\":\"MARGIN_TRADE\"}"
+            },
+            {
+                "description": "create hf margin test order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/order/test",
+                "input": [
+                    "DOGE/USDT",
+                    "limit",
+                    "buy",
+                    10,
+                    0.1,
+                    {
+                        "marginMode": "cross",
+                        "hf": true,
+                        "test": true
+                    }
+                ],
+                "output": "{\"clientOid\":\"839ff88f-bfb2-4548-b029-385125df9c05\",\"side\":\"buy\",\"symbol\":\"DOGE-USDT\",\"type\":\"limit\",\"size\":\"10\",\"price\":\"0.1\"}"
+            },
+            {
                 "description": "create isolated order by using the unified syntax",
                 "method": "createOrder",
                 "url": "https://api-futures.kucoin.com/api/v1/orders",
