@@ -1011,7 +1011,7 @@ class Exchange extends \ccxt\Exchange {
             $this->log('decodeSbeResponse => Decoding SBE $buffer, size:', strlen($buffer));
         }
         try {
-            // Use global decodeSbeMessage with OKX decoder registry
+            // Use decodeSbeMessage with exchange-specific decoder registry
             $decoderRegistry = $this->get_sbe_decoder_registry();
             $result = $this->decode_sbe_message($buffer, $decoderRegistry);
             $templateId = $result['templateId'];
@@ -1022,11 +1022,22 @@ class Exchange extends \ccxt\Exchange {
             }
             return $decoded;
         } catch (Exception $e) {
-            $errorMessage = $e instanceof Error ? $e->message : 'strval' ($e);
-            $errorStack = $e instanceof Error ? $e->stack : '';
-            $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
-            $this->log('decodeSbeResponse => Stack trace:', $errorStack);
-            $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
+            $errorMessage = $e->getMessage();
+            $errorStack = $e->getTraceAsString();
+            if ($this->verbose) {
+                $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
+                $this->log('decodeSbeResponse => Stack trace:', $errorStack);
+                $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
+            }
+            // Attempt JSON fallback — server may return JSON despite SBE request headers
+            try {
+                $parsed = json_decode($buffer, true);
+                if ($parsed !== null) {
+                    return $parsed;
+                }
+            } catch (Exception $jsonError) {
+                // fall through
+            }
             throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
         }
     }

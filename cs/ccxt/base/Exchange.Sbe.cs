@@ -160,19 +160,19 @@ public partial class Exchange
         // For mantissa128, we need to handle signed 128-bit integers
         // The value −2^127 is nullValue by default
         // For practical purposes, we'll read up to 8 bytes (64-bit) as most values fit
-        ulong result = 0;
-        ulong multiplier = 1;
+        double result = 0.0;
+        double multiplier = 1.0;
 
         // Read up to 8 bytes (64-bit safe range)
         int limit = Math.Min(bytes.Length, 8);
 
         for (int i = 0; i < limit; i++)
         {
-            result += (ulong)bytes[i] * multiplier;
-            multiplier *= 256;
+            result += (double)bytes[i] * multiplier;
+            multiplier *= 256.0;
         }
 
-        return (long)result;
+        return result;
     }
 
     /// <summary>
@@ -218,10 +218,10 @@ public partial class Exchange
 
         // Instantiate and decode
         // Skip 8-byte SBE message header (blockLength, templateId, schemaId, version)
-        // Note: In C#, the decoder implementation would need to be called here
-        // This is a placeholder that assumes the decoder has a Decode method
-        dynamic decoder = Activator.CreateInstance(decoderClass.GetType());
-        var decoded = decoder.decode(bufferBytes, 8);
+        Type decoderType = decoderClass is Type t ? t : decoderClass.GetType();
+        object decoder = Activator.CreateInstance(decoderType);
+        var decodeMethod = decoderType.GetMethod("decode");
+        object decoded = decodeMethod.Invoke(decoder, new object[] { bufferBytes, 8 });
 
         return new dict
         {
@@ -309,7 +309,7 @@ public partial class Exchange
     public virtual object decodeSbeWebSocketMessage(object buffer)
     {
         // Default implementation: direct decode without envelope
-        object decoderRegistry = this.call("getSbeDecoderRegistry");
+        object decoderRegistry = this.getSbeDecoderRegistry();
         object result = this.decodeSbeMessage(buffer, decoderRegistry);
         return ((dict)result)["data"];
     }

@@ -89,7 +89,6 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
-                { "editOrderWithClientOrderId", null },
                 { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
@@ -169,7 +168,6 @@ public partial class Exchange
                 { "fetchOption", null },
                 { "fetchOptionChain", null },
                 { "fetchOrder", null },
-                { "fetchOrderWithClientOrderId", null },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", null },
                 { "fetchOrderBookWs", null },
@@ -675,6 +673,46 @@ public partial class Exchange
             throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new List<object>() {httpProxy, httpsProxy, socksProxy};
+    }
+
+    public virtual object decodeSbeResponse(object buffer, object url)
+    {
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        try
+        {
+            // Use decodeSbeMessage with exchange-specific decoder registry
+            object decoderRegistry = this.getSbeDecoderRegistry();
+            object result = this.decodeSbeMessage(buffer, decoderRegistry);
+            object templateId = getValue(result, "templateId");
+            object decoded = getValue(result, "data");
+            return decoded;
+        } catch(Exception e)
+        {
+            object errorMessage = e.Message;
+            object errorStack = e.StackTrace ?? "";
+            if (isTrue(this.verbose))
+            {
+                this.log((string)add("decodeSbeResponse: Error decoding SBE buffer: ", errorMessage));
+            }
+            // Attempt JSON fallback — server may return JSON despite SBE request headers
+            try
+            {
+                string text = buffer is byte[] bytes ? System.Text.Encoding.UTF8.GetString(bytes) : buffer?.ToString();
+                if (text != null)
+                {
+                    return parseJson(text);
+                }
+            } catch(Exception)
+            {
+                // fall through
+            }
+            throw new ExchangeError ((string)add(add(add(this.id, " decodeSbeResponse() failed. Error: "), errorMessage), ". Try setting useSbe to false in options.")) ;
+        }
+    }
+
+    public virtual object getSbeDecoderRegistry()
+    {
+        return new Dictionary<string, object>() {};
     }
 
     public virtual object checkWsProxySettings()

@@ -658,15 +658,15 @@ function mantissa128ToNumber($bytes) {
         return 0;
     }
 
-    $result = 0;
-    $multiplier = 1;
+    $result = 0.0;
+    $multiplier = 1.0;
 
     // Read up to 8 bytes (64-bit safe range for PHP numbers)
     $limit = min(strlen($bytes), 8);
     for ($i = 0; $i < $limit; $i++) {
         $byte = ord($bytes[$i]);
         $result += $byte * $multiplier;
-        $multiplier *= 256;
+        $multiplier *= 256.0;
     }
 
     // Check if this is a negative number (bit 7 of the last byte we read)

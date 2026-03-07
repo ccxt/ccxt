@@ -2118,8 +2118,8 @@ class Exchange(object):
         # For mantissa128, we need to handle signed 128-bit integers
         # The value −2^127 is nullValue by default
         # For practical purposes, we'll read up to 8 bytes (64-bit) as most values fit
-        result = 0
-        multiplier = 1
+        result = 0.0
+        multiplier = 1.0
         # Read up to 8 bytes (64-bit safe range for Python numbers)
         limit = min(len(bytes_data), 8)
         for i in range(limit):
@@ -3371,7 +3371,7 @@ class Exchange(object):
         if self.verbose:
             self.log('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength)
         try:
-            # Use global decodeSbeMessage with OKX decoder registry
+            # Use decodeSbeMessage with exchange-specific decoder registry
             decoderRegistry = self.get_sbe_decoder_registry()
             result = self.decode_sbe_message(buffer, decoderRegistry)
             templateId = result['templateId']
@@ -3383,10 +3383,17 @@ class Exchange(object):
         except Exception as e:
             errorMessage = e.message if isinstance(e, Error) else str(e)
             errorStack = e.stack if isinstance(e, Error) else ''
-            self.log('decodeSbeResponse: Error decoding SBE buffer:', errorMessage)
-            self.log('decodeSbeResponse: Stack trace:', errorStack)
-            self.log('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes')
-            raise ExchangeError(self.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to False in options.')
+            if self.verbose:
+                self.log('decodeSbeResponse: Error decoding SBE buffer:', errorMessage)
+                self.log('decodeSbeResponse: Stack trace:', errorStack)
+                self.log('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes')
+            # Attempt JSON fallback — server may return JSON despite SBE request headers
+            try:
+                import json
+                text = buffer.decode('utf-8') if isinstance(buffer, bytes) else str(buffer)
+                return json.loads(text)
+            except Exception:
+                raise ExchangeError(self.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to False in options.')
 
     def get_sbe_decoder_registry(self):
         return {}

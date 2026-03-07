@@ -5,15 +5,35 @@
  */
 
 export interface MessageHeader {
+  blockLength: number;
+  templateId: number;
+  schemaId: number;
+  version: number;
 }
 
 export class MessageHeaderDecoder {
-  private static readonly ENCODED_LENGTH = 2;
+  private static readonly ENCODED_LENGTH = 8;
 
   static decode(view: DataView, offset: number, littleEndian: boolean): MessageHeader {
     let pos = offset;
 
+    const blockLength = view.getUint16(pos, littleEndian);
+    pos += 2;
+
+    const templateId = view.getUint16(pos, littleEndian);
+    pos += 2;
+
+    const schemaId = view.getUint16(pos, littleEndian);
+    pos += 2;
+
+    const version = view.getUint16(pos, littleEndian);
+    pos += 2;
+
     return {
+      blockLength: blockLength,
+      templateId: templateId,
+      schemaId: schemaId,
+      version: version
     };
   }
 

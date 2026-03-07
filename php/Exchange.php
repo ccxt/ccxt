@@ -2654,13 +2654,13 @@ class Exchange {
         // For mantissa128, we need to handle signed 128-bit integers
         // The value −2^127 is nullValue by default
         // For practical purposes, we'll read up to 8 bytes (64-bit) as most values fit
-        $result = 0;
-        $multiplier = 1;
+        $result = 0.0;
+        $multiplier = 1.0;
         // Read up to 8 bytes (64-bit safe range for PHP numbers)
         $limit = min(strlen($bytes_data), 8);
         for ($i = 0; $i < $limit; $i++) {
             $result += ord($bytes_data[$i]) * $multiplier;
-            $multiplier *= 256;
+            $multiplier *= 256.0;
         }
         return $result;
     }
@@ -3646,7 +3646,7 @@ class Exchange {
             $this->log('decodeSbeResponse => Decoding SBE $buffer, size:', strlen($buffer));
         }
         try {
-            // Use global decodeSbeMessage with OKX decoder registry
+            // Use decodeSbeMessage with exchange-specific decoder registry
             $decoderRegistry = $this->get_sbe_decoder_registry();
             $result = $this->decode_sbe_message($buffer, $decoderRegistry);
             $templateId = $result['templateId'];
@@ -3657,11 +3657,22 @@ class Exchange {
             }
             return $decoded;
         } catch (Exception $e) {
-            $errorMessage = $e instanceof Error ? $e->message : 'strval' ($e);
-            $errorStack = $e instanceof Error ? $e->stack : '';
-            $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
-            $this->log('decodeSbeResponse => Stack trace:', $errorStack);
-            $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
+            $errorMessage = $e->getMessage();
+            $errorStack = $e->getTraceAsString();
+            if ($this->verbose) {
+                $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
+                $this->log('decodeSbeResponse => Stack trace:', $errorStack);
+                $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
+            }
+            // Attempt JSON fallback — server may return JSON despite SBE request headers
+            try {
+                $parsed = json_decode($buffer, true);
+                if ($parsed !== null) {
+                    return $parsed;
+                }
+            } catch (Exception $jsonError) {
+                // fall through
+            }
             throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
         }
     }

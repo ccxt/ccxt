@@ -5,15 +5,25 @@
  */
 
 export interface GroupSizeEncoding {
+  blockLength: number;
+  numInGroup: number;
 }
 
 export class GroupSizeEncodingDecoder {
-  private static readonly ENCODED_LENGTH = 2;
+  private static readonly ENCODED_LENGTH = 6;
 
   static decode(view: DataView, offset: number, littleEndian: boolean): GroupSizeEncoding {
     let pos = offset;
 
+    const blockLength = view.getUint16(pos, littleEndian);
+    pos += 2;
+
+    const numInGroup = view.getUint32(pos, littleEndian);
+    pos += 4;
+
     return {
+      blockLength: blockLength,
+      numInGroup: numInGroup
     };
   }
 

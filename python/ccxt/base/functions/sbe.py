@@ -704,8 +704,8 @@ def mantissa128_to_number(bytes_data: bytes) -> float:
     if not bytes_data or len(bytes_data) == 0:
         return 0.0
 
-    result = 0
-    multiplier = 1
+    result = 0.0
+    multiplier = 1.0
 
     # Read up to 8 bytes (64-bit safe range)
     limit = min(len(bytes_data), 8)

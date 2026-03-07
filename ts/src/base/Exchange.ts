@@ -3198,7 +3198,7 @@ export default class Exchange {
             this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
         }
         try {
-            // Use global decodeSbeMessage with OKX decoder registry
+            // Use decodeSbeMessage with exchange-specific decoder registry
             const decoderRegistry = this.getSbeDecoderRegistry ();
             const result = this.decodeSbeMessage (buffer, decoderRegistry);
             const templateId = result['templateId'];
@@ -3211,10 +3211,18 @@ export default class Exchange {
         } catch (e) {
             const errorMessage = e instanceof Error ? e.message : String (e);
             const errorStack = e instanceof Error ? e.stack : '';
-            this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
-            this.log ('decodeSbeResponse: Stack trace:', errorStack);
-            this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
-            throw new ExchangeError (this.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
+            if (this.verbose) {
+                this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
+                this.log ('decodeSbeResponse: Stack trace:', errorStack);
+                this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
+            }
+            // Attempt JSON fallback — server may return JSON despite SBE request headers
+            try {
+                const text = new TextDecoder ().decode (buffer);
+                return JSON.parse (text);
+            } catch (jsonError) {
+                throw new ExchangeError (this.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
+            }
         }
     }
 

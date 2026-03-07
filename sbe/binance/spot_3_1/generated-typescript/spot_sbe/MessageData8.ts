@@ -5,15 +5,25 @@
  */
 
 export interface MessageData8 {
+  length: number;
+  varData: number;
 }
 
 export class MessageData8Decoder {
-  private static readonly ENCODED_LENGTH = 1;
+  private static readonly ENCODED_LENGTH = -1;
 
   static decode(view: DataView, offset: number, littleEndian: boolean): MessageData8 {
     let pos = offset;
 
+    const length = view.getUint8(pos);
+    pos += 1;
+
+    const varData = view.getUint8(pos);
+    pos += -1;
+
     return {
+      length: length,
+      varData: varData
     };
   }
 
