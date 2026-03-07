@@ -305,6 +305,7 @@ export default class kucoin extends Exchange {
                         // margin trading
                         'hf/margin/order': 5, // 5SW
                         'hf/margin/order/test': 5, // 5SW
+                        'hf/margin/stop-order': 7.5,
                         'margin/order': 5, // 5SW
                         'margin/order/test': 5, // 5SW
                         'margin/borrow': 15, // 15SW
@@ -966,6 +967,7 @@ export default class kucoin extends Exchange {
                             // margin trading
                             'hf/margin/order': 'v3',
                             'hf/margin/order/test': 'v3',
+                            'hf/margin/stop-order': 'v3',
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'purchase': 'v3',
@@ -3520,6 +3522,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-order-test
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/add-take-profit-and-stop-loss-order
@@ -3554,6 +3557,7 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/add-stop-order
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order
      * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-order-test
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/add-stop-order
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -3607,14 +3611,22 @@ export default class kucoin extends Exchange {
         let response = undefined;
         if (testOrder) {
             if (isMarginOrder) {
-                response = await this.privatePostMarginOrderTest (orderRequest);
+                if (hf) {
+                    response = await this.privatePostHfMarginOrderTest (orderRequest);
+                } else {
+                    response = await this.privatePostMarginOrderTest (orderRequest);
+                }
             } else if (hf) {
                 response = await this.privatePostHfOrdersTest (orderRequest);
             } else {
                 response = await this.privatePostOrdersTest (orderRequest);
             }
         } else if (isTriggerOrder) {
-            response = await this.privatePostStopOrder (orderRequest);
+            if (isMarginOrder) {
+                response = await this.privatePostHfMarginStopOrder (orderRequest);
+            } else {
+                response = await this.privatePostStopOrder (orderRequest);
+            }
         } else if (isMarginOrder) {
             if (hf) {
                 response = await this.privatePostHfMarginOrder (orderRequest);
@@ -4224,7 +4236,6 @@ export default class kucoin extends Exchange {
      * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
-     * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @returns Response from the exchange
      */
     async cancelSpotOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -4236,11 +4247,7 @@ export default class kucoin extends Exchange {
         [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
-        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
-        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
-        if (hf || useSync || isMarginOrder) {
+        if (hf || useSync) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
             }
@@ -4248,7 +4255,7 @@ export default class kucoin extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType' ]);
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (trigger) {
@@ -4262,8 +4269,6 @@ export default class kucoin extends Exchange {
                 //        }
                 //    }
                 //
-            } else if (isMarginOrder) {
-                response = await this.privateDeleteHfMarginOrdersClientOrderClientOid (this.extend (request, params));
             } else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid (this.extend (request, params));
             } else if (hf) {
@@ -4301,8 +4306,6 @@ export default class kucoin extends Exchange {
                 //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
                 //    }
                 //
-            } else if (isMarginOrder) {
-                response = await this.privateDeleteHfMarginOrdersOrderId (this.extend (request, params));
             } else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncOrderId (this.extend (request, params));
             } else if (hf) {
