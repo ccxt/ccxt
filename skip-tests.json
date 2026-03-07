@@ -1,5 +1,7 @@
 {
     "alp": {
+        "skip": "needs api1 to api3 update",
+        "until": "2026-04-01",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
