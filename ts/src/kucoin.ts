@@ -4207,12 +4207,17 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-orderld
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-order-by-clientoid
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
      * Check cancelSpotOrder() and cancelContractOrder() for more details on the extra parameters that can be used in params
      * @returns Response from the exchange
      */
@@ -4252,6 +4257,7 @@ export default class kucoin extends Exchange {
      * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
+     * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns Response from the exchange
      */
     async cancelSpotOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -4431,11 +4437,14 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
+     * @param {string} [params.marginMode] *spot only* 'cross' or 'isolated'
      * @returns Response from the exchange
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -4461,6 +4470,8 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders-by-symbol
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-all-orders
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/batch-cancel-stop-orders
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-all-orders-by-symbol
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/batch-cancel-stop-orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
@@ -4477,10 +4488,13 @@ export default class kucoin extends Exchange {
         [ hf, params ] = this.handleHfAndParams (params);
         params = this.omit (params, 'stop');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
+        const isMarginOrders = marginMode !== undefined;
         if (symbol !== undefined) {
             request['symbol'] = this.marketId (symbol);
+        } else if (!trigger && isMarginOrders) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for margin non-trigger orders');
         }
-        if (marginMode !== undefined) {
+        if (isMarginOrders) {
             request['tradeType'] = this.options['marginModes'][marginMode];
             if (marginMode === 'isolated' && trigger) {
                 throw new BadRequest (this.id + ' cancelAllOrders does not support isolated margin for stop orders');
@@ -4488,7 +4502,13 @@ export default class kucoin extends Exchange {
         }
         let response = undefined;
         if (trigger) {
-            response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
+            if (isMarginOrders) {
+                response = await this.privateDeleteHfMarginStopOrderCancel (this.extend (request, query));
+            } else {
+                response = await this.privateDeleteStopOrderCancel (this.extend (request, query));
+            }
+        } else if (isMarginOrders) {
+            response = await this.privateDeleteHfMarginOrders (this.extend (request, query));
         } else if (hf) {
             if (symbol === undefined) {
                 response = await this.privateDeleteHfOrdersCancelAll (this.extend (request, query));
