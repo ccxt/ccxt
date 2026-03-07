@@ -342,11 +342,11 @@
         ],
         "fetchOpenInterest": [
             {
-                "description": "Fetch Open Interest",
+                "description": "Fill this with a description of the method call",
                 "method": "fetchOpenInterest",
-                "url": "https://api.exchange.bullish.com/trading-api/v1/markets/BTC-USDC-20260626-160000-P/tick",
+                "url": "https://api.exchange.bullish.com/trading-api/v1/markets/BTC-USDC-PERP/tick",
                 "input": [
-                    "BTC/USDC:USDC-20260626-160000-P"
+                    "BTC/USDC:USDC"
                 ]
             }
         ]
