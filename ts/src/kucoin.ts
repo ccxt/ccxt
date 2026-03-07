@@ -247,6 +247,7 @@ export default class kucoin extends Exchange {
                         'hf/margin/orders/{orderId}': 4, // 4SW
                         'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
                         'hf/margin/fills': 5, // 5SW
+                        'hf/margin/stop-orders': 10,
                         'hf/margin/stop-order/orderId': 7.5,
                         'hf/margin/stop-order/clientOid': 7.5,
                         'etf/info': 25, // 25SW
@@ -349,6 +350,9 @@ export default class kucoin extends Exchange {
                         'hf/margin/orders/{orderId}': 5, // 5SW
                         'hf/margin/orders/client-order/{clientOid}': 5, // 5SW
                         'hf/margin/orders': 10, // 10SW
+                        'hf/margin/stop-order/cancel-by-id': 5,
+                        'hf/margin/stop-order/cancel-by-clientOid': 7.5,
+                        'hf/margin/stop-order/cancel': 5,
                         // convert
                         'convert/limit/order/cancel': 5,
                     },
@@ -941,6 +945,7 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/fills': 'v3',
+                            'hf/margin/stop-orders': 'v3',
                             'hf/margin/stop-order/orderId': 'v3',
                             'hf/margin/stop-order/clientOid': 'v3',
                             'etf/info': 'v3',
@@ -987,6 +992,9 @@ export default class kucoin extends Exchange {
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
                             'hf/margin/orders': 'v3',
+                            'hf/margin/stop-order/cancel-by-id': 'v3',
+                            'hf/margin/stop-order/cancel-by-clientOid': 'v3',
+                            'hf/margin/stop-order/cancel': 'v3',
                             'oco/order/{orderId}': 'v3',
                             'oco/client-order/{clientOid}': 'v3',
                             'oco/orders': 'v3',
@@ -4234,6 +4242,10 @@ export default class kucoin extends Exchange {
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-order-by-clientoid-sync
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-clientoid
      * @see https://www.kucoin.com/docs-new/rest/spot-trading/orders/cancel-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-order-by-clientoid
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-orderld
+     * @see https://www.kucoin.com/docs-new/rest/margin-trading/orders/cancel-stop-order-by-clientoid
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4251,28 +4263,47 @@ export default class kucoin extends Exchange {
         [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
-        if (hf || useSync) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        if (hf || useSync || isMarginOrder) {
+            if (!trigger) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
+                }
+                const market = this.market (symbol);
+                request['symbol'] = market['id'];
             }
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
         let response = undefined;
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger' ]);
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (trigger) {
-                response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
-                //
-                //    {
-                //        code: '200000',
-                //        data: {
-                //          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
-                //          clientOid: '123456'
-                //        }
-                //    }
-                //
+                if (isMarginOrder) {
+                    response = await this.privateDeleteHfMarginStopOrderCancelByClientOid (this.extend (request, params));
+                    const data = this.safeDict (response, 'data');
+                    const orderIds = this.safeList (data, 'cancelledOrderIds', []);
+                    const orderId = this.safeString (orderIds, 0);
+                    return this.safeOrder ({
+                        'info': data,
+                        'id': orderId,
+                    });
+                } else {
+                    //
+                    //    {
+                    //        code: '200000',
+                    //        data: {
+                    //          cancelledOrderId: 'vs8lgpiuao41iaft003khbbk',
+                    //          clientOid: '123456'
+                    //        }
+                    //    }
+                    //
+                    response = await this.privateDeleteStopOrderCancelOrderByClientOid (this.extend (request, params));
+                }
+            } else if (isMarginOrder) {
+                response = await this.privateDeleteHfMarginOrdersClientOrderClientOid (this.extend (request, params));
             } else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid (this.extend (request, params));
             } else if (hf) {
@@ -4303,13 +4334,19 @@ export default class kucoin extends Exchange {
         } else {
             request['orderId'] = id;
             if (trigger) {
-                response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
-                //
-                //    {
-                //        code: '200000',
-                //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
-                //    }
-                //
+                if (isMarginOrder) {
+                    response = await this.privateDeleteHfMarginStopOrderCancelById (this.extend (request, params));
+                } else {
+                    //
+                    //    {
+                    //        code: '200000',
+                    //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
+                    //    }
+                    //
+                    response = await this.privateDeleteStopOrderOrderId (this.extend (request, params));
+                }
+            } else if (isMarginOrder) {
+                response = await this.privateDeleteHfMarginOrdersOrderId (this.extend (request, params));
             } else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncOrderId (this.extend (request, params));
             } else if (hf) {
@@ -4334,8 +4371,9 @@ export default class kucoin extends Exchange {
                 //
             }
             const data = this.safeDict (response, 'data');
+            let orderId = this.safeString (data, 'orderId');
             const orderIds = this.safeList (data, 'cancelledOrderIds', []);
-            const orderId = this.safeString (orderIds, 0);
+            orderId = this.safeString (orderIds, 0, orderId);
             return this.safeOrder ({
                 'info': data,
                 'id': orderId,
