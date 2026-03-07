@@ -40,6 +40,19 @@
                     }
                 ],
                 "output": "{}"
+            },
+            {
+                "description": "fetch open orders multi asset mode",
+                "method": "fetchOpenOrders",
+                "url": "https://api.hbdm.vn/v5/trade/order/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T11%3A20%3A57&contract_code=BTC-USDT&Signature=1rk9HRKCYiVW5kQaV1IQxZKMpfjCjGmD3BB1c31T6JE%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "fetchCurrencies": [
@@ -300,6 +313,24 @@
                   }
                 ],
                 "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"101\",\"amount\":\"0.21\",\"price\":\"50\"}"
+            },
+            {
+                "description": "create order multi asset mode",
+                "method": "createOrder",
+                "url": "https://api.hbdm.vn/v5/trade/order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T10%3A14%3A11&Signature=WCEVLyrcp17aepT2aaeZk4SgChXotW0FQnukPW%2FJFGU%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    55000,
+                    {
+                        "marginMode": "cross",
+                        "position_side": "long",
+                        "multiAssetMode": true
+                    }
+                ],
+                "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"side\":\"buy\",\"type\":\"limit\",\"margin_mode\":\"cross\",\"price\":\"55000\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
             }
         ],
         "createOrders": [
@@ -428,6 +459,28 @@
                   ]
                 ],
                 "output": "{\"orders_data\":[{\"contract_code\":\"BTC231124\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC231124\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"27000\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
+            },
+            {
+                "description": "create orders multi asset mode",
+                "method": "createOrders",
+                "url": "https://api.hbdm.vn/v5/trade/batch_orders?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T10%3A52%3A59&Signature=%2BaBJ4XOmDoxj6NomOKOFFEAM71RPVFo7PFpbg6Xn3p4%3D",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT:USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 1,
+                            "price": 55000,
+                            "params": {
+                            "marginMode": "cross",
+                            "position_side": "long",
+                            "multiAssetMode": true
+                            }
+                        }
+                    ]
+                ],
+                "output": "[{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"side\":\"buy\",\"type\":\"limit\",\"margin_mode\":\"cross\",\"price\":\"55000\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\",\"multiAssetMode\":true}]"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -514,6 +567,18 @@
                     "BTC/USD:BTC-231124"
                 ],
                 "output": "{\"contract_code\":\"BTC231124\",\"symbol\":\"btc\",\"order_id\":\"357632718898331\"}"
+            },
+            {
+                "description": "fetch order multi asset mode",
+                "method": "fetchOrder",
+                "url": "https://api.hbdm.vn/v5/trade/order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T11%3A25%3A27&contract_code=BTC-USDT&order_id=1479917370729521152&Signature=RMkW0y0hNXBB%2BB2f0w5VPcd0815Fq7%2FTwfRRBC07vz4%3D",
+                "input": [
+                    "1479917370729521152",
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "fetchMyTrades": [
@@ -559,6 +624,19 @@
                     5
                 ],
                 "output": "{\"contract\":\"BTC231124\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5,\"symbol\":\"btc\"}"
+            },
+            {
+                "description": "fetch my trades multi asset mode",
+                "method": "fetchMyTrades",
+                "url": "https://api.hbdm.vn/v5/trade/order/details?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T12%3A18%3A09&contract_code=BTC-USDT&Signature=YdbyG88L1zWLXoGiboYnYgdXuAArk7mOaxs9OkV0bts%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "fetchClosedOrders": [
@@ -578,6 +656,20 @@
                     "LTC/USDT:USDT"
                 ],
                 "output": "{\"trade_type\":0,\"status\":\"5,6,7\",\"contract\":\"LTC-USDT\",\"type\":1}"
+            },
+            {
+                "description": "fetch closed orders multi asset mode",
+                "method": "fetchClosedOrders",
+                "url": "https://api.hbdm.vn/v5/trade/order/history?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T12%3A22%3A56&contract_code=BTC-USDT&margin_mode=cross&Signature=dOF1fTZTczzWfpgUNm2MZesIByb1MXrkMQUOz9i45lI%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "marginMode": "cross",
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "cancelAllOrders": [
@@ -599,6 +691,18 @@
                   {
                     "trailing": true
                   }
+                ],
+                "output": "{\"contract_code\":\"BTC-USDT\"}"
+            },
+            {
+                "description": "cancel all orders multi asset mode",
+                "method": "cancelAllOrders",
+                "url": "https://api.hbdm.vn/v5/trade/cancel_all_orders?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T11%3A38%3A21&Signature=pnBSoW%2FUACd4bVoRv7IAnFAoqILNjauJMMsDIBttnLA%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
                 ],
                 "output": "{\"contract_code\":\"BTC-USDT\"}"
             }
@@ -656,6 +760,19 @@
                     ]
                 ],
                 "output": "{}"
+            },
+            {
+                "description": "fetch positions multi asset mode",
+                "method": "fetchPositions",
+                "url": "https://api.hbdm.vn/v5/trade/position/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T12%3A01%3A25&Signature=gCSgo3y2BfZl65QeDJXL0n3eLu1p%2BqwLxg4pOqfjKbg%3D",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ],
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "fetchPosition": [
@@ -685,6 +802,17 @@
                     "BTC/USD:BTC-231124"
                 ],
                 "output": "{\"symbol\":\"btc\"}"
+            },
+            {
+                "description": "fetch position multi asset mode",
+                "method": "fetchPosition",
+                "url": "https://api.hbdm.vn/v5/trade/position/opens?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T11%3A58%3A57&contract_code=BTC-USDT&margin_account=USDT&multiAssetMode=true&Signature=wZzfGmqXf9GZUkJgp3rjH4rnVuExgqGCEokFWnW7za0%3D",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "fetchOpenInterestHistory": [
@@ -828,6 +956,19 @@
                     "BTC/USD:BTC-231124"
                 ],
                 "output": "{\"lever_rate\":5,\"symbol\":\"btc\"}"
+            },
+            {
+                "description": "set leverage multi asset mode",
+                "method": "setLeverage",
+                "url": "https://api.hbdm.vn/v5/position/lever?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-06T12%3A21%3A51&Signature=Yz2T%2B963BIFCiLKpJp2wSDOVGP12UXhsf%2BQKHHYeg%2FI%3D",
+                "input": [
+                    20,
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ],
+                "output": "{\"lever_rate\":20,\"contract_code\":\"BTC-USDT\",\"margin_mode\":\"cross\"}"
             }
         ],
         "fetchDeposits": [
@@ -1453,6 +1594,17 @@
                 "input": [
                     "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "fetch funding rate - multi asset mode",
+                "method": "fetchFundingRate",
+                "url": "https://api.hbdm.vn/v5/market/funding_rate?contract_code=BTC-USDT",
+                "input": [
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ]
             }
         ],
         "fetchFundingRates": [
@@ -1549,6 +1701,19 @@
                   true
                 ],
                 "output": "{\"position_mode\":\"dual_side\",\"margin_account\":\"USDT\"}"
+            },
+            {
+                "description": "set position mode for multi asset mode",
+                "method": "setPositionMode",
+                "url": "https://api.hbdm.vn/v5/position/mode?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-06T12%3A25%3A00&Signature=RQzeG37eBz7Ef5gv11dWXqgghc801ifZV%2F%2Fi%2FwQz0%2Bk%3D",
+                "input": [
+                    true,
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ],
+                "output": "{\"position_mode\":\"dual_side\"}"
             }
         ],
         "closePosition": [
@@ -1651,6 +1816,38 @@
                         "multiAssetMode": true
                     }
                 ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order multi asset mode",
+                "method": "cancelOrder",
+                "url": "https://api.hbdm.vn/v5/trade/cancel_order?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T10%3A17%3A04&Signature=n5Ow9ABfU6Az08ZvmdweYFJ%2FEwdXgnJxamfPBmjT2QU%3D",
+                "input": [
+                    "1479905018889699328",
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ],
+                "output": "{\"order_id\":\"1479905018889699328\",\"contract_code\":\"BTC-USDT\"}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders multi asset mode",
+                "method": "cancelOrders",
+                "url": "https://api.hbdm.vn/v5/trade/cancel_batch_orders?AccessKeyId=9e973c1c-10b310b3-ntmuw4rrsr-c313b&SignatureMethod=HmacSHA256&SignatureVersion=2&Timestamp=2026-03-07T10%3A56%3A39&Signature=x4MUZf0vn7AfStMNS8LDsm4XsK7MrsGRd4xUHinZlxE%3D",
+                "input": [
+                    [
+                        "1479914782559604736"
+                    ],
+                    "BTC/USDT:USDT",
+                    {
+                        "multiAssetMode": true
+                    }
+                ],
+                "output": "{\"order_id\":[\"1479914782559604736\"],\"contract_code\":\"BTC-USDT\"}"
             }
         ]
     }
