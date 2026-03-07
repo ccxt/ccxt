@@ -8,6 +8,7 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
+var aftermath = require('./src/aftermath.js');
 var alp = require('./src/alp.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
@@ -89,6 +90,7 @@ var kucoin = require('./src/kucoin.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
+var lighter = require('./src/lighter.js');
 var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
@@ -118,6 +120,7 @@ var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zebpay = require('./src/zebpay.js');
 var zonda = require('./src/zonda.js');
+var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var arkham$1 = require('./src/pro/arkham.js');
@@ -176,6 +179,7 @@ var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
+var lighter$1 = require('./src/pro/lighter.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
@@ -198,9 +202,10 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.40';
+const version = '4.5.42';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
+    'aftermath': aftermath["default"],
     'alp': alp["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -282,6 +287,7 @@ const exchanges = {
     'kucoinfutures': kucoinfutures["default"],
     'latoken': latoken["default"],
     'lbank': lbank["default"],
+    'lighter': lighter["default"],
     'luno': luno["default"],
     'mercado': mercado["default"],
     'mexc': mexc["default"],
@@ -313,6 +319,7 @@ const exchanges = {
     'zonda': zonda["default"],
 };
 const pro = {
+    'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
     'arkham': arkham$1["default"],
@@ -371,6 +378,7 @@ const pro = {
     'kucoin': kucoin$1["default"],
     'kucoinfutures': kucoinfutures$1["default"],
     'lbank': lbank$1["default"],
+    'lighter': lighter$1["default"],
     'luno': luno$1["default"],
     'mexc': mexc$1["default"],
     'modetrade': modetrade$1["default"],
@@ -442,6 +450,7 @@ exports.RequestTimeout = errors.RequestTimeout;
 exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
+exports.aftermath = aftermath["default"];
 exports.alp = alp["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
@@ -523,6 +532,7 @@ exports.kucoin = kucoin["default"];
 exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];
+exports.lighter = lighter["default"];
 exports.luno = luno["default"];
 exports.mercado = mercado["default"];
 exports.mexc = mexc["default"];

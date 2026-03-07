@@ -7,6 +7,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ccxt.ICoreExchange, bool) {
     switch exchangeId {
+    case "aftermath":
+        aftermathItf := NewAftermathCore()
+        aftermathItf.Init(exchangeArgs)
+        return aftermathItf, true
     case "alpaca":
         alpacaItf := NewAlpacaCore()
         alpacaItf.Init(exchangeArgs)
@@ -239,6 +243,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
         lbankItf := NewLbankCore()
         lbankItf.Init(exchangeArgs)
         return lbankItf, true
+    case "lighter":
+        lighterItf := NewLighterCore()
+        lighterItf.Init(exchangeArgs)
+        return lighterItf, true
     case "luno":
         lunoItf := NewLunoCore()
         lunoItf.Init(exchangeArgs)

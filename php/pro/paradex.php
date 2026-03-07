@@ -247,7 +247,7 @@ class paradex extends \ccxt\async\paradex {
         }
         $orderbook = $this->orderbooks[$symbol];
         $snapshot = $this->parse_order_book($orderbookData, $symbol, $timestamp, 'bids', 'asks');
-        $snapshot['nonce'] = $this->safe_number($data, 'seq_no');
+        $snapshot['nonce'] = $this->safe_integer($data, 'seq_no');
         $orderbook->reset ($snapshot);
         $messageHash = $this->safe_string($params, 'channel');
         $client->resolve ($orderbook, $messageHash);
@@ -303,7 +303,7 @@ class paradex extends \ccxt\async\paradex {
                 ),
             );
             $messageHashes = array();
-            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
+            if ($symbols !== null && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $messageHash = $channel . '.' . $symbols[$i];
                     $messageHashes[] = $messageHash;
@@ -311,10 +311,10 @@ class paradex extends \ccxt\async\paradex {
             } else {
                 $messageHashes[] = $channel;
             }
-            $newTickers = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
-                $result[$newTickers['symbol']] = $newTickers;
+                $result[$newTicker['symbol']] = $newTicker;
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);

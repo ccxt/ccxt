@@ -5,7 +5,7 @@
 add margin
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
 
 
 | Param | Type | Required | Description |
@@ -13,8 +13,10 @@ add margin
 | symbol | <code>string</code> | Yes | unified market symbol |
 | amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#addmargin)
 * [ascendex](/exchanges/ascendex.md#addmargin)
 * [aster](/exchanges/aster.md#addmargin)
 * [binance](/exchanges/binance.md#addmargin)
@@ -28,6 +30,7 @@ add margin
 * [hitbtc](/exchanges/hitbtc.md#addmargin)
 * [hyperliquid](/exchanges/hyperliquid.md#addmargin)
 * [kucoinfutures](/exchanges/kucoinfutures.md#addmargin)
+* [lighter](/exchanges/lighter.md#addmargin)
 * [mexc](/exchanges/mexc.md#addmargin)
 * [okx](/exchanges/okx.md#addmargin)
 * [poloniex](/exchanges/poloniex.md#addmargin)
@@ -197,6 +200,7 @@ cancel all open orders in a market
 * [kucoinfutures](/exchanges/kucoinfutures.md#cancelallorders)
 * [latoken](/exchanges/latoken.md#cancelallorders)
 * [lbank](/exchanges/lbank.md#cancelallorders)
+* [lighter](/exchanges/lighter.md#cancelallorders)
 * [mexc](/exchanges/mexc.md#cancelallorders)
 * [modetrade](/exchanges/modetrade.md#cancelallorders)
 * [ndax](/exchanges/ndax.md#cancelallorders)
@@ -236,6 +240,7 @@ dead man's switch, cancel all orders after the given timeout
 * [hyperliquid](/exchanges/hyperliquid.md#cancelallordersafter)
 * [kraken](/exchanges/kraken.md#cancelallordersafter)
 * [krakenfutures](/exchanges/krakenfutures.md#cancelallordersafter)
+* [lighter](/exchanges/lighter.md#cancelallordersafter)
 * [okx](/exchanges/okx.md#cancelallordersafter)
 * [whitebit](/exchanges/whitebit.md#cancelallordersafter)
 * [woo](/exchanges/woo.md#cancelallordersafter)
@@ -271,7 +276,7 @@ cancel all open orders in a market
 cancels an open order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -281,6 +286,7 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#cancelorder)
 * [alp](/exchanges/alp.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
@@ -353,6 +359,7 @@ cancels an open order
 * [kucoinfutures](/exchanges/kucoinfutures.md#cancelorder)
 * [latoken](/exchanges/latoken.md#cancelorder)
 * [lbank](/exchanges/lbank.md#cancelorder)
+* [lighter](/exchanges/lighter.md#cancelorder)
 * [luno](/exchanges/luno.md#cancelorder)
 * [mercado](/exchanges/mercado.md#cancelorder)
 * [mexc](/exchanges/mexc.md#cancelorder)
@@ -418,18 +425,18 @@ cancel multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - an list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | No | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
-| params.origClientOrderIdList | <code>Array&lt;string&gt;</code> | No | max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma |
-| params.recvWindow | <code>Array&lt;int&gt;</code> | No |  |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account to cancel orders for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#cancelorders)
 * [aster](/exchanges/aster.md#cancelorders)
 * [binance](/exchanges/binance.md#cancelorders)
 * [bingx](/exchanges/bingx.md#cancelorders)
@@ -869,19 +876,22 @@ create a market sell order by providing the symbol and cost
 create a trade order
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'limit' |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#createorder)
 * [alp](/exchanges/alp.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
@@ -955,6 +965,7 @@ create a trade order
 * [kucoinfutures](/exchanges/kucoinfutures.md#createorder)
 * [latoken](/exchanges/latoken.md#createorder)
 * [lbank](/exchanges/lbank.md#createorder)
+* [lighter](/exchanges/lighter.md#createorder)
 * [luno](/exchanges/luno.md#createorder)
 * [mercado](/exchanges/mercado.md#createorder)
 * [mexc](/exchanges/mexc.md#createorder)
@@ -1049,18 +1060,17 @@ create a trade order
 create a list of trade orders
 
 **Kind**: instance   
-**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.timeInForce | <code>string</code> | No | "GTC", "IOC", "FOK", or "PO" |
-| params.postOnly | <code>bool</code> | No | true or false |
-| params.triggerPrice | <code>float</code> | No | the price at which a trigger order is triggered at |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#createorders)
 * [ascendex](/exchanges/ascendex.md#createorders)
 * [aster](/exchanges/aster.md#createorders)
 * [backpack](/exchanges/backpack.md#createorders)
@@ -1393,6 +1403,7 @@ edit a trade order
 * [kraken](/exchanges/kraken.md#editorder)
 * [krakenfutures](/exchanges/krakenfutures.md#editorder)
 * [kucoin](/exchanges/kucoin.md#editorder)
+* [lighter](/exchanges/lighter.md#editorder)
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
@@ -1561,10 +1572,10 @@ fetch all the accounts by a type and marginModeassociated with a profile
 <a name="fetchAccounts" id="fetchaccounts"></a>
 
 ## fetchAccounts
-fetch all the accounts associated with a profile
+query for accounts owned by the walletAddress. An Account is needed for all trading methods.
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
+**Returns**: <code>Array</code> - a list of [account structures](https://github.com/ccxt/ccxt/wiki/Manual#accounts)
 
 
 | Param | Type | Required | Description |
@@ -1572,6 +1583,7 @@ fetch all the accounts associated with a profile
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchaccounts)
 * [arkham](/exchanges/arkham.md#fetchaccounts)
 * [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
@@ -1585,6 +1597,7 @@ fetch all the accounts associated with a profile
 * [hashkey](/exchanges/hashkey.md#fetchaccounts)
 * [htx](/exchanges/htx.md#fetchaccounts)
 * [kucoin](/exchanges/kucoin.md#fetchaccounts)
+* [lighter](/exchanges/lighter.md#fetchaccounts)
 * [luno](/exchanges/luno.md#fetchaccounts)
 * [mexc](/exchanges/mexc.md#fetchaccounts)
 * [ndax](/exchanges/ndax.md#fetchaccounts)
@@ -1621,17 +1634,19 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ## fetchBalance
-query for balance and get the amount of funds available for trading or funds locked in orders
+query for balance and get the amount of funds available for trading or funds locked in positions
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
+**Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>string</code> | No | account object ID, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchbalance)
 * [alp](/exchanges/alp.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
@@ -1705,6 +1720,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchbalance)
 * [latoken](/exchanges/latoken.md#fetchbalance)
 * [lbank](/exchanges/lbank.md#fetchbalance)
+* [ligher](/exchanges/ligher.md#fetchbalance)
 * [luno](/exchanges/luno.md#fetchbalance)
 * [mercado](/exchanges/mercado.md#fetchbalance)
 * [mexc](/exchanges/mexc.md#fetchbalance)
@@ -2029,6 +2045,7 @@ fetches information on multiple closed orders made by the user
 * [krakenfutures](/exchanges/krakenfutures.md#fetchclosedorders)
 * [kucoin](/exchanges/kucoin.md#fetchclosedorders)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchclosedorders)
+* [lighter](/exchanges/lighter.md#fetchclosedorders)
 * [luno](/exchanges/luno.md#fetchclosedorders)
 * [mexc](/exchanges/mexc.md#fetchclosedorders)
 * [modetrade](/exchanges/modetrade.md#fetchclosedorders)
@@ -2233,6 +2250,7 @@ fetches all available currencies on an exchange
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchcurrencies)
 * [apex](/exchanges/apex.md#fetchcurrencies)
 * [arkham](/exchanges/arkham.md#fetchcurrencies)
 * [ascendex](/exchanges/ascendex.md#fetchcurrencies)
@@ -2280,6 +2298,7 @@ fetches all available currencies on an exchange
 * [kucoin](/exchanges/kucoin.md#fetchcurrencies)
 * [latoken](/exchanges/latoken.md#fetchcurrencies)
 * [lbank](/exchanges/lbank.md#fetchcurrencies)
+* [lighter](/exchanges/lighter.md#fetchcurrencies)
 * [luno](/exchanges/luno.md#fetchcurrencies)
 * [mexc](/exchanges/mexc.md#fetchcurrencies)
 * [modetrade](/exchanges/modetrade.md#fetchcurrencies)
@@ -2667,6 +2686,7 @@ fetch all deposits made to an account
 * [kucoin](/exchanges/kucoin.md#fetchdeposits)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchdeposits)
 * [lbank](/exchanges/lbank.md#fetchdeposits)
+* [lighter](/exchanges/lighter.md#fetchdeposits)
 * [mexc](/exchanges/mexc.md#fetchdeposits)
 * [modetrade](/exchanges/modetrade.md#fetchdeposits)
 * [ndax](/exchanges/ndax.md#fetchdeposits)
@@ -3021,6 +3041,7 @@ fetch the funding rate for multiple markets
 * [hyperliquid](/exchanges/hyperliquid.md#fetchfundingrates)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchfundingrates)
 * [lbank](/exchanges/lbank.md#fetchfundingrates)
+* [lighter](/exchanges/lighter.md#fetchfundingrates)
 * [modetrade](/exchanges/modetrade.md#fetchfundingrates)
 * [okx](/exchanges/okx.md#fetchfundingrates)
 * [oxfun](/exchanges/oxfun.md#fetchfundingrates)
@@ -3550,7 +3571,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ## fetchMarkets
-retrieves data on all markets for alp
+retrieves data on all markets for woo
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -3561,6 +3582,7 @@ retrieves data on all markets for alp
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchmarkets)
 * [alp](/exchanges/alp.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
@@ -3631,6 +3653,7 @@ retrieves data on all markets for alp
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchmarkets)
 * [latoken](/exchanges/latoken.md#fetchmarkets)
 * [lbank](/exchanges/lbank.md#fetchmarkets)
+* [lighter](/exchanges/lighter.md#fetchmarkets)
 * [luno](/exchanges/luno.md#fetchmarkets)
 * [mercado](/exchanges/mercado.md#fetchmarkets)
 * [mexc](/exchanges/mexc.md#fetchmarkets)
@@ -3838,6 +3861,7 @@ fetch all trades made by the user
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchmytrades)
 * [latoken](/exchanges/latoken.md#fetchmytrades)
 * [lbank](/exchanges/lbank.md#fetchmytrades)
+* [lighter](/exchanges/lighter.md#fetchmytrades)
 * [luno](/exchanges/luno.md#fetchmytrades)
 * [mercado](/exchanges/mercado.md#fetchmytrades)
 * [mexc](/exchanges/mexc.md#fetchmytrades)
@@ -3903,10 +3927,11 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| limit | <code>int</code> | No | max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms))) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchohlcv)
 * [alp](/exchanges/alp.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
@@ -3966,6 +3991,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [kucoin](/exchanges/kucoin.md#fetchohlcv)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchohlcv)
 * [lbank](/exchanges/lbank.md#fetchohlcv)
+* [lighter](/exchanges/lighter.md#fetchohlcv)
 * [luno](/exchanges/luno.md#fetchohlcv)
 * [mercado](/exchanges/mercado.md#fetchohlcv)
 * [mexc](/exchanges/mexc.md#fetchohlcv)
@@ -4144,7 +4170,7 @@ fetch an open order by the id
 fetch all unfilled currently open orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
 
 
 | Param | Type | Required | Description |
@@ -4153,8 +4179,10 @@ fetch all unfilled currently open orders
 | since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchopenorders)
 * [alp](/exchanges/alp.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
@@ -4227,6 +4255,7 @@ fetch all unfilled currently open orders
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchopenorders)
 * [latoken](/exchanges/latoken.md#fetchopenorders)
 * [lbank](/exchanges/lbank.md#fetchopenorders)
+* [lighter](/exchanges/lighter.md#fetchopenorders)
 * [luno](/exchanges/luno.md#fetchopenorders)
 * [mercado](/exchanges/mercado.md#fetchopenorders)
 * [mexc](/exchanges/mexc.md#fetchopenorders)
@@ -4456,7 +4485,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/#/?id=order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -4466,6 +4495,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchorderbook)
 * [alp](/exchanges/alp.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
@@ -4537,6 +4567,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchorderbook)
 * [latoken](/exchanges/latoken.md#fetchorderbook)
 * [lbank](/exchanges/lbank.md#fetchorderbook)
+* [lighter](/exchanges/lighter.md#fetchorderbook)
 * [luno](/exchanges/luno.md#fetchorderbook)
 * [mercado](/exchanges/mercado.md#fetchorderbook)
 * [mexc](/exchanges/mexc.md#fetchorderbook)
@@ -4925,15 +4956,17 @@ fetch all the portfolios
 fetch data on an open position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchposition)
 * [binance](/exchanges/binance.md#fetchposition)
 * [bingx](/exchanges/bingx.md#fetchposition)
 * [bitget](/exchanges/bitget.md#fetchposition)
@@ -4955,6 +4988,7 @@ fetch data on an open position
 * [htx](/exchanges/htx.md#fetchposition)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchposition)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchposition)
+* [lighter](/exchanges/lighter.md#fetchposition)
 * [mexc](/exchanges/mexc.md#fetchposition)
 * [modetrade](/exchanges/modetrade.md#fetchposition)
 * [okx](/exchanges/okx.md#fetchposition)
@@ -5065,15 +5099,17 @@ fetch data on an open position
 fetch all open positions
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/#/?id=position-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchpositions)
 * [apex](/exchanges/apex.md#fetchpositions)
 * [arkkm](/exchanges/arkkm.md#fetchpositions)
 * [ascendex](/exchanges/ascendex.md#fetchpositions)
@@ -5111,6 +5147,7 @@ fetch all open positions
 * [kraken](/exchanges/kraken.md#fetchpositions)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchpositions)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchpositions)
+* [lighter](/exchanges/lighter.md#fetchpositions)
 * [mexc](/exchanges/mexc.md#fetchpositions)
 * [modetrade](/exchanges/modetrade.md#fetchpositions)
 * [okx](/exchanges/okx.md#fetchpositions)
@@ -5326,6 +5363,7 @@ the latest known information on the availability of the exchange API
 * [kraken](/exchanges/kraken.md#fetchstatus)
 * [kucoin](/exchanges/kucoin.md#fetchstatus)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchstatus)
+* [lighter](/exchanges/lighter.md#fetchstatus)
 * [mexc](/exchanges/mexc.md#fetchstatus)
 * [modetrade](/exchanges/modetrade.md#fetchstatus)
 * [okx](/exchanges/okx.md#fetchstatus)
@@ -5362,7 +5400,7 @@ retrieves data on all swap markets for hyperliquid
 fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
 
 
 | Param | Type | Required | Description |
@@ -5371,6 +5409,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchticker)
 * [alp](/exchanges/alp.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
@@ -5437,6 +5476,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchticker)
 * [latoken](/exchanges/latoken.md#fetchticker)
 * [lbank](/exchanges/lbank.md#fetchticker)
+* [lighter](/exchanges/lighter.md#fetchticker)
 * [luno](/exchanges/luno.md#fetchticker)
 * [mercado](/exchanges/mercado.md#fetchticker)
 * [mexc](/exchanges/mexc.md#fetchticker)
@@ -5562,6 +5602,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchtickers)
 * [latoken](/exchanges/latoken.md#fetchtickers)
 * [lbank](/exchanges/lbank.md#fetchtickers)
+* [lighter](/exchanges/lighter.md#fetchtickers)
 * [luno](/exchanges/luno.md#fetchtickers)
 * [mexc](/exchanges/mexc.md#fetchtickers)
 * [novadax](/exchanges/novadax.md#fetchtickers)
@@ -5639,6 +5680,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchtime)
 * [latoken](/exchanges/latoken.md#fetchtime)
 * [lbank](/exchanges/lbank.md#fetchtime)
+* [lighter](/exchanges/lighter.md#fetchtime)
 * [mexc](/exchanges/mexc.md#fetchtime)
 * [modetrade](/exchanges/modetrade.md#fetchtime)
 * [novadax](/exchanges/novadax.md#fetchtime)
@@ -5663,7 +5705,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 get the list of most recent trades for a particular symbol
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
+**Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
 
 
 | Param | Type | Required | Description |
@@ -5672,8 +5714,10 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchtrades)
 * [alp](/exchanges/alp.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
@@ -5812,6 +5856,7 @@ fetch the trading fees for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#fetchtradingfee)
 * [aster](/exchanges/aster.md#fetchtradingfee)
 * [binance](/exchanges/binance.md#fetchtradingfee)
 * [bingx](/exchanges/bingx.md#fetchtradingfee)
@@ -6068,6 +6113,7 @@ fetch a history of internal transfers made on an account
 * [dydx](/exchanges/dydx.md#fetchtransfers)
 * [kucoin](/exchanges/kucoin.md#fetchtransfers)
 * [latoken](/exchanges/latoken.md#fetchtransfers)
+* [lighter](/exchanges/lighter.md#fetchtransfers)
 * [mexc](/exchanges/mexc.md#fetchtransfers)
 * [okx](/exchanges/okx.md#fetchtransfers)
 * [oxfun](/exchanges/oxfun.md#fetchtransfers)
@@ -6208,6 +6254,7 @@ fetch all withdrawals made from an account
 * [kucoin](/exchanges/kucoin.md#fetchwithdrawals)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchwithdrawals)
 * [lbank](/exchanges/lbank.md#fetchwithdrawals)
+* [lighter](/exchanges/lighter.md#fetchwithdrawals)
 * [mexc](/exchanges/mexc.md#fetchwithdrawals)
 * [modetrade](/exchanges/modetrade.md#fetchwithdrawals)
 * [ndax](/exchanges/ndax.md#fetchwithdrawals)
@@ -6352,16 +6399,18 @@ redeem gift code
 remove margin from a position
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | the amount of margin to remove |
+| amount | <code>float</code> | Yes | amount of margin to remove |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#reducemargin)
 * [ascendex](/exchanges/ascendex.md#reducemargin)
 * [aster](/exchanges/aster.md#reducemargin)
 * [binance](/exchanges/binance.md#reducemargin)
@@ -6374,6 +6423,7 @@ remove margin from a position
 * [gate](/exchanges/gate.md#reducemargin)
 * [hitbtc](/exchanges/hitbtc.md#reducemargin)
 * [hyperliquid](/exchanges/hyperliquid.md#reducemargin)
+* [lighter](/exchanges/lighter.md#reducemargin)
 * [mexc](/exchanges/mexc.md#reducemargin)
 * [okx](/exchanges/okx.md#reducemargin)
 * [poloniex](/exchanges/poloniex.md#reducemargin)
@@ -6514,8 +6564,10 @@ set the level of leverage for a market
 | leverage | <code>float</code> | Yes | the rate of leverage |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#setleverage)
 * [apex](/exchanges/apex.md#setleverage)
 * [arkham](/exchanges/arkham.md#setleverage)
 * [ascendex](/exchanges/ascendex.md#setleverage)
@@ -6543,6 +6595,7 @@ set the level of leverage for a market
 * [krakenfutures](/exchanges/krakenfutures.md#setleverage)
 * [kucoin](/exchanges/kucoin.md#setleverage)
 * [kucoinfutures](/exchanges/kucoinfutures.md#setleverage)
+* [lighter](/exchanges/lighter.md#setleverage)
 * [mexc](/exchanges/mexc.md#setleverage)
 * [modetrade](/exchanges/modetrade.md#setleverage)
 * [okx](/exchanges/okx.md#setleverage)
@@ -6578,6 +6631,7 @@ Either adds or reduces margin in an isolated position in order to set the margin
 * [bitfinex](/exchanges/bitfinex.md#setmargin)
 * [bitrue](/exchanges/bitrue.md#setmargin)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#setmargin)
+* [lighter](/exchanges/lighter.md#setmargin)
 * [phemex](/exchanges/phemex.md#setmargin)
 
 ---
@@ -6612,6 +6666,7 @@ set margin mode to 'cross' or 'isolated'
 * [digifinex](/exchanges/digifinex.md#setmarginmode)
 * [hyperliquid](/exchanges/hyperliquid.md#setmarginmode)
 * [kucoinfutures](/exchanges/kucoinfutures.md#setmarginmode)
+* [lighter](/exchanges/lighter.md#setmarginmode)
 * [mexc](/exchanges/mexc.md#setmarginmode)
 * [okx](/exchanges/okx.md#setmarginmode)
 * [paradex](/exchanges/paradex.md#setmarginmode)
@@ -6714,13 +6769,31 @@ sign in, must be called prior to using other authenticated methods
 
 ---
 
+<a name="signTxEd25519" id="signtxed25519"></a>
+
+## signTxEd25519
+Helper to sign some transaction bytes and return a generic transaction execution request.
+
+**Kind**: instance   
+**Returns**: <code>object</code> - the input transaction bytes and the signed digest
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| tx | <code>object</code> | No | transaction bytes and the signing digest for them |
+
+##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#signtxed25519)
+
+---
+
 <a name="transfer" id="transfer"></a>
 
 ## transfer
 transfer currency internally between wallets on the same account
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
+**Returns**: <code>object</code> - a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
 
 
 | Param | Type | Required | Description |
@@ -6730,9 +6803,9 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.transferId | <code>string</code> | No | UUID, which is unique across the platform |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#transfer)
 * [apex](/exchanges/apex.md#transfer)
 * [ascendex](/exchanges/ascendex.md#transfer)
 * [aster](/exchanges/aster.md#transfer)
@@ -6766,6 +6839,7 @@ transfer currency internally between wallets on the same account
 * [kucoin](/exchanges/kucoin.md#transfer)
 * [kucoinfutures](/exchanges/kucoinfutures.md#transfer)
 * [latoken](/exchanges/latoken.md#transfer)
+* [lighter](/exchanges/lighter.md#transfer)
 * [mexc](/exchanges/mexc.md#transfer)
 * [novadax](/exchanges/novadax.md#transfer)
 * [okx](/exchanges/okx.md#transfer)
@@ -6861,6 +6935,7 @@ unWatches a mark price for a specific market
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#unwatchmarkprice)
 * [binance](/exchanges/binance.md#unwatchmarkprice)
+* [lighter](/exchanges/lighter.md#unwatchmarkprice)
 
 ---
 
@@ -6882,6 +6957,7 @@ watches the mark price for all markets
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#unwatchmarkprices)
 * [binance](/exchanges/binance.md#unwatchmarkprices)
+* [lighter](/exchanges/lighter.md#unwatchmarkprices)
 
 ---
 
@@ -7006,6 +7082,7 @@ unsubscribe from the orderbook channel
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchorderbook)
 * [kucoin](/exchanges/kucoin.md#unwatchorderbook)
 * [kucoinfutures](/exchanges/kucoinfutures.md#unwatchorderbook)
+* [lighter](/exchanges/lighter.md#unwatchorderbook)
 * [mexc](/exchanges/mexc.md#unwatchorderbook)
 * [okx](/exchanges/okx.md#unwatchorderbook)
 * [woo](/exchanges/woo.md#unwatchorderbook)
@@ -7115,6 +7192,7 @@ unWatches a price ticker
 * [defx](/exchanges/defx.md#unwatchticker)
 * [htx](/exchanges/htx.md#unwatchticker)
 * [kucoin](/exchanges/kucoin.md#unwatchticker)
+* [lighter](/exchanges/lighter.md#unwatchticker)
 * [mexc](/exchanges/mexc.md#unwatchticker)
 * [okx](/exchanges/okx.md#unwatchticker)
 * [woo](/exchanges/woo.md#unwatchticker)
@@ -7145,6 +7223,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 * [cryptocom](/exchanges/cryptocom.md#unwatchtickers)
 * [defx](/exchanges/defx.md#unwatchtickers)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchtickers)
+* [lighter](/exchanges/lighter.md#unwatchtickers)
 * [mexc](/exchanges/mexc.md#unwatchtickers)
 * [okx](/exchanges/okx.md#unwatchtickers)
 * [woo](/exchanges/woo.md#unwatchtickers)
@@ -7185,6 +7264,7 @@ unsubscribe from the trades channel
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchtrades)
 * [kucoin](/exchanges/kucoin.md#unwatchtrades)
 * [kucoinfutures](/exchanges/kucoinfutures.md#unwatchtrades)
+* [lighter](/exchanges/lighter.md#unwatchtrades)
 * [mexc](/exchanges/mexc.md#unwatchtrades)
 * [okx](/exchanges/okx.md#unwatchtrades)
 * [woo](/exchanges/woo.md#unwatchtrades)
@@ -7420,6 +7500,7 @@ watch the public liquidations of a trading pair
 * [binance](/exchanges/binance.md#watchliquidations)
 * [bitmex](/exchanges/bitmex.md#watchliquidations)
 * [bybit](/exchanges/bybit.md#watchliquidations)
+* [lighter](/exchanges/lighter.md#watchliquidations)
 
 ---
 
@@ -7464,6 +7545,7 @@ watches a mark price for a specific market
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#watchmarkprice)
 * [binance](/exchanges/binance.md#watchmarkprice)
+* [lighter](/exchanges/lighter.md#watchmarkprice)
 * [okx](/exchanges/okx.md#watchmarkprice)
 
 ---
@@ -7486,6 +7568,7 @@ watches the mark price for all markets
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#watchmarkprices)
 * [binance](/exchanges/binance.md#watchmarkprices)
+* [lighter](/exchanges/lighter.md#watchmarkprices)
 * [okx](/exchanges/okx.md#watchmarkprices)
 
 ---
@@ -7772,6 +7855,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [kucoin](/exchanges/kucoin.md#watchorderbook)
 * [kucoinfutures](/exchanges/kucoinfutures.md#watchorderbook)
 * [lbank](/exchanges/lbank.md#watchorderbook)
+* [lighter](/exchanges/lighter.md#watchorderbook)
 * [luno](/exchanges/luno.md#watchorderbook)
 * [mexc](/exchanges/mexc.md#watchorderbook)
 * [modetrade](/exchanges/modetrade.md#watchorderbook)
@@ -8040,6 +8124,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [kucoin](/exchanges/kucoin.md#watchticker)
 * [kucoinfutures](/exchanges/kucoinfutures.md#watchticker)
 * [lbank](/exchanges/lbank.md#watchticker)
+* [lighter](/exchanges/lighter.md#watchticker)
 * [mexc](/exchanges/mexc.md#watchticker)
 * [modetrade](/exchanges/modetrade.md#watchticker)
 * [ndax](/exchanges/ndax.md#watchticker)
@@ -8094,6 +8179,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [hyperliquid](/exchanges/hyperliquid.md#watchtickers)
 * [kucoin](/exchanges/kucoin.md#watchtickers)
 * [kucoinfutures](/exchanges/kucoinfutures.md#watchtickers)
+* [lighter](/exchanges/lighter.md#watchtickers)
 * [mexc](/exchanges/mexc.md#watchtickers)
 * [modetrade](/exchanges/modetrade.md#watchtickers)
 * [okx](/exchanges/okx.md#watchtickers)
@@ -8169,6 +8255,7 @@ watches information on multiple trades made in a market
 * [kucoin](/exchanges/kucoin.md#watchtrades)
 * [kucoinfutures](/exchanges/kucoinfutures.md#watchtrades)
 * [lbank](/exchanges/lbank.md#watchtrades)
+* [lighter](/exchanges/lighter.md#watchtrades)
 * [luno](/exchanges/luno.md#watchtrades)
 * [mexc](/exchanges/mexc.md#watchtrades)
 * [modetrade](/exchanges/modetrade.md#watchtrades)
@@ -8234,7 +8321,7 @@ get the list of most recent trades for a list of symbols
 make a withdrawal
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
+**Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/#/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
@@ -8242,10 +8329,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes | a memo for the transaction |
+| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
+* [aftermath](/exchanges/aftermath.md#withdraw)
 * [alpaca](/exchanges/alpaca.md#withdraw)
 * [arkkm](/exchanges/arkkm.md#withdraw)
 * [aster](/exchanges/aster.md#withdraw)
@@ -8297,6 +8386,7 @@ make a withdrawal
 * [kraken](/exchanges/kraken.md#withdraw)
 * [kucoin](/exchanges/kucoin.md#withdraw)
 * [lbank](/exchanges/lbank.md#withdraw)
+* [lighter](/exchanges/lighter.md#withdraw)
 * [mercado](/exchanges/mercado.md#withdraw)
 * [mexc](/exchanges/mexc.md#withdraw)
 * [modetrade](/exchanges/modetrade.md#withdraw)

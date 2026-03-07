@@ -4684,6 +4684,18 @@ func WithUnWatchBidsAsksParams(params map[string]interface{}) UnWatchBidsAsksOpt
 	}
 }
 
+type CreateAccountOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type CreateAccountOptions func(opts *CreateAccountOptionsStruct)
+
+func WithCreateAccountParams(params map[string]interface{}) CreateAccountOptions {
+	return func(opts *CreateAccountOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchOpenOrderOptionsStruct struct {
 	Symbol *string
 	Params *map[string]interface{}
@@ -6340,6 +6352,18 @@ func WithFetchPublicDepositWithdrawFeesCodes(codes interface{}) FetchPublicDepos
 
 func WithFetchPublicDepositWithdrawFeesParams(params map[string]interface{}) FetchPublicDepositWithdrawFeesOptions {
 	return func(opts *FetchPublicDepositWithdrawFeesOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
+type FetchNonceOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchNonceOptions func(opts *FetchNonceOptionsStruct)
+
+func WithFetchNonceParams(params map[string]interface{}) FetchNonceOptions {
+	return func(opts *FetchNonceOptionsStruct) {
 		opts.Params = &params
 	}
 }

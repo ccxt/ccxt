@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.40'
+__version__ = '4.5.42'
 
 # -----------------------------------------------------------------------------
 
@@ -100,6 +100,10 @@ try:
 except ImportError:
     zklink_sdk = None
 
+# lighter
+import os
+from ccxt.static_dependencies.lighter_client.signer import load_lighter_library, decode_tx_info, decode_auth, CreateOrderTxReq
+
 # -----------------------------------------------------------------------------
 
 __all__ = [
@@ -121,7 +125,6 @@ import gzip
 import hashlib
 import hmac
 import io
-import os
 import tempfile
 
 # load orjson if available, otherwise default to json
@@ -629,6 +632,24 @@ class Exchange(object):
         # end of proxies & headers
 
         request_body = body
+        content_type_key = None
+        files = None
+        for k, v in request_headers.items():
+            lk = k.lower()
+            if lk == 'content-type':
+                if v == 'multipart/form-data':
+                    content_type_key = k
+                    files = ()
+                    for k, v in body.items():
+                        files += ((k, (None, v)), )
+                    body = None
+                    break
+                else:
+                    break
+        if files is not None:
+            # requests would handle it for multipart/form-data
+            del request_headers[content_type_key]
+            print(request_headers)
         if body:
             body = body.encode()
 
@@ -646,7 +667,8 @@ class Exchange(object):
                 headers=request_headers,
                 timeout=(self.timeout / 1000),
                 proxies=proxies,
-                verify=self.verify and self.validateServerSsl
+                verify=self.verify and self.validateServerSsl,
+                files=files
             )
             # does not try to detect encoding
             response.encoding = 'utf-8'
@@ -1010,11 +1032,11 @@ class Exchange(object):
 
     @staticmethod
     def uuid22(length=22):
-        return format(random.getrandbits(length * 4), 'x')
+        return '{:0{}x}'.format(random.getrandbits(length * 4), length)
 
     @staticmethod
     def uuid16(length=16):
-        return format(random.getrandbits(length * 4), 'x')
+        return '{:0{}x}'.format(random.getrandbits(length * 4), length)
 
     @staticmethod
     def uuid():
@@ -2224,6 +2246,190 @@ class Exchange(object):
 
     def unlock_id(self):
         return None
+
+    def is_lighter_library_path_required(self):
+        return True
+
+    def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
+
+    def load_lighter_library_helper(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
+        if path is None:
+            raise NotSupported(self.id + ' load_lighter_library() requires a path to the lighter library. You can find it here https://github.com/elliottech/lighter-python/tree/main/lighter/signers. Please download the appropriate library for your system and provide the path to it.\nExample: exchange.options["libraryPath"] = "path/to/lighter-signer-linux-arm64.so"')
+        if not os.path.isfile(path):
+            raise NotSupported(self.id + ' the library path does not exist')
+
+        lighterSigner = load_lighter_library(path)
+
+        url = self.implode_hostname(self.urls['api']['public'])
+        res = lighterSigner.CreateClient(
+            url.encode("utf-8"),
+            privateKey.encode("utf-8"),
+            chainId,
+            apiKeyIndex,
+            accountIndex,
+        )
+        if res is not None and str(res).find('error'):
+            raise Exception('load_lighter_library(): Failed to create lighter signer: ' + str(res))
+        return lighterSigner
+
+    def lighter_sign_create_grouped_orders(self, signer, request):
+        orders = request['orders']
+        arr_type = CreateOrderTxReq * len(orders)
+        orders_arr = []
+        for order in orders:
+            orders_arr.append(CreateOrderTxReq(
+                MarketIndex=int(order['market_index']),
+                ClientOrderIndex=order['client_order_index'],
+                BaseAmount=order['base_amount'],
+                Price=order['avg_execution_price'],
+                IsAsk=order['is_ask'],
+                Type=order['order_type'],
+                TimeInForce=order['time_in_force'],
+                ReduceOnly=order['reduce_only'],
+                TriggerPrice=order['trigger_price'],
+                OrderExpiry=order['order_expiry'],
+            ))
+        orders_carr = arr_type(*orders_arr)
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
+            request['grouping_type'], orders_carr, len(orders), request['nonce'], request['api_key_index'], request['account_index']
+        ))
+        return [tx_type, tx_info]
+
+    def lighter_sign_create_order(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateOrder(
+            int(request['market_index']),
+            request['client_order_index'],
+            request['base_amount'],
+            request['avg_execution_price'],
+            request['is_ask'],
+            request['order_type'],
+            request['time_in_force'],
+            request['reduce_only'],
+            request['trigger_price'],
+            request['order_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_create_order() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_cancel_order(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelOrder(
+            request['market_index'],
+            request['order_index'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_cancel_order() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_withdraw(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignWithdraw(
+            request['asset_index'],
+            request['route_type'],
+            request['amount'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_withdraw() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_create_sub_account(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateSubAccount(
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_create_sub_account() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_cancel_all_orders(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCancelAllOrders(
+            request['time_in_force'],
+            request['time'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_cancel_all_orders() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_modify_order(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignModifyOrder(
+            request['market_index'],
+            request['index'],
+            request['base_amount'],
+            request['price'],
+            request['trigger_price'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_modify_order() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_transfer(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignTransfer(
+            request['to_account_index'],
+            request['asset_index'],
+            request['from_route_type'],
+            request['to_route_type'],
+            request['amount'],
+            request['usdc_fee'],
+            request['memo'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_transfer() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_sign_update_leverage(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateLeverage(
+            request['market_index'],
+            request['initial_margin_fraction'],
+            request['margin_mode'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_update_leverage() failed with error: ' + str(error))
+        return [tx_type, tx_info]
+
+    def lighter_create_auth_token(self, signer, request):
+        auth, error = decode_auth(signer.CreateAuthToken(
+            request['deadline'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_create_auth_token() failed with error: ' + str(error))
+        return auth
+
+    def lighter_sign_update_margin(self, signer, request):
+        tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignUpdateMargin(
+            request['market_index'],
+            request['usdc_amount'],
+            request['direction'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
+        return [tx_type, tx_info]
 
     # ########################################################################
     # ########################################################################

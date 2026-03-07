@@ -897,6 +897,12 @@ public partial class gate
     /// bool : set to true for creating an order in the unified account
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>

@@ -11,6 +11,7 @@
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)
 - API Spec by Exchange
+	- [fetchCurrencies](exchanges/fetchCurrencies.md)
 	- [alp](exchanges/alp.md)
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
@@ -84,6 +85,7 @@
 	- [kucoinfutures](exchanges/kucoinfutures.md)
 	- [latoken](exchanges/latoken.md)
 	- [lbank](exchanges/lbank.md)
+	- [lighter](exchanges/lighter.md)
 	- [luno](exchanges/luno.md)
 	- [mercado](exchanges/mercado.md)
 	- [mexc](exchanges/mexc.md)

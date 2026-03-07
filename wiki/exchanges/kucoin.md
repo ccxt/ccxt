@@ -669,6 +669,7 @@ cancels an open order
 | params.trigger | <code>bool</code> | No | True if cancelling a stop order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.sync | <code>bool</code> | No | false, // true to use the hf sync call |
+| params.marginMode | <code>string</code> | No | 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned |
 
 
 ```javascript
@@ -697,7 +698,7 @@ cancel all open orders
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | *invalid for isolated margin* true if cancelling all stop orders |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated' |
-| params.orderIds | <code>string</code> | No | *stop orders only* Comma seperated order IDs |
+| params.orderIds | <code>string</code> | No | *stop orders only* Comma separated order IDs |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 
 
@@ -734,7 +735,7 @@ fetch a list of orders
 | params.type | <code>string</code> | No | limit, market, limit_stop or market_stop |
 | params.tradeType | <code>string</code> | No | TRADE for spot trading, MARGIN_TRADE for Margin Trading |
 | params.currentPage | <code>int</code> | No | *trigger orders only* current page |
-| params.orderIds | <code>string</code> | No | *trigger orders only* comma seperated order ID list |
+| params.orderIds | <code>string</code> | No | *trigger orders only* comma separated order ID list |
 | params.trigger | <code>bool</code> | No | True if fetching a trigger order |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 
@@ -808,7 +809,7 @@ fetch all unfilled currently open orders
 | params.type | <code>string</code> | No | limit, market, limit_stop or market_stop |
 | params.tradeType | <code>string</code> | No | TRADE for spot trading, MARGIN_TRADE for Margin Trading |
 | params.currentPage | <code>int</code> | No | *trigger orders only* current page |
-| params.orderIds | <code>string</code> | No | *trigger orders only* comma seperated order ID list |
+| params.orderIds | <code>string</code> | No | *trigger orders only* comma separated order ID list |
 | params.hf | <code>bool</code> | No | false, // true for hf order |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 

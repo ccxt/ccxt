@@ -40,12 +40,13 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.40';
+const version = '4.5.42';
 
 (Exchange as any).ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
+import aftermath from  './src/aftermath.js'
 import alp from  './src/alp.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
@@ -127,6 +128,7 @@ import kucoin from  './src/kucoin.js'
 import kucoinfutures from  './src/kucoinfutures.js'
 import latoken from  './src/latoken.js'
 import lbank from  './src/lbank.js'
+import lighter from  './src/lighter.js'
 import luno from  './src/luno.js'
 import mercado from  './src/mercado.js'
 import mexc from  './src/mexc.js'
@@ -159,6 +161,7 @@ import zonda from  './src/zonda.js'
 
 
 // pro exchanges
+import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
 import arkhamPro from  './src/pro/arkham.js'
@@ -217,6 +220,7 @@ import krakenfuturesPro from  './src/pro/krakenfutures.js'
 import kucoinPro from  './src/pro/kucoin.js'
 import kucoinfuturesPro from  './src/pro/kucoinfutures.js'
 import lbankPro from  './src/pro/lbank.js'
+import lighterPro from  './src/pro/lighter.js'
 import lunoPro from  './src/pro/luno.js'
 import mexcPro from  './src/pro/mexc.js'
 import modetradePro from  './src/pro/modetrade.js'
@@ -238,6 +242,7 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
+    'aftermath':              aftermath,
     'alp':                    alp,
     'alpaca':                 alpaca,
     'apex':                   apex,
@@ -319,6 +324,7 @@ const exchanges = {
     'kucoinfutures':          kucoinfutures,
     'latoken':                latoken,
     'lbank':                  lbank,
+    'lighter':                lighter,
     'luno':                   luno,
     'mercado':                mercado,
     'mexc':                   mexc,
@@ -351,6 +357,7 @@ const exchanges = {
 }
 
 const pro = {
+    'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
     'arkham':                 arkhamPro,
@@ -409,6 +416,7 @@ const pro = {
     'kucoin':                 kucoinPro,
     'kucoinfutures':          kucoinfuturesPro,
     'lbank':                  lbankPro,
+    'lighter':                lighterPro,
     'luno':                   lunoPro,
     'mexc':                   mexcPro,
     'modetrade':              modetradePro,
@@ -573,6 +581,7 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
+    aftermath,
     alp,
     alpaca,
     apex,
@@ -654,6 +663,7 @@ export {
     kucoinfutures,
     latoken,
     lbank,
+    lighter,
     luno,
     mercado,
     mexc,

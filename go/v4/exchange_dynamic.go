@@ -9,6 +9,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		ExchangeItf := NewExchange()
 		ExchangeItf.Init(exchangeArgs)
 		return ExchangeItf, true
+	case "aftermath":
+		aftermathItf := NewAftermathCore()
+		aftermathItf.Init(exchangeArgs)
+		return aftermathItf, true
 	case "alp":
 		alpItf := NewAlpCore()
 		alpItf.Init(exchangeArgs)
@@ -333,6 +337,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interf
 		lbankItf := NewLbankCore()
 		lbankItf.Init(exchangeArgs)
 		return lbankItf, true
+	case "lighter":
+		lighterItf := NewLighterCore()
+		lighterItf.Init(exchangeArgs)
+		return lighterItf, true
 	case "luno":
 		lunoItf := NewLunoCore()
 		lunoItf.Init(exchangeArgs)

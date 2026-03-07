@@ -294,7 +294,7 @@ func  (this *ParadexCore) HandleOrderBook(client interface{}, message interface{
     }
     var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
     var snapshot interface{} = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
-    ccxt.AddElementToObject(snapshot, "nonce", this.SafeNumber(data, "seq_no"))
+    ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seq_no"))
     orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
     var messageHash interface{} = this.SafeString(params, "channel")
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
@@ -370,7 +370,7 @@ func  (this *ParadexCore) WatchTickers(optionalArgs ...interface{}) <- chan inte
                 },
             }
             var messageHashes interface{} = []interface{}{}
-            if ccxt.IsTrue(ccxt.IsArray(symbols)) {
+            if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) && ccxt.IsTrue(ccxt.IsArray(symbols))) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                     var messageHash interface{} = ccxt.Add(ccxt.Add(channel, "."), ccxt.GetValue(symbols, i))
                     ccxt.AppendToArray(&messageHashes, messageHash)
@@ -379,11 +379,11 @@ func  (this *ParadexCore) WatchTickers(optionalArgs ...interface{}) <- chan inte
                 ccxt.AppendToArray(&messageHashes, channel)
             }
         
-            newTickers:= (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
-            ccxt.PanicOnError(newTickers)
+            newTicker:= (<-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes))
+            ccxt.PanicOnError(newTicker)
             if ccxt.IsTrue(this.NewUpdates) {
                 var result interface{} = map[string]interface{} {}
-                ccxt.AddElementToObject(result, ccxt.GetValue(newTickers, "symbol"), newTickers)
+                ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
         
                 ch <- result
                 return nil

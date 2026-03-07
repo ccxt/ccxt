@@ -116,7 +116,7 @@ export default class htx extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -4297,7 +4297,7 @@ export default class htx extends Exchange {
             // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
             // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
             'trade_type': 0,
-            'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
+            'status': '0', // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
         let response = undefined;
         const trigger = this.safeBool2(params, 'stop', 'trigger');

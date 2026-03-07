@@ -1,5 +1,6 @@
 /*  ------------------------------------------------------------------------ */
 
+import path from 'node:path';
 import { isNode } from './platform.js';
 
 /*  ------------------------------------------------------------------------ */
@@ -65,12 +66,11 @@ export function getTempDir(): string | undefined {
  * @param path File path to check
  */
 function ensureWhitelistedFile(filePath: string) {
-    const tempDir = getTempDir();
-    if (!tempDir) {
-        throw new Error('invalid file path: ' + filePath);
+    if (pathSyncModule === null) {
+        throw new Error('path module is not available');
     }
     const sanitizedFilePath = pathSyncModule.resolve(filePath);
-    if ((sanitizedFilePath.startsWith(tempDir) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
+    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
         return;
     }
     throw new Error('invalid file path: ' + filePath);
@@ -84,7 +84,7 @@ function ensureWhitelistedFile(filePath: string) {
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined {
+export function readFile (path: string, encoding: BufferEncoding = 'utf8'): string | undefined | Buffer  {
     if (!isNode || fsSyncModule === null) {
         // Sync module not initialized yet
         return undefined;
@@ -96,6 +96,8 @@ export function readFile (path: string, encoding: BufferEncoding = 'utf8'): stri
         return undefined;
     }
 }
+
+
 
 /*  ------------------------------------------------------------------------ */
 

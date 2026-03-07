@@ -2828,7 +2828,11 @@ class kucoin extends Exchange {
             } elseif ($isTriggerOrder) {
                 $response = Async\await($this->privatePostStopOrder ($orderRequest));
             } elseif ($isMarginOrder) {
-                $response = Async\await($this->privatePostMarginOrder ($orderRequest));
+                if ($hf) {
+                    $response = Async\await($this->privatePostHfMarginOrder ($orderRequest));
+                } else {
+                    $response = Async\await($this->privatePostMarginOrder ($orderRequest));
+                }
             } elseif ($useSync) {
                 $response = Async\await($this->privatePostHfOrdersSync ($orderRequest));
             } elseif ($hf) {
@@ -3139,6 +3143,7 @@ class kucoin extends Exchange {
              * @param {bool} [$params->trigger] True if cancelling a stop order
              * @param {bool} [$params->hf] false, // true for $hf order
              * @param {bool} [$params->sync] false, // true to use the $hf sync call
+             * @param {string} [$params->marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
              * @return Response from the exchange
              */
             Async\await($this->load_markets());
@@ -3149,7 +3154,11 @@ class kucoin extends Exchange {
             list($hf, $params) = $this->handle_hf_and_params($params);
             $useSync = false;
             list($useSync, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'sync', false);
-            if ($hf || $useSync) {
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+            $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
+            $isMarginOrder = $tradeType === 'MARGIN_TRADE' || $marginMode !== null;
+            if ($hf || $useSync || $isMarginOrder) {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter for $hf orders');
                 }
@@ -3157,7 +3166,7 @@ class kucoin extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             $response = null;
-            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'trigger' ));
+            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType' ));
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
                 if ($trigger) {
@@ -3171,6 +3180,8 @@ class kucoin extends Exchange {
                     //        }
                     //    }
                     //
+                } elseif ($isMarginOrder) {
+                    $response = Async\await($this->privateDeleteHfMarginOrdersClientOrderClientOid ($this->extend($request, $params)));
                 } elseif ($useSync) {
                     $response = Async\await($this->privateDeleteHfOrdersSyncClientOrderClientOid ($this->extend($request, $params)));
                 } elseif ($hf) {
@@ -3208,6 +3219,8 @@ class kucoin extends Exchange {
                     //        $data => array( cancelledOrderIds => array( 'vs8lgpiuaco91qk8003vebu9' ) )
                     //    }
                     //
+                } elseif ($isMarginOrder) {
+                    $response = Async\await($this->privateDeleteHfMarginOrdersOrderId ($this->extend($request, $params)));
                 } elseif ($useSync) {
                     $response = Async\await($this->privateDeleteHfOrdersSyncOrderId ($this->extend($request, $params)));
                 } elseif ($hf) {
@@ -3255,7 +3268,7 @@ class kucoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] *invalid for isolated margin* true if cancelling all stop orders
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
-             * @param {string} [$params->orderIds] *stop orders only* Comma seperated order IDs
+             * @param {string} [$params->orderIds] *stop orders only* Comma separated order IDs
              * @param {bool} [$params->hf] false, // true for $hf order
              * @return Response from the exchange
              */
@@ -3311,7 +3324,7 @@ class kucoin extends Exchange {
              * @param {string} [$params->type] $limit, $market, limit_stop or market_stop
              * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
              * @param {int} [$params->currentPage] *$trigger $orders only* current page
-             * @param {string} [$params->orderIds] *$trigger $orders only* comma seperated order ID list
+             * @param {string} [$params->orderIds] *$trigger $orders only* comma separated order ID list
              * @param {bool} [$params->trigger] True if fetching a $trigger order
              * @param {bool} [$params->hf] false, // true for $hf order
              * @return An ~@link https://docs.ccxt.com/?id=order-structure array of order structures~
@@ -3468,7 +3481,7 @@ class kucoin extends Exchange {
              * @param {string} [$params->type] $limit, market, limit_stop or market_stop
              * @param {string} [$params->tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
              * @param {int} [$params->currentPage] *trigger orders only* current page
-             * @param {string} [$params->orderIds] *trigger orders only* comma seperated order ID list
+             * @param {string} [$params->orderIds] *trigger orders only* comma separated order ID list
              * @param {bool} [$params->hf] false, // true for hf order
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
