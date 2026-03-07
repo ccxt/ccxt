@@ -16,6 +16,9 @@ type IExchange interface {
 func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
+    case "aftermath":
+        itf := NewAftermath(options)
+        return itf
     case "alpaca":
         itf := NewAlpaca(options)
         return itf

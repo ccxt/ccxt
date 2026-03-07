@@ -40,12 +40,13 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.40';
+const version = '4.5.42';
 
 (Exchange as any).ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
+import aftermath from  './src/aftermath.js'
 import alp from  './src/alp.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
@@ -160,6 +161,7 @@ import zonda from  './src/zonda.js'
 
 
 // pro exchanges
+import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
 import arkhamPro from  './src/pro/arkham.js'
@@ -240,6 +242,7 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
+    'aftermath':              aftermath,
     'alp':                    alp,
     'alpaca':                 alpaca,
     'apex':                   apex,
@@ -354,6 +357,7 @@ const exchanges = {
 }
 
 const pro = {
+    'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
     'arkham':                 arkhamPro,
@@ -577,6 +581,7 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
+    aftermath,
     alp,
     alpaca,
     apex,

@@ -9,3 +9,4 @@ php/pro/*.php linguist-generated=true
 *.wasm binary
 *.o   binary
 *.dll binary
+*.dylib binary

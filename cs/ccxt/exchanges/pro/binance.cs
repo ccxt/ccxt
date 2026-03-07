@@ -150,7 +150,7 @@ public partial class binance : ccxt.binance
                     { "name", "ticker" },
                 } },
                 { "watchTickers", new Dictionary<string, object>() {
-                    { "name", "ticker" },
+                    { "name", "miniTicker" },
                 } },
                 { "watchOHLCV", new Dictionary<string, object>() {
                     { "name", "kline" },
@@ -2089,7 +2089,7 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         object channelName = null;
-        var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "ticker");
+        var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
         channelName = ((IList<object>)channelNameparametersVariable)[0];
         parameters = ((IList<object>)channelNameparametersVariable)[1];
         if (isTrue(isEqual(channelName, "bookTicker")))

@@ -303,7 +303,7 @@ class paradex extends \ccxt\async\paradex {
                 ),
             );
             $messageHashes = array();
-            if ((gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
+            if ($symbols !== null && (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols)))) {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $messageHash = $channel . '.' . $symbols[$i];
                     $messageHashes[] = $messageHash;
@@ -311,10 +311,10 @@ class paradex extends \ccxt\async\paradex {
             } else {
                 $messageHashes[] = $channel;
             }
-            $newTickers = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
+            $newTicker = Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
             if ($this->newUpdates) {
                 $result = array();
-                $result[$newTickers['symbol']] = $newTickers;
+                $result[$newTicker['symbol']] = $newTicker;
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);

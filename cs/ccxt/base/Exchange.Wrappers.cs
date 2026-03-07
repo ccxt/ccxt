@@ -1312,6 +1312,7 @@ public partial class Exchange
     }
 }
 // class wrappers
+public class  Aftermath: aftermath { public Aftermath(object args = null) : base(args) { } }
 public class  Alp: alp { public Alp(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
@@ -1393,6 +1394,7 @@ public class  Kucoin: kucoin { public Kucoin(object args = null) : base(args) { 
 public class  Kucoinfutures: kucoinfutures { public Kucoinfutures(object args = null) : base(args) { } }
 public class  Latoken: latoken { public Latoken(object args = null) : base(args) { } }
 public class  Lbank: lbank { public Lbank(object args = null) : base(args) { } }
+public class  Lighter: lighter { public Lighter(object args = null) : base(args) { } }
 public class  Luno: luno { public Luno(object args = null) : base(args) { } }
 public class  Mercado: mercado { public Mercado(object args = null) : base(args) { } }
 public class  Mexc: mexc { public Mexc(object args = null) : base(args) { } }

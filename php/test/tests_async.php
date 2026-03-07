@@ -957,6 +957,11 @@ class testMainClass {
         if (!$new_output && !$stored_output) {
             return true;
         }
+        // if needed convert stringified jsons to objects
+        if ((is_string($stored_output)) && (is_string($new_output)) && str_starts_with($stored_output, '{') && str_starts_with($new_output, '{')) {
+            $stored_output = json_parse($stored_output);
+            $new_output = json_parse($new_output);
+        }
         if ((is_array($stored_output)) && (is_array($new_output))) {
             $stored_output_keys = is_array($stored_output) ? array_keys($stored_output) : array();
             $new_output_keys = is_array($new_output) ? array_keys($new_output) : array();
@@ -1202,8 +1207,34 @@ class testMainClass {
     public function init_offline_exchange($exchange_name) {
         $markets = $this->load_markets_from_file($exchange_name);
         $currencies = $this->load_currencies_from_file($exchange_name);
+        $wasm_exec_path = null;
+        $library_path = null;
+        // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+        // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
+        // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
+        // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
         // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
-        $exchange = init_exchange($exchange_name, array(
+        $base_path = get_root_dir() . 'ts/src/test/static/binaries/';
+        if ($exchange_name === 'lighter') {
+            if ($this->lang === 'JS') {
+                $wasm_exec_path = get_root_dir() . '/src/test/static/binaries/wasm_exec.js';
+                $library_path = $base_path . 'lighter.wasm';
+            } else {
+                if (is_windows()) {
+                    $library_path = $base_path . 'lighter-signer-windows-amd64.dll';
+                } elseif (is_linux()) {
+                    if (is_amd64()) {
+                        $library_path = $base_path . 'lighter-signer-linux-amd64.so';
+                    } else {
+                        $library_path = $base_path . 'lighter-signer-linux-arm64.so';
+                    }
+                } else {
+                    // assume macos arm64
+                    $library_path = $base_path . 'lighter-signer-darwin-arm64.dylib';
+                }
+            }
+        }
+        $options = array(
             'markets' => $markets,
             'currencies' => $currencies,
             'enableRateLimit' => false,
@@ -1232,8 +1263,11 @@ class testMainClass {
                 'accessToken' => 'token',
                 'expires' => 999999999999999,
                 'leverageBrackets' => array(),
+                'libraryPath' => $library_path,
+                'wasmExecPath' => $wasm_exec_path,
             ),
-        ));
+        );
+        $exchange = init_exchange($exchange_name, $options);
         $exchange->currencies = $currencies;
         // not working in python if assigned  in the config dict
         return $exchange;
