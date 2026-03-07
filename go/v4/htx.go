@@ -113,7 +113,7 @@ func (this *HtxCore) Describe() interface{} {
 			"fetchPositionsRisk":             false,
 			"fetchPremiumIndexOHLCV":         true,
 			"fetchSettlementHistory":         true,
-			"fetchStatus":                    true,
+			"fetchStatus":                    false,
 			"fetchTicker":                    true,
 			"fetchTickers":                   true,
 			"fetchTime":                      true,
