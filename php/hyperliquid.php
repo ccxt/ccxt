@@ -625,7 +625,7 @@ class hyperliquid extends Exchange {
                     $this->safe_dict($universe, $j, array()),
                     $this->safe_dict($assetCtxs, $j, array())
                 );
-                $data['baseId'] = $j . $offset;
+                $data['baseId'] = $this->sum($j, $offset);
                 $data['collateralToken'] = $collateralToken;
                 $data['hip3'] = true;
                 $data['dex'] = $dexName;

@@ -277,7 +277,8 @@ fetches price tickers for multiple markets, statistical information calculated o
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.method | <code>string</code> | No | either v2PublicGetTicker or v4PublicGetTicker default is v4PublicGetTicker |
+| params.type | <code>string</code> | No | 'spot' or 'swap' - default is 'spot'. If type is 'swap', it will call v4PublicGetFutures |
+| params.method | <code>string</code> | No | either v2PublicGetTicker or v4PublicGetTicker or v4PublicGetFutures - default is v4PublicGetTicker for spot and mixed markets, and v4PublicGetFutures for swap |
 
 
 ```javascript

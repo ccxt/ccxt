@@ -751,7 +751,7 @@ class defx extends \ccxt\async\defx {
         //
         // {
         //     "event" => "WALLET_BALANCE_UPDATE",
-        //     "timestamp" => 1711015961397,
+        //     "timestamp" => 1711015961396,
         //     "data" => {
         //         "asset" => "USDC", "balance" => "27.64712963"
         //     }

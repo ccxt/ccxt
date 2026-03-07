@@ -1116,5 +1116,91 @@
         "tierBased": null,
         "percentage": null,
         "baseName": "flx:CRCL"
+    },
+    "XYZ-AAPL/USDC:USDC": {
+        "id": "110009",
+        "lowercaseId": null,
+        "symbol": "XYZ-AAPL/USDC:USDC",
+        "base": "XYZ-AAPL",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "110009",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.00045,
+        "maker": 0.00015,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 20
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "szDecimals": "3",
+            "name": "xyz:AAPL",
+            "maxLeverage": "20",
+            "marginTableId": "20",
+            "growthMode": "enabled",
+            "lastGrowthModeChangeTime": "2025-11-23T17:37:10.033211662",
+            "funding": "0.00000625",
+            "openInterest": "19828.13",
+            "prevDayPx": "263.15",
+            "dayNtlVlm": "959619.4876999997",
+            "premium": "-0.0002445869",
+            "oraclePx": "263.71",
+            "markPx": "263.71",
+            "midPx": "263.605",
+            "impactPxs": [
+                "263.463",
+                "263.828"
+            ],
+            "dayBaseVlm": "3656.049",
+            "baseId": 110009,
+            "collateralToken": "0",
+            "hip3": true,
+            "dex": "xyz",
+            "collateralTokenName": "USDC"
+        },
+        "tierBased": null,
+        "percentage": null,
+        "baseName": "xyz:AAPL"
     }
 }

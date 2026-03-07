@@ -627,7 +627,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             // and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
             for (let j = 0; j < universe.length; j++) {
                 const data = this.extend(this.safeDict(universe, j, {}), this.safeDict(assetCtxs, j, {}));
-                data['baseId'] = j + offset;
+                data['baseId'] = this.sum(j, offset);
                 data['collateralToken'] = collateralToken;
                 data['hip3'] = true;
                 data['dex'] = dexName;

@@ -294,7 +294,7 @@ func  (this *ParadexCore) HandleOrderBook(client interface{}, message interface{
     }
     var orderbook interface{} = ccxt.GetValue(this.Orderbooks, symbol)
     var snapshot interface{} = this.ParseOrderBook(orderbookData, symbol, timestamp, "bids", "asks")
-    ccxt.AddElementToObject(snapshot, "nonce", this.SafeNumber(data, "seq_no"))
+    ccxt.AddElementToObject(snapshot, "nonce", this.SafeInteger(data, "seq_no"))
     orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
     var messageHash interface{} = this.SafeString(params, "channel")
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)

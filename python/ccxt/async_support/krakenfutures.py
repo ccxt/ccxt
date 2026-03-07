@@ -1157,6 +1157,41 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        "serverTime": "2022-02-28T19:32:17.122Z"
         #    }
         #
+        # MARKET
+        #
+        #     {
+        #         "result": "success",
+        #         "serverTime": "2026-03-02T06:10:31.955Z",
+        #         "sendStatus": {
+        #             "status": "placed",
+        #             "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        #             "receivedTime": "2026-03-02T06:10:31.954Z",
+        #             "orderEvents": [
+        #                 {
+        #                     "type": "EXECUTION",
+        #                     "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        #                     "price": 66596.0,
+        #                     "amount": 0.001,
+        #                     "orderPriorEdit": null,
+        #                     "orderPriorExecution": {
+        #                         "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        #                         "cliOrdId": null,
+        #                         "type": "ioc",
+        #                         "symbol": "PF_XBTUSD",
+        #                         "side": "buy",
+        #                         "quantity": 0.001,
+        #                         "filled": 0,
+        #                         "limitPrice": 67261.000,
+        #                         "reduceOnly": False,
+        #                         "timestamp": "2026-03-02T06:10:31.954Z",
+        #                         "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        #                     },
+        #                     "takerReducedQuantity": null
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
         sendStatus = self.safe_value(response, 'sendStatus')
         status = self.safe_string(sendStatus, 'status')
         self.verify_order_action_success(status, 'createOrder', ['filled'])
@@ -1664,6 +1699,37 @@ class krakenfutures(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        # MARKET
+        #
+        #     {
+        #         "status": "placed",
+        #         "order_id": "a133a4f9-254d-4806-8176-9acc936b6944",
+        #         "receivedTime": "2026-03-02T06:10:31.954Z",
+        #         "orderEvents": [
+        #             {
+        #                 "type": "EXECUTION",
+        #                 "executionId": "403bf49f-dbbe-448b-8de7-fd3cf38cc5dd",
+        #                 "price": 66596.0,
+        #                 "amount": 0.001,
+        #                 "orderPriorEdit": null,
+        #                 "orderPriorExecution": {
+        #                     "orderId": "a133a4f9-254d-4806-8176-9acc936b6944",
+        #                     "cliOrdId": null,
+        #                     "type": "ioc",
+        #                     "symbol": "PF_XBTUSD",
+        #                     "side": "buy",
+        #                     "quantity": 0.001,
+        #                     "filled": 0,
+        #                     "limitPrice": 67261.000,
+        #                     "reduceOnly": False,
+        #                     "timestamp": "2026-03-02T06:10:31.954Z",
+        #                     "lastUpdateTimestamp": "2026-03-02T06:10:31.954Z"
+        #                 },
+        #                 "takerReducedQuantity": null
+        #             }
+        #         ]
+        #     }
+        #
         # CONDITIONAL
         #
         #    {
@@ -1907,6 +1973,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             #
             datetime = self.safe_string(orderDictFromFetchOrder, 'timestamp')
             innerStatus = self.safe_string(order, 'status')
+            filledOrder = self.safe_string(orderDictFromFetchOrder, 'filled', '0')
+            if (filledOrder == '0') or (filledOrder == '0.0'):
+                filledOrder = None
             return self.safe_order({
                 'info': order,
                 'id': self.safe_string(orderDictFromFetchOrder, 'orderId'),
@@ -1926,7 +1995,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'amount': self.safe_string(orderDictFromFetchOrder, 'quantity'),
                 'cost': None,
                 'average': None,
-                'filled': self.safe_string(orderDictFromFetchOrder, 'filled'),
+                'filled': filledOrder,
                 'remaining': None,
                 'status': self.parse_order_status(innerStatus),
                 'fee': None,
@@ -1959,9 +2028,13 @@ class krakenfutures(Exchange, ImplicitAPI):
                         isPrior = False
                         fixed = True
                     elif not fixed:
+                        executedPrice = self.safe_string(item, 'price')
                         orderPriorExecution = self.safe_value(item, 'orderPriorExecution')
                         details = self.safe_value_2(item, 'orderPriorExecution', 'orderPriorEdit')
-                        price = self.safe_string(orderPriorExecution, 'limitPrice')
+                        if executedPrice is None:
+                            price = self.safe_string(orderPriorExecution, 'limitPrice')
+                        else:
+                            price = executedPrice
                         if details is not None:
                             isPrior = True
             trades = self.parse_trades(executions)

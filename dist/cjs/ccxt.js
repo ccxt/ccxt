@@ -89,6 +89,7 @@ var kucoin = require('./src/kucoin.js');
 var kucoinfutures = require('./src/kucoinfutures.js');
 var latoken = require('./src/latoken.js');
 var lbank = require('./src/lbank.js');
+var lighter = require('./src/lighter.js');
 var luno = require('./src/luno.js');
 var mercado = require('./src/mercado.js');
 var mexc = require('./src/mexc.js');
@@ -176,6 +177,7 @@ var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
 var kucoinfutures$1 = require('./src/pro/kucoinfutures.js');
 var lbank$1 = require('./src/pro/lbank.js');
+var lighter$1 = require('./src/pro/lighter.js');
 var luno$1 = require('./src/pro/luno.js');
 var mexc$1 = require('./src/pro/mexc.js');
 var modetrade$1 = require('./src/pro/modetrade.js');
@@ -198,7 +200,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.40';
+const version = '4.5.42';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'alp': alp["default"],
@@ -282,6 +284,7 @@ const exchanges = {
     'kucoinfutures': kucoinfutures["default"],
     'latoken': latoken["default"],
     'lbank': lbank["default"],
+    'lighter': lighter["default"],
     'luno': luno["default"],
     'mercado': mercado["default"],
     'mexc': mexc["default"],
@@ -371,6 +374,7 @@ const pro = {
     'kucoin': kucoin$1["default"],
     'kucoinfutures': kucoinfutures$1["default"],
     'lbank': lbank$1["default"],
+    'lighter': lighter$1["default"],
     'luno': luno$1["default"],
     'mexc': mexc$1["default"],
     'modetrade': modetrade$1["default"],
@@ -523,6 +527,7 @@ exports.kucoin = kucoin["default"];
 exports.kucoinfutures = kucoinfutures["default"];
 exports.latoken = latoken["default"];
 exports.lbank = lbank["default"];
+exports.lighter = lighter["default"];
 exports.luno = luno["default"];
 exports.mercado = mercado["default"];
 exports.mexc = mexc["default"];

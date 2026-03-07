@@ -87,12 +87,12 @@ func (this *GeminiCore) PublicGetV2FxrateSymbolTimestamp(args ...interface{}) <-
 	return this.callEndpointAsync("publicGetV2FxrateSymbolTimestamp", args...)
 }
 
-func (this *GeminiCore) PublicGetV1PerpetualsFundingpaymentreportRecordsXlsx(args ...interface{}) <-chan interface{} {
-	return this.callEndpointAsync("publicGetV1PerpetualsFundingpaymentreportRecordsXlsx", args...)
-}
-
 func (this *GeminiCore) PublicGetV1RiskstatsSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetV1RiskstatsSymbol", args...)
+}
+
+func (this *GeminiCore) PrivateGetV1PerpetualsFundingpaymentreportRecordsXlsx(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx", args...)
 }
 
 func (this *GeminiCore) PrivatePostV1StakingUnstake(args ...interface{}) <-chan interface{} {

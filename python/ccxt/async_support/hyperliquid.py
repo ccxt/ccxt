@@ -615,7 +615,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     self.safe_dict(universe, j, {}),
                     self.safe_dict(assetCtxs, j, {})
                 )
-                data['baseId'] = j + offset
+                data['baseId'] = self.sum(j, offset)
                 data['collateralToken'] = collateralToken
                 data['hip3'] = True
                 data['dex'] = dexName

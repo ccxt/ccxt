@@ -2227,6 +2227,7 @@ public partial class bitget : ccxt.bitget
     public virtual object parseWsOrderStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "new", "open" },
             { "live", "open" },
             { "partially_filled", "open" },
             { "filled", "closed" },

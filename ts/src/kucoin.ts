@@ -2787,7 +2787,11 @@ export default class kucoin extends Exchange {
         } else if (isTriggerOrder) {
             response = await this.privatePostStopOrder (orderRequest);
         } else if (isMarginOrder) {
-            response = await this.privatePostMarginOrder (orderRequest);
+            if (hf) {
+                response = await this.privatePostHfMarginOrder (orderRequest);
+            } else {
+                response = await this.privatePostMarginOrder (orderRequest);
+            }
         } else if (useSync) {
             response = await this.privatePostHfOrdersSync (orderRequest);
         } else if (hf) {
@@ -3085,6 +3089,7 @@ export default class kucoin extends Exchange {
      * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
+     * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @returns Response from the exchange
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -3096,7 +3101,11 @@ export default class kucoin extends Exchange {
         [ hf, params ] = this.handleHfAndParams (params);
         let useSync = false;
         [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
-        if (hf || useSync) {
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        if (hf || useSync || isMarginOrder) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
             }
@@ -3104,7 +3113,7 @@ export default class kucoin extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger' ]);
+        params = this.omit (params, [ 'clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType' ]);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (trigger) {
@@ -3118,6 +3127,8 @@ export default class kucoin extends Exchange {
                 //        }
                 //    }
                 //
+            } else if (isMarginOrder) {
+                response = await this.privateDeleteHfMarginOrdersClientOrderClientOid (this.extend (request, params));
             } else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid (this.extend (request, params));
             } else if (hf) {
@@ -3155,6 +3166,8 @@ export default class kucoin extends Exchange {
                 //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
                 //    }
                 //
+            } else if (isMarginOrder) {
+                response = await this.privateDeleteHfMarginOrdersOrderId (this.extend (request, params));
             } else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncOrderId (this.extend (request, params));
             } else if (hf) {
@@ -3199,7 +3212,7 @@ export default class kucoin extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] *invalid for isolated margin* true if cancelling all stop orders
      * @param {string} [params.marginMode] 'cross' or 'isolated'
-     * @param {string} [params.orderIds] *stop orders only* Comma seperated order IDs
+     * @param {string} [params.orderIds] *stop orders only* Comma separated order IDs
      * @param {bool} [params.hf] false, // true for hf order
      * @returns Response from the exchange
      */
@@ -3253,7 +3266,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.trigger] True if fetching a trigger order
      * @param {bool} [params.hf] false, // true for hf order
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3406,7 +3419,7 @@ export default class kucoin extends Exchange {
      * @param {string} [params.type] limit, market, limit_stop or market_stop
      * @param {string} [params.tradeType] TRADE for spot trading, MARGIN_TRADE for Margin Trading
      * @param {int} [params.currentPage] *trigger orders only* current page
-     * @param {string} [params.orderIds] *trigger orders only* comma seperated order ID list
+     * @param {string} [params.orderIds] *trigger orders only* comma separated order ID list
      * @param {bool} [params.hf] false, // true for hf order
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}

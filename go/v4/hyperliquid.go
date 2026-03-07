@@ -687,7 +687,7 @@ func (this *HyperliquidCore) FetchHip3Markets(optionalArgs ...interface{}) <-cha
 			// and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
 			for j := 0; IsLessThan(j, GetArrayLength(universe)); j++ {
 				var data interface{} = this.Extend(this.SafeDict(universe, j, map[string]interface{}{}), this.SafeDict(assetCtxs, j, map[string]interface{}{}))
-				AddElementToObject(data, "baseId", Add(j, offset))
+				AddElementToObject(data, "baseId", this.Sum(j, offset))
 				AddElementToObject(data, "collateralToken", collateralToken)
 				AddElementToObject(data, "hip3", true)
 				AddElementToObject(data, "dex", dexName)

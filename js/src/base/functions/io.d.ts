@@ -1,4 +1,5 @@
 /// <reference types="node" />
+/// <reference types="node" />
 /**
  * Initialize synchronous file system module (Node.js only)
  * Uses dynamic import to prevent bundling in browser builds
@@ -15,7 +16,7 @@ export declare function getTempDir(): string | undefined;
  * @param encoding File encoding (default: 'utf8')
  * @returns File contents as string, or undefined in browser
  */
-export declare function readFile(path: string, encoding?: BufferEncoding): string | undefined;
+export declare function readFile(path: string, encoding?: BufferEncoding): string | undefined | Buffer;
 /**
  * Write file contents synchronously (Node.js only)
  * @param path File path to write

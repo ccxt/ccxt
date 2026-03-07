@@ -226,7 +226,7 @@ class paradex(ccxt.async_support.paradex):
                 orderbookData['asks'].append([price, size])
         orderbook = self.orderbooks[symbol]
         snapshot = self.parse_order_book(orderbookData, symbol, timestamp, 'bids', 'asks')
-        snapshot['nonce'] = self.safe_number(data, 'seq_no')
+        snapshot['nonce'] = self.safe_integer(data, 'seq_no')
         orderbook.reset(snapshot)
         messageHash = self.safe_string(params, 'channel')
         client.resolve(orderbook, messageHash)

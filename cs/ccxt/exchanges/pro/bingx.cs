@@ -23,12 +23,18 @@ public partial class bingx : ccxt.bingx
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchBalance", true },
+                { "watchPositions", true },
                 { "unWatchOHLCV", true },
                 { "unWatchOrderBook", true },
                 { "unWatchTicker", true },
                 { "unWatchTrades", true },
             } },
             { "urls", new Dictionary<string, object>() {
+                { "test", new Dictionary<string, object>() {
+                    { "ws", new Dictionary<string, object>() {
+                        { "linear", "wss://vst-open-api-ws.bingx.com/swap-market" },
+                    } },
+                } },
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
                         { "spot", "wss://open-api-ws.bingx.com/market" },
@@ -72,7 +78,11 @@ public partial class bingx : ccxt.bingx
                 } },
                 { "watchBalance", new Dictionary<string, object>() {
                     { "fetchBalanceSnapshot", true },
-                    { "awaitBalanceSnapshot", false },
+                    { "awaitBalanceSnapshot", true },
+                } },
+                { "watchPositions", new Dictionary<string, object>() {
+                    { "fetchPositionsSnapshot", true },
+                    { "awaitPositionsSnapshot", false },
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "depth", 100 },
@@ -1281,6 +1291,243 @@ public partial class bingx : ccxt.bingx
         }
     }
 
+    /**
+     * @method
+     * @name bingx#watchPositions
+     * @description watch all open positions
+     * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+     * @param {string[]|undefined} [symbols] list of unified market symbols
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of position structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+     */
+    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        await this.authenticate();
+        object market = null;
+        object messageHash = "";
+        symbols = this.marketSymbols(symbols);
+        if (!isTrue(this.isEmpty(symbols)))
+        {
+            market = this.getMarketFromSymbols(symbols);
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+        }
+        object type = null;
+        object subType = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchPositions", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchPositions is not supported for spot markets")) ;
+        }
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " watchPositions is not supported for inverse swap markets yet")) ;
+        }
+        object subscriptionHash = "swap:private";
+        messageHash = add("swap:positions", messageHash);
+        object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), subType);
+        object url = add(add(baseUrl, "?listenKey="), getValue(this.options, "listenKey"));
+        var client = this.client(url);
+        this.setPositionsCache(client as WebSocketClient, type, symbols);
+        object fetchPositionsSnapshot = null;
+        object awaitPositionsSnapshot = null;
+        var fetchPositionsSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
+        fetchPositionsSnapshot = ((IList<object>)fetchPositionsSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)fetchPositionsSnapshotparametersVariable)[1];
+        var awaitPositionsSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "awaitPositionsSnapshot", false);
+        awaitPositionsSnapshot = ((IList<object>)awaitPositionsSnapshotparametersVariable)[0];
+        parameters = ((IList<object>)awaitPositionsSnapshotparametersVariable)[1];
+        object uuid = this.uuid();
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", false },
+            { "id", uuid },
+        };
+        if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
+        {
+            object snapshot = await client.future(add(type, ":fetchPositionsSnapshot"));
+            return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
+        }
+        object newPositions = await this.watch(url, messageHash, null, subscriptionHash, subscription);
+        if (isTrue(this.newUpdates))
+        {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+    }
+
+    public virtual void setPositionsCache(WebSocketClient client, object type, object symbols = null)
+    {
+        if (isTrue(!isEqual(this.positions, null)))
+        {
+            return;
+        }
+        object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
+        if (isTrue(fetchPositionsSnapshot))
+        {
+            object messageHash = add(type, ":fetchPositionsSnapshot");
+            if (!isTrue((inOp(client.futures, messageHash))))
+            {
+                client.future(messageHash);
+                this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
+            }
+        } else
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+    }
+
+    public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
+    {
+        object positions = await this.fetchPositions(null, new Dictionary<string, object>() {
+            { "type", type },
+            { "subType", "linear" },
+        });
+        this.positions = new ArrayCacheBySymbolBySide();
+        object cache = this.positions;
+        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        {
+            object position = getValue(positions, i);
+            object contracts = this.safeNumber(position, "contracts", 0);
+            if (isTrue(isGreaterThan(contracts, 0)))
+            {
+                callDynamically(cache, "append", new object[] {position});
+            }
+        }
+        // don't remove the future from the .futures cache
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "swap:positions"});
+        }
+    }
+
+    public virtual object parseWsPosition(object position, object market = null)
+    {
+        //
+        //     {
+        //         "s": "LINK-USDT",     // Symbol
+        //         "pa": "5.000",        // Position Amount
+        //         "ep": "11.2345",      // Entry Price
+        //         "up": "0.5000",       // Unrealized PnL
+        //         "mt": "isolated",     // Margin Type
+        //         "iw": "50.00000000",  // Isolated Wallet
+        //         "ps": "LONG"          // Position Side
+        //     }
+        //
+        object marketId = this.safeString(position, "s");
+        object contracts = this.safeString(position, "pa");
+        object contractsAbs = Precise.stringAbs(contracts);
+        object positionSide = this.safeStringLower(position, "ps");
+        object hedged = true;
+        if (isTrue(isEqual(positionSide, "both")))
+        {
+            hedged = false;
+            if (!isTrue(Precise.stringEq(contracts, "0")))
+            {
+                if (isTrue(Precise.stringLt(contracts, "0")))
+                {
+                    positionSide = "short";
+                } else
+                {
+                    positionSide = "long";
+                }
+            }
+        }
+        object marginMode = this.safeString(position, "mt");
+        object collateral = ((bool) isTrue((isEqual(marginMode, "isolated")))) ? this.safeNumber(position, "iw") : null;
+        return this.safePosition(new Dictionary<string, object>() {
+            { "info", position },
+            { "id", null },
+            { "symbol", this.safeSymbol(marketId, null, null, "swap") },
+            { "notional", null },
+            { "marginMode", marginMode },
+            { "liquidationPrice", null },
+            { "entryPrice", this.safeNumber(position, "ep") },
+            { "unrealizedPnl", this.safeNumber(position, "up") },
+            { "percentage", null },
+            { "contracts", this.parseNumber(contractsAbs) },
+            { "contractSize", null },
+            { "markPrice", null },
+            { "side", positionSide },
+            { "hedged", hedged },
+            { "timestamp", null },
+            { "datetime", null },
+            { "maintenanceMargin", null },
+            { "maintenanceMarginPercentage", null },
+            { "collateral", collateral },
+            { "initialMargin", null },
+            { "initialMarginPercentage", null },
+            { "leverage", null },
+            { "marginRatio", null },
+        });
+    }
+
+    public virtual void handlePositions(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "e": "ACCOUNT_UPDATE",
+        //         "E": 1696244249320,
+        //         "a": {
+        //             "m": "ORDER",
+        //             "B": [...],
+        //             "P": [
+        //                 {
+        //                     "s": "LINK-USDT",
+        //                     "pa": "5.000",
+        //                     "ep": "11.2345",
+        //                     "up": "0.5000",
+        //                     "mt": "isolated",
+        //                     "iw": "50.00000000",
+        //                     "ps": "LONG"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        if (isTrue(isEqual(this.positions, null)))
+        {
+            this.positions = new ArrayCacheBySymbolBySide();
+        }
+        object cache = this.positions;
+        object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        object rawPositions = this.safeList(data, "P", new List<object>() {});
+        object newPositions = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        {
+            object rawPosition = getValue(rawPositions, i);
+            object position = this.parseWsPosition(rawPosition);
+            object timestamp = this.safeInteger(message, "E");
+            ((IDictionary<string,object>)position)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);
+            ((IList<object>)newPositions).Add(position);
+            callDynamically(cache, "append", new object[] {position});
+        }
+        object messageHashes = this.findMessageHashes(client as WebSocketClient, "swap:positions::");
+        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        {
+            object messageHash = getValue(messageHashes, i);
+            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            object symbolsString = getValue(parts, 1);
+            object filteredSymbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
+            if (!isTrue(this.isEmpty(positions)))
+            {
+                callDynamically(client as WebSocketClient, "resolve", new object[] {positions, messageHash});
+            }
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "swap:positions"});
+    }
+
     public virtual object handleErrorMessage(WebSocketClient client, object message)
     {
         //
@@ -1327,7 +1574,12 @@ public partial class bingx : ccxt.bingx
             for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
             {
                 object type = getValue(types, i);
-                object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "?listenKey="), listenKey);
+                object baseUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), type);
+                if (isTrue(isEqual(baseUrl, null)))
+                {
+                    continue;
+                }
+                object url = add(add(baseUrl, "?listenKey="), listenKey);
                 var client = this.client(url);
                 object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
@@ -1678,6 +1930,7 @@ public partial class bingx : ccxt.bingx
         if (isTrue(isEqual(e, "ACCOUNT_UPDATE")))
         {
             this.handleBalance(client as WebSocketClient, message);
+            this.handlePositions(client as WebSocketClient, message);
         }
         if (isTrue(isEqual(e, "ORDER_TRADE_UPDATE")))
         {

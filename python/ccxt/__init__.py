@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.40'
+__version__ = '4.5.42'
 
 # ----------------------------------------------------------------------------
 
@@ -84,6 +84,7 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
+from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alp import alp                                              # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
@@ -165,6 +166,7 @@ from ccxt.kucoin import kucoin                                        # noqa: F4
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
+from ccxt.lighter import lighter                                      # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
@@ -196,6 +198,7 @@ from ccxt.zebpay import zebpay                                        # noqa: F4
 from ccxt.zonda import zonda                                          # noqa: F401
 
 exchanges = [
+    'aftermath',
     'alp',
     'alpaca',
     'apex',
@@ -277,6 +280,7 @@ exchanges = [
     'kucoinfutures',
     'latoken',
     'lbank',
+    'lighter',
     'luno',
     'mercado',
     'mexc',

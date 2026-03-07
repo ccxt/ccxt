@@ -6344,6 +6344,18 @@ func WithFetchPublicDepositWithdrawFeesParams(params map[string]interface{}) Fet
 	}
 }
 
+type FetchNonceOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type FetchNonceOptions func(opts *FetchNonceOptionsStruct)
+
+func WithFetchNonceParams(params map[string]interface{}) FetchNonceOptions {
+	return func(opts *FetchNonceOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchLedgerByEntriesOptionsStruct struct {
 	Code   *string
 	Entry  *interface{}

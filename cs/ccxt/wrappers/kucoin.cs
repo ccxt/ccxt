@@ -723,6 +723,12 @@ public partial class kucoin
     /// bool : false, // true to use the hf sync call
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
@@ -760,7 +766,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *stop orders only* Comma seperated order IDs
+    /// string : *stop orders only* Comma separated order IDs
     /// </description>
     /// </item>
     /// <item>
@@ -837,7 +843,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *trigger orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma separated order ID list
     /// </description>
     /// </item>
     /// <item>
@@ -1007,7 +1013,7 @@ public partial class kucoin
     /// <item>
     /// <term>params.orderIds</term>
     /// <description>
-    /// string : *trigger orders only* comma seperated order ID list
+    /// string : *trigger orders only* comma separated order ID list
     /// </description>
     /// </item>
     /// <item>
