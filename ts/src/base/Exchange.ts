@@ -3192,21 +3192,21 @@ export default class Exchange {
 
     decodeSbeResponse (buffer: ArrayBuffer, url: string) {
         // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        let sbeError = undefined;
         try {
             // Use decodeSbeMessage with exchange-specific decoder registry
             const decoderRegistry = this.getSbeDecoderRegistry ();
             const result = this.decodeSbeMessage (buffer, decoderRegistry);
-            const decoded = result['data'];
-            return decoded;
+            return result['data'];
         } catch (e) {
-            const errorMessage = String (e);
-            // Attempt JSON fallback — server may return JSON despite SBE request headers
-            try {
-                const text = new TextDecoder ().decode (buffer);
-                return JSON.parse (text);
-            } catch (jsonError) {
-                throw new ExchangeError (this.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to false in options.');
-            }
+            sbeError = e;
+        }
+        // SBE decoding failed — attempt JSON fallback (server may return JSON despite SBE request headers)
+        try {
+            const text = new TextDecoder ().decode (buffer);
+            return JSON.parse (text);
+        } catch (jsonError) {
+            throw new ExchangeError (this.id + ' decodeSbeResponse() failed. Error: ' + String (sbeError) + '. Try setting useSbe to false in options.');
         }
     }
 

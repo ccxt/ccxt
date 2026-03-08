@@ -1356,7 +1356,7 @@ class binance(Exchange, ImplicitAPI):
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
-                'useSbe': True,  # use SBE(Simple Binary Encoding) for spot API when available
+                'useSbe': False,  # use SBE(Simple Binary Encoding) for spot API when available
                 'sbeSchemaId': 3,  # Binance SBE schema ID
                 'sbeSchemaVersion': 1,  # Binance SBE schema version(spot_3_1 for prod, spot_3_2 for testnet)
                 'hasAlreadyAuthenticatedSuccessfully': False,
@@ -5043,7 +5043,7 @@ class binance(Exchange, ImplicitAPI):
             # Use SBE for spot trades endpoint /api/v3/trades
             sbeHeaders = {
                 'Accept': 'application/sbe',
-                'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
+                'X-MBX-SBE': self.number_to_string(sbeSchemaId) + ':' + self.number_to_string(sbeSchemaVersion),
             }
             # Call request directly with headers separate parameter
             # handleRestResponse will automatically call decodeSbeResponse for SBE responses
@@ -5056,8 +5056,8 @@ class binance(Exchange, ImplicitAPI):
             # Check if we got SBE trades data
             if len(sbeTradesArray) > 0:
                 if self.verbose:
-                    self.log('fetchTrades: Using decoded SBE response, trades count:', len(sbeTradesArray))
-                    self.log('fetchTrades: First trade raw:', self.json(sbeTradesArray[0]))
+                    self.log('fetchTrades: Using decoded SBE response, trades count: ' + self.number_to_string(len(sbeTradesArray)))
+                    self.log('fetchTrades: First trade raw: ' + self.json(sbeTradesArray[0]))
                 # Normalize trades to standard format
                 normalizedTrades = []
                 for i in range(0, len(sbeTradesArray)):

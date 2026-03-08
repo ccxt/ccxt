@@ -2278,7 +2278,8 @@ class okx(ccxt.async_support.okx):
                     schemaId = view.getUint16(4, True)   # offset 4, little-endian
                     # OKX SBE schema ID is 1, template IDs are 1000-1006
                     if schemaId == 1 and templateId >= 1000 and templateId <= 1006:
-                        return self.handle_sbe_message(client, message)
+                        self.handle_sbe_message(client, message)
+                        return
                 # Not valid SBE, try to decode(JSON subscription response)
                 try:
                     text = uint8Array

@@ -2528,7 +2528,8 @@ class okx extends \ccxt\async\okx {
                     $schemaId = $view->getUint16 (4, true);   // offset 4, little-endian
                     // OKX SBE schema ID is 1, template IDs are 1000-1006
                     if ($schemaId === 1 && $templateId >= 1000 && $templateId <= 1006) {
-                        return $this->handle_sbe_message($client, $message);
+                        $this->handle_sbe_message($client, $message);
+                        return;
                     }
                 }
                 // Not valid SBE, try to decode (JSON subscription response)

@@ -59,8 +59,8 @@ export default class okx extends okxRest {
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
-                    // 2. All API users can subscribe
-                    // 3. Public depth channel, verification not required
+                    // 2. All API users can subscribe (any trading fee tier)
+                    // 3. Requires login via connection headers (mandatory from 3rd March 2026)
                     //
                     // books-l2-tbt
                     // 1. Only users who're VIP5 and above can subscribe
@@ -2466,7 +2466,8 @@ export default class okx extends okxRest {
                     const schemaId = view.getUint16 (4, true);   // offset 4, little-endian
                     // OKX SBE schema ID is 1, template IDs are 1000-1006
                     if (schemaId === 1 && templateId >= 1000 && templateId <= 1006) {
-                        return this.handleSbeMessage (client, message);
+                        this.handleSbeMessage (client, message);
+                        return;
                     }
                 }
                 // Not valid SBE, try to decode as text (JSON subscription response)
@@ -2613,8 +2614,7 @@ export default class okx extends okxRest {
     }
 
     handleSbeBooksL2Tbt (client: Client, message) {
-        // BooksL2TbtChannelEvent (Template ID 1001)
-        // Contains orderbook updates
+        // BooksL2TbtChannelEvent (Template ID 1001) and SnapshotDepthResponseEvent (Template ID 1006)
         const instIdCode = this.safeInteger (message, 'instIdCode');
         const symbol = this.safeSymbolFromInstIdCode (instIdCode);
         if (symbol === undefined) {
@@ -2626,11 +2626,12 @@ export default class okx extends okxRest {
         const processed = this.applySbeExponents (message);
         const timestamp = this.safeInteger (processed, 'ts');
         const seqId = this.safeInteger (processed, 'seqId');
+        const prevSeqId = this.safeInteger (processed, 'prevSeqId');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ({});
         }
         const orderbook = this.orderbooks[symbol];
-        // Convert to standard format [price, size]
+        // Convert to standard [price, size] arrays
         const bids = [];
         if (processed.bids) {
             for (let i = 0; i < processed.bids.length; i++) {
@@ -2645,29 +2646,53 @@ export default class okx extends okxRest {
                 asks.push ([ ask.px, ask.sz ]);
             }
         }
-        const snapshot = {
-            'bids': bids,
-            'asks': asks,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': seqId,
-        };
-        orderbook.reset (snapshot);
+        // prevSeqId === -1 means this is a snapshot (REST or initial)
+        const isSnapshot = (prevSeqId === -1) || (orderbook['nonce'] === undefined);
+        if (isSnapshot) {
+            // Full snapshot — reset the orderbook
+            orderbook.reset ({
+                'bids': bids,
+                'asks': asks,
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+                'nonce': seqId,
+            });
+        } else {
+            // Incremental update — validate seqId chain then apply delta
+            if (prevSeqId !== orderbook['nonce']) {
+                // Gap detected — orderbook is out of sync, reset so next snapshot re-initialises it
+                orderbook.reset ({});
+                orderbook['nonce'] = undefined;
+                return;
+            }
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
+            orderbook['nonce'] = seqId;
+            // Apply each price level: qty 0 means remove, otherwise insert/update
+            for (let i = 0; i < bids.length; i++) {
+                orderbook['bids'].store (bids[i][0], bids[i][1]);
+            }
+            for (let i = 0; i < asks.length; i++) {
+                orderbook['asks'].store (asks[i][0], asks[i][1]);
+            }
+        }
         client.resolve (orderbook, messageHash);
     }
 
     handleSbeBooksL2TbtExponentUpdate (client: Client, message) {
         // BooksL2TbtExponentUpdateEvent (Template ID 1002)
-        // Contains exponent updates for orderbook data
-        // Store exponents for future updates
+        // Contains only exponent changes (no bid/ask data), but carries seqId/prevSeqId.
+        // Must update the orderbook nonce so the seqId chain stays consistent —
+        // the next BooksL2TbtChannelEvent's prevSeqId will reference this message's seqId.
         const instIdCode = this.safeInteger (message, 'instIdCode');
-        const pxExponent = this.safeInteger (message, 'pxExponent');
-        const szExponent = this.safeInteger (message, 'szExponent');
-        const sbeExponents = this.safeDict (this, 'sbeExponents', {});
-        sbeExponents[instIdCode] = {
-            'pxExponent': pxExponent,
-            'szExponent': szExponent,
-        };
+        const symbol = this.safeSymbolFromInstIdCode (instIdCode);
+        if (symbol === undefined) {
+            return;
+        }
+        const seqId = this.safeInteger (message, 'seqId');
+        if (symbol in this.orderbooks) {
+            this.orderbooks[symbol]['nonce'] = seqId;
+        }
     }
 
     handleSbeTrades (client: Client, message) {

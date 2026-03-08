@@ -1007,21 +1007,21 @@ class Exchange extends \ccxt\Exchange {
 
     public function decode_sbe_response(string $buffer, string $url) {
         // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        $sbeError = null;
         try {
             // Use decodeSbeMessage with exchange-specific decoder registry
             $decoderRegistry = $this->get_sbe_decoder_registry();
             $result = $this->decode_sbe_message($buffer, $decoderRegistry);
-            $decoded = $result['data'];
-            return $decoded;
+            return $result['data'];
         } catch (Exception $e) {
-            $errorMessage = 'strval' ($e);
-            // Attempt JSON fallback — server may return JSON despite SBE request headers
-            try {
-                $text = $buffer;
-                return json_decode($text, $as_associative_array = true);
-            } catch (Exception $jsonError) {
-                throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
-            }
+            $sbeError = $e;
+        }
+        // SBE decoding failed — attempt JSON fallback (server may return JSON despite SBE request headers)
+        try {
+            $text = $buffer;
+            return json_decode($text, $as_associative_array = true);
+        } catch (Exception $jsonError) {
+            throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . 'strval' ($sbeError) . '. Try setting useSbe to false in options.');
         }
     }
 

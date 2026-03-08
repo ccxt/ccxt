@@ -168,6 +168,7 @@ class NewTranspiler {
             [/message is Uint8Array/gm, 'message is byte[]'],
             [/new Uint8Array\([^)]*\)/gm, '(byte[])message'],
             [/new DataView\([^)]*\)/gm, 'null'],
+            [/var view = null/gm, 'object view = null'], // fix implicitly-typed null
             [/view\.\w+\(\d+, true\)/gm, 'null'],
             [/new TextDecoder\(\)\.decode\(\w+\)/gm, 'System.Text.Encoding.UTF8.GetString((byte[])message)'],
             [/this\.handleSbeMessage\(/gm, 'this.handleMessage('], // redirect to regular handler
@@ -179,6 +180,8 @@ class NewTranspiler {
             [/(\w+)\.byteLength\b/gm, 'getArrayLength($1)'],
             // Fix String(x) calls - C# string is a type not a function
             [/(?<![a-zA-Z.])String\(([^)]+)\)/gm, '(($1)).ToString()'],
+            // Fix getValue(...).store() - cast to IOrderBookSide
+            [/(getValue\([^)]+\))\.store\(([^)]+)\)/gm, '($1 as IOrderBookSide).store($2)'],
             // Fix .bind(this) pattern - C# doesn't need bind, just pass the method reference
             [/(this\.\w+)\.bind\(this\)/gm, '$1'],
         ]

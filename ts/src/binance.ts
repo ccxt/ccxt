@@ -1396,7 +1396,7 @@ export default class binance extends Exchange {
                 'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
-                'useSbe': true, // use SBE (Simple Binary Encoding) for spot API when available
+                'useSbe': false, // use SBE (Simple Binary Encoding) for spot API when available
                 'sbeSchemaId': 3, // Binance SBE schema ID
                 'sbeSchemaVersion': 1, // Binance SBE schema version (spot_3_1 for prod, spot_3_2 for testnet)
                 'hasAlreadyAuthenticatedSuccessfully': false,
@@ -5234,7 +5234,7 @@ export default class binance extends Exchange {
             // Use SBE for spot trades endpoint /api/v3/trades
             const sbeHeaders = {
                 'Accept': 'application/sbe',
-                'X-MBX-SBE': sbeSchemaId + ':' + sbeSchemaVersion,
+                'X-MBX-SBE': this.numberToString (sbeSchemaId) + ':' + this.numberToString (sbeSchemaVersion),
             };
             // Call request directly with headers as a separate parameter
             // handleRestResponse will automatically call decodeSbeResponse for SBE responses
@@ -5247,8 +5247,8 @@ export default class binance extends Exchange {
             // Check if we got SBE trades data
             if (sbeTradesArray.length > 0) {
                 if (this.verbose) {
-                    this.log ('fetchTrades: Using decoded SBE response, trades count:', sbeTradesArray.length);
-                    this.log ('fetchTrades: First trade raw:', this.json (sbeTradesArray[0]));
+                    this.log ('fetchTrades: Using decoded SBE response, trades count: ' + this.numberToString (sbeTradesArray.length));
+                    this.log ('fetchTrades: First trade raw: ' + this.json (sbeTradesArray[0]));
                 }
                 // Normalize trades to standard format
                 const normalizedTrades = [];
