@@ -5274,7 +5274,7 @@ export default class binance extends Exchange {
                         'isBestMatch': this.safeInteger (trade, 'isBestMatch') === 1,
                     });
                 }
-                response = { 'trades': normalizedTrades };
+                response = normalizedTrades;
             }
         } else if (market['option'] || method === 'eapiPublicGetTrades') {
             response = await this.eapiPublicGetTrades (this.extend (request, params));
@@ -5351,9 +5351,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        const rawTrades = this.safeList (response, 'trades', []);
-        const trades = this.parseTrades (rawTrades, market, since, limit);
-        return trades;
+        return this.parseTrades (response, market, since, limit);
     }
 
     /**

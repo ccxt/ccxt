@@ -5091,17 +5091,17 @@ class binance extends Exchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * get the list of most recent $trades for a particular $symbol
+         * get the list of most recent trades for a particular $symbol
          * Default fetchTradesMethod
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-$trades-list    // publicGetAggTrades (spot)
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#compressedaggregate-trades-list    // publicGetAggTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // fapiPublicGetAggTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Compressed-Aggregate-Trades-List // dapiPublicGetAggTrades (future)
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Recent-Trades-List                                       // eapiPublicGetTrades (option)
          *
          * Other fetchTradesMethod
          *
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-$trades-list                 // publicGetTrades (spot)
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
          * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-$trade-lookup                   // publicGetHistoricalTrades (spot)
@@ -5109,7 +5109,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] only used when fetchTradesMethod is 'publicGetAggTrades', 'fapiPublicGetAggTrades', or 'dapiPublicGetAggTrades'
          * @param {int} [$limit] default 500, max 1000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5118,8 +5118,8 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [$params->fromId] $trade id to fetch from, default gets most recent $trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades $trade structures~
+         * @param {int} [$params->fromId] $trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades $trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -5130,9 +5130,9 @@ class binance extends Exchange {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
-            // 'fromId' => 123,    // ID to get aggregate $trades from INCLUSIVE.
-            // 'startTime' => 456, // Timestamp in ms to get aggregate $trades from INCLUSIVE.
-            // 'endTime' => 789,   // Timestamp in ms to get aggregate $trades $until INCLUSIVE.
+            // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
+            // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
+            // 'endTime' => 789,   // Timestamp in ms to get aggregate trades $until INCLUSIVE.
             // 'limit' => 500,     // default = 500, maximum = 1000
         );
         $isOption = $this->safe_bool($market, 'option', false);
@@ -5140,7 +5140,7 @@ class binance extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 // https://github.com/ccxt/ccxt/issues/6400
-                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-$trades-list
+                // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                 $request['endTime'] = $this->sum($since, 3600000);
             }
             $until = $this->safe_integer($params, 'until');
@@ -5157,13 +5157,13 @@ class binance extends Exchange {
             $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
         }
         $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
-        // Check if SBE is enabled for spot $trades endpoint
+        // Check if SBE is enabled for spot trades endpoint
         $useSbe = $this->safe_bool($this->options, 'useSbe', false);
         $sbeSchemaId = $this->safe_integer($this->options, 'sbeSchemaId', 3);
         $sbeSchemaVersion = $this->safe_integer($this->options, 'sbeSchemaVersion', 1);
         $response = null;
         if ($useSbe && $market['spot']) {
-            // Use SBE for spot $trades endpoint /api/v3/trades
+            // Use SBE for spot trades endpoint /api/v3/trades
             $sbeHeaders = array(
                 'Accept' => 'application/sbe',
                 'X-MBX-SBE' => $this->number_to_string($sbeSchemaId) . ':' . $this->number_to_string($sbeSchemaVersion),
@@ -5172,17 +5172,17 @@ class binance extends Exchange {
             // handleRestResponse will automatically call decodeSbeResponse for SBE responses
             $response = $this->request('trades', 'public', 'GET', $this->extend($request, $params), $sbeHeaders, null);
             // Response is already decoded by decodeSbeResponse via handleRestResponse
-            // Extract exponents and $trades from decoded SBE object using safe functions
+            // Extract exponents and trades from decoded SBE object using safe functions
             $priceExponent = $this->safe_integer($response, 'priceExponent', 0);
             $qtyExponent = $this->safe_integer($response, 'qtyExponent', 0);
             $sbeTradesArray = $this->safe_list($response, 'trades', $this->safe_list($response, 'trade', $this->safe_list($response, 'Trade', array())));
-            // Check if we got SBE $trades data
+            // Check if we got SBE trades data
             if (strlen($sbeTradesArray) > 0) {
                 if ($this->verbose) {
-                    $this->log('fetchTrades => Using decoded SBE $response, $trades count => ' . $this->number_to_string(strlen($sbeTradesArray)));
+                    $this->log('fetchTrades => Using decoded SBE $response, trades count => ' . $this->number_to_string(strlen($sbeTradesArray)));
                     $this->log('fetchTrades => First $trade raw => ' . $this->json($sbeTradesArray[0]));
                 }
-                // Normalize $trades to standard format
+                // Normalize trades to standard format
                 $normalizedTrades = array();
                 for ($i = 0; $i < count($sbeTradesArray); $i++) {
                     $trade = $sbeTradesArray[$i];
@@ -5206,7 +5206,7 @@ class binance extends Exchange {
                         'isBestMatch' => $this->safe_integer($trade, 'isBestMatch') === 1,
                     );
                 }
-                $response = array( 'trades' => $normalizedTrades );
+                $response = $normalizedTrades;
             }
         } elseif ($market['option'] || $method === 'eapiPublicGetTrades') {
             $response = $this->eapiPublicGetTrades ($this->extend($request, $params));
@@ -5219,15 +5219,15 @@ class binance extends Exchange {
         }
         //
         // Caveats:
-        // - default $limit (500) applies only if no other parameters set, $trades up
+        // - default $limit (500) applies only if no other parameters set, trades up
         //   to the maximum $limit may be returned to satisfy other parameters
         // - if both $limit and time window is set and time window contains more
-        //   $trades than the $limit then the last $trades from the window are returned
+        //   trades than the $limit then the last trades from the window are returned
         // - "tradeId" accepted and returned by this $method is "aggregate" $trade id
         //   which is different from actual $trade id
         // - setting both fromId and time window results in error
         //
-        // aggregate $trades
+        // aggregate trades
         //
         //     array(
         //         {
@@ -5256,7 +5256,7 @@ class binance extends Exchange {
         //      ),
         //     )
         //
-        // recent public $trades and historical public $trades
+        // recent public trades and historical public trades
         //
         //     array(
         //         {
@@ -5283,9 +5283,7 @@ class binance extends Exchange {
         //         ),
         //     )
         //
-        $rawTrades = $this->safe_list($response, 'trades', array());
-        $trades = $this->parse_trades($rawTrades, $market, $since, $limit);
-        return $trades;
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function edit_spot_order(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {

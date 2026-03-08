@@ -5082,7 +5082,7 @@ class binance(Exchange, ImplicitAPI):
                         'isBuyerMaker': self.safe_integer(trade, 'isBuyerMaker') == 1,
                         'isBestMatch': self.safe_integer(trade, 'isBestMatch') == 1,
                     })
-                response = {'trades': normalizedTrades}
+                response = normalizedTrades
         elif market['option'] or method == 'eapiPublicGetTrades':
             response = await self.eapiPublicGetTrades(self.extend(request, params))
         elif market['linear'] or method == 'fapiPublicGetAggTrades':
@@ -5157,9 +5157,7 @@ class binance(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        rawTrades = self.safe_list(response, 'trades', [])
-        trades = self.parse_trades(rawTrades, market, since, limit)
-        return trades
+        return self.parse_trades(response, market, since, limit)
 
     async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
