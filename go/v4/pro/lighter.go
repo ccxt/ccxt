@@ -899,8 +899,8 @@ func  (this *LighterCore) HandleLiquidation(client interface{}, message interfac
     var stored interface{} = this.SafeValue(this.Liquidations, symbol)
     if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
         var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
-        stored = ccxt.NewArrayCache(limit)
-        ccxt.AddElementToObject(this.Liquidations, symbol, stored)
+        this.Liquidations = ccxt.NewArrayCache(limit)
+        stored = this.Liquidations
     }
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var liquidation interface{} = this.ParseWsLiquidation(ccxt.GetValue(data, i), market)

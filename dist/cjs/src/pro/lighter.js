@@ -659,8 +659,8 @@ class lighter extends lighter$1["default"] {
         let stored = this.safeValue(this.liquidations, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-            stored = new Cache.ArrayCache(limit);
-            this.liquidations[symbol] = stored;
+            this.liquidations = new Cache.ArrayCache(limit);
+            stored = this.liquidations;
         }
         for (let i = 0; i < data.length; i++) {
             const liquidation = this.parseWsLiquidation(data[i], market);
