@@ -454,6 +454,7 @@ export default class bithumb extends bithumbRest {
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -550,6 +551,7 @@ export default class bithumb extends bithumbRest {
         }
         const cachedOrders = this.orders;
         cachedOrders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (cachedOrders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (cachedOrders, symbolSpecificMessageHash);

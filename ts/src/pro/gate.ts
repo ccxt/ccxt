@@ -1579,6 +1579,7 @@ export default class gate extends gateRest {
             cache.append (liquidation);
             const symbol = this.safeString (liquidation, 'symbol');
             const symbolLiquidations = this.safeValue (cache, symbol, []);
+            this.streamProduce ('liquidations', liquidation);
             this.streamProduce ('myLiquidations', liquidation);
             client.resolve (symbolLiquidations, 'myLiquidations::' + symbol);
         }

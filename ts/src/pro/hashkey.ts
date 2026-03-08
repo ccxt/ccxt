@@ -366,6 +366,7 @@ export default class hashkey extends hashkeyRest {
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (message, 'id');
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

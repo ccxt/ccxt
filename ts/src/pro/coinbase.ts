@@ -984,7 +984,7 @@ export default class coinbase extends coinbaseRest {
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message', '');
             const err = new ExchangeError (this.id + errorMessage);
-            this.streamProduce ('error', err);
+            this.streamProduce ('errors', undefined, err);
             throw err;
         }
         const method = this.safeValue (methods, channel);

@@ -821,7 +821,7 @@ export default class gemini extends geminiRest {
         //     }
         //
         const err = new ExchangeError (this.id + ' ' + this.json (message));
-        this.streamProduce ('error', undefined, err);
+        this.streamProduce ('errors', undefined, err);
         client.reject (err);
     }
 

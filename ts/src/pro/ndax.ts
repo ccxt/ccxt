@@ -323,6 +323,12 @@ export default class ndax extends ndaxRest {
                 const market = this.safeMarket (marketId);
                 const symbol = market['symbol'];
                 const stored = this.safeValue (this.ohlcvs[symbol], timeframe, []);
+                const storedLength = stored.length;
+                if (storedLength > 0) {
+                    const lastOhlcv = stored[storedLength - 1];
+                    const ohlcvs = this.createStreamOHLCV (symbol, timeframe, lastOhlcv);
+                    this.streamProduce ('ohlcvs', ohlcvs);
+                }
                 client.resolve (stored, messageHash);
             }
         }

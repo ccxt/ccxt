@@ -367,7 +367,7 @@ export default class bitrue extends bitrueRest {
         const snapshot = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
         orderbook.reset (snapshot);
         const messageHash = 'orderbook:' + symbol;
-        this.streamProduce ('orderbook', orderbook);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

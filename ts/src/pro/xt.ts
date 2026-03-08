@@ -1341,7 +1341,7 @@ export default class xt extends xtRest {
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
-        this.streamProduce ('balance', this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 

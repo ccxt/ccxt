@@ -708,6 +708,7 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < rawOrders.length; j++) {
             const order = this.parseWsOrder (rawOrders[j]);
             cachedOrders.append (order);
+            this.streamProduce ('orders', order);
             symbols[order['symbol']] = true;
         }
         const symbolKeys = Object.keys (symbols);
@@ -863,7 +864,7 @@ export default class exmo extends exmoRest {
             }
         }
         const err = new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
-        this.streamProduce ('error', undefined, err);
+        this.streamProduce ('errors', undefined, err);
         client.reject (err);
     }
 

@@ -258,6 +258,8 @@ export default class bitfinex extends bitfinexRest {
             const ohlcv = ohlcvs[ohlcvsLength - i - 1];
             const parsed = this.parseOHLCV (ohlcv, market);
             stored.append (parsed);
+            const streamOhlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', streamOhlcvs);
         }
         client.resolve (stored, messageHash);
     }
@@ -375,6 +377,7 @@ export default class bitfinex extends bitfinexRest {
         const tradesArray = this.myTrades;
         tradesArray.append (trade);
         this.myTrades = tradesArray;
+        this.streamProduce ('myTrades', trade);
         // generic subscription
         client.resolve (tradesArray, name);
         // specific subscription
@@ -905,6 +908,7 @@ export default class bitfinex extends bitfinexRest {
         for (let i = 0; i < updatesKeys.length; i++) {
             const type = updatesKeys[i];
             const messageHash = 'balance:' + type;
+            this.streamProduce ('balances', this.balance[type]);
             client.resolve (this.balance[type], messageHash);
         }
     }

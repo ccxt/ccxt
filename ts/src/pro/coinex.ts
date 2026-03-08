@@ -494,6 +494,7 @@ export default class coinex extends coinexRest {
         const parsed = this.parseWsTrade (data, market);
         stored.append (parsed);
         this.trades[symbol] = stored;
+        this.streamProduce ('myTrades', parsed);
         client.resolve (this.trades[symbol], messageWithType);
         client.resolve (this.trades[symbol], messageHash);
     }
@@ -1400,6 +1401,7 @@ export default class coinex extends coinexRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];

@@ -594,6 +594,7 @@ export default class bitmex extends bitmexRest {
         const balance = this.parseBalance (data);
         this.balance = this.extend (this.balance, balance);
         const messageHash = this.safeString (message, 'table');
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -930,6 +931,7 @@ export default class bitmex extends bitmexRest {
             const position = this.parsePosition (rawPosition);
             newPositions.push (position);
             cache.append (position);
+            this.streamProduce ('positions', position);
         }
         const messageHashes = this.findMessageHashes (client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -1151,6 +1153,7 @@ export default class bitmex extends bitmexRest {
                 }
                 const order = this.parseOrder (rawOrder);
                 stored.append (order);
+                this.streamProduce ('orders', order);
                 const symbol = order['symbol'];
                 symbols[symbol] = true;
             }
@@ -1271,6 +1274,7 @@ export default class bitmex extends bitmexRest {
             const trade = trades[j];
             const symbol = trade['symbol'];
             stored.append (trade);
+            this.streamProduce ('myTrades', trade);
             symbols[symbol] = trade;
         }
         const numTrades = trades.length;
@@ -1504,6 +1508,8 @@ export default class bitmex extends bitmexRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (result);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, result);
+            this.streamProduce ('ohlcvs', ohlcvs);
             results[messageHash] = stored;
         }
         const messageHashes = Object.keys (results);
@@ -1607,6 +1613,7 @@ export default class bitmex extends bitmexRest {
                 orderbook['datetime'] = datetime;
             }
             const messageHash = table + ':' + symbol;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } else {
             const numUpdatesByMarketId: Dict = {};
@@ -1640,6 +1647,7 @@ export default class bitmex extends bitmexRest {
                 const symbol = market['symbol'];
                 const messageHash = table + ':' + symbol;
                 const orderbook = this.orderbooks[symbol];
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
             }
         }
@@ -1705,6 +1713,7 @@ export default class bitmex extends bitmexRest {
                 } else {
                     exception = new broad[broadKey] (error);
                 }
+                this.streamProduce ('errors', undefined, exception);
                 client.reject (exception, messageHash);
                 return false;
             }

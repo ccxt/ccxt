@@ -271,6 +271,7 @@ export default class backpack extends backpackRest {
         const parsedTicker = this.parseWsTicker (ticker, market);
         const messageHash = 'ticker' + ':' + symbol;
         this.tickers[symbol] = parsedTicker;
+        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 
@@ -561,6 +562,8 @@ export default class backpack extends backpackRest {
         const ohlcv = this.ohlcvs[symbol][timeframe];
         const parsed = this.parseWsOHLCV (data);
         ohlcv.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         const messageHash = 'candles:' + symbol + ':' + timeframe;
         client.resolve ([ symbol, timeframe, ohlcv ], messageHash);
     }
@@ -713,6 +716,7 @@ export default class backpack extends backpackRest {
         const cache = this.trades[symbol];
         const trade = this.parseWsTrade (data, market);
         cache.append (trade);
+        this.streamProduce ('trades', trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (cache, messageHash);
         client.resolve (cache, 'trades');
@@ -891,6 +895,7 @@ export default class backpack extends backpackRest {
             return;
         }
         this.handleDelta (storedOrderBook, data);
+        this.streamProduce ('orderbooks', storedOrderBook);
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -1028,6 +1033,7 @@ export default class backpack extends backpackRest {
             this.orders = orders;
         }
         orders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (orders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (orders, symbolSpecificMessageHash);
@@ -1226,6 +1232,7 @@ export default class backpack extends backpackRest {
         parsedPosition['timestamp'] = timestamp;
         parsedPosition['datetime'] = this.iso8601 (timestamp);
         cache.append (parsedPosition);
+        this.streamProduce ('positions', parsedPosition);
         const symbolSpecificMessageHash = messageHash + ':' + parsedPosition['symbol'];
         client.resolve ([ parsedPosition ], messageHash);
         client.resolve ([ parsedPosition ], symbolSpecificMessageHash);
@@ -1306,6 +1313,7 @@ export default class backpack extends backpackRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1343,7 +1351,9 @@ export default class backpack extends backpackRest {
         try {
             if (code !== undefined) {
                 const msg = this.safeString (error, 'message');
-                throw new ExchangeError (this.id + ' ' + msg);
+                const err = new ExchangeError (this.id + ' ' + msg);
+                this.streamProduce ('errors', undefined, err);
+                throw err;
             }
             return true;
         } catch (e) {

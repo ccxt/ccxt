@@ -1349,6 +1349,7 @@ export default class bingx extends bingxRest {
             position['datetime'] = this.iso8601 (timestamp);
             newPositions.push (position);
             cache.append (position);
+            this.streamProduce ('positions', position);
         }
         const messageHashes = this.findMessageHashes (client, 'swap:positions::');
         for (let i = 0; i < messageHashes.length; i++) {

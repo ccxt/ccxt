@@ -746,6 +746,7 @@ export default class lbank extends lbankRest {
         account['total'] = this.safeString (data, 'asset');
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, 'balance');
     }
 

@@ -112,7 +112,7 @@ export default class hollaex extends hollaexRest {
             orderbook.reset (snapshot);
         }
         const messageHash = channel + ':' + marketId;
-        this.streamProduce ('orderbook', orderbook);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

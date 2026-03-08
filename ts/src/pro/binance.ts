@@ -4588,7 +4588,7 @@ export default class binance extends binanceRest {
             }
             const myTrades = this.myTrades;
             myTrades.append (trade);
-            this.streamProduce ('myTrades');
+            this.streamProduce ('myTrades', trade);
             client.resolve (this.myTrades, messageHash);
             const messageHashSymbol = messageHash + ':' + symbol;
             client.resolve (this.myTrades, messageHashSymbol);
