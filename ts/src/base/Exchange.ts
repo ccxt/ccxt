@@ -1425,13 +1425,11 @@ export default class Exchange {
             const handler = handlers[templateId];
             if (handler) {
                 handler.call (this, client, decoded);
-            } else if (this.verbose) {
+            } else {
                 this.log ('handleSbeMessage: No handler for template ID:', templateId);
             }
         } catch (e) {
-            if (this.verbose) {
-                this.log ('handleSbeMessage: Failed to decode SBE message:', e);
-            }
+            this.log ('handleSbeMessage: Failed to decode SBE message:', e);
         }
     }
 

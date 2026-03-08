@@ -217,7 +217,10 @@ export default class binance extends binanceRest {
             const sbeSchemaId = this.safeInteger (this.options, 'sbeSchemaId', 3);
             const sbeSchemaVersion = this.safeInteger (this.options, 'sbeSchemaVersion', 1);
             // Add SBE parameters to the WebSocket URL
-            const separator = url.indexOf ('?') >= 0 ? '&' : '?';
+            let separator = '?';
+            if (url.indexOf ('?') >= 0) {
+                separator = '&';
+            }
             return url + separator + 'responseFormat=sbe&sbeSchemaId=' + sbeSchemaId.toString () + '&sbeSchemaVersion=' + sbeSchemaVersion.toString ();
         }
         return url;
@@ -248,8 +251,8 @@ export default class binance extends binanceRest {
                     this.log ('decodeSbeWebSocketMessage: decoded nested result type:', resultType);
                 }
             }
-            // Convert Uint8Array ID to string
-            const idString = this.decode (decoded.id);
+            // id is already decoded to string by the generated decoder
+            const idString = decoded.id;
             // Clean up the decoded structure to match expected JSON format
             const cleanMessage: any = {
                 'id': idString,
@@ -3619,26 +3622,34 @@ export default class binance extends binanceRest {
         normalized['tradeGroupId'] = this.safeInteger (order, 'tradeGroupId');
         // Handle fills array
         const fills = this.safeList (order, 'fills', []);
-        if (fills.length > 0) {
-            normalized['fills'] = [];
-            for (let i = 0; i < fills.length; i++) {
-                const fill = fills[i];
-                const commissionExponent = this.safeInteger (fill, 'commissionExponent', 0);
-                const fillPriceMantissa = this.safeInteger (fill, 'price');
-                const qtyMantissa = this.safeInteger (fill, 'qty');
-                const commissionMantissa = this.safeInteger (fill, 'commission');
-                normalized['fills'].push ({
-                    'price': fillPriceMantissa !== undefined ? (this.applyExponent (fillPriceMantissa, priceExponent)).toString () : undefined,
-                    'qty': qtyMantissa !== undefined ? (this.applyExponent (qtyMantissa, qtyExponent)).toString () : undefined,
-                    'commission': commissionMantissa !== undefined ? (this.applyExponent (commissionMantissa, commissionExponent)).toString () : undefined,
-                    'commissionAsset': this.safeString (fill, 'commissionAsset'),
-                    'tradeId': this.safeInteger (fill, 'tradeId'),
-                    'allocId': this.safeInteger (fill, 'allocId'),
-                    'matchType': this.safeValue (fill, 'matchType'),
-                });
+        normalized['fills'] = [];
+        for (let i = 0; i < fills.length; i++) {
+            const fill = fills[i];
+            const commissionExponent = this.safeInteger (fill, 'commissionExponent', 0);
+            const fillPriceMantissa = this.safeInteger (fill, 'price');
+            const qtyMantissa = this.safeInteger (fill, 'qty');
+            const commissionMantissa = this.safeInteger (fill, 'commission');
+            let fillPrice = undefined;
+            if (fillPriceMantissa !== undefined) {
+                fillPrice = this.applyExponent (fillPriceMantissa, priceExponent).toString ();
             }
-        } else {
-            normalized['fills'] = [];
+            let fillQty = undefined;
+            if (qtyMantissa !== undefined) {
+                fillQty = this.applyExponent (qtyMantissa, qtyExponent).toString ();
+            }
+            let fillCommission = undefined;
+            if (commissionMantissa !== undefined) {
+                fillCommission = this.applyExponent (commissionMantissa, commissionExponent).toString ();
+            }
+            normalized['fills'].push ({
+                'price': fillPrice,
+                'qty': fillQty,
+                'commission': fillCommission,
+                'commissionAsset': this.safeString (fill, 'commissionAsset'),
+                'tradeId': this.safeInteger (fill, 'tradeId'),
+                'allocId': this.safeInteger (fill, 'allocId'),
+                'matchType': this.safeValue (fill, 'matchType'),
+            });
         }
         // Handle preventedMatches array
         const preventedMatches = this.safeList (order, 'preventedMatches', []);
@@ -3649,12 +3660,24 @@ export default class binance extends binanceRest {
                 const matchPriceMantissa = this.safeInteger (match, 'price');
                 const takerPreventedQtyMantissa = this.safeInteger (match, 'takerPreventedQuantity');
                 const makerPreventedQtyMantissa = this.safeInteger (match, 'makerPreventedQuantity');
+                let matchPrice = undefined;
+                if (matchPriceMantissa !== undefined) {
+                    matchPrice = this.applyExponent (matchPriceMantissa, priceExponent).toString ();
+                }
+                let takerPreventedQty = undefined;
+                if (takerPreventedQtyMantissa !== undefined) {
+                    takerPreventedQty = this.applyExponent (takerPreventedQtyMantissa, qtyExponent).toString ();
+                }
+                let makerPreventedQty = undefined;
+                if (makerPreventedQtyMantissa !== undefined) {
+                    makerPreventedQty = this.applyExponent (makerPreventedQtyMantissa, qtyExponent).toString ();
+                }
                 normalized['preventedMatches'].push ({
                     'preventedMatchId': this.safeInteger (match, 'preventedMatchId'),
                     'makerOrderId': this.safeInteger (match, 'makerOrderId'),
-                    'price': matchPriceMantissa !== undefined ? (this.applyExponent (matchPriceMantissa, priceExponent)).toString () : undefined,
-                    'takerPreventedQuantity': takerPreventedQtyMantissa !== undefined ? (this.applyExponent (takerPreventedQtyMantissa, qtyExponent)).toString () : undefined,
-                    'makerPreventedQuantity': makerPreventedQtyMantissa !== undefined ? (this.applyExponent (makerPreventedQtyMantissa, qtyExponent)).toString () : undefined,
+                    'price': matchPrice,
+                    'takerPreventedQuantity': takerPreventedQty,
+                    'makerPreventedQuantity': makerPreventedQty,
                     'makerSymbol': this.safeString (match, 'makerSymbol'),
                 });
             }
