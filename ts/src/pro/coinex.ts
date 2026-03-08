@@ -165,6 +165,7 @@ export default class coinex extends coinexRest {
             const parsedTicker = this.parseWSTicker (entry, market);
             this.tickers[symbol] = parsedTicker;
             newTickers[symbol] = parsedTicker;
+            this.streamProduce ('tickers', parsedTicker);
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -364,6 +365,7 @@ export default class coinex extends coinexRest {
             this.balance[account]['info'] = info;
             this.balance[account] = this.safeBalance (this.balance[account]);
             messageHash = 'balances:' + account;
+            this.streamProduce ('balances', this.balance);
             client.resolve (this.balance[account], messageHash);
         }
     }
@@ -492,6 +494,7 @@ export default class coinex extends coinexRest {
         const parsed = this.parseWsTrade (data, market);
         stored.append (parsed);
         this.trades[symbol] = stored;
+        this.streamProduce ('myTrades', parsed);
         client.resolve (this.trades[symbol], messageWithType);
         client.resolve (this.trades[symbol], messageHash);
     }
@@ -554,6 +557,7 @@ export default class coinex extends coinexRest {
             const trade = trades[i];
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
@@ -896,6 +900,7 @@ export default class coinex extends coinexRest {
             this.orderbooks[symbol] = currentOrderBook;
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
+        this.streamProduce ('orderbooks', this.orderbooks[symbol]);
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
@@ -1086,6 +1091,7 @@ export default class coinex extends coinexRest {
         const orders = this.orders;
         orders.append (parsedOrder);
         let messageHash = 'orders';
+        this.streamProduce ('orders', parsedOrder);
         const messageWithType = messageHash + ':' + market['type'];
         client.resolve (this.orders, messageWithType);
         messageHash += ':' + symbol;
@@ -1323,6 +1329,7 @@ export default class coinex extends coinexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const method = this.safeString (message, 'method');
         const error = this.safeString (message, 'message');
         if (error !== undefined) {
@@ -1394,6 +1401,7 @@ export default class coinex extends coinexRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];

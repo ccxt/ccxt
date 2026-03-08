@@ -128,6 +128,7 @@ export default class bithumb extends bithumbRest {
         const ticker = this.parseWsTicker (content);
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (this.tickers[symbol], messageHash);
     }
 
@@ -245,6 +246,7 @@ export default class bithumb extends bithumbRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         const messageHash = 'orderbook' + ':' + symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -333,6 +335,7 @@ export default class bithumb extends bithumbRest {
             const parsed = this.parseWsTrade (rawTrade);
             trades.append (parsed);
             const messageHash = 'trade' + ':' + symbol;
+            this.streamProduce ('trades', parsed);
             client.resolve (trades, messageHash);
         }
     }
@@ -390,6 +393,7 @@ export default class bithumb extends bithumbRest {
             return true;
         } catch (e) {
             client.reject (e);
+            this.streamProduce ('errors', undefined, e);
         }
         return true;
     }
@@ -450,6 +454,7 @@ export default class bithumb extends bithumbRest {
         this.balance['timestamp'] = timestamp;
         this.balance['datetime'] = this.iso8601 (timestamp);
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -546,6 +551,7 @@ export default class bithumb extends bithumbRest {
         }
         const cachedOrders = this.orders;
         cachedOrders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (cachedOrders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (cachedOrders, symbolSpecificMessageHash);
@@ -643,6 +649,7 @@ export default class bithumb extends bithumbRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

@@ -148,6 +148,7 @@ export default class apex extends apexRest {
         for (let j = 0; j < length; j++) {
             const index = length - j - 1;
             const parsed = this.parseWsTrade (trades[index], market);
+            this.streamProduce ('trades', parsed);
             stored.append (parsed);
         }
         const messageHash = 'trade' + ':' + symbol;
@@ -310,6 +311,7 @@ export default class apex extends apexRest {
         }
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -424,6 +426,7 @@ export default class apex extends apexRest {
         parsed['datetime'] = this.iso8601 (timestamp);
         this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', parsed);
         client.resolve (this.tickers[symbol], messageHash);
     }
 
@@ -525,6 +528,7 @@ export default class apex extends apexRest {
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
+            this.streamProduce ('ohlcvs', parsed);
         }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
         const resolveData = [ symbol, timeframe, stored ];
@@ -683,6 +687,7 @@ export default class apex extends apexRest {
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append (parsed);
+            this.streamProduce ('myTrades', parsed);
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
@@ -736,6 +741,7 @@ export default class apex extends apexRest {
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             orders.append (parsed);
+            this.streamProduce ('orders', parsed);
         }
         const symbolsArray = Object.keys (symbols);
         for (let i = 0; i < symbolsArray.length; i++) {
@@ -820,12 +826,15 @@ export default class apex extends apexRest {
                 // since we don't know which side is being closed
                 position['side'] = 'long';
                 cache.append (position);
+                this.streamProduce ('positions', position);
                 position['side'] = 'short';
                 cache.append (position);
+                this.streamProduce ('positions', position);
                 position['side'] = undefined;
             } else {
                 // regular update
                 cache.append (position);
+                this.streamProduce ('positions', position);
             }
         }
         const messageHashes = this.findMessageHashes (client, 'positions::');

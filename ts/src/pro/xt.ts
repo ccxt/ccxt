@@ -165,7 +165,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market = undefined, symbols: string[] = undefined, params = {}) {
         const privateAccess = access === 'private';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
@@ -761,6 +761,7 @@ export default class xt extends xtRest {
             const event = this.safeString (message, 'event');
             const messageHashTail = isSpot ? 'spot' : 'contract';
             const messageHash = event + '::' + messageHashTail;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -845,6 +846,7 @@ export default class xt extends xtRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             newTickers.push (ticker);
+            this.streamProduce ('tickers', ticker);
         }
         const messageHashStart = this.safeString (message, 'topic') + '::' + tradeType;
         const messageHashes = this.findMessageHashes (client, messageHashStart + '::');
@@ -918,6 +920,8 @@ export default class xt extends xtRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             const event = this.safeString (message, 'event');
             const messageHash = event + '::' + tradeType;
             client.resolve (stored, messageHash);
@@ -972,6 +976,7 @@ export default class xt extends xtRest {
                 this.trades[symbol] = tradesArray;
             }
             tradesArray.append (trade);
+            this.streamProduce ('trades', trade);
             const messageHash = event + '::' + tradeType;
             client.resolve (tradesArray, messageHash);
         }
@@ -1089,6 +1094,7 @@ export default class xt extends xtRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             orderbook['symbol'] = symbol;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -1284,6 +1290,7 @@ export default class xt extends xtRest {
             const market = this.safeMarket (marketId, undefined, undefined, tradeType);
             const parsed = this.parseWsOrder (order, market);
             orders.append (parsed);
+            this.streamProduce ('orders', parsed);
             client.resolve (orders, 'order::' + tradeType);
         }
         return message;
@@ -1334,6 +1341,7 @@ export default class xt extends xtRest {
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
         const tradeType = ('coin' in data) ? 'contract' : 'spot';
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, 'balance::' + tradeType);
     }
 
@@ -1382,11 +1390,13 @@ export default class xt extends xtRest {
         const parsedTrade = this.parseTrade (data);
         const market = this.market (parsedTrade['symbol']);
         stored.append (parsedTrade);
+        this.streamProduce ('myTrades', parsedTrade);
         const tradeType = market['contract'] ? 'contract' : 'spot';
         client.resolve (stored, 'trade::' + tradeType);
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'event');
         if (event === 'pong') {
             client.onPong ();
@@ -1480,6 +1490,7 @@ export default class xt extends xtRest {
             this.getListenKey (true);
             return;
         }
+        this.streamProduce ('errors', undefined, message);
         client.reject (message);
     }
 }

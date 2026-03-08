@@ -223,11 +223,13 @@ export default class woo extends wooRest {
                     const ts = this.safeInteger (message, 'ts');
                     if (ts > timestamp) {
                         this.handleOrderBookMessage (client, message, orderbook);
+                        this.streamProduce ('orderbooks', orderbook);
                         client.resolve (orderbook, topic);
                     }
                 } catch (e) {
                     delete this.orderbooks[symbol];
                     delete client.subscriptions[topic];
+                    this.streamProduce ('orderbooks::' + symbol, orderbook);
                     client.reject (e, topic);
                 }
             }
@@ -242,6 +244,7 @@ export default class woo extends wooRest {
             const timestamp = this.safeInteger (message, 'ts');
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, topic);
         }
     }
@@ -282,9 +285,11 @@ export default class woo extends wooRest {
                 }
             }
             this.orderbooks[symbol] = orderbook;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];
+            this.streamProduce ('orderbooks::' + symbol, undefined, e);
             client.reject (e, messageHash);
         }
     }
@@ -414,6 +419,7 @@ export default class woo extends wooRest {
         const ticker = this.parseWsTicker (data, market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, topic);
         return message;
     }
@@ -500,6 +506,7 @@ export default class woo extends wooRest {
             const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
             this.tickers[market['symbol']] = ticker;
             result.push (ticker);
+            this.streamProduce ('tickers', ticker);
         }
         client.resolve (result, topic);
     }
@@ -694,6 +701,8 @@ export default class woo extends wooRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, topic);
     }
 
@@ -769,6 +778,7 @@ export default class woo extends wooRest {
             tradesArray = new ArrayCache (limit);
         }
         tradesArray.append (trade);
+        this.streamProduce ('trades', trade);
         this.trades[symbol] = tradesArray;
         client.resolve (tradesArray, topic);
     }
@@ -1180,6 +1190,7 @@ export default class woo extends wooRest {
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
             cachedOrders.append (parsed);
+            this.streamProduce ('orders', parsed);
             client.resolve (this.orders, topic);
             const messageHashSymbol = topic + ':' + symbol;
             client.resolve (this.orders, messageHashSymbol);
@@ -1224,6 +1235,7 @@ export default class woo extends wooRest {
         }
         const trade = this.parseWsTrade (message);
         myTrades.append (trade);
+        this.streamProduce ('myTrades', trade);
         let messageHash = 'myTrades:' + trade['symbol'];
         client.resolve (myTrades, messageHash);
         messageHash = 'myTrades';
@@ -1295,6 +1307,7 @@ export default class woo extends wooRest {
             const contracts = this.safeNumber (position, 'contracts', 0);
             if (contracts > 0) {
                 cache.append (position);
+                this.streamProduce ('positions', position);
             }
         }
         // don't remove the future from the .futures cache
@@ -1346,6 +1359,7 @@ export default class woo extends wooRest {
             const position = this.parsePosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
+            this.streamProduce ('positions', position);
             const messageHash = 'positions::' + market['symbol'];
             client.resolve (position, messageHash);
         }
@@ -1421,6 +1435,7 @@ export default class woo extends wooRest {
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, 'balance');
     }
 
@@ -1492,6 +1507,7 @@ export default class woo extends wooRest {
                     delete client.subscriptions[messageHash];
                 }
             } else {
+                this.streamProduce ('errors', undefined, error);
                 client.reject (error);
             }
             return true;
@@ -1522,6 +1538,7 @@ export default class woo extends wooRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1629,6 +1646,7 @@ export default class woo extends wooRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
