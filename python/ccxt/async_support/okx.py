@@ -1090,6 +1090,7 @@ class okx(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'options': {
                 'sandboxMode': False,
+                'useSbe': False,  # use SBE(Simple Binary Encoding) for market data when available
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
@@ -6151,11 +6152,19 @@ class okx(Exchange, ImplicitAPI):
         isArray = isinstance(params, list)
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
+        # Check for SBE(Simple Binary Encoding) parameters and remove from query
+        useSbe = False
+        useSbe, query = self.handle_option_and_params(query, 'sign', 'useSbe', False)
         url = self.implode_hostname(self.urls['api']['rest']) + request
         # type = self.getPathAuthenticationType(path)
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)
+            # Add SBE headers only for the books-sbe endpoint (OKX SBE is WS-only except this one REST endpoint)
+            if useSbe and path == 'market/books-sbe':
+                if headers is None:
+                    headers = {}
+                headers['Accept'] = 'application/sbe'
         elif api == 'private':
             self.check_required_credentials()
             # inject id in implicit api call
@@ -6197,6 +6206,17 @@ class okx(Exchange, ImplicitAPI):
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers['OK-ACCESS-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def get_sbe_decoder_registry(self):
+        return {
+            '1000': BboTbtChannelEventDecoder,
+            '1001': BooksL2TbtChannelEventDecoder,
+            '1002': BooksL2TbtExponentUpdateEventDecoder,
+            '1003': BooksL2TbtElpChannelEventDecoder,
+            '1004': BooksL2TbtElpExponentUpdateEventDecoder,
+            '1005': TradesChannelEventDecoder,
+            '1006': SnapshotDepthResponseEventDecoder,
+        }
 
     def parse_funding_rate(self, contract, market: Market = None) -> FundingRate:
         #

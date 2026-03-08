@@ -193,7 +193,7 @@ func  (this *XtCore) Subscribe(name interface{}, access interface{}, methodName 
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
             var privateAccess interface{} = ccxt.IsEqual(access, "private")
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -271,7 +271,7 @@ func  (this *XtCore) UnSubscribe(messageHash interface{}, name interface{}, acce
             subscriptionParams := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = subscriptionParams
             var privateAccess interface{} = ccxt.IsEqual(access, "private")
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -425,7 +425,7 @@ func  (this *XtCore) WatchTickers(optionalArgs ...interface{}) <- chan interface
             var options interface{} = this.SafeDict(this.Options, "watchTickers")
             var defaultMethod interface{} = this.SafeString(options, "method", "tickers")
             var name interface{} = this.SafeString(params, "method", defaultMethod)
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
                 market = this.Market(ccxt.GetValue(symbols, 0))
             }
@@ -757,7 +757,7 @@ func  (this *XtCore) WatchOrders(optionalArgs ...interface{}) <- chan interface{
             retRes5218 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes5218)
             var name interface{} = "order"
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }
@@ -803,7 +803,7 @@ func  (this *XtCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfac
             retRes5478 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes5478)
             var name interface{} = "trade"
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }

@@ -244,11 +244,11 @@ func  (this *BlofinCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
         
             retRes1868 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1868)
-            var callerMethodName interface{} = nil
+            var callerMethodName interface{}
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
-            var channelName interface{} = nil
+            var channelName interface{}
             channelNameparamsVariable := this.HandleOptionAndParams(params, callerMethodName, "channel", "books")
             channelName = ccxt.GetValue(channelNameparamsVariable,0)
             params = ccxt.GetValue(channelNameparamsVariable,1)
@@ -433,7 +433,7 @@ func  (this *BlofinCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             symbols = this.MarketSymbols(symbols, nil, false)
             var firstMarket interface{} = this.Market(ccxt.GetValue(symbols, 0))
             var channel interface{} = "tickers"
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -632,7 +632,7 @@ func  (this *BlofinCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
         
             retRes4718 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes4718)
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -886,7 +886,7 @@ func  (this *BlofinCore) WatchFundingRate(symbol interface{}, optionalArgs ...in
             retRes6488 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6488)
             var market interface{} = this.Market(symbol)
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchFundingRate", market, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -950,12 +950,12 @@ func  (this *BlofinCore) WatchMultipleWrapper(isPublic interface{}, channelName 
             var isOHLCV interface{} =     (ccxt.IsEqual(channelName, "candle"))
             var symbols interface{} = ccxt.Ternary(ccxt.IsTrue(isOHLCV), this.GetListFromObjectValues(symbolsArray, 0), symbolsArray)
             symbols = this.MarketSymbols(symbols, nil, true, true)
-            var firstMarket interface{} = nil
+            var firstMarket interface{}
             var firstSymbol interface{} = this.SafeString(symbols, 0)
             if ccxt.IsTrue(!ccxt.IsEqual(firstSymbol, nil)) {
                 firstMarket = this.Market(firstSymbol)
             }
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, firstMarket, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -971,7 +971,7 @@ func  (this *BlofinCore) WatchMultipleWrapper(isPublic interface{}, channelName 
             if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 0)) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                     var current interface{} = ccxt.GetValue(symbols, i)
-                    var market interface{} = nil
+                    var market interface{}
                     var channel interface{} = channelName
                     if ccxt.IsTrue(isOHLCV) {
                         market = this.Market(current)
@@ -1045,7 +1045,7 @@ func  (this *BlofinCore) HandleMessage(client interface{}, message interface{}) 
         "positions": this.HandlePositions,
         "funding-rate": this.HandleFundingRate,
     }
-    var method interface{} = nil
+    var method interface{}
     if ccxt.IsTrue(ccxt.IsEqual(message, "pong")) {
         method = this.SafeValue(methods, "pong")
     } else {

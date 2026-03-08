@@ -696,7 +696,7 @@ func  (this *KrakenfuturesCore) WatchBalance(optionalArgs ...interface{}) <- cha
             ccxt.PanicOnError(retRes4698)
             var name interface{} = "balances"
             var messageHash interface{} = name
-            var account interface{} = nil
+            var account interface{}
             accountparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "account")
             account = ccxt.GetValue(accountparamsVariable,0)
             params = ccxt.GetValue(accountparamsVariable,1)
@@ -1137,7 +1137,7 @@ func  (this *KrakenfuturesCore) ParseWsOrder(order interface{}, optionalArgs ...
     _ = market
     var isCancelled interface{} = this.SafeValue(order, "is_cancel")
     var unparsedOrder interface{} = order
-    var status interface{} = nil
+    var status interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(isCancelled, nil)) {
         unparsedOrder = this.SafeValue(order, "order")
         if ccxt.IsTrue(ccxt.IsEqual(isCancelled, true)) {

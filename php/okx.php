@@ -1061,6 +1061,7 @@ class okx extends Exchange {
             'precisionMode' => TICK_SIZE,
             'options' => array(
                 'sandboxMode' => false,
+                'useSbe' => false, // use SBE (Simple Binary Encoding) for market data when available
                 'defaultNetwork' => 'ERC20',
                 'defaultNetworks' => array(
                     'ETH' => 'ERC20',
@@ -6442,11 +6443,21 @@ class okx extends Exchange {
         $isArray = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params)));
         $request = '/api/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
+        // Check for SBE (Simple Binary Encoding) parameters and remove from $query
+        $useSbe = false;
+        list($useSbe, $query) = $this->handle_option_and_params($query, 'sign', 'useSbe', false);
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
         // $type = $this->getPathAuthenticationType ($path);
         if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
+            }
+            // Add SBE $headers only for the books-sbe endpoint (OKX SBE is WS-only except this one REST endpoint)
+            if ($useSbe && $path === 'market/books-sbe') {
+                if ($headers === null) {
+                    $headers = array();
+                }
+                $headers['Accept'] = 'application/sbe';
             }
         } elseif ($api === 'private') {
             $this->check_required_credentials();
@@ -6498,6 +6509,18 @@ class okx extends Exchange {
             $headers['OK-ACCESS-SIGN'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function get_sbe_decoder_registry() {
+        return array(
+            '1000' => BboTbtChannelEventDecoder,
+            '1001' => BooksL2TbtChannelEventDecoder,
+            '1002' => BooksL2TbtExponentUpdateEventDecoder,
+            '1003' => BooksL2TbtElpChannelEventDecoder,
+            '1004' => BooksL2TbtElpExponentUpdateEventDecoder,
+            '1005' => TradesChannelEventDecoder,
+            '1006' => SnapshotDepthResponseEventDecoder,
+        );
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {

@@ -134,7 +134,7 @@ func  (this *KrakenCore) OrderRequestWs(method interface{}, symbol interface{}, 
         ccxt.AddElementToObject(ccxt.GetValue(request, "params"), "limit_price", this.ParseToNumeric(this.PriceToPrecision(symbol, price)))
     }
     var isMarket interface{} =     (ccxt.IsEqual(typeVar, "market"))
-    var postOnly interface{} = nil
+    var postOnly interface{}
     postOnlyparamsVariable := this.HandlePostOnly(isMarket, false, params)
     postOnly = ccxt.GetValue(postOnlyparamsVariable,0)
     params = ccxt.GetValue(postOnlyparamsVariable,1)
@@ -616,7 +616,7 @@ func  (this *KrakenCore) HandleTicker(client interface{}, message interface{})  
     var symbol interface{} = this.SafeString(ticker, "symbol")
     var messageHash interface{} = this.GetMessageHash("ticker", nil, symbol)
     var vwap interface{} = this.SafeString(ticker, "vwap")
-    var quoteVolume interface{} = nil
+    var quoteVolume interface{}
     var baseVolume interface{} = this.SafeString(ticker, "volume")
     if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(baseVolume, nil)) && ccxt.IsTrue(!ccxt.IsEqual(vwap, nil))) {
         quoteVolume = ccxt.Precise.StringMul(baseVolume, vwap)
@@ -1180,7 +1180,7 @@ func  (this *KrakenCore) HandleOrderBook(client interface{}, message interface{}
     var b interface{} = this.SafeValue(first, "bids", []interface{}{})
     var c interface{} = this.SafeInteger(first, "checksum")
     var messageHash interface{} = this.GetMessageHash("orderbook", nil, symbol)
-    var orderbook interface{} = nil
+    var orderbook interface{}
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "update")) {
         orderbook = ccxt.GetValue(this.Orderbooks, symbol)
         var storedAsks interface{} = ccxt.GetValue(orderbook, "asks")
@@ -1510,7 +1510,7 @@ func  (this *KrakenCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
     if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
         symbol = ccxt.GetValue(market, "symbol")
     }
-    var fee interface{} = nil
+    var fee interface{}
     if ccxt.IsTrue(ccxt.InOp(trade, "fees")) {
         var fees interface{} = this.SafeList(trade, "fees", []interface{}{})
         var firstFee interface{} = this.SafeDict(fees, 0, map[string]interface{} {})
@@ -1920,7 +1920,7 @@ func  (this *KrakenCore) HandleErrorMessage(client interface{}, message interfac
         var requestId interface{} = this.SafeString2(message, "reqid", "req_id")
         var broad interface{} = ccxt.GetValue(ccxt.GetValue(this.Exceptions, "ws"), "broad")
         var broadKey interface{} = this.FindBroadlyMatchedKey(broad, errorMessage)
-        var exception interface{} = nil
+        var exception interface{}
         if ccxt.IsTrue(ccxt.IsEqual(broadKey, nil)) {
             exception = ccxt.ExchangeError(            errorMessage) // c# requirement to convert the errorMessage to string
         } else {

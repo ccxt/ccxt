@@ -572,8 +572,8 @@ func  (this *AscendexCore) WatchBalance(optionalArgs ...interface{}) <- chan int
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
-            var channel interface{} = nil
-            var messageHash interface{} = nil
+            var channel interface{}
+            var messageHash interface{}
             if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "margin")))) {
                 var accountCategories interface{} = this.SafeValue(this.Options, "accountCategories", map[string]interface{} {})
                 var accountCategory interface{} = this.SafeString(accountCategories, typeVar, "cash") // cash, margin,
@@ -644,8 +644,8 @@ func  (this *AscendexCore) HandleBalance(client interface{}, message interface{}
     //     (...)
     //
     var channel interface{} = this.SafeString(message, "m")
-    var result interface{} = nil
-    var typeVar interface{} = nil
+    var result interface{}
+    var typeVar interface{}
     if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(channel, "order"))) || ccxt.IsTrue((ccxt.IsEqual(channel, "futures-order")))) {
         var data interface{} = this.SafeValue(message, "data")
         var marketId interface{} = this.SafeString(data, "s")
@@ -671,7 +671,7 @@ func  (this *AscendexCore) HandleBalance(client interface{}, message interface{}
         typeVar = this.SafeString(categoriesAccounts, accountType, "spot")
         result = this.SafeValue(this.Balance, typeVar, map[string]interface{} {})
         var data interface{} = this.SafeValue(message, "data")
-        var balances interface{} = nil
+        var balances interface{}
         if ccxt.IsTrue(ccxt.IsEqual(data, nil)) {
             balances = this.SafeValue(message, "col")
         } else {
@@ -716,7 +716,7 @@ func  (this *AscendexCore) WatchOrders(optionalArgs ...interface{}) <- chan inte
         
             retRes5478 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes5478)
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -724,8 +724,8 @@ func  (this *AscendexCore) WatchOrders(optionalArgs ...interface{}) <- chan inte
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
-            var messageHash interface{} = nil
-            var channel interface{} = nil
+            var messageHash interface{}
+            var channel interface{}
             if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "margin"))) {
                 channel = "futures-order"
                 messageHash = "order:FUTURES"
@@ -882,7 +882,7 @@ func  (this *AscendexCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var typeVar interface{} = this.SafeStringLower(order, "ot")
     var side interface{} = this.SafeStringLower(order, "sd")
     var feeCost interface{} = this.SafeNumber(order, "cf")
-    var fee interface{} = nil
+    var fee interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         var feeCurrencyId interface{} = this.SafeString(order, "fa")
         var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)

@@ -226,7 +226,7 @@ func  (this *DeepcoinCore) Authenticate(optionalArgs ...interface{}) <- chan int
             var listenKeyExpiryTimestamp interface{} = this.SafeInteger(this.Options, "listenKeyExpiryTimestamp", time)
             var expired interface{} = ccxt.IsGreaterThan((ccxt.Subtract(time, listenKeyExpiryTimestamp)), 60000) // 1 minute before expiry
             var listenKey interface{} = this.SafeString(this.Options, "listenKey")
-            var response interface{} = nil
+            var response interface{}
             if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
                 
             response = (<-this.PrivateGetDeepcoinListenkeyAcquire(params))
@@ -579,7 +579,7 @@ func  (this *DeepcoinCore) ParseWsTrade(trade interface{}, optionalArgs ...inter
     var direction interface{} = this.SafeString(trade, "D")
     var timestamp interface{} = this.SafeTimestamp2(trade, "TT", "T")
     var matchRole interface{} = this.SafeString(trade, "m")
-    var fee interface{} = nil
+    var fee interface{}
     var feeCost interface{} = this.SafeString(trade, "F")
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {

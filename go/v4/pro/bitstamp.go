@@ -418,8 +418,8 @@ func  (this *BitstampCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var orderTypeRaw interface{} = this.SafeStringLower(order, "order_type")
     var side interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(orderTypeRaw, "1"))), "sell", "buy")
     var orderSubTypeRaw interface{} = this.SafeStringLower(order, "order_subtype") // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
-    var orderType interface{} = nil
-    var timeInForce interface{} = nil
+    var orderType interface{}
+    var timeInForce interface{}
     if ccxt.IsTrue(ccxt.IsEqual(orderSubTypeRaw, "0")) {
         orderType = "limit"
     } else if ccxt.IsTrue(ccxt.IsEqual(orderSubTypeRaw, "2")) {
@@ -438,7 +438,7 @@ func  (this *BitstampCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var amount interface{} = this.SafeString(order, "amount_str")
     var filled interface{} = this.SafeString(order, "amount_traded")
     var event interface{} = this.SafeString(order, "event")
-    var status interface{} = nil
+    var status interface{}
     if ccxt.IsTrue(ccxt.Precise.StringEq(filled, amount)) {
         status = "closed"
     } else if ccxt.IsTrue(ccxt.IsEqual(event, "order_deleted")) {

@@ -99,7 +99,7 @@ func  (this *BitoproCore) WatchOrderBook(symbol interface{}, optionalArgs ...int
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash interface{} = ccxt.Add(ccxt.Add("ORDER_BOOK", ":"), symbol)
-            var endPart interface{} = nil
+            var endPart interface{}
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 endPart = ccxt.GetValue(market, "id")
             } else {
@@ -360,7 +360,7 @@ func  (this *BitoproCore) ParseWsTrade(trade interface{}, optionalArgs ...interf
         }
     }
     var amount interface{} = this.SafeString(trade, "volume")
-    var fee interface{} = nil
+    var fee interface{}
     var feeAmount interface{} = this.SafeString(trade, "fee")
     var feeSymbol interface{} = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
     if ccxt.IsTrue(!ccxt.IsEqual(feeAmount, nil)) {
@@ -371,7 +371,7 @@ func  (this *BitoproCore) ParseWsTrade(trade interface{}, optionalArgs ...interf
         }
     }
     var isMaker interface{} = this.SafeValue(trade, "isMaker")
-    var takerOrMaker interface{} = nil
+    var takerOrMaker interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(isMaker, nil)) {
         if ccxt.IsTrue(isMaker) {
             takerOrMaker = "maker"

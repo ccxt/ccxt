@@ -646,7 +646,7 @@ func  (this *LbankCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             key:= (<-this.Authenticate(params))
             ccxt.PanicOnError(key)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-            var messageHash interface{} = nil
+            var messageHash interface{}
             var pair interface{} = "all"
             if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
                 messageHash = "orders:all"
@@ -694,7 +694,7 @@ func  (this *LbankCore) HandleOrders(client interface{}, message interface{})  {
     //
     var marketId interface{} = this.SafeString(message, "pair")
     var symbol interface{} = this.SafeSymbol(marketId, nil, "_")
-    var myOrders interface{} = nil
+    var myOrders interface{}
     if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
         var limit interface{} = this.SafeInteger(this.Options, "ordersLimit", 1000)
         myOrders = ccxt.NewArrayCacheBySymbolById(limit)
@@ -757,7 +757,7 @@ func  (this *LbankCore) ParseWsOrder(order interface{}, optionalArgs ...interfac
     var typeParts interface{} = ccxt.Split(rawType, "_")
     var side interface{} = this.SafeString(typeParts, 0)
     var exchangeType interface{} = this.SafeString(typeParts, 1)
-    var typeVar interface{} = nil
+    var typeVar interface{}
     if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(rawType, "buy")) && ccxt.IsTrue(!ccxt.IsEqual(rawType, "sell"))) {
         typeVar = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(exchangeType, "market"))), "market", "limit")
     }
@@ -766,7 +766,7 @@ func  (this *LbankCore) ParseWsOrder(order interface{}, optionalArgs ...interfac
     var timestamp interface{} = this.SafeInteger(orderUpdate, "updateTime")
     var status interface{} = this.SafeString(orderUpdate, "orderStatus")
     var orderAmount interface{} = this.SafeString(orderUpdate, "orderAmt")
-    var cost interface{} = nil
+    var cost interface{}
     if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "market"))) && ccxt.IsTrue((ccxt.IsEqual(side, "buy")))) {
         cost = orderAmount
     }

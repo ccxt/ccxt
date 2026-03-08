@@ -552,7 +552,7 @@ func  (this *HtxCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfa
             if !ccxt.IsTrue(this.InArray(limit, allowedLimits)) {
                 panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")))
             }
-            var messageHash interface{} = nil
+            var messageHash interface{}
             if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
                 messageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), this.NumberToString(limit))
             } else {
@@ -601,7 +601,7 @@ func  (this *HtxCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...inter
             var topic interface{} = "orderbook"
             var options interface{} = this.SafeDict(this.Options, "watchOrderBook", map[string]interface{} {})
             var depth interface{} = this.SafeInteger(options, "depth", 150)
-            var subMessageHash interface{} = nil
+            var subMessageHash interface{}
             if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
                 subMessageHash = ccxt.Add(ccxt.Add(ccxt.Add("market.", ccxt.GetValue(market, "id")), ".mbp."), this.NumberToString(depth))
             } else {
@@ -987,13 +987,13 @@ func  (this *HtxCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfa
         
             retRes8058 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes8058)
-            var typeVar interface{} = nil
+            var typeVar interface{}
             var marketId interface{} = "*" // wildcard
-            var market interface{} = nil
-            var messageHash interface{} = nil
-            var channel interface{} = nil
-            var trades interface{} = nil
-            var subType interface{} = nil
+            var market interface{}
+            var messageHash interface{}
+            var channel interface{}
+            var trades interface{}
+            var subType interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -1008,7 +1008,7 @@ func  (this *HtxCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interfa
                 params = this.Omit(params, []interface{}{"type", "subType"})
             }
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
-                var mode interface{} = nil
+                var mode interface{}
                 if ccxt.IsTrue(ccxt.IsEqual(mode, nil)) {
                     mode = this.SafeString2(this.Options, "watchMyTrades", "mode", "0")
                     mode = this.SafeString(params, "mode", mode)
@@ -1042,8 +1042,8 @@ func  (this *HtxCore) GetOrderChannelAndMessageHash(typeVar interface{}, subType
     _ = market
     params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
-    var messageHash interface{} = nil
-    var channel interface{} = nil
+    var messageHash interface{}
+    var channel interface{}
     var orderType interface{} = this.SafeString(this.Options, "orderType", "orders") // orders or matchOrders
     orderType = this.SafeString(params, "orderType", orderType)
     params = this.Omit(params, "orderType")
@@ -1108,9 +1108,9 @@ func  (this *HtxCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
         
             retRes9038 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9038)
-            var typeVar interface{} = nil
-            var subType interface{} = nil
-            var market interface{} = nil
+            var typeVar interface{}
+            var subType interface{}
+            var market interface{}
             var suffix interface{} = "*" // wildcard
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1125,8 +1125,8 @@ func  (this *HtxCore) WatchOrders(optionalArgs ...interface{}) <- chan interface
                 subType = this.SafeString(params, "subType", subType)
                 params = this.Omit(params, []interface{}{"type", "subType"})
             }
-            var messageHash interface{} = nil
-            var channel interface{} = nil
+            var messageHash interface{}
+            var channel interface{}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 messageHash = ccxt.Add(ccxt.Add("orders", "#"), suffix)
                 channel = messageHash
@@ -1276,7 +1276,7 @@ func  (this *HtxCore) HandleOrder(client interface{}, message interface{})  {
         marketId = this.SafeString(data, "symbol")
     }
     var market interface{} = this.SafeMarket(marketId)
-    var parsedOrder interface{} = nil
+    var parsedOrder interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(data, nil)) {
         // spot updates
         var eventType interface{} = this.SafeString(data, "eventType")
@@ -1471,7 +1471,7 @@ func  (this *HtxCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
     var filled interface{} = this.SafeString(order, "execAmt")
     var typeSide interface{} = this.SafeString(order, "type")
     var feeCost interface{} = this.SafeString(order, "fee")
-    var fee interface{} = nil
+    var fee interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         var feeCurrencyId interface{} = this.SafeString(order, "fee_asset")
         fee = map[string]interface{} {
@@ -1548,14 +1548,14 @@ func  (this *HtxCore) ParseOrderTrade(trade interface{}, optionalArgs ...interfa
     var order interface{} = this.SafeString(trade, "orderId")
     var timestamp interface{} = this.SafeInteger(trade, "tradeTime")
     var typeVar interface{} = this.SafeString(trade, "type")
-    var side interface{} = nil
+    var side interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(typeVar, nil)) {
         var typeParts interface{} = ccxt.Split(typeVar, "-")
         side = ccxt.GetValue(typeParts, 0)
         typeVar = ccxt.GetValue(typeParts, 1)
     }
     var aggressor interface{} = this.SafeValue(trade, "aggressor")
-    var takerOrMaker interface{} = nil
+    var takerOrMaker interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(aggressor, nil)) {
         takerOrMaker = ccxt.Ternary(ccxt.IsTrue(aggressor), "taker", "maker")
     }
@@ -1605,14 +1605,14 @@ func  (this *HtxCore) WatchPositions(optionalArgs ...interface{}) <- chan interf
         
             retRes13798 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes13798)
-            var market interface{} = nil
+            var market interface{}
             var messageHash interface{} = ""
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 market = this.GetMarketFromSymbols(symbols)
                 messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
             }
-            var typeVar interface{} = nil
-            var subType interface{} = nil
+            var typeVar interface{}
+            var subType interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
                 typeVar = ccxt.GetValue(market, "type")
                 subType = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(market, "linear")), "linear", "inverse")
@@ -1628,7 +1628,7 @@ func  (this *HtxCore) WatchPositions(optionalArgs ...interface{}) <- chan interf
                 params = ccxt.GetValue(subTypeparamsVariable,1)
             }
             symbols = this.MarketSymbols(symbols)
-            var marginMode interface{} = nil
+            var marginMode interface{}
             marginModeparamsVariable := this.HandleMarginModeAndParams("watchPositions", params, "cross")
             marginMode = ccxt.GetValue(marginModeparamsVariable,0)
             params = ccxt.GetValue(marginModeparamsVariable,1)
@@ -1744,11 +1744,11 @@ func  (this *HtxCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var subType interface{} = nil
+            var subType interface{}
             subTypeparamsVariable := this.HandleSubTypeAndParams("watchBalance", nil, params, "linear")
             subType = ccxt.GetValue(subTypeparamsVariable,0)
             params = ccxt.GetValue(subTypeparamsVariable,1)
@@ -1757,9 +1757,9 @@ func  (this *HtxCore) WatchBalance(optionalArgs ...interface{}) <- chan interfac
         
             retRes15068 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes15068)
-            var messageHash interface{} = nil
-            var channel interface{} = nil
-            var marginMode interface{} = nil
+            var messageHash interface{}
+            var channel interface{}
+            var marginMode interface{}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 var mode interface{} = this.SafeString2(this.Options, "watchBalance", "mode", "2")
                 mode = this.SafeString(params, "mode", mode)
@@ -2691,17 +2691,17 @@ func  (this *HtxCore) ParseWsTrade(trade interface{}, optionalArgs ...interface{
     market = this.Market(symbol)
     var orderType interface{} = this.SafeString(trade, "orderType")
     var aggressor interface{} = this.SafeValue(trade, "aggressor")
-    var takerOrMaker interface{} = nil
+    var takerOrMaker interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(aggressor, nil)) {
         takerOrMaker = ccxt.Ternary(ccxt.IsTrue(aggressor), "taker", "maker")
     }
-    var typeVar interface{} = nil
+    var typeVar interface{}
     var orderTypeParts interface{} = []interface{}{}
     if ccxt.IsTrue(!ccxt.IsEqual(orderType, nil)) {
         orderTypeParts = ccxt.Split(orderType, "-")
         typeVar = this.SafeString(orderTypeParts, 1)
     }
-    var fee interface{} = nil
+    var fee interface{}
     var feeCurrency interface{} = this.SafeCurrencyCode(this.SafeString(trade, "feeCurrency"))
     if ccxt.IsTrue(!ccxt.IsEqual(feeCurrency, nil)) {
         fee = map[string]interface{} {
@@ -2736,8 +2736,8 @@ func  (this *HtxCore) GetUrlByMarketType(typeVar interface{}, optionalArgs ...in
     var hostname interface{} = map[string]interface{} {
         "hostname": this.Hostname,
     }
-    var hostnameURL interface{} = nil
-    var url interface{} = nil
+    var hostnameURL interface{}
+    var url interface{}
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
         if ccxt.IsTrue(isPrivate) {
             hostnameURL = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), api), "spot"), "private")
@@ -2841,7 +2841,7 @@ func  (this *HtxCore) SubscribePrivate(channel interface{}, messageHash interfac
                 "params": params,
             }
             var extendedSubsription interface{} = this.Extend(subscription, subscriptionParams)
-            var request interface{} = nil
+            var request interface{}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 request = map[string]interface{} {
                     "action": "sub",
@@ -2895,7 +2895,7 @@ func  (this *HtxCore) Authenticate(optionalArgs ...interface{}) <- chan interfac
             var authenticated interface{} = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
             if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
                 var timestamp interface{} = this.Ymdhms(this.Milliseconds(), "T")
-                var signatureParams interface{} = nil
+                var signatureParams interface{}
                 if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                     signatureParams = map[string]interface{} {
                         "accessKey": this.ApiKey,
@@ -2915,7 +2915,7 @@ func  (this *HtxCore) Authenticate(optionalArgs ...interface{}) <- chan interfac
                 var auth interface{} = this.Urlencode(signatureParams, true) // true required in go
                 var payload interface{} = ccxt.Join([]interface{}{"GET", hostname, relativePath, auth}, "\n") // eslint-disable-line quotes
                 var signature interface{} = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
-                var request interface{} = nil
+                var request interface{}
                 if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                     var newParams interface{} = map[string]interface{} {
                         "authType": "api",

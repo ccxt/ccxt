@@ -513,8 +513,8 @@ func  (this *ApexCore) HandleTicker(client interface{}, message interface{})  {
     var topic interface{} = this.SafeString(message, "topic", "")
     var updateType interface{} = this.SafeString(message, "type", "")
     var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
-    var symbol interface{} = nil
-    var parsed interface{} = nil
+    var symbol interface{}
+    var parsed interface{}
     if ccxt.IsTrue((ccxt.IsEqual(updateType, "snapshot"))) {
         parsed = this.ParseTicker(data)
         symbol = ccxt.GetValue(parsed, "symbol")
@@ -889,7 +889,7 @@ func  (this *ApexCore) HandleMyTrades(client interface{}, lists interface{})  {
     var symbols interface{} = map[string]interface{} {}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(lists)); i++ {
         var rawTrade interface{} = ccxt.GetValue(lists, i)
-        var parsed interface{} = nil
+        var parsed interface{}
         parsed = this.ParseWsTrade(rawTrade)
         var symbol interface{} = ccxt.GetValue(parsed, "symbol")
         ccxt.AddElementToObject(symbols, symbol, true)
@@ -941,7 +941,7 @@ func  (this *ApexCore) HandleOrder(client interface{}, lists interface{})  {
     var orders interface{} = this.Orders
     var symbols interface{} = map[string]interface{} {}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(lists)); i++ {
-        var parsed interface{} = nil
+        var parsed interface{}
         parsed = this.ParseOrder(ccxt.GetValue(lists, i))
         var symbol interface{} = ccxt.GetValue(parsed, "symbol")
         ccxt.AddElementToObject(symbols, symbol, true)

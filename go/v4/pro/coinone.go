@@ -390,7 +390,7 @@ func  (this *CoinoneCore) ParseWsTrade(trade interface{}, optionalArgs ...interf
     var timestamp interface{} = this.SafeInteger(trade, "timestamp")
     market = this.SafeMarket(symbol, market)
     var isSellerMaker interface{} = this.SafeValue(trade, "is_seller_maker")
-    var side interface{} = nil
+    var side interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(isSellerMaker, nil)) {
         side = ccxt.Ternary(ccxt.IsTrue(isSellerMaker), "sell", "buy")
     }

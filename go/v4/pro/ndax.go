@@ -459,8 +459,8 @@ func  (this *NdaxCore) HandleOrderBook(client interface{}, message interface{}) 
     if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
         return
     }
-    var timestamp interface{} = nil
-    var nonce interface{} = nil
+    var timestamp interface{}
+    var nonce interface{}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
         var bidask interface{} = ccxt.GetValue(payload, i)
         if ccxt.IsTrue(ccxt.IsEqual(timestamp, nil)) {

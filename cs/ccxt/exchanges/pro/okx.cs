@@ -42,12 +42,15 @@ public partial class okx : ccxt.okx
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
                     { "ws", "wss://ws.okx.com:8443/ws/v5" },
+                    { "wsSbe", "wss://ws.okx.com:8443/ws/v5/public-sbe" },
                 } },
                 { "test", new Dictionary<string, object>() {
                     { "ws", "wss://wspap.okx.com:8443/ws/v5" },
+                    { "wsSbe", "wss://wspap.okx.com:8443/ws/v5/public-sbe" },
                 } },
             } },
             { "options", new Dictionary<string, object>() {
+                { "useSbe", false },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "checksum", true },
                     { "depth", "books" },
@@ -88,7 +91,18 @@ public partial class okx : ccxt.okx
         object sandboxSuffix = ((bool) isTrue(isSandbox)) ? "?brokerId=9999" : "";
         object isBusiness = (isEqual(access, "business"));
         object isPublic = (isEqual(access, "public"));
+        // Check if we should use SBE WebSocket
+        // Check both this.options.useSbe and this.useSbe to support both config styles
+        object useSbe = this.safeBool(this.options, "useSbe", this.safeBool(this, "useSbe", false));
+        object sbeChannels = new List<object>() {"trades", "bbo-tbt", "books-l2-tbt"};
+        object isSbeChannel = isGreaterThanOrEqual(getIndexOf(sbeChannels, channel), 0);
         object url = getValue(getValue(this.urls, "api"), "ws");
+        if (isTrue(isTrue(isTrue(useSbe) && isTrue(isSbeChannel)) && isTrue(isPublic)))
+        {
+            // Use SBE WebSocket URL for supported channels
+            url = getValue(getValue(this.urls, "api"), "wsSbe");
+            return add(url, sandboxSuffix);
+        }
         if (isTrue(isTrue(isTrue(isBusiness) || isTrue((isGreaterThan(getIndexOf(channel, "candle"), -1)))) || isTrue((isEqual(channel, "orders-algo")))))
         {
             return add(add(url, "/business"), sandboxSuffix);
@@ -196,15 +210,25 @@ public partial class okx : ccxt.okx
         parameters = ((IList<object>)channelparametersVariable)[1];
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
+        object useSbe = this.safeBool(this.options, "useSbe", this.safeBool(this, "useSbe", false));
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add(add(channel, ":"), symbol));
-            object marketId = this.marketId(symbol);
+            object market = this.market(symbol);
             object topic = new Dictionary<string, object>() {
                 { "channel", channel },
-                { "instId", marketId },
             };
+            // Use instIdCode for SBE, instId for JSON
+            if (isTrue(isTrue(useSbe) && isTrue(isEqual(channel, "trades"))))
+            {
+                object instIdCode = this.safeInteger(getValue(market, "info"), "instIdCode");
+                ((IDictionary<string,object>)topic)["instIdCode"] = instIdCode;
+            } else
+            {
+                object marketId = this.marketId(symbol);
+                ((IDictionary<string,object>)topic)["instId"] = marketId;
+            }
             ((IList<object>)topics).Add(topic);
         }
         object request = new Dictionary<string, object>() {
@@ -1325,15 +1349,25 @@ public partial class okx : ccxt.okx
         }
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
+        object useSbe = this.safeBool(this.options, "useSbe", this.safeBool(this, "useSbe", false));
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add(add(depth, ":"), symbol));
-            object marketId = this.marketId(symbol);
+            object market = this.market(symbol);
             object topic = new Dictionary<string, object>() {
                 { "channel", depth },
-                { "instId", marketId },
             };
+            // Use instIdCode for SBE, instId for JSON
+            if (isTrue(isTrue(useSbe) && isTrue((isTrue((isEqual(depth, "bbo-tbt"))) || isTrue((isEqual(depth, "books-l2-tbt")))))))
+            {
+                object instIdCode = this.safeInteger(getValue(market, "info"), "instIdCode");
+                ((IDictionary<string,object>)topic)["instIdCode"] = instIdCode;
+            } else
+            {
+                object marketId = this.marketId(symbol);
+                ((IDictionary<string,object>)topic)["instId"] = marketId;
+            }
             ((IList<object>)topics).Add(topic);
         }
         object request = new Dictionary<string, object>() {
@@ -2661,6 +2695,52 @@ public partial class okx : ccxt.okx
 
     public override void handleMessage(WebSocketClient client, object message)
     {
+        // Check if message is binary (SBE)
+        if (isTrue(isTrue(message is byte[]) || isTrue(false)))
+        {
+            object useSbe = this.safeBool(this.options, "useSbe", this.safeBool(this, "useSbe", false));
+            if (isTrue(useSbe))
+            {
+                // Validate SBE header before trying to decode
+                // OKX SBE WebSocket sends JSON for subscription confirmations and binary SBE for data
+                object uint8Array = null;
+                if (isTrue(message is byte[]))
+                {
+                    uint8Array = (byte[])message;
+                } else if (isTrue(message is byte[]))
+                {
+                    uint8Array = message;
+                } else if (isTrue(false))
+                {
+                    uint8Array = (byte[])message;
+                }
+                // Check if it looks like valid SBE by validating header
+                if (isTrue(isTrue(uint8Array) && isTrue(isGreaterThanOrEqual(getArrayLength(uint8Array), 8))))
+                {
+                    object view = null;
+                    object templateId = null; // offset 2, little-endian
+                    object schemaId = null; // offset 4, little-endian
+                    // OKX SBE schema ID is 1, template IDs are 1000-1006
+                    if (isTrue(isTrue(isTrue(isEqual(schemaId, 1)) && isTrue(isGreaterThanOrEqual(templateId, 1000))) && isTrue(isLessThanOrEqual(templateId, 1006))))
+                    {
+                        this.handleMessage(client as WebSocketClient, message);
+                        return;
+                    }
+                }
+                try
+                {
+                    object text = System.Text.Encoding.UTF8.GetString((byte[])message);
+                    message = parseJson(text);
+                } catch(Exception e)
+                {
+                    if (isTrue(this.verbose))
+                    {
+                        this.log((string)add("handleMessage: Failed to decode binary message as text:", e));
+                    }
+                    return;
+                }
+            }
+        }
         if (!isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
         {
             return;
@@ -2767,6 +2847,190 @@ public partial class okx : ccxt.okx
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
             }
         }
+    }
+
+    public virtual void handleSbeBboTbt(WebSocketClient client, object message)
+    {
+        // BboTbtChannelEvent (Template ID 1000)
+        // Contains best bid/offer data
+        object instIdCode = this.safeInteger(message, "instIdCode");
+        object symbol = this.safeSymbolFromInstIdCode(instIdCode);
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
+        object channel = "bbo-tbt";
+        object messageHash = add(add(channel, ":"), symbol);
+        // Auto-apply exponents to mantissas
+        object processed = this.applySbeExponents(message);
+        object timestamp = this.safeInteger(processed, "ts");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+        }
+        object orderbook = getValue(this.orderbooks, symbol);
+        object snapshot = new Dictionary<string, object>() {
+            { "bids", new List<object>() {new List<object>() {getValue(processed, "137628"), getValue(processed, "137645")}} },
+            { "asks", new List<object>() {new List<object>() {getValue(processed, "137728"), getValue(processed, "137745")}} },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "nonce", null },
+        };
+        (orderbook as IOrderBook).reset(snapshot);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+    }
+
+    public virtual void handleSbeBooksL2Tbt(WebSocketClient client, object message)
+    {
+        // BooksL2TbtChannelEvent (Template ID 1001)
+        // Contains orderbook updates
+        object instIdCode = this.safeInteger(message, "instIdCode");
+        object symbol = this.safeSymbolFromInstIdCode(instIdCode);
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
+        object channel = "books-l2-tbt";
+        object messageHash = add(add(channel, ":"), symbol);
+        // Auto-apply exponents to mantissas
+        object processed = this.applySbeExponents(message);
+        object timestamp = this.safeInteger(processed, "ts");
+        object seqId = this.safeInteger(processed, "seqId");
+        if (!isTrue((inOp(this.orderbooks, symbol))))
+        {
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
+        }
+        object orderbook = getValue(this.orderbooks, symbol);
+        // Convert to standard format [price, size]
+        object bids = new List<object>() {};
+        if (isTrue(getValue(processed, "139172")))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(getValue(processed, "139259"))); postFixIncrement(ref i))
+            {
+                object bid = getValue(getValue(processed, "139354"), i);
+                ((IList<object>)bids).Add(new List<object>() {getValue(bid, "px"), getValue(bid, "sz")});
+            }
+        }
+        object asks = new List<object>() {};
+        if (isTrue(getValue(processed, "139568")))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(getValue(processed, "139655"))); postFixIncrement(ref i))
+            {
+                object ask = getValue(getValue(processed, "139750"), i);
+                ((IList<object>)asks).Add(new List<object>() {getValue(ask, "px"), getValue(ask, "sz")});
+            }
+        }
+        object snapshot = new Dictionary<string, object>() {
+            { "bids", bids },
+            { "asks", asks },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "nonce", seqId },
+        };
+        (orderbook as IOrderBook).reset(snapshot);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
+    }
+
+    public virtual void handleSbeBooksL2TbtExponentUpdate(WebSocketClient client, object message)
+    {
+        // BooksL2TbtExponentUpdateEvent (Template ID 1002)
+        // Contains exponent updates for orderbook data
+        // Store exponents for future updates
+        object instIdCode = this.safeInteger(message, "instIdCode");
+        object pxExponent = this.safeInteger(message, "pxExponent");
+        object szExponent = this.safeInteger(message, "szExponent");
+        object sbeExponents = this.safeDict(this, "sbeExponents", new Dictionary<string, object>() {});
+        ((List<object>)sbeExponents)[Convert.ToInt32(instIdCode)] = new Dictionary<string, object>() {
+            { "pxExponent", pxExponent },
+            { "szExponent", szExponent },
+        };
+    }
+
+    public virtual void handleSbeTrades(WebSocketClient client, object message)
+    {
+        // TradesChannelEvent (Template ID 1005)
+        object instIdCode = this.safeInteger(message, "instIdCode");
+        object symbol = this.safeSymbolFromInstIdCode(instIdCode);
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
+        object channel = "trades";
+        object messageHash = add(add(channel, ":"), symbol);
+        object pxExponent = this.safeInteger(message, "pxExponent", 0);
+        object szExponent = this.safeInteger(message, "szExponent", 0);
+        object trades = this.safeValue(message, "trades", new List<object>() {});
+        object parsed = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        {
+            object trade = getValue(trades, i);
+            object pxMantissa = this.safeInteger(trade, "pxMantissa");
+            object szMantissa = this.safeInteger(trade, "szMantissa");
+            object price = multiply(pxMantissa, Math.Pow(Convert.ToDouble(10), Convert.ToDouble(pxExponent)));
+            object amount = multiply(szMantissa, Math.Pow(Convert.ToDouble(10), Convert.ToDouble(szExponent)));
+            object timestamp = this.safeInteger(trade, "ts");
+            object side = this.safeString(trade, "side"); // 'B' or 'S'
+            object tradeId = this.safeString(trade, "tradeId");
+            ((IList<object>)parsed).Add(new Dictionary<string, object>() {
+                { "id", tradeId },
+                { "info", trade },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "symbol", symbol },
+                { "order", null },
+                { "type", null },
+                { "side", ((bool) isTrue((isEqual(side, "B")))) ? "buy" : "sell" },
+                { "takerOrMaker", null },
+                { "price", price },
+                { "amount", amount },
+                { "cost", multiply(price, amount) },
+                { "fee", null },
+            });
+        }
+        object stored = this.safeValue(this.trades, symbol);
+        if (isTrue(isEqual(stored, null)))
+        {
+            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            stored = new ArrayCache(limit);
+            ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        {
+            callDynamically(stored, "append", new object[] {getValue(parsed, i)});
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+    }
+
+    public virtual object safeSymbolFromInstIdCode(object instIdCode)
+    {
+        // Convert instIdCode back to symbol
+        // Need to find the market with matching instIdCode
+        object marketIds = new List<object>(((IDictionary<string,object>)this.markets_by_id).Keys);
+        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(marketIds, i);
+            object market = getValue(this.markets_by_id, marketId);
+            object marketInstIdCode = this.safeInteger(getValue(market, "info"), "instIdCode");
+            if (isTrue(isEqual(marketInstIdCode, instIdCode)))
+            {
+                return getValue(market, "symbol");
+            }
+        }
+        return null;
+    }
+
+    public override object getSbeMessageHandlers()
+    {
+        // Map SBE template IDs to handler methods for WebSocket messages
+        return new Dictionary<string, object>() {
+            { "1000", this.handleSbeBboTbt },
+            { "1001", this.handleSbeBooksL2Tbt },
+            { "1002", this.handleSbeBooksL2TbtExponentUpdate },
+            { "1003", this.handleSbeBooksL2Tbt },
+            { "1004", this.handleSbeBooksL2TbtExponentUpdate },
+            { "1005", this.handleSbeTrades },
+            { "1006", this.handleSbeBooksL2Tbt },
+        };
     }
 
     public virtual void handleUnSubscriptionTrades(WebSocketClient client, object symbol, object channel)

@@ -1022,8 +1022,8 @@ class Exchange extends \ccxt\Exchange {
             }
             return $decoded;
         } catch (Exception $e) {
-            $errorMessage = $e->getMessage();
-            $errorStack = $e->getTraceAsString();
+            $errorMessage = $e instanceof Error ? $e->message : 'strval' ($e);
+            $errorStack = $e instanceof Error ? $e->stack : '';
             if ($this->verbose) {
                 $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
                 $this->log('decodeSbeResponse => Stack trace:', $errorStack);
@@ -1031,14 +1031,11 @@ class Exchange extends \ccxt\Exchange {
             }
             // Attempt JSON fallback — server may return JSON despite SBE request headers
             try {
-                $parsed = json_decode($buffer, true);
-                if ($parsed !== null) {
-                    return $parsed;
-                }
+                $text = $buffer;
+                return json_decode($text, $as_associative_array = true);
             } catch (Exception $jsonError) {
-                // fall through
+                throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
             }
-            throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . $errorMessage . '. Try setting useSbe to false in options.');
         }
     }
 

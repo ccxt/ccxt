@@ -119,9 +119,9 @@ func  (this *PhemexCore) ParseSwapTicker(ticker interface{}, optionalArgs ...int
     var last interface{} = this.ParseNumber(lastString)
     var quoteVolume interface{} = this.ParseNumber(this.FromEv(this.SafeString(ticker, "turnover"), market))
     var baseVolume interface{} = this.ParseNumber(this.FromEv(this.SafeString(ticker, "volume"), market))
-    var change interface{} = nil
-    var percentage interface{} = nil
-    var average interface{} = nil
+    var change interface{}
+    var percentage interface{}
+    var average interface{}
     var openString interface{} = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), market))
     var open interface{} = this.ParseNumber(openString)
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(openString, nil))) && ccxt.IsTrue((!ccxt.IsEqual(lastString, nil)))) {
@@ -180,9 +180,9 @@ func  (this *PhemexCore) ParsePerpetualTicker(ticker interface{}, optionalArgs .
     var last interface{} = this.ParseNumber(lastString)
     var quoteVolume interface{} = this.ParseNumber(this.FromEv(this.SafeString(ticker, 6), market))
     var baseVolume interface{} = this.ParseNumber(this.FromEv(this.SafeString(ticker, 5), market))
-    var change interface{} = nil
-    var percentage interface{} = nil
-    var average interface{} = nil
+    var change interface{}
+    var percentage interface{}
+    var average interface{}
     var openString interface{} = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), market))
     var open interface{} = this.ParseNumber(openString)
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(openString, nil))) && ccxt.IsTrue((!ccxt.IsEqual(lastString, nil)))) {
@@ -334,7 +334,7 @@ func  (this *PhemexCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
         
             retRes3218 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes3218)
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -914,8 +914,8 @@ func  (this *PhemexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
         
             retRes8028 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes8028)
-            var market interface{} = nil
-            var typeVar interface{} = nil
+            var market interface{}
+            var typeVar interface{}
             var messageHash interface{} = "trades:"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1051,7 +1051,7 @@ func  (this *PhemexCore) HandleMyTrades(client interface{}, message interface{})
         cachedTrades = ccxt.NewArrayCacheBySymbolById(limit)
     }
     var marketIds interface{} = map[string]interface{} {}
-    var typeVar interface{} = nil
+    var typeVar interface{}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
         var rawTrade interface{} = ccxt.GetValue(message, i)
         var marketId interface{} = this.SafeString(rawTrade, "symbol")
@@ -1101,8 +1101,8 @@ func  (this *PhemexCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             retRes9678 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9678)
             var messageHash interface{} = "orders:"
-            var market interface{} = nil
-            var typeVar interface{} = nil
+            var market interface{}
+            var typeVar interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -1329,7 +1329,7 @@ func  (this *PhemexCore) HandleOrders(client interface{}, message interface{})  
     if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
-    var typeVar interface{} = nil
+    var typeVar interface{}
     var stored interface{} = this.Orders
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(parsedOrders)); i++ {
         var parsed interface{} = ccxt.GetValue(parsedOrders, i)

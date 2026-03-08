@@ -716,7 +716,7 @@ func  (this *BithumbCore) ParseWsOrder(order interface{}, optionalArgs ...interf
     var sideId interface{} = this.SafeString(order, "ask_bid")
     var side interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(sideId, "BID"))), ("buy"), ("sell"))
     var typeId interface{} = this.SafeString(order, "order_type")
-    var typeVar interface{} = nil
+    var typeVar interface{}
     if ccxt.IsTrue(ccxt.IsEqual(typeId, "limit")) {
         typeVar = "limit"
     } else if ccxt.IsTrue(ccxt.IsEqual(typeId, "price")) {
@@ -725,7 +725,7 @@ func  (this *BithumbCore) ParseWsOrder(order interface{}, optionalArgs ...interf
         typeVar = "market"
     }
     var stateId interface{} = this.SafeString(order, "state")
-    var status interface{} = nil
+    var status interface{}
     if ccxt.IsTrue(ccxt.IsEqual(stateId, "wait")) {
         status = "open"
     } else if ccxt.IsTrue(ccxt.IsEqual(stateId, "trade")) {
@@ -741,7 +741,7 @@ func  (this *BithumbCore) ParseWsOrder(order interface{}, optionalArgs ...interf
     var filled interface{} = this.SafeString(order, "executed_volume")
     var cost interface{} = this.SafeString(order, "executed_funds")
     var feeCost interface{} = this.SafeString(order, "paid_fee")
-    var fee interface{} = nil
+    var fee interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         var marketForFee interface{} = this.SafeMarket(marketId, market)
         var feeCurrency interface{} = this.SafeString(marketForFee, "quote")

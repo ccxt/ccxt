@@ -110,7 +110,7 @@ func  (this *BitgetCore) GetInstType(methodName interface{}, market interface{},
     _ = uta
     params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
-    var instType interface{} = nil
+    var instType interface{}
     if ccxt.IsTrue(ccxt.IsEqual(market, nil)) {
         instTypeparamsVariable := this.HandleProductTypeAndParams(nil, params)
         instType = ccxt.GetValue(instTypeparamsVariable,0)
@@ -122,7 +122,7 @@ func  (this *BitgetCore) GetInstType(methodName interface{}, market interface{},
     } else {
         instType = "SPOT"
     }
-    var instypeAux interface{} = nil
+    var instypeAux interface{}
     instypeAuxparamsVariable := this.HandleOptionAndParams(params, methodName, "instType", instType)
     instypeAux = ccxt.GetValue(instypeAuxparamsVariable,0)
     params = ccxt.GetValue(instypeAuxparamsVariable,1)
@@ -157,8 +157,8 @@ func  (this *BitgetCore) WatchTicker(symbol interface{}, optionalArgs ...interfa
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash interface{} = ccxt.Add("ticker:", symbol)
-            var instType interface{} = nil
-            var uta interface{} = nil
+            var instType interface{}
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -236,8 +236,8 @@ func  (this *BitgetCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
             ccxt.PanicOnError(retRes1858)
             symbols = this.MarketSymbols(symbols, nil, false)
             var market interface{} = this.Market(ccxt.GetValue(symbols, 0))
-            var instType interface{} = nil
-            var uta interface{} = nil
+            var instType interface{}
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -497,8 +497,8 @@ func  (this *BitgetCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             ccxt.PanicOnError(retRes4248)
             symbols = this.MarketSymbols(symbols, nil, false)
             var market interface{} = this.Market(ccxt.GetValue(symbols, 0))
-            var instType interface{} = nil
-            var uta interface{} = nil
+            var instType interface{}
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -603,9 +603,9 @@ func  (this *BitgetCore) WatchOHLCV(symbol interface{}, optionalArgs ...interfac
             symbol = ccxt.GetValue(market, "symbol")
             var timeframes interface{} = this.SafeValue(this.Options, "timeframes")
             var interval interface{} = this.SafeString(timeframes, timeframe)
-            var messageHash interface{} = nil
-            var instType interface{} = nil
-            var uta interface{} = nil
+            var messageHash interface{}
+            var instType interface{}
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchOHLCV", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -668,13 +668,13 @@ func  (this *BitgetCore) UnWatchOHLCV(symbol interface{}, optionalArgs ...interf
             ccxt.PanicOnError(retRes5478)
             var timeframes interface{} = this.SafeDict(this.Options, "timeframes")
             var interval interface{} = this.SafeString(timeframes, timeframe)
-            var channel interface{} = nil
-            var market interface{} = nil
+            var channel interface{}
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }
-            var instType interface{} = nil
-            var messageHash interface{} = nil
+            var instType interface{}
+            var messageHash interface{}
             var values interface{} = this.HandleOptionAndParams(params, "watchOHLCV", "uta", false)
             var uta interface{} = ccxt.GetValue(values, 0)
             instTypeparamsVariable := this.GetInstType("watchOHLCV", market, uta, params)
@@ -775,7 +775,7 @@ func  (this *BitgetCore) HandleOHLCV(client interface{}, message interface{})  {
     ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]interface{} {}))
     var channel interface{} = this.SafeString2(arg, "channel", "topic")
     var interval interface{} = this.SafeString(arg, "interval")
-    var isUta interface{} = nil
+    var isUta interface{}
     if ccxt.IsTrue(ccxt.IsEqual(interval, nil)) {
         isUta = false
         interval = ccxt.Replace(channel, "candle", "")
@@ -795,7 +795,7 @@ func  (this *BitgetCore) HandleOHLCV(client interface{}, message interface{})  {
         var parsed interface{} = this.ParseWsOHLCV(ccxt.GetValue(data, i), market)
         stored.(ccxt.Appender).Append(parsed)
     }
-    var messageHash interface{} = nil
+    var messageHash interface{}
     if ccxt.IsTrue(isUta) {
         messageHash = ccxt.Add("kline:", symbol)
     } else {
@@ -914,8 +914,8 @@ func  (this *BitgetCore) UnWatchChannel(symbol interface{}, channel interface{},
             ccxt.PanicOnError(retRes7548)
             var market interface{} = this.Market(symbol)
             var messageHash interface{} = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", messageHashTopic), ":"), ccxt.GetValue(market, "symbol"))
-            var instType interface{} = nil
-            var uta interface{} = nil
+            var instType interface{}
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, methodName, "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -980,14 +980,14 @@ func  (this *BitgetCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
             }
             var topics interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
-            var uta interface{} = nil
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
                 var market interface{} = this.Market(symbol)
-                var instType interface{} = nil
+                var instType interface{}
                 instTypeparamsVariable := this.GetInstType("watchOrderBookForSymbols", market, uta, params)
                 instType = ccxt.GetValue(instTypeparamsVariable,0)
                 params = ccxt.GetValue(instTypeparamsVariable,1)
@@ -1238,7 +1238,7 @@ func  (this *BitgetCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
             retRes10128 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes10128)
             symbols = this.MarketSymbols(symbols)
-            var uta interface{} = nil
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -1247,7 +1247,7 @@ func  (this *BitgetCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol interface{} = ccxt.GetValue(symbols, i)
                 var market interface{} = this.Market(symbol)
-                var instType interface{} = nil
+                var instType interface{}
                 instTypeparamsVariable := this.GetInstType("watchTradesForSymbols", market, uta, params)
                 instType = ccxt.GetValue(instTypeparamsVariable,0)
                 params = ccxt.GetValue(instTypeparamsVariable,1)
@@ -1479,7 +1479,7 @@ func  (this *BitgetCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
     var instId interface{} = this.SafeString2(trade, "symbol", "instId")
     var posMode interface{} = this.SafeString(trade, "posMode")
     var category interface{} = this.SafeString(trade, "category")
-    var defaultType interface{} = nil
+    var defaultType interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(category, nil)) {
         defaultType = ccxt.Ternary(ccxt.IsTrue((!ccxt.IsEqual(category, "SPOT"))), "contract", "spot")
     } else {
@@ -1491,7 +1491,7 @@ func  (this *BitgetCore) ParseWsTrade(trade interface{}, optionalArgs ...interfa
     var timestamp interface{} = this.SafeIntegerN(trade, []interface{}{"uTime", "cTime", "ts", "T", "execTime"})
     var feeDetail interface{} = this.SafeList(trade, "feeDetail", []interface{}{})
     var first interface{} = this.SafeDict(feeDetail, 0)
-    var fee interface{} = nil
+    var fee interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(first, nil)) {
         var feeCurrencyId interface{} = this.SafeString(first, "feeCoin")
         var feeCurrencyCode interface{} = this.SafeCurrencyCode(feeCurrencyId)
@@ -1546,11 +1546,11 @@ func  (this *BitgetCore) WatchPositions(optionalArgs ...interface{}) <- chan int
         
             retRes12818 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes12818)
-            var market interface{} = nil
+            var market interface{}
             var messageHash interface{} = ""
             var subscriptionHash interface{} = "positions"
             var instType interface{} = "USDT-FUTURES"
-            var uta interface{} = nil
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchPositions", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -1771,7 +1771,7 @@ func  (this *BitgetCore) ParseWsPosition(position interface{}, optionalArgs ...i
     var timestamp interface{} = this.SafeIntegerN(position, []interface{}{"updatedTime", "uTime", "cTime", "createdTime"})
     var percentageDecimal interface{} = this.SafeString2(position, "unrealizedPLR", "profitRate")
     var percentage interface{} = ccxt.Precise.StringMul(percentageDecimal, "100")
-    var contractSize interface{} = nil
+    var contractSize interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(market, nil)) {
         contractSize = ccxt.GetValue(market, "contractSize")
     }
@@ -1839,9 +1839,9 @@ func  (this *BitgetCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
         
             retRes15468 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes15468)
-            var market interface{} = nil
-            var marketId interface{} = nil
-            var isTrigger interface{} = nil
+            var market interface{}
+            var marketId interface{}
+            var isTrigger interface{}
             isTriggerparamsVariable := this.IsTriggerOrder(params)
             isTrigger = ccxt.GetValue(isTriggerparamsVariable,0)
             params = ccxt.GetValue(isTriggerparamsVariable,1)
@@ -1853,16 +1853,16 @@ func  (this *BitgetCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
                 marketId = ccxt.GetValue(market, "id")
                 messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
             }
-            var uta interface{} = nil
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchOrders", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
             var productType interface{} = this.SafeString(params, "productType")
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var subType interface{} = nil
+            var subType interface{}
             subTypeparamsVariable := this.HandleSubTypeAndParams("watchOrders", market, params, "linear")
             subType = ccxt.GetValue(subTypeparamsVariable,0)
             params = ccxt.GetValue(subTypeparamsVariable,1)
@@ -1878,7 +1878,7 @@ func  (this *BitgetCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             } else if ccxt.IsTrue(ccxt.IsEqual(productType, "USDC-FUTURES")) {
                 messageHash = ccxt.Add(messageHash, ":usdcfutures") // non unified channel
             }
-            var instType interface{} = nil
+            var instType interface{}
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(market, nil)) && ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot"))) {
                 instType = "SPOT"
             } else {
@@ -1894,7 +1894,7 @@ func  (this *BitgetCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             }
             var instId interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")))), marketId, "default") // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             var channel interface{} = ccxt.Ternary(ccxt.IsTrue(isTrigger), "orders-algo", "orders")
-            var marginMode interface{} = nil
+            var marginMode interface{}
             marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
             marginMode = ccxt.GetValue(marginModeparamsVariable,0)
             params = ccxt.GetValue(marginModeparamsVariable,1)
@@ -2023,7 +2023,7 @@ func  (this *BitgetCore) HandleOrder(client interface{}, message interface{})  {
     var channel interface{} = this.SafeString2(arg, "channel", "topic")
     var instType interface{} = this.SafeStringLower(arg, "instType")
     var argInstId interface{} = this.SafeString(arg, "instId")
-    var marketType interface{} = nil
+    var marketType interface{}
     if ccxt.IsTrue(ccxt.IsEqual(instType, "spot")) {
         marketType = "spot"
     } else if ccxt.IsTrue(ccxt.IsEqual(instType, "margin")) {
@@ -2251,7 +2251,7 @@ func  (this *BitgetCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     var orderFee interface{} = this.SafeValue(order, "feeDetail", []interface{}{})
     var fee interface{} = this.SafeValue(orderFee, 0)
     var feeAmount interface{} = this.SafeString(fee, "fee")
-    var feeObject interface{} = nil
+    var feeObject interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(feeAmount, nil)) {
         var feeCurrency interface{} = this.SafeString(fee, "feeCoin")
         feeObject = map[string]interface{} {
@@ -2261,7 +2261,7 @@ func  (this *BitgetCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     }
     var triggerPrice interface{} = this.SafeNumber(order, "triggerPrice")
     var isTriggerOrder interface{} =     (!ccxt.IsEqual(triggerPrice, nil))
-    var price interface{} = nil
+    var price interface{}
     if !ccxt.IsTrue(isTriggerOrder) {
         price = this.SafeNumber(order, "price")
     } else if ccxt.IsTrue(ccxt.IsTrue(isSpot) && ccxt.IsTrue(isTriggerOrder)) {
@@ -2275,10 +2275,10 @@ func  (this *BitgetCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     var newSizeValue interface{} = this.OmitZero(this.SafeString2(order, "newSize", "cumExecValue"))
     var isMarketOrder interface{} =     (ccxt.IsEqual(typeVar, "market"))
     var isBuy interface{} =     (ccxt.IsEqual(side, "buy"))
-    var totalAmount interface{} = nil
-    var filledAmount interface{} = nil
-    var cost interface{} = nil
-    var remaining interface{} = nil
+    var totalAmount interface{}
+    var filledAmount interface{}
+    var cost interface{}
+    var remaining interface{}
     var totalFilled interface{} = this.SafeString2(order, "accBaseVolume", "cumExecQty")
     if ccxt.IsTrue(isSpot) {
         if ccxt.IsTrue(isMargin) {
@@ -2374,19 +2374,19 @@ func  (this *BitgetCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
         
             retRes20508 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes20508)
-            var market interface{} = nil
+            var market interface{}
             var messageHash interface{} = "myTrades"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
             }
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var instType interface{} = nil
-            var uta interface{} = nil
+            var instType interface{}
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchMyTrades", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
@@ -2577,19 +2577,19 @@ func  (this *BitgetCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            var uta interface{} = nil
+            var uta interface{}
             utaparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "uta", false)
             uta = ccxt.GetValue(utaparamsVariable,0)
             params = ccxt.GetValue(utaparamsVariable,1)
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var marginMode interface{} = nil
+            var marginMode interface{}
             marginModeparamsVariable := this.HandleMarginModeAndParams("watchBalance", params)
             marginMode = ccxt.GetValue(marginModeparamsVariable,0)
             params = ccxt.GetValue(marginModeparamsVariable,1)
-            var instType interface{} = nil
+            var instType interface{}
             var channel interface{} = "account"
             if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "swap"))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "future")))) {
                 instType = "USDT-FUTURES"
@@ -3242,7 +3242,7 @@ func  (this *BitgetCore) HandleOHLCVUnSubscription(client interface{}, message i
     var instId interface{} = this.SafeString2(arg, "instId", "symbol")
     var channel interface{} = this.SafeString2(arg, "channel", "topic")
     var interval interface{} = this.SafeString(arg, "interval")
-    var isUta interface{} = nil
+    var isUta interface{}
     if ccxt.IsTrue(ccxt.IsEqual(interval, nil)) {
         isUta = false
         interval = ccxt.Replace(channel, "candle", "")
@@ -3253,8 +3253,8 @@ func  (this *BitgetCore) HandleOHLCVUnSubscription(client interface{}, message i
     var timeframe interface{} = this.FindTimeframe(interval, timeframes)
     var market interface{} = this.SafeMarket(instId, nil, nil, typeVar)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var messageHash interface{} = nil
-    var subMessageHash interface{} = nil
+    var messageHash interface{}
+    var subMessageHash interface{}
     if ccxt.IsTrue(isUta) {
         messageHash = ccxt.Add("unsubscribe:kline:", symbol)
         subMessageHash = ccxt.Add("kline:", symbol)

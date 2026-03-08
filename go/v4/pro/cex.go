@@ -956,7 +956,7 @@ func  (this *CexCore) ParseWsOrderUpdate(order interface{}, optionalArgs ...inte
     _ = market
     var isTransaction interface{} = !ccxt.IsEqual(this.SafeValue(order, "d"), nil)
     var remainsPrecision interface{} = this.SafeString(order, "remains")
-    var remaining interface{} = nil
+    var remaining interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(remainsPrecision, nil)) {
         remaining = this.CurrencyFromPrecision(ccxt.GetValue(market, "base"), remainsPrecision)
     }
@@ -973,7 +973,7 @@ func  (this *CexCore) ParseWsOrderUpdate(order interface{}, optionalArgs ...inte
     }
     var base interface{} = this.SafeCurrencyCode(baseId)
     var quote interface{} = this.SafeCurrencyCode(quoteId)
-    var symbol interface{} = nil
+    var symbol interface{}
     if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(base, nil)) && ccxt.IsTrue(!ccxt.IsEqual(quote, nil))) {
         symbol = ccxt.Add(ccxt.Add(base, "/"), quote)
     }
@@ -1391,7 +1391,7 @@ func  (this *CexCore) FetchOrderWs(id interface{}, optionalArgs ...interface{}) 
         
             retRes12418 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes12418)
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }
@@ -1612,7 +1612,7 @@ func  (this *CexCore) CancelOrderWs(id interface{}, optionalArgs ...interface{})
         
             retRes13848 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes13848)
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }

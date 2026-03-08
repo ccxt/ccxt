@@ -51,19 +51,22 @@ class okx extends \ccxt\async\okx {
             'urls' => array(
                 'api' => array(
                     'ws' => 'wss://ws.okx.com:8443/ws/v5',
+                    'wsSbe' => 'wss://ws.okx.com:8443/ws/v5/public-sbe',
                 ),
                 'test' => array(
                     'ws' => 'wss://wspap.okx.com:8443/ws/v5',
+                    'wsSbe' => 'wss://wspap.okx.com:8443/ws/v5/public-sbe',
                 ),
             ),
             'options' => array(
+                'useSbe' => false, // use SBE (Simple Binary Encoding) for WebSocket channels (trades, bbo-tbt, books-l2-tbt)
                 'watchOrderBook' => array(
                     'checksum' => true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
-                    // 2. All API users can subscribe
-                    // 3. Public depth channel, verification not required
+                    // 2. All API users can subscribe (any trading fee tier)
+                    // 3. Requires login via connection headers (mandatory from 3rd March 2026)
                     //
                     // books-l2-tbt
                     // 1. Only users who're VIP5 and above can subscribe
@@ -122,7 +125,17 @@ class okx extends \ccxt\async\okx {
         $sandboxSuffix = $isSandbox ? '?brokerId=9999' : '';
         $isBusiness = ($access === 'business');
         $isPublic = ($access === 'public');
+        // Check if we should use SBE WebSocket
+        // Check both $this->options.useSbe and $this->useSbe to support both config styles
+        $useSbe = $this->safe_bool($this->options, 'useSbe', $this->safe_bool($this, 'useSbe', false));
+        $sbeChannels = array( 'trades', 'bbo-tbt', 'books-l2-tbt' );
+        $isSbeChannel = mb_strpos($sbeChannels, $channel) !== false;
         $url = $this->urls['api']['ws'];
+        if ($useSbe && $isSbeChannel && $isPublic) {
+            // Use SBE WebSocket URL for supported channels
+            $url = $this->urls['api']['wsSbe'];
+            return $url . $sandboxSuffix;
+        }
         if ($isBusiness || (mb_strpos($channel, 'candle') > -1) || ($channel === 'orders-algo')) {
             return $url . '/business' . $sandboxSuffix;
         } elseif ($isPublic) {
@@ -202,8 +215,8 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-$trades-$channel
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-all-$trades-$channel
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-ws-$trades-$channel
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-ws-all-$trades-$channel
              *
              * get the list of most recent $trades for a particular $symbol
              * @param {string} $symbols
@@ -223,14 +236,22 @@ class okx extends \ccxt\async\okx {
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTrades', 'channel', 'trades');
             $topics = array();
             $messageHashes = array();
+            $useSbe = $this->safe_bool($this->options, 'useSbe', $this->safe_bool($this, 'useSbe', false));
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $messageHashes[] = $channel . ':' . $symbol;
-                $marketId = $this->market_id($symbol);
+                $market = $this->market($symbol);
                 $topic = array(
                     'channel' => $channel,
-                    'instId' => $marketId,
                 );
+                // Use $instIdCode for SBE, instId for JSON
+                if ($useSbe && $channel === 'trades') {
+                    $instIdCode = $this->safe_integer($market['info'], 'instIdCode');
+                    $topic['instIdCode'] = $instIdCode;
+                } else {
+                    $marketId = $this->market_id($symbol);
+                    $topic['instId'] = $marketId;
+                }
                 $topics[] = $topic;
             }
             $request = array(
@@ -1224,14 +1245,14 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-ws-order-book-channel
              *
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->depth] okx order book $depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market $symbols
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1256,14 +1277,22 @@ class okx extends \ccxt\async\okx {
             }
             $topics = array();
             $messageHashes = array();
+            $useSbe = $this->safe_bool($this->options, 'useSbe', $this->safe_bool($this, 'useSbe', false));
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $messageHashes[] = $depth . ':' . $symbol;
-                $marketId = $this->market_id($symbol);
+                $market = $this->market($symbol);
                 $topic = array(
                     'channel' => $depth,
-                    'instId' => $marketId,
                 );
+                // Use $instIdCode for SBE, instId for JSON
+                if ($useSbe && (($depth === 'bbo-tbt') || ($depth === 'books-l2-tbt'))) {
+                    $instIdCode = $this->safe_integer($market['info'], 'instIdCode');
+                    $topic['instIdCode'] = $instIdCode;
+                } else {
+                    $marketId = $this->market_id($symbol);
+                    $topic['instId'] = $marketId;
+                }
                 $topics[] = $topic;
             }
             $request = array(
@@ -2478,6 +2507,42 @@ class okx extends \ccxt\async\okx {
     }
 
     public function handle_message(Client $client, $message) {
+        // Check if $message is binary (SBE)
+        if ($message instanceof ArrayBuffer || ArrayBuffer.isView ($message)) {
+            $useSbe = $this->safe_bool($this->options, 'useSbe', $this->safe_bool($this, 'useSbe', false));
+            if ($useSbe) {
+                // Validate SBE header before trying to decode
+                // OKX SBE WebSocket sends JSON for subscription confirmations and binary SBE for data
+                $uint8Array;
+                if ($message instanceof ArrayBuffer) {
+                    $uint8Array = new Uint8Array ($message);
+                } elseif ($message instanceof Uint8Array) {
+                    $uint8Array = $message;
+                } elseif (ArrayBuffer.isView ($message)) {
+                    $uint8Array = new Uint8Array ($message->buffer, $message->byteOffset, strlen($message));
+                }
+                // Check if it looks like valid SBE by validating header
+                if ($uint8Array && strlen($uint8Array) >= 8) {
+                    $view = new DataView ($uint8Array->buffer, $uint8Array->byteOffset, strlen($uint8Array));
+                    $templateId = $view->getUint16 (2, true); // offset 2, little-endian
+                    $schemaId = $view->getUint16 (4, true);   // offset 4, little-endian
+                    // OKX SBE schema ID is 1, template IDs are 1000-1006
+                    if ($schemaId === 1 && $templateId >= 1000 && $templateId <= 1006) {
+                        return $this->handle_sbe_message($client, $message);
+                    }
+                }
+                // Not valid SBE, try to decode (JSON subscription response)
+                try {
+                    $text = $uint8Array;
+                    $message = json_decode($text, $as_associative_array = true);
+                } catch (Exception $e) {
+                    if ($this->verbose) {
+                        $this->log('handleMessage => Failed to decode binary $message:', $e);
+                    }
+                    return;
+                }
+            }
+        }
         if (!$this->handle_error_message($client, $message)) {
             return;
         }
@@ -2579,6 +2644,194 @@ class okx extends \ccxt\async\okx {
                 $method($client, $message);
             }
         }
+    }
+
+    public function handle_sbe_bbo_tbt(Client $client, $message) {
+        // BboTbtChannelEvent (Template ID 1000)
+        // Contains best bid/offer data
+        $instIdCode = $this->safe_integer($message, 'instIdCode');
+        $symbol = $this->safe_symbol_from_inst_id_code($instIdCode);
+        if ($symbol === null) {
+            return;
+        }
+        $channel = 'bbo-tbt';
+        $messageHash = $channel . ':' . $symbol;
+        // Auto-apply exponents to mantissas
+        $processed = $this->apply_sbe_exponents($message);
+        $timestamp = $this->safe_integer($processed, 'ts');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        $snapshot = array(
+            'bids' => array( array( $processed->bidPx, $processed->bidSz ) ),
+            'asks' => array( array( $processed->askPx, $processed->askSz ) ),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'nonce' => null,
+        );
+        $orderbook->reset ($snapshot);
+        $client->resolve ($orderbook, $messageHash);
+    }
+
+    public function handle_sbe_books_l2_tbt(Client $client, $message) {
+        // BooksL2TbtChannelEvent (Template ID 1001) and SnapshotDepthResponseEvent (Template ID 1006)
+        $instIdCode = $this->safe_integer($message, 'instIdCode');
+        $symbol = $this->safe_symbol_from_inst_id_code($instIdCode);
+        if ($symbol === null) {
+            return;
+        }
+        $channel = 'books-l2-tbt';
+        $messageHash = $channel . ':' . $symbol;
+        // Auto-apply exponents to mantissas
+        $processed = $this->apply_sbe_exponents($message);
+        $timestamp = $this->safe_integer($processed, 'ts');
+        $seqId = $this->safe_integer($processed, 'seqId');
+        $prevSeqId = $this->safe_integer($processed, 'prevSeqId');
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
+        }
+        $orderbook = $this->orderbooks[$symbol];
+        // Convert to standard [price, size] arrays
+        $bids = array();
+        if ($processed->bids) {
+            for ($i = 0; $i < count($processed->bids); $i++) {
+                $bid = $processed->bids[$i];
+                $bids[] = array( $bid->px, $bid->sz );
+            }
+        }
+        $asks = array();
+        if ($processed->asks) {
+            for ($i = 0; $i < count($processed->asks); $i++) {
+                $ask = $processed->asks[$i];
+                $asks[] = array( $ask->px, $ask->sz );
+            }
+        }
+        // $prevSeqId === -1 means this is a snapshot (REST or initial)
+        $isSnapshot = ($prevSeqId === -1) || ($orderbook['nonce'] === null);
+        if ($isSnapshot) {
+            // Full snapshot — reset the $orderbook
+            $orderbook->reset (array(
+                'bids' => $bids,
+                'asks' => $asks,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'nonce' => $seqId,
+            ));
+        } else {
+            // Incremental update — validate $seqId chain then apply delta
+            if ($prevSeqId !== $orderbook['nonce']) {
+                // Gap detected — $orderbook is out of sync, reset so next snapshot re-initialises it
+                $orderbook->reset (array());
+                $orderbook['nonce'] = null;
+                return;
+            }
+            $orderbook['timestamp'] = $timestamp;
+            $orderbook['datetime'] = $this->iso8601($timestamp);
+            $orderbook['nonce'] = $seqId;
+            // Apply each price level => qty 0 means remove, otherwise insert/update
+            for ($i = 0; $i < count($bids); $i++) {
+                $orderbook['bids'].store ($bids[$i][0], $bids[$i][1]);
+            }
+            for ($i = 0; $i < count($asks); $i++) {
+                $orderbook['asks'].store ($asks[$i][0], $asks[$i][1]);
+            }
+        }
+        $client->resolve ($orderbook, $messageHash);
+    }
+
+    public function handle_sbe_books_l2_tbt_exponent_update(Client $client, $message) {
+        // BooksL2TbtExponentUpdateEvent (Template ID 1002)
+        // Contains only exponent changes (no bid/ask data), but carries seqId/prevSeqId.
+        // Must update the orderbook nonce so the $seqId chain stays consistent —
+        // the next BooksL2TbtChannelEvent's prevSeqId will reference this message's $seqId->
+        $instIdCode = $this->safe_integer($message, 'instIdCode');
+        $symbol = $this->safe_symbol_from_inst_id_code($instIdCode);
+        if ($symbol === null) {
+            return;
+        }
+        $seqId = $this->safe_integer($message, 'seqId');
+        if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+            $this->orderbooks[$symbol]['nonce'] = $seqId;
+        }
+    }
+
+    public function handle_sbe_trades(Client $client, $message) {
+        // TradesChannelEvent (Template ID 1005)
+        $instIdCode = $this->safe_integer($message, 'instIdCode');
+        $symbol = $this->safe_symbol_from_inst_id_code($instIdCode);
+        if ($symbol === null) {
+            return;
+        }
+        $channel = 'trades';
+        $messageHash = $channel . ':' . $symbol;
+        $pxExponent = $this->safe_integer($message, 'pxExponent', 0);
+        $szExponent = $this->safe_integer($message, 'szExponent', 0);
+        $trades = $this->safe_value($message, 'trades', array());
+        $parsed = array();
+        for ($i = 0; $i < count($trades); $i++) {
+            $trade = $trades[$i];
+            $pxMantissa = $this->safe_integer($trade, 'pxMantissa');
+            $szMantissa = $this->safe_integer($trade, 'szMantissa');
+            $price = $pxMantissa * pow(10, $pxExponent);
+            $amount = $szMantissa * pow(10, $szExponent);
+            $timestamp = $this->safe_integer($trade, 'ts');
+            $side = $this->safe_string($trade, 'side'); // 'B' or 'S'
+            $tradeId = $this->safe_string($trade, 'tradeId');
+            $parsed[] = array(
+                'id' => $tradeId,
+                'info' => $trade,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'symbol' => $symbol,
+                'order' => null,
+                'type' => null,
+                'side' => ($side === 'B') ? 'buy' : 'sell',
+                'takerOrMaker' => null,
+                'price' => $price,
+                'amount' => $amount,
+                'cost' => $price * $amount,
+                'fee' => null,
+            );
+        }
+        $stored = $this->safe_value($this->trades, $symbol);
+        if ($stored === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $stored = new ArrayCache ($limit);
+            $this->trades[$symbol] = $stored;
+        }
+        for ($i = 0; $i < count($parsed); $i++) {
+            $stored->append ($parsed[$i]);
+        }
+        $client->resolve ($stored, $messageHash);
+    }
+
+    public function safe_symbol_from_inst_id_code($instIdCode) {
+        // Convert $instIdCode back to symbol
+        // Need to find the $market with matching $instIdCode
+        $marketIds = is_array($this->markets_by_id) ? array_keys($this->markets_by_id) : array();
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->markets_by_id[$marketId];
+            $marketInstIdCode = $this->safe_integer($market['info'], 'instIdCode');
+            if ($marketInstIdCode === $instIdCode) {
+                return $market['symbol'];
+            }
+        }
+        return null;
+    }
+
+    public function get_sbe_message_handlers() {
+        // Map SBE template IDs to handler methods for WebSocket messages
+        return array(
+            '1000' => array($this, 'handle_sbe_bbo_tbt'),              // BboTbtChannelEvent
+            '1001' => array($this, 'handle_sbe_books_l2_tbt'),          // BooksL2TbtChannelEvent
+            '1002' => array($this, 'handle_sbe_books_l2_tbt_exponent_update'), // BooksL2TbtExponentUpdateEvent
+            '1003' => array($this, 'handle_sbe_books_l2_tbt'),          // BooksL2TbtElpChannelEvent (same structure)
+            '1004' => array($this, 'handle_sbe_books_l2_tbt_exponent_update'), // BooksL2TbtElpExponentUpdateEvent
+            '1005' => array($this, 'handle_sbe_trades'),              // TradesChannelEvent
+            '1006' => array($this, 'handle_sbe_books_l2_tbt'),          // SnapshotDepthResponseEvent
+        );
     }
 
     public function handle_un_subscription_trades(Client $client, string $symbol, string $channel) {

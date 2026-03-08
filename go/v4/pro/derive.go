@@ -617,7 +617,7 @@ func  (this *DeriveCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
         
             retRes4938 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes4938)
-            var subaccountId interface{} = nil
+            var subaccountId interface{}
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchOrders", params)
             subaccountId = ccxt.GetValue(subaccountIdparamsVariable,0)
             params = ccxt.GetValue(subaccountIdparamsVariable,1)
@@ -758,7 +758,7 @@ func  (this *DeriveCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
         
             retRes6158 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6158)
-            var subaccountId interface{} = nil
+            var subaccountId interface{}
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
             subaccountId = ccxt.GetValue(subaccountIdparamsVariable,0)
             params = ccxt.GetValue(subaccountIdparamsVariable,1)
@@ -875,7 +875,7 @@ func  (this *DeriveCore) HandleMessage(client interface{}, message interface{}) 
         "orders": this.HandleOrder,
         "mytrades": this.HandleMyTrade,
     }
-    var event interface{} = nil
+    var event interface{}
     var params interface{} = this.SafeDict(message, "params")
     if ccxt.IsTrue(!ccxt.IsEqual(params, nil)) {
         var channel interface{} = this.SafeString(params, "channel")

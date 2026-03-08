@@ -451,7 +451,7 @@ func  (this *ExmoCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interf
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var messageHash interface{} = nil
+            var messageHash interface{}
             if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
                 messageHash = ccxt.Add("myTrades:", typeVar)
             } else {
@@ -539,7 +539,7 @@ func  (this *ExmoCore) HandleMyTrades(client interface{}, message interface{})  
     var messageHash interface{} = ccxt.Add("myTrades:", typeVar)
     var event interface{} = this.SafeString(message, "event")
     var rawTrades interface{} = []interface{}{}
-    var myTrades interface{} = nil
+    var myTrades interface{}
     if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
         var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
         myTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -713,7 +713,7 @@ func  (this *ExmoCore) WatchOrders(optionalArgs ...interface{}) <- chan interfac
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
-            var messageHash interface{} = nil
+            var messageHash interface{}
             if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
                 messageHash = ccxt.Add("orders:", typeVar)
             } else {
@@ -857,11 +857,11 @@ func  (this *ExmoCore) ParseWsOrder(order interface{}, optionalArgs ...interface
     var price interface{} = this.SafeString(order, "price")
     var clientOrderId interface{} = this.OmitZero(this.SafeString(order, "client_id"))
     var triggerPrice interface{} = this.OmitZero(this.SafeString(order, "stop_price"))
-    var typeVar interface{} = nil
+    var typeVar interface{}
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(orderType, "buy"))) && ccxt.IsTrue((!ccxt.IsEqual(orderType, "sell")))) {
         typeVar = orderType
     }
-    var trades interface{} = nil
+    var trades interface{}
     if ccxt.IsTrue(ccxt.InOp(order, "last_trade_id")) {
         var trade interface{} = this.ParseWsTrade(order, market)
         trades = []interface{}{trade}
@@ -900,7 +900,7 @@ func  (this *ExmoCore) ParseWsTrade(trade interface{}, optionalArgs ...interface
     var marketId interface{} = this.SafeString(trade, "pair")
     market = this.SafeMarket(marketId, market)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var typeVar interface{} = nil
+    var typeVar interface{}
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(orderType, "buy"))) && ccxt.IsTrue((!ccxt.IsEqual(orderType, "sell")))) {
         typeVar = orderType
     }

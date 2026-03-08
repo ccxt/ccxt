@@ -3366,7 +3366,7 @@ class Exchange(object):
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings(' + joinedProxyNames + '), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback')
         return [httpProxy, httpsProxy, socksProxy]
 
-    def decode_sbe_response(self, buffer: ArrayBuffer, url: str):
+    def decode_sbe_response(self, buffer: bytes, url: str):
         # Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
         if self.verbose:
             self.log('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength)
@@ -3389,10 +3389,9 @@ class Exchange(object):
                 self.log('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes')
             # Attempt JSON fallback — server may return JSON despite SBE request headers
             try:
-                import json
-                text = buffer.decode('utf-8') if isinstance(buffer, bytes) else str(buffer)
+                text = buffer
                 return json.loads(text)
-            except Exception:
+            except Exception as jsonError:
                 raise ExchangeError(self.id + ' decodeSbeResponse() failed. Error: ' + errorMessage + '. Try setting useSbe to False in options.')
 
     def get_sbe_decoder_registry(self):

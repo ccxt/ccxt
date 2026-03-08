@@ -607,7 +607,7 @@ func  (this *HyperliquidCore) WatchMyTrades(optionalArgs ...interface{}) <- chan
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            var userAddress interface{} = nil
+            var userAddress interface{}
             userAddressparamsVariable := this.HandlePublicAddress("watchMyTrades", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
             params = ccxt.GetValue(userAddressparamsVariable,1)
@@ -666,7 +666,7 @@ func  (this *HyperliquidCore) UnWatchMyTrades(optionalArgs ...interface{}) <- ch
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")))
             }
-            var userAddress interface{} = nil
+            var userAddress interface{}
             userAddressparamsVariable := this.HandlePublicAddress("unWatchMyTrades", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
             params = ccxt.GetValue(userAddressparamsVariable,1)
@@ -1245,11 +1245,11 @@ func  (this *HyperliquidCore) WatchOrders(optionalArgs ...interface{}) <- chan i
         
             retRes9568 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9568)
-            var userAddress interface{} = nil
+            var userAddress interface{}
             userAddressparamsVariable := this.HandlePublicAddress("watchOrders", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
             params = ccxt.GetValue(userAddressparamsVariable,1)
-            var market interface{} = nil
+            var market interface{}
             var messageHash interface{} = "order"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1305,7 +1305,7 @@ func  (this *HyperliquidCore) UnWatchOrders(optionalArgs ...interface{}) <- chan
             }
             var messageHash interface{} = "unsubscribe:order"
             var url interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-            var userAddress interface{} = nil
+            var userAddress interface{}
             userAddressparamsVariable := this.HandlePublicAddress("unWatchOrders", params)
             userAddress = ccxt.GetValue(userAddressparamsVariable,0)
             params = ccxt.GetValue(userAddressparamsVariable,1)

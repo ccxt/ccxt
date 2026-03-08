@@ -1,7 +1,9 @@
 package ccxt
 
 import (
+	"encoding/binary"
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -33,6 +35,73 @@ func (this *Exchange) SetupSbeBinaryDecoder(client interface{}, url interface{},
 			fmt.Println("SetupSbeBinaryDecoder: Detected SBE URL:", urlStr)
 		}
 	}
+}
+
+// Mantissa128ToNumber converts a 128-bit mantissa byte array to a number
+func (this *Exchange) Mantissa128ToNumber(bytesVal interface{}) interface{} {
+	var byteSlice []byte
+	switch v := bytesVal.(type) {
+	case []byte:
+		byteSlice = v
+	default:
+		return 0.0
+	}
+	if len(byteSlice) == 0 {
+		return 0.0
+	}
+	var result float64
+	multiplier := 1.0
+	limit := len(byteSlice)
+	if limit > 8 {
+		limit = 8
+	}
+	for i := 0; i < limit; i++ {
+		result += float64(byteSlice[i]) * multiplier
+		multiplier *= 256
+	}
+	return result
+}
+
+// ApplySbeExponents applies exponents to mantissa fields in decoded SBE data
+func (this *Exchange) ApplySbeExponents(data interface{}, exponentMap ...interface{}) interface{} {
+	if data == nil {
+		return data
+	}
+	dataMap, ok := data.(map[string]interface{})
+	if !ok {
+		return data
+	}
+	// Collect exponent fields
+	exponents := map[string]interface{}{}
+	for key, value := range dataMap {
+		if strings.HasSuffix(key, "Exponent") {
+			exponents[key] = value
+		}
+	}
+	result := map[string]interface{}{}
+	for key, value := range dataMap {
+		if strings.HasSuffix(key, "Mantissa") {
+			baseFieldName := strings.TrimSuffix(key, "Mantissa")
+			exponentKey := baseFieldName + "Exponent"
+			exponent := exponents[exponentKey]
+			if exponent == nil {
+				exponent = 0
+			}
+			result[baseFieldName] = this.ApplyExponent(value, exponent)
+		} else if !strings.HasSuffix(key, "Exponent") {
+			// Handle arrays recursively
+			if arr, ok := value.([]interface{}); ok {
+				mapped := make([]interface{}, len(arr))
+				for j, item := range arr {
+					mapped[j] = this.ApplySbeExponents(item, exponentMap...)
+				}
+				result[key] = mapped
+			} else {
+				result[key] = value
+			}
+		}
+	}
+	return result
 }
 
 // DecodeSbeNestedMessage decodes nested SBE message (used in envelope patterns like Binance WebSocket)
@@ -324,6 +393,76 @@ func (this *Exchange) ConvertBigIntFields(object interface{}, fields ...interfac
 	}
 
 	return result
+}
+
+// ReadSbeTemplateId reads the template ID from an SBE message header
+// SBE header: blockLength(2) + templateId(2) + schemaId(2) + version(2) = 8 bytes
+func (this *Exchange) ReadSbeTemplateId(buffer interface{}) interface{} {
+	var bytes []byte
+	switch v := buffer.(type) {
+	case []byte:
+		bytes = v
+	default:
+		return -1
+	}
+	if len(bytes) < 8 {
+		return -1
+	}
+	templateId := binary.LittleEndian.Uint16(bytes[2:4])
+	return int(templateId)
+}
+
+// ApplyExponent converts mantissa * 10^exponent to a decimal number
+func (this *Exchange) ApplyExponent(mantissa interface{}, exponent interface{}) interface{} {
+	var mantissaNum float64
+	switch v := mantissa.(type) {
+	case int:
+		mantissaNum = float64(v)
+	case int64:
+		mantissaNum = float64(v)
+	case uint64:
+		mantissaNum = float64(v)
+	case float64:
+		mantissaNum = v
+	default:
+		return 0.0
+	}
+	var expNum float64
+	switch v := exponent.(type) {
+	case int:
+		expNum = float64(v)
+	case int64:
+		expNum = float64(v)
+	case float64:
+		expNum = v
+	default:
+		expNum = 0
+	}
+	return mantissaNum * math.Pow(10, expNum)
+}
+
+// DecodeSbeMessage decodes an SBE binary message using a decoder registry
+func (this *Exchange) DecodeSbeMessage(buffer interface{}, decoderRegistry interface{}) interface{} {
+	// Read template ID
+	templateId := this.ReadSbeTemplateId(buffer)
+
+	// Look up decoder in registry
+	registryMap, ok := decoderRegistry.(map[string]interface{})
+	if !ok {
+		panic(fmt.Sprintf("%s decodeSbeMessage() invalid decoder registry", this.Id))
+	}
+
+	templateIdStr := fmt.Sprintf("%v", templateId)
+	_, exists := registryMap[templateIdStr]
+	if !exists {
+		panic(fmt.Sprintf("%s decodeSbeMessage() unknown template ID: %v", this.Id, templateId))
+	}
+
+	// Return template ID and nil data - actual decoding requires SBE codec implementation
+	return map[string]interface{}{
+		"templateId": templateId,
+		"data":       nil,
+	}
 }
 
 // NormalizeSbeOrder normalizes SBE order data (common pattern for Binance WebSocket)

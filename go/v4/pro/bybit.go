@@ -192,10 +192,10 @@ func  (this *BybitCore) GetUrlByMarketType(optionalArgs ...interface{}) <- chan 
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
             var accessibility interface{} = ccxt.Ternary(ccxt.IsTrue(isPrivate), "private", "public")
-            var isUsdcSettled interface{} = nil
-            var isSpot interface{} = nil
-            var typeVar interface{} = nil
-            var market interface{} = nil
+            var isUsdcSettled interface{}
+            var isSpot interface{}
+            var typeVar interface{}
+            var market interface{}
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -225,7 +225,7 @@ func  (this *BybitCore) GetUrlByMarketType(optionalArgs ...interface{}) <- chan 
                 if ccxt.IsTrue(isSpot) {
                     url = ccxt.GetValue(ccxt.GetValue(url, accessibility), "spot")
                 } else if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "swap"))) || ccxt.IsTrue((ccxt.IsEqual(typeVar, "future")))) {
-                    var subType interface{} = nil
+                    var subType interface{}
                     subTypeparamsVariable := this.HandleSubTypeAndParams(method, market, params, "linear")
                     subType = ccxt.GetValue(subTypeparamsVariable,0)
                     params = ccxt.GetValue(subTypeparamsVariable,1)
@@ -726,8 +726,8 @@ func  (this *BybitCore) HandleTicker(client interface{}, message interface{})  {
     var data interface{} = this.SafeDict(message, "data", map[string]interface{} {})
     var isSpot interface{} = !ccxt.IsEqual(this.SafeString(data, "usdIndexPrice"), nil)
     var typeVar interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "contract")
-    var symbol interface{} = nil
-    var parsed interface{} = nil
+    var symbol interface{}
+    var parsed interface{}
     if ccxt.IsTrue((ccxt.IsEqual(updateType, "snapshot"))) {
         parsed = this.ParseTicker(data)
         symbol = ccxt.GetValue(parsed, "symbol")
@@ -1578,7 +1578,7 @@ func  (this *BybitCore) ParseWsTrade(trade interface{}, optionalArgs ...interfac
     var symbol interface{} = ccxt.GetValue(market, "symbol")
     var timestamp interface{} = this.SafeInteger2(trade, "t", "T")
     var side interface{} = this.SafeStringLower(trade, "S")
-    var takerOrMaker interface{} = nil
+    var takerOrMaker interface{}
     var m interface{} = this.SafeValue(trade, "m")
     if ccxt.IsTrue(ccxt.IsEqual(side, nil)) {
         side = ccxt.Ternary(ccxt.IsTrue(m), "buy", "sell")
@@ -1841,7 +1841,7 @@ func  (this *BybitCore) HandleMyTrades(client interface{}, message interface{}) 
     var filterExecTypes interface{} = this.HandleOption("watchMyTrades", "filterExecTypes", []interface{}{})
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var rawTrade interface{} = ccxt.GetValue(data, i)
-        var parsed interface{} = nil
+        var parsed interface{}
         if ccxt.IsTrue(ccxt.IsTrue(spot) && !ccxt.IsTrue(executionFast)) {
             parsed = this.ParseWsTrade(rawTrade)
         } else {
@@ -2144,7 +2144,7 @@ func  (this *BybitCore) WatchLiquidations(symbol interface{}, optionalArgs ...in
             url:= (<-this.GetUrlByMarketType(symbol, false, "watchLiquidations", params))
             ccxt.PanicOnError(url)
             params = this.CleanParams(params)
-            var method interface{} = nil
+            var method interface{}
             methodparamsVariable := this.HandleOptionAndParams(params, "watchLiquidations", "method", "allLiquidation")
             method = ccxt.GetValue(methodparamsVariable,0)
             params = ccxt.GetValue(methodparamsVariable,1)
@@ -2533,11 +2533,11 @@ func  (this *BybitCore) WatchBalance(optionalArgs ...interface{}) <- chan interf
             ccxt.PanicOnError(retRes20038)
             var method interface{} = "watchBalance"
             var messageHash interface{} = "balances"
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
-            var subType interface{} = nil
+            var subType interface{}
             subTypeparamsVariable := this.HandleSubTypeAndParams("watchBalance", nil, params)
             subType = ccxt.GetValue(subTypeparamsVariable,0)
             params = ccxt.GetValue(subTypeparamsVariable,1)
@@ -2742,9 +2742,9 @@ func  (this *BybitCore) HandleBalance(client interface{}, message interface{})  
     }
     var messageHash interface{} = "balance"
     var topic interface{} = this.SafeValue(message, "topic")
-    var info interface{} = nil
+    var info interface{}
     var rawBalances interface{} = []interface{}{}
-    var account interface{} = nil
+    var account interface{}
     if ccxt.IsTrue(ccxt.IsEqual(topic, "outboundAccountInfo")) {
         account = "spot"
         var data interface{} = this.SafeValue(message, "data", []interface{}{})

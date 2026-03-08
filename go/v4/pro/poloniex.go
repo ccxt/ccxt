@@ -278,7 +278,7 @@ func  (this *PoloniexCore) CreateOrderWs(symbol interface{}, typeVar interface{}
                 "type": ccxt.ToUpper(typeVar),
             }
             if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(uppercaseType, "MARKET"))) && ccxt.IsTrue((ccxt.IsEqual(uppercaseSide, "BUY")))) {
-                var quoteAmount interface{} = nil
+                var quoteAmount interface{}
                 var createMarketBuyOrderRequiresPrice interface{} = true
                 createMarketBuyOrderRequiresPriceparamsVariable := this.HandleOptionAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
                 createMarketBuyOrderRequiresPrice = ccxt.GetValue(createMarketBuyOrderRequiresPriceparamsVariable,0)
@@ -1206,7 +1206,7 @@ func  (this *PoloniexCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var timestamp interface{} = this.SafeString(order, "ts")
     var filledAmount interface{} = this.SafeString(order, "filledAmount")
     var status interface{} = this.SafeString(order, "state")
-    var trades interface{} = nil
+    var trades interface{}
     if !ccxt.IsTrue(ccxt.Precise.StringEq(filledAmount, "0")) {
         trades = []interface{}{}
         var trade interface{} = this.ParseWsOrderTrade(order)

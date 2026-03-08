@@ -172,7 +172,7 @@ func  (this *WooCore) WatchOrderBook(symbol interface{}, optionalArgs ...interfa
         
             retRes1368 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1368)
-            var method interface{} = nil
+            var method interface{}
             methodparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
             method = ccxt.GetValue(methodparamsVariable,0)
             params = ccxt.GetValue(methodparamsVariable,1)
@@ -226,7 +226,7 @@ func  (this *WooCore) UnWatchOrderBook(symbol interface{}, optionalArgs ...inter
         
             retRes1748 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1748)
-            var method interface{} = nil
+            var method interface{}
             methodparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "method", "orderbook")
             method = ccxt.GetValue(methodparamsVariable,0)
             params = ccxt.GetValue(methodparamsVariable,1)
@@ -461,7 +461,7 @@ func  (this *WooCore) UnWatchTicker(symbol interface{}, optionalArgs ...interfac
         
             retRes3448 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes3448)
-            var method interface{} = nil
+            var method interface{}
             methodparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "method", "ticker")
             method = ccxt.GetValue(methodparamsVariable,0)
             params = ccxt.GetValue(methodparamsVariable,1)
@@ -1078,12 +1078,12 @@ func  (this *WooCore) ParseWsTrade(trade interface{}, optionalArgs ...interface{
     var side interface{} = this.SafeStringLower(trade, "side")
     var timestamp interface{} = this.SafeInteger(trade, "timestamp")
     var maker interface{} = this.SafeBool(trade, "marker")
-    var takerOrMaker interface{} = nil
+    var takerOrMaker interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(maker, nil)) {
         takerOrMaker = ccxt.Ternary(ccxt.IsTrue(maker), "maker", "taker")
     }
     var typeVar interface{} = this.SafeStringLower(trade, "type")
-    var fee interface{} = nil
+    var fee interface{}
     var feeCost interface{} = this.SafeNumber(trade, "fee")
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {
@@ -1410,7 +1410,7 @@ func  (this *WooCore) ParseWsOrder(order interface{}, optionalArgs ...interface{
     var filled interface{} = this.SafeString2(order, "totalExecutedQuantity", "executed")
     var rawStatus interface{} = this.SafeString2(order, "status", "algoStatus")
     var status interface{} = this.ParseOrderStatus(rawStatus)
-    var trades interface{} = nil
+    var trades interface{}
     var clientOrderId interface{} = this.SafeString(order, "clientOrderId")
     var triggerPrice interface{} = this.SafeString(order, "triggerPrice")
     return this.SafeOrder(map[string]interface{} {

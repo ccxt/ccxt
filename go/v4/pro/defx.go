@@ -1196,7 +1196,7 @@ func  (this *DefxCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
             var baseUrl interface{} = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
             var channel interface{} = "positions"
             var url interface{} = ccxt.Add(ccxt.Add(baseUrl, "?listenKey="), ccxt.GetValue(this.Options, "listenKey"))
-            var newPosition interface{} = nil
+            var newPosition interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
                 var messageHashes interface{} = []interface{}{}
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {

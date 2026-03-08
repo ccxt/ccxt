@@ -485,7 +485,7 @@ func  (this *DeribitCore) WatchTradesForSymbols(symbols interface{}, optionalArg
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
-            var interval interface{} = nil
+            var interval interface{}
             intervalparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "interval", "100ms")
             interval = ccxt.GetValue(intervalparamsVariable,0)
             params = ccxt.GetValue(intervalparamsVariable,1)
@@ -710,7 +710,7 @@ func  (this *DeribitCore) WatchOrderBookForSymbols(symbols interface{}, optional
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            var interval interface{} = nil
+            var interval interface{}
             intervalparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "interval", "100ms")
             interval = ccxt.GetValue(intervalparamsVariable,0)
             params = ccxt.GetValue(intervalparamsVariable,1)
@@ -725,11 +725,11 @@ func  (this *DeribitCore) WatchOrderBookForSymbols(symbols interface{}, optional
             useDepthEndpoint = ccxt.GetValue(useDepthEndpointparamsVariable,0)
             params = ccxt.GetValue(useDepthEndpointparamsVariable,1)
             if ccxt.IsTrue(useDepthEndpoint) {
-                var depth interface{} = nil
+                var depth interface{}
                 depthparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "depth", "20")
                 depth = ccxt.GetValue(depthparamsVariable,0)
                 params = ccxt.GetValue(depthparamsVariable,1)
-                var group interface{} = nil
+                var group interface{}
                 groupparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "group", "none")
                 group = ccxt.GetValue(groupparamsVariable,0)
                 params = ccxt.GetValue(groupparamsVariable,1)
@@ -1133,7 +1133,7 @@ func  (this *DeribitCore) WatchMultipleWrapper(channelName interface{}, channelD
             this.MarketSymbols(symbols, nil, false)
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsArray)); i++ {
                 var current interface{} = ccxt.GetValue(symbolsArray, i)
-                var market interface{} = nil
+                var market interface{}
                 if ccxt.IsTrue(isOHLCV) {
                     market = this.Market(ccxt.GetValue(current, 0))
                     var unifiedTf interface{} = ccxt.GetValue(current, 1)

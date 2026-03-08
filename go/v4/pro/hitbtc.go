@@ -990,8 +990,8 @@ func  (this *HitbtcCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
         
             retRes8308 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes8308)
-            var marketType interface{} = nil
-            var market interface{} = nil
+            var marketType interface{}
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }
@@ -1190,14 +1190,14 @@ func  (this *HitbtcCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     var marketId interface{} = this.SafeString(order, "symbol")
     market = this.SafeMarket(marketId, market)
     var tradeId interface{} = this.SafeString(order, "trade_id")
-    var trades interface{} = nil
+    var trades interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(tradeId, nil)) {
         var trade interface{} = this.ParseWsOrderTrade(order, market)
         trades = []interface{}{trade}
     }
     var rawStatus interface{} = this.SafeString(order, "status")
     var report_type interface{} = this.SafeString(order, "report_type")
-    var parsedStatus interface{} = nil
+    var parsedStatus interface{}
     if ccxt.IsTrue(ccxt.IsEqual(report_type, "canceled")) {
         parsedStatus = this.ParseOrderStatus(report_type)
     } else {
@@ -1250,7 +1250,7 @@ func  (this *HitbtcCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
         
             retRes10748 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes10748)
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -1306,12 +1306,12 @@ func  (this *HitbtcCore) CreateOrderWs(symbol interface{}, typeVar interface{}, 
             retRes11118 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes11118)
             var market interface{} = this.Market(symbol)
-            var request interface{} = nil
-            var marketType interface{} = nil
+            var request interface{}
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("createOrder", market, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
-            var marginMode interface{} = nil
+            var marginMode interface{}
             marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
             marginMode = ccxt.GetValue(marginModeparamsVariable,0)
             params = ccxt.GetValue(marginModeparamsVariable,1)
@@ -1368,14 +1368,14 @@ func  (this *HitbtcCore) CancelOrderWs(id interface{}, optionalArgs ...interface
         
             retRes11448 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes11448)
-            var market interface{} = nil
+            var market interface{}
             var request interface{} = map[string]interface{} {
                 "client_order_id": id,
             }
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrderWs", market, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -1430,15 +1430,15 @@ func  (this *HitbtcCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan 
         
             retRes11788 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes11788)
-            var market interface{} = nil
+            var market interface{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelAllOrdersWs", market, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
-            var marginMode interface{} = nil
+            var marginMode interface{}
             marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrdersWs", params)
             marginMode = ccxt.GetValue(marginModeparamsVariable,0)
             params = ccxt.GetValue(marginModeparamsVariable,1)
@@ -1492,17 +1492,17 @@ func  (this *HitbtcCore) FetchOpenOrdersWs(optionalArgs ...interface{}) <- chan 
         
             retRes12128 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes12128)
-            var market interface{} = nil
+            var market interface{}
             var request interface{} = map[string]interface{} {}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 ccxt.AddElementToObject(request, "symbol", ccxt.GetValue(market, "id"))
             }
-            var marketType interface{} = nil
+            var marketType interface{}
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOpenOrdersWs", market, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
-            var marginMode interface{} = nil
+            var marginMode interface{}
             marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOpenOrdersWs", params)
             marginMode = ccxt.GetValue(marginModeparamsVariable,0)
             params = ccxt.GetValue(marginModeparamsVariable,1)

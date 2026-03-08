@@ -599,7 +599,7 @@ func  (this *WhitebitCore) ParseWsTrade(trade interface{}, optionalArgs ...inter
     var amount interface{} = this.SafeString(trade, 5)
     var marketId interface{} = this.SafeString(trade, 2)
     market = this.SafeMarket(marketId, market)
-    var fee interface{} = nil
+    var fee interface{}
     var feeCost interface{} = this.SafeString(trade, 6)
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {
@@ -754,8 +754,8 @@ func  (this *WhitebitCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var stopPrice interface{} = this.SafeString(order, "activation_price")
     var rawType interface{} = this.SafeString(order, "type")
     var typeVar interface{} = this.ParseWsOrderType(rawType)
-    var amount interface{} = nil
-    var remaining interface{} = nil
+    var amount interface{}
+    var remaining interface{}
     if ccxt.IsTrue(ccxt.IsEqual(typeVar, "market")) {
         amount = this.SafeString(order, "deal_stock")
         remaining = "0"
@@ -769,14 +769,14 @@ func  (this *WhitebitCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var rawSide interface{} = this.SafeInteger(order, "side")
     var side interface{} = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(rawSide, 1))), "sell", "buy")
     var dealFee interface{} = this.SafeString(order, "deal_fee")
-    var fee interface{} = nil
+    var fee interface{}
     if ccxt.IsTrue(!ccxt.IsEqual(dealFee, nil)) {
         fee = map[string]interface{} {
             "cost": this.ParseNumber(dealFee),
             "currency": ccxt.GetValue(market, "quote"),
         }
     }
-    var unifiedStatus interface{} = nil
+    var unifiedStatus interface{}
     if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(status, 1))) || ccxt.IsTrue((ccxt.IsEqual(status, 2)))) {
         unifiedStatus = "open"
     } else {
@@ -845,12 +845,12 @@ func  (this *WhitebitCore) WatchBalance(optionalArgs ...interface{}) <- chan int
         
             retRes7108 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes7108)
-            var typeVar interface{} = nil
+            var typeVar interface{}
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
             var messageHash interface{} = "wallet:"
-            var method interface{} = nil
+            var method interface{}
             if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
                 method = "balanceSpot_subscribe"
                 messageHash = ccxt.Add(messageHash, "spot")
@@ -945,7 +945,7 @@ func  (this *WhitebitCore) WatchMultipleSubscription(messageHash interface{}, me
             var url interface{} = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var id interface{} = this.Nonce()
             var client interface{} = this.SafeValue(this.Clients, url)
-            var request interface{} = nil
+            var request interface{}
             var marketIds interface{} = []interface{}{}
             if ccxt.IsTrue(ccxt.IsEqual(client, nil)) {
                 var subscription interface{} = map[string]interface{} {}
