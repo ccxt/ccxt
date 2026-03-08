@@ -80,7 +80,7 @@ export class Stream implements BaseStream {
         const synchronous = params.synchronous ?? true;
         const consumerMaxBacklogSize = params.consumerMaxBacklogSize;
 
-        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous, maxBacklogSize: consumerMaxBacklogSize, log: this.log });
+        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous, maxBacklogSize: consumerMaxBacklogSize, log: this.log } as any);
 
         if (!this.consumers[topic]) {
             this.consumers[topic] = [];
