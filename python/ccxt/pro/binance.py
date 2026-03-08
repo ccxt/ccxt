@@ -223,7 +223,7 @@ class binance(ccxt.async_support.binance):
             return url + separator + 'responseFormat=sbe&sbeSchemaId=' + str(sbeSchemaId) + '&sbeSchemaVersion=' + str(sbeSchemaVersion)
         return url
 
-    def decode_sbe_web_socket_message(self, buffer: ArrayBuffer) -> Any:
+    def decode_sbe_web_socket_message(self, buffer: bytes) -> Any:
         """
  Decodes SBE-encoded WebSocket messages
         :param ArrayBuffer buffer: - The binary SBE message
