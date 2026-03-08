@@ -78,18 +78,13 @@ func (s *Stream) Produce(topic interface{}, payload interface{}, err interface{}
 		}
 	}
 
-	// Create a copy of history
-	history := make([]*Message, len(messages))
-	copy(history, messages)
-
 	message := &Message{
 		Payload: payload,
 		Error:   errorVal,
 		Metadata: MessageMetadata{
-			Stream:  s,
-			Topic:   topicStr,
-			Index:   index,
-			History: history,
+			Stream: s,
+			Topic:  topicStr,
+			Index:  index,
 		},
 	}
 

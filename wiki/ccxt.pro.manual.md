@@ -373,7 +373,7 @@ exchange.Stream.MaxMessagesPerTopic = 1000
 Note: Setting `maxMessagesPerTopic` to 0 will disable message history storage, which can be useful for high-throughput scenarios where you only need the latest message.
 
 ### Callback Functions
-When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
+When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, and metadata about the message.
 
 #### Error Handling in Callbacks
 It is recommended that your callback functions implement their own error handling to gracefully handle any errors that might occur during message processing. If an error is thrown by the consumer function, the stream will:
@@ -443,7 +443,7 @@ await exchange.streamReconnect();
 This will re-establish all currently active watch functions that were previously called. The automatic reconnection system uses this same mechanism internally.
 
 #### Accessing Metadata and Message History
-Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily. To activate the history you must set `maxMessagesPerTopic` to a value higher than 0.
+Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. To access message history, use `stream.getMessageHistory(topic)` which returns the topic's message array directly. To activate history storage you must set `maxMessagesPerTopic` to a value higher than 0.
 
 ```typescript
 export interface Message {
@@ -453,10 +453,34 @@ export interface Message {
         stream: BaseStream // reference to the exchange stream
         topic: Topic // string identifying the topic of the stream
         index: number // index of the message being consumed
-        history: Message []; // reference to the history of the topic. To show messages, maxMessagesPerTopic must be higher than 0.
     }
 }
 ```
+
+To access history from inside a callback:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const history = message.metadata.stream.getMessageHistory(message.metadata.topic);
+```
+#### **Python**
+```python
+history = message.metadata.stream.get_message_history(message.metadata.topic)
+```
+#### **PHP**
+```php
+$history = $message->metadata->stream->get_message_history($message->metadata->topic);
+```
+#### **C#**
+```csharp
+var history = ((Stream)message.metadata.stream).GetMessageHistory(message.metadata.topic);
+```
+#### **Go**
+```go
+history := message.Metadata.Stream.GetMessageHistory(message.Metadata.Topic)
+```
+<!-- tabs:end -->
 
 ### Synchronous vs. Asynchronous Consumption
 You can choose to consume messages synchronously or asynchronously:
@@ -483,9 +507,11 @@ async subscribeTickers(symbols?: string[], callback: ConsumerFunction, options?:
 ```javascript
 const handleTickerUpdate: ConsumerFunction = (message: Message): void => {
     console.log('New ticker update:', message.payload);
-    // Access metadata and history
+    // Access metadata
     console.log('Metadata:', message.metadata);
-    console.log('History:', message.history);
+    // Access history via stream
+    const history = message.metadata.stream.getMessageHistory(message.metadata.topic);
+    console.log('History length:', history.length);
 };
 
 // Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
@@ -500,9 +526,11 @@ from types import ConsumerFunction, Message
 
 def handle_ticker_update(message: Message) -> None:
     print('New ticker update:', message.payload)
-    # Access metadata and history
+    # Access metadata
     print('Metadata:', message.metadata.__dict__)
-    print('History:', [msg.payload for msg in message.history])
+    # Access history via stream
+    history = message.metadata.stream.get_message_history(message.metadata.topic)
+    print('History length:', len(history))
 
 # Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
 await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, { 'synchronous': True })
@@ -514,9 +542,11 @@ await subscribe_tickers(['BTC/USD', 'ETH/USD'], handle_ticker_update, { 'synchro
 ```php
 function handleTickerUpdate($message) {
     echo 'New ticker update: ', $message->payload, PHP_EOL;
-    // Access metadata and history
+    // Access metadata
     echo 'Metadata: ', json_encode($message->metadata), PHP_EOL;
-    echo 'History: ', json_encode(array_map(fn($msg) => $msg->payload, $message->history)), PHP_EOL;
+    // Access history via stream
+    $history = $message->metadata->stream->get_message_history($message->metadata->topic);
+    echo 'History length: ', count($history), PHP_EOL;
 }
 
 // Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
@@ -529,10 +559,12 @@ subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' =>
 ```csharp
     public static async Task HandleTickerUpdate(Message message)
     {
-        Console.WriteLine($"New ticker update: {message.Payload}");
-        // Access metadata and history
-        Console.WriteLine($"Metadata: {message.Metadata}");
-        Console.WriteLine($"History: {string.Join(", ", message.History.Select(m => m.Payload))}");
+        Console.WriteLine($"New ticker update: {message.payload}");
+        // Access metadata
+        Console.WriteLine($"Metadata: {message.metadata}");
+        // Access history via stream
+        var history = ((Stream)message.metadata.stream).GetMessageHistory(message.metadata.topic);
+        Console.WriteLine($"History length: {history.Count}");
     }
 
     public static async Task Main(string[] args)
@@ -549,9 +581,11 @@ subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', ['synchronous' =>
 ```go
 handleTickerUpdate := func(message *types.Message) {
     fmt.Println("New ticker update:", message.Payload)
-    // Access metadata and history
+    // Access metadata
     fmt.Println("Metadata:", message.Metadata)
-    fmt.Println("History:", message.History)
+    // Access history via stream
+    history := message.Metadata.Stream.GetMessageHistory(message.Metadata.Topic)
+    fmt.Println("History length:", len(history))
 }
 
 // Subscribe to ticker updates for BTC/USD and ETH/USD with synchronous processing
@@ -930,7 +964,7 @@ if (someCondition) {
   - Stream reference
   - Topic
   - Index
-  - Message history
+  - Stream reference (for accessing message history via `getMessageHistory`)
 
 #### Topic Operations
 ##### Publishing Messages

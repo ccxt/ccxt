@@ -52,7 +52,6 @@ public class Stream : IBaseStream
                 stream = this,
                 topic = topic,
                 index = index,
-                history = messages.ToList(), // Creates a shallow copy
             },
         };
 

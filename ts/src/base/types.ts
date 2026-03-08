@@ -40,7 +40,6 @@ export interface Message {
         stream: BaseStream
         topic: Topic
         index: number
-        history: Message [];
     }
 }
 

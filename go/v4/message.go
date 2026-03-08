@@ -9,8 +9,7 @@ type Message struct {
 
 // MessageMetadata contains metadata about a message
 type MessageMetadata struct {
-	Stream  *Stream
-	Topic   string
-	Index   int
-	History []*Message
+	Stream *Stream
+	Topic  string
+	Index  int
 }

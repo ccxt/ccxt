@@ -20,11 +20,14 @@ export class Stream implements BaseStream {
 
     public activeWatchFunctions: any[] = [];
 
-    constructor (maxMessagesPerTopic = 100, verbose = false) {
+    public log: (...args: any[]) => void;
+
+    constructor (maxMessagesPerTopic = 100, verbose = false, log: (...args: any[]) => void = console.log) {
+        this.log = log;
         this.init (maxMessagesPerTopic, verbose);
     }
 
-    init (maxMessagesPerTopic = 10, verbose = false) {
+    init (maxMessagesPerTopic = 100, verbose = false) {
         this.maxMessagesPerTopic = maxMessagesPerTopic
         this.verbose = verbose;
         this.topics = {};
@@ -51,7 +54,6 @@ export class Stream implements BaseStream {
                 stream: this,
                 topic,
                 index,
-                history: messages.slice (),
             },
         };
 
@@ -78,7 +80,7 @@ export class Stream implements BaseStream {
         const synchronous = params.synchronous ?? true;
         const consumerMaxBacklogSize = params.consumerMaxBacklogSize;
 
-        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous, maxBacklogSize: consumerMaxBacklogSize });
+        const consumer = new Consumer (consumerFn, this.getLastIndex (topic), { synchronous, maxBacklogSize: consumerMaxBacklogSize, log: this.log });
 
         if (!this.consumers[topic]) {
             this.consumers[topic] = [];
@@ -86,7 +88,7 @@ export class Stream implements BaseStream {
 
         this.consumers[topic].push (consumer);
         if (this.verbose) {
-            console.log ('subscribed function to topic: ', topic, ' synchronous: ', synchronous, ' maxBacklogSize: ', consumerMaxBacklogSize);
+            this.log ('subscribed function to topic: ', topic, ' synchronous: ', synchronous, ' maxBacklogSize: ', consumerMaxBacklogSize);
         }
     }
 
@@ -101,12 +103,12 @@ export class Stream implements BaseStream {
             const consumersForTopic = this.consumers[topic];
             this.consumers[topic] = consumersForTopic.filter ((consumer) => consumer.fn !== consumerFn);
             if (this.verbose) {
-                console.log ('unsubscribed function from topic: ', topic);
+                this.log ('unsubscribed function from topic: ', topic);
             }
             return true
         } else {
             if (this.verbose) {
-                console.log ('unsubscribe failed: consumer not found for topic: ', topic);
+                this.log ('unsubscribe failed: consumer not found for topic: ', topic);
             }
             return false
         }
@@ -140,7 +142,7 @@ export class Stream implements BaseStream {
      */
     private async sendToConsumers (consumers: Consumer[], message: Message): Promise<void> {
         if (this.verbose) {
-            console.log ('sending message from topic ', message.metadata.topic, 'to ', consumers.length, ' consumers');
+            this.log ('sending message from topic ', message.metadata.topic, 'to ', consumers.length, ' consumers');
         }
         for (let i = 0; i < consumers.length; i++) {
             await Promise.resolve ();
@@ -155,7 +157,15 @@ export class Stream implements BaseStream {
      * @param args {any[]} - the arguments to pass to the watchFunction
      */
     public addWatchFunction (watchFn: string, args: any[]): void {
-        this.activeWatchFunctions.push ({ 'method': watchFn, 'args': args })
+        const key = watchFn + '::' + JSON.stringify (args);
+        for (let i = 0; i < this.activeWatchFunctions.length; i++) {
+            const existing = this.activeWatchFunctions[i];
+            const existingKey = existing['method'] + '::' + JSON.stringify (existing['args']);
+            if (existingKey === key) {
+                return;
+            }
+        }
+        this.activeWatchFunctions.push ({ 'method': watchFn, 'args': args });
     }
 
     /**
@@ -164,7 +174,7 @@ export class Stream implements BaseStream {
      */
     close (): void {
         if (this.verbose) {
-            console.log ('closing stream');
+            this.log ('closing stream');
         }
         this.init (this.maxMessagesPerTopic, this.verbose);
     }

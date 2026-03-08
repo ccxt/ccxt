@@ -8,13 +8,11 @@ class Metadata {
     public $stream;
     public $topic;
     public $index;
-    public $history;
 
     public function __construct($stream, $topic, $index) {
         $this->stream = $stream;
         $this->topic = $topic;
         $this->index = $index;
-        $this->history = $this->stream->get_message_history($topic);
     }
 }
 

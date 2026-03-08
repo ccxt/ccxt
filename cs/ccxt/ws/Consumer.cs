@@ -17,7 +17,6 @@ namespace ccxt.pro
         public IBaseStream stream { get; set; }
         public string topic { get; set; }
         public int index { get; set; }
-        public List<Message> history { get; set; }
     }
 
     public class Message

@@ -1,4 +1,8 @@
-import ccxt from '../../js/ccxt.js';
+- [Subscribe](./examples/ts/)
+
+
+ ```javascript
+ import ccxt from '../../js/ccxt.js';
 import { Message } from '../../js/src/base/types.js';
 
 // AUTO-TRANSPILE //
@@ -55,3 +59,5 @@ async function example () {
 }
 
 await example ();
+ 
+```

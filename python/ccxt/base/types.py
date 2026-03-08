@@ -612,7 +612,6 @@ class Metadata:
         self.stream = stream
         self.topic = topic
         self.index = index
-        self.history = stream.get_message_history(topic)[:]
 
 
 class Message:
