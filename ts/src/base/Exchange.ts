@@ -3192,28 +3192,14 @@ export default class Exchange {
 
     decodeSbeResponse (buffer: ArrayBuffer, url: string) {
         // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
-        if (this.verbose) {
-            this.log ('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength);
-        }
         try {
             // Use decodeSbeMessage with exchange-specific decoder registry
             const decoderRegistry = this.getSbeDecoderRegistry ();
             const result = this.decodeSbeMessage (buffer, decoderRegistry);
-            const templateId = result['templateId'];
             const decoded = result['data'];
-            if (this.verbose) {
-                this.log ('decodeSbeResponse: Template ID:', templateId);
-                this.log ('decodeSbeResponse: Successfully decoded SBE message');
-            }
             return decoded;
         } catch (e) {
-            const errorMessage = e instanceof Error ? e.message : String (e);
-            const errorStack = e instanceof Error ? e.stack : '';
-            if (this.verbose) {
-                this.log ('decodeSbeResponse: Error decoding SBE buffer:', errorMessage);
-                this.log ('decodeSbeResponse: Stack trace:', errorStack);
-                this.log ('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes');
-            }
+            const errorMessage = String (e);
             // Attempt JSON fallback — server may return JSON despite SBE request headers
             try {
                 const text = new TextDecoder ().decode (buffer);

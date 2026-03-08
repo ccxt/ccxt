@@ -4159,8 +4159,8 @@ public partial class binance : Exchange
         object qtyExponent = this.safeInteger(response, "qtyExponent");
         if (isTrue(isTrue(!isEqual(priceExponent, null)) && isTrue(!isEqual(qtyExponent, null))))
         {
-            object bids = this.safeList(response, "bids", response);
-            object asks = this.safeList(response, "asks", response);
+            object bids = this.safeList(response, "bids", new List<object>() {});
+            object asks = this.safeList(response, "asks", new List<object>() {});
             for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
             {
                 ((List<object>)bids)[Convert.ToInt32(i)] = new List<object> {this.applyExponent(getValue(getValue(bids, i), "price"), priceExponent), this.applyExponent(getValue(getValue(bids, i), "qty"), qtyExponent)};
@@ -5346,8 +5346,8 @@ public partial class binance : Exchange
             {
                 if (isTrue(this.verbose))
                 {
-                    this.log("fetchTrades: Using decoded SBE response, trades count");
-                    this.log("fetchTrades: First trade raw");
+                    this.log("fetchTrades: Using decoded SBE response, trades count:", getArrayLength(sbeTradesArray));
+                    this.log("fetchTrades: First trade raw:", this.json(getValue(sbeTradesArray, 0)));
                 }
                 // Normalize trades to standard format
                 object normalizedTrades = new List<object>() {};
@@ -5374,7 +5374,9 @@ public partial class binance : Exchange
                         { "isBestMatch", isEqual(this.safeInteger(trade, "isBestMatch"), 1) },
                     });
                 }
-                response = normalizedTrades;
+                response = new Dictionary<string, object>() {
+                    { "trades", normalizedTrades },
+                };
             }
         } else if (isTrue(isTrue(getValue(market, "option")) || isTrue(isEqual(method, "eapiPublicGetTrades"))))
         {
@@ -5455,7 +5457,7 @@ public partial class binance : Exchange
         //         },
         //     ]
         //
-        object rawTrades = this.safeList(response, "trades", response);
+        object rawTrades = this.safeList(response, "trades", new List<object>() {});
         object trades = this.parseTrades(rawTrades, market, since, limit);
         return trades;
     }
@@ -13053,7 +13055,9 @@ public partial class binance : Exchange
             }
         }
         object isSpotApi = (isTrue(isEqual(api, "public")) || isTrue(isEqual(api, "private")));
-        if (isTrue(isTrue(isTrue(isTrue(useSbe) && isTrue(!isEqual(sbeSchemaId, null))) && isTrue(!isEqual(sbeSchemaVersion, null))) && isTrue(isSpotApi)))
+        object sbeEnabledPaths = new List<object>() {"depth", "trades", "aggTrades", "historicalTrades"};
+        object isSbeSupportedPath = this.inArray(path, sbeEnabledPaths);
+        if (isTrue(isTrue(isTrue(isTrue(isTrue(useSbe) && isTrue(!isEqual(sbeSchemaId, null))) && isTrue(!isEqual(sbeSchemaVersion, null))) && isTrue(isSpotApi)) && isTrue(isSbeSupportedPath)))
         {
             if (isTrue(isEqual(headers, null)))
             {

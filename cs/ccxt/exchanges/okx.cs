@@ -6789,7 +6789,7 @@ public partial class okx : Exchange
                 url = add(url, add("?", this.urlencode(query)));
             }
             // Add SBE headers only for the books-sbe endpoint (OKX SBE is WS-only except this one REST endpoint)
-            if (isTrue(useSbe) && isTrue(isEqual(path, "market/books-sbe")))
+            if (isTrue(isTrue(useSbe) && isTrue(isEqual(path, "market/books-sbe"))))
             {
                 if (isTrue(isEqual(headers, null)))
                 {

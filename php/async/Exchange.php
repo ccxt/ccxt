@@ -1007,28 +1007,14 @@ class Exchange extends \ccxt\Exchange {
 
     public function decode_sbe_response(string $buffer, string $url) {
         // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
-        if ($this->verbose) {
-            $this->log('decodeSbeResponse => Decoding SBE $buffer, size:', strlen($buffer));
-        }
         try {
             // Use decodeSbeMessage with exchange-specific decoder registry
             $decoderRegistry = $this->get_sbe_decoder_registry();
             $result = $this->decode_sbe_message($buffer, $decoderRegistry);
-            $templateId = $result['templateId'];
             $decoded = $result['data'];
-            if ($this->verbose) {
-                $this->log('decodeSbeResponse => Template ID:', $templateId);
-                $this->log('decodeSbeResponse => Successfully $decoded SBE message');
-            }
             return $decoded;
         } catch (Exception $e) {
-            $errorMessage = $e instanceof Error ? $e->message : 'strval' ($e);
-            $errorStack = $e instanceof Error ? $e->stack : '';
-            if ($this->verbose) {
-                $this->log('decodeSbeResponse => Error decoding SBE $buffer:', $errorMessage);
-                $this->log('decodeSbeResponse => Stack trace:', $errorStack);
-                $this->log('decodeSbeResponse => Buffer size:', strlen($buffer), 'bytes');
-            }
+            $errorMessage = 'strval' ($e);
             // Attempt JSON fallback — server may return JSON despite SBE request headers
             try {
                 $text = $buffer;

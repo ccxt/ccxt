@@ -3368,25 +3368,14 @@ class Exchange(object):
 
     def decode_sbe_response(self, buffer: bytes, url: str):
         # Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
-        if self.verbose:
-            self.log('decodeSbeResponse: Decoding SBE buffer, size:', buffer.byteLength)
         try:
             # Use decodeSbeMessage with exchange-specific decoder registry
             decoderRegistry = self.get_sbe_decoder_registry()
             result = self.decode_sbe_message(buffer, decoderRegistry)
-            templateId = result['templateId']
             decoded = result['data']
-            if self.verbose:
-                self.log('decodeSbeResponse: Template ID:', templateId)
-                self.log('decodeSbeResponse: Successfully decoded SBE message')
             return decoded
         except Exception as e:
-            errorMessage = e.message if isinstance(e, Error) else str(e)
-            errorStack = e.stack if isinstance(e, Error) else ''
-            if self.verbose:
-                self.log('decodeSbeResponse: Error decoding SBE buffer:', errorMessage)
-                self.log('decodeSbeResponse: Stack trace:', errorStack)
-                self.log('decodeSbeResponse: Buffer size:', buffer.byteLength, 'bytes')
+            errorMessage = str(e)
             # Attempt JSON fallback — server may return JSON despite SBE request headers
             try:
                 text = buffer

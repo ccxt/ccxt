@@ -677,36 +677,24 @@ public partial class Exchange
 
     public virtual object decodeSbeResponse(object buffer, object url)
     {
-        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
         try
         {
             // Use decodeSbeMessage with exchange-specific decoder registry
             object decoderRegistry = this.getSbeDecoderRegistry();
             object result = this.decodeSbeMessage(buffer, decoderRegistry);
-            object templateId = getValue(result, "templateId");
             object decoded = getValue(result, "data");
             return decoded;
         } catch(Exception e)
         {
-            object errorMessage = e.Message;
-            object errorStack = e.StackTrace ?? "";
-            if (isTrue(this.verbose))
-            {
-                this.log((string)add("decodeSbeResponse: Error decoding SBE buffer: ", errorMessage));
-            }
-            // Attempt JSON fallback — server may return JSON despite SBE request headers
+            object errorMessage = ((e)).ToString();
             try
             {
-                string text = buffer is byte[] bytes ? System.Text.Encoding.UTF8.GetString(bytes) : buffer?.ToString();
-                if (text != null)
-                {
-                    return parseJson(text);
-                }
-            } catch(Exception)
+                object text = buffer is byte[] _sbeBytes ? System.Text.Encoding.UTF8.GetString(_sbeBytes) : buffer?.ToString();
+                return parseJson(text);
+            } catch(Exception jsonError)
             {
-                // fall through
+                throw new ExchangeError ((string)add(add(add(this.id, " decodeSbeResponse() failed. Error: "), errorMessage), ". Try setting useSbe to false in options.")) ;
             }
-            throw new ExchangeError ((string)add(add(add(this.id, " decodeSbeResponse() failed. Error: "), errorMessage), ". Try setting useSbe to false in options.")) ;
         }
     }
 

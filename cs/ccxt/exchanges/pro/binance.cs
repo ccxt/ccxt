@@ -211,7 +211,11 @@ public partial class binance : ccxt.binance
             object sbeSchemaId = this.safeInteger(this.options, "sbeSchemaId", 3);
             object sbeSchemaVersion = this.safeInteger(this.options, "sbeSchemaVersion", 1);
             // Add SBE parameters to the WebSocket URL
-            object separator = ((bool) isTrue(isGreaterThanOrEqual(getIndexOf(url, "?"), 0))) ? "&" : "?";
+            object separator = "?";
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "?"), 0)))
+            {
+                separator = "&";
+            }
             return add(add(add(add(add(url, separator), "responseFormat=sbe&sbeSchemaId="), ((object)sbeSchemaId).ToString()), "&sbeSchemaVersion="), ((object)sbeSchemaVersion).ToString());
         }
         return url;
@@ -4018,29 +4022,38 @@ public partial class binance : ccxt.binance
         ((IDictionary<string,object>)normalized)["tradeGroupId"] = this.safeInteger(order, "tradeGroupId");
         // Handle fills array
         object fills = this.safeList(order, "fills", new List<object>() {});
-        if (isTrue(isGreaterThan(getArrayLength(fills), 0)))
+        ((IDictionary<string,object>)normalized)["fills"] = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(fills)); postFixIncrement(ref i))
         {
-            ((IDictionary<string,object>)normalized)["fills"] = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(fills)); postFixIncrement(ref i))
+            object fill = getValue(fills, i);
+            object commissionExponent = this.safeInteger(fill, "commissionExponent", 0);
+            object fillPriceMantissa = this.safeInteger(fill, "price");
+            object qtyMantissa = this.safeInteger(fill, "qty");
+            object commissionMantissa = this.safeInteger(fill, "commission");
+            object fillPrice = null;
+            if (isTrue(!isEqual(fillPriceMantissa, null)))
             {
-                object fill = getValue(fills, i);
-                object commissionExponent = this.safeInteger(fill, "commissionExponent", 0);
-                object fillPriceMantissa = this.safeInteger(fill, "price");
-                object qtyMantissa = this.safeInteger(fill, "qty");
-                object commissionMantissa = this.safeInteger(fill, "commission");
-                ((IList<object>)getValue(normalized, "fills")).Add(new Dictionary<string, object>() {
-                    { "price", ((bool) isTrue(!isEqual(fillPriceMantissa, null))) ? ((object)(this.applyExponent(fillPriceMantissa, priceExponent))).ToString() : null },
-                    { "qty", ((bool) isTrue(!isEqual(qtyMantissa, null))) ? ((object)(this.applyExponent(qtyMantissa, qtyExponent))).ToString() : null },
-                    { "commission", ((bool) isTrue(!isEqual(commissionMantissa, null))) ? ((object)(this.applyExponent(commissionMantissa, commissionExponent))).ToString() : null },
-                    { "commissionAsset", this.safeString(fill, "commissionAsset") },
-                    { "tradeId", this.safeInteger(fill, "tradeId") },
-                    { "allocId", this.safeInteger(fill, "allocId") },
-                    { "matchType", this.safeValue(fill, "matchType") },
-                });
+                fillPrice = ((object)this.applyExponent(fillPriceMantissa, priceExponent)).ToString();
             }
-        } else
-        {
-            ((IDictionary<string,object>)normalized)["fills"] = new List<object>() {};
+            object fillQty = null;
+            if (isTrue(!isEqual(qtyMantissa, null)))
+            {
+                fillQty = ((object)this.applyExponent(qtyMantissa, qtyExponent)).ToString();
+            }
+            object fillCommission = null;
+            if (isTrue(!isEqual(commissionMantissa, null)))
+            {
+                fillCommission = ((object)this.applyExponent(commissionMantissa, commissionExponent)).ToString();
+            }
+            ((IList<object>)getValue(normalized, "fills")).Add(new Dictionary<string, object>() {
+                { "price", fillPrice },
+                { "qty", fillQty },
+                { "commission", fillCommission },
+                { "commissionAsset", this.safeString(fill, "commissionAsset") },
+                { "tradeId", this.safeInteger(fill, "tradeId") },
+                { "allocId", this.safeInteger(fill, "allocId") },
+                { "matchType", this.safeValue(fill, "matchType") },
+            });
         }
         // Handle preventedMatches array
         object preventedMatches = this.safeList(order, "preventedMatches", new List<object>() {});
@@ -4053,12 +4066,27 @@ public partial class binance : ccxt.binance
                 object matchPriceMantissa = this.safeInteger(match, "price");
                 object takerPreventedQtyMantissa = this.safeInteger(match, "takerPreventedQuantity");
                 object makerPreventedQtyMantissa = this.safeInteger(match, "makerPreventedQuantity");
+                object matchPrice = null;
+                if (isTrue(!isEqual(matchPriceMantissa, null)))
+                {
+                    matchPrice = ((object)this.applyExponent(matchPriceMantissa, priceExponent)).ToString();
+                }
+                object takerPreventedQty = null;
+                if (isTrue(!isEqual(takerPreventedQtyMantissa, null)))
+                {
+                    takerPreventedQty = ((object)this.applyExponent(takerPreventedQtyMantissa, qtyExponent)).ToString();
+                }
+                object makerPreventedQty = null;
+                if (isTrue(!isEqual(makerPreventedQtyMantissa, null)))
+                {
+                    makerPreventedQty = ((object)this.applyExponent(makerPreventedQtyMantissa, qtyExponent)).ToString();
+                }
                 ((IList<object>)getValue(normalized, "preventedMatches")).Add(new Dictionary<string, object>() {
                     { "preventedMatchId", this.safeInteger(match, "preventedMatchId") },
                     { "makerOrderId", this.safeInteger(match, "makerOrderId") },
-                    { "price", ((bool) isTrue(!isEqual(matchPriceMantissa, null))) ? ((object)(this.applyExponent(matchPriceMantissa, priceExponent))).ToString() : null },
-                    { "takerPreventedQuantity", ((bool) isTrue(!isEqual(takerPreventedQtyMantissa, null))) ? ((object)(this.applyExponent(takerPreventedQtyMantissa, qtyExponent))).ToString() : null },
-                    { "makerPreventedQuantity", ((bool) isTrue(!isEqual(makerPreventedQtyMantissa, null))) ? ((object)(this.applyExponent(makerPreventedQtyMantissa, qtyExponent))).ToString() : null },
+                    { "price", matchPrice },
+                    { "takerPreventedQuantity", takerPreventedQty },
+                    { "makerPreventedQuantity", makerPreventedQty },
                     { "makerSymbol", this.safeString(match, "makerSymbol") },
                 });
             }

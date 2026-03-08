@@ -11659,7 +11659,7 @@ class binance(Exchange, ImplicitAPI):
                 url += '?' + self.urlencode(params)
         isSpotApi = (api == 'public' or api == 'private')
         sbeEnabledPaths = ['depth', 'trades', 'aggTrades', 'historicalTrades']
-        isSbeSupportedPath = sbeEnabledPaths.find(path) >= 0
+        isSbeSupportedPath = self.in_array(path, sbeEnabledPaths)
         if useSbe and sbeSchemaId is not None and sbeSchemaVersion is not None and isSpotApi and isSbeSupportedPath:
             if headers is None:
                 headers = {}

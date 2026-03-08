@@ -12453,7 +12453,7 @@ class binance extends Exchange {
         }
         $isSpotApi = ($api === 'public' || $api === 'private');
         $sbeEnabledPaths = array( 'depth', 'trades', 'aggTrades', 'historicalTrades' );
-        $isSbeSupportedPath = mb_strpos($sbeEnabledPaths, $path) !== false;
+        $isSbeSupportedPath = $this->in_array($path, $sbeEnabledPaths);
         if ($useSbe && $sbeSchemaId !== null && $sbeSchemaVersion !== null && $isSpotApi && $isSbeSupportedPath) {
             if ($headers === null) {
                 $headers = array();

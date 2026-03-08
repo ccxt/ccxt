@@ -2717,14 +2717,13 @@ public partial class okx : ccxt.okx
                 // Check if it looks like valid SBE by validating header
                 if (isTrue(isTrue(uint8Array) && isTrue(isGreaterThanOrEqual(getArrayLength(uint8Array), 8))))
                 {
-                    object view = null;
+                    var view = null;
                     object templateId = null; // offset 2, little-endian
                     object schemaId = null; // offset 4, little-endian
                     // OKX SBE schema ID is 1, template IDs are 1000-1006
                     if (isTrue(isTrue(isTrue(isEqual(schemaId, 1)) && isTrue(isGreaterThanOrEqual(templateId, 1000))) && isTrue(isLessThanOrEqual(templateId, 1006))))
                     {
-                        this.handleMessage(client as WebSocketClient, message);
-                        return;
+                        return this.handleMessage(client as WebSocketClient, message);
                     }
                 }
                 try
@@ -2882,8 +2881,7 @@ public partial class okx : ccxt.okx
 
     public virtual void handleSbeBooksL2Tbt(WebSocketClient client, object message)
     {
-        // BooksL2TbtChannelEvent (Template ID 1001)
-        // Contains orderbook updates
+        // BooksL2TbtChannelEvent (Template ID 1001) and SnapshotDepthResponseEvent (Template ID 1006)
         object instIdCode = this.safeInteger(message, "instIdCode");
         object symbol = this.safeSymbolFromInstIdCode(instIdCode);
         if (isTrue(isEqual(symbol, null)))
@@ -2896,54 +2894,86 @@ public partial class okx : ccxt.okx
         object processed = this.applySbeExponents(message);
         object timestamp = this.safeInteger(processed, "ts");
         object seqId = this.safeInteger(processed, "seqId");
+        object prevSeqId = this.safeInteger(processed, "prevSeqId");
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
         object orderbook = getValue(this.orderbooks, symbol);
-        // Convert to standard format [price, size]
+        // Convert to standard [price, size] arrays
         object bids = new List<object>() {};
-        if (isTrue(getValue(processed, "139172")))
+        if (isTrue(getValue(processed, "139253")))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(getValue(processed, "139259"))); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, getArrayLength(getValue(processed, "139340"))); postFixIncrement(ref i))
             {
-                object bid = getValue(getValue(processed, "139354"), i);
+                object bid = getValue(getValue(processed, "139435"), i);
                 ((IList<object>)bids).Add(new List<object>() {getValue(bid, "px"), getValue(bid, "sz")});
             }
         }
         object asks = new List<object>() {};
-        if (isTrue(getValue(processed, "139568")))
+        if (isTrue(getValue(processed, "139649")))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(getValue(processed, "139655"))); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, getArrayLength(getValue(processed, "139736"))); postFixIncrement(ref i))
             {
-                object ask = getValue(getValue(processed, "139750"), i);
+                object ask = getValue(getValue(processed, "139831"), i);
                 ((IList<object>)asks).Add(new List<object>() {getValue(ask, "px"), getValue(ask, "sz")});
             }
         }
-        object snapshot = new Dictionary<string, object>() {
-            { "bids", bids },
-            { "asks", asks },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "nonce", seqId },
-        };
-        (orderbook as IOrderBook).reset(snapshot);
+        // prevSeqId === -1 means this is a snapshot (REST or initial)
+        object isSnapshot = isTrue((isEqual(prevSeqId, -1))) || isTrue((isEqual(getValue(orderbook, "nonce"), null)));
+        if (isTrue(isSnapshot))
+        {
+            // Full snapshot — reset the orderbook
+            (orderbook as IOrderBook).reset(new Dictionary<string, object>() {
+                { "bids", bids },
+                { "asks", asks },
+                { "timestamp", timestamp },
+                { "datetime", this.iso8601(timestamp) },
+                { "nonce", seqId },
+            });
+        } else
+        {
+            // Incremental update — validate seqId chain then apply delta
+            if (isTrue(!isEqual(prevSeqId, getValue(orderbook, "nonce"))))
+            {
+                // Gap detected — orderbook is out of sync, reset so next snapshot re-initialises it
+                (orderbook as IOrderBook).reset(new Dictionary<string, object>() {});
+                ((IDictionary<string,object>)orderbook)["nonce"] = null;
+                return;
+            }
+            ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
+            ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
+            ((IDictionary<string,object>)orderbook)["nonce"] = seqId;
+            // Apply each price level: qty 0 means remove, otherwise insert/update
+            for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+            {
+                getValue(orderbook, "bids").store(getValue(getValue(bids, i), 0), getValue(getValue(bids, i), 1));
+            }
+            for (object i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+            {
+                getValue(orderbook, "asks").store(getValue(getValue(asks, i), 0), getValue(getValue(asks, i), 1));
+            }
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
     public virtual void handleSbeBooksL2TbtExponentUpdate(WebSocketClient client, object message)
     {
         // BooksL2TbtExponentUpdateEvent (Template ID 1002)
-        // Contains exponent updates for orderbook data
-        // Store exponents for future updates
+        // Contains only exponent changes (no bid/ask data), but carries seqId/prevSeqId.
+        // Must update the orderbook nonce so the seqId chain stays consistent —
+        // the next BooksL2TbtChannelEvent's prevSeqId will reference this message's seqId.
         object instIdCode = this.safeInteger(message, "instIdCode");
-        object pxExponent = this.safeInteger(message, "pxExponent");
-        object szExponent = this.safeInteger(message, "szExponent");
-        object sbeExponents = this.safeDict(this, "sbeExponents", new Dictionary<string, object>() {});
-        ((List<object>)sbeExponents)[Convert.ToInt32(instIdCode)] = new Dictionary<string, object>() {
-            { "pxExponent", pxExponent },
-            { "szExponent", szExponent },
-        };
+        object symbol = this.safeSymbolFromInstIdCode(instIdCode);
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return;
+        }
+        object seqId = this.safeInteger(message, "seqId");
+        if (isTrue(inOp(this.orderbooks, symbol)))
+        {
+            ((IDictionary<string,object>)getValue(this.orderbooks, symbol))["nonce"] = seqId;
+        }
     }
 
     public virtual void handleSbeTrades(WebSocketClient client, object message)

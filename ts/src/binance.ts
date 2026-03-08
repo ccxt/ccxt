@@ -12381,7 +12381,7 @@ export default class binance extends Exchange {
         }
         const isSpotApi = (api === 'public' || api === 'private');
         const sbeEnabledPaths = [ 'depth', 'trades', 'aggTrades', 'historicalTrades' ];
-        const isSbeSupportedPath = sbeEnabledPaths.indexOf (path) >= 0;
+        const isSbeSupportedPath = this.inArray (path, sbeEnabledPaths);
         if (useSbe && sbeSchemaId !== undefined && sbeSchemaVersion !== undefined && isSpotApi && isSbeSupportedPath) {
             if (headers === undefined) {
                 headers = {};
