@@ -206,6 +206,69 @@ class binance extends \ccxt\async\binance {
         return $newValue;
     }
 
+    public function get_sbe_web_socket_url(string $url): string {
+        /**
+         * Appends SBE parameters to WebSocket API URL if SBE is enabled
+         * @param {string} $url - The base WebSocket URL
+         * @return {string} The URL with SBE parameters appended if enabled
+         */
+        $useSbe = $this->safe_bool($this->options, 'useSbe', false);
+        if ($useSbe) {
+            $sbeSchemaId = $this->safe_integer($this->options, 'sbeSchemaId', 3);
+            $sbeSchemaVersion = $this->safe_integer($this->options, 'sbeSchemaVersion', 1);
+            // Add SBE parameters to the WebSocket URL
+            $separator = '?';
+            if (mb_strpos($url, '?') !== false) {
+                $separator = '&';
+            }
+            return $url . $separator . 'responseFormat=sbe&$sbeSchemaId=' . (string) $sbeSchemaId . '&$sbeSchemaVersion=' . (string) $sbeSchemaVersion;
+        }
+        return $url;
+    }
+
+    public function decode_sbe_web_socket_message(string $buffer): mixed {
+        /**
+         * Decodes SBE-encoded WebSocket messages
+         * @param {ArrayBuffer} $buffer - The binary SBE message
+         * @return {array} Decoded message-compatible object
+         */
+        try {
+            // Use new generated WebSocketResponseDecoder
+            $decoder = new WebSocketResponseDecoder ();
+            $decoded = $decoder->decode ($buffer, 0);
+            if ($this->verbose) {
+                $this->log('decodeSbeWebSocketMessage => $decoded WebSocketResponse, status:', $decoded->status);
+            }
+            // The WebSocketResponse envelope contains => id, status, rateLimits, result
+            // The result field is of type messageData (Uint8Array) and contains another nested SBE message
+            // Decode nested result based on message template ID from the nested message header
+            $decodedResult = $decoded->result;
+            if ($decoded->result && $decoded->strlen(result) > 0) {
+                // Result is binary data that needs to be $decoded based on template ID
+                $decodedResult = $this->decode_sbe_nested_message($decoded->result);
+                if ($this->verbose) {
+                    $resultType = ($decodedResult && $decodedResult->constructor) ? $decodedResult->constructor.name : 'unknown';
+                    $this->log('decodeSbeWebSocketMessage => $decoded nested result type:', $resultType);
+                }
+            }
+            // id is already $decoded to string by the generated $decoder
+            $idString = $decoded->id;
+            // Clean up the $decoded structure to match expected JSON format
+            $cleanMessage = array(
+                'id' => $idString,
+                'status' => $decoded->status,
+                'result' => $decodedResult,
+                'rateLimits' => $decoded->rateLimits,
+            );
+            return $cleanMessage;
+        } catch (Exception $e) {
+            if ($this->verbose) {
+                $this->log('decodeSbeWebSocketMessage error:', $e);
+            }
+            throw $e;
+        }
+    }
+
     public function is_spot_url(Client $client) {
         return (mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, 'demo-stream') > -1);
     }
@@ -828,7 +891,8 @@ class binance extends \ccxt\async\binance {
             if ($marketType !== 'future') {
                 throw new BadRequest($this->id . ' fetchOrderBookWs only supports swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$marketType];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$marketType];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -851,6 +915,7 @@ class binance extends \ccxt\async\binance {
 
     public function handle_fetch_order_book(Client $client, $message) {
         //
+        // JSON format:
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
         //        "status":200,
@@ -873,8 +938,61 @@ class binance extends \ccxt\async\binance {
         //        }
         //    }
         //
+        // SBE format (DepthResponse):
+        //    {
+        //        "id":"...",
+        //        "status":200,
+        //        "result":{
+        //            "lastUpdateId":1027024,
+        //            "priceExponent" => -8,
+        //            "qtyExponent" => -8,
+        //            "bids":array(
+        //                {
+        //                    "price" => 400000000,    // mantissa
+        //                    "qty" => 43100000000     // mantissa
+        //                }
+        //            ),
+        //            "asks":array(
+        //                {
+        //                    "price" => 400000200,
+        //                    "qty" => 1200000000
+        //                }
+        //            )
+        //        }
+        //    }
+        //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result');
+        // Check if SBE format (has exponent fields)
+        $priceExponent = $this->safe_integer($result, 'priceExponent');
+        if ($priceExponent !== null) {
+            // SBE format - normalize to JSON format
+            $qtyExponent = $this->safe_integer($result, 'qtyExponent', 0);
+            $normalized = array(
+                'lastUpdateId' => $this->safe_integer($result, 'lastUpdateId'),
+                'E' => $this->safe_integer($result, 'E'),
+                'T' => $this->safe_integer($result, 'T'),
+                'bids' => array(),
+                'asks' => array(),
+            );
+            // Convert bids
+            $bidsArray = $this->safe_list($result, 'bids', array());
+            for ($i = 0; $i < count($bidsArray); $i++) {
+                $bid = $bidsArray[$i];
+                $price = $this->apply_exponent($this->safe_integer($bid, 'price', 0), $priceExponent);
+                $qty = $this->apply_exponent($this->safe_integer($bid, 'qty', 0), $qtyExponent);
+                $normalized['bids'][] = array( 'strval' ($price), 'strval' ($qty) );
+            }
+            // Convert asks
+            $asksArray = $this->safe_list($result, 'asks', array());
+            for ($i = 0; $i < count($asksArray); $i++) {
+                $ask = $asksArray[$i];
+                $price = $this->apply_exponent($this->safe_integer($ask, 'price', 0), $priceExponent);
+                $qty = $this->apply_exponent($this->safe_integer($ask, 'qty', 0), $qtyExponent);
+                $normalized['asks'][] = array( 'strval' ($price), 'strval' ($qty) );
+            }
+            $result = $normalized;
+        }
         $timestamp = $this->safe_integer($result, 'T');
         $orderbook = $this->parse_order_book($result, null, $timestamp);
         $orderbook['nonce'] = $this->safe_integer_2($result, 'lastUpdateId', 'u');
@@ -1741,7 +1859,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'future') {
                 throw new BadRequest($this->id . ' fetchTickerWs only supports swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $subscription = array(
@@ -1787,7 +1906,8 @@ class binance extends \ccxt\async\binance {
             if ($marketType !== 'spot' && $marketType !== 'future') {
                 throw new BadRequest($this->id . ' fetchOHLCVWs only supports spot or swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$marketType];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$marketType];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -1822,6 +1942,7 @@ class binance extends \ccxt\async\binance {
 
     public function handle_fetch_ohlcv(Client $client, $message) {
         //
+        // JSON format:
         //    {
         //        "id" => "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
         //        "status" => 200,
@@ -1834,28 +1955,95 @@ class binance extends \ccxt\async\binance {
         //                "0.01083800",       // Close price
         //                "2290.53800000",    // Volume
         //                1655974799999,      // Kline close time
-        //                "24.85074442",      // Quote asset volume
+        //                "24.85074442",      // Quote asset $volume
         //                2283,               // Number of trades
-        //                "1171.64000000",    // Taker buy base asset volume
-        //                "12.71225884",      // Taker buy quote asset volume
+        //                "1171.64000000",    // Taker buy base asset $volume
+        //                "12.71225884",      // Taker buy quote asset $volume
         //                "0"                 // Unused field, ignore
         //            )
         //        ),
-        //        "rateLimits" => array(
-        //            {
-        //                "rateLimitType" => "REQUEST_WEIGHT",
-        //                "interval" => "MINUTE",
-        //                "intervalNum" => 1,
-        //                "limit" => 6000,
-        //                "count" => 2
-        //            }
-        //        )
+        //        "rateLimits" => [...]
         //    }
         //
-        $result = $this->safe_list($message, 'result');
-        $parsed = $this->parse_ohlcvs($result);
-        // use a reverse lookup in a static map instead
+        // SBE format (decoded):
+        //    {
+        //        "id" => "...",
+        //        "status" => 200,
+        //        "result" => {
+        //            "priceExponent" => -8,
+        //            "qtyExponent" => -8,
+        //            "klines" => [
+        //                {
+        //                    "openTime" => 1655971200000000,    // microseconds
+        //                    "openPrice" => 1086000,            // mantissa
+        //                    "highPrice" => 1086600,
+        //                    "lowPrice" => 1083600,
+        //                    "closePrice" => 1083800,
+        //                    "volume" => [...],                 // mantissa128 array
+        //                    "closeTime" => 1655974799999000,
+        //                    "quoteVolume" => [...],
+        //                    "numTrades" => 2283,
+        //                    "takerBuyBaseVolume" => [...],
+        //                    "takerBuyQuoteVolume" => [...]
+        //                }
+        //            ]
+        //        }
+        //    }
+        //
         $messageHash = $this->safe_string($message, 'id');
+        $result = $this->safe_value($message, 'result');
+        $parsed = array();
+        // Check if $result is already decoded (SBE format) or needs parsing (JSON format)
+        if ($result !== null) {
+            if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+                // JSON format - $result is directly the array of klines (array of arrays)
+                $parsed = $this->parse_ohlcvs($result);
+            } elseif (gettype($result) === 'array') {
+                // SBE format - $result is an object with klines array and exponents
+                $klinesArray = $this->safe_list($result, 'klines', array());
+                if (strlen($klinesArray) > 0) {
+                    // Get exponents for converting mantissa values
+                    $priceExponent = $this->safe_integer($result, 'priceExponent', 0);
+                    $qtyExponent = $this->safe_integer($result, 'qtyExponent', 0);
+                    // Convert mantissa values to standard OHLCV format
+                    $normalizedKlines = array();
+                    for ($i = 0; $i < count($klinesArray); $i++) {
+                        $kline = $klinesArray[$i];
+                        // Convert mantissa128 byte arrays to numbers
+                        $volume = $this->mantissa128_to_number($kline->volume);
+                        $openTime = (int) floor($kline->openTime / 1000); // microseconds to milliseconds
+                        $openPrice = $this->apply_exponent($kline->openPrice, $priceExponent);
+                        $highPrice = $this->apply_exponent($kline->highPrice, $priceExponent);
+                        $lowPrice = $this->apply_exponent($kline->lowPrice, $priceExponent);
+                        $closePrice = $this->apply_exponent($kline->closePrice, $priceExponent);
+                        $vol = $this->apply_exponent($volume, $qtyExponent);
+                        $closeTime = (int) floor($kline->closeTime / 1000);
+                        $quoteVolume = $this->mantissa128_to_number($kline->quoteVolume);
+                        $quoteVol = $this->apply_exponent($quoteVolume, $priceExponent);
+                        $numTrades = $kline->numTrades;
+                        $takerBuyBaseVolume = $this->mantissa128_to_number($kline->takerBuyBaseVolume);
+                        $takerBuyBase = $this->apply_exponent($takerBuyBaseVolume, $qtyExponent);
+                        $takerBuyQuoteVolume = $this->mantissa128_to_number($kline->takerBuyQuoteVolume);
+                        $takerBuyQuote = $this->apply_exponent($takerBuyQuoteVolume, $priceExponent);
+                        $normalizedKlines[] = array(
+                            $openTime,
+                            'strval' ($openPrice),
+                            'strval' ($highPrice),
+                            'strval' ($lowPrice),
+                            'strval' ($closePrice),
+                            'strval' ($vol),
+                            $closeTime,
+                            'strval' ($quoteVol),
+                            $numTrades,
+                            'strval' ($takerBuyBase),
+                            'strval' ($takerBuyQuote),
+                            '0',
+                        );
+                    }
+                    $parsed = $this->parse_ohlcvs($normalizedKlines);
+                }
+            }
+        }
         $client->resolve ($parsed, $messageHash);
     }
 
@@ -2290,7 +2478,7 @@ class binance extends \ccxt\async\binance {
 
     public function handle_ticker_ws(Client $client, $message) {
         //
-        // $ticker->price
+        // JSON format - $ticker->price
         //    {
         //        "id":"1",
         //        "status":200,
@@ -2300,7 +2488,7 @@ class binance extends \ccxt\async\binance {
         //            "time":1712527052374
         //        }
         //    }
-        // $ticker->book
+        // JSON format - $ticker->book
         //    {
         //        "id":"9d32157c-a556-4d27-9866-66760a174b57",
         //        "status":200,
@@ -2315,8 +2503,70 @@ class binance extends \ccxt\async\binance {
         //        }
         //    }
         //
+        // SBE format - PriceTickerSymbolResponse
+        //    {
+        //        "id":"1",
+        //        "status":200,
+        //        "result":{
+        //            "priceExponent" => -8,
+        //            "price" => 7317850000000,  // mantissa
+        //            "symbol":"BTCUSDT"
+        //        }
+        //    }
+        // SBE format - BookTickerSymbolResponse
+        //    {
+        //        "id":"...",
+        //        "status":200,
+        //        "result":{
+        //            "priceExponent" => -8,
+        //            "qtyExponent" => -8,
+        //            "bidPrice" => 400000000,    // mantissa
+        //            "bidQty" => 43100000000,
+        //            "askPrice" => 400000200,
+        //            "askQty" => 900000000,
+        //            "symbol":"BTCUSDT"
+        //        }
+        //    }
+        //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
+        // Check if SBE format (has exponent fields)
+        $priceExponent = $this->safe_integer($result, 'priceExponent');
+        if ($priceExponent !== null) {
+            // SBE format - normalize to JSON format
+            $qtyExponent = $this->safe_integer($result, 'qtyExponent', 0);
+            $normalized = array(
+                'symbol' => $this->safe_string($result, 'symbol'),
+            );
+            // Handle price field (for $ticker->price)
+            $priceMantissa = $this->safe_integer($result, 'price');
+            if ($priceMantissa !== null) {
+                $normalized['price'] = 'strval' ($this->apply_exponent($priceMantissa, $priceExponent));
+            }
+            // Handle bid/ask fields (for $ticker->book)
+            $bidPriceMantissa = $this->safe_integer($result, 'bidPrice');
+            if ($bidPriceMantissa !== null) {
+                $normalized['bidPrice'] = 'strval' ($this->apply_exponent($bidPriceMantissa, $priceExponent));
+            }
+            $bidQtyMantissa = $this->safe_integer($result, 'bidQty');
+            if ($bidQtyMantissa !== null) {
+                $normalized['bidQty'] = 'strval' ($this->apply_exponent($bidQtyMantissa, $qtyExponent));
+            }
+            $askPriceMantissa = $this->safe_integer($result, 'askPrice');
+            if ($askPriceMantissa !== null) {
+                $normalized['askPrice'] = 'strval' ($this->apply_exponent($askPriceMantissa, $priceExponent));
+            }
+            $askQtyMantissa = $this->safe_integer($result, 'askQty');
+            if ($askQtyMantissa !== null) {
+                $normalized['askQty'] = 'strval' ($this->apply_exponent($askQtyMantissa, $qtyExponent));
+            }
+            // Copy other fields
+            $lastUpdateId = $this->safe_integer($result, 'lastUpdateId');
+            if ($lastUpdateId !== null) {
+                $normalized['lastUpdateId'] = $lastUpdateId;
+            }
+            $result = $normalized;
+        }
         $ticker = $this->parse_ws_ticker($result, 'future');
         $client->resolve ($ticker, $messageHash);
     }
@@ -2466,7 +2716,8 @@ class binance extends \ccxt\async\binance {
              *
              * @return Promise<number> The $subscription ID for the user data stream
              */
-            $url = $this->urls['api']['ws']['ws-api'][$marketType];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$marketType];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $client = $this->client($url);
             $subscriptions = $client->subscriptions;
             $subscriptionsKeys = is_array($subscriptions) ? array_keys($subscriptions) : array();
@@ -2805,7 +3056,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
                 throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -2846,7 +3098,7 @@ class binance extends \ccxt\async\binance {
 
     public function handle_account_status_ws(Client $client, $message) {
         //
-        // spot
+        // JSON format - spot
         //    {
         //        "id" => "605a6d20-6588-4cb9-afa0-b0ab087507ba",
         //        "status" => 200,
@@ -2889,10 +3141,92 @@ class binance extends \ccxt\async\binance {
         //            )
         //        }
         //    }
-        // swap
+        //
+        // SBE format (AccountResponse):
+        //    {
+        //        "id" => "...",
+        //        "status" => 200,
+        //        "result" => {
+        //            "commissionExponent" => -8,
+        //            "commissionRateMaker" => 150000,      // mantissa
+        //            "commissionRateTaker" => 150000,
+        //            "commissionRateBuyer" => 0,
+        //            "commissionRateSeller" => 0,
+        //            "canTrade" => 1,                       // boolEnum
+        //            "canWithdraw" => 1,
+        //            "canDeposit" => 1,
+        //            "brokered" => 0,
+        //            "requireSelfTradePrevention" => 0,
+        //            "preventSor" => 0,
+        //            "updateTime" => 1660801833000000,      // microseconds
+        //            "accountType" => 0,                    // enum
+        //            "uid" => 12345,
+        //            "balances" => [array(
+        //                "exponent" => -8,
+        //                "free" => 0,                       // mantissa
+        //                "locked" => 0,
+        //                "asset" => "BNB"
+        //            )],
+        //            "permissions" => ["SPOT"],
+        //            "reduceOnlyAssets" => array()
+        //        }
+        //    }
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result', array());
+        // Check if SBE format (has $commissionExponent)
+        $commissionExponent = $this->safe_integer($result, 'commissionExponent');
+        if ($commissionExponent !== null) {
+            // SBE format - normalize to JSON format
+            $normalized = array();
+            // Convert commission rates from mantissa
+            $makerMantissa = $this->safe_integer($result, 'commissionRateMaker');
+            $takerMantissa = $this->safe_integer($result, 'commissionRateTaker');
+            $buyerMantissa = $this->safe_integer($result, 'commissionRateBuyer');
+            $sellerMantissa = $this->safe_integer($result, 'commissionRateSeller');
+            $normalized['commissionRates'] = array(
+                'maker' => ($this->apply_exponent($makerMantissa, (string) $commissionExponent)),
+                'taker' => ($this->apply_exponent($takerMantissa, (string) $commissionExponent)),
+                'buyer' => ($this->apply_exponent($buyerMantissa, (string) $commissionExponent)),
+                'seller' => ($this->apply_exponent($sellerMantissa, (string) $commissionExponent)),
+            );
+            // Note => makerCommission, takerCommission, buyerCommission, sellerCommission
+            // are NOT present in SBE format (as documented in the schema)
+            // Copy boolean fields
+            $normalized['canTrade'] = $this->safe_value($result, 'canTrade');
+            $normalized['canWithdraw'] = $this->safe_value($result, 'canWithdraw');
+            $normalized['canDeposit'] = $this->safe_value($result, 'canDeposit');
+            $normalized['brokered'] = $this->safe_value($result, 'brokered');
+            $normalized['requireSelfTradePrevention'] = $this->safe_value($result, 'requireSelfTradePrevention');
+            $normalized['preventSor'] = $this->safe_value($result, 'preventSor');
+            // Convert $updateTime from microseconds to milliseconds
+            $updateTime = $this->safe_integer($result, 'updateTime');
+            if ($updateTime !== null) {
+                $normalized['updateTime'] = (int) floor($updateTime / 1000);
+            }
+            // Copy other fields
+            $normalized['accountType'] = $this->safe_value($result, 'accountType');
+            $normalized['tradeGroupId'] = $this->safe_integer($result, 'tradeGroupId');
+            $normalized['uid'] = $this->safe_integer($result, 'uid');
+            // Convert $balances array
+            $balances = $this->safe_list($result, 'balances', array());
+            $normalized['balances'] = array();
+            for ($i = 0; $i < count($balances); $i++) {
+                $balance = $balances[$i];
+                $exponent = $this->safe_integer($balance, 'exponent', 0);
+                $freeMantissa = $this->safe_integer($balance, 'free', 0);
+                $lockedMantissa = $this->safe_integer($balance, 'locked', 0);
+                $normalized['balances'][] = array(
+                    'asset' => $this->safe_string($balance, 'asset'),
+                    'free' => ($this->apply_exponent($freeMantissa, (string) $exponent)),
+                    'locked' => ($this->apply_exponent($lockedMantissa, (string) $exponent)),
+                );
+            }
+            // Copy permissions and reduceOnlyAssets arrays as-is
+            $normalized['permissions'] = $this->safe_list($result, 'permissions', array());
+            $normalized['reduceOnlyAssets'] = $this->safe_list($result, 'reduceOnlyAssets', array());
+            $result = $normalized;
+        }
         $parsedBalances = $this->parseBalanceCustom ($result);
         $client->resolve ($parsedBalances, $messageHash);
     }
@@ -2946,7 +3280,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'future' && $type !== 'delivery') {
                 throw new BadRequest($this->id . ' fetchPositionsWs only supports swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -3036,7 +3371,8 @@ class binance extends \ccxt\async\binance {
             $urlType = $type;
             if ($type === 'spot' || $type === 'margin') {
                 // route to WebSocket API connection where the user data stream is subscribed
-                $url = $this->urls['api']['ws']['ws-api']['spot'];
+                $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+                $url = $this->get_sbe_web_socket_url($baseUrl);
             } else {
                 if ($isPortfolioMargin) {
                     $urlType = 'papi';
@@ -3222,7 +3558,8 @@ class binance extends \ccxt\async\binance {
             if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
                 throw new BadRequest($this->id . ' createOrderWs only supports spot or swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$marketType];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$marketType];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $sor = $this->safe_bool_2($params, 'sor', 'SOR', false);
@@ -3268,8 +3605,167 @@ class binance extends \ccxt\async\binance {
         }) ();
     }
 
+    public function normalize_sbe_order($order) {
+        // Check if this is SBE format (has exponent fields)
+        $priceExponent = $this->safe_integer($order, 'priceExponent');
+        if ($priceExponent === null) {
+            // Already in JSON format
+            return $order;
+        }
+        // SBE format - normalize to JSON format
+        $qtyExponent = $this->safe_integer($order, 'qtyExponent', 0);
+        $normalized = array();
+        // Copy non-price/qty fields directly
+        $normalized['orderId'] = $this->safe_integer($order, 'orderId');
+        $normalized['orderListId'] = $this->safe_integer($order, 'orderListId');
+        $normalized['symbol'] = $this->safe_string($order, 'symbol');
+        $normalized['clientOrderId'] = $this->safe_string($order, 'clientOrderId');
+        $normalized['origClientOrderId'] = $this->safe_string($order, 'origClientOrderId');
+        // Convert timestamps from microseconds to milliseconds
+        $transactTime = $this->safe_integer($order, 'transactTime');
+        if ($transactTime !== null) {
+            $normalized['transactTime'] = (int) floor($transactTime / 1000);
+        }
+        $workingTime = $this->safe_integer($order, 'workingTime');
+        if ($workingTime !== null) {
+            $normalized['workingTime'] = (int) floor($workingTime / 1000);
+        }
+        $time = $this->safe_integer($order, 'time');
+        if ($time !== null) {
+            $normalized['time'] = (int) floor($time / 1000);
+        }
+        $updateTime = $this->safe_integer($order, 'updateTime');
+        if ($updateTime !== null) {
+            $normalized['updateTime'] = (int) floor($updateTime / 1000);
+        }
+        $trailingTime = $this->safe_integer($order, 'trailingTime');
+        if ($trailingTime !== null) {
+            $normalized['trailingTime'] = (int) floor($trailingTime / 1000);
+        }
+        // Convert mantissa values to decimal strings
+        $priceMantissa = $this->safe_integer($order, 'price');
+        if ($priceMantissa !== null) {
+            $normalized['price'] = ($this->apply_exponent($priceMantissa, (string) $priceExponent));
+        }
+        $origQtyMantissa = $this->safe_integer($order, 'origQty');
+        if ($origQtyMantissa !== null) {
+            $normalized['origQty'] = ($this->apply_exponent($origQtyMantissa, (string) $qtyExponent));
+        }
+        $executedQtyMantissa = $this->safe_integer($order, 'executedQty');
+        if ($executedQtyMantissa !== null) {
+            $normalized['executedQty'] = ($this->apply_exponent($executedQtyMantissa, (string) $qtyExponent));
+        }
+        $cummulativeQuoteQtyMantissa = $this->safe_integer($order, 'cummulativeQuoteQty');
+        if ($cummulativeQuoteQtyMantissa !== null) {
+            $normalized['cummulativeQuoteQty'] = ($this->apply_exponent($cummulativeQuoteQtyMantissa, (string) $priceExponent));
+        }
+        $stopPriceMantissa = $this->safe_integer($order, 'stopPrice');
+        if ($stopPriceMantissa !== null) {
+            $normalized['stopPrice'] = ($this->apply_exponent($stopPriceMantissa, (string) $priceExponent));
+        }
+        $icebergQtyMantissa = $this->safe_integer($order, 'icebergQty');
+        if ($icebergQtyMantissa !== null) {
+            $normalized['icebergQty'] = ($this->apply_exponent($icebergQtyMantissa, (string) $qtyExponent));
+        }
+        $preventedQuantityMantissa = $this->safe_integer($order, 'preventedQuantity');
+        if ($preventedQuantityMantissa !== null) {
+            $normalized['preventedQuantity'] = ($this->apply_exponent($preventedQuantityMantissa, (string) $qtyExponent));
+        }
+        $origQuoteOrderQtyMantissa = $this->safe_integer($order, 'origQuoteOrderQty');
+        if ($origQuoteOrderQtyMantissa !== null) {
+            $normalized['origQuoteOrderQty'] = ($this->apply_exponent($origQuoteOrderQtyMantissa, (string) $priceExponent));
+        }
+        $peggedPriceMantissa = $this->safe_integer($order, 'peggedPrice');
+        if ($peggedPriceMantissa !== null) {
+            $normalized['peggedPrice'] = ($this->apply_exponent($peggedPriceMantissa, (string) $priceExponent));
+        }
+        // Copy enum fields - they need to be mapped to their string equivalents
+        // The parseOrder method handles this mapping
+        $normalized['status'] = $this->safe_value($order, 'status');
+        $normalized['timeInForce'] = $this->safe_value($order, 'timeInForce');
+        $normalized['type'] = $this->safe_value($order, 'orderType'); // Note => orderType maps to 'type' in JSON
+        $normalized['side'] = $this->safe_value($order, 'side');
+        $normalized['orderCapacity'] = $this->safe_value($order, 'orderCapacity');
+        $normalized['workingFloor'] = $this->safe_value($order, 'workingFloor');
+        $normalized['selfTradePreventionMode'] = $this->safe_value($order, 'selfTradePreventionMode');
+        $normalized['usedSor'] = $this->safe_value($order, 'usedSor');
+        $normalized['isWorking'] = $this->safe_value($order, 'isWorking');
+        $normalized['pegPriceType'] = $this->safe_value($order, 'pegPriceType');
+        $normalized['pegOffsetType'] = $this->safe_value($order, 'pegOffsetType');
+        $normalized['pegOffsetValue'] = $this->safe_value($order, 'pegOffsetValue');
+        // Copy other fields
+        $normalized['trailingDelta'] = $this->safe_integer($order, 'trailingDelta');
+        $normalized['strategyId'] = $this->safe_integer($order, 'strategyId');
+        $normalized['strategyType'] = $this->safe_integer($order, 'strategyType');
+        $normalized['tradeGroupId'] = $this->safe_integer($order, 'tradeGroupId');
+        // Handle $fills array
+        $fills = $this->safe_list($order, 'fills', array());
+        $normalized['fills'] = array();
+        for ($i = 0; $i < count($fills); $i++) {
+            $fill = $fills[$i];
+            $commissionExponent = $this->safe_integer($fill, 'commissionExponent', 0);
+            $fillPriceMantissa = $this->safe_integer($fill, 'price');
+            $qtyMantissa = $this->safe_integer($fill, 'qty');
+            $commissionMantissa = $this->safe_integer($fill, 'commission');
+            $fillPrice = null;
+            if ($fillPriceMantissa !== null) {
+                $fillPrice = $this->apply_exponent($fillPriceMantissa, (string) $priceExponent);
+            }
+            $fillQty = null;
+            if ($qtyMantissa !== null) {
+                $fillQty = $this->apply_exponent($qtyMantissa, (string) $qtyExponent);
+            }
+            $fillCommission = null;
+            if ($commissionMantissa !== null) {
+                $fillCommission = $this->apply_exponent($commissionMantissa, (string) $commissionExponent);
+            }
+            $normalized['fills'][] = array(
+                'price' => $fillPrice,
+                'qty' => $fillQty,
+                'commission' => $fillCommission,
+                'commissionAsset' => $this->safe_string($fill, 'commissionAsset'),
+                'tradeId' => $this->safe_integer($fill, 'tradeId'),
+                'allocId' => $this->safe_integer($fill, 'allocId'),
+                'matchType' => $this->safe_value($fill, 'matchType'),
+            );
+        }
+        // Handle $preventedMatches array
+        $preventedMatches = $this->safe_list($order, 'preventedMatches', array());
+        if (strlen($preventedMatches) > 0) {
+            $normalized['preventedMatches'] = array();
+            for ($i = 0; $i < count($preventedMatches); $i++) {
+                $match = $preventedMatches[$i];
+                $matchPriceMantissa = $this->safe_integer($match, 'price');
+                $takerPreventedQtyMantissa = $this->safe_integer($match, 'takerPreventedQuantity');
+                $makerPreventedQtyMantissa = $this->safe_integer($match, 'makerPreventedQuantity');
+                $matchPrice = null;
+                if ($matchPriceMantissa !== null) {
+                    $matchPrice = $this->apply_exponent($matchPriceMantissa, (string) $priceExponent);
+                }
+                $takerPreventedQty = null;
+                if ($takerPreventedQtyMantissa !== null) {
+                    $takerPreventedQty = $this->apply_exponent($takerPreventedQtyMantissa, (string) $qtyExponent);
+                }
+                $makerPreventedQty = null;
+                if ($makerPreventedQtyMantissa !== null) {
+                    $makerPreventedQty = $this->apply_exponent($makerPreventedQtyMantissa, (string) $qtyExponent);
+                }
+                $normalized['preventedMatches'][] = array(
+                    'preventedMatchId' => $this->safe_integer($match, 'preventedMatchId'),
+                    'makerOrderId' => $this->safe_integer($match, 'makerOrderId'),
+                    'price' => $matchPrice,
+                    'takerPreventedQuantity' => $takerPreventedQty,
+                    'makerPreventedQuantity' => $makerPreventedQty,
+                    'makerSymbol' => $this->safe_string($match, 'makerSymbol'),
+                );
+            }
+        }
+        return $normalized;
+    }
+
     public function handle_order_ws(Client $client, $message) {
         //
+        // JSON format:
         //    {
         //        "id" => 1,
         //        "status" => 200,
@@ -3291,39 +3787,45 @@ class binance extends \ccxt\async\binance {
         //          "fills" => array(),
         //          "selfTradePreventionMode" => "NONE"
         //        ),
-        //        "rateLimits" => array(
-        //          array(
-        //            "rateLimitType" => "ORDERS",
-        //            "interval" => "SECOND",
-        //            "intervalNum" => 10,
-        //            "limit" => 50,
-        //            "count" => 1
-        //          ),
-        //          array(
-        //            "rateLimitType" => "ORDERS",
-        //            "interval" => "DAY",
-        //            "intervalNum" => 1,
-        //            "limit" => 160000,
-        //            "count" => 1
-        //          ),
-        //          {
-        //            "rateLimitType" => "REQUEST_WEIGHT",
-        //            "interval" => "MINUTE",
-        //            "intervalNum" => 1,
-        //            "limit" => 1200,
-        //            "count" => 12
-        //          }
-        //        )
+        //        "rateLimits" => [...]
+        //    }
+        //
+        // SBE format (NewOrderResultResponse/NewOrderFullResponse/NewOrderAckResponse):
+        //    {
+        //        "id" => 1,
+        //        "status" => 200,
+        //        "result" => {
+        //          "priceExponent" => -8,
+        //          "qtyExponent" => -8,
+        //          "orderId" => 7663053,
+        //          "orderListId" => -1,
+        //          "transactTime" => 1687642291434000, // microseconds
+        //          "price" => 2500000000000,            // mantissa
+        //          "origQty" => 100000,                 // mantissa
+        //          "executedQty" => 0,
+        //          "cummulativeQuoteQty" => 0,
+        //          "status" => 0,                       // enum
+        //          "timeInForce" => 0,                  // enum
+        //          "orderType" => 1,                    // enum
+        //          "side" => 1,                         // enum
+        //          "workingTime" => 1687642291434000,
+        //          "fills" => [...],                    // array of objects with mantissa values
+        //          "symbol" => "BTCUSDT",
+        //          "clientOrderId" => "..."
+        //        }
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_dict($message, 'result', array());
+        // Normalize SBE format to JSON format if needed
+        $result = $this->normalize_sbe_order($result);
         $order = $this->parse_order($result);
         $client->resolve ($order, $messageHash);
     }
 
     public function handle_orders_ws(Client $client, $message) {
         //
+        // JSON format:
         //    {
         //        "id" => 1,
         //        "status" => 200,
@@ -3351,19 +3853,42 @@ class binance extends \ccxt\async\binance {
         //        ),
         //        ...
         //        ],
-        //        "rateLimits" => [array(
-        //            "rateLimitType" => "REQUEST_WEIGHT",
-        //            "interval" => "MINUTE",
-        //            "intervalNum" => 1,
-        //            "limit" => 1200,
-        //            "count" => 14
-        //        )]
+        //        "rateLimits" => [...]
+        //    }
+        //
+        // SBE format (OrdersResponse) - array in $result->orders:
+        //    {
+        //        "id" => 1,
+        //        "status" => 200,
+        //        "result" => {
+        //            "orders" => [array(
+        //                "priceExponent" => -8,
+        //                "qtyExponent" => -8,
+        //                "orderId" => 7665584,
+        //                ...
+        //            )]
+        //        }
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_list($message, 'result', array());
-        $orders = $this->parse_orders($result);
-        $client->resolve ($orders, $messageHash);
+        $result = $this->safe_value($message, 'result');
+        $orders = array();
+        if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+            // JSON format - $result is directly an array
+            $orders = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $orders[] = $this->normalize_sbe_order($result[$i]);
+            }
+        } elseif (gettype($result) === 'array') {
+            // SBE format - $result has an $orders array
+            $ordersArray = $this->safe_list($result, 'orders', array());
+            $orders = array();
+            for ($i = 0; $i < count($ordersArray); $i++) {
+                $orders[] = $this->normalize_sbe_order($ordersArray[$i]);
+            }
+        }
+        $parsedOrders = $this->parse_orders($orders);
+        $client->resolve ($parsedOrders, $messageHash);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
@@ -3390,7 +3915,8 @@ class binance extends \ccxt\async\binance {
             if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
                 throw new BadRequest($this->id . ' editOrderWs only supports spot or swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$marketType];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$marketType];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $isSwap = ($marketType === 'future' || $marketType === 'delivery');
@@ -3549,7 +4075,8 @@ class binance extends \ccxt\async\binance {
             }
             $market = $this->market($symbol);
             $type = $this->get_market_type('cancelOrderWs', $market, $params);
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -3607,7 +4134,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot') {
                 throw new BadRequest($this->id . ' cancelAllOrdersWs only supports spot markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -3651,7 +4179,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
                 throw new BadRequest($this->id . ' fetchOrderWs only supports spot or swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -3704,7 +4233,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot') {
                 throw new BadRequest($this->id . ' fetchOrdersWs only supports spot markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -3770,7 +4300,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot' && $type !== 'future') {
                 throw new BadRequest($this->id . ' fetchOpenOrdersWs only supports spot or swap markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -3842,7 +4373,8 @@ class binance extends \ccxt\async\binance {
             $url = '';
             if ($type === 'spot' || $type === 'margin') {
                 // route $orders to ws-api user data stream
-                $url = $this->urls['api']['ws']['ws-api']['spot'];
+                $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+                $url = $this->get_sbe_web_socket_url($baseUrl);
             } else {
                 if ($isPortfolioMargin) {
                     $urlType = 'papi';
@@ -4414,7 +4946,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot' && $type !== 'future') {
                 throw new BadRequest($this->id . ' fetchMyTradesWs does not support ' . $type . ' markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -4468,7 +5001,8 @@ class binance extends \ccxt\async\binance {
             if ($type !== 'spot' && $type !== 'future') {
                 throw new BadRequest($this->id . ' fetchTradesWs does not support ' . $type . ' markets');
             }
-            $url = $this->urls['api']['ws']['ws-api'][$type];
+            $baseUrl = $this->urls['api']['ws']['ws-api'][$type];
+            $url = $this->get_sbe_web_socket_url($baseUrl);
             $requestId = $this->request_id($url);
             $messageHash = (string) $requestId;
             $returnRateLimits = false;
@@ -4539,9 +5073,68 @@ class binance extends \ccxt\async\binance {
         //        ),
         //    }
         //
+        // SBE response (binary ArrayBuffer)
+        // Will be decoded to same structure response
+        //
         $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_list($message, 'result', array());
-        $trades = $this->parse_trades($result);
+        $result = $this->safe_value($message, 'result');
+        $trades = array();
+        // Check if $result is already decoded (SBE format) or needs parsing (JSON format)
+        if ($result !== null) {
+            if ((gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result)))) {
+                // JSON format - $result is directly the array of $trades
+                $trades = $this->parse_trades($result);
+            } else {
+                // SBE format - $result is an object with $trades array and exponents
+                $tradesArray = $this->safe_list($result, 'trades', array());
+                if (strlen($tradesArray) > 0) {
+                    // Convert mantissa values to decimal strings
+                    // Check if exponents are at parent level (TradesResponse) or per-$trade (AccountTradesResponse)
+                    $parentPriceExponent = $this->safe_integer($result, 'priceExponent');
+                    $parentQtyExponent = $this->safe_integer($result, 'qtyExponent');
+                    $parentCommissionExponent = $this->safe_integer($result, 'commissionExponent');
+                    $normalizedTrades = array();
+                    for ($i = 0; $i < count($tradesArray); $i++) {
+                        $trade = $tradesArray[$i];
+                        // For TradesResponse (public $trades), exponents are at parent level
+                        // For AccountTradesResponse (myTrades), each $trade has its own exponents
+                        $priceExponent = $this->safe_integer($trade, 'priceExponent', $parentPriceExponent);
+                        $qtyExponent = $this->safe_integer($trade, 'qtyExponent', $parentQtyExponent);
+                        $commissionExponent = $this->safe_integer($trade, 'commissionExponent', $parentCommissionExponent);
+                        $price = $this->apply_exponent($trade->price, $priceExponent);
+                        $qty = $this->apply_exponent($trade->qty, $qtyExponent);
+                        $quoteQty = $this->apply_exponent($trade->quoteQty, $priceExponent);
+                        $timestamp = (int) floor($trade->time / 1000); // microseconds to milliseconds
+                        $normalized = array(
+                            'id' => (string) ($trade->id),
+                            'price' => (string) ($price),
+                            'qty' => (string) ($qty),
+                            'quoteQty' => (string) ($quoteQty),
+                            'time' => $timestamp,
+                            'isBuyerMaker' => $trade->isBuyerMaker === 1,
+                            'isBestMatch' => $trade->isBestMatch === 1,
+                        );
+                        // Handle AccountTradesResponse specific fields
+                        $orderId = $this->safe_integer($trade, 'orderId');
+                        if ($orderId !== null) {
+                            $normalized['orderId'] = $orderId;
+                            $normalized['orderListId'] = $this->safe_integer($trade, 'orderListId');
+                            $normalized['symbol'] = $this->safe_string($trade, 'symbol');
+                            // Convert commission from mantissa
+                            $commissionMantissa = $this->safe_integer($trade, 'commission');
+                            if ($commissionMantissa !== null) {
+                                $normalized['commission'] = 'strval' ($this->apply_exponent($commissionMantissa, $commissionExponent));
+                            }
+                            $normalized['commissionAsset'] = $this->safe_string($trade, 'commissionAsset');
+                            $normalized['isBuyer'] = $this->safe_bool($trade, 'isBuyer', false);
+                            $normalized['isMaker'] = $this->safe_bool($trade, 'isMaker', false);
+                        }
+                        $normalizedTrades[] = $normalized;
+                    }
+                    $trades = $this->parse_trades($normalizedTrades);
+                }
+            }
+        }
         $client->resolve ($trades, $messageHash);
     }
 

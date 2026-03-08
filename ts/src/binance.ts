@@ -4151,8 +4151,8 @@ export default class binance extends Exchange {
         const priceExponent = this.safeInteger (response, 'priceExponent');
         const qtyExponent = this.safeInteger (response, 'qtyExponent');
         if (priceExponent !== undefined && qtyExponent !== undefined) {
-            const bids = this.safeList (response, 'bids', response);
-            const asks = this.safeList (response, 'asks', response);
+            const bids = this.safeList (response, 'bids', []);
+            const asks = this.safeList (response, 'asks', []);
             for (let i = 0; i < bids.length; i++) {
                 bids[i] = [ this.applyExponent (bids[i]['price'], priceExponent), this.applyExponent (bids[i]['qty'], qtyExponent) ];
             }
@@ -5247,8 +5247,8 @@ export default class binance extends Exchange {
             // Check if we got SBE trades data
             if (sbeTradesArray.length > 0) {
                 if (this.verbose) {
-                    this.log ('fetchTrades: Using decoded SBE response, trades count');
-                    this.log ('fetchTrades: First trade raw');
+                    this.log ('fetchTrades: Using decoded SBE response, trades count:', sbeTradesArray.length);
+                    this.log ('fetchTrades: First trade raw:', this.json (sbeTradesArray[0]));
                 }
                 // Normalize trades to standard format
                 const normalizedTrades = [];
@@ -5274,7 +5274,7 @@ export default class binance extends Exchange {
                         'isBestMatch': this.safeInteger (trade, 'isBestMatch') === 1,
                     });
                 }
-                response = normalizedTrades;
+                response = { 'trades': normalizedTrades };
             }
         } else if (market['option'] || method === 'eapiPublicGetTrades') {
             response = await this.eapiPublicGetTrades (this.extend (request, params));
@@ -5351,7 +5351,7 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
-        const rawTrades = this.safeList (response, 'trades', response);
+        const rawTrades = this.safeList (response, 'trades', []);
         const trades = this.parseTrades (rawTrades, market, since, limit);
         return trades;
     }
@@ -12380,7 +12380,9 @@ export default class binance extends Exchange {
             }
         }
         const isSpotApi = (api === 'public' || api === 'private');
-        if (useSbe && sbeSchemaId !== undefined && sbeSchemaVersion !== undefined && isSpotApi) {
+        const sbeEnabledPaths = [ 'depth', 'trades', 'aggTrades', 'historicalTrades' ];
+        const isSbeSupportedPath = sbeEnabledPaths.indexOf (path) >= 0;
+        if (useSbe && sbeSchemaId !== undefined && sbeSchemaVersion !== undefined && isSpotApi && isSbeSupportedPath) {
             if (headers === undefined) {
                 headers = {};
             }
