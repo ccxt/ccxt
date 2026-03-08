@@ -603,7 +603,7 @@ export default class paradex extends paradexRest {
                     throw new ExchangeError (feedback);
                 }
             } catch (e) {
-                this.streamProduce ('errors', e);
+                this.streamProduce ('errors', undefined, e);
                 client.reject (e);
             }
             return false;

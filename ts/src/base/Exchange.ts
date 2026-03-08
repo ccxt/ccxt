@@ -637,7 +637,7 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
         const maxMessagesPerTopic = this.safeInteger (this.streaming, 'maxMessagesPerTopic', 0);
         const verbose = this.safeBool (this.streaming, 'verbose', this.verbose);
-        this.stream = new Stream (maxMessagesPerTopic, verbose);
+        this.stream = new Stream (maxMessagesPerTopic, verbose, (...args) => this.log (...args));
         this.afterConstruct ();
         if (this.safeBool (userConfig, 'sandbox') || this.safeBool (userConfig, 'testnet')) {
             this.setSandboxMode (true);
@@ -1520,7 +1520,7 @@ export default class Exchange {
     }
 
     onError (client, error) {
-        this.stream.produce ('errors', 'onError', error);
+        this.streamProduce ('errors', 'onError', error);
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url];
         }
@@ -1528,14 +1528,14 @@ export default class Exchange {
 
     onClose (client, error) {
         if (client.error) {
-            this.streamProduce ('errors', undefined, client.error);
+            this.streamProduce ('errors', 'onClose', client.error);
             // connection closed due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (this.clients[client.url]) {
                 delete this.clients[client.url];
             }
-            this.streamProduce ('errors', undefined, new NetworkError ('connection closed by remote server'));
+            this.streamProduce ('errors', 'onClose', new NetworkError ('connection closed by remote server'));
         }
     }
 
@@ -3210,7 +3210,7 @@ export default class Exchange {
             }
         }
         stream.addWatchFunction ('watchLiquidationsForSymbols', [ symbols, undefined, undefined, params ]);
-        return await this.watchTradesForSymbols (symbols, undefined, undefined, params);
+        return await this.watchLiquidationsForSymbols (symbols, undefined, undefined, params);
     }
 
     unsubscribeLiquidationsForSymbols (symbols: string[], callback: ConsumerFunction): boolean {
@@ -6383,10 +6383,13 @@ export default class Exchange {
     }
 
     async subscribePositions (symbols: string[] = undefined, callback: ConsumerFunction = undefined, params: any = {}): Promise<any> {
+        if (!this.isStreamingEnabled ()) {
+            this.setupStream ();
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true);
+        const stream = this.stream;
         if (callback !== undefined) {
-            const stream = this.stream;
             if (this.isEmpty (symbols)) {
                 stream.subscribe ('positions', callback, params);
             } else {
@@ -6395,6 +6398,7 @@ export default class Exchange {
                 }
             }
         }
+        stream.addWatchFunction ('watchPositions', [ symbols, undefined, undefined, params ]);
         return await this.watchPositions (symbols, undefined, undefined, params);
     }
 

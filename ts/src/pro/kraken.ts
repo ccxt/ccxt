@@ -996,7 +996,7 @@ export default class kraken extends krakenRest {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
-                this.streamProduce ('errors', error);
+                this.streamProduce ('errors', undefined, error);
                 client.reject (error, messageHash);
                 return;
             }
