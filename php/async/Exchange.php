@@ -282,10 +282,6 @@ class Exchange extends \ccxt\Exchange {
         return $this->marketsLoading;
     }
 
-    public function markets_mutex_locker($locked) {
-        // stub in php
-    }
-
     public function loadAccounts($reload = false, $params = array()) {
         return $this->load_accounts($reload, $params);
     }
