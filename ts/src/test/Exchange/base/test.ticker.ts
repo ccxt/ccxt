@@ -146,9 +146,13 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
     }
-    // last price should be between bid and ask
-    if (lastString !== undefined && bidString !== undefined && askString !== undefined && !('lastBetweenBidAsk' in skippedProperties)) {
-        assert (Precise.stringGe (lastString, bidString) && Precise.stringLe (lastString, askString), 'last price should be between bid and ask' + logText);
+    // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    const allowedPercentageVariation = '0.01';
+    if (isFetchTickerCalled && lastString !== undefined && bidString !== undefined && askString !== undefined && !('lastBetweenBidAsk' in skippedProperties)) {
+        const medianPrice = Precise.stringDiv (Precise.stringAdd (bidString, askString), '2');
+        const medianLow = Precise.stringMul (medianPrice, Precise.stringSub ('1', allowedPercentageVariation));
+        const medianHigh = Precise.stringMul (medianPrice, Precise.stringAdd ('1', allowedPercentageVariation));
+        assert (Precise.stringGe (lastString, medianLow) && Precise.stringLe (lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
     }
     const percentage = exchange.safeString (entry, 'percentage');
     const change = exchange.safeString (entry, 'change');

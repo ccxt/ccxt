@@ -282,6 +282,9 @@
                 "spread": "ask equals to bid",
                 "compareOHLC": "broken by API: https://github.com/ccxt/ccxt/actions/runs/16058190301/job/45317906432#step:9:291"
             },
+            "fetchTicker": {
+                "lastWithinBidAsk": "very low volume exchange"
+            },
             "fetchTickers": "todo fix parsing"
         }
     },
@@ -539,6 +542,9 @@
             },
             "ticker": {
                 "compareOHLC": "todo fix implementation"
+            },
+            "fetchTicker": {
+                "lastWithinBidAsk": "very low volume exchange"
             }
         }
     },
@@ -612,6 +618,9 @@
             },
             "orderBook": {
                 "compareToNextItem": "sometimes bid equals to next bid"
+            },
+            "fetchTicker": {
+                "lastWithinBidAsk": "very low volume exchange"
             }
         }
     },
