@@ -2476,10 +2476,16 @@ export default class lighter extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, 50) as Trade[];
+        }
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchMyTrades', 'accountIndex', 'account_index');
         let apiKeyIndex = undefined;
@@ -2536,6 +2542,11 @@ export default class lighter extends Exchange {
         const data = this.safeList (response, 'trades', []);
         for (let i = 0; i < data.length; i++) {
             data[i]['account_index'] = accountIndex;
+        }
+        const nextCursor = this.safeString (response, 'next_cursor');
+        const first = this.safeDict (data, 0);
+        if ((first !== undefined) && (nextCursor !== undefined)) {
+            data[0]['next_cursor'] = nextCursor;
         }
         return this.parseTrades (data, market, since, limit, params);
     }
