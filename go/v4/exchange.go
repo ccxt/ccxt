@@ -354,6 +354,7 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
+		this.WarmUpCache()
 		markets := <-this.LoadMarketsHelper(params...)
 		this.marketsLoaded = true
 		this.marketsLoading = false
@@ -382,7 +383,6 @@ func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{
 		}()
 		reload := GetArg(params, 0, false).(bool)
 		params := GetArg(params, 1, map[string]interface{}{})
-		this.WarmUpCache()
 		if !reload {
 			if this.Markets != nil {
 				if this.Markets_by_id == nil {
