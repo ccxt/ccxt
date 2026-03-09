@@ -1143,6 +1143,7 @@ export default class Exchange {
         return this.marketsLoading;
     }
 
+    // eslint-disable-next-line no-unused-vars
     marketsMutexLocker (locked: boolean) {
         // stub in js
     }
