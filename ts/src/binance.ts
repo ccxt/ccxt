@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, TakerVolume } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -148,6 +148,7 @@ export default class binance extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTakerBuySellVolume': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -14426,6 +14427,129 @@ export default class binance extends Exchange {
             'timeframe': undefined,
             'longShortRatio': this.safeNumber (info, 'longShortRatio'),
         } as LongShortRatio;
+    }
+
+    /**
+     * @method
+     * @name binance#fetchTakerBuySellVolume
+     * @description fetches taker buy/sell volume for a symbol
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Taker-BuySell-Volume
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Taker-Buy-Sell-Volume
+     * @param {string} symbol unified symbol of the market to fetch taker buy/sell volume for
+     * @param {string} [timeframe] the period for the volume, default is "5m"
+     * @param {int} [since] the earliest time in ms to fetch volume for
+     * @param {int} [limit] the maximum number of taker volume structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest volume to fetch
+     * @returns {object[]} an array of [taker buy/sell volume structures]{@link https://docs.ccxt.com/?id=taker-buy-sell-volume-structure}
+     */
+    async fetchTakerBuySellVolume (symbol: string, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TakerVolume[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchTakerBuySellVolume() supports contract markets only');
+        }
+        if (timeframe === undefined) {
+            timeframe = '5m';
+        }
+        let request: Dict = {
+            'period': timeframe,
+        };
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let response = undefined;
+        if (market['linear']) {
+            request['symbol'] = market['id'];
+            response = await this.fapiDataGetTakerlongshortRatio (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "buySellRatio": "0.7906",
+            //             "buyVol": "30529.42",
+            //             "sellVol": "38615.66",
+            //             "timestamp": 1729670400000
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (market['inverse']) {
+            request['pair'] = market['info']['pair'];
+            request['contractType'] = this.safeString (params, 'contractType', 'ALL');
+            params = this.omit (params, 'contractType');
+            response = await this.dapiDataGetTakerBuySellVol (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "pair": "BTCUSD",
+            //             "contractType": "ALL",
+            //             "takerBuyVol": "5123",
+            //             "takerSellVol": "3412",
+            //             "takerBuyVolValue": "2.04532141",
+            //             "takerSellVolValue": "1.36001241",
+            //             "timestamp": 1729670400000
+            //         },
+            //         ...
+            //     ]
+            //
+        } else {
+            throw new BadRequest (this.id + ' fetchTakerBuySellVolume() supports linear and inverse subTypes only');
+        }
+        return this.parseTakerVolumeHistory (response, market, since, limit);
+    }
+
+    parseTakerVolume (info: Dict, market: Market = undefined): TakerVolume {
+        //
+        // linear (fapi)
+        //
+        //     {
+        //         "buySellRatio": "0.7906",
+        //         "buyVol": "30529.42",
+        //         "sellVol": "38615.66",
+        //         "timestamp": 1729670400000
+        //     }
+        //
+        // inverse (dapi)
+        //
+        //     {
+        //         "pair": "BTCUSD",
+        //         "contractType": "ALL",
+        //         "takerBuyVol": "5123",
+        //         "takerSellVol": "3412",
+        //         "takerBuyVolValue": "2.04532141",
+        //         "takerSellVolValue": "1.36001241",
+        //         "timestamp": 1729670400000
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const timestamp = this.safeIntegerOmitZero (info, 'timestamp');
+        // linear: buyVol/sellVol are in quote currency (USDT)
+        // inverse: takerBuyVol/takerSellVol are in contracts, takerBuyVolValue/takerSellVolValue are in base asset
+        const takerBuyBaseVolume = this.safeNumber2 (info, 'takerBuyVol', 'buyVol');
+        const takerSellBaseVolume = this.safeNumber2 (info, 'takerSellVol', 'sellVol');
+        const takerBuyQuoteVolume = this.safeNumber (info, 'takerBuyVolValue');
+        const takerSellQuoteVolume = this.safeNumber (info, 'takerSellVolValue');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        } else if (marketId !== undefined) {
+            symbol = this.safeSymbol (marketId, market, undefined, 'contract');
+        }
+        return {
+            'info': info,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'timeframe': undefined,
+            'takerBuyBaseVolume': takerBuyBaseVolume,
+            'takerSellBaseVolume': takerSellBaseVolume,
+            'takerBuyQuoteVolume': takerBuyQuoteVolume,
+            'takerSellQuoteVolume': takerSellQuoteVolume,
+        } as TakerVolume;
     }
 
     /**
