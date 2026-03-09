@@ -4067,6 +4067,7 @@ retrieves the open interest of a contract trading pair
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterest)
 * [bitget](/exchanges/bitget.md#fetchopeninterest)
 * [bitmart](/exchanges/bitmart.md#fetchopeninterest)
+* [bullish](/exchanges/bullish.md#fetchopeninterest)
 * [bybit](/exchanges/bybit.md#fetchopeninterest)
 * [delta](/exchanges/delta.md#fetchopeninterest)
 * [deribit](/exchanges/deribit.md#fetchopeninterest)
