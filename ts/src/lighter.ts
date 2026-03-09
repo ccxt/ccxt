@@ -2510,6 +2510,7 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -2528,12 +2529,17 @@ export default class lighter extends Exchange {
         }
         await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const request: Dict = {
-            'sort_by': 'block_height',
+            'sort_by': 'timestamp',
             'limit': 100,
             'account_index': accountIndex,
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'until', 'from');
+        if (until !== undefined) {
+            request['from'] = until;
         }
         let market = undefined;
         if (symbol !== undefined) {
