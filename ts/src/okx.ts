@@ -1288,6 +1288,7 @@ export default class okx extends Exchange {
             'features': {
                 'default': {
                     'sandbox': true,
+                    'rollingWindow': false,
                     'createOrder': {
                         'marginMode': true,
                         'triggerPrice': true,
