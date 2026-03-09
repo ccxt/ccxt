@@ -1143,6 +1143,10 @@ export default class Exchange {
         return this.marketsLoading;
     }
 
+    marketsMutexLocker (locked: boolean) {
+        // stub in js
+    }
+
     async fetchCurrencies (params = {}): Promise<Currencies> {
         // markets are returned as a list
         // currencies are returned as a dict
@@ -3926,6 +3930,7 @@ export default class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
+        this.marketsMutexLocker (true);
         const values = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
@@ -4020,6 +4025,7 @@ export default class Exchange {
         this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
+        this.marketsMutexLocker (false);
         return this.markets;
     }
 

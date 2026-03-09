@@ -328,6 +328,14 @@ func (this *Exchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
+func (this *Exchange) MarketsMutexLocker(locked bool) {
+	if locked {
+		this.MarketsMutex.Lock()
+	} else {
+		this.MarketsMutex.Unlock()
+	}
+}
+
 /*
 *
   - @method
@@ -365,65 +373,6 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	}
 
 	this.loadMu.Unlock()
-	return ch
-}
-
-func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-
-	go func() {
-		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				stack := debug.Stack()
-				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-				ch <- panicMsg
-			}
-		}()
-		reload := GetArg(params, 0, false).(bool)
-		params := GetArg(params, 1, map[string]interface{}{})
-		this.WarmUpCache()
-		if !reload {
-			if this.Markets != nil {
-				if this.Markets_by_id == nil {
-					// Only lock when writing
-					this.MarketsMutex.Lock()
-					result := this.SetMarkets(this.Markets, nil)
-					this.MarketsMutex.Unlock()
-					ch <- result
-					return
-				}
-				ch <- this.Markets
-				return
-			}
-		}
-
-		var currencies interface{} = nil
-		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrencies(params)
-			// this.cachedCurrenciesMutex.Lock()
-			// this.Options["cachedCurrencies"] = currencies
-			this.Options.Store("cachedCurrencies", currencies)
-			// this.cachedCurrenciesMutex.Unlock()
-		}
-
-		markets := <-this.DerivedExchange.FetchMarkets(params)
-		PanicOnError(markets)
-
-		// this.cachedCurrenciesMutex.Lock()
-		// delete(this.Options, "cachedCurrencies")
-		// this.Options.Del
-		this.Options.Delete("cachedCurrencies")
-		// this.cachedCurrenciesMutex.Unlock()
-
-		// Lock only for writing
-		this.MarketsMutex.Lock()
-		result := this.SetMarkets(markets, currencies)
-		this.MarketsMutex.Unlock()
-
-		ch <- result
-	}()
 	return ch
 }
 
