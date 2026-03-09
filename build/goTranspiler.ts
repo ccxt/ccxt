@@ -1677,12 +1677,6 @@ ${constStatements.join('\n')}
             [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
         ]);
 
-        // skip some methods, that are manually implemented in target language's base class
-        const dontTranspileMethods = [ 'loadMarketsHelper' ];
-        baseClass = this.regexAll (baseClass, dontTranspileMethods.map(method => {
-            return [new RegExp(`func\\s+\\([^)]+\\)\\s+${capitalize(method)}[\\s\\S]*?(?=func\\s+\\([^)]+\\))`, 'gm'), ''];
-        }));
-
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
         if (parts.length > 1) {
