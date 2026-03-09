@@ -9193,6 +9193,7 @@ export default class okx extends Exchange {
      * @method
      * @name okx#fetchTakerBuySellVolume
      * @description fetches taker buy/sell volume for a symbol
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-taker-volume
      * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-taker-volume
      * @param {string} symbol unified symbol of the market to fetch taker buy/sell volume for
      * @param {string} [timeframe] the period for the volume, e.g. "5m", "1h", "1d"
@@ -9205,12 +9206,7 @@ export default class okx extends Exchange {
     async fetchTakerBuySellVolume (symbol: string, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TakerVolume[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['contract']) {
-            throw new BadRequest (this.id + ' fetchTakerBuySellVolume() supports contract markets only');
-        }
-        const request: Dict = {
-            'instId': market['id'],
-        };
+        const request: Dict = {};
         if (timeframe !== undefined) {
             request['period'] = timeframe;
         }
@@ -9225,17 +9221,37 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetRubikStatTakerVolumeContract (this.extend (request, params));
-        //
-        //     {
-        //         "code": "0",
-        //         "data": [
-        //             ["1648221300000", "takerSellConQty", "takerBuyConQty"],
-        //             ...
-        //         ],
-        //         "msg": ""
-        //     }
-        //
+        let response = undefined;
+        if (market['spot']) {
+            request['ccy'] = market['baseId'];
+            request['instType'] = 'SPOT';
+            response = await this.publicGetRubikStatTakerVolume (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0",
+            //         "data": [
+            //             ["1648221300000", "takerSellVol", "takerBuyVol"],
+            //             ...
+            //         ],
+            //         "msg": ""
+            //     }
+            //
+        } else if (market['contract']) {
+            request['instId'] = market['id'];
+            response = await this.publicGetRubikStatTakerVolumeContract (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0",
+            //         "data": [
+            //             ["1648221300000", "takerSellConQty", "takerBuyConQty"],
+            //             ...
+            //         ],
+            //         "msg": ""
+            //     }
+            //
+        } else {
+            throw new BadRequest (this.id + ' fetchTakerBuySellVolume() supports spot and contract markets only');
+        }
         const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -9253,8 +9269,8 @@ export default class okx extends Exchange {
         //
         //     {
         //         "timestamp": "1648221300000",
-        //         "takerSellBaseVolume": "takerSellConQty",
-        //         "takerBuyBaseVolume": "takerBuyConQty"
+        //         "takerSellBaseVolume": "...",
+        //         "takerBuyBaseVolume": "..."
         //     }
         //
         const timestamp = this.safeInteger (info, 'timestamp');
