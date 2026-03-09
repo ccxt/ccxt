@@ -38,6 +38,8 @@ export interface Orders {
   pegOffsetType: number;
   pegOffsetValue: number;
   peggedPrice: bigint;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export interface OrdersResponse {
@@ -182,8 +184,18 @@ export class OrdersResponseDecoder {
       const peggedPrice = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
 
       items.push({
         priceExponent: priceExponent,
@@ -218,7 +230,9 @@ export class OrdersResponseDecoder {
         pegPriceType: pegPriceType,
         pegOffsetType: pegOffsetType,
         pegOffsetValue: pegOffsetValue,
-        peggedPrice: peggedPrice
+        peggedPrice: peggedPrice,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 

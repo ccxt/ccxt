@@ -16,6 +16,8 @@ export interface PreventedMatches {
   takerPreventedQuantity: bigint;
   makerPreventedQuantity: bigint;
   transactTime: bigint;
+  symbol: string;
+  makerSymbol: string;
 }
 
 export interface AccountPreventedMatchesResponse {
@@ -94,8 +96,18 @@ export class AccountPreventedMatchesResponseDecoder {
       const transactTime = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const makerSymbolLen = view.getUint8(pos);
+      pos += 1;
+      const makerSymbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, makerSymbolLen));
+      pos += makerSymbolLen;
 
       items.push({
         priceExponent: priceExponent,
@@ -108,7 +120,9 @@ export class AccountPreventedMatchesResponseDecoder {
         price: price,
         takerPreventedQuantity: takerPreventedQuantity,
         makerPreventedQuantity: makerPreventedQuantity,
-        transactTime: transactTime
+        transactTime: transactTime,
+        symbol: symbol,
+        makerSymbol: makerSymbol
       });
     }
 

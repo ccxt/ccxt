@@ -16,7 +16,7 @@ export interface OrderTestWithCommissionsResponse {
   discount: bigint;
   specialCommissionForOrderMaker: bigint;
   specialCommissionForOrderTaker: bigint;
-  discountAsset: Uint8Array;
+  discountAsset: string;
 }
 
 export class OrderTestWithCommissionsResponseDecoder {
@@ -71,8 +71,10 @@ export class OrderTestWithCommissionsResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + OrderTestWithCommissionsResponseDecoder.BLOCK_LENGTH;
 
-    const discountAsset = this.decodeVarData(view, pos);
-    pos = discountAsset.nextOffset;
+    const discountAssetLen = view.getUint8(pos);
+    pos += 1;
+    const discountAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, discountAssetLen));
+    pos += discountAssetLen;
 
     return {
       commissionExponent: commissionExponent,
@@ -86,20 +88,8 @@ export class OrderTestWithCommissionsResponseDecoder {
       discount: discount,
       specialCommissionForOrderMaker: specialCommissionForOrderMaker,
       specialCommissionForOrderTaker: specialCommissionForOrderTaker,
-      discountAsset: discountAsset.value
+      discountAsset: discountAsset
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

@@ -4,11 +4,19 @@
  * DO NOT EDIT
  */
 
+export interface Orders {
+  orderId: bigint;
+  symbol: string;
+  clientOrderId: string;
+}
+
 export interface ListStatus {
   orderListId: bigint;
   contingencyType: number;
   listOrderStatus: number;
-  orderId: bigint;
+  orders: Orders[];
+  listClientOrderId: string;
+  symbol: string;
 }
 
 export interface RelatedOrders {
@@ -38,6 +46,8 @@ export interface RelatedOrders {
   pegOffsetType: number;
   pegOffsetValue: number;
   peggedPrice: bigint;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export interface OrderAmendKeepPriorityResponse {
@@ -73,9 +83,9 @@ export interface OrderAmendKeepPriorityResponse {
   peggedPrice: bigint;
   listStatus: ListStatus[];
   relatedOrders: RelatedOrders[];
-  symbol: Uint8Array;
-  origClientOrderId: Uint8Array;
-  clientOrderId: Uint8Array;
+  symbol: string;
+  origClientOrderId: string;
+  clientOrderId: string;
 }
 
 export class OrderAmendKeepPriorityResponseDecoder {
@@ -193,14 +203,20 @@ export class OrderAmendKeepPriorityResponseDecoder {
     const relatedOrders = this.decodeRelatedOrdersGroup(view, pos);
     pos = relatedOrders.nextOffset;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const origClientOrderId = this.decodeVarData(view, pos);
-    pos = origClientOrderId.nextOffset;
+    const origClientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const origClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, origClientOrderIdLen));
+    pos += origClientOrderIdLen;
 
-    const clientOrderId = this.decodeVarData(view, pos);
-    pos = clientOrderId.nextOffset;
+    const clientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+    pos += clientOrderIdLen;
 
     return {
       transactTime: transactTime,
@@ -235,9 +251,9 @@ export class OrderAmendKeepPriorityResponseDecoder {
       peggedPrice: peggedPrice,
       listStatus: listStatus.items,
       relatedOrders: relatedOrders.items,
-      symbol: symbol.value,
-      origClientOrderId: origClientOrderId.value,
-      clientOrderId: clientOrderId.value
+      symbol: symbol,
+      origClientOrderId: origClientOrderId,
+      clientOrderId: clientOrderId
     };
   }
   private decodeListStatusGroup(view: DataView, offset: number): { items: ListStatus[], nextOffset: number } {
@@ -262,17 +278,67 @@ export class OrderAmendKeepPriorityResponseDecoder {
       const listOrderStatus = view.getUint8(pos);
       pos += 1;
 
-      const orderId = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const orders = this.decodeOrdersGroup(view, pos);
+      pos = orders.nextOffset;
+
+      const listClientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const listClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, listClientOrderIdLen));
+      pos += listClientOrderIdLen;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
 
       items.push({
         orderListId: orderListId,
         contingencyType: contingencyType,
         listOrderStatus: listOrderStatus,
-        orderId: orderId
+        orders: orders.items,
+        listClientOrderId: listClientOrderId,
+        symbol: symbol
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodeOrdersGroup(view: DataView, offset: number): { items: Orders[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+
+    const items: Orders[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      const orderId = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
+
+      items.push({
+        orderId: orderId,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
@@ -369,8 +435,18 @@ export class OrderAmendKeepPriorityResponseDecoder {
       const peggedPrice = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
 
       items.push({
         orderId: orderId,
@@ -398,23 +474,13 @@ export class OrderAmendKeepPriorityResponseDecoder {
         pegPriceType: pegPriceType,
         pegOffsetType: pegOffsetType,
         pegOffsetValue: pegOffsetValue,
-        peggedPrice: peggedPrice
+        peggedPrice: peggedPrice,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

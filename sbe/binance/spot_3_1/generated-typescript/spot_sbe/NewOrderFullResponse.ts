@@ -12,6 +12,7 @@ export interface Fills {
   commission: bigint;
   tradeId: bigint;
   allocId: bigint;
+  commissionAsset: string;
 }
 
 export interface PreventedMatches {
@@ -20,6 +21,7 @@ export interface PreventedMatches {
   price: bigint;
   takerPreventedQuantity: bigint;
   makerPreventedQuantity: bigint;
+  makerSymbol: string;
 }
 
 export interface NewOrderFullResponse {
@@ -56,8 +58,8 @@ export interface NewOrderFullResponse {
   peggedPrice: bigint;
   fills: Fills[];
   preventedMatches: PreventedMatches[];
-  symbol: Uint8Array;
-  clientOrderId: Uint8Array;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export class NewOrderFullResponseDecoder {
@@ -178,11 +180,15 @@ export class NewOrderFullResponseDecoder {
     const preventedMatches = this.decodePreventedMatchesGroup(view, pos);
     pos = preventedMatches.nextOffset;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const clientOrderId = this.decodeVarData(view, pos);
-    pos = clientOrderId.nextOffset;
+    const clientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+    pos += clientOrderIdLen;
 
     return {
       priceExponent: priceExponent,
@@ -218,8 +224,8 @@ export class NewOrderFullResponseDecoder {
       peggedPrice: peggedPrice,
       fills: fills.items,
       preventedMatches: preventedMatches.items,
-      symbol: symbol.value,
-      clientOrderId: clientOrderId.value
+      symbol: symbol,
+      clientOrderId: clientOrderId
     };
   }
   private decodeFillsGroup(view: DataView, offset: number): { items: Fills[], nextOffset: number } {
@@ -256,8 +262,13 @@ export class NewOrderFullResponseDecoder {
       const allocId = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const commissionAssetLen = view.getUint8(pos);
+      pos += 1;
+      const commissionAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, commissionAssetLen));
+      pos += commissionAssetLen;
 
       items.push({
         commissionExponent: commissionExponent,
@@ -266,7 +277,8 @@ export class NewOrderFullResponseDecoder {
         qty: qty,
         commission: commission,
         tradeId: tradeId,
-        allocId: allocId
+        allocId: allocId,
+        commissionAsset: commissionAsset
       });
     }
 
@@ -300,31 +312,25 @@ export class NewOrderFullResponseDecoder {
       const makerPreventedQuantity = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const makerSymbolLen = view.getUint8(pos);
+      pos += 1;
+      const makerSymbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, makerSymbolLen));
+      pos += makerSymbolLen;
 
       items.push({
         preventedMatchId: preventedMatchId,
         makerOrderId: makerOrderId,
         price: price,
         takerPreventedQuantity: takerPreventedQuantity,
-        makerPreventedQuantity: makerPreventedQuantity
+        makerPreventedQuantity: makerPreventedQuantity,
+        makerSymbol: makerSymbol
       });
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

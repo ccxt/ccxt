@@ -10,7 +10,7 @@ export interface WebSocketSessionLogonResponse {
   returnRateLimits: number;
   serverTime: bigint;
   userDataStream: number;
-  loggedOnApiKey: Uint8Array;
+  loggedOnApiKey: string;
 }
 
 export class WebSocketSessionLogonResponseDecoder {
@@ -47,8 +47,10 @@ export class WebSocketSessionLogonResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + WebSocketSessionLogonResponseDecoder.BLOCK_LENGTH;
 
-    const loggedOnApiKey = this.decodeVarData(view, pos);
-    pos = loggedOnApiKey.nextOffset;
+    const loggedOnApiKeyLen = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const loggedOnApiKey = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, loggedOnApiKeyLen));
+    pos += loggedOnApiKeyLen;
 
     return {
       authorizedSince: authorizedSince,
@@ -56,20 +58,8 @@ export class WebSocketSessionLogonResponseDecoder {
       returnRateLimits: returnRateLimits,
       serverTime: serverTime,
       userDataStream: userDataStream,
-      loggedOnApiKey: loggedOnApiKey.value
+      loggedOnApiKey: loggedOnApiKey
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

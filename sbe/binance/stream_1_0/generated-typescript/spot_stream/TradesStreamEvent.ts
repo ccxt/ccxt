@@ -18,7 +18,7 @@ export interface TradesStreamEvent {
   priceExponent: number;
   qtyExponent: number;
   trades: Trades[];
-  symbol: Uint8Array;
+  symbol: string;
 }
 
 export class TradesStreamEventDecoder {
@@ -55,8 +55,10 @@ export class TradesStreamEventDecoder {
     const trades = this.decodeTradesGroup(view, pos);
     pos = trades.nextOffset;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
     return {
       eventTime: eventTime,
@@ -64,7 +66,7 @@ export class TradesStreamEventDecoder {
       priceExponent: priceExponent,
       qtyExponent: qtyExponent,
       trades: trades.items,
-      symbol: symbol.value
+      symbol: symbol
     };
   }
   private decodeTradesGroup(view: DataView, offset: number): { items: Trades[], nextOffset: number } {
@@ -95,7 +97,7 @@ export class TradesStreamEventDecoder {
       const isBestMatch = view.getUint8(pos);
       pos += 1;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -108,18 +110,6 @@ export class TradesStreamEventDecoder {
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

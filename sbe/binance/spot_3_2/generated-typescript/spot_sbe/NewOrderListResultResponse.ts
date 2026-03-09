@@ -6,6 +6,8 @@
 
 export interface Orders {
   orderId: bigint;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export interface OrderReports {
@@ -38,6 +40,8 @@ export interface OrderReports {
   pegOffsetType: number;
   pegOffsetValue: number;
   peggedPrice: bigint;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export interface NewOrderListResultResponse {
@@ -50,8 +54,8 @@ export interface NewOrderListResultResponse {
   qtyExponent: number;
   orders: Orders[];
   orderReports: OrderReports[];
-  listClientOrderId: Uint8Array;
-  symbol: Uint8Array;
+  listClientOrderId: string;
+  symbol: string;
 }
 
 export class NewOrderListResultResponseDecoder {
@@ -100,11 +104,15 @@ export class NewOrderListResultResponseDecoder {
     const orderReports = this.decodeOrderReportsGroup(view, pos);
     pos = orderReports.nextOffset;
 
-    const listClientOrderId = this.decodeVarData(view, pos);
-    pos = listClientOrderId.nextOffset;
+    const listClientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const listClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, listClientOrderIdLen));
+    pos += listClientOrderIdLen;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
     return {
       orderListId: orderListId,
@@ -116,8 +124,8 @@ export class NewOrderListResultResponseDecoder {
       qtyExponent: qtyExponent,
       orders: orders.items,
       orderReports: orderReports.items,
-      listClientOrderId: listClientOrderId.value,
-      symbol: symbol.value
+      listClientOrderId: listClientOrderId,
+      symbol: symbol
     };
   }
   private decodeOrdersGroup(view: DataView, offset: number): { items: Orders[], nextOffset: number } {
@@ -136,11 +144,23 @@ export class NewOrderListResultResponseDecoder {
       const orderId = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
+
       items.push({
-        orderId: orderId
+        orderId: orderId,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
@@ -246,8 +266,18 @@ export class NewOrderListResultResponseDecoder {
       const peggedPrice = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
 
       items.push({
         orderId: orderId,
@@ -278,23 +308,13 @@ export class NewOrderListResultResponseDecoder {
         pegPriceType: pegPriceType,
         pegOffsetType: pegOffsetType,
         pegOffsetValue: pegOffsetValue,
-        peggedPrice: peggedPrice
+        peggedPrice: peggedPrice,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

@@ -22,7 +22,7 @@ export interface DepthDiffStreamEvent {
   qtyExponent: number;
   bids: Bids[];
   asks: Asks[];
-  symbol: Uint8Array;
+  symbol: string;
 }
 
 export class DepthDiffStreamEventDecoder {
@@ -65,8 +65,10 @@ export class DepthDiffStreamEventDecoder {
     const asks = this.decodeAsksGroup(view, pos);
     pos = asks.nextOffset;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
     return {
       eventTime: eventTime,
@@ -76,7 +78,7 @@ export class DepthDiffStreamEventDecoder {
       qtyExponent: qtyExponent,
       bids: bids.items,
       asks: asks.items,
-      symbol: symbol.value
+      symbol: symbol
     };
   }
   private decodeBidsGroup(view: DataView, offset: number): { items: Bids[], nextOffset: number } {
@@ -98,7 +100,7 @@ export class DepthDiffStreamEventDecoder {
       const qty = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -128,7 +130,7 @@ export class DepthDiffStreamEventDecoder {
       const qty = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -138,18 +140,6 @@ export class DepthDiffStreamEventDecoder {
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

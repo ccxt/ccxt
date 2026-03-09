@@ -36,30 +36,22 @@ export class CancelReplaceOrderResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + CancelReplaceOrderResponseDecoder.BLOCK_LENGTH;
 
-    const cancelResponse = this.decodeVarData(view, pos);
-    pos = cancelResponse.nextOffset;
+    const cancelResponseLen = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const cancelResponse = new Uint8Array(view.buffer, view.byteOffset + pos, cancelResponseLen);
+    pos += cancelResponseLen;
 
-    const newOrderResponse = this.decodeVarData(view, pos);
-    pos = newOrderResponse.nextOffset;
+    const newOrderResponseLen = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+    const newOrderResponse = new Uint8Array(view.buffer, view.byteOffset + pos, newOrderResponseLen);
+    pos += newOrderResponseLen;
 
     return {
       cancelResult: cancelResult,
       newOrderResult: newOrderResult,
-      cancelResponse: cancelResponse.value,
-      newOrderResponse: newOrderResponse.value
+      cancelResponse: cancelResponse,
+      newOrderResponse: newOrderResponse
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

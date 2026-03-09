@@ -58,12 +58,12 @@ export interface ExecutionReportEvent {
   pegOffsetType: number;
   pegOffsetValue: number;
   peggedPrice: bigint;
-  symbol: Uint8Array;
-  clientOrderId: Uint8Array;
-  origClientOrderId: Uint8Array;
-  commissionAsset: Uint8Array;
-  rejectReason: Uint8Array;
-  counterSymbol: Uint8Array;
+  symbol: string;
+  clientOrderId: string;
+  origClientOrderId: string;
+  commissionAsset: string;
+  rejectReason: string;
+  counterSymbol: string;
 }
 
 export class ExecutionReportEventDecoder {
@@ -244,23 +244,35 @@ export class ExecutionReportEventDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + ExecutionReportEventDecoder.BLOCK_LENGTH;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const clientOrderId = this.decodeVarData(view, pos);
-    pos = clientOrderId.nextOffset;
+    const clientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+    pos += clientOrderIdLen;
 
-    const origClientOrderId = this.decodeVarData(view, pos);
-    pos = origClientOrderId.nextOffset;
+    const origClientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const origClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, origClientOrderIdLen));
+    pos += origClientOrderIdLen;
 
-    const commissionAsset = this.decodeVarData(view, pos);
-    pos = commissionAsset.nextOffset;
+    const commissionAssetLen = view.getUint8(pos);
+    pos += 1;
+    const commissionAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, commissionAssetLen));
+    pos += commissionAssetLen;
 
-    const rejectReason = this.decodeVarData(view, pos);
-    pos = rejectReason.nextOffset;
+    const rejectReasonLen = view.getUint8(pos);
+    pos += 1;
+    const rejectReason = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, rejectReasonLen));
+    pos += rejectReasonLen;
 
-    const counterSymbol = this.decodeVarData(view, pos);
-    pos = counterSymbol.nextOffset;
+    const counterSymbolLen = view.getUint8(pos);
+    pos += 1;
+    const counterSymbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, counterSymbolLen));
+    pos += counterSymbolLen;
 
     return {
       eventTime: eventTime,
@@ -316,25 +328,13 @@ export class ExecutionReportEventDecoder {
       pegOffsetType: pegOffsetType,
       pegOffsetValue: pegOffsetValue,
       peggedPrice: peggedPrice,
-      symbol: symbol.value,
-      clientOrderId: clientOrderId.value,
-      origClientOrderId: origClientOrderId.value,
-      commissionAsset: commissionAsset.value,
-      rejectReason: rejectReason.value,
-      counterSymbol: counterSymbol.value
+      symbol: symbol,
+      clientOrderId: clientOrderId,
+      origClientOrderId: origClientOrderId,
+      commissionAsset: commissionAsset,
+      rejectReason: rejectReason,
+      counterSymbol: counterSymbol
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

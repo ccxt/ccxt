@@ -83,7 +83,7 @@ export class DepthResponseDecoder {
       const qty = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -113,7 +113,7 @@ export class DepthResponseDecoder {
       const qty = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({

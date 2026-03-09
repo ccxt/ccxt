@@ -12,6 +12,19 @@ export interface RateLimits {
 }
 
 export interface ExchangeFilters {
+  filter: Uint8Array;
+}
+
+export interface Filters {
+  filter: Uint8Array;
+}
+
+export interface Permissions {
+  permission: string;
+}
+
+export interface PermissionSets {
+  permissions: Permissions[];
 }
 
 export interface Symbols {
@@ -33,9 +46,20 @@ export interface Symbols {
   defaultSelfTradePreventionMode: number;
   allowedSelfTradePreventionModes: number;
   pegInstructionsAllowed: number;
+  filters: Filters[];
+  permissionSets: PermissionSets[];
+  symbol: string;
+  baseAsset: string;
+  quoteAsset: string;
+}
+
+export interface SorSymbols {
+  symbol: string;
 }
 
 export interface Sors {
+  sorSymbols: SorSymbols[];
+  baseAsset: string;
 }
 
 export interface ExchangeInfoResponse {
@@ -108,7 +132,7 @@ export class ExchangeInfoResponseDecoder {
       const rateLimit = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -134,10 +158,16 @@ export class ExchangeInfoResponseDecoder {
     for (let i = 0; i < numInGroup; i++) {
       const itemStart = pos;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const filterLen = view.getUint8(pos);
+      pos += 1;
+      const filter = new Uint8Array(view.buffer, view.byteOffset + pos, filterLen);
+      pos += filterLen;
+
       items.push({
+        filter: filter
       });
     }
 
@@ -210,8 +240,29 @@ export class ExchangeInfoResponseDecoder {
       const pegInstructionsAllowed = view.getUint8(pos);
       pos += 1;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const filters = this.decodeFiltersGroup(view, pos);
+      pos = filters.nextOffset;
+
+      const permissionSets = this.decodePermissionSetsGroup(view, pos);
+      pos = permissionSets.nextOffset;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const baseAssetLen = view.getUint8(pos);
+      pos += 1;
+      const baseAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, baseAssetLen));
+      pos += baseAssetLen;
+
+      const quoteAssetLen = view.getUint8(pos);
+      pos += 1;
+      const quoteAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, quoteAssetLen));
+      pos += quoteAssetLen;
 
       items.push({
         status: status,
@@ -231,7 +282,94 @@ export class ExchangeInfoResponseDecoder {
         isMarginTradingAllowed: isMarginTradingAllowed,
         defaultSelfTradePreventionMode: defaultSelfTradePreventionMode,
         allowedSelfTradePreventionModes: allowedSelfTradePreventionModes,
-        pegInstructionsAllowed: pegInstructionsAllowed
+        pegInstructionsAllowed: pegInstructionsAllowed,
+        filters: filters.items,
+        permissionSets: permissionSets.items,
+        symbol: symbol,
+        baseAsset: baseAsset,
+        quoteAsset: quoteAsset
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodeFiltersGroup(view: DataView, offset: number): { items: Filters[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+
+    const items: Filters[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const filterLen = view.getUint8(pos);
+      pos += 1;
+      const filter = new Uint8Array(view.buffer, view.byteOffset + pos, filterLen);
+      pos += filterLen;
+
+      items.push({
+        filter: filter
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodePermissionSetsGroup(view: DataView, offset: number): { items: PermissionSets[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+
+    const items: PermissionSets[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const permissions = this.decodePermissionsGroup(view, pos);
+      pos = permissions.nextOffset;
+
+      items.push({
+        permissions: permissions.items
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodePermissionsGroup(view: DataView, offset: number): { items: Permissions[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+
+    const items: Permissions[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const permissionLen = view.getUint8(pos);
+      pos += 1;
+      const permission = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, permissionLen));
+      pos += permissionLen;
+
+      items.push({
+        permission: permission
       });
     }
 
@@ -250,10 +388,48 @@ export class ExchangeInfoResponseDecoder {
     for (let i = 0; i < numInGroup; i++) {
       const itemStart = pos;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const sorSymbols = this.decodeSorSymbolsGroup(view, pos);
+      pos = sorSymbols.nextOffset;
+
+      const baseAssetLen = view.getUint8(pos);
+      pos += 1;
+      const baseAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, baseAssetLen));
+      pos += baseAssetLen;
+
       items.push({
+        sorSymbols: sorSymbols.items,
+        baseAsset: baseAsset
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodeSorSymbolsGroup(view: DataView, offset: number): { items: SorSymbols[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+
+    const items: SorSymbols[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      items.push({
+        symbol: symbol
       });
     }
 

@@ -11,6 +11,7 @@ export interface Tickers {
   bidQty: bigint;
   askPrice: bigint;
   askQty: bigint;
+  symbol: string;
 }
 
 export interface BookTickerResponse {
@@ -74,8 +75,13 @@ export class BookTickerResponseDecoder {
       const askQty = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
 
       items.push({
         priceExponent: priceExponent,
@@ -83,7 +89,8 @@ export class BookTickerResponseDecoder {
         bidPrice: bidPrice,
         bidQty: bidQty,
         askPrice: askPrice,
-        askQty: askQty
+        askQty: askQty,
+        symbol: symbol
       });
     }
 

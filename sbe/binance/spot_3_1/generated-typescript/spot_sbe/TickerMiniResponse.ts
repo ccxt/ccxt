@@ -18,6 +18,7 @@ export interface Tickers {
   firstId: bigint;
   lastId: bigint;
   numTrades: bigint;
+  symbol: string;
 }
 
 export interface TickerMiniResponse {
@@ -102,8 +103,13 @@ export class TickerMiniResponseDecoder {
       const numTrades = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
 
       items.push({
         priceExponent: priceExponent,
@@ -118,7 +124,8 @@ export class TickerMiniResponseDecoder {
         closeTime: closeTime,
         firstId: firstId,
         lastId: lastId,
-        numTrades: numTrades
+        numTrades: numTrades,
+        symbol: symbol
       });
     }
 

@@ -22,8 +22,8 @@ export interface AccountCommissionResponse {
   specialCommissionTaker: bigint;
   specialCommissionBuyer: bigint;
   specialCommissionSeller: bigint;
-  symbol: Uint8Array;
-  discountAsset: Uint8Array;
+  symbol: string;
+  discountAsset: string;
 }
 
 export class AccountCommissionResponseDecoder {
@@ -96,11 +96,15 @@ export class AccountCommissionResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + AccountCommissionResponseDecoder.BLOCK_LENGTH;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const discountAsset = this.decodeVarData(view, pos);
-    pos = discountAsset.nextOffset;
+    const discountAssetLen = view.getUint8(pos);
+    pos += 1;
+    const discountAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, discountAssetLen));
+    pos += discountAssetLen;
 
     return {
       commissionExponent: commissionExponent,
@@ -120,21 +124,9 @@ export class AccountCommissionResponseDecoder {
       specialCommissionTaker: specialCommissionTaker,
       specialCommissionBuyer: specialCommissionBuyer,
       specialCommissionSeller: specialCommissionSeller,
-      symbol: symbol.value,
-      discountAsset: discountAsset.value
+      symbol: symbol,
+      discountAsset: discountAsset
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

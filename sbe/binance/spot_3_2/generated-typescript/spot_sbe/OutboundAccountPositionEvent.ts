@@ -8,6 +8,7 @@ export interface Balances {
   exponent: number;
   free: bigint;
   locked: bigint;
+  asset: string;
 }
 
 export interface OutboundAccountPositionEvent {
@@ -77,13 +78,19 @@ export class OutboundAccountPositionEventDecoder {
       const locked = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const assetLen = view.getUint8(pos);
+      pos += 1;
+      const asset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, assetLen));
+      pos += assetLen;
 
       items.push({
         exponent: exponent,
         free: free,
-        locked: locked
+        locked: locked,
+        asset: asset
       });
     }
 

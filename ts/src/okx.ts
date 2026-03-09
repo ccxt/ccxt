@@ -6465,8 +6465,8 @@ export default class okx extends Exchange {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
             }
-            // Add SBE headers for public API if enabled
-            if (useSbe) {
+            // Add SBE headers only for the books-sbe endpoint (OKX SBE is WS-only except this one REST endpoint)
+            if (useSbe && path === 'market/books-sbe') {
                 if (headers === undefined) {
                     headers = {};
                 }

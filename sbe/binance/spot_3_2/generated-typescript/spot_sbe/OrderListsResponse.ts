@@ -4,13 +4,21 @@
  * DO NOT EDIT
  */
 
+export interface Orders {
+  orderId: bigint;
+  symbol: string;
+  clientOrderId: string;
+}
+
 export interface OrderLists {
   orderListId: bigint;
   contingencyType: number;
   listStatusType: number;
   listOrderStatus: number;
   transactionTime: bigint;
-  orderId: bigint;
+  orders: Orders[];
+  listClientOrderId: string;
+  symbol: string;
 }
 
 export interface OrderListsResponse {
@@ -71,11 +79,21 @@ export class OrderListsResponseDecoder {
       const transactionTime = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      const orderId = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const orders = this.decodeOrdersGroup(view, pos);
+      pos = orders.nextOffset;
+
+      const listClientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const listClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, listClientOrderIdLen));
+      pos += listClientOrderIdLen;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
 
       items.push({
         orderListId: orderListId,
@@ -83,7 +101,47 @@ export class OrderListsResponseDecoder {
         listStatusType: listStatusType,
         listOrderStatus: listOrderStatus,
         transactionTime: transactionTime,
-        orderId: orderId
+        orders: orders.items,
+        listClientOrderId: listClientOrderId,
+        symbol: symbol
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodeOrdersGroup(view: DataView, offset: number): { items: Orders[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+
+    const items: Orders[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      const orderId = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
+
+      items.push({
+        orderId: orderId,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 

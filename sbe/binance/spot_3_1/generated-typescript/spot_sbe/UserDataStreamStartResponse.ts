@@ -5,7 +5,7 @@
  */
 
 export interface UserDataStreamStartResponse {
-  listenKey: Uint8Array;
+  listenKey: string;
 }
 
 export class UserDataStreamStartResponseDecoder {
@@ -27,24 +27,14 @@ export class UserDataStreamStartResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + UserDataStreamStartResponseDecoder.BLOCK_LENGTH;
 
-    const listenKey = this.decodeVarData(view, pos);
-    pos = listenKey.nextOffset;
+    const listenKeyLen = view.getUint8(pos);
+    pos += 1;
+    const listenKey = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, listenKeyLen));
+    pos += listenKeyLen;
 
     return {
-      listenKey: listenKey.value
+      listenKey: listenKey
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

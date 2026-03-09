@@ -16,7 +16,7 @@ export interface WebSocketResponse {
   sbeSchemaIdVersionDeprecated: number;
   status: number;
   rateLimits: RateLimits[];
-  id: Uint8Array;
+  id: string;
   result: Uint8Array;
 }
 
@@ -48,18 +48,22 @@ export class WebSocketResponseDecoder {
     const rateLimits = this.decodeRateLimitsGroup(view, pos);
     pos = rateLimits.nextOffset;
 
-    const id = this.decodeVarData(view, pos);
-    pos = id.nextOffset;
+    const idLen = view.getUint8(pos);
+    pos += 1;
+    const id = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, idLen));
+    pos += idLen;
 
-    const result = this.decodeVarData(view, pos);
-    pos = result.nextOffset;
+    const resultLen = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+    const result = new Uint8Array(view.buffer, view.byteOffset + pos, resultLen);
+    pos += resultLen;
 
     return {
       sbeSchemaIdVersionDeprecated: sbeSchemaIdVersionDeprecated,
       status: status,
       rateLimits: rateLimits.items,
-      id: id.value,
-      result: result.value
+      id: id,
+      result: result
     };
   }
   private decodeRateLimitsGroup(view: DataView, offset: number): { items: RateLimits[], nextOffset: number } {
@@ -90,7 +94,7 @@ export class WebSocketResponseDecoder {
       const current = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -103,18 +107,6 @@ export class WebSocketResponseDecoder {
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

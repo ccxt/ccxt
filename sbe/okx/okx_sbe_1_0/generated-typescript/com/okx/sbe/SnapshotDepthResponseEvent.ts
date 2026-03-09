@@ -98,7 +98,7 @@ export class SnapshotDepthResponseEventDecoder {
       const ordCount = view.getInt32(pos, this.littleEndian);
       pos += 4;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -132,7 +132,7 @@ export class SnapshotDepthResponseEventDecoder {
       const ordCount = view.getInt32(pos, this.littleEndian);
       pos += 4;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({

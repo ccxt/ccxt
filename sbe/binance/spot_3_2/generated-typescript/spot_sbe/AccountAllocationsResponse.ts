@@ -22,6 +22,9 @@ export interface Allocations {
   isBuyer: number;
   isMaker: number;
   isAllocator: number;
+  symbol: string;
+  commissionAsset: string;
+  sourceSymbol: string;
 }
 
 export interface AccountAllocationsResponse {
@@ -118,8 +121,23 @@ export class AccountAllocationsResponseDecoder {
       const isAllocator = view.getUint8(pos);
       pos += 1;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const commissionAssetLen = view.getUint8(pos);
+      pos += 1;
+      const commissionAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, commissionAssetLen));
+      pos += commissionAssetLen;
+
+      const sourceSymbolLen = view.getUint8(pos);
+      pos += 1;
+      const sourceSymbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, sourceSymbolLen));
+      pos += sourceSymbolLen;
 
       items.push({
         priceExponent: priceExponent,
@@ -138,7 +156,10 @@ export class AccountAllocationsResponseDecoder {
         time: time,
         isBuyer: isBuyer,
         isMaker: isMaker,
-        isAllocator: isAllocator
+        isAllocator: isAllocator,
+        symbol: symbol,
+        commissionAsset: commissionAsset,
+        sourceSymbol: sourceSymbol
       });
     }
 

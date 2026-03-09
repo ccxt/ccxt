@@ -19,6 +19,8 @@ export interface Trades {
   isBuyer: number;
   isMaker: number;
   isBestMatch: number;
+  symbol: string;
+  commissionAsset: string;
 }
 
 export interface AccountTradesResponse {
@@ -106,8 +108,18 @@ export class AccountTradesResponseDecoder {
       const isBestMatch = view.getUint8(pos);
       pos += 1;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const commissionAssetLen = view.getUint8(pos);
+      pos += 1;
+      const commissionAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, commissionAssetLen));
+      pos += commissionAssetLen;
 
       items.push({
         priceExponent: priceExponent,
@@ -123,7 +135,9 @@ export class AccountTradesResponseDecoder {
         time: time,
         isBuyer: isBuyer,
         isMaker: isMaker,
-        isBestMatch: isBestMatch
+        isBestMatch: isBestMatch,
+        symbol: symbol,
+        commissionAsset: commissionAsset
       });
     }
 

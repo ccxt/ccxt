@@ -181,7 +181,7 @@ class NewTranspiler {
             // Fix String(x) calls - C# string is a type not a function
             [/(?<![a-zA-Z.])String\(([^)]+)\)/gm, '(($1)).ToString()'],
             // Fix getValue(...).store() - cast to IOrderBookSide
-            [/(getValue\([^)]+\))\.store\(([^)]+)\)/gm, '($1 as IOrderBookSide).store($2)'],
+            [/(getValue\([^)]+\))\.store\(/gm, '($1 as IOrderBookSide).store('],
             // Fix .bind(this) pattern - C# doesn't need bind, just pass the method reference
             [/(this\.\w+)\.bind\(this\)/gm, '$1'],
         ]
@@ -819,7 +819,7 @@ class NewTranspiler {
 
         // SBE fixes for base class
         baseClass = baseClass.replaceAll(/new TextDecoder\(\)\.decode\((\w+)\)/gm, '$1 is byte[] _sbeBytes ? System.Text.Encoding.UTF8.GetString(_sbeBytes) : $1?.ToString()');
-        baseClass = baseClass.replaceAll(/(?<![a-zA-Z.])String\(e\)/gm, '((e)).ToString()');
+        baseClass = baseClass.replaceAll(/(?<![a-zA-Z.])String\((\w+)\)/gm, '(($1)).ToString()');
 
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');

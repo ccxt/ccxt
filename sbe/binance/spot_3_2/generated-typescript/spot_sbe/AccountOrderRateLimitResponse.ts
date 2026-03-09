@@ -70,7 +70,7 @@ export class AccountOrderRateLimitResponseDecoder {
       const numOrders = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({

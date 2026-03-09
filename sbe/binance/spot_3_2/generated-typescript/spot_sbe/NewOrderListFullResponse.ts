@@ -6,6 +6,28 @@
 
 export interface Orders {
   orderId: bigint;
+  symbol: string;
+  clientOrderId: string;
+}
+
+export interface Fills {
+  commissionExponent: number;
+  matchType: number;
+  price: bigint;
+  qty: bigint;
+  commission: bigint;
+  tradeId: bigint;
+  allocId: bigint;
+  commissionAsset: string;
+}
+
+export interface PreventedMatches {
+  preventedMatchId: bigint;
+  makerOrderId: bigint;
+  price: bigint;
+  takerPreventedQuantity: bigint;
+  makerPreventedQuantity: bigint;
+  makerSymbol: string;
 }
 
 export interface OrderReports {
@@ -38,16 +60,10 @@ export interface OrderReports {
   pegOffsetType: number;
   pegOffsetValue: number;
   peggedPrice: bigint;
-  commissionExponent: number;
-  matchType: number;
-  qty: bigint;
-  commission: bigint;
-  tradeId: bigint;
-  allocId: bigint;
-  preventedMatchId: bigint;
-  makerOrderId: bigint;
-  takerPreventedQuantity: bigint;
-  makerPreventedQuantity: bigint;
+  fills: Fills[];
+  preventedMatches: PreventedMatches[];
+  symbol: string;
+  clientOrderId: string;
 }
 
 export interface NewOrderListFullResponse {
@@ -60,8 +76,8 @@ export interface NewOrderListFullResponse {
   qtyExponent: number;
   orders: Orders[];
   orderReports: OrderReports[];
-  listClientOrderId: Uint8Array;
-  symbol: Uint8Array;
+  listClientOrderId: string;
+  symbol: string;
 }
 
 export class NewOrderListFullResponseDecoder {
@@ -110,11 +126,15 @@ export class NewOrderListFullResponseDecoder {
     const orderReports = this.decodeOrderReportsGroup(view, pos);
     pos = orderReports.nextOffset;
 
-    const listClientOrderId = this.decodeVarData(view, pos);
-    pos = listClientOrderId.nextOffset;
+    const listClientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const listClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, listClientOrderIdLen));
+    pos += listClientOrderIdLen;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
     return {
       orderListId: orderListId,
@@ -126,8 +146,8 @@ export class NewOrderListFullResponseDecoder {
       qtyExponent: qtyExponent,
       orders: orders.items,
       orderReports: orderReports.items,
-      listClientOrderId: listClientOrderId.value,
-      symbol: symbol.value
+      listClientOrderId: listClientOrderId,
+      symbol: symbol
     };
   }
   private decodeOrdersGroup(view: DataView, offset: number): { items: Orders[], nextOffset: number } {
@@ -146,11 +166,23 @@ export class NewOrderListFullResponseDecoder {
       const orderId = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
+
       items.push({
-        orderId: orderId
+        orderId: orderId,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
@@ -256,42 +288,24 @@ export class NewOrderListFullResponseDecoder {
       const peggedPrice = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      const commissionExponent = view.getInt8(pos);
-      pos += 1;
-
-      const matchType = view.getUint8(pos);
-      pos += 1;
-
-      pos += 8;
-
-      const qty = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      const commission = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      const tradeId = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      const allocId = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      const preventedMatchId = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      const makerOrderId = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      pos += 8;
-
-      const takerPreventedQuantity = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      const makerPreventedQuantity = view.getBigInt64(pos, this.littleEndian);
-      pos += 8;
-
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const fills = this.decodeFillsGroup(view, pos);
+      pos = fills.nextOffset;
+
+      const preventedMatches = this.decodePreventedMatchesGroup(view, pos);
+      pos = preventedMatches.nextOffset;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
 
       items.push({
         orderId: orderId,
@@ -323,32 +337,118 @@ export class NewOrderListFullResponseDecoder {
         pegOffsetType: pegOffsetType,
         pegOffsetValue: pegOffsetValue,
         peggedPrice: peggedPrice,
-        commissionExponent: commissionExponent,
-        matchType: matchType,
-        qty: qty,
-        commission: commission,
-        tradeId: tradeId,
-        allocId: allocId,
-        preventedMatchId: preventedMatchId,
-        makerOrderId: makerOrderId,
-        takerPreventedQuantity: takerPreventedQuantity,
-        makerPreventedQuantity: makerPreventedQuantity
+        fills: fills.items,
+        preventedMatches: preventedMatches.items,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
     return { items, nextOffset: pos };
   }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
+  private decodeFillsGroup(view: DataView, offset: number): { items: Fills[], nextOffset: number } {
     let pos = offset;
 
-    const length = view.getUint32(pos, this.littleEndian);
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
     pos += 4;
 
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
+    const items: Fills[] = [];
 
-    return { value, nextOffset: pos };
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      const commissionExponent = view.getInt8(pos);
+      pos += 1;
+
+      const matchType = view.getUint8(pos);
+      pos += 1;
+
+      const price = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const qty = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const commission = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const tradeId = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const allocId = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const commissionAssetLen = view.getUint8(pos);
+      pos += 1;
+      const commissionAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, commissionAssetLen));
+      pos += commissionAssetLen;
+
+      items.push({
+        commissionExponent: commissionExponent,
+        matchType: matchType,
+        price: price,
+        qty: qty,
+        commission: commission,
+        tradeId: tradeId,
+        allocId: allocId,
+        commissionAsset: commissionAsset
+      });
+    }
+
+    return { items, nextOffset: pos };
+  }
+  private decodePreventedMatchesGroup(view: DataView, offset: number): { items: PreventedMatches[], nextOffset: number } {
+    let pos = offset;
+
+    const blockLength = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const numInGroup = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+
+    const items: PreventedMatches[] = [];
+
+    for (let i = 0; i < numInGroup; i++) {
+      const itemStart = pos;
+
+      const preventedMatchId = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const makerOrderId = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const price = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const takerPreventedQuantity = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      const makerPreventedQuantity = view.getBigInt64(pos, this.littleEndian);
+      pos += 8;
+
+      // Skip to end of block for forward compatibility
+      pos = itemStart + blockLength;
+
+      const makerSymbolLen = view.getUint8(pos);
+      pos += 1;
+      const makerSymbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, makerSymbolLen));
+      pos += makerSymbolLen;
+
+      items.push({
+        preventedMatchId: preventedMatchId,
+        makerOrderId: makerOrderId,
+        price: price,
+        takerPreventedQuantity: takerPreventedQuantity,
+        makerPreventedQuantity: makerPreventedQuantity,
+        makerSymbol: makerSymbol
+      });
+    }
+
+    return { items, nextOffset: pos };
   }
 
   static getBlockLength(): number {

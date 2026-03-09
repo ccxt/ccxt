@@ -6,6 +6,8 @@
 
 export interface Orders {
   orderId: bigint;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export interface ListStatusEvent {
@@ -17,9 +19,9 @@ export interface ListStatusEvent {
   listOrderStatus: number;
   subscriptionId: number;
   orders: Orders[];
-  symbol: Uint8Array;
-  listClientOrderId: Uint8Array;
-  rejectReason: Uint8Array;
+  symbol: string;
+  listClientOrderId: string;
+  rejectReason: string;
 }
 
 export class ListStatusEventDecoder {
@@ -65,14 +67,20 @@ export class ListStatusEventDecoder {
     const orders = this.decodeOrdersGroup(view, pos);
     pos = orders.nextOffset;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const listClientOrderId = this.decodeVarData(view, pos);
-    pos = listClientOrderId.nextOffset;
+    const listClientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const listClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, listClientOrderIdLen));
+    pos += listClientOrderIdLen;
 
-    const rejectReason = this.decodeVarData(view, pos);
-    pos = rejectReason.nextOffset;
+    const rejectReasonLen = view.getUint8(pos);
+    pos += 1;
+    const rejectReason = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, rejectReasonLen));
+    pos += rejectReasonLen;
 
     return {
       eventTime: eventTime,
@@ -83,9 +91,9 @@ export class ListStatusEventDecoder {
       listOrderStatus: listOrderStatus,
       subscriptionId: subscriptionId,
       orders: orders.items,
-      symbol: symbol.value,
-      listClientOrderId: listClientOrderId.value,
-      rejectReason: rejectReason.value
+      symbol: symbol,
+      listClientOrderId: listClientOrderId,
+      rejectReason: rejectReason
     };
   }
   private decodeOrdersGroup(view: DataView, offset: number): { items: Orders[], nextOffset: number } {
@@ -104,27 +112,27 @@ export class ListStatusEventDecoder {
       const orderId = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const clientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+      pos += clientOrderIdLen;
+
       items.push({
-        orderId: orderId
+        orderId: orderId,
+        symbol: symbol,
+        clientOrderId: clientOrderId
       });
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

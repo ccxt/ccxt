@@ -10,7 +10,7 @@ export interface BalanceUpdateEvent {
   qtyExponent: number;
   freeQtyDelta: bigint;
   subscriptionId: number;
-  asset: Uint8Array;
+  asset: string;
 }
 
 export class BalanceUpdateEventDecoder {
@@ -47,8 +47,10 @@ export class BalanceUpdateEventDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + BalanceUpdateEventDecoder.BLOCK_LENGTH;
 
-    const asset = this.decodeVarData(view, pos);
-    pos = asset.nextOffset;
+    const assetLen = view.getUint8(pos);
+    pos += 1;
+    const asset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, assetLen));
+    pos += assetLen;
 
     return {
       eventTime: eventTime,
@@ -56,20 +58,8 @@ export class BalanceUpdateEventDecoder {
       qtyExponent: qtyExponent,
       freeQtyDelta: freeQtyDelta,
       subscriptionId: subscriptionId,
-      asset: asset.value
+      asset: asset
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

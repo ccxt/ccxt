@@ -5,12 +5,15 @@
  */
 
 export interface ExchangeFilters {
+  filter: Uint8Array;
 }
 
 export interface SymbolFilters {
+  filter: Uint8Array;
 }
 
 export interface AssetFilters {
+  filter: Uint8Array;
 }
 
 export interface MyFiltersResponse {
@@ -66,10 +69,16 @@ export class MyFiltersResponseDecoder {
     for (let i = 0; i < numInGroup; i++) {
       const itemStart = pos;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const filterLen = view.getUint8(pos);
+      pos += 1;
+      const filter = new Uint8Array(view.buffer, view.byteOffset + pos, filterLen);
+      pos += filterLen;
+
       items.push({
+        filter: filter
       });
     }
 
@@ -88,10 +97,16 @@ export class MyFiltersResponseDecoder {
     for (let i = 0; i < numInGroup; i++) {
       const itemStart = pos;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const filterLen = view.getUint8(pos);
+      pos += 1;
+      const filter = new Uint8Array(view.buffer, view.byteOffset + pos, filterLen);
+      pos += filterLen;
+
       items.push({
+        filter: filter
       });
     }
 
@@ -110,10 +125,16 @@ export class MyFiltersResponseDecoder {
     for (let i = 0; i < numInGroup; i++) {
       const itemStart = pos;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const filterLen = view.getUint8(pos);
+      pos += 1;
+      const filter = new Uint8Array(view.buffer, view.byteOffset + pos, filterLen);
+      pos += filterLen;
+
       items.push({
+        filter: filter
       });
     }
 

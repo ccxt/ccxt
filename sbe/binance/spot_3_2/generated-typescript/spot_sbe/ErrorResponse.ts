@@ -8,7 +8,7 @@ export interface ErrorResponse {
   code: number;
   serverTime: bigint;
   retryAfter: bigint;
-  msg: Uint8Array;
+  msg: string;
   data: Uint8Array;
 }
 
@@ -40,31 +40,23 @@ export class ErrorResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + ErrorResponseDecoder.BLOCK_LENGTH;
 
-    const msg = this.decodeVarData(view, pos);
-    pos = msg.nextOffset;
+    const msgLen = view.getUint16(pos, this.littleEndian);
+    pos += 2;
+    const msg = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, msgLen));
+    pos += msgLen;
 
-    const data = this.decodeVarData(view, pos);
-    pos = data.nextOffset;
+    const dataLen = view.getUint32(pos, this.littleEndian);
+    pos += 4;
+    const data = new Uint8Array(view.buffer, view.byteOffset + pos, dataLen);
+    pos += dataLen;
 
     return {
       code: code,
       serverTime: serverTime,
       retryAfter: retryAfter,
-      msg: msg.value,
-      data: data.value
+      msg: msg,
+      data: data
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

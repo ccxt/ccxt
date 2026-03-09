@@ -14,8 +14,8 @@ export interface TPlusFilterLockEvent {
   qtyExponent: number;
   subscriptionId: number;
   unlockData: UnlockData[];
-  symbol: Uint8Array;
-  baseAsset: Uint8Array;
+  symbol: string;
+  baseAsset: string;
 }
 
 export class TPlusFilterLockEventDecoder {
@@ -49,19 +49,23 @@ export class TPlusFilterLockEventDecoder {
     const unlockData = this.decodeUnlockDataGroup(view, pos);
     pos = unlockData.nextOffset;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const baseAsset = this.decodeVarData(view, pos);
-    pos = baseAsset.nextOffset;
+    const baseAssetLen = view.getUint8(pos);
+    pos += 1;
+    const baseAsset = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, baseAssetLen));
+    pos += baseAssetLen;
 
     return {
       eventTime: eventTime,
       qtyExponent: qtyExponent,
       subscriptionId: subscriptionId,
       unlockData: unlockData.items,
-      symbol: symbol.value,
-      baseAsset: baseAsset.value
+      symbol: symbol,
+      baseAsset: baseAsset
     };
   }
   private decodeUnlockDataGroup(view: DataView, offset: number): { items: UnlockData[], nextOffset: number } {
@@ -83,7 +87,7 @@ export class TPlusFilterLockEventDecoder {
       const qty = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({
@@ -93,18 +97,6 @@ export class TPlusFilterLockEventDecoder {
     }
 
     return { items, nextOffset: pos };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

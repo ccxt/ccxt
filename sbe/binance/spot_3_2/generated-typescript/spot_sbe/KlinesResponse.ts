@@ -104,7 +104,7 @@ export class KlinesResponseDecoder {
       const takerBuyQuoteVolume = view.getUint8(pos);
       pos += 16;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({

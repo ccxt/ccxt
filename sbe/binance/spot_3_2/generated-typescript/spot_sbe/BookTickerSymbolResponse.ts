@@ -11,7 +11,7 @@ export interface BookTickerSymbolResponse {
   bidQty: bigint;
   askPrice: bigint;
   askQty: bigint;
-  symbol: Uint8Array;
+  symbol: string;
 }
 
 export class BookTickerSymbolResponseDecoder {
@@ -51,8 +51,10 @@ export class BookTickerSymbolResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + BookTickerSymbolResponseDecoder.BLOCK_LENGTH;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
     return {
       priceExponent: priceExponent,
@@ -61,20 +63,8 @@ export class BookTickerSymbolResponseDecoder {
       bidQty: bidQty,
       askPrice: askPrice,
       askQty: askQty,
-      symbol: symbol.value
+      symbol: symbol
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

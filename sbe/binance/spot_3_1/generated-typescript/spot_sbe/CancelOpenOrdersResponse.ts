@@ -5,6 +5,7 @@
  */
 
 export interface Responses {
+  response: Uint8Array;
 }
 
 export interface CancelOpenOrdersResponse {
@@ -50,10 +51,16 @@ export class CancelOpenOrdersResponseDecoder {
     for (let i = 0; i < numInGroup; i++) {
       const itemStart = pos;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
+      const responseLen = view.getUint16(pos, this.littleEndian);
+      pos += 2;
+      const response = new Uint8Array(view.buffer, view.byteOffset + pos, responseLen);
+      pos += responseLen;
+
       items.push({
+        response: response
       });
     }
 

@@ -88,7 +88,7 @@ export class TradesResponseDecoder {
       const isBestMatch = view.getUint8(pos);
       pos += 1;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
 
       items.push({

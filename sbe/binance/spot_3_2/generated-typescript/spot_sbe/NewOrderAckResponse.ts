@@ -8,8 +8,8 @@ export interface NewOrderAckResponse {
   orderId: bigint;
   orderListId: bigint;
   transactTime: bigint;
-  symbol: Uint8Array;
-  clientOrderId: Uint8Array;
+  symbol: string;
+  clientOrderId: string;
 }
 
 export class NewOrderAckResponseDecoder {
@@ -40,31 +40,23 @@ export class NewOrderAckResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + NewOrderAckResponseDecoder.BLOCK_LENGTH;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
-    const clientOrderId = this.decodeVarData(view, pos);
-    pos = clientOrderId.nextOffset;
+    const clientOrderIdLen = view.getUint8(pos);
+    pos += 1;
+    const clientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, clientOrderIdLen));
+    pos += clientOrderIdLen;
 
     return {
       orderId: orderId,
       orderListId: orderListId,
       transactTime: transactTime,
-      symbol: symbol.value,
-      clientOrderId: clientOrderId.value
+      symbol: symbol,
+      clientOrderId: clientOrderId
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {

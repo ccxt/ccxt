@@ -11,6 +11,9 @@ export interface Amendments {
   origQty: bigint;
   newQty: bigint;
   time: bigint;
+  symbol: string;
+  origClientOrderId: string;
+  newClientOrderId: string;
 }
 
 export interface OrderAmendmentsResponse {
@@ -74,8 +77,23 @@ export class OrderAmendmentsResponseDecoder {
       const time = view.getBigInt64(pos, this.littleEndian);
       pos += 8;
 
-      // Skip to next block for forward compatibility
+      // Skip to end of block for forward compatibility
       pos = itemStart + blockLength;
+
+      const symbolLen = view.getUint8(pos);
+      pos += 1;
+      const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+      pos += symbolLen;
+
+      const origClientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const origClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, origClientOrderIdLen));
+      pos += origClientOrderIdLen;
+
+      const newClientOrderIdLen = view.getUint8(pos);
+      pos += 1;
+      const newClientOrderId = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, newClientOrderIdLen));
+      pos += newClientOrderIdLen;
 
       items.push({
         orderId: orderId,
@@ -83,7 +101,10 @@ export class OrderAmendmentsResponseDecoder {
         qtyExponent: qtyExponent,
         origQty: origQty,
         newQty: newQty,
-        time: time
+        time: time,
+        symbol: symbol,
+        origClientOrderId: origClientOrderId,
+        newClientOrderId: newClientOrderId
       });
     }
 

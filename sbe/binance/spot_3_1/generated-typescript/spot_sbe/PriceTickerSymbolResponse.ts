@@ -7,7 +7,7 @@
 export interface PriceTickerSymbolResponse {
   priceExponent: number;
   price: bigint;
-  symbol: Uint8Array;
+  symbol: string;
 }
 
 export class PriceTickerSymbolResponseDecoder {
@@ -35,26 +35,16 @@ export class PriceTickerSymbolResponseDecoder {
     // Skip to end of block for forward compatibility
     pos = offset + PriceTickerSymbolResponseDecoder.BLOCK_LENGTH;
 
-    const symbol = this.decodeVarData(view, pos);
-    pos = symbol.nextOffset;
+    const symbolLen = view.getUint8(pos);
+    pos += 1;
+    const symbol = new TextDecoder('utf-8').decode(new Uint8Array(view.buffer, view.byteOffset + pos, symbolLen));
+    pos += symbolLen;
 
     return {
       priceExponent: priceExponent,
       price: price,
-      symbol: symbol.value
+      symbol: symbol
     };
-  }
-
-  private decodeVarData(view: DataView, offset: number): { value: Uint8Array, nextOffset: number } {
-    let pos = offset;
-
-    const length = view.getUint32(pos, this.littleEndian);
-    pos += 4;
-
-    const value = new Uint8Array(view.buffer, view.byteOffset + pos, length);
-    pos += length;
-
-    return { value, nextOffset: pos };
   }
 
   static getBlockLength(): number {
