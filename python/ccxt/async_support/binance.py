@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.binance import ImplicitAPI
 import asyncio
 import hashlib
-import math
 import json
 from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, Greeks, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, LongShortRatio, MarginMode, MarginModes, MarginModification, Market, Num, Option, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
 from typing import List
@@ -1357,9 +1356,6 @@ class binance(Exchange, ImplicitAPI):
                 'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'defaultType': 'spot',  # 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': None,  # 'linear', 'inverse'
-                'useSbe': False,  # use SBE(Simple Binary Encoding) for spot API when available
-                'sbeSchemaId': 3,  # Binance SBE schema ID
-                'sbeSchemaVersion': 1,  # Binance SBE schema version(spot_3_1 for prod, spot_3_2 for testnet)
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
@@ -3102,9 +3098,6 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        originalUseSbe = self.safe_bool(self.options, 'useSbe', False)
-        if originalUseSbe:
-            self.options['useSbe'] = False
         promisesRaw = []
         rawFetchMarkets = None
         defaultTypes = ['spot', 'linear', 'inverse']
@@ -3145,9 +3138,6 @@ class binance(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         results = await asyncio.gather(*promisesRaw)
-        # Restore original useSbe setting
-        if originalUseSbe:
-            self.options['useSbe'] = True
         markets = []
         self.options['crossMarginPairsData'] = []
         self.options['isolatedMarginPairsData'] = []
@@ -4000,33 +3990,6 @@ class binance(Exchange, ImplicitAPI):
         #         "u": 1015939
         #     }
         #
-        # SBE response
-        #    {
-        #       messageId: 200,
-        #       messageName: "DepthResponse",
-        #       lastUpdateId: 11875115077,
-        #       priceExponent: -8,
-        #       qtyExponent: -8,
-        #       bids: [
-        #         {
-        #           price: 10456800000000,
-        #           qty: 52066000,
-        #         },
-        #         ...
-        #       ],
-        #    }
-        #
-        priceExponent = self.safe_integer(response, 'priceExponent')
-        qtyExponent = self.safe_integer(response, 'qtyExponent')
-        if priceExponent is not None and qtyExponent is not None:
-            bids = self.safe_list(response, 'bids', [])
-            asks = self.safe_list(response, 'asks', [])
-            for i in range(0, len(bids)):
-                bids[i] = [self.apply_exponent(bids[i]['price'], priceExponent), self.apply_exponent(bids[i]['qty'], qtyExponent)]
-            for i in range(0, len(asks)):
-                asks[i] = [self.apply_exponent(asks[i]['price'], priceExponent), self.apply_exponent(asks[i]['qty'], qtyExponent)]
-            response['bids'] = bids
-            response['asks'] = asks
         timestamp = self.safe_integer(response, 'T')
         orderbook = self.parse_order_book(response, symbol, timestamp)
         orderbook['nonce'] = self.safe_integer_2(response, 'lastUpdateId', 'u')
@@ -5017,8 +4980,7 @@ class binance(Exchange, ImplicitAPI):
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
-        isOption = self.safe_bool(market, 'option', False)
-        if not isOption:
+        if not market['option']:
             if since is not None:
                 request['startTime'] = since
                 # https://github.com/ccxt/ccxt/issues/6400
@@ -5035,55 +4997,8 @@ class binance(Exchange, ImplicitAPI):
             maxLimitForContractHistorical = 500 if isHistoricalEndpoint else 1000
             request['limit'] = min(limit, maxLimitForContractHistorical) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
-        # Check if SBE is enabled for spot trades endpoint
-        useSbe = self.safe_bool(self.options, 'useSbe', False)
-        sbeSchemaId = self.safe_integer(self.options, 'sbeSchemaId', 3)
-        sbeSchemaVersion = self.safe_integer(self.options, 'sbeSchemaVersion', 1)
         response = None
-        if useSbe and market['spot']:
-            # Use SBE for spot trades endpoint /api/v3/trades
-            sbeHeaders = {
-                'Accept': 'application/sbe',
-                'X-MBX-SBE': self.number_to_string(sbeSchemaId) + ':' + self.number_to_string(sbeSchemaVersion),
-            }
-            # Call request directly with headers separate parameter
-            # handleRestResponse will automatically call decodeSbeResponse for SBE responses
-            response = await self.request('trades', 'public', 'GET', self.extend(request, params), sbeHeaders, None)
-            # Response is already decoded by decodeSbeResponse via handleRestResponse
-            # Extract exponents and trades from decoded SBE object using safe functions
-            priceExponent = self.safe_integer(response, 'priceExponent', 0)
-            qtyExponent = self.safe_integer(response, 'qtyExponent', 0)
-            sbeTradesArray = self.safe_list(response, 'trades', self.safe_list(response, 'trade', self.safe_list(response, 'Trade', [])))
-            # Check if we got SBE trades data
-            if len(sbeTradesArray) > 0:
-                if self.verbose:
-                    self.log('fetchTrades: Using decoded SBE response, trades count: ' + self.number_to_string(len(sbeTradesArray)))
-                    self.log('fetchTrades: First trade raw: ' + self.json(sbeTradesArray[0]))
-                # Normalize trades to standard format
-                normalizedTrades = []
-                for i in range(0, len(sbeTradesArray)):
-                    trade = sbeTradesArray[i]
-                    # safeInteger now handles BigInt values from SBE
-                    priceNum = self.safe_integer(trade, 'price', 0)
-                    qtyNum = self.safe_integer(trade, 'qty', 0)
-                    quoteQtyNum = self.safe_integer(trade, 'quoteQty', 0)
-                    idNum = self.safe_string(trade, 'id')
-                    timeNum = self.safe_integer(trade, 'time', 0)
-                    price = self.apply_exponent(priceNum, priceExponent)
-                    qty = self.apply_exponent(qtyNum, qtyExponent)
-                    quoteQty = self.apply_exponent(quoteQtyNum, priceExponent)
-                    timestamp = int(math.floor(timeNum / 1000))  # microseconds to milliseconds
-                    normalizedTrades.append({
-                        'id': str(idNum),
-                        'price': str(price),
-                        'qty': str(qty),
-                        'quoteQty': str(quoteQty),
-                        'time': timestamp,
-                        'isBuyerMaker': self.safe_integer(trade, 'isBuyerMaker') == 1,
-                        'isBestMatch': self.safe_integer(trade, 'isBestMatch') == 1,
-                    })
-                response = normalizedTrades
-        elif market['option'] or method == 'eapiPublicGetTrades':
+        if market['option'] or method == 'eapiPublicGetTrades':
             response = await self.eapiPublicGetTrades(self.extend(request, params))
         elif market['linear'] or method == 'fapiPublicGetAggTrades':
             response = await self.fapiPublicGetAggTrades(self.extend(request, params))
@@ -11461,95 +11376,12 @@ class binance(Exchange, ImplicitAPI):
             return None
         return scheme + '//' + domain + '/'
 
-    def get_sbe_decoder_registry(self):
-        # Registry mapping template IDs to decoder classes
-        return {
-            # WebSocket(50-54)
-            '50': WebSocketResponseDecoder,
-            '51': WebSocketSessionLogonResponseDecoder,
-            '52': WebSocketSessionStatusResponseDecoder,
-            '53': WebSocketSessionLogoutResponseDecoder,
-            '54': WebSocketSessionSubscriptionsResponseDecoder,
-            # General(100-105)
-            '100': ErrorResponseDecoder,
-            '101': PingResponseDecoder,
-            '102': ServerTimeResponseDecoder,
-            '103': ExchangeInfoResponseDecoder,
-            '105': MyFiltersResponseDecoder,
-            # Market Data(200-216)
-            '200': DepthResponseDecoder,
-            '201': TradesResponseDecoder,
-            '202': AggTradesResponseDecoder,
-            '203': KlinesResponseDecoder,
-            '204': AveragePriceResponseDecoder,
-            '205': Ticker24hSymbolFullResponseDecoder,
-            '206': Ticker24hFullResponseDecoder,
-            '207': Ticker24hSymbolMiniResponseDecoder,
-            '208': Ticker24hMiniResponseDecoder,
-            '209': PriceTickerSymbolResponseDecoder,
-            '210': PriceTickerResponseDecoder,
-            '211': BookTickerSymbolResponseDecoder,
-            '212': BookTickerResponseDecoder,
-            '213': TickerSymbolFullResponseDecoder,
-            '214': TickerFullResponseDecoder,
-            '215': TickerSymbolMiniResponseDecoder,
-            '216': TickerMiniResponseDecoder,
-            # Trading(300-317)
-            '300': NewOrderAckResponseDecoder,
-            '301': NewOrderResultResponseDecoder,
-            '302': NewOrderFullResponseDecoder,
-            '303': OrderTestResponseDecoder,
-            '304': OrderResponseDecoder,
-            '305': CancelOrderResponseDecoder,
-            '306': CancelOpenOrdersResponseDecoder,
-            '307': CancelReplaceOrderResponseDecoder,
-            '308': OrdersResponseDecoder,
-            '309': NewOrderListAckResponseDecoder,
-            '310': NewOrderListResultResponseDecoder,
-            '311': NewOrderListFullResponseDecoder,
-            '312': CancelOrderListResponseDecoder,
-            '313': OrderListResponseDecoder,
-            '314': OrderListsResponseDecoder,
-            '315': OrderTestWithCommissionsResponseDecoder,
-            '316': OrderAmendmentsResponseDecoder,
-            '317': OrderAmendKeepPriorityResponseDecoder,
-            # Account(400-405)
-            '400': AccountResponseDecoder,
-            '401': AccountTradesResponseDecoder,
-            '402': AccountOrderRateLimitResponseDecoder,
-            '403': AccountPreventedMatchesResponseDecoder,
-            '404': AccountAllocationsResponseDecoder,
-            '405': AccountCommissionResponseDecoder,
-            # User Data Stream(500-505)
-            '500': UserDataStreamStartResponseDecoder,
-            '501': UserDataStreamPingResponseDecoder,
-            '502': UserDataStreamStopResponseDecoder,
-            '503': UserDataStreamSubscribeResponseDecoder,
-            '504': UserDataStreamUnsubscribeResponseDecoder,
-            '505': UserDataStreamSubscribeListenTokenResponseDecoder,
-        }
-
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        # Check for SBE(Simple Binary Encoding) parameters in params or exchange options
-        # Params take precedence over exchange options
-        result = self.handle_option_and_params(params, 'sign', 'useSbe', False)
-        useSbe = result[0]
-        params = result[1]
-        result = self.handle_option_and_params(params, 'sign', 'sbeSchemaId', 3)
-        sbeSchemaId = result[0]
-        params = result[1]
-        result = self.handle_option_and_params(params, 'sign', 'sbeSchemaVersion', 1)
-        sbeSchemaVersion = result[0]
-        params = result[1]
         urls = self.urls
         if not (api in urls['api']):
             raise NotSupported(self.id + ' does not have a testnet/sandbox URL for ' + api + ' endpoints')
         url = self.urls['api'][api]
         url += '/' + path
-        # Adjust SBE schema version based on environment(prod vs testnet)
-        # Production uses spot_3_1(version 1), Testnet uses spot_3_2(version 2)
-        if url.find('testnet.binance.vision') > -1:
-            sbeSchemaVersion = 2  # Use spot_3_2 for testnet
         if path == 'historicalTrades':
             if self.apiKey:
                 headers = {
@@ -11656,14 +11488,6 @@ class binance(Exchange, ImplicitAPI):
         else:
             if params:
                 url += '?' + self.urlencode(params)
-        isSpotApi = (api == 'public' or api == 'private')
-        sbeEnabledPaths = ['depth', 'trades', 'aggTrades', 'historicalTrades']
-        isSbeSupportedPath = self.in_array(path, sbeEnabledPaths)
-        if useSbe and sbeSchemaId is not None and sbeSchemaVersion is not None and isSpotApi and isSbeSupportedPath:
-            if headers is None:
-                headers = {}
-            headers['Accept'] = 'application/sbe'
-            headers['X-MBX-SBE'] = sbeSchemaId + ':' + sbeSchemaVersion
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def get_exceptions_by_url(self, url: str, exactOrBroad: str):

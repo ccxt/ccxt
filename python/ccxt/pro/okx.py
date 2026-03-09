@@ -6,8 +6,6 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-import math
-import json
 from ccxt.base.types import Any, Balances, Bool, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
@@ -55,22 +53,19 @@ class okx(ccxt.async_support.okx):
             'urls': {
                 'api': {
                     'ws': 'wss://ws.okx.com:8443/ws/v5',
-                    'wsSbe': 'wss://ws.okx.com:8443/ws/v5/public-sbe',
                 },
                 'test': {
                     'ws': 'wss://wspap.okx.com:8443/ws/v5',
-                    'wsSbe': 'wss://wspap.okx.com:8443/ws/v5/public-sbe',
                 },
             },
             'options': {
-                'useSbe': False,  # use SBE(Simple Binary Encoding) for WebSocket channels(trades, bbo-tbt, books-l2-tbt)
                 'watchOrderBook': {
                     'checksum': True,
                     #
                     # bbo-tbt
                     # 1. Newly added channel that sends tick-by-tick Level 1 data
-                    # 2. All API users can subscribe(any trading fee tier)
-                    # 3. Requires login via connection headers(mandatory from 3rd March 2026)
+                    # 2. All API users can subscribe
+                    # 3. Public depth channel, verification not required
                     #
                     # books-l2-tbt
                     # 1. Only users who're VIP5 and above can subscribe
@@ -128,16 +123,7 @@ class okx(ccxt.async_support.okx):
         sandboxSuffix = '?brokerId=9999' if isSandbox else ''
         isBusiness = (access == 'business')
         isPublic = (access == 'public')
-        # Check if we should use SBE WebSocket
-        # Check both self.options.useSbe and self.useSbe to support both config styles
-        useSbe = self.safe_bool(self.options, 'useSbe', self.safe_bool(self, 'useSbe', False))
-        sbeChannels = ['trades', 'bbo-tbt', 'books-l2-tbt']
-        isSbeChannel = sbeChannels.find(channel) >= 0
         url = self.urls['api']['ws']
-        if useSbe and isSbeChannel and isPublic:
-            # Use SBE WebSocket URL for supported channels
-            url = self.urls['api']['wsSbe']
-            return url + sandboxSuffix
         if isBusiness or (channel.find('candle') > -1) or (channel == 'orders-algo'):
             return url + '/business' + sandboxSuffix
         elif isPublic:
@@ -222,21 +208,14 @@ class okx(ccxt.async_support.okx):
         channel, params = self.handle_option_and_params(params, 'watchTrades', 'channel', 'trades')
         topics = []
         messageHashes = []
-        useSbe = self.safe_bool(self.options, 'useSbe', self.safe_bool(self, 'useSbe', False))
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append(channel + ':' + symbol)
-            market = self.market(symbol)
+            marketId = self.market_id(symbol)
             topic: dict = {
                 'channel': channel,
+                'instId': marketId,
             }
-            # Use instIdCode for SBE, instId for JSON
-            if useSbe and channel == 'trades':
-                instIdCode = self.safe_integer(market['info'], 'instIdCode')
-                topic['instIdCode'] = instIdCode
-            else:
-                marketId = self.market_id(symbol)
-                topic['instId'] = marketId
             topics.append(topic)
         request: dict = {
             'op': 'subscribe',
@@ -1154,21 +1133,14 @@ class okx(ccxt.async_support.okx):
             await self.authenticate({'access': 'public'})
         topics = []
         messageHashes = []
-        useSbe = self.safe_bool(self.options, 'useSbe', self.safe_bool(self, 'useSbe', False))
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             messageHashes.append(depth + ':' + symbol)
-            market = self.market(symbol)
+            marketId = self.market_id(symbol)
             topic: dict = {
                 'channel': depth,
+                'instId': marketId,
             }
-            # Use instIdCode for SBE, instId for JSON
-            if useSbe and ((depth == 'bbo-tbt') or (depth == 'books-l2-tbt')):
-                instIdCode = self.safe_integer(market['info'], 'instIdCode')
-                topic['instIdCode'] = instIdCode
-            else:
-                marketId = self.market_id(symbol)
-                topic['instId'] = marketId
             topics.append(topic)
         request: dict = {
             'op': 'subscribe',
@@ -2258,36 +2230,6 @@ class okx(ccxt.async_support.okx):
         return True
 
     def handle_message(self, client: Client, message):
-        # Check if message is binary(SBE)
-        if isinstance(message, ArrayBuffer) or ArrayBuffer.isView(message):
-            useSbe = self.safe_bool(self.options, 'useSbe', self.safe_bool(self, 'useSbe', False))
-            if useSbe:
-                # Validate SBE header before trying to decode
-                # OKX SBE WebSocket sends JSON for subscription confirmations and binary SBE for data
-                uint8Array
-                if isinstance(message, ArrayBuffer):
-                    uint8Array = Uint8Array(message)
-                elif isinstance(message, Uint8Array):
-                    uint8Array = message
-                elif ArrayBuffer.isView(message):
-                    uint8Array = Uint8Array(message.buffer, message.byteOffset, message.byteLength)
-                # Check if it looks like valid SBE by validating header
-                if uint8Array and len(uint8Array) >= 8:
-                    view = DataView(uint8Array.buffer, uint8Array.byteOffset, uint8Array.byteLength)
-                    templateId = view.getUint16(2, True)  # offset 2, little-endian
-                    schemaId = view.getUint16(4, True)   # offset 4, little-endian
-                    # OKX SBE schema ID is 1, template IDs are 1000-1006
-                    if schemaId == 1 and templateId >= 1000 and templateId <= 1006:
-                        self.handle_sbe_message(client, message)
-                        return
-                # Not valid SBE, try to decode(JSON subscription response)
-                try:
-                    text = uint8Array
-                    message = json.loads(text)
-                except Exception as e:
-                    if self.verbose:
-                        self.log('handleMessage: Failed to decode binary message:', e)
-                    return
         if not self.handle_error_message(client, message):
             return
         #
@@ -2383,168 +2325,6 @@ class okx(ccxt.async_support.okx):
                     self.handle_ohlcv(client, message)
             else:
                 method(client, message)
-
-    def handle_sbe_bbo_tbt(self, client: Client, message):
-        # BboTbtChannelEvent(Template ID 1000)
-        # Contains best bid/offer data
-        instIdCode = self.safe_integer(message, 'instIdCode')
-        symbol = self.safe_symbol_from_inst_id_code(instIdCode)
-        if symbol is None:
-            return
-        channel = 'bbo-tbt'
-        messageHash = channel + ':' + symbol
-        # Auto-apply exponents to mantissas
-        processed = self.apply_sbe_exponents(message)
-        timestamp = self.safe_integer(processed, 'ts')
-        if not (symbol in self.orderbooks):
-            self.orderbooks[symbol] = self.order_book({})
-        orderbook = self.orderbooks[symbol]
-        snapshot = {
-            'bids': [[processed.bidPx, processed.bidSz]],
-            'asks': [[processed.askPx, processed.askSz]],
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'nonce': None,
-        }
-        orderbook.reset(snapshot)
-        client.resolve(orderbook, messageHash)
-
-    def handle_sbe_books_l2_tbt(self, client: Client, message):
-        # BooksL2TbtChannelEvent(Template ID 1001) and SnapshotDepthResponseEvent(Template ID 1006)
-        instIdCode = self.safe_integer(message, 'instIdCode')
-        symbol = self.safe_symbol_from_inst_id_code(instIdCode)
-        if symbol is None:
-            return
-        channel = 'books-l2-tbt'
-        messageHash = channel + ':' + symbol
-        # Auto-apply exponents to mantissas
-        processed = self.apply_sbe_exponents(message)
-        timestamp = self.safe_integer(processed, 'ts')
-        seqId = self.safe_integer(processed, 'seqId')
-        prevSeqId = self.safe_integer(processed, 'prevSeqId')
-        if not (symbol in self.orderbooks):
-            self.orderbooks[symbol] = self.order_book({})
-        orderbook = self.orderbooks[symbol]
-        # Convert to standard [price, size] arrays
-        bids = []
-        if processed.bids:
-            for i in range(0, len(processed.bids)):
-                bid = processed.bids[i]
-                bids.append([bid.px, bid.sz])
-        asks = []
-        if processed.asks:
-            for i in range(0, len(processed.asks)):
-                ask = processed.asks[i]
-                asks.append([ask.px, ask.sz])
-        # prevSeqId == -1 means self is a snapshot(REST or initial)
-        isSnapshot = (prevSeqId == -1) or (orderbook['nonce'] is None)
-        if isSnapshot:
-            # Full snapshot — reset the orderbook
-            orderbook.reset({
-                'bids': bids,
-                'asks': asks,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'nonce': seqId,
-            })
-        else:
-            # Incremental update — validate seqId chain then apply delta
-            if prevSeqId != orderbook['nonce']:
-                # Gap detected — orderbook is out of sync, reset so next snapshot re-initialises it
-                orderbook.reset({})
-                orderbook['nonce'] = None
-                return
-            orderbook['timestamp'] = timestamp
-            orderbook['datetime'] = self.iso8601(timestamp)
-            orderbook['nonce'] = seqId
-            # Apply each price level: qty 0 means remove, otherwise insert/update
-            for i in range(0, len(bids)):
-                orderbook['bids'].store(bids[i][0], bids[i][1])
-            for i in range(0, len(asks)):
-                orderbook['asks'].store(asks[i][0], asks[i][1])
-        client.resolve(orderbook, messageHash)
-
-    def handle_sbe_books_l2_tbt_exponent_update(self, client: Client, message):
-        # BooksL2TbtExponentUpdateEvent(Template ID 1002)
-        # Contains only exponent changes(no bid/ask data), but carries seqId/prevSeqId.
-        # Must update the orderbook nonce so the seqId chain stays consistent —
-        # the next BooksL2TbtChannelEvent's prevSeqId will reference self message's seqId.
-        instIdCode = self.safe_integer(message, 'instIdCode')
-        symbol = self.safe_symbol_from_inst_id_code(instIdCode)
-        if symbol is None:
-            return
-        seqId = self.safe_integer(message, 'seqId')
-        if symbol in self.orderbooks:
-            self.orderbooks[symbol]['nonce'] = seqId
-
-    def handle_sbe_trades(self, client: Client, message):
-        # TradesChannelEvent(Template ID 1005)
-        instIdCode = self.safe_integer(message, 'instIdCode')
-        symbol = self.safe_symbol_from_inst_id_code(instIdCode)
-        if symbol is None:
-            return
-        channel = 'trades'
-        messageHash = channel + ':' + symbol
-        pxExponent = self.safe_integer(message, 'pxExponent', 0)
-        szExponent = self.safe_integer(message, 'szExponent', 0)
-        trades = self.safe_value(message, 'trades', [])
-        parsed = []
-        for i in range(0, len(trades)):
-            trade = trades[i]
-            pxMantissa = self.safe_integer(trade, 'pxMantissa')
-            szMantissa = self.safe_integer(trade, 'szMantissa')
-            price = pxMantissa * math.pow(10, pxExponent)
-            amount = szMantissa * math.pow(10, szExponent)
-            timestamp = self.safe_integer(trade, 'ts')
-            side = self.safe_string(trade, 'side')  # 'B' or 'S'
-            tradeId = self.safe_string(trade, 'tradeId')
-            parsed.append({
-                'id': tradeId,
-                'info': trade,
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-                'symbol': symbol,
-                'order': None,
-                'type': None,
-                'side': 'buy' if (side == 'B') else 'sell',
-                'takerOrMaker': None,
-                'price': price,
-                'amount': amount,
-                'cost': price * amount,
-                'fee': None,
-            })
-        stored = self.safe_value(self.trades, symbol)
-        if stored is None:
-            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
-            stored = ArrayCache(limit)
-            self.trades[symbol] = stored
-        for i in range(0, len(parsed)):
-            stored.append(parsed[i])
-        client.resolve(stored, messageHash)
-
-    def safe_symbol_from_inst_id_code(self, instIdCode):
-        # Convert instIdCode back to symbol
-        # Need to find the market with matching instIdCode
-        marketIds = list(self.markets_by_id.keys())
-        for i in range(0, len(marketIds)):
-            marketId = marketIds[i]
-            market = self.markets_by_id[marketId]
-            marketInstIdCode = self.safe_integer(market['info'], 'instIdCode')
-            if marketInstIdCode == instIdCode:
-                return market['symbol']
-        return None
-
-    def get_sbe_message_handlers(self):
-        # Map SBE template IDs to handler methods for WebSocket messages
-        return {
-            '1000': self.handle_sbe_bbo_tbt,              # BboTbtChannelEvent
-            '1001': self.handle_sbe_books_l2_tbt,          # BooksL2TbtChannelEvent
-            '1002': self.handle_sbe_books_l2_tbt_exponent_update,  # BooksL2TbtExponentUpdateEvent
-            '1003': self.handle_sbe_books_l2_tbt,          # BooksL2TbtElpChannelEvent(same structure)
-            '1004': self.handle_sbe_books_l2_tbt_exponent_update,  # BooksL2TbtElpExponentUpdateEvent
-            '1005': self.handle_sbe_trades,              # TradesChannelEvent
-            '1006': self.handle_sbe_books_l2_tbt,          # SnapshotDepthResponseEvent
-        }
 
     def handle_un_subscription_trades(self, client: Client, symbol: str, channel: str):
         subMessageHash = channel + ':' + symbol

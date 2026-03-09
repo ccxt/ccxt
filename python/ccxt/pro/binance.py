@@ -6,7 +6,6 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-import math
 from ccxt.base.types import Any, Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
@@ -205,60 +204,6 @@ class binance(ccxt.async_support.binance):
         newValue = self.sum(previousValue, 1)
         self.options['requestId'][url] = newValue
         return newValue
-
-    def get_sbe_web_socket_url(self, url: str) -> str:
-        """
- Appends SBE parameters to WebSocket API URL if SBE is enabled
-        :param str url: - The base WebSocket URL
-        :returns str: The URL with SBE parameters appended if enabled
-        """
-        useSbe = self.safe_bool(self.options, 'useSbe', False)
-        if useSbe:
-            sbeSchemaId = self.safe_integer(self.options, 'sbeSchemaId', 3)
-            sbeSchemaVersion = self.safe_integer(self.options, 'sbeSchemaVersion', 1)
-            # Add SBE parameters to the WebSocket URL
-            separator = '?'
-            if url.find('?') >= 0:
-                separator = '&'
-            return url + separator + 'responseFormat=sbe&sbeSchemaId=' + str(sbeSchemaId) + '&sbeSchemaVersion=' + str(sbeSchemaVersion)
-        return url
-
-    def decode_sbe_web_socket_message(self, buffer: bytes) -> Any:
-        """
- Decodes SBE-encoded WebSocket messages
-        :param ArrayBuffer buffer: - The binary SBE message
-        :returns dict: Decoded message-compatible object
-        """
-        try:
-            # Use new generated WebSocketResponseDecoder
-            decoder = WebSocketResponseDecoder()
-            decoded = decoder.decode(buffer, 0)
-            if self.verbose:
-                self.log('decodeSbeWebSocketMessage: decoded WebSocketResponse, status:', decoded.status)
-            # The WebSocketResponse envelope contains: id, status, rateLimits, result
-            # The result field is of type messageData(Uint8Array) and contains another nested SBE message
-            # Decode nested result based on message template ID from the nested message header
-            decodedResult: Any = decoded.result
-            if decoded.result and decoded.result.byteLength > 0:
-                # Result is binary data that needs to be decoded based on template ID
-                decodedResult = self.decode_sbe_nested_message(decoded.result)
-                if self.verbose:
-                    resultType = decodedResult.constructor.name if (decodedResult and decodedResult.constructor) else 'unknown'
-                    self.log('decodeSbeWebSocketMessage: decoded nested result type:', resultType)
-            # id is already decoded to string by the generated decoder
-            idString = decoded.id
-            # Clean up the decoded structure to match expected JSON format
-            cleanMessage: Any = {
-                'id': idString,
-                'status': decoded.status,
-                'result': decodedResult,
-                'rateLimits': decoded.rateLimits,
-            }
-            return cleanMessage
-        except Exception as e:
-            if self.verbose:
-                self.log('decodeSbeWebSocketMessage error:', e)
-            raise e
 
     def is_spot_url(self, client: Client):
         return(client.url.find('/stream') > -1) or (client.url.find('demo-stream') > -1)
@@ -829,8 +774,7 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOrderBookWs', market, params)
         if marketType != 'future':
             raise BadRequest(self.id + ' fetchOrderBookWs only supports swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][marketType]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -851,7 +795,6 @@ class binance(ccxt.async_support.binance):
 
     def handle_fetch_order_book(self, client: Client, message):
         #
-        # JSON format:
         #    {
         #        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
         #        "status":200,
@@ -874,58 +817,8 @@ class binance(ccxt.async_support.binance):
         #        }
         #    }
         #
-        # SBE format(DepthResponse):
-        #    {
-        #        "id":"...",
-        #        "status":200,
-        #        "result":{
-        #            "lastUpdateId":1027024,
-        #            "priceExponent": -8,
-        #            "qtyExponent": -8,
-        #            "bids":[
-        #                {
-        #                    "price": 400000000,    # mantissa
-        #                    "qty": 43100000000     # mantissa
-        #                }
-        #            ],
-        #            "asks":[
-        #                {
-        #                    "price": 400000200,
-        #                    "qty": 1200000000
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_dict(message, 'result')
-        # Check if SBE format(has exponent fields)
-        priceExponent = self.safe_integer(result, 'priceExponent')
-        if priceExponent is not None:
-            # SBE format - normalize to JSON format
-            qtyExponent = self.safe_integer(result, 'qtyExponent', 0)
-            normalized: Any = {
-                'lastUpdateId': self.safe_integer(result, 'lastUpdateId'),
-                'E': self.safe_integer(result, 'E'),
-                'T': self.safe_integer(result, 'T'),
-                'bids': [],
-                'asks': [],
-            }
-            # Convert bids
-            bidsArray = self.safe_list(result, 'bids', [])
-            for i in range(0, len(bidsArray)):
-                bid = bidsArray[i]
-                price = self.apply_exponent(self.safe_integer(bid, 'price', 0), priceExponent)
-                qty = self.apply_exponent(self.safe_integer(bid, 'qty', 0), qtyExponent)
-                normalized['bids'].append([str(price), str(qty)])
-            # Convert asks
-            asksArray = self.safe_list(result, 'asks', [])
-            for i in range(0, len(asksArray)):
-                ask = asksArray[i]
-                price = self.apply_exponent(self.safe_integer(ask, 'price', 0), priceExponent)
-                qty = self.apply_exponent(self.safe_integer(ask, 'qty', 0), qtyExponent)
-                normalized['asks'].append([str(price), str(qty)])
-            result = normalized
         timestamp = self.safe_integer(result, 'T')
         orderbook = self.parse_order_book(result, None, timestamp)
         orderbook['nonce'] = self.safe_integer_2(result, 'lastUpdateId', 'u')
@@ -1699,8 +1592,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTickerWs', market, params)
         if type != 'future':
             raise BadRequest(self.id + ' fetchTickerWs only supports swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         subscription: dict = {
@@ -1742,8 +1634,7 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('fetchOHLCVWs', market, params)
         if marketType != 'spot' and marketType != 'future':
             raise BadRequest(self.id + ' fetchOHLCVWs only supports spot or swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][marketType]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -1773,7 +1664,6 @@ class binance(ccxt.async_support.binance):
 
     def handle_fetch_ohlcv(self, client: Client, message):
         #
-        # JSON format:
         #    {
         #        "id": "1dbbeb56-8eea-466a-8f6e-86bdcfa2fc0b",
         #        "status": 200,
@@ -1793,84 +1683,21 @@ class binance(ccxt.async_support.binance):
         #                "0"                 # Unused field, ignore
         #            ]
         #        ],
-        #        "rateLimits": [...]
+        #        "rateLimits": [
+        #            {
+        #                "rateLimitType": "REQUEST_WEIGHT",
+        #                "interval": "MINUTE",
+        #                "intervalNum": 1,
+        #                "limit": 6000,
+        #                "count": 2
+        #            }
+        #        ]
         #    }
         #
-        # SBE format(decoded):
-        #    {
-        #        "id": "...",
-        #        "status": 200,
-        #        "result": {
-        #            "priceExponent": -8,
-        #            "qtyExponent": -8,
-        #            "klines": [
-        #                {
-        #                    "openTime": 1655971200000000,    # microseconds
-        #                    "openPrice": 1086000,            # mantissa
-        #                    "highPrice": 1086600,
-        #                    "lowPrice": 1083600,
-        #                    "closePrice": 1083800,
-        #                    "volume": [...],                 # mantissa128 array
-        #                    "closeTime": 1655974799999000,
-        #                    "quoteVolume": [...],
-        #                    "numTrades": 2283,
-        #                    "takerBuyBaseVolume": [...],
-        #                    "takerBuyQuoteVolume": [...]
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
+        result = self.safe_list(message, 'result')
+        parsed = self.parse_ohlcvs(result)
+        # use a reverse lookup in a static map instead
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_value(message, 'result')
-        parsed = []
-        # Check if result is already decoded(SBE format) or needs parsing(JSON format)
-        if result is not None:
-            if isinstance(result, list):
-                # JSON format - result is directly the array of klines(array of arrays)
-                parsed = self.parse_ohlcvs(result)
-            elif isinstance(result, dict):
-                # SBE format - result is an object with klines array and exponents
-                klinesArray = self.safe_list(result, 'klines', [])
-                if len(klinesArray) > 0:
-                    # Get exponents for converting mantissa values
-                    priceExponent = self.safe_integer(result, 'priceExponent', 0)
-                    qtyExponent = self.safe_integer(result, 'qtyExponent', 0)
-                    # Convert mantissa values to standard OHLCV format
-                    normalizedKlines = []
-                    for i in range(0, len(klinesArray)):
-                        kline = klinesArray[i]
-                        # Convert mantissa128 byte arrays to numbers
-                        volume = self.mantissa128_to_number(kline.volume)
-                        openTime = int(math.floor(kline.openTime / 1000))  # microseconds to milliseconds
-                        openPrice = self.apply_exponent(kline.openPrice, priceExponent)
-                        highPrice = self.apply_exponent(kline.highPrice, priceExponent)
-                        lowPrice = self.apply_exponent(kline.lowPrice, priceExponent)
-                        closePrice = self.apply_exponent(kline.closePrice, priceExponent)
-                        vol = self.apply_exponent(volume, qtyExponent)
-                        closeTime = int(math.floor(kline.closeTime / 1000))
-                        quoteVolume = self.mantissa128_to_number(kline.quoteVolume)
-                        quoteVol = self.apply_exponent(quoteVolume, priceExponent)
-                        numTrades = kline.numTrades
-                        takerBuyBaseVolume = self.mantissa128_to_number(kline.takerBuyBaseVolume)
-                        takerBuyBase = self.apply_exponent(takerBuyBaseVolume, qtyExponent)
-                        takerBuyQuoteVolume = self.mantissa128_to_number(kline.takerBuyQuoteVolume)
-                        takerBuyQuote = self.apply_exponent(takerBuyQuoteVolume, priceExponent)
-                        normalizedKlines.append([
-                            openTime,
-                            str(openPrice),
-                            str(highPrice),
-                            str(lowPrice),
-                            str(closePrice),
-                            str(vol),
-                            closeTime,
-                            str(quoteVol),
-                            numTrades,
-                            str(takerBuyBase),
-                            str(takerBuyQuote),
-                            '0',
-                        ])
-                    parsed = self.parse_ohlcvs(normalizedKlines)
         client.resolve(parsed, messageHash)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -2251,7 +2078,7 @@ class binance(ccxt.async_support.binance):
 
     def handle_ticker_ws(self, client: Client, message):
         #
-        # JSON format - ticker.price
+        # ticker.price
         #    {
         #        "id":"1",
         #        "status":200,
@@ -2261,7 +2088,7 @@ class binance(ccxt.async_support.binance):
         #            "time":1712527052374
         #        }
         #    }
-        # JSON format - ticker.book
+        # ticker.book
         #    {
         #        "id":"9d32157c-a556-4d27-9866-66760a174b57",
         #        "status":200,
@@ -2276,63 +2103,8 @@ class binance(ccxt.async_support.binance):
         #        }
         #    }
         #
-        # SBE format - PriceTickerSymbolResponse
-        #    {
-        #        "id":"1",
-        #        "status":200,
-        #        "result":{
-        #            "priceExponent": -8,
-        #            "price": 7317850000000,  # mantissa
-        #            "symbol":"BTCUSDT"
-        #        }
-        #    }
-        # SBE format - BookTickerSymbolResponse
-        #    {
-        #        "id":"...",
-        #        "status":200,
-        #        "result":{
-        #            "priceExponent": -8,
-        #            "qtyExponent": -8,
-        #            "bidPrice": 400000000,    # mantissa
-        #            "bidQty": 43100000000,
-        #            "askPrice": 400000200,
-        #            "askQty": 900000000,
-        #            "symbol":"BTCUSDT"
-        #        }
-        #    }
-        #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_value(message, 'result', {})
-        # Check if SBE format(has exponent fields)
-        priceExponent = self.safe_integer(result, 'priceExponent')
-        if priceExponent is not None:
-            # SBE format - normalize to JSON format
-            qtyExponent = self.safe_integer(result, 'qtyExponent', 0)
-            normalized: Any = {
-                'symbol': self.safe_string(result, 'symbol'),
-            }
-            # Handle price field(for ticker.price)
-            priceMantissa = self.safe_integer(result, 'price')
-            if priceMantissa is not None:
-                normalized['price'] = str(self.apply_exponent(priceMantissa, priceExponent))
-            # Handle bid/ask fields(for ticker.book)
-            bidPriceMantissa = self.safe_integer(result, 'bidPrice')
-            if bidPriceMantissa is not None:
-                normalized['bidPrice'] = str(self.apply_exponent(bidPriceMantissa, priceExponent))
-            bidQtyMantissa = self.safe_integer(result, 'bidQty')
-            if bidQtyMantissa is not None:
-                normalized['bidQty'] = str(self.apply_exponent(bidQtyMantissa, qtyExponent))
-            askPriceMantissa = self.safe_integer(result, 'askPrice')
-            if askPriceMantissa is not None:
-                normalized['askPrice'] = str(self.apply_exponent(askPriceMantissa, priceExponent))
-            askQtyMantissa = self.safe_integer(result, 'askQty')
-            if askQtyMantissa is not None:
-                normalized['askQty'] = str(self.apply_exponent(askQtyMantissa, qtyExponent))
-            # Copy other fields
-            lastUpdateId = self.safe_integer(result, 'lastUpdateId')
-            if lastUpdateId is not None:
-                normalized['lastUpdateId'] = lastUpdateId
-            result = normalized
         ticker = self.parse_ws_ticker(result, 'future')
         client.resolve(ticker, messageHash)
 
@@ -2464,8 +2236,7 @@ class binance(ccxt.async_support.binance):
 
         :returns: Promise<number> The subscription ID for the user data stream
         """
-        baseUrl = self.urls['api']['ws']['ws-api'][marketType]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][marketType]
         client = self.client(url)
         subscriptions = client.subscriptions
         subscriptionsKeys = list(subscriptions.keys())
@@ -2751,8 +2522,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchBalanceWs', None, params)
         if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchBalanceWs only supports spot or swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -2789,7 +2559,7 @@ class binance(ccxt.async_support.binance):
 
     def handle_account_status_ws(self, client: Client, message):
         #
-        # JSON format - spot
+        # spot
         #    {
         #        "id": "605a6d20-6588-4cb9-afa0-b0ab087507ba",
         #        "status": 200,
@@ -2832,89 +2602,10 @@ class binance(ccxt.async_support.binance):
         #            ]
         #        }
         #    }
-        #
-        # SBE format(AccountResponse):
-        #    {
-        #        "id": "...",
-        #        "status": 200,
-        #        "result": {
-        #            "commissionExponent": -8,
-        #            "commissionRateMaker": 150000,      # mantissa
-        #            "commissionRateTaker": 150000,
-        #            "commissionRateBuyer": 0,
-        #            "commissionRateSeller": 0,
-        #            "canTrade": 1,                       # boolEnum
-        #            "canWithdraw": 1,
-        #            "canDeposit": 1,
-        #            "brokered": 0,
-        #            "requireSelfTradePrevention": 0,
-        #            "preventSor": 0,
-        #            "updateTime": 1660801833000000,      # microseconds
-        #            "accountType": 0,                    # enum
-        #            "uid": 12345,
-        #            "balances": [{
-        #                "exponent": -8,
-        #                "free": 0,                       # mantissa
-        #                "locked": 0,
-        #                "asset": "BNB"
-        #            }],
-        #            "permissions": ["SPOT"],
-        #            "reduceOnlyAssets": []
-        #        }
-        #    }
+        # swap
         #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_dict(message, 'result', {})
-        # Check if SBE format(has commissionExponent)
-        commissionExponent = self.safe_integer(result, 'commissionExponent')
-        if commissionExponent is not None:
-            # SBE format - normalize to JSON format
-            normalized: Any = {}
-            # Convert commission rates from mantissa
-            makerMantissa = self.safe_integer(result, 'commissionRateMaker')
-            takerMantissa = self.safe_integer(result, 'commissionRateTaker')
-            buyerMantissa = self.safe_integer(result, 'commissionRateBuyer')
-            sellerMantissa = self.safe_integer(result, 'commissionRateSeller')
-            normalized['commissionRates'] = {
-                'maker': (self.apply_exponent(makerMantissa, str(commissionExponent))),
-                'taker': (self.apply_exponent(takerMantissa, str(commissionExponent))),
-                'buyer': (self.apply_exponent(buyerMantissa, str(commissionExponent))),
-                'seller': (self.apply_exponent(sellerMantissa, str(commissionExponent))),
-            }
-            # Note: makerCommission, takerCommission, buyerCommission, sellerCommission
-            # are NOT present in SBE format(as documented in the schema)
-            # Copy boolean fields
-            normalized['canTrade'] = self.safe_value(result, 'canTrade')
-            normalized['canWithdraw'] = self.safe_value(result, 'canWithdraw')
-            normalized['canDeposit'] = self.safe_value(result, 'canDeposit')
-            normalized['brokered'] = self.safe_value(result, 'brokered')
-            normalized['requireSelfTradePrevention'] = self.safe_value(result, 'requireSelfTradePrevention')
-            normalized['preventSor'] = self.safe_value(result, 'preventSor')
-            # Convert updateTime from microseconds to milliseconds
-            updateTime = self.safe_integer(result, 'updateTime')
-            if updateTime is not None:
-                normalized['updateTime'] = int(math.floor(updateTime / 1000))
-            # Copy other fields
-            normalized['accountType'] = self.safe_value(result, 'accountType')
-            normalized['tradeGroupId'] = self.safe_integer(result, 'tradeGroupId')
-            normalized['uid'] = self.safe_integer(result, 'uid')
-            # Convert balances array
-            balances = self.safe_list(result, 'balances', [])
-            normalized['balances'] = []
-            for i in range(0, len(balances)):
-                balance = balances[i]
-                exponent = self.safe_integer(balance, 'exponent', 0)
-                freeMantissa = self.safe_integer(balance, 'free', 0)
-                lockedMantissa = self.safe_integer(balance, 'locked', 0)
-                normalized['balances'].append({
-                    'asset': self.safe_string(balance, 'asset'),
-                    'free': (self.apply_exponent(freeMantissa, str(exponent))),
-                    'locked': (self.apply_exponent(lockedMantissa, str(exponent))),
-                })
-            # Copy permissions and reduceOnlyAssets arrays as-is
-            normalized['permissions'] = self.safe_list(result, 'permissions', [])
-            normalized['reduceOnlyAssets'] = self.safe_list(result, 'reduceOnlyAssets', [])
-            result = normalized
         parsedBalances = self.parseBalanceCustom(result)
         client.resolve(parsedBalances, messageHash)
 
@@ -2959,8 +2650,7 @@ class binance(ccxt.async_support.binance):
             type = 'future'
         if type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchPositionsWs only supports swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -3043,8 +2733,7 @@ class binance(ccxt.async_support.binance):
         urlType = type
         if type == 'spot' or type == 'margin':
             # route to WebSocket API connection where the user data stream is subscribed
-            baseUrl = self.urls['api']['ws']['ws-api'][type]
-            url = self.get_sbe_web_socket_url(baseUrl)
+            url = self.urls['api']['ws']['ws-api']['spot']
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
@@ -3212,8 +2901,7 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('createOrderWs', market, params)
         if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' createOrderWs only supports spot or swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][marketType]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         sor = self.safe_bool_2(params, 'sor', 'SOR', False)
@@ -3253,142 +2941,8 @@ class binance(ccxt.async_support.binance):
         }
         return await self.watch(url, messageHash, message, messageHash, subscription)
 
-    def normalize_sbe_order(self, order):
-        # Check if self is SBE format(has exponent fields)
-        priceExponent = self.safe_integer(order, 'priceExponent')
-        if priceExponent is None:
-            # Already in JSON format
-            return order
-        # SBE format - normalize to JSON format
-        qtyExponent = self.safe_integer(order, 'qtyExponent', 0)
-        normalized: Any = {}
-        # Copy non-price/qty fields directly
-        normalized['orderId'] = self.safe_integer(order, 'orderId')
-        normalized['orderListId'] = self.safe_integer(order, 'orderListId')
-        normalized['symbol'] = self.safe_string(order, 'symbol')
-        normalized['clientOrderId'] = self.safe_string(order, 'clientOrderId')
-        normalized['origClientOrderId'] = self.safe_string(order, 'origClientOrderId')
-        # Convert timestamps from microseconds to milliseconds
-        transactTime = self.safe_integer(order, 'transactTime')
-        if transactTime is not None:
-            normalized['transactTime'] = int(math.floor(transactTime / 1000))
-        workingTime = self.safe_integer(order, 'workingTime')
-        if workingTime is not None:
-            normalized['workingTime'] = int(math.floor(workingTime / 1000))
-        time = self.safe_integer(order, 'time')
-        if time is not None:
-            normalized['time'] = int(math.floor(time / 1000))
-        updateTime = self.safe_integer(order, 'updateTime')
-        if updateTime is not None:
-            normalized['updateTime'] = int(math.floor(updateTime / 1000))
-        trailingTime = self.safe_integer(order, 'trailingTime')
-        if trailingTime is not None:
-            normalized['trailingTime'] = int(math.floor(trailingTime / 1000))
-        # Convert mantissa values to decimal strings
-        priceMantissa = self.safe_integer(order, 'price')
-        if priceMantissa is not None:
-            normalized['price'] = (self.apply_exponent(priceMantissa, str(priceExponent)))
-        origQtyMantissa = self.safe_integer(order, 'origQty')
-        if origQtyMantissa is not None:
-            normalized['origQty'] = (self.apply_exponent(origQtyMantissa, str(qtyExponent)))
-        executedQtyMantissa = self.safe_integer(order, 'executedQty')
-        if executedQtyMantissa is not None:
-            normalized['executedQty'] = (self.apply_exponent(executedQtyMantissa, str(qtyExponent)))
-        cummulativeQuoteQtyMantissa = self.safe_integer(order, 'cummulativeQuoteQty')
-        if cummulativeQuoteQtyMantissa is not None:
-            normalized['cummulativeQuoteQty'] = (self.apply_exponent(cummulativeQuoteQtyMantissa, str(priceExponent)))
-        stopPriceMantissa = self.safe_integer(order, 'stopPrice')
-        if stopPriceMantissa is not None:
-            normalized['stopPrice'] = (self.apply_exponent(stopPriceMantissa, str(priceExponent)))
-        icebergQtyMantissa = self.safe_integer(order, 'icebergQty')
-        if icebergQtyMantissa is not None:
-            normalized['icebergQty'] = (self.apply_exponent(icebergQtyMantissa, str(qtyExponent)))
-        preventedQuantityMantissa = self.safe_integer(order, 'preventedQuantity')
-        if preventedQuantityMantissa is not None:
-            normalized['preventedQuantity'] = (self.apply_exponent(preventedQuantityMantissa, str(qtyExponent)))
-        origQuoteOrderQtyMantissa = self.safe_integer(order, 'origQuoteOrderQty')
-        if origQuoteOrderQtyMantissa is not None:
-            normalized['origQuoteOrderQty'] = (self.apply_exponent(origQuoteOrderQtyMantissa, str(priceExponent)))
-        peggedPriceMantissa = self.safe_integer(order, 'peggedPrice')
-        if peggedPriceMantissa is not None:
-            normalized['peggedPrice'] = (self.apply_exponent(peggedPriceMantissa, str(priceExponent)))
-        # Copy enum fields - they need to be mapped to their string equivalents
-        # The parseOrder method handles self mapping
-        normalized['status'] = self.safe_value(order, 'status')
-        normalized['timeInForce'] = self.safe_value(order, 'timeInForce')
-        normalized['type'] = self.safe_value(order, 'orderType')  # Note: orderType maps to 'type' in JSON
-        normalized['side'] = self.safe_value(order, 'side')
-        normalized['orderCapacity'] = self.safe_value(order, 'orderCapacity')
-        normalized['workingFloor'] = self.safe_value(order, 'workingFloor')
-        normalized['selfTradePreventionMode'] = self.safe_value(order, 'selfTradePreventionMode')
-        normalized['usedSor'] = self.safe_value(order, 'usedSor')
-        normalized['isWorking'] = self.safe_value(order, 'isWorking')
-        normalized['pegPriceType'] = self.safe_value(order, 'pegPriceType')
-        normalized['pegOffsetType'] = self.safe_value(order, 'pegOffsetType')
-        normalized['pegOffsetValue'] = self.safe_value(order, 'pegOffsetValue')
-        # Copy other fields
-        normalized['trailingDelta'] = self.safe_integer(order, 'trailingDelta')
-        normalized['strategyId'] = self.safe_integer(order, 'strategyId')
-        normalized['strategyType'] = self.safe_integer(order, 'strategyType')
-        normalized['tradeGroupId'] = self.safe_integer(order, 'tradeGroupId')
-        # Handle fills array
-        fills = self.safe_list(order, 'fills', [])
-        normalized['fills'] = []
-        for i in range(0, len(fills)):
-            fill = fills[i]
-            commissionExponent = self.safe_integer(fill, 'commissionExponent', 0)
-            fillPriceMantissa = self.safe_integer(fill, 'price')
-            qtyMantissa = self.safe_integer(fill, 'qty')
-            commissionMantissa = self.safe_integer(fill, 'commission')
-            fillPrice = None
-            if fillPriceMantissa is not None:
-                fillPrice = self.apply_exponent(fillPriceMantissa, str(priceExponent))
-            fillQty = None
-            if qtyMantissa is not None:
-                fillQty = self.apply_exponent(qtyMantissa, str(qtyExponent))
-            fillCommission = None
-            if commissionMantissa is not None:
-                fillCommission = self.apply_exponent(commissionMantissa, str(commissionExponent))
-            normalized['fills'].append({
-                'price': fillPrice,
-                'qty': fillQty,
-                'commission': fillCommission,
-                'commissionAsset': self.safe_string(fill, 'commissionAsset'),
-                'tradeId': self.safe_integer(fill, 'tradeId'),
-                'allocId': self.safe_integer(fill, 'allocId'),
-                'matchType': self.safe_value(fill, 'matchType'),
-            })
-        # Handle preventedMatches array
-        preventedMatches = self.safe_list(order, 'preventedMatches', [])
-        if len(preventedMatches) > 0:
-            normalized['preventedMatches'] = []
-            for i in range(0, len(preventedMatches)):
-                match = preventedMatches[i]
-                matchPriceMantissa = self.safe_integer(match, 'price')
-                takerPreventedQtyMantissa = self.safe_integer(match, 'takerPreventedQuantity')
-                makerPreventedQtyMantissa = self.safe_integer(match, 'makerPreventedQuantity')
-                matchPrice = None
-                if matchPriceMantissa is not None:
-                    matchPrice = self.apply_exponent(matchPriceMantissa, str(priceExponent))
-                takerPreventedQty = None
-                if takerPreventedQtyMantissa is not None:
-                    takerPreventedQty = self.apply_exponent(takerPreventedQtyMantissa, str(qtyExponent))
-                makerPreventedQty = None
-                if makerPreventedQtyMantissa is not None:
-                    makerPreventedQty = self.apply_exponent(makerPreventedQtyMantissa, str(qtyExponent))
-                normalized['preventedMatches'].append({
-                    'preventedMatchId': self.safe_integer(match, 'preventedMatchId'),
-                    'makerOrderId': self.safe_integer(match, 'makerOrderId'),
-                    'price': matchPrice,
-                    'takerPreventedQuantity': takerPreventedQty,
-                    'makerPreventedQuantity': makerPreventedQty,
-                    'makerSymbol': self.safe_string(match, 'makerSymbol'),
-                })
-        return normalized
-
     def handle_order_ws(self, client: Client, message):
         #
-        # JSON format:
         #    {
         #        "id": 1,
         #        "status": 200,
@@ -3410,44 +2964,38 @@ class binance(ccxt.async_support.binance):
         #          "fills": [],
         #          "selfTradePreventionMode": "NONE"
         #        },
-        #        "rateLimits": [...]
-        #    }
-        #
-        # SBE format(NewOrderResultResponse/NewOrderFullResponse/NewOrderAckResponse):
-        #    {
-        #        "id": 1,
-        #        "status": 200,
-        #        "result": {
-        #          "priceExponent": -8,
-        #          "qtyExponent": -8,
-        #          "orderId": 7663053,
-        #          "orderListId": -1,
-        #          "transactTime": 1687642291434000,  # microseconds
-        #          "price": 2500000000000,            # mantissa
-        #          "origQty": 100000,                 # mantissa
-        #          "executedQty": 0,
-        #          "cummulativeQuoteQty": 0,
-        #          "status": 0,                       # enum
-        #          "timeInForce": 0,                  # enum
-        #          "orderType": 1,                    # enum
-        #          "side": 1,                         # enum
-        #          "workingTime": 1687642291434000,
-        #          "fills": [...],                    # array of objects with mantissa values
-        #          "symbol": "BTCUSDT",
-        #          "clientOrderId": "..."
-        #        }
+        #        "rateLimits": [
+        #          {
+        #            "rateLimitType": "ORDERS",
+        #            "interval": "SECOND",
+        #            "intervalNum": 10,
+        #            "limit": 50,
+        #            "count": 1
+        #          },
+        #          {
+        #            "rateLimitType": "ORDERS",
+        #            "interval": "DAY",
+        #            "intervalNum": 1,
+        #            "limit": 160000,
+        #            "count": 1
+        #          },
+        #          {
+        #            "rateLimitType": "REQUEST_WEIGHT",
+        #            "interval": "MINUTE",
+        #            "intervalNum": 1,
+        #            "limit": 1200,
+        #            "count": 12
+        #          }
+        #        ]
         #    }
         #
         messageHash = self.safe_string(message, 'id')
         result = self.safe_dict(message, 'result', {})
-        # Normalize SBE format to JSON format if needed
-        result = self.normalize_sbe_order(result)
         order = self.parse_order(result)
         client.resolve(order, messageHash)
 
     def handle_orders_ws(self, client: Client, message):
         #
-        # JSON format:
         #    {
         #        "id": 1,
         #        "status": 200,
@@ -3475,39 +3023,19 @@ class binance(ccxt.async_support.binance):
         #        },
         #        ...
         #        ],
-        #        "rateLimits": [...]
-        #    }
-        #
-        # SBE format(OrdersResponse) - array in result.orders:
-        #    {
-        #        "id": 1,
-        #        "status": 200,
-        #        "result": {
-        #            "orders": [{
-        #                "priceExponent": -8,
-        #                "qtyExponent": -8,
-        #                "orderId": 7665584,
-        #                ...
-        #            }]
-        #        }
+        #        "rateLimits": [{
+        #            "rateLimitType": "REQUEST_WEIGHT",
+        #            "interval": "MINUTE",
+        #            "intervalNum": 1,
+        #            "limit": 1200,
+        #            "count": 14
+        #        }]
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_value(message, 'result')
-        orders = []
-        if isinstance(result, list):
-            # JSON format - result is directly an array
-            orders = []
-            for i in range(0, len(result)):
-                orders.append(self.normalize_sbe_order(result[i]))
-        elif isinstance(result, dict):
-            # SBE format - result has an orders array
-            ordersArray = self.safe_list(result, 'orders', [])
-            orders = []
-            for i in range(0, len(ordersArray)):
-                orders.append(self.normalize_sbe_order(ordersArray[i]))
-        parsedOrders = self.parse_orders(orders)
-        client.resolve(parsedOrders, messageHash)
+        result = self.safe_list(message, 'result', [])
+        orders = self.parse_orders(result)
+        client.resolve(orders, messageHash)
 
     async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
@@ -3531,8 +3059,7 @@ class binance(ccxt.async_support.binance):
         marketType = self.get_market_type('editOrderWs', market, params)
         if marketType != 'spot' and marketType != 'future' and marketType != 'delivery':
             raise BadRequest(self.id + ' editOrderWs only supports spot or swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][marketType]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][marketType]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         isSwap = (marketType == 'future' or marketType == 'delivery')
@@ -3684,8 +3211,7 @@ class binance(ccxt.async_support.binance):
             raise BadRequest(self.id + ' cancelOrderWs requires a symbol')
         market = self.market(symbol)
         type = self.get_market_type('cancelOrderWs', market, params)
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -3735,8 +3261,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('cancelAllOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' cancelAllOrdersWs only supports spot markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -3775,8 +3300,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrderWs', market, params)
         if type != 'spot' and type != 'future' and type != 'delivery':
             raise BadRequest(self.id + ' fetchOrderWs only supports spot or swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -3823,8 +3347,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOrdersWs', market, params)
         if type != 'spot':
             raise BadRequest(self.id + ' fetchOrdersWs only supports spot markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -3881,8 +3404,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchOpenOrdersWs', market, params)
         if type != 'spot' and type != 'future':
             raise BadRequest(self.id + ' fetchOpenOrdersWs only supports spot or swap markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -3947,8 +3469,7 @@ class binance(ccxt.async_support.binance):
         url = ''
         if type == 'spot' or type == 'margin':
             # route orders to ws-api user data stream
-            baseUrl = self.urls['api']['ws']['ws-api'][type]
-            url = self.get_sbe_web_socket_url(baseUrl)
+            url = self.urls['api']['ws']['ws-api']['spot']
         else:
             if isPortfolioMargin:
                 urlType = 'papi'
@@ -4472,8 +3993,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchMyTradesWs', market, params)
         if type != 'spot' and type != 'future':
             raise BadRequest(self.id + ' fetchMyTradesWs does not support ' + type + ' markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -4520,8 +4040,7 @@ class binance(ccxt.async_support.binance):
         type = self.get_market_type('fetchTradesWs', market, params)
         if type != 'spot' and type != 'future':
             raise BadRequest(self.id + ' fetchTradesWs does not support ' + type + ' markets')
-        baseUrl = self.urls['api']['ws']['ws-api'][type]
-        url = self.get_sbe_web_socket_url(baseUrl)
+        url = self.urls['api']['ws']['ws-api'][type]
         requestId = self.request_id(url)
         messageHash = str(requestId)
         returnRateLimits = False
@@ -4589,62 +4108,9 @@ class binance(ccxt.async_support.binance):
         #        ],
         #    }
         #
-        # SBE response(binary ArrayBuffer)
-        # Will be decoded to same structure response
-        #
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_value(message, 'result')
-        trades = []
-        # Check if result is already decoded(SBE format) or needs parsing(JSON format)
-        if result is not None:
-            if isinstance(result, list):
-                # JSON format - result is directly the array of trades
-                trades = self.parse_trades(result)
-            else:
-                # SBE format - result is an object with trades array and exponents
-                tradesArray = self.safe_list(result, 'trades', [])
-                if len(tradesArray) > 0:
-                    # Convert mantissa values to decimal strings
-                    # Check if exponents are at parent level(TradesResponse) or per-trade(AccountTradesResponse)
-                    parentPriceExponent = self.safe_integer(result, 'priceExponent')
-                    parentQtyExponent = self.safe_integer(result, 'qtyExponent')
-                    parentCommissionExponent = self.safe_integer(result, 'commissionExponent')
-                    normalizedTrades = []
-                    for i in range(0, len(tradesArray)):
-                        trade = tradesArray[i]
-                        # For TradesResponse(public trades), exponents are at parent level
-                        # For AccountTradesResponse(myTrades), each trade has its own exponents
-                        priceExponent = self.safe_integer(trade, 'priceExponent', parentPriceExponent)
-                        qtyExponent = self.safe_integer(trade, 'qtyExponent', parentQtyExponent)
-                        commissionExponent = self.safe_integer(trade, 'commissionExponent', parentCommissionExponent)
-                        price = self.apply_exponent(trade.price, priceExponent)
-                        qty = self.apply_exponent(trade.qty, qtyExponent)
-                        quoteQty = self.apply_exponent(trade.quoteQty, priceExponent)
-                        timestamp = int(math.floor(trade.time / 1000))  # microseconds to milliseconds
-                        normalized: Any = {
-                            'id': str((trade.id)),
-                            'price': str((price)),
-                            'qty': str((qty)),
-                            'quoteQty': str((quoteQty)),
-                            'time': timestamp,
-                            'isBuyerMaker': trade.isBuyerMaker == 1,
-                            'isBestMatch': trade.isBestMatch == 1,
-                        }
-                        # Handle AccountTradesResponse specific fields
-                        orderId = self.safe_integer(trade, 'orderId')
-                        if orderId is not None:
-                            normalized['orderId'] = orderId
-                            normalized['orderListId'] = self.safe_integer(trade, 'orderListId')
-                            normalized['symbol'] = self.safe_string(trade, 'symbol')
-                            # Convert commission from mantissa
-                            commissionMantissa = self.safe_integer(trade, 'commission')
-                            if commissionMantissa is not None:
-                                normalized['commission'] = str(self.apply_exponent(commissionMantissa, commissionExponent))
-                            normalized['commissionAsset'] = self.safe_string(trade, 'commissionAsset')
-                            normalized['isBuyer'] = self.safe_bool(trade, 'isBuyer', False)
-                            normalized['isMaker'] = self.safe_bool(trade, 'isMaker', False)
-                        normalizedTrades.append(normalized)
-                    trades = self.parse_trades(normalizedTrades)
+        result = self.safe_list(message, 'result', [])
+        trades = self.parse_trades(result)
         client.resolve(trades, messageHash)
 
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:

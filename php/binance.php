@@ -1326,9 +1326,6 @@ class binance extends Exchange {
                 'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'defaultType' => 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType' => null, // 'linear', 'inverse'
-                'useSbe' => false, // use SBE (Simple Binary Encoding) for spot API when available
-                'sbeSchemaId' => 3, // Binance SBE schema ID
-                'sbeSchemaVersion' => 1, // Binance SBE schema version (spot_3_1 for prod, spot_3_2 for testnet)
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
@@ -3112,10 +3109,6 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $originalUseSbe = $this->safe_bool($this->options, 'useSbe', false);
-        if ($originalUseSbe) {
-            $this->options['useSbe'] = false;
-        }
         $promisesRaw = array();
         $rawFetchMarkets = null;
         $defaultTypes = array( 'spot', 'linear', 'inverse' );
@@ -3164,10 +3157,6 @@ class binance extends Exchange {
             }
         }
         $results = $promisesRaw;
-        // Restore original useSbe setting
-        if ($originalUseSbe) {
-            $this->options['useSbe'] = true;
-        }
         $markets = array();
         $this->options['crossMarginPairsData'] = array();
         $this->options['isolatedMarginPairsData'] = array();
@@ -4062,36 +4051,6 @@ class binance extends Exchange {
         //         "u" => 1015939
         //     }
         //
-        // SBE $response
-        //    {
-        //       messageId => 200,
-        //       messageName => "DepthResponse",
-        //       lastUpdateId => 11875115077,
-        //       $priceExponent => -8,
-        //       $qtyExponent => -8,
-        //       $bids => array(
-        //         array(
-        //           price => 10456800000000,
-        //           qty => 52066000,
-        //         ),
-        //         ...
-        //       ),
-        //    }
-        //
-        $priceExponent = $this->safe_integer($response, 'priceExponent');
-        $qtyExponent = $this->safe_integer($response, 'qtyExponent');
-        if ($priceExponent !== null && $qtyExponent !== null) {
-            $bids = $this->safe_list($response, 'bids', array());
-            $asks = $this->safe_list($response, 'asks', array());
-            for ($i = 0; $i < count($bids); $i++) {
-                $bids[$i] = [ $this->apply_exponent($bids[$i]['price'], $priceExponent), $this->apply_exponent($bids[$i]['qty'], $qtyExponent) ];
-            }
-            for ($i = 0; $i < count($asks); $i++) {
-                $asks[$i] = [ $this->apply_exponent($asks[$i]['price'], $priceExponent), $this->apply_exponent($asks[$i]['qty'], $qtyExponent) ];
-            }
-            $response['bids'] = $bids;
-            $response['asks'] = $asks;
-        }
         $timestamp = $this->safe_integer($response, 'T');
         $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
         $orderbook['nonce'] = $this->safe_integer_2($response, 'lastUpdateId', 'u');
@@ -5104,7 +5063,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#recent-trades-list                 // publicGetTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Recent-Trades-List               // fapiPublicGetTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Recent-Trades-List               // dapiPublicGetTrades (future)
-         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-$trade-lookup                   // publicGetHistoricalTrades (spot)
+         * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#old-trade-lookup                   // publicGetHistoricalTrades (spot)
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Old-Trades-Lookup                // fapiPublicGetHistoricalTrades (swap)
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Old-Trades-Lookup                // dapiPublicGetHistoricalTrades (future)
          * @see https://developers.binance.com/docs/derivatives/option/market-data/Old-Trades-Lookup                                        // eapiPublicGetHistoricalTrades (option)
@@ -5118,8 +5077,8 @@ class binance extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int} [$params->fromId] $trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades $trade structures~
+         * @param {int} [$params->fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -5135,8 +5094,7 @@ class binance extends Exchange {
             // 'endTime' => 789,   // Timestamp in ms to get aggregate trades $until INCLUSIVE.
             // 'limit' => 500,     // default = 500, maximum = 1000
         );
-        $isOption = $this->safe_bool($market, 'option', false);
-        if (!$isOption) {
+        if (!$market['option']) {
             if ($since !== null) {
                 $request['startTime'] = $since;
                 // https://github.com/ccxt/ccxt/issues/6400
@@ -5157,58 +5115,8 @@ class binance extends Exchange {
             $request['limit'] = $isFutureOrSwap ? min ($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
         }
         $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
-        // Check if SBE is enabled for spot trades endpoint
-        $useSbe = $this->safe_bool($this->options, 'useSbe', false);
-        $sbeSchemaId = $this->safe_integer($this->options, 'sbeSchemaId', 3);
-        $sbeSchemaVersion = $this->safe_integer($this->options, 'sbeSchemaVersion', 1);
         $response = null;
-        if ($useSbe && $market['spot']) {
-            // Use SBE for spot trades endpoint /api/v3/trades
-            $sbeHeaders = array(
-                'Accept' => 'application/sbe',
-                'X-MBX-SBE' => $this->number_to_string($sbeSchemaId) . ':' . $this->number_to_string($sbeSchemaVersion),
-            );
-            // Call $request directly with headers separate parameter
-            // handleRestResponse will automatically call decodeSbeResponse for SBE responses
-            $response = $this->request('trades', 'public', 'GET', $this->extend($request, $params), $sbeHeaders, null);
-            // Response is already decoded by decodeSbeResponse via handleRestResponse
-            // Extract exponents and trades from decoded SBE object using safe functions
-            $priceExponent = $this->safe_integer($response, 'priceExponent', 0);
-            $qtyExponent = $this->safe_integer($response, 'qtyExponent', 0);
-            $sbeTradesArray = $this->safe_list($response, 'trades', $this->safe_list($response, 'trade', $this->safe_list($response, 'Trade', array())));
-            // Check if we got SBE trades data
-            if (strlen($sbeTradesArray) > 0) {
-                if ($this->verbose) {
-                    $this->log('fetchTrades => Using decoded SBE $response, trades count => ' . $this->number_to_string(strlen($sbeTradesArray)));
-                    $this->log('fetchTrades => First $trade raw => ' . $this->json($sbeTradesArray[0]));
-                }
-                // Normalize trades to standard format
-                $normalizedTrades = array();
-                for ($i = 0; $i < count($sbeTradesArray); $i++) {
-                    $trade = $sbeTradesArray[$i];
-                    // safeInteger now handles BigInt values from SBE
-                    $priceNum = $this->safe_integer($trade, 'price', 0);
-                    $qtyNum = $this->safe_integer($trade, 'qty', 0);
-                    $quoteQtyNum = $this->safe_integer($trade, 'quoteQty', 0);
-                    $idNum = $this->safe_string($trade, 'id');
-                    $timeNum = $this->safe_integer($trade, 'time', 0);
-                    $price = $this->apply_exponent($priceNum, $priceExponent);
-                    $qty = $this->apply_exponent($qtyNum, $qtyExponent);
-                    $quoteQty = $this->apply_exponent($quoteQtyNum, $priceExponent);
-                    $timestamp = (int) floor($timeNum / 1000); // microseconds to milliseconds
-                    $normalizedTrades[] = array(
-                        'id' => (string) $idNum,
-                        'price' => (string) $price,
-                        'qty' => (string) $qty,
-                        'quoteQty' => (string) $quoteQty,
-                        'time' => $timestamp,
-                        'isBuyerMaker' => $this->safe_integer($trade, 'isBuyerMaker') === 1,
-                        'isBestMatch' => $this->safe_integer($trade, 'isBestMatch') === 1,
-                    );
-                }
-                $response = $normalizedTrades;
-            }
-        } elseif ($market['option'] || $method === 'eapiPublicGetTrades') {
+        if ($market['option'] || $method === 'eapiPublicGetTrades') {
             $response = $this->eapiPublicGetTrades ($this->extend($request, $params));
         } elseif ($market['linear'] || $method === 'fapiPublicGetAggTrades') {
             $response = $this->fapiPublicGetAggTrades ($this->extend($request, $params));
@@ -5223,8 +5131,8 @@ class binance extends Exchange {
         //   to the maximum $limit may be returned to satisfy other parameters
         // - if both $limit and time window is set and time window contains more
         //   trades than the $limit then the last trades from the window are returned
-        // - "tradeId" accepted and returned by this $method is "aggregate" $trade id
-        //   which is different from actual $trade id
+        // - "tradeId" accepted and returned by this $method is "aggregate" trade id
+        //   which is different from actual trade id
         // - setting both fromId and time window results in error
         //
         // aggregate trades
@@ -5238,7 +5146,7 @@ class binance extends Exchange {
         //             "l" => 27781,         // Last tradeId
         //             "T" => 1498793709153, // Timestamp
         //             "m" => true,          // Was the buyer the maker?
-        //             "M" => true           // Was the $trade the best $price match?
+        //             "M" => true           // Was the trade the best price match?
         //         }
         //     )
         //
@@ -12082,98 +11990,13 @@ class binance extends Exchange {
         return $scheme . '//' . $domain . '/';
     }
 
-    public function get_sbe_decoder_registry() {
-        // Registry mapping template IDs to decoder classes
-        return array(
-            // WebSocket (50-54)
-            '50' => WebSocketResponseDecoder,
-            '51' => WebSocketSessionLogonResponseDecoder,
-            '52' => WebSocketSessionStatusResponseDecoder,
-            '53' => WebSocketSessionLogoutResponseDecoder,
-            '54' => WebSocketSessionSubscriptionsResponseDecoder,
-            // General (100-105)
-            '100' => ErrorResponseDecoder,
-            '101' => PingResponseDecoder,
-            '102' => ServerTimeResponseDecoder,
-            '103' => ExchangeInfoResponseDecoder,
-            '105' => MyFiltersResponseDecoder,
-            // Market Data (200-216)
-            '200' => DepthResponseDecoder,
-            '201' => TradesResponseDecoder,
-            '202' => AggTradesResponseDecoder,
-            '203' => KlinesResponseDecoder,
-            '204' => AveragePriceResponseDecoder,
-            '205' => Ticker24hSymbolFullResponseDecoder,
-            '206' => Ticker24hFullResponseDecoder,
-            '207' => Ticker24hSymbolMiniResponseDecoder,
-            '208' => Ticker24hMiniResponseDecoder,
-            '209' => PriceTickerSymbolResponseDecoder,
-            '210' => PriceTickerResponseDecoder,
-            '211' => BookTickerSymbolResponseDecoder,
-            '212' => BookTickerResponseDecoder,
-            '213' => TickerSymbolFullResponseDecoder,
-            '214' => TickerFullResponseDecoder,
-            '215' => TickerSymbolMiniResponseDecoder,
-            '216' => TickerMiniResponseDecoder,
-            // Trading (300-317)
-            '300' => NewOrderAckResponseDecoder,
-            '301' => NewOrderResultResponseDecoder,
-            '302' => NewOrderFullResponseDecoder,
-            '303' => OrderTestResponseDecoder,
-            '304' => OrderResponseDecoder,
-            '305' => CancelOrderResponseDecoder,
-            '306' => CancelOpenOrdersResponseDecoder,
-            '307' => CancelReplaceOrderResponseDecoder,
-            '308' => OrdersResponseDecoder,
-            '309' => NewOrderListAckResponseDecoder,
-            '310' => NewOrderListResultResponseDecoder,
-            '311' => NewOrderListFullResponseDecoder,
-            '312' => CancelOrderListResponseDecoder,
-            '313' => OrderListResponseDecoder,
-            '314' => OrderListsResponseDecoder,
-            '315' => OrderTestWithCommissionsResponseDecoder,
-            '316' => OrderAmendmentsResponseDecoder,
-            '317' => OrderAmendKeepPriorityResponseDecoder,
-            // Account (400-405)
-            '400' => AccountResponseDecoder,
-            '401' => AccountTradesResponseDecoder,
-            '402' => AccountOrderRateLimitResponseDecoder,
-            '403' => AccountPreventedMatchesResponseDecoder,
-            '404' => AccountAllocationsResponseDecoder,
-            '405' => AccountCommissionResponseDecoder,
-            // User Data Stream (500-505)
-            '500' => UserDataStreamStartResponseDecoder,
-            '501' => UserDataStreamPingResponseDecoder,
-            '502' => UserDataStreamStopResponseDecoder,
-            '503' => UserDataStreamSubscribeResponseDecoder,
-            '504' => UserDataStreamUnsubscribeResponseDecoder,
-            '505' => UserDataStreamSubscribeListenTokenResponseDecoder,
-        );
-    }
-
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        // Check for SBE (Simple Binary Encoding) parameters in $params or exchange options
-        // Params take precedence over exchange options
-        $result = $this->handle_option_and_params($params, 'sign', 'useSbe', false);
-        $useSbe = $result[0];
-        $params = $result[1];
-        $result = $this->handle_option_and_params($params, 'sign', 'sbeSchemaId', 3);
-        $sbeSchemaId = $result[0];
-        $params = $result[1];
-        $result = $this->handle_option_and_params($params, 'sign', 'sbeSchemaVersion', 1);
-        $sbeSchemaVersion = $result[0];
-        $params = $result[1];
         $urls = $this->urls;
         if (!(is_array($urls['api']) && array_key_exists($api, $urls['api']))) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $api . ' endpoints');
         }
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
-        // Adjust SBE schema version based on environment (prod vs testnet)
-        // Production uses spot_3_1 (version 1), Testnet uses spot_3_2 (version 2)
-        if (mb_strpos($url, 'testnet.binance.vision') > -1) {
-            $sbeSchemaVersion = 2; // Use spot_3_2 for testnet
-        }
         if ($path === 'historicalTrades') {
             if ($this->apiKey) {
                 $headers = array(
@@ -12303,16 +12126,6 @@ class binance extends Exchange {
             if ($params) {
                 $url .= '?' . $this->urlencode($params);
             }
-        }
-        $isSpotApi = ($api === 'public' || $api === 'private');
-        $sbeEnabledPaths = array( 'depth', 'trades', 'aggTrades', 'historicalTrades' );
-        $isSbeSupportedPath = $this->in_array($path, $sbeEnabledPaths);
-        if ($useSbe && $sbeSchemaId !== null && $sbeSchemaVersion !== null && $isSpotApi && $isSbeSupportedPath) {
-            if ($headers === null) {
-                $headers = array();
-            }
-            $headers['Accept'] = 'application/sbe';
-            $headers['X-MBX-SBE'] = $sbeSchemaId . ':' . $sbeSchemaVersion;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
