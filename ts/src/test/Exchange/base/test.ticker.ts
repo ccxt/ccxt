@@ -146,19 +146,9 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
     if ((askString !== undefined) && (bidString !== undefined) && !('spread' in skippedProperties)) {
         testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'ask', exchange.safeString (entry, 'bid'));
     }
-    // if last (close) price is present, it should be within 1% of bid and ask
-    if (isFetchTickerCalled && closeString !== undefined && !('lastWithinBidAsk' in skippedProperties)) {
-        const allowedPercentageVariation = '0.01';
-        if (bidString !== undefined) {
-            const bidLow = Precise.stringMul (bidString, Precise.stringSub ('1', allowedPercentageVariation));
-            const bidHigh = Precise.stringMul (bidString, Precise.stringAdd ('1', allowedPercentageVariation));
-            assert (Precise.stringGe (closeString, bidLow) && Precise.stringLe (closeString, bidHigh), 'last price is not within 1% of bid' + logText);
-        }
-        if (askString !== undefined) {
-            const askLow = Precise.stringMul (askString, Precise.stringSub ('1', allowedPercentageVariation));
-            const askHigh = Precise.stringMul (askString, Precise.stringAdd ('1', allowedPercentageVariation));
-            assert (Precise.stringGe (closeString, askLow) && Precise.stringLe (closeString, askHigh), 'last price is not within 1% of ask' + logText);
-        }
+    // last price should be between bid and ask
+    if (lastString !== undefined && bidString !== undefined && askString !== undefined && !('lastBetweenBidAsk' in skippedProperties)) {
+        assert (Precise.stringGe (lastString, bidString) && Precise.stringLe (lastString, askString), 'last price should be between bid and ask' + logText);
     }
     const percentage = exchange.safeString (entry, 'percentage');
     const change = exchange.safeString (entry, 'change');
