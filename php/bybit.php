@@ -1345,6 +1345,7 @@ class bybit extends Exchange {
                     'deposit' => array(),
                 ),
             ),
+            'rollingWindowSize' => 5000.0, // According to the docs (https://bybit-exchange.github.io/docs/v5/rate-limit), tested with 90000.0 with no errors
         ));
     }
 

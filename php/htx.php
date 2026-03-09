@@ -1395,6 +1395,7 @@ class htx extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 2000.0,
         ));
     }
 
