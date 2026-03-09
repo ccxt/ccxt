@@ -328,6 +328,14 @@ func (this *Exchange) InitThrottler() {
 	this.Throttler = NewThrottler(this.TokenBucket)
 }
 
+func (this *Exchange) MarketsMutexLocker(locked bool) {
+	if locked {
+		this.MarketsMutex.Lock()
+	} else {
+		this.MarketsMutex.Unlock()
+	}
+}
+
 /*
 *
   - @method
@@ -365,64 +373,6 @@ func (this *Exchange) LoadMarkets(params ...interface{}) <-chan interface{} {
 	}
 
 	this.loadMu.Unlock()
-	return ch
-}
-
-func (this *Exchange) LoadMarketsHelper(params ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-
-	go func() {
-		defer close(ch)
-		defer func() {
-			if r := recover(); r != nil {
-				stack := debug.Stack()
-				panicMsg := fmt.Sprintf("panic: %v\nStack trace:\n%s", r, stack)
-				ch <- panicMsg
-			}
-		}()
-		reload := GetArg(params, 0, false).(bool)
-		params := GetArg(params, 1, map[string]interface{}{})
-		if !reload {
-			if this.Markets != nil {
-				if this.Markets_by_id == nil {
-					// Only lock when writing
-					this.MarketsMutex.Lock()
-					result := this.SetMarkets(this.Markets, nil)
-					this.MarketsMutex.Unlock()
-					ch <- result
-					return
-				}
-				ch <- this.Markets
-				return
-			}
-		}
-
-		var currencies interface{} = nil
-		hasFetchCurrencies := this.Has["fetchCurrencies"]
-		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrencies(params)
-			// this.cachedCurrenciesMutex.Lock()
-			// this.Options["cachedCurrencies"] = currencies
-			this.Options.Store("cachedCurrencies", currencies)
-			// this.cachedCurrenciesMutex.Unlock()
-		}
-
-		markets := <-this.DerivedExchange.FetchMarkets(params)
-		PanicOnError(markets)
-
-		// this.cachedCurrenciesMutex.Lock()
-		// delete(this.Options, "cachedCurrencies")
-		// this.Options.Del
-		this.Options.Delete("cachedCurrencies")
-		// this.cachedCurrenciesMutex.Unlock()
-
-		// Lock only for writing
-		this.MarketsMutex.Lock()
-		result := this.SetMarkets(markets, currencies)
-		this.MarketsMutex.Unlock()
-
-		ch <- result
-	}()
 	return ch
 }
 
@@ -661,31 +611,11 @@ func (this *Exchange) CallDynamically(name2 interface{}, args ...interface{}) <-
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
 func (this *Exchange) Clone(object interface{}) interface{} {
-	if object == nil {
-		return nil
-	}
-	result := this.DeepCopy(reflect.ValueOf(object))
-	if !result.IsValid() {
-		return nil
-	}
-	return result.Interface()
+	return this.DeepCopy(reflect.ValueOf(object)).Interface()
 }
 
 func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
-	if !value.IsValid() {
-		// zero / invalid reflect.Value – preserve as-is (callers use IsValid to detect nil)
-		return value
-	}
 	switch value.Kind() {
-	case reflect.Interface:
-		// unwrap the interface; if it holds nil, return a typed nil of the same interface type
-		if value.IsNil() {
-			return reflect.Zero(value.Type())
-		}
-		inner := this.DeepCopy(value.Elem())
-		result := reflect.New(value.Type()).Elem()
-		result.Set(inner)
-		return result
 	case reflect.Array, reflect.Slice:
 		// Create a new slice/array of the same type and length
 		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
@@ -697,12 +627,7 @@ func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 		// Create a new map of the same type
 		copy := reflect.MakeMap(value.Type())
 		for _, key := range value.MapKeys() {
-			copiedVal := this.DeepCopy(value.MapIndex(key))
-			if !copiedVal.IsValid() {
-				// nil interface value: store as zero of the map's element type so the key is preserved
-				copiedVal = reflect.Zero(value.Type().Elem())
-			}
-			copy.SetMapIndex(key, copiedVal)
+			copy.SetMapIndex(key, this.DeepCopy(value.MapIndex(key)))
 		}
 		return copy
 	default:
@@ -987,27 +912,21 @@ func (this *Exchange) FixStringifiedJsonMembers(a interface{}) string {
 	aStr = strings.ReplaceAll(aStr, "}\"", "}")
 	return aStr
 }
+
 func (this *Exchange) IsEmpty(a interface{}) bool {
 	if a == nil {
 		return true
 	}
+
 	v := reflect.ValueOf(a)
 
 	switch v.Kind() {
-
-	case reflect.Array, reflect.Slice, reflect.Map:
+	case reflect.String:
 		return v.Len() == 0
-
-	case reflect.Struct:
-		return v.IsZero()
-
-	case reflect.Ptr:
-		if v.IsNil() {
-			return true
-		}
-		// Recursively check the value the pointer points to
-		return this.IsEmpty(v.Elem().Interface())
-
+	case reflect.Slice, reflect.Array:
+		return v.Len() == 0
+	case reflect.Map:
+		return v.Len() == 0
 	default:
 		return false
 	}
@@ -1217,14 +1136,11 @@ func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interfac
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
-		if len(defaultValue) > 0 {
-			return defaultValue[0]
-		}
 		return nil
 	}
 
@@ -1240,9 +1156,6 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}, default
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
-		if len(defaultValue) > 0 {
-			return defaultValue[0]
-		}
 		return nil
 	}
 }

@@ -488,6 +488,11 @@ public partial class Exchange
         return marketsLoading;
     }
 
+    public virtual void marketsMutexLocker(bool locked)
+    {
+        // stub for c#
+    }
+
     public virtual async Task<object> fetchMarkets(object parameters = null)
     {
         return this.toArray(this.markets);
