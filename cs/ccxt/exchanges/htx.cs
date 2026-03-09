@@ -1300,6 +1300,7 @@ public partial class htx : Exchange
                     } },
                 } },
             } },
+            { "rollingWindowSize", 2000 },
         });
     }
 
