@@ -523,7 +523,7 @@ func  (this *GateCore) FetchOrdersByStatusWs(status interface{}, optionalArgs ..
         
             retRes3498 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes3498)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -951,7 +951,7 @@ func  (this *GateCore) SubscribeWatchTickersAndBidsAsks(optionalArgs ...interfac
             var market interface{} = this.Market(ccxt.GetValue(symbols, 0))
             var messageType interface{} = this.GetTypeByMarket(market)
             var marketIds interface{} = this.MarketIds(symbols)
-            var channelName interface{}
+            var channelName interface{} = nil
             channelNameparamsVariable := this.HandleOptionAndParams(params, callerMethodName, "method")
             channelName = ccxt.GetValue(channelNameparamsVariable,0)
             params = ccxt.GetValue(channelNameparamsVariable,1)
@@ -1322,10 +1322,10 @@ func  (this *GateCore) WatchMyTrades(optionalArgs ...interface{}) <- chan interf
         
             retRes9508 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9508)
-            var subType interface{}
-            var typeVar interface{}
+            var subType interface{} = nil
+            var typeVar interface{} = nil
             var marketId interface{} = ccxt.Add("!", "all")
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 marketId = ccxt.GetValue(market, "id")
@@ -1431,8 +1431,8 @@ func  (this *GateCore) WatchBalance(optionalArgs ...interface{}) <- chan interfa
         
             retRes10428 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes10428)
-            var typeVar interface{}
-            var subType interface{}
+            var typeVar interface{} = nil
+            var subType interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -1576,14 +1576,14 @@ func  (this *GateCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
         
             retRes11648 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes11648)
-            var market interface{}
+            var market interface{} = nil
             symbols = this.MarketSymbols(symbols)
             var payload interface{} = []interface{}{ccxt.Add("!", "all")}
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
                 market = this.GetMarketFromSymbols(symbols)
             }
-            var typeVar interface{}
-            var query interface{}
+            var typeVar interface{} = nil
+            var query interface{} = nil
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchPositions", market, params)
             typeVar = ccxt.GetValue(typeVarqueryVariable,0)
             query = ccxt.GetValue(typeVarqueryVariable,1)
@@ -1600,7 +1600,7 @@ func  (this *GateCore) WatchPositions(optionalArgs ...interface{}) <- chan inter
                 messageHash = ccxt.Add(messageHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
             }
             var channel interface{} = ccxt.Add(typeId, ".positions")
-            var subType interface{}
+            var subType interface{} = nil
             subTypequeryVariable := this.HandleSubTypeAndParams("watchPositions", market, query)
             subType = ccxt.GetValue(subTypequeryVariable,0)
             query = ccxt.GetValue(subTypequeryVariable,1)
@@ -1788,13 +1788,13 @@ func  (this *GateCore) WatchOrders(optionalArgs ...interface{}) <- chan interfac
         
             retRes13368 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes13368)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
             }
-            var typeVar interface{}
-            var query interface{}
+            var typeVar interface{} = nil
+            var query interface{} = nil
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchOrders", market, params)
             typeVar = ccxt.GetValue(typeVarqueryVariable,0)
             query = ccxt.GetValue(typeVarqueryVariable,1)
@@ -1812,7 +1812,7 @@ func  (this *GateCore) WatchOrders(optionalArgs ...interface{}) <- chan interfac
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
                 payload = []interface{}{ccxt.GetValue(market, "id")}
             }
-            var subType interface{}
+            var subType interface{} = nil
             subTypequeryVariable := this.HandleSubTypeAndParams("watchOrders", market, query)
             subType = ccxt.GetValue(subTypequeryVariable,0)
             query = ccxt.GetValue(subTypequeryVariable,1)
@@ -1963,8 +1963,8 @@ func  (this *GateCore) WatchMyLiquidationsForSymbols(symbols interface{}, option
             ccxt.PanicOnError(retRes14748)
             symbols = this.MarketSymbols(symbols, nil, true, true)
             var market interface{} = this.GetMarketFromSymbols(symbols)
-            var typeVar interface{}
-            var query interface{}
+            var typeVar interface{} = nil
+            var query interface{} = nil
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
             typeVar = ccxt.GetValue(typeVarqueryVariable,0)
             query = ccxt.GetValue(typeVarqueryVariable,1)
@@ -1973,7 +1973,7 @@ func  (this *GateCore) WatchMyLiquidationsForSymbols(symbols interface{}, option
                 "swap": "futures",
                 "option": "options",
             })
-            var subType interface{}
+            var subType interface{} = nil
             subTypequeryVariable := this.HandleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query)
             subType = ccxt.GetValue(subTypequeryVariable,0)
             query = ccxt.GetValue(subTypequeryVariable,1)

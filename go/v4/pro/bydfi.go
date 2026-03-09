@@ -794,7 +794,7 @@ func  (this *BydfiCore) WatchOrders(optionalArgs ...interface{}) <- chan interfa
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]interface{} {})
             _ = params
-            var symbols interface{}
+            var symbols interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbols = []interface{}{symbol}
             }
@@ -934,7 +934,7 @@ func  (this *BydfiCore) ParseWsOrder(order interface{}, optionalArgs ...interfac
     market = this.SafeMarket(marketId, market)
     var rawStatus interface{} = this.SafeString(order, "st")
     var rawType interface{} = this.SafeString(order, "t")
-    var fee interface{}
+    var fee interface{} = nil
     var feeCost interface{} = this.SafeString(order, "fee")
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {

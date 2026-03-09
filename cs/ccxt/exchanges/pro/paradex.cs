@@ -316,7 +316,7 @@ public partial class paradex : ccxt.paradex
             } },
         };
         object messageHashes = new List<object>() {};
-        if (isTrue(isTrue(!isEqual(symbols, null)) && isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
@@ -327,11 +327,11 @@ public partial class paradex : ccxt.paradex
         {
             ((IList<object>)messageHashes).Add(channel);
         }
-        object newTicker = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
+        object newTickers = await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
         if (isTrue(this.newUpdates))
         {
             object result = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)result)[(string)getValue(newTicker, "symbol")] = newTicker;
+            ((IDictionary<string,object>)result)[(string)getValue(newTickers, "symbol")] = newTickers;
             return result;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);

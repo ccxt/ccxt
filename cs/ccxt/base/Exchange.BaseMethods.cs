@@ -89,6 +89,7 @@ public partial class Exchange
                 { "createTriggerOrderWs", null },
                 { "deposit", null },
                 { "editOrder", "emulated" },
+                { "editOrderWithClientOrderId", null },
                 { "editOrders", null },
                 { "editOrderWs", null },
                 { "fetchAccounts", null },
@@ -168,6 +169,7 @@ public partial class Exchange
                 { "fetchOption", null },
                 { "fetchOptionChain", null },
                 { "fetchOrder", null },
+                { "fetchOrderWithClientOrderId", null },
                 { "fetchOrderBook", true },
                 { "fetchOrderBooks", null },
                 { "fetchOrderBookWs", null },
@@ -673,34 +675,6 @@ public partial class Exchange
             throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new List<object>() {httpProxy, httpsProxy, socksProxy};
-    }
-
-    public virtual object decodeSbeResponse(object buffer, object url)
-    {
-        try
-        {
-            // Use decodeSbeMessage with exchange-specific decoder registry
-            object decoderRegistry = this.getSbeDecoderRegistry();
-            object result = this.decodeSbeMessage(buffer, decoderRegistry);
-            object decoded = getValue(result, "data");
-            return decoded;
-        } catch(Exception e)
-        {
-            object errorMessage = ((e)).ToString();
-            try
-            {
-                object text = buffer is byte[] _sbeBytes ? System.Text.Encoding.UTF8.GetString(_sbeBytes) : buffer?.ToString();
-                return parseJson(text);
-            } catch(Exception jsonError)
-            {
-                throw new ExchangeError ((string)add(add(add(this.id, " decodeSbeResponse() failed. Error: "), errorMessage), ". Try setting useSbe to false in options.")) ;
-            }
-        }
-    }
-
-    public virtual object getSbeDecoderRegistry()
-    {
-        return new Dictionary<string, object>() {};
     }
 
     public virtual object checkWsProxySettings()

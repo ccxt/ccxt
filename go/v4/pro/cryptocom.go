@@ -190,8 +190,8 @@ func  (this *CryptocomCore) WatchOrderBookForSymbols(symbols interface{}, option
             if ccxt.IsTrue(ccxt.IsEqual(topicParams, nil)) {
                 ccxt.AddElementToObject(params, "params", map[string]interface{} {})
             }
-            var bookSubscriptionType interface{}
-            var bookSubscriptionType2 interface{}
+            var bookSubscriptionType interface{} = nil
+            var bookSubscriptionType2 interface{} = nil
             bookSubscriptionTypeparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
             bookSubscriptionType = ccxt.GetValue(bookSubscriptionTypeparamsVariable,0)
             params = ccxt.GetValue(bookSubscriptionTypeparamsVariable,1)
@@ -199,8 +199,8 @@ func  (this *CryptocomCore) WatchOrderBookForSymbols(symbols interface{}, option
             bookSubscriptionType2 = ccxt.GetValue(bookSubscriptionType2paramsVariable,0)
             params = ccxt.GetValue(bookSubscriptionType2paramsVariable,1)
             ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookSubscriptionType2)
-            var bookUpdateFrequency interface{}
-            var bookUpdateFrequency2 interface{}
+            var bookUpdateFrequency interface{} = nil
+            var bookUpdateFrequency2 interface{} = nil
             bookUpdateFrequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
             bookUpdateFrequency = ccxt.GetValue(bookUpdateFrequencyparamsVariable,0)
             params = ccxt.GetValue(bookUpdateFrequencyparamsVariable,1)
@@ -259,8 +259,8 @@ func  (this *CryptocomCore) UnWatchOrderBookForSymbols(symbols interface{}, opti
             if ccxt.IsTrue(ccxt.IsEqual(topicParams, nil)) {
                 ccxt.AddElementToObject(params, "params", map[string]interface{} {})
             }
-            var bookSubscriptionType interface{}
-            var bookSubscriptionType2 interface{}
+            var bookSubscriptionType interface{} = nil
+            var bookSubscriptionType2 interface{} = nil
             bookSubscriptionTypeparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE")
             bookSubscriptionType = ccxt.GetValue(bookSubscriptionTypeparamsVariable,0)
             params = ccxt.GetValue(bookSubscriptionTypeparamsVariable,1)
@@ -268,8 +268,8 @@ func  (this *CryptocomCore) UnWatchOrderBookForSymbols(symbols interface{}, opti
             bookSubscriptionType2 = ccxt.GetValue(bookSubscriptionType2paramsVariable,0)
             params = ccxt.GetValue(bookSubscriptionType2paramsVariable,1)
             ccxt.AddElementToObject(ccxt.GetValue(params, "params"), "bookSubscriptionType", bookSubscriptionType2)
-            var bookUpdateFrequency interface{}
-            var bookUpdateFrequency2 interface{}
+            var bookUpdateFrequency interface{} = nil
+            var bookUpdateFrequency2 interface{} = nil
             bookUpdateFrequencyparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "bookUpdateFrequency")
             bookUpdateFrequency = ccxt.GetValue(bookUpdateFrequencyparamsVariable,0)
             params = ccxt.GetValue(bookUpdateFrequencyparamsVariable,1)
@@ -618,7 +618,7 @@ func  (this *CryptocomCore) WatchMyTrades(optionalArgs ...interface{}) <- chan i
         
             retRes4508 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes4508)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -1105,7 +1105,7 @@ func  (this *CryptocomCore) WatchOrders(optionalArgs ...interface{}) <- chan int
         
             retRes8028 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes8028)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -1594,7 +1594,7 @@ func  (this *CryptocomCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- ch
         
             retRes11788 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes11788)
-            var market interface{}
+            var market interface{} = nil
             var request interface{} = map[string]interface{} {
                 "method": "private/cancel-all-orders",
                 "params": this.Extend(map[string]interface{} {}, params),

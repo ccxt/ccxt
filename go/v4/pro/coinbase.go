@@ -86,7 +86,7 @@ func  (this *CoinbaseCore) Subscribe(name interface{}, isPrivate interface{}, op
         
             retRes698 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes698)
-            var market interface{}
+            var market interface{} = nil
             var messageHash interface{} = name
             var productIds interface{} = []interface{}{}
             if ccxt.IsTrue(ccxt.IsArray(symbol)) {
@@ -142,7 +142,7 @@ func  (this *CoinbaseCore) UnSubscribe(topic interface{}, name interface{}, isPr
                 panic(ccxt.ExchangeError(ccxt.Add(this.Id, " another unSubscription is pending, coinbase does not support concurrent unSubscriptions")))
             }
             ccxt.AddElementToObject(this.Options, "unSubscriptionPending", true)
-            var market interface{}
+            var market interface{} = nil
             var watchMessageHash interface{} = name
             var unWatchMessageHash interface{} = ccxt.Add("unsubscribe:", name)
             var productIds interface{} = []interface{}{}
@@ -607,7 +607,7 @@ func  (this *CoinbaseCore) ParseWsTicker(ticker interface{}, optionalArgs ...int
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(ticker, "product_id")
-    var timestamp interface{}
+    var timestamp interface{} = nil
     var last interface{} = this.SafeNumber(ticker, "price")
     return this.SafeTicker(map[string]interface{} {
         "info": ticker,

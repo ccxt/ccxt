@@ -1070,7 +1070,7 @@ func  (this *OnetradingCore) HandleAccountUpdate(client interface{}, message int
         var limit interface{} = this.SafeInteger(this.Options, "tradesLimit", 1000)
         this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
     }
-    var symbol interface{}
+    var symbol interface{} = nil
     var orders interface{} = this.Orders
     var update interface{} = this.SafeValue(message, "update", map[string]interface{} {})
     var updateType interface{} = this.SafeString(update, "type")

@@ -663,12 +663,12 @@ func  (this *ModetradeCore) ParseWsTrade(trade interface{}, optionalArgs ...inte
     var cost interface{} = ccxt.Precise.StringMul(price, amount)
     var side interface{} = this.SafeStringLower(trade, "side")
     var timestamp interface{} = this.SafeInteger(trade, "timestamp")
-    var takerOrMaker interface{}
+    var takerOrMaker interface{} = nil
     var maker interface{} = this.SafeBool(trade, "maker")
     if ccxt.IsTrue(!ccxt.IsEqual(maker, nil)) {
         takerOrMaker = ccxt.Ternary(ccxt.IsTrue(maker), "maker", "taker")
     }
-    var fee interface{}
+    var fee interface{} = nil
     var feeValue interface{} = this.SafeString(trade, "fee")
     if ccxt.IsTrue(!ccxt.IsEqual(feeValue, nil)) {
         fee = map[string]interface{} {
@@ -1014,7 +1014,7 @@ func  (this *ModetradeCore) ParseWsOrder(order interface{}, optionalArgs ...inte
     }
     var rawStatus interface{} = this.SafeString(order, "status")
     var status interface{} = this.ParseOrderStatus(rawStatus)
-    var trades interface{}
+    var trades interface{} = nil
     var clientOrderId interface{} = this.SafeString(order, "clientOrderId")
     var triggerPrice interface{} = this.SafeNumber(order, "triggerPrice")
     return this.SafeOrder(map[string]interface{} {
@@ -1360,7 +1360,7 @@ func  (this *ModetradeCore) ParseWsPosition(position interface{}, optionalArgs .
     var contract interface{} = this.SafeString(position, "symbol")
     market = this.SafeMarket(contract, market)
     var size interface{} = this.SafeString(position, "positionQty")
-    var side interface{}
+    var side interface{} = nil
     if ccxt.IsTrue(ccxt.Precise.StringGt(size, "0")) {
         side = "long"
     } else {

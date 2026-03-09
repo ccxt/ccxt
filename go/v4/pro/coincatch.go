@@ -296,7 +296,7 @@ func  (this *CoincatchCore) UnWatchChannel(symbol interface{}, channel interface
         }
 func  (this *CoincatchCore) GetPublicInstTypeAndId(market interface{}) interface{}  {
     var instId interface{} = ccxt.Add(ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId"))
-    var instType interface{}
+    var instType interface{} = nil
     if ccxt.IsTrue(ccxt.GetValue(market, "spot")) {
         instType = "SP"
     } else if ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
@@ -1132,7 +1132,7 @@ func  (this *CoincatchCore) WatchBalance(optionalArgs ...interface{}) <- chan in
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -1247,14 +1247,14 @@ func  (this *CoincatchCore) WatchOrders(optionalArgs ...interface{}) <- chan int
         
             retRes9438 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9438)
-            var market interface{}
-            var marketId interface{}
+            var market interface{} = nil
+            var marketId interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 marketId = ccxt.GetValue(market, "id")
             }
-            var marketType interface{}
+            var marketType interface{} = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -1373,7 +1373,7 @@ func  (this *CoincatchCore) HandleOrder(client interface{}, message interface{})
     var arg interface{} = this.SafeDict(message, "arg", map[string]interface{} {})
     var instType interface{} = this.SafeString(arg, "instType")
     var argInstId interface{} = this.SafeString(arg, "instId")
-    var marketType interface{}
+    var marketType interface{} = nil
     if ccxt.IsTrue(ccxt.IsEqual(instType, "spbl")) {
         marketType = "spot"
     } else {
@@ -1386,7 +1386,7 @@ func  (this *CoincatchCore) HandleOrder(client interface{}, message interface{})
     }
     var hash interface{} = "orders"
     var stored interface{} = this.Orders
-    var symbol interface{}
+    var symbol interface{} = nil
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var order interface{} = ccxt.GetValue(data, i)
         var marketId interface{} = this.SafeString(order, "instId", argInstId)
@@ -1686,7 +1686,7 @@ func  (this *CoincatchCore) ParseWsPosition(position interface{}, optionalArgs .
         "crossed": "cross",
         "isolated": "isolated",
     })
-    var isHedged interface{}
+    var isHedged interface{} = nil
     var holdMode interface{} = this.SafeString(position, "holdMode")
     if ccxt.IsTrue(ccxt.IsEqual(holdMode, "double_hold")) {
         isHedged = true

@@ -121,7 +121,7 @@ func  (this *HollaexCore) HandleOrderBook(client interface{}, message interface{
     var timestamp interface{} = this.SafeString(data, "timestamp")
     var timestampMs interface{} = this.Parse8601(timestamp)
     var snapshot interface{} = this.ParseOrderBook(data, symbol, timestampMs)
-    var orderbook interface{}
+    var orderbook interface{} = nil
     if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
         orderbook = this.OrderBook(snapshot)
         ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
@@ -236,7 +236,7 @@ func  (this *HollaexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan int
             retRes1888 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes1888)
             var messageHash interface{} = "usertrade"
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -340,7 +340,7 @@ func  (this *HollaexCore) WatchOrders(optionalArgs ...interface{}) <- chan inter
             retRes2718 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2718)
             var messageHash interface{} = "order"
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -431,7 +431,7 @@ func  (this *HollaexCore) HandleOrder(client interface{}, message interface{}, o
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
     var stored interface{} = this.Orders
-    var rawOrders interface{}
+    var rawOrders interface{} = nil
     if !ccxt.IsTrue(ccxt.IsArray(data)) {
         rawOrders = []interface{}{data}
     } else {

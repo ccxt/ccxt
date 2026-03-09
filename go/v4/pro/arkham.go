@@ -776,7 +776,7 @@ func  (this *ArkhamCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
         
             retRes6358 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6358)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
             }

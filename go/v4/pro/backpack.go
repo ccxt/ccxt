@@ -987,7 +987,7 @@ func  (this *BackpackCore) ParseWsTrade(trade interface{}, optionalArgs ...inter
     var takerOrMaker interface{} = ccxt.Ternary(ccxt.IsTrue(isMaker), "maker", "taker")
     var price interface{} = this.SafeString(trade, "p")
     var amount interface{} = this.SafeString(trade, "q")
-    var orderId interface{}
+    var orderId interface{} = nil
     if ccxt.IsTrue(ccxt.IsEqual(side, "buy")) {
         orderId = this.SafeString(trade, "b")
     } else {
@@ -1256,7 +1256,7 @@ func  (this *BackpackCore) WatchOrders(optionalArgs ...interface{}) <- chan inte
         
             retRes9488 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9488)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -1301,7 +1301,7 @@ func  (this *BackpackCore) UnWatchOrders(optionalArgs ...interface{}) <- chan in
         
             retRes9778 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes9778)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -1408,7 +1408,7 @@ func  (this *BackpackCore) ParseWsOrder(order interface{}, optionalArgs ...inter
     var amount interface{} = this.SafeString(order, "q")
     var cost interface{} = this.SafeString(order, "Z")
     var filled interface{} = this.SafeString(order, "l")
-    var fee interface{}
+    var fee interface{} = nil
     var feeCurrency interface{} = this.SafeString(order, "N")
     if ccxt.IsTrue(!ccxt.IsEqual(feeCurrency, nil)) {
         fee = map[string]interface{} {

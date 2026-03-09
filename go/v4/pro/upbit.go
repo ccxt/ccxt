@@ -667,7 +667,7 @@ func  (this *UpbitCore) ParseWsOrder(order interface{}, optionalArgs ...interfac
     var status interface{} = this.ParseWsOrderStatus(this.SafeString(order, "state"))
     var marketId interface{} = this.SafeString(order, "code")
     market = this.SafeMarket(marketId, market)
-    var fee interface{}
+    var fee interface{} = nil
     var feeCost interface{} = this.SafeString(order, "paid_fee")
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {
@@ -713,7 +713,7 @@ func  (this *UpbitCore) ParseWsTrade(trade interface{}, optionalArgs ...interfac
     var timestamp interface{} = this.Parse8601(this.SafeString(trade, "trade_timestamp"))
     var marketId interface{} = this.SafeString(trade, "code")
     market = this.SafeMarket(marketId, market)
-    var fee interface{}
+    var fee interface{} = nil
     var feeCost interface{} = this.SafeString(trade, "paid_fee")
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {

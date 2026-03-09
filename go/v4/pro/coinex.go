@@ -271,7 +271,7 @@ func  (this *CoinexCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
         
             retRes2608 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2608)
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, "spot")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -359,8 +359,8 @@ func  (this *CoinexCore) HandleBalance(client interface{}, message interface{}) 
     var unrealizedPnl interface{} = this.SafeString(firstEntry, "unrealized_pnl")
     var isSpot interface{} =     (!ccxt.IsEqual(updated, nil))
     var isSwap interface{} =     (!ccxt.IsEqual(unrealizedPnl, nil))
-    var info interface{}
-    var account interface{}
+    var info interface{} = nil
+    var account interface{} = nil
     var rawBalances interface{} = []interface{}{}
     if ccxt.IsTrue(isSpot) {
         account = "spot"
@@ -380,7 +380,7 @@ func  (this *CoinexCore) HandleBalance(client interface{}, message interface{}) 
         var entry interface{} = ccxt.GetValue(rawBalances, i)
         this.ParseWsBalance(entry, account)
     }
-    var messageHash interface{}
+    var messageHash interface{} = nil
     if ccxt.IsTrue(!ccxt.IsEqual(account, nil)) {
         if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Balance, account), nil)) {
             ccxt.AddElementToObject(this.Balance, account, map[string]interface{} {})
@@ -459,12 +459,12 @@ func  (this *CoinexCore) WatchMyTrades(optionalArgs ...interface{}) <- chan inte
         
             retRes4228 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes4228)
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
             }
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchMyTrades", market, params, "spot")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -731,7 +731,7 @@ func  (this *CoinexCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
             retRes6588 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes6588)
             var marketIds interface{} = this.MarketIds(symbols)
-            var market interface{}
+            var market interface{} = nil
             var messageHashes interface{} = []interface{}{}
             var symbolsDefined interface{} =     (!ccxt.IsEqual(symbols, nil))
             if ccxt.IsTrue(symbolsDefined) {
@@ -744,7 +744,7 @@ func  (this *CoinexCore) WatchTickers(optionalArgs ...interface{}) <- chan inter
                 marketIds = []interface{}{}
                 ccxt.AppendToArray(&messageHashes, "tickers")
             }
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchTickers", market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -833,8 +833,8 @@ func  (this *CoinexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
             ccxt.PanicOnError(retRes7198)
             var subscribedSymbols interface{} = []interface{}{}
             var messageHashes interface{} = []interface{}{}
-            var market interface{}
-            var callerMethodName interface{}
+            var market interface{} = nil
+            var callerMethodName interface{} = nil
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchTradesForSymbols")
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
@@ -849,7 +849,7 @@ func  (this *CoinexCore) WatchTradesForSymbols(symbols interface{}, optionalArgs
             } else {
                 ccxt.AppendToArray(&messageHashes, "trades")
             }
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -902,9 +902,9 @@ func  (this *CoinexCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
             ccxt.PanicOnError(retRes7648)
             var watchOrderBookSubscriptions interface{} = map[string]interface{} {}
             var messageHashes interface{} = []interface{}{}
-            var market interface{}
-            var typeVar interface{}
-            var callerMethodName interface{}
+            var market interface{} = nil
+            var typeVar interface{} = nil
+            var callerMethodName interface{} = nil
             callerMethodNameparamsVariable := this.HandleParamString(params, "callerMethodName", "watchOrderBookForSymbols")
             callerMethodName = ccxt.GetValue(callerMethodNameparamsVariable,0)
             params = ccxt.GetValue(callerMethodNameparamsVariable,1)
@@ -1093,13 +1093,13 @@ func  (this *CoinexCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
             var trigger interface{} = this.SafeBool2(params, "trigger", "stop")
             params = this.Omit(params, []interface{}{"trigger", "stop"})
             var messageHash interface{} = "orders"
-            var market interface{}
-            var marketList interface{}
+            var market interface{} = nil
+            var marketList interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
             }
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchOrders", market, params, "spot")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
@@ -1117,7 +1117,7 @@ func  (this *CoinexCore) WatchOrders(optionalArgs ...interface{}) <- chan interf
                     messageHash = ccxt.Add(messageHash, ":swap")
                 }
             }
-            var method interface{}
+            var method interface{} = nil
             if ccxt.IsTrue(trigger) {
                 method = "stop.subscribe"
             } else {
@@ -1376,7 +1376,7 @@ func  (this *CoinexCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     var isSpot interface{} =     (ccxt.InOp(order, "margin_market"))
     var defaultType interface{} = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
     market = this.SafeMarket(marketId, market, nil, defaultType)
-    var fee interface{}
+    var fee interface{} = nil
     var feeCost interface{} = this.OmitZero(this.SafeString2(order, "fee", "quote_ccy_fee"))
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         var feeCurrencyId interface{} = this.SafeString(order, "fee_ccy", ccxt.GetValue(market, "quote"))
@@ -1442,7 +1442,7 @@ func  (this *CoinexCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             ccxt.PanicOnError(retRes12448)
             var marketIds interface{} = this.MarketIds(symbols)
             var messageHashes interface{} = []interface{}{}
-            var market interface{}
+            var market interface{} = nil
             var symbolsDefined interface{} =     (!ccxt.IsEqual(symbols, nil))
             if ccxt.IsTrue(symbolsDefined) {
                 for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1453,7 +1453,7 @@ func  (this *CoinexCore) WatchBidsAsks(optionalArgs ...interface{}) <- chan inte
             } else {
                 ccxt.AppendToArray(&messageHashes, "bidsasks")
             }
-            var typeVar interface{}
+            var typeVar interface{} = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBidsAsks", market, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)

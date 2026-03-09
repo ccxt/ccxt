@@ -494,7 +494,7 @@ func  (this *P2bCore) HandleTicker(client interface{}, message interface{}) inte
     var splitMethod interface{} = ccxt.Split(method, ".")
     var messageHashStart interface{} = this.SafeString(splitMethod, 0)
     var tickerData interface{} = this.SafeDict(data, 1)
-    var ticker interface{}
+    var ticker interface{} = nil
     if ccxt.IsTrue(ccxt.IsEqual(method, "price.update")) {
         var lastPrice interface{} = this.SafeString(data, 1)
         ticker = this.SafeTicker(map[string]interface{} {

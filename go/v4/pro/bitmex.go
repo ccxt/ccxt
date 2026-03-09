@@ -1487,7 +1487,7 @@ func  (this *BitmexCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
-            var table interface{}
+            var table interface{} = nil
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 table = this.SafeString(this.Options, "watchOrderBookLevel", "orderBookL2")
             } else if ccxt.IsTrue(ccxt.IsEqual(limit, 25)) {
@@ -1925,7 +1925,7 @@ func  (this *BitmexCore) HandleErrorMessage(client interface{}, message interfac
             var messageHash interface{} = ccxt.GetValue(args, 0)
             var broad interface{} = ccxt.GetValue(ccxt.GetValue(this.Exceptions, "ws"), "broad")
             var broadKey interface{} = this.FindBroadlyMatchedKey(broad, error)
-            var exception interface{}
+            var exception interface{} = nil
             if ccxt.IsTrue(ccxt.IsEqual(broadKey, nil)) {
                 exception = ccxt.ExchangeError(                error) // c# requirement for now
             } else {

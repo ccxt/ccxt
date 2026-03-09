@@ -313,7 +313,7 @@ func  (this *BitfinexCore) HandleOHLCV(client interface{}, message interface{}, 
     //   ]
     //
     var data interface{} = this.SafeValue(message, 1, []interface{}{})
-    var ohlcvs interface{}
+    var ohlcvs interface{} = nil
     var first interface{} = this.SafeValue(data, 0)
     if ccxt.IsTrue(ccxt.IsArray(first)) {
         // snapshot
@@ -674,13 +674,13 @@ func  (this *BitfinexCore) ParseWsTrade(trade interface{}, optionalArgs ...inter
     var price interface{} = this.SafeString(trade, priceKey)
     var amountString interface{} = this.SafeString(trade, amountKey)
     var amount interface{} = this.ParseNumber(ccxt.Precise.StringAbs(amountString))
-    var side interface{}
+    var side interface{} = nil
     if ccxt.IsTrue(!ccxt.IsEqual(amount, nil)) {
         side = ccxt.Ternary(ccxt.IsTrue(ccxt.Precise.StringGt(amountString, "0")), "buy", "sell")
     }
     var symbol interface{} = this.SafeSymbol(marketId, market)
     var feeValue interface{} = this.SafeString(trade, 9)
-    var fee interface{}
+    var fee interface{} = nil
     if ccxt.IsTrue(!ccxt.IsEqual(feeValue, nil)) {
         var currencyId interface{} = this.SafeString(trade, 10)
         var code interface{} = this.SafeCurrencyCode(currencyId)
@@ -690,7 +690,7 @@ func  (this *BitfinexCore) ParseWsTrade(trade interface{}, optionalArgs ...inter
         }
     }
     var maker interface{} = this.SafeInteger(trade, 8)
-    var takerOrMaker interface{}
+    var takerOrMaker interface{} = nil
     if ccxt.IsTrue(!ccxt.IsEqual(maker, nil)) {
         takerOrMaker = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(maker, ccxt.OpNeg(1)))), "taker", "maker")
     }
@@ -1062,7 +1062,7 @@ func  (this *BitfinexCore) HandleBalance(client interface{}, message interface{}
     //   ]
     //
     var updateType interface{} = this.SafeValue(message, 1)
-    var data interface{}
+    var data interface{} = nil
     if ccxt.IsTrue(ccxt.IsEqual(updateType, "ws")) {
         data = this.SafeValue(message, 2)
     } else {
@@ -1508,7 +1508,7 @@ func  (this *BitfinexCore) HandleMessage(client interface{}, message interface{}
             "ws": this.HandleBalance,
             "tu": this.HandleMyTrade,
         }
-        var method interface{}
+        var method interface{} = nil
         if ccxt.IsTrue(ccxt.IsEqual(channelId, "0")) {
             method = this.SafeValue(privateMethods, name)
         } else {

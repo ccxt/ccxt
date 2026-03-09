@@ -322,7 +322,7 @@ func  (this *BullishCore) HandleTicker(client interface{}, message interface{}) 
     var marketId interface{} = this.SafeString(data, "symbol")
     var market interface{} = this.SafeMarket(marketId)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var parsed interface{}
+    var parsed interface{} = nil
     if ccxt.IsTrue((ccxt.IsEqual(updateType, "snapshot"))) {
         parsed = this.ParseTicker(data, market)
     } else if ccxt.IsTrue(ccxt.IsEqual(updateType, "update")) {

@@ -114,7 +114,7 @@ func  (this *KucoinfuturesCore) NegotiateHelper(privateChannel interface{}, opti
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]interface{} {})
             _ = params
-            var response interface{}
+            var response interface{} = nil
             var connectId interface{} = ccxt.Ternary(ccxt.IsTrue(privateChannel), "private", "public")
             
                 {
@@ -1214,7 +1214,7 @@ func  (this *KucoinfuturesCore) HandleOrderBook(client interface{}, message inte
         var topicSymbol interface{} = this.SafeString(topicPartsNew, 1)
         var topicChannel interface{} = this.SafeString(topicPartsNew, 0)
         var subscriptions interface{} = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
-        var subscription interface{}
+        var subscription interface{} = nil
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptions)); i++ {
             var key interface{} = ccxt.GetValue(subscriptions, i)
             if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(key, topicSymbol), 0))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(key, topicChannel), 0)))) {

@@ -364,7 +364,7 @@ func  (this *ToobitCore) WatchOHLCVForSymbols(symbolsAndTimeframes interface{}, 
             var messageHashes interface{} = []interface{}{}
             var timeframes interface{} = this.SafeDict(ccxt.GetValue(this.Options, "ws"), "timeframes", map[string]interface{} {})
             var marketIds interface{} = []interface{}{}
-            var selectedTimeframe interface{}
+            var selectedTimeframe interface{} = nil
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
                 var data interface{} = ccxt.GetValue(symbolsAndTimeframes, i)
                 var symbolStr interface{} = this.SafeString(data, 0)
@@ -658,7 +658,7 @@ func  (this *ToobitCore) WatchOrderBookForSymbols(symbols interface{}, optionalA
             retRes5288 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes5288)
             symbols = this.MarketSymbols(symbols, nil, false)
-            var channel interface{}
+            var channel interface{} = nil
             channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "channel", "depth")
             channel = ccxt.GetValue(channelparamsVariable,0)
             params = ccxt.GetValue(channelparamsVariable,1)
@@ -809,7 +809,7 @@ func  (this *ToobitCore) WatchBalance(optionalArgs ...interface{}) <- chan inter
         
             retRes6668 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes6668)
-            var marketType interface{}
+            var marketType interface{} = nil
             marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             marketType = ccxt.GetValue(marketTypeparamsVariable,0)
             params = ccxt.GetValue(marketTypeparamsVariable,1)
@@ -1031,14 +1031,14 @@ func  (this *ToobitCore) ParseWsOrder(order interface{}, optionalArgs ...interfa
     var symbol interface{} = this.SafeSymbol(marketId, market)
     var priceType interface{} = this.SafeStringLower(order, "pt")
     var rawOrderType interface{} = this.SafeStringLower(order, "o")
-    var orderType interface{}
+    var orderType interface{} = nil
     if ccxt.IsTrue(ccxt.IsEqual(priceType, "market")) {
         orderType = "market"
     } else {
         orderType = rawOrderType
     }
     var feeCost interface{} = this.SafeNumber(order, "n")
-    var fee interface{}
+    var fee interface{} = nil
     if ccxt.IsTrue(!ccxt.IsEqual(feeCost, nil)) {
         fee = map[string]interface{} {
             "cost": feeCost,

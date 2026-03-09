@@ -78,7 +78,7 @@ func  (this *CoinbaseexchangeCore) Subscribe(name interface{}, optionalArgs ...i
         
             retRes628 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes628)
-            var market interface{}
+            var market interface{} = nil
             var messageHash interface{} = messageHashStart
             var productIds interface{} = []interface{}{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -120,7 +120,7 @@ func  (this *CoinbaseexchangeCore) SubscribeMultiple(name interface{}, optionalA
         
             retRes888 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes888)
-            var market interface{}
+            var market interface{} = nil
             symbols = this.MarketSymbols(symbols)
             var messageHashes interface{} = []interface{}{}
             var productIds interface{} = []interface{}{}
@@ -693,7 +693,7 @@ func  (this *CoinbaseexchangeCore) ParseWsTrade(trade interface{}, optionalArgs 
     market := ccxt.GetArg(optionalArgs, 0, nil)
     _ = market
     var parsed interface{} = this.base.ParseTrade(trade)
-    var feeRate interface{}
+    var feeRate interface{} = nil
     var isMaker interface{} = false
     if ccxt.IsTrue(ccxt.InOp(trade, "maker_fee_rate")) {
         isMaker = true
@@ -714,7 +714,7 @@ func  (this *CoinbaseexchangeCore) ParseWsTrade(trade interface{}, optionalArgs 
     ccxt.AddElementToObject(parsed, "order", this.SafeString(trade, idKey))
     market = this.Market(ccxt.GetValue(parsed, "symbol"))
     var feeCurrency interface{} = ccxt.GetValue(market, "quote")
-    var feeCost interface{}
+    var feeCost interface{} = nil
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(parsed, "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(feeRate, nil)))) {
         var cost interface{} = this.SafeNumber(parsed, "cost")
         feeCost = ccxt.Multiply(cost, feeRate)
@@ -915,7 +915,7 @@ func  (this *CoinbaseexchangeCore) ParseWsOrder(order interface{}, optionalArgs 
     var orderType interface{} = this.SafeString(order, "order_type")
     var remaining interface{} = this.SafeNumber(order, "remaining_size")
     var typeVar interface{} = this.SafeString(order, "type")
-    var filled interface{}
+    var filled interface{} = nil
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(amount, nil))) && ccxt.IsTrue((!ccxt.IsEqual(remaining, nil)))) {
         filled = ccxt.Subtract(amount, remaining)
     } else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "received")) {

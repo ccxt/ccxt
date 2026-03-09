@@ -313,7 +313,7 @@ func  (this *BlockchaincomCore) HandleTicker(client interface{}, message interfa
     var marketId interface{} = this.SafeString(message, "symbol")
     var market interface{} = this.SafeMarket(marketId)
     var symbol interface{} = ccxt.GetValue(market, "symbol")
-    var ticker interface{}
+    var ticker interface{} = nil
     if ccxt.IsTrue(ccxt.IsEqual(event, "subscribed")) {
         return
     } else if ccxt.IsTrue(ccxt.IsEqual(event, "snapshot")) {

@@ -99,9 +99,9 @@ func  (this *CoinbaseinternationalCore) Subscribe(name interface{}, optionalArgs
             retRes828 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes828)
             this.CheckRequiredCredentials()
-            var market interface{}
+            var market interface{} = nil
             var messageHash interface{} = name
-            var productIds interface{}
+            var productIds interface{} = nil
             if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
                 symbols = this.GetActiveSymbols()
             }
@@ -304,7 +304,7 @@ func  (this *CoinbaseinternationalCore) WatchTicker(symbol interface{}, optional
         
             retRes2248 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2248)
-            var channel interface{}
+            var channel interface{} = nil
             channelparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "channel", "LEVEL1")
             channel = ccxt.GetValue(channelparamsVariable,0)
             params = ccxt.GetValue(channelparamsVariable,1)
@@ -351,7 +351,7 @@ func  (this *CoinbaseinternationalCore) WatchTickers(optionalArgs ...interface{}
         
             retRes2548 := (<-this.LoadMarkets())
             ccxt.PanicOnError(retRes2548)
-            var channel interface{}
+            var channel interface{} = nil
             channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "LEVEL1")
             channel = ccxt.GetValue(channelparamsVariable,0)
             params = ccxt.GetValue(channelparamsVariable,1)

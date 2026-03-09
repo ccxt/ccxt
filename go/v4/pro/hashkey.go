@@ -556,13 +556,13 @@ func  (this *HashkeyCore) ParseWsOrder(order interface{}, optionalArgs ...interf
     market = this.SafeMarket(marketId, market)
     var timestamp interface{} = this.SafeInteger(order, "O")
     var side interface{} = this.SafeStringLower(order, "S")
-    var reduceOnly interface{}
+    var reduceOnly interface{} = nil
     sidereduceOnlyVariable := this.ParseOrderSideAndReduceOnly(side)
     side = ccxt.GetValue(sidereduceOnlyVariable,0)
     reduceOnly = ccxt.GetValue(sidereduceOnlyVariable,1)
     var typeVar interface{} = this.ParseOrderType(this.SafeString(order, "o"))
     var timeInForce interface{} = this.SafeString(order, "f")
-    var postOnly interface{}
+    var postOnly interface{} = nil
     typeVartimeInForcepostOnlyVariable := this.ParseOrderTypeTimeInForceAndPostOnly(typeVar, timeInForce)
     typeVar = ccxt.GetValue(typeVartimeInForcepostOnlyVariable,0)
     timeInForce = ccxt.GetValue(typeVartimeInForcepostOnlyVariable,1)
@@ -713,7 +713,7 @@ func  (this *HashkeyCore) ParseWsTrade(trade interface{}, optionalArgs ...interf
     market = this.SafeMarket(marketId, market)
     var timestamp interface{} = this.SafeInteger(trade, "t")
     var isMaker interface{} = this.SafeBool(trade, "m")
-    var takerOrMaker interface{}
+    var takerOrMaker interface{} = nil
     if ccxt.IsTrue(!ccxt.IsEqual(isMaker, nil)) {
         if ccxt.IsTrue(isMaker) {
             takerOrMaker = "maker"
@@ -894,8 +894,8 @@ func  (this *HashkeyCore) WatchBalance(optionalArgs ...interface{}) <- chan inte
             var url interface{} = this.GetPrivateUrl(listenKey)
             var client interface{} = this.Client(url)
             this.SetBalanceCache(client, typeVar, messageHash)
-            var fetchBalanceSnapshot interface{}
-            var awaitBalanceSnapshot interface{}
+            var fetchBalanceSnapshot interface{} = nil
+            var awaitBalanceSnapshot interface{} = nil
             fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(this.Options, "watchBalance", "fetchBalanceSnapshot", true)
             fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable,0)
             params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable,1)

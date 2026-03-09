@@ -1163,10 +1163,16 @@ public partial class woo : ccxt.woo
         {
             price = avgPrice;
         }
-        object amount = this.safeString(order, "quantity");
+        object amount = this.safeFloat(order, "quantity");
         object side = this.safeStringLower(order, "side");
         object type = this.safeStringLower(order, "type");
-        object filled = this.safeString2(order, "totalExecutedQuantity", "executed");
+        object filled = this.safeNumber(order, "totalExecutedQuantity");
+        object totalExecQuantity = this.safeFloat(order, "totalExecutedQuantity");
+        object remaining = amount;
+        if (isTrue(isGreaterThanOrEqual(amount, totalExecQuantity)))
+        {
+            remaining = subtract(remaining, totalExecQuantity);
+        }
         object rawStatus = this.safeString2(order, "status", "algoStatus");
         object status = this.parseOrderStatus(rawStatus);
         object trades = null;
@@ -1192,7 +1198,7 @@ public partial class woo : ccxt.woo
             { "cost", null },
             { "average", avgPrice },
             { "filled", filled },
-            { "remaining", null },
+            { "remaining", remaining },
             { "status", status },
             { "fee", fee },
             { "trades", trades },

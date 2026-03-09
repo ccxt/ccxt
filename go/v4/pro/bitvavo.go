@@ -954,7 +954,7 @@ func  (this *BitvavoCore) CancelAllOrdersWs(optionalArgs ...interface{}) <- chan
             retRes7278 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes7278)
             var request interface{} = map[string]interface{} {}
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 ccxt.AddElementToObject(request, "market", ccxt.GetValue(market, "id"))
@@ -1129,7 +1129,7 @@ func  (this *BitvavoCore) FetchOpenOrdersWs(optionalArgs ...interface{}) <- chan
             retRes8328 := (<-this.Authenticate())
             ccxt.PanicOnError(retRes8328)
             var request interface{} = map[string]interface{} {}
-            var market interface{}
+            var market interface{} = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
                 ccxt.AddElementToObject(request, "market", ccxt.GetValue(market, "id"))
