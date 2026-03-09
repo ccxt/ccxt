@@ -1108,7 +1108,8 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        const isSpot = (type === 'spot');
+        const isUnifiedEnabled = await this.isUnifiedEnabled ();
+        const isSpot = ((type === 'spot') || isUnifiedEnabled);
         const request: Dict = {
             'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
@@ -1856,6 +1857,32 @@ export default class hyperliquid extends Exchange {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
         }
         return true;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#isUnifiedEnabled
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+     * @description returns enableUnifiedMargin so the user can check if unified account is enabled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {bool} enableUnifiedMargin
+     */
+    async isUnifiedEnabled (params = {}) {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+        const enableUnifiedMargin = this.safeBool (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin === undefined) {
+            const request: Dict = {
+                'type': 'userAbstraction',
+                'user': userAddress,
+            };
+            const response = await this.publicPostInfo (this.extend (request, params));
+            //
+            // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
+            //
+            this.options['enableUnifiedMargin'] = response === '"unifiedAccount"';
+        }
+        return this.options['enableUnifiedMargin'];
     }
 
     /**
