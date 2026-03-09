@@ -1068,6 +1068,7 @@ public partial class gate : Exchange
                     { "Your order size", typeof(InvalidOrder) },
                 } },
             } },
+            { "rollingWindowSize", 5000 },
         });
     }
 

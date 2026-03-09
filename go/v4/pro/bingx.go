@@ -1445,7 +1445,7 @@ func  (this *BingxCore) WatchPositions(optionalArgs ...interface{}) <- chan inte
             }
             var typeVar interface{} = nil
             var subType interface{} = nil
-            typeVarparamsVariable := this.HandleMarketTypeAndParams("watchPositions", market, params)
+            typeVarparamsVariable := this.HandleMarketTypeAndParams("watchPositions", market, params, "swap")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
             subTypeparamsVariable := this.HandleSubTypeAndParams("watchPositions", market, params, "linear")

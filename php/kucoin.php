@@ -1160,6 +1160,7 @@ class kucoin extends Exchange {
                     'inverse' => null,
                 ),
             ),
+            'rollingWindowSize' => 30000.0,  // https://www.kucoin.com/docs-new/rate-limit
         ));
     }
 

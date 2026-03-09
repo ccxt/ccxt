@@ -1400,6 +1400,7 @@ class htx extends htx$1["default"] {
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         });
     }
     /**

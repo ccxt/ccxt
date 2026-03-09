@@ -382,7 +382,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //
         //        {
         //            instrument => 'PF_LTCUSD',
-        //            $balance => 0.5,
+        //            balance => 0.5,
         //            pnl => -0.8628305877699987,
         //            entry_price => 70.53,
         //            mark_price => 68.80433882446,
@@ -399,8 +399,13 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //
         $marketId = $this->safe_string($position, 'instrument');
         $hedged = 'both';
-        $balance = $this->safe_number($position, 'balance');
-        $side = ($balance > 0) ? 'long' : 'short';
+        $balanceString = $this->safe_string($position, 'balance');
+        $side = null;
+        if (Precise::string_gt($balanceString, '0')) {
+            $side = 'long';
+        } elseif (Precise::string_lt($balanceString, '0')) {
+            $side = 'short';
+        }
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -411,7 +416,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'unrealizedPnl' => $this->safe_number($position, 'pnl'),
             'percentage' => $this->safe_number($position, 'return_on_equity'),
-            'contracts' => $this->parse_number(Precise::string_abs($this->number_to_string($balance))),
+            'contracts' => $this->parse_number(Precise::string_abs($balanceString)),
             'contractSize' => null,
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'side' => $side,
