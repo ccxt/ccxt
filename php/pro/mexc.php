@@ -750,13 +750,19 @@ class mexc extends \ccxt\async\mexc {
         //       "amount":"366804.43",
         //       "windowEnd":"1754737980"
         //
+        $volume = $this->safe_number_2($ohlcv, 'v', 'volume');
+        // MEXC swap websocket klines publish contracts $volume in `q`,
+        // while spot/protobuf uses `v`/`$volume`.
+        if (($market !== null) && (!$this->safe_bool($market, 'spot')) && ($volume === null)) {
+            $volume = $this->safe_number_2($ohlcv, 'q', 'v');
+        }
         return array(
             $this->safe_timestamp_2($ohlcv, 't', 'windowStart'),
             $this->safe_number_2($ohlcv, 'o', 'openingPrice'),
             $this->safe_number_2($ohlcv, 'h', 'highestPrice'),
             $this->safe_number_2($ohlcv, 'l', 'lowestPrice'),
             $this->safe_number_2($ohlcv, 'c', 'closingPrice'),
-            $this->safe_number_2($ohlcv, 'v', 'volume'),
+            $volume,
         );
     }
 
