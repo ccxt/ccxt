@@ -421,7 +421,7 @@ export default class lighter extends Exchange {
                 this.options['accountIndex'] = accountIndex;
             }
         }
-        return [ accountIndex, params ];
+        return [ this.parseToInt (accountIndex), params ];
     }
 
     async createSubAccount (name: string, params = {}) {
@@ -532,7 +532,7 @@ export default class lighter extends Exchange {
         [ orderExpiry, params ] = this.handleOptionAndParams (params, 'createOrder', 'orderExpiry', 0);
         request['nonce'] = nonce;
         request['api_key_index'] = apiKeyIndex;
-        request['account_index'] = accountIndex;
+        request['account_index'] = this.parseToInt (accountIndex);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
