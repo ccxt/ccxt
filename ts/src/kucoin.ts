@@ -3108,37 +3108,49 @@ export default class kucoin extends Exchange {
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // for spot and uta
-        let maxLimit = 1500;
-        let startKey = 'startAt';
-        let endKey = 'endAt';
-        let denominator = 1000;
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'uta', false);
-        const isFutures = (market['contract'] && (!uta));
-        if (isFutures) {
-            // for futures
-            maxLimit = 200;
-            startKey = 'from';
-            endKey = 'to';
-            denominator = 1;
+        if (uta) {
+            return await this.fetchUTAOHLCV (symbol, timeframe, since, limit, params);
+        } else if (market['contract']) {
+            return await this.fetchContractOHLCV (symbol, timeframe, since, limit, params);
+        } else {
+            return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
         }
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name kucoin#fetchUTAOHLCV
+     * @description helper method for fetchOHLCV
+     * @see https://www.kucoin.com/docs-new/rest/ua/get-klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchUTAOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const maxLimit = 1500;
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+            return await this.fetchPaginatedCallDeterministic ('fetchUTAOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
         }
-        const marketId = market['id'];
+        const market = this.market (symbol);
         const request: Dict = {
-            'symbol': marketId,
+            'symbol': market['id'],
+            'interval': this.safeString (this.timeframes, timeframe, timeframe),
         };
         const duration = this.parseTimeframe (timeframe) * 1000;
         let endAt = this.milliseconds (); // required param
+        const denominator = 1000;
         if (since !== undefined) {
-            request[startKey] = this.parseToInt (Math.floor (since / denominator));
+            request['startAt'] = this.parseToInt (Math.floor (since / denominator));
             if (limit === undefined) {
-                // https://docs.kucoin.com/#get-klines
-                // https://docs.kucoin.com/#details
                 // For each query, the system would return at most 1500 pieces of data.
                 // To obtain more data, please page the data by time.
                 limit = this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit);
@@ -3146,74 +3158,154 @@ export default class kucoin extends Exchange {
             endAt = this.sum (since, limit * duration);
         } else if (limit !== undefined) {
             since = endAt - limit * duration;
-            request[startKey] = this.parseToInt (Math.floor (since / denominator));
+            request['startAt'] = this.parseToInt (Math.floor (since / denominator));
         }
-        request[endKey] = this.parseToInt (Math.floor (endAt / denominator));
-        let response = undefined;
-        let result = undefined;
-        if (isFutures) {
-            const timeframeOptions = this.safeDict (this.options, 'timeframes', {});
-            const swapTimeframes = this.safeDict (timeframeOptions, 'swap', {});
-            const parsedTimeframe = this.safeInteger (swapTimeframes, timeframe);
-            if (parsedTimeframe !== undefined) {
-                request['granularity'] = parsedTimeframe;
-            } else {
-                request['granularity'] = timeframe;
-            }
-            response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
-            //
-            //    {
-            //        "code": "200000",
-            //        "data": [
-            //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
-            //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
-            //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
-            //        ]
-            //    }
-            //
-            result = this.safeList (response, 'data', []);
-        } else if (uta) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-            if (type === 'spot') {
-                request['tradeType'] = 'SPOT';
-            } else {
-                request['tradeType'] = 'FUTURES';
-            }
-            request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-            response = await this.utaGetMarketKline (this.extend (request, params));
-            //
-            //     {
-            //         "code": "200000",
-            //         "data": {
-            //             "tradeType": "SPOT",
-            //             "symbol": "BTC-USDT",
-            //             "list": [
-            //                 ["1762240200","104581.4","104527.1","104620.1","104526.4","5.57665554","583263.661804122"],
-            //                 ["1762240140","104565.6","104581.3","104601.7","104511.3","6.48505114","677973.775916968"],
-            //                 ["1762240080","104621.5","104571.3","104704.7","104571.3","14.51713618","1519468.954060838"]
-            //             ]
-            //         }
-            //     }
-            //
-            const data = this.safeDict (response, 'data', {});
-            result = this.safeList (data, 'list', []);
+        request['endAt'] = this.parseToInt (Math.floor (endAt / denominator));
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
+        if (type === 'spot') {
+            request['tradeType'] = 'SPOT';
         } else {
-            request['type'] = this.safeString (this.timeframes, timeframe, timeframe);
-            response = await this.publicGetMarketCandles (this.extend (request, params));
-            //
-            //     {
-            //         "code":"200000",
-            //         "data":[
-            //             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
-            //             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
-            //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
-            //         ]
-            //     }
-            //
-            result = this.safeList (response, 'data', []);
+            request['tradeType'] = 'FUTURES';
         }
+        const response = await this.utaGetMarketKline (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": {
+        //             "tradeType": "SPOT",
+        //             "symbol": "BTC-USDT",
+        //             "list": [
+        //                 ["1762240200","104581.4","104527.1","104620.1","104526.4","5.57665554","583263.661804122"],
+        //                 ["1762240140","104565.6","104581.3","104601.7","104511.3","6.48505114","677973.775916968"],
+        //                 ["1762240080","104621.5","104571.3","104704.7","104571.3","14.51713618","1519468.954060838"]
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const result = this.safeList (data, 'list', []);
         return this.parseOHLCVs (result, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name kucoin#fetchSpotOHLCV
+     * @description helper method for fetchOHLCV
+     * @see https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchSpotOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const maxLimit = 1500;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchSpotOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'type': this.safeString (this.timeframes, timeframe, timeframe),
+        };
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        let endAt = this.milliseconds (); // required param
+        const denominator = 1000;
+        if (since !== undefined) {
+            request['startAt'] = this.parseToInt (Math.floor (since / denominator));
+            if (limit === undefined) {
+                // For each query, the system would return at most 1500 pieces of data.
+                // To obtain more data, please page the data by time.
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit);
+            }
+            endAt = this.sum (since, limit * duration);
+        } else if (limit !== undefined) {
+            since = endAt - limit * duration;
+            request['startAt'] = this.parseToInt (Math.floor (since / denominator));
+        }
+        request['endAt'] = this.parseToInt (Math.floor (endAt / denominator));
+        const response = await this.publicGetMarketCandles (this.extend (request, params));
+        //
+        //     {
+        //         "code":"200000",
+        //         "data":[
+        //             ["1591517700","0.025078","0.025069","0.025084","0.025064","18.9883256","0.4761861079404"],
+        //             ["1591516800","0.025089","0.025079","0.025089","0.02506","99.4716622","2.494143499081"],
+        //             ["1591515900","0.025079","0.02509","0.025091","0.025068","59.83701271","1.50060885172798"],
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name kucoin#fetchContractOHLCV
+     * @description helper method for fetchOHLCV
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-klines
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    async fetchContractOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        await this.loadMarkets ();
+        const maxLimit = 200;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic ('fetchContractOHLCV', symbol, since, limit, timeframe, params, maxLimit) as OHLCV[];
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const timeframeOptions = this.safeDict (this.options, 'timeframes', {});
+        const swapTimeframes = this.safeDict (timeframeOptions, 'swap', {});
+        const parsedTimeframe = this.safeInteger (swapTimeframes, timeframe);
+        if (parsedTimeframe !== undefined) {
+            request['granularity'] = parsedTimeframe;
+        } else {
+            request['granularity'] = timeframe;
+        }
+        const duration = this.parseTimeframe (timeframe) * 1000;
+        let endAt = this.milliseconds (); // required param
+        if (since !== undefined) {
+            request['from'] = since;
+            if (limit === undefined) {
+                // For each query, the system would return at most 200 pieces of data.
+                // To obtain more data, please page the data by time.
+                limit = this.safeInteger (this.options, 'fetchOHLCVLimit', maxLimit);
+            }
+            endAt = this.sum (since, limit * duration);
+        } else if (limit !== undefined) {
+            since = endAt - limit * duration;
+            request['from'] = since;
+        }
+        request['to'] = endAt;
+        const response = await this.futuresPublicGetKlineQuery (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            [1636459200000, 4779.3, 4792.1, 4768.7, 4770.3, 78051],
+        //            [1636460100000, 4770.25, 4778.55, 4757.55, 4777.25, 80164],
+        //            [1636461000000, 4777.25, 4791.45, 4774.5, 4791.3, 51555]
+        //        ]
+        //    }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     /**
