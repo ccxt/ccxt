@@ -17,6 +17,9 @@ class CreateOrderTxReq(ctypes.Structure):
         ("ReduceOnly", ctypes.c_uint8),
         ("TriggerPrice", ctypes.c_uint32),
         ("OrderExpiry", ctypes.c_longlong),
+        ("IntegratorAccountIndex", ctypes.c_longlong),
+        ("IntegratorTakerFee", ctypes.c_int),
+        ("IntegratorMakerFee", ctypes.c_int),
     ]
 
 
@@ -55,7 +58,7 @@ def load_lighter_library(path):
     lighterSigner.SignChangePubKey.restype = SignedTxResponse
 
     lighterSigner.SignCreateOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                                            ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+                                            ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCreateOrder.restype = SignedTxResponse
 
     lighterSigner.SignCreateGroupedOrders.argtypes = [ctypes.c_uint8, ctypes.POINTER(CreateOrderTxReq), ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
