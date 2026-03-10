@@ -885,8 +885,8 @@ export default class kucoin extends Exchange {
                     'webApiMuteFailure': true,
                 },
                 'fetchMarkets': {
+                    'types': [ 'spot', 'margin', 'swap', 'future', 'contract' ],
                     'fetchTickersFees': true,
-                    'fetchContractMarkets': true,
                 },
                 'withdraw': {
                     'includeFee': false,
@@ -1552,38 +1552,49 @@ export default class kucoin extends Exchange {
         [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'uta', false);
-        let fetchContractMarkets = true;
-        [ fetchContractMarkets, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchContractMarkets', fetchContractMarkets);
         if (uta) {
             return await this.fetchUtaMarkets (params);
         }
-        const promises = [];
-        promises.push (this.publicGetSymbols (params));
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": [
-        //             {
-        //                 "symbol": "XLM-USDT",
-        //                 "name": "XLM-USDT",
-        //                 "baseCurrency": "XLM",
-        //                 "quoteCurrency": "USDT",
-        //                 "feeCurrency": "USDT",
-        //                 "market": "USDS",
-        //                 "baseMinSize": "0.1",
-        //                 "quoteMinSize": "0.01",
-        //                 "baseMaxSize": "10000000000",
-        //                 "quoteMaxSize": "99999999",
-        //                 "baseIncrement": "0.0001",
-        //                 "quoteIncrement": "0.000001",
-        //                 "priceIncrement": "0.000001",
-        //                 "priceLimitRate": "0.1",
-        //                 "isMarginEnabled": true,
-        //                 "enableTrading": true
-        //             },
-        //
+        const defaultTypes = [ 'spot', 'margin', 'swap', 'future', 'contract' ];
+        const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
+        const types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
         const credentialsSet = this.checkRequiredCredentials (false);
-        const requestMarginables = credentialsSet && this.safeBool (params, 'marginables', true);
+        let requestMarginables = this.inArray ('margin', types);
+        requestMarginables = credentialsSet && this.safeBool (params, 'marginables', requestMarginables); // for backward compatibility, marginables can be requested by params or by types
+        params = this.omit (params, 'marginables');
+        let fetchContractMarkets = false;
+        if (this.inArray ('swap', types) || this.inArray ('future', types) || this.inArray ('contract', types)) {
+            fetchContractMarkets = true;
+        }
+        const fetchSpotMarkets = this.inArray ('spot', types);
+        fetchTickersFees = fetchTickersFees && fetchSpotMarkets; // tickers and fees are only fetched for spot markets
+        const promises = [];
+        if (fetchSpotMarkets) {
+            promises.push (this.publicGetSymbols (params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": [
+            //             {
+            //                 "symbol": "XLM-USDT",
+            //                 "name": "XLM-USDT",
+            //                 "baseCurrency": "XLM",
+            //                 "quoteCurrency": "USDT",
+            //                 "feeCurrency": "USDT",
+            //                 "market": "USDS",
+            //                 "baseMinSize": "0.1",
+            //                 "quoteMinSize": "0.01",
+            //                 "baseMaxSize": "10000000000",
+            //                 "quoteMaxSize": "99999999",
+            //                 "baseIncrement": "0.0001",
+            //                 "quoteIncrement": "0.000001",
+            //                 "priceIncrement": "0.000001",
+            //                 "priceLimitRate": "0.1",
+            //                 "isMarginEnabled": true,
+            //                 "enableTrading": true
+            //             },
+            //
+        }
         if (requestMarginables) {
             promises.push (this.privateGetMarginSymbols (params)); // cross margin symbols
             //
@@ -1656,15 +1667,35 @@ export default class kucoin extends Exchange {
             promises.push (this.loadMigrationStatus ());
         }
         const responses = await Promise.all (promises);
-        const symbolsData = this.safeList (responses[0], 'data');
-        const crossData = requestMarginables ? this.safeDict (responses[1], 'data', {}) : {};
+        const symbolsData = fetchSpotMarkets ? this.safeList (responses[0], 'data') : [];
+        let crossIndex = 0;
+        let isolatedIndex = 0;
+        let tickersIndex = 0;
+        let contractIndex = 0;
+        let nextIndex = 0;
+        if (fetchSpotMarkets) {
+            nextIndex = 1;
+        }
+        if (requestMarginables) {
+            crossIndex = nextIndex;
+            nextIndex++;
+            isolatedIndex = nextIndex;
+            nextIndex++;
+        }
+        if (fetchTickersFees) {
+            tickersIndex = nextIndex;
+            nextIndex++;
+        }
+        if (fetchContractMarkets) {
+            contractIndex = nextIndex;
+        }
+        const crossData = requestMarginables ? this.safeDict (responses[crossIndex], 'data', {}) : {};
         const crossItems = this.safeList (crossData, 'items', []);
         const crossById = this.indexBy (crossItems, 'symbol');
-        const isolatedData = requestMarginables ? responses[2] : {};
+        const isolatedData = requestMarginables ? responses[isolatedIndex] : {};
         const isolatedItems = this.safeList (isolatedData, 'data', []);
         const isolatedById = this.indexBy (isolatedItems, 'symbol');
-        const tickersIdx = requestMarginables ? 3 : 1;
-        const tickersResponse = this.safeDict (responses, tickersIdx, {});
+        const tickersResponse = fetchTickersFees ? this.safeDict (responses, tickersIndex, {}) : {};
         const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
         const tickersById = this.indexBy (tickerItems, 'symbol');
         let result = [];
@@ -1740,9 +1771,7 @@ export default class kucoin extends Exchange {
             });
         }
         if (fetchContractMarkets) {
-            const increment = fetchTickersFees ? 1 : 0;
-            const contractIdx = tickersIdx + increment;
-            const contractMarkets = this.safeList (responses, contractIdx, []);
+            const contractMarkets = this.safeList (responses, contractIndex, []);
             result = this.arrayConcat (result, contractMarkets);
         }
         if (this.options['adjustForTimeDifference']) {
@@ -9450,5 +9479,85 @@ export default class kucoin extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         } as ADL;
+    }
+
+    /**
+     * @method
+     * @name kucoin#contractTransfer
+     * @description transfer currency internally between wallets on the same account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-main-or-trade-account
+     * @see https://www.kucoin.com/docs/rest/funding/transfer/transfer-to-futures-account
+     * @param {string} code unified currency code
+     * @param {float} amount amount to transfer
+     * @param {string} fromAccount account to transfer from
+     * @param {string} toAccount account to transfer to
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
+    async contractTransfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const amountToPrecision = this.currencyToPrecision (code, amount);
+        const request: Dict = {
+            'currency': this.safeString (currency, 'id'),
+            'amount': amountToPrecision,
+        };
+        const toAccountString = this.parseTransferType (toAccount);
+        let response = undefined;
+        if (toAccountString === 'TRADE' || toAccountString === 'MAIN') {
+            request['recAccountType'] = toAccountString;
+            response = await this.futuresPrivatePostTransferOut (this.extend (request, params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "applyId": "6738754373ceee00011ec3f8",
+            //             "bizNo": "6738754373ceee00011ec3f7",
+            //             "payAccountType": "CONTRACT",
+            //             "payTag": "DEFAULT",
+            //             "remark": "",
+            //             "recAccountType": "MAIN",
+            //             "recTag": "DEFAULT",
+            //             "recRemark": "",
+            //             "recSystem": "KUCOIN",
+            //             "status": "PROCESSING",
+            //             "currency": "USDT",
+            //             "amount": "5",
+            //             "fee": "0",
+            //             "sn": 1519769124846692,
+            //             "reason": "",
+            //             "createdAt": 1731753283000,
+            //             "updatedAt": 1731753283000
+            //         }
+            //     }
+            //
+        } else if (toAccount === 'future' || toAccount === 'swap' || toAccount === 'contract') {
+            request['payAccountType'] = this.parseTransferType (fromAccount);
+            response = await this.futuresPrivatePostTransferIn (this.extend (request, params));
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "applyId": "5bffb63303aa675e8bbe18f9" // Transfer-out request ID
+            //        }
+            //    }
+            //
+        } else {
+            throw new BadRequest (this.id + ' transfer() only supports transfers between future/swap, spot and funding accounts');
+        }
+        const data = this.safeDict (response, 'data', {});
+        return this.extend (this.parseTransfer (data, currency), {
+            'amount': this.parseNumber (amountToPrecision),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        });
+    }
+
+    parseTransferType (transferType: Str): Str {
+        const transferTypes: Dict = {
+            'spot': 'TRADE',
+            'funding': 'MAIN',
+        };
+        return this.safeStringUpper (transferTypes, transferType, transferType);
     }
 }
