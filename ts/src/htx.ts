@@ -4709,7 +4709,7 @@ export default class htx extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let request = {
+        let request: Dict = {
             'contract_code': market['id'],
             'margin_mode': marginMode,
         };
