@@ -344,6 +344,9 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'integratorAccountIndex': 0,
+                'integratorMakerFee': 0,
+                'integratorTakerFee': 0,
             },
             'features': {
                 'default': {
@@ -608,6 +611,9 @@ export default class lighter extends Exchange {
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
+        request['integrator_account_index'] = this.options['integratorAccountIndex'];
+        request['integrator_taker_fee'] = this.options['integratorTakerFee'];
+        request['integrator_maker_fee'] = this.options['integratorMakerFee'];
         const orders = [];
         orders.push (this.extend (request, params));
         if (hasStopLoss || hasTakeProfit) {
@@ -786,6 +792,9 @@ export default class lighter extends Exchange {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
+            'integrator_account_index': this.options['integratorAccountIndex'],
+            'integrator_taker_fee': this.options['integratorTakerFee'],
+            'integrator_maker_fee': this.options['integratorMakerFee'],
         };
         const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));

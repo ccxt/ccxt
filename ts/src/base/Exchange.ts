@@ -2015,6 +2015,9 @@ export default class Exchange {
             request['reduce_only'],
             request['trigger_price'],
             request['order_expiry'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
             request['nonce'],
             request['api_key_index'],
             request['account_index']
@@ -2084,6 +2087,9 @@ export default class Exchange {
             request['base_amount'],
             request['price'],
             request['trigger_price'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
             request['nonce'],
             request['api_key_index'],
             request['account_index']
