@@ -6811,10 +6811,10 @@ export default class okx extends Exchange {
             const marketInner = this.safeMarket (instId);
             const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
-            const balanceChange = this.safeNumber (entry, 'balChg');
-            const positionBalanceChange = this.safeNumber (entry, 'posBalChg');
+            const balanceChange = this.safeString (entry, 'balChg');
+            const positionBalanceChange = this.safeString (entry, 'posBalChg');
             let amount = undefined;
-            if ((balanceChange !== undefined) && (balanceChange !== 0) && (balanceChange !== 0.0) && (balanceChange !== 0.0000000000000000)) {
+            if ((balanceChange !== undefined) && (balanceChange !== '0')) {
                 amount = balanceChange;
             } else {
                 amount = positionBalanceChange;
@@ -6826,7 +6826,7 @@ export default class okx extends Exchange {
                 'timestamp': timestamp,
                 'datetime': this.iso8601 (timestamp),
                 'id': this.safeString (entry, 'billId'),
-                'amount': amount,
+                'amount': this.parseNumber (amount),
             });
         }
         const sorted = this.sortBy (result, 'timestamp');
