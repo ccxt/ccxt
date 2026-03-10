@@ -885,7 +885,7 @@ export default class kucoin extends Exchange {
                     'webApiMuteFailure': true,
                 },
                 'fetchMarkets': {
-                    'types': [ 'spot', 'margin', 'swap', 'future', 'contract' ],
+                    'types': [ 'spot', 'swap', 'future', 'contract' ],
                     'fetchTickersFees': true,
                 },
                 'withdraw': {
@@ -1555,12 +1555,11 @@ export default class kucoin extends Exchange {
         if (uta) {
             return await this.fetchUtaMarkets (params);
         }
-        const defaultTypes = [ 'spot', 'margin', 'swap', 'future', 'contract' ];
+        const defaultTypes = [ 'spot', 'swap', 'future', 'contract' ];
         const fetchMarketsOptions = this.safeDict (this.options, 'fetchMarkets');
         const types = this.safeList (fetchMarketsOptions, 'types', defaultTypes);
         const credentialsSet = this.checkRequiredCredentials (false);
-        let requestMarginables = this.inArray ('margin', types);
-        requestMarginables = credentialsSet && this.safeBool (params, 'marginables', requestMarginables); // for backward compatibility, marginables can be requested by params or by types
+        const requestMarginables = credentialsSet && this.safeBool (params, 'marginables', true);
         params = this.omit (params, 'marginables');
         let fetchContractMarkets = false;
         if (this.inArray ('swap', types) || this.inArray ('future', types) || this.inArray ('contract', types)) {
@@ -1678,13 +1677,12 @@ export default class kucoin extends Exchange {
         }
         if (requestMarginables) {
             crossIndex = nextIndex;
-            nextIndex++;
-            isolatedIndex = nextIndex;
-            nextIndex++;
+            nextIndex = this.sum (nextIndex, 2);
+            isolatedIndex = this.sum (crossIndex, 1);
         }
         if (fetchTickersFees) {
             tickersIndex = nextIndex;
-            nextIndex++;
+            nextIndex = this.sum (nextIndex, 1);
         }
         if (fetchContractMarkets) {
             contractIndex = nextIndex;
