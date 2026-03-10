@@ -5076,15 +5076,15 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         let response = undefined;
-        if (id === undefined) {
-            const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-            if (clientOrderId === undefined) {
-                throw new InvalidOrder (this.id + ' fetchOrder() requires parameter id or params.clientOid');
-            }
+        const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
+        if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
             response = await this.futuresPrivateGetOrdersByClientOid (this.extend (request, params));
         } else {
+            if (id === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchOrder() requires an order id argument or clientOrderId in params');
+            }
             request['orderId'] = id;
             response = await this.futuresPrivateGetOrdersOrderId (this.extend (request, params));
         }
