@@ -3,7 +3,7 @@
 
 import kucoin from './kucoin.js';
 import { BadRequest } from './base/errors.js';
-import type { Dict, Str, Strings, TransferEntry } from './base/types.js';
+import type { Dict, Strings, TransferEntry } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -28,7 +28,7 @@ export default class kucoinfutures extends kucoin {
             },
             'options': {
                 'fetchMarkets': {
-                    'types': [ 'swap', 'future' ],
+                    'types': [ 'swap', 'future', 'contract' ],
                     'fetchTickersFees': false,
                 },
                 'defaultType': 'swap',
@@ -123,7 +123,7 @@ export default class kucoinfutures extends kucoin {
         });
     }
 
-    parseTransferType (transferType: Str): Str {
+    parseTransferType (transferType) {
         const transferTypes: Dict = {
             'spot': 'TRADE',
             'funding': 'MAIN',
