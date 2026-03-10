@@ -1000,6 +1000,7 @@ public partial class kucoin : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "rollingWindowSize", 30000 },
         });
     }
 

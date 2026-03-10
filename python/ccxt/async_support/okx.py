@@ -1420,6 +1420,7 @@ class okx(Exchange, ImplicitAPI):
                 # the exchange refers to ERC20 version of Aeternity(AEToken)
                 'AE': 'AET',  # https://github.com/ccxt/ccxt/issues/4981
             },
+            'rollingWindowSize': 0.0,  # okx always receives rateLimitExceeded with rolling window
         })
 
     def handle_market_type_and_params(self, methodName: str, market: Market = None, params={}, defaultValue=None) -> Any:

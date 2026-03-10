@@ -646,8 +646,8 @@ class lighter(ccxt.async_support.lighter):
         stored = self.safe_value(self.liquidations, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)
-            stored = ArrayCache(limit)
-            self.liquidations[symbol] = stored
+            self.liquidations = ArrayCache(limit)
+            stored = self.liquidations
         for i in range(0, len(data)):
             liquidation = self.parse_ws_liquidation(data[i], market)
             stored.append(liquidation)

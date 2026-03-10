@@ -1112,7 +1112,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash = '::' + ','.join(symbols)
         type = None
         subType = None
-        type, params = self.handle_market_type_and_params('watchPositions', market, params)
+        type, params = self.handle_market_type_and_params('watchPositions', market, params, 'swap')
         subType, params = self.handle_sub_type_and_params('watchPositions', market, params, 'linear')
         if type == 'spot':
             raise NotSupported(self.id + ' watchPositions is not supported for spot markets')
