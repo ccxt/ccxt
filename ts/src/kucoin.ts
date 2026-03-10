@@ -4236,13 +4236,12 @@ export default class kucoin extends Exchange {
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
-        if (symbol === undefined) {
-            [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
-        } else {
-            const market = this.market (symbol);
-            marketType = market['type'];
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        if (marketType === 'spot') {
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.cancelSpotOrder (id, symbol, params);
         } else {
             return await this.cancelContractOrder (id, symbol, params);
@@ -4462,13 +4461,12 @@ export default class kucoin extends Exchange {
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         let marketType = undefined;
-        if (symbol === undefined) {
-            [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
-        } else {
-            const market = this.market (symbol);
-            marketType = market['type'];
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        if (marketType === 'spot') {
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.cancelAllSpotOrders (symbol, params);
         } else {
             return await this.cancelAllContractOrders (symbol, params);
@@ -4608,7 +4606,7 @@ export default class kucoin extends Exchange {
             const market = this.market (symbol);
             marketType = market['type'];
         }
-        if (marketType === 'spot') {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.fetchSpotOrdersByStatus (status, symbol, since, limit, params);
         } else {
             return await this.fetchContractOrdersByStatus (status, symbol, since, limit, params);
@@ -4964,7 +4962,7 @@ export default class kucoin extends Exchange {
             const market = this.market (symbol);
             marketType = market['type'];
         }
-        if (marketType === 'spot') {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.fetchSpotOrder (id, symbol, params);
         } else {
             return await this.fetchContractOrder (id, symbol, params);
@@ -5508,7 +5506,7 @@ export default class kucoin extends Exchange {
             const market = this.market (symbol);
             marketType = market['type'];
         }
-        if (marketType === 'spot') {
+        if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.fetchMySpotTrades (symbol, since, limit, params);
         } else {
             return await this.fetchMyContractTrades (symbol, since, limit, params);
