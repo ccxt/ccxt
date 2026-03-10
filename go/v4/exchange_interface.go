@@ -125,7 +125,6 @@ type ICoreExchange interface {
 	FetchBalance(optionalArgs ...interface{}) <-chan interface{}
 	FetchOrderBook(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchStatus(optionalArgs ...interface{}) <-chan interface{}
-	FetchTakerBuySellVolume(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchBidsAsks(optionalArgs ...interface{}) <-chan interface{}
 	FetchLastPrices(optionalArgs ...interface{}) <-chan interface{}

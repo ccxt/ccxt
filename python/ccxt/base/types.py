@@ -576,18 +576,6 @@ class ADL:
     datetime: Optional[Str]
 
 
-class TakerVolume:
-    info: Any
-    symbol: Str
-    timestamp: Optional[Int]
-    datetime: Optional[Str]
-    timeframe: Optional[Str]
-    takerBuyBaseVolume: Optional[Num]
-    takerSellBaseVolume: Optional[Num]
-    takerBuyQuoteVolume: Optional[Num]
-    takerSellQuoteVolume: Optional[Num]
-
-
 class BorrowInterest:
     info: Any
     symbol: Optional[Str]
