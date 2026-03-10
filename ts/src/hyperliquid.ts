@@ -1108,7 +1108,8 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        const isUnifiedEnabled = await this.isUnifiedEnabled ();
+        let isUnifiedEnabled = undefined;
+        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', params);
         const isSpot = ((type === 'spot') || isUnifiedEnabled);
         const request: Dict = {
             'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
@@ -1867,10 +1868,11 @@ export default class hyperliquid extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {bool} enableUnifiedMargin
      */
-    async isUnifiedEnabled (params = {}) {
+    async isUnifiedEnabled (method: string, params = {}) {
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
-        const enableUnifiedMargin = this.safeBool (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined) {
             const request: Dict = {
                 'type': 'userAbstraction',
@@ -1880,9 +1882,9 @@ export default class hyperliquid extends Exchange {
             //
             // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
             //
-            this.options['enableUnifiedMargin'] = response === '"unifiedAccount"';
+            enableUnifiedMargin = response === '"unifiedAccount"';
         }
-        return this.options['enableUnifiedMargin'];
+        return [ enableUnifiedMargin, params ];
     }
 
     /**
