@@ -2255,49 +2255,6 @@ func NewADLArray(data2 interface{}) []ADL {
 	return result
 }
 
-// TakerVolume Type
-
-type TakerVolume struct {
-	Info                 map[string]interface{}
-	Symbol               *string
-	Timestamp            *int64
-	Datetime             *string
-	Timeframe            *string
-	TakerBuyBaseVolume   *float64
-	TakerSellBaseVolume  *float64
-	TakerBuyQuoteVolume  *float64
-	TakerSellQuoteVolume *float64
-}
-
-func NewTakerVolume(data interface{}) TakerVolume {
-	return TakerVolume{
-		Info:                 GetInfo(data),
-		Symbol:               SafeStringTyped(data, "symbol"),
-		Timestamp:            SafeInt64Typed(data, "timestamp"),
-		Datetime:             SafeStringTyped(data, "datetime"),
-		Timeframe:            SafeStringTyped(data, "timeframe"),
-		TakerBuyBaseVolume:   SafeFloatTyped(data, "takerBuyBaseVolume"),
-		TakerSellBaseVolume:  SafeFloatTyped(data, "takerSellBaseVolume"),
-		TakerBuyQuoteVolume:  SafeFloatTyped(data, "takerBuyQuoteVolume"),
-		TakerSellQuoteVolume: SafeFloatTyped(data, "takerSellQuoteVolume"),
-	}
-}
-
-func NewTakerVolumeArray(data2 interface{}) []TakerVolume {
-	data := data2.([]interface{})
-	result := make([]TakerVolume, 0, len(data))
-
-	for _, item := range data {
-		obj, ok := item.(map[string]interface{})
-		if !ok {
-			continue
-		}
-		result = append(result, NewTakerVolume(obj))
-	}
-
-	return result
-}
-
 // OrderBooks struct
 type OrderBooks struct {
 	Info       map[string]interface{}
