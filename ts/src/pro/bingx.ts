@@ -1339,6 +1339,10 @@ export default class bingx extends bingxRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition (rawPosition);
+            const symbol = this.safeString (position, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
             const timestamp = this.safeInteger (message, 'E');
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601 (timestamp);
