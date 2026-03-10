@@ -419,7 +419,7 @@ class lighter extends Exchange {
                 $this->options['accountIndex'] = $accountIndex;
             }
         }
-        return array( $accountIndex, $params );
+        return array( $this->parse_to_int($accountIndex), $params );
     }
 
     public function create_sub_account(string $name, $params = array ()) {
@@ -528,7 +528,7 @@ class lighter extends Exchange {
         list($orderExpiry, $params) = $this->handle_option_and_params($params, 'createOrder', 'orderExpiry', 0);
         $request['nonce'] = $nonce;
         $request['api_key_index'] = $apiKeyIndex;
-        $request['account_index'] = $accountIndex;
+        $request['account_index'] = $this->parse_to_int($accountIndex);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
