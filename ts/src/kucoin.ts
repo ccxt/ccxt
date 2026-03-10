@@ -4496,7 +4496,7 @@ export default class kucoin extends Exchange {
         const trigger = this.safeBool2 (params, 'trigger', 'stop', false);
         let hf = undefined;
         [ hf, params ] = this.handleHfAndParams (params);
-        params = this.omit (params, 'stop');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         const isMarginOrders = marginMode !== undefined;
         if (symbol !== undefined) {
