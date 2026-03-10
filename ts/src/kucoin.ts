@@ -1441,7 +1441,7 @@ export default class kucoin extends Exchange {
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
     async fetchTime (params = {}): Promise<Int> {
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTime', undefined, params);
         let response = undefined;
         if ((type !== 'spot') && (type !== 'margin')) {
@@ -1481,7 +1481,7 @@ export default class kucoin extends Exchange {
     async fetchStatus (params = {}) {
         let uta = undefined;
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchStatus', 'uta', false);
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchStatus', undefined, params);
         let response = undefined;
         if (uta) {
@@ -2715,7 +2715,7 @@ export default class kucoin extends Exchange {
             const firstSymbol = this.safeString (symbols, 0);
             firstMarket = this.market (firstSymbol);
         }
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', firstMarket, params);
         let response = undefined;
         if ((tradeType !== undefined) || uta) {
@@ -2912,7 +2912,7 @@ export default class kucoin extends Exchange {
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchTicker', 'uta', false);
         let response = undefined;
         let result = undefined;
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
         if (uta) {
             request['tradeType'] = this.typeToTradeType (type);
@@ -4235,7 +4235,7 @@ export default class kucoin extends Exchange {
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         if (symbol === undefined) {
             [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         } else {
@@ -4461,7 +4461,7 @@ export default class kucoin extends Exchange {
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         if (symbol === undefined) {
             [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         } else {
@@ -4594,7 +4594,7 @@ export default class kucoin extends Exchange {
      */
     async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         if (symbol === undefined) {
             const type = this.safeString (params, 'type'); // exchange has specific param for order type
             // todo check for better way to determine market type without symbol
@@ -4957,7 +4957,7 @@ export default class kucoin extends Exchange {
      */
     async fetchOrder (id: Str, symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         if (symbol === undefined) {
             [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', undefined, params);
         } else {
@@ -5501,7 +5501,7 @@ export default class kucoin extends Exchange {
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
-        let marketType = 'spot';
+        let marketType = undefined;
         if (symbol === undefined) {
             [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', undefined, params);
         } else {
@@ -7301,7 +7301,7 @@ export default class kucoin extends Exchange {
         [ request, params ] = this.handleUntilOption ('endAt', request, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
-        let type = 'spot';
+        let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         type = this.safeString (accountsByType, type, type);
