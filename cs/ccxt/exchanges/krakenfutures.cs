@@ -2117,6 +2117,8 @@ public partial class krakenfutures : Exchange
             {
                 filledOrder = null;
             }
+            object fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, "priceTriggerOptions", new Dictionary<string, object>() {});
+            object fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, "triggerPrice");
             return this.safeOrder(new Dictionary<string, object>() {
                 { "info", order },
                 { "id", this.safeString(orderDictFromFetchOrder, "orderId") },
@@ -2131,8 +2133,9 @@ public partial class krakenfutures : Exchange
                 { "postOnly", null },
                 { "reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly") },
                 { "side", this.safeString(orderDictFromFetchOrder, "side") },
-                { "price", this.safeString(orderDictFromFetchOrder, "limitPrice") },
-                { "triggerPrice", null },
+                { "price", null },
+                { "triggerPrice", fetchOrderTriggerPrice },
+                { "stopPrice", fetchOrderTriggerPrice },
                 { "amount", this.safeString(orderDictFromFetchOrder, "quantity") },
                 { "cost", null },
                 { "average", null },

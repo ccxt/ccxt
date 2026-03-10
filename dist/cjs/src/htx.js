@@ -115,7 +115,7 @@ class htx extends htx$1["default"] {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1400,6 +1400,7 @@ class htx extends htx$1["default"] {
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         });
     }
     /**

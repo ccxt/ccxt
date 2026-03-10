@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.41'
+__version__ = '4.5.42'
 
 # -----------------------------------------------------------------------------
 
@@ -64,6 +64,7 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
+from ccxt.async_support.aftermath import aftermath                              # noqa: F401
 from ccxt.async_support.alp import alp                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
@@ -177,6 +178,7 @@ from ccxt.async_support.zebpay import zebpay                                    
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
+    'aftermath',
     'alp',
     'alpaca',
     'apex',

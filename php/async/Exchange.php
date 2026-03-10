@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.41';
+$version = '4.5.42';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.41';
+    const VERSION = '4.5.42';
 
     public $browser;
     public $marketsLoading = null;

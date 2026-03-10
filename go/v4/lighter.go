@@ -2560,6 +2560,7 @@ func (this *LighterCore) Transfer(code interface{}, amount interface{}, fromAcco
  * @param {int} [limit] the maximum number of  transfers structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *LighterCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
@@ -2575,6 +2576,17 @@ func (this *LighterCore) FetchTransfers(optionalArgs ...interface{}) <-chan inte
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
+		var paginate interface{} = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes216719 := (<-this.FetchPaginatedCallCursor("fetchTransfers", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes216719)
+			ch <- retRes216719
+			return nil
+		}
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchTransfers", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
@@ -2590,8 +2602,8 @@ func (this *LighterCore) FetchTransfers(optionalArgs ...interface{}) <-chan inte
 			panic(ArgumentsRequired(Add(this.Id, " fetchTransfers() requires an apiKeyIndex parameter")))
 		}
 
-		retRes21738 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
-		PanicOnError(retRes21738)
+		retRes21798 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
+		PanicOnError(retRes21798)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2623,6 +2635,11 @@ func (this *LighterCore) FetchTransfers(optionalArgs ...interface{}) <-chan inte
 		//     }
 		//
 		var rows interface{} = this.SafeList(response, "transfers", []interface{}{})
+		var cursor interface{} = this.SafeString(response, "cursor")
+		var first interface{} = this.SafeDict(rows, 0)
+		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
+			AddElementToObject(GetValue(rows, 0), "cursor", cursor)
+		}
 
 		ch <- this.ParseTransfers(rows, currency, since, limit, params)
 		return nil
@@ -2679,6 +2696,7 @@ func (this *LighterCore) ParseTransfer(transfer interface{}, optionalArgs ...int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
  * @param {string} [params.address] l1_address
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *LighterCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
@@ -2694,6 +2712,17 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
+		var paginate interface{} = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes227119 := (<-this.FetchPaginatedCallCursor("fetchDeposits", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes227119)
+			ch <- retRes227119
+			return nil
+		}
 		var address interface{} = nil
 		addressparamsVariable := this.HandleOptionAndParams2(params, "fetchDeposits", "address", "l1_address")
 		address = GetValue(addressparamsVariable, 0)
@@ -2702,8 +2731,8 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires an address parameter")))
 		}
 
-		retRes22618 := (<-this.LoadMarkets())
-		PanicOnError(retRes22618)
+		retRes22788 := (<-this.LoadMarkets())
+		PanicOnError(retRes22788)
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchDeposits", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
@@ -2720,8 +2749,8 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " fetchDeposits() requires an apiKeyIndex parameter")))
 		}
 
-		retRes22738 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
-		PanicOnError(retRes22738)
+		retRes22908 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
+		PanicOnError(retRes22908)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2747,6 +2776,11 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
 		//     }
 		//
 		var data interface{} = this.SafeList(response, "deposits", []interface{}{})
+		var cursor interface{} = this.SafeString(response, "cursor")
+		var first interface{} = this.SafeDict(data, 0)
+		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
+			AddElementToObject(GetValue(data, 0), "cursor", cursor)
+		}
 
 		ch <- this.ParseTransactions(data, currency, since, limit)
 		return nil
@@ -2765,6 +2799,7 @@ func (this *LighterCore) FetchDeposits(optionalArgs ...interface{}) <-chan inter
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *LighterCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
@@ -2780,13 +2815,24 @@ func (this *LighterCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
+		var paginate interface{} = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
 
-		retRes23138 := (<-this.LoadMarkets())
-		PanicOnError(retRes23138)
+			retRes233919 := (<-this.FetchPaginatedCallCursor("fetchWithdrawals", code, since, limit, params, "cursor", "cursor", nil, 50))
+			PanicOnError(retRes233919)
+			ch <- retRes233919
+			return nil
+		}
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchWithdrawals", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
 		params = GetValue(accountIndexparamsVariable, 1)
+
+		retRes23438 := (<-this.LoadMarkets())
+		PanicOnError(retRes23438)
 		var request interface{} = map[string]interface{}{
 			"account_index": accountIndex,
 		}
@@ -2798,8 +2844,8 @@ func (this *LighterCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 			panic(ArgumentsRequired(Add(this.Id, " fetchWithdrawals() requires an apiKeyIndex parameter")))
 		}
 
-		retRes23248 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
-		PanicOnError(retRes23248)
+		retRes23528 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
+		PanicOnError(retRes23528)
 		var currency interface{} = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -2826,6 +2872,11 @@ func (this *LighterCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan in
 		//     }
 		//
 		var data interface{} = this.SafeList(response, "withdraws", []interface{}{})
+		var cursor interface{} = this.SafeString(response, "cursor")
+		var first interface{} = this.SafeDict(data, 0)
+		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(cursor, nil)))) {
+			AddElementToObject(GetValue(data, 0), "cursor", cursor)
+		}
 
 		ch <- this.ParseTransactions(data, currency, since, limit)
 		return nil
@@ -2929,8 +2980,8 @@ func (this *LighterCore) Withdraw(code interface{}, amount interface{}, address 
 			panic(ArgumentsRequired(Add(this.Id, " withdraw() requires an apiKeyIndex parameter")))
 		}
 
-		retRes24368 := (<-this.LoadMarkets())
-		PanicOnError(retRes24368)
+		retRes24698 := (<-this.LoadMarkets())
+		PanicOnError(retRes24698)
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "withdraw", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
@@ -2987,6 +3038,8 @@ func (this *LighterCore) Withdraw(code interface{}, amount interface{}, address 
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.accountIndex] account index
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {int} [params.until] timestamp in ms of the latest trade to fetch
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *LighterCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
@@ -3003,8 +3056,19 @@ func (this *LighterCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes24818 := (<-this.LoadMarkets())
-		PanicOnError(retRes24818)
+		retRes25168 := (<-this.LoadMarkets())
+		PanicOnError(retRes25168)
+		var paginate interface{} = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes252019 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, 50))
+			PanicOnError(retRes252019)
+			ch <- retRes252019
+			return nil
+		}
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "fetchMyTrades", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
@@ -3017,15 +3081,22 @@ func (this *LighterCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires an apiKeyIndex parameter")))
 		}
 
-		retRes24898 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
-		PanicOnError(retRes24898)
+		retRes25298 := (<-this.LoadAccount(GetValue(this.Options, "chainId"), this.PrivateKey, apiKeyIndex, accountIndex, params))
+		PanicOnError(retRes25298)
 		var request interface{} = map[string]interface{}{
-			"sort_by":       "block_height",
+			"sort_by":       "timestamp",
 			"limit":         100,
 			"account_index": accountIndex,
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", mathMin(limit, 100))
+		}
+		var until interface{} = nil
+		untilparamsVariable := this.HandleOptionAndParams2(params, "fetchMyTrades", "until", "from")
+		until = GetValue(untilparamsVariable, 0)
+		params = GetValue(untilparamsVariable, 1)
+		if IsTrue(!IsEqual(until, nil)) {
+			AddElementToObject(request, "from", until)
 		}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -3069,6 +3140,11 @@ func (this *LighterCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inter
 		var data interface{} = this.SafeList(response, "trades", []interface{}{})
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 			AddElementToObject(GetValue(data, i), "account_index", accountIndex)
+		}
+		var nextCursor interface{} = this.SafeString(response, "next_cursor")
+		var first interface{} = this.SafeDict(data, 0)
+		if IsTrue(IsTrue((!IsEqual(first, nil))) && IsTrue((!IsEqual(nextCursor, nil)))) {
+			AddElementToObject(GetValue(data, 0), "next_cursor", nextCursor)
 		}
 
 		ch <- this.ParseTrades(data, market, since, limit, params)
@@ -3178,9 +3254,9 @@ func (this *LighterCore) SetLeverage(leverage interface{}, optionalArgs ...inter
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires an marginMode parameter")))
 		}
 
-		retRes263015 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
-		PanicOnError(retRes263015)
-		ch <- retRes263015
+		retRes268015 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+		PanicOnError(retRes268015)
+		ch <- retRes268015
 		return nil
 
 	}()
@@ -3219,9 +3295,9 @@ func (this *LighterCore) SetMarginMode(marginMode interface{}, optionalArgs ...i
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires an leverage parameter")))
 		}
 
-		retRes265415 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
-		PanicOnError(retRes265415)
-		ch <- retRes265415
+		retRes270415 := (<-this.ModifyLeverageAndMarginMode(leverage, marginMode, symbol, params))
+		PanicOnError(retRes270415)
+		ch <- retRes270415
 		return nil
 
 	}()
@@ -3250,8 +3326,8 @@ func (this *LighterCore) ModifyLeverageAndMarginMode(leverage interface{}, margi
 			panic(ArgumentsRequired(Add(this.Id, " modifyLeverageAndMarginMode() requires a symbol argument")))
 		}
 
-		retRes26698 := (<-this.LoadMarkets())
-		PanicOnError(retRes26698)
+		retRes27198 := (<-this.LoadMarkets())
+		PanicOnError(retRes27198)
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "modifyLeverageAndMarginMode", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
@@ -3279,9 +3355,9 @@ func (this *LighterCore) ModifyLeverageAndMarginMode(leverage interface{}, margi
 			"tx_info": txInfo,
 		}
 
-		retRes268815 := (<-this.PublicPostSendTx(request))
-		PanicOnError(retRes268815)
-		ch <- retRes268815
+		retRes273815 := (<-this.PublicPostSendTx(request))
+		PanicOnError(retRes273815)
+		ch <- retRes273815
 		return nil
 
 	}()
@@ -3321,8 +3397,8 @@ func (this *LighterCore) CancelOrder(id interface{}, optionalArgs ...interface{}
 		var clientOrderId interface{} = this.SafeString2(params, "client_order_index", "clientOrderId")
 		params = this.Omit(params, []interface{}{"client_order_index", "clientOrderId"})
 
-		retRes27138 := (<-this.LoadMarkets())
-		PanicOnError(retRes27138)
+		retRes27638 := (<-this.LoadMarkets())
+		PanicOnError(retRes27638)
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "cancelOrder", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)
@@ -3506,9 +3582,9 @@ func (this *LighterCore) AddMargin(symbol interface{}, amount interface{}, optio
 			"direction": 1,
 		}
 
-		retRes282715 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes282715)
-		ch <- retRes282715
+		retRes287715 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes287715)
+		ch <- retRes287715
 		return nil
 
 	}()
@@ -3535,9 +3611,9 @@ func (this *LighterCore) ReduceMargin(symbol interface{}, amount interface{}, op
 			"direction": 0,
 		}
 
-		retRes284315 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
-		PanicOnError(retRes284315)
-		ch <- retRes284315
+		retRes289315 := (<-this.SetMargin(symbol, amount, this.Extend(request, params)))
+		PanicOnError(retRes289315)
+		ch <- retRes289315
 		return nil
 
 	}()
@@ -3580,8 +3656,8 @@ func (this *LighterCore) SetMargin(symbol interface{}, amount interface{}, optio
 			panic(ArgumentsRequired(Add(this.Id, " setMargin() requires a symbol argument")))
 		}
 
-		retRes28738 := (<-this.LoadMarkets())
-		PanicOnError(retRes28738)
+		retRes29238 := (<-this.LoadMarkets())
+		PanicOnError(retRes29238)
 		var accountIndex interface{} = nil
 		accountIndexparamsVariable := (<-this.HandleAccountIndex(params, "setMargin", "accountIndex", "account_index"))
 		accountIndex = GetValue(accountIndexparamsVariable, 0)

@@ -2158,9 +2158,15 @@ export default class lighter extends Exchange {
      * @param {int} [limit] the maximum number of  transfers structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTransfers', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchTransfers', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as TransferEntry[];
+        }
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchTransfers', 'accountIndex', 'account_index');
         const request: Dict = {
@@ -2201,6 +2207,11 @@ export default class lighter extends Exchange {
         //     }
         //
         const rows = this.safeList (response, 'transfers', []);
+        const cursor = this.safeString (response, 'cursor');
+        const first = this.safeDict (rows, 0);
+        if ((first !== undefined) && (cursor !== undefined)) {
+            rows[0]['cursor'] = cursor;
+        }
         return this.parseTransfers (rows, currency, since, limit, params);
     }
 
@@ -2251,9 +2262,15 @@ export default class lighter extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.address] l1_address
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchDeposits', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
+        }
         let address = undefined;
         [ address, params ] = this.handleOptionAndParams2 (params, 'fetchDeposits', 'address', 'l1_address');
         if (address === undefined) {
@@ -2295,6 +2312,11 @@ export default class lighter extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'deposits', []);
+        const cursor = this.safeString (response, 'cursor');
+        const first = this.safeDict (data, 0);
+        if ((first !== undefined) && (cursor !== undefined)) {
+            data[0]['cursor'] = cursor;
+        }
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -2308,12 +2330,18 @@ export default class lighter extends Exchange {
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchWithdrawals', code, since, limit, params, 'cursor', 'cursor', undefined, 50) as Transaction[];
+        }
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchWithdrawals', 'accountIndex', 'account_index');
+        await this.loadMarkets ();
         const request: Dict = {
             'account_index': accountIndex,
         };
@@ -2347,6 +2375,11 @@ export default class lighter extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'withdraws', []);
+        const cursor = this.safeString (response, 'cursor');
+        const first = this.safeDict (data, 0);
+        if ((first !== undefined) && (cursor !== undefined)) {
+            data[0]['cursor'] = cursor;
+        }
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -2476,10 +2509,17 @@ export default class lighter extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @param {int} [params.until] timestamp in ms of the latest trade to fetch
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor ('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', undefined, 50) as Trade[];
+        }
         let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'fetchMyTrades', 'accountIndex', 'account_index');
         let apiKeyIndex = undefined;
@@ -2489,12 +2529,17 @@ export default class lighter extends Exchange {
         }
         await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const request: Dict = {
-            'sort_by': 'block_height',
+            'sort_by': 'timestamp',
             'limit': 100,
             'account_index': accountIndex,
         };
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 100);
+        }
+        let until = undefined;
+        [ until, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'until', 'from');
+        if (until !== undefined) {
+            request['from'] = until;
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -2536,6 +2581,11 @@ export default class lighter extends Exchange {
         const data = this.safeList (response, 'trades', []);
         for (let i = 0; i < data.length; i++) {
             data[i]['account_index'] = accountIndex;
+        }
+        const nextCursor = this.safeString (response, 'next_cursor');
+        const first = this.safeDict (data, 0);
+        if ((first !== undefined) && (nextCursor !== undefined)) {
+            data[0]['next_cursor'] = nextCursor;
         }
         return this.parseTrades (data, market, since, limit, params);
     }

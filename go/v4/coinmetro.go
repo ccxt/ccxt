@@ -385,7 +385,7 @@ func (this *CoinmetroCore) FetchCurrencies(optionalArgs ...interface{}) <-chan i
 			var code interface{} = this.SafeCurrencyCode(id)
 			var typeRaw interface{} = this.SafeString(currency, "type")
 			var typeVar interface{} = nil
-			if IsTrue(IsTrue(IsTrue(IsEqual(typeRaw, "coin")) || IsTrue(IsEqual(typeRaw, "token"))) || IsTrue(IsEqual(typeRaw, "erc20"))) {
+			if IsTrue(IsTrue(IsTrue(IsTrue(IsEqual(typeRaw, "coin")) || IsTrue(IsEqual(typeRaw, "token"))) || IsTrue(IsEqual(typeRaw, "erc20"))) || IsTrue(IsEqual(typeRaw, "crypto"))) {
 				typeVar = "crypto"
 			} else if IsTrue(IsEqual(typeRaw, "fiat")) {
 				typeVar = "fiat"

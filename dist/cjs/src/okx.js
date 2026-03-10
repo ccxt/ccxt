@@ -1395,6 +1395,7 @@ class okx extends okx$1["default"] {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
             },
+            'rollingWindowSize': 0.0, // okx always receives rateLimitExceeded with rolling window
         });
     }
     handleMarketTypeAndParams(methodName, market = undefined, params = {}, defaultValue = undefined) {

@@ -1000,6 +1000,7 @@ public partial class kucoin : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "rollingWindowSize", 30000 },
         });
     }
 
@@ -2645,7 +2646,13 @@ public partial class kucoin : Exchange
             response = await this.privatePostStopOrder(orderRequest);
         } else if (isTrue(isMarginOrder))
         {
-            response = await this.privatePostMarginOrder(orderRequest);
+            if (isTrue(hf))
+            {
+                response = await this.privatePostHfMarginOrder(orderRequest);
+            } else
+            {
+                response = await this.privatePostMarginOrder(orderRequest);
+            }
         } else if (isTrue(useSync))
         {
             response = await this.privatePostHfOrdersSync(orderRequest);
@@ -2997,6 +3004,7 @@ public partial class kucoin : Exchange
      * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
+     * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @returns Response from the exchange
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -3014,7 +3022,13 @@ public partial class kucoin : Exchange
         var useSyncparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "sync", false);
         useSync = ((IList<object>)useSyncparametersVariable)[0];
         parameters = ((IList<object>)useSyncparametersVariable)[1];
-        if (isTrue(isTrue(hf) || isTrue(useSync)))
+        object marginMode = null;
+        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        marginMode = ((IList<object>)marginModeparametersVariable)[0];
+        parameters = ((IList<object>)marginModeparametersVariable)[1];
+        object tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
+        object isMarginOrder = isTrue(isEqual(tradeType, "MARGIN_TRADE")) || isTrue(!isEqual(marginMode, null));
+        if (isTrue(isTrue(isTrue(hf) || isTrue(useSync)) || isTrue(isMarginOrder)))
         {
             if (isTrue(isEqual(symbol, null)))
             {
@@ -3024,13 +3038,16 @@ public partial class kucoin : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object response = null;
-        parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId", "stop", "trigger"});
+        parameters = this.omit(parameters, new List<object>() {"clientOid", "clientOrderId", "stop", "trigger", "tradeType"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["clientOid"] = clientOrderId;
             if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, parameters));
+            } else if (isTrue(isMarginOrder))
+            {
+                response = await this.privateDeleteHfMarginOrdersClientOrderClientOid(this.extend(request, parameters));
             } else if (isTrue(useSync))
             {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, parameters));
@@ -3049,6 +3066,9 @@ public partial class kucoin : Exchange
             if (isTrue(trigger))
             {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, parameters));
+            } else if (isTrue(isMarginOrder))
+            {
+                response = await this.privateDeleteHfMarginOrdersOrderId(this.extend(request, parameters));
             } else if (isTrue(useSync))
             {
                 response = await this.privateDeleteHfOrdersSyncOrderId(this.extend(request, parameters));

@@ -1,5 +1,7 @@
 {
     "alp": {
+        "skip": "needs api1 to api3 update",
+        "until": "2026-04-01",
         "skipMethods": {
             "fetchCurrencies": {
                 "activeMajorCurrencies": "todo"
@@ -23,6 +25,8 @@
         "skipWs": "private endpoints, todo"
     },
     "arkham": {
+        "skip": "exchange closed",
+        "skipWs": "same",
         "preferredSpotSymbol": "ETH/USDT",
         "preferredSwapSymbol": "ETH/USDT:USDT",
         "skipMethods": {
@@ -585,6 +589,8 @@
         }
     },
     "btcbox": {
+        "skip": "internal maintenance",
+        "until": "2026-03-29",
         "skipMethods": {
             "loadMarkets": {
                 "precision":"is undefined"
@@ -861,7 +867,9 @@
                 "compareOHLC": "todo"
             },
             "fetchOHLCV": "cant be tested because of additional required param",
-            "watchOHLCV": "does not work for 1min"
+            "watchOHLCV": "does not work for 1min",
+            "watchTicker": "private endpoint",
+            "watchOrderBook": "private endpoint"
         }
     },
     "coinex": {
@@ -1579,6 +1587,7 @@
         }
     },
     "lbank": {
+        "httpsProxy": "http://188.245.226.105:8911",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed codes"
@@ -2225,6 +2234,29 @@
         }
     },
     "lighter": {
+        "skipMethods":{
+            "loadMarkets": {
+                "currencyIdAndCode": "messed"
+            },
+            "fetchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing",
+                "compareToNextItem": "tmp"
+
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "activeMajorCurrencies": "todo",
+                "networks": "not provided"
+            },
+            "orderBook": {
+                "spread":"bids[0][0] is not < asks[0][0]",
+                "timestamp": "not provided"
+            }
+        }
+    },
+    "aftermath": {
         "skipMethods":{
             "loadMarkets": {
                 "currencyIdAndCode": "messed"

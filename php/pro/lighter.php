@@ -713,8 +713,8 @@ class lighter extends \ccxt\async\lighter {
         $stored = $this->safe_value($this->liquidations, $symbol);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);
-            $stored = new ArrayCache ($limit);
-            $this->liquidations[$symbol] = $stored;
+            $this->liquidations = new ArrayCache ($limit);
+            $stored = $this->liquidations;
         }
         for ($i = 0; $i < count($data); $i++) {
             $liquidation = $this->parse_ws_liquidation($data[$i], $market);

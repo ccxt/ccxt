@@ -1166,6 +1166,7 @@ export default class kucoin extends Exchange {
                     'inverse': undefined,
                 },
             },
+            'rollingWindowSize': 30000.0, // https://www.kucoin.com/docs-new/rate-limit
         });
     }
     nonce() {
@@ -2782,7 +2783,12 @@ export default class kucoin extends Exchange {
             response = await this.privatePostStopOrder(orderRequest);
         }
         else if (isMarginOrder) {
-            response = await this.privatePostMarginOrder(orderRequest);
+            if (hf) {
+                response = await this.privatePostHfMarginOrder(orderRequest);
+            }
+            else {
+                response = await this.privatePostMarginOrder(orderRequest);
+            }
         }
         else if (useSync) {
             response = await this.privatePostHfOrdersSync(orderRequest);
@@ -3085,6 +3091,7 @@ export default class kucoin extends Exchange {
      * @param {bool} [params.trigger] True if cancelling a stop order
      * @param {bool} [params.hf] false, // true for hf order
      * @param {bool} [params.sync] false, // true to use the hf sync call
+     * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
      * @returns Response from the exchange
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -3096,7 +3103,11 @@ export default class kucoin extends Exchange {
         [hf, params] = this.handleHfAndParams(params);
         let useSync = false;
         [useSync, params] = this.handleOptionAndParams(params, 'cancelOrder', 'sync', false);
-        if (hf || useSync) {
+        let marginMode = undefined;
+        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
+        const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
+        if (hf || useSync || isMarginOrder) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired(this.id + ' cancelOrder() requires a symbol parameter for hf orders');
             }
@@ -3104,7 +3115,7 @@ export default class kucoin extends Exchange {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger']);
+        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType']);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (trigger) {
@@ -3118,6 +3129,9 @@ export default class kucoin extends Exchange {
                 //        }
                 //    }
                 //
+            }
+            else if (isMarginOrder) {
+                response = await this.privateDeleteHfMarginOrdersClientOrderClientOid(this.extend(request, params));
             }
             else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, params));
@@ -3159,6 +3173,9 @@ export default class kucoin extends Exchange {
                 //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
                 //    }
                 //
+            }
+            else if (isMarginOrder) {
+                response = await this.privateDeleteHfMarginOrdersOrderId(this.extend(request, params));
             }
             else if (useSync) {
                 response = await this.privateDeleteHfOrdersSyncOrderId(this.extend(request, params));

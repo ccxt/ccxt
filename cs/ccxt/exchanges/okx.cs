@@ -1307,6 +1307,7 @@ public partial class okx : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
             } },
+            { "rollingWindowSize", 0 },
         });
     }
 

@@ -1183,6 +1183,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'inverse': None,
                 },
             },
+            'rollingWindowSize': 30000.0,  # https://www.kucoin.com/docs-new/rate-limit
         })
 
     def nonce(self):
@@ -2725,7 +2726,10 @@ class kucoin(Exchange, ImplicitAPI):
         elif isTriggerOrder:
             response = self.privatePostStopOrder(orderRequest)
         elif isMarginOrder:
-            response = self.privatePostMarginOrder(orderRequest)
+            if hf:
+                response = self.privatePostHfMarginOrder(orderRequest)
+            else:
+                response = self.privatePostMarginOrder(orderRequest)
         elif useSync:
             response = self.privatePostHfOrdersSync(orderRequest)
         elif hf:
@@ -2998,6 +3002,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param bool [params.trigger]: True if cancelling a stop order
         :param bool [params.hf]: False,  # True for hf order
         :param bool [params.sync]: False,  # True to use the hf sync call
+        :param str [params.marginMode]: 'cross',  # cross(cross mode) and isolated(isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
         :returns: Response from the exchange
         """
         self.load_markets()
@@ -3008,13 +3013,17 @@ class kucoin(Exchange, ImplicitAPI):
         hf, params = self.handle_hf_and_params(params)
         useSync = False
         useSync, params = self.handle_option_and_params(params, 'cancelOrder', 'sync', False)
-        if hf or useSync:
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
+        isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
+        if hf or useSync or isMarginOrder:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol parameter for hf orders')
             market = self.market(symbol)
             request['symbol'] = market['id']
         response = None
-        params = self.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger'])
+        params = self.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger', 'tradeType'])
         if clientOrderId is not None:
             request['clientOid'] = clientOrderId
             if trigger:
@@ -3028,6 +3037,8 @@ class kucoin(Exchange, ImplicitAPI):
                 #        }
                 #    }
                 #
+            elif isMarginOrder:
+                response = self.privateDeleteHfMarginOrdersClientOrderClientOid(self.extend(request, params))
             elif useSync:
                 response = self.privateDeleteHfOrdersSyncClientOrderClientOid(self.extend(request, params))
             elif hf:
@@ -3064,6 +3075,8 @@ class kucoin(Exchange, ImplicitAPI):
                 #        data: {cancelledOrderIds: ['vs8lgpiuaco91qk8003vebu9']}
                 #    }
                 #
+            elif isMarginOrder:
+                response = self.privateDeleteHfMarginOrdersOrderId(self.extend(request, params))
             elif useSync:
                 response = self.privateDeleteHfOrdersSyncOrderId(self.extend(request, params))
             elif hf:

@@ -362,8 +362,14 @@ class krakenfutures extends krakenfutures$1["default"] {
         //
         const marketId = this.safeString(position, 'instrument');
         const hedged = 'both';
-        const balance = this.safeNumber(position, 'balance');
-        const side = (balance > 0) ? 'long' : 'short';
+        const balanceString = this.safeString(position, 'balance');
+        let side = undefined;
+        if (Precise["default"].stringGt(balanceString, '0')) {
+            side = 'long';
+        }
+        else if (Precise["default"].stringLt(balanceString, '0')) {
+            side = 'short';
+        }
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -374,7 +380,7 @@ class krakenfutures extends krakenfutures$1["default"] {
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'unrealizedPnl': this.safeNumber(position, 'pnl'),
             'percentage': this.safeNumber(position, 'return_on_equity'),
-            'contracts': this.parseNumber(Precise["default"].stringAbs(this.numberToString(balance))),
+            'contracts': this.parseNumber(Precise["default"].stringAbs(balanceString)),
             'contractSize': undefined,
             'markPrice': this.safeNumber(position, 'mark_price'),
             'side': side,

@@ -116,7 +116,7 @@ export default class htx extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchSettlementHistory': true,
-                'fetchStatus': true,
+                'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -1401,6 +1401,7 @@ export default class htx extends Exchange {
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         });
     }
     /**

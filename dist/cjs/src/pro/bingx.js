@@ -1174,7 +1174,7 @@ class bingx extends bingx$1["default"] {
         }
         let type = undefined;
         let subType = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
+        [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params, 'swap');
         [subType, params] = this.handleSubTypeAndParams('watchPositions', market, params, 'linear');
         if (type === 'spot') {
             throw new errors.NotSupported(this.id + ' watchPositions is not supported for spot markets');

@@ -196,9 +196,10 @@ class independentreserve extends independentreserve$1["default"] {
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
-                            'FOK': false,
-                            'PO': false,
+                            'GTC': true,
+                            'IOC': true,
+                            'FOK': true,
+                            'PO': true,
                             'GTD': false,
                         },
                         'hedged': false,
@@ -616,7 +617,7 @@ class independentreserve extends independentreserve$1["default"] {
             'lastTradeTimestamp': undefined,
             'symbol': symbol,
             'type': orderType,
-            'timeInForce': undefined,
+            'timeInForce': this.parseTimeInForce(this.safeString(order, 'TimeInForce')),
             'postOnly': undefined,
             'side': side,
             'price': this.safeString(order, 'Price'),
@@ -644,8 +645,18 @@ class independentreserve extends independentreserve$1["default"] {
             'Cancelled': 'canceled',
             'PartiallyFilledAndExpired': 'canceled',
             'Expired': 'canceled',
+            'Failed': 'canceled',
         };
         return this.safeString(statuses, status, status);
+    }
+    parseTimeInForce(timeInForce) {
+        const timeInForces = {
+            'Gtc': 'GTC',
+            'Moc': 'PO',
+            'Fok': 'FOK',
+            'Ioc': 'IOC',
+        };
+        return this.safeString(timeInForces, timeInForce, timeInForce);
     }
     /**
      * @method

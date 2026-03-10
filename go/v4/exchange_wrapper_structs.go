@@ -4684,6 +4684,18 @@ func WithUnWatchBidsAsksParams(params map[string]interface{}) UnWatchBidsAsksOpt
 	}
 }
 
+type CreateAccountOptionsStruct struct {
+	Params *map[string]interface{}
+}
+
+type CreateAccountOptions func(opts *CreateAccountOptionsStruct)
+
+func WithCreateAccountParams(params map[string]interface{}) CreateAccountOptions {
+	return func(opts *CreateAccountOptionsStruct) {
+		opts.Params = &params
+	}
+}
+
 type FetchOpenOrderOptionsStruct struct {
 	Symbol *string
 	Params *map[string]interface{}
