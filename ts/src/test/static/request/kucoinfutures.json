@@ -333,9 +333,19 @@
         ],
         "fetchBalance": [
             {
+                "description": "Fetch spot Balance",
+                "method": "fetchBalance",
+                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=spot",
+                "input": [
+                    {
+                        "type": "spot"
+                    }
+                ]
+            },
+            {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT",
+                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=swap",
                 "input": [
                     {
                         "type": "swap"
