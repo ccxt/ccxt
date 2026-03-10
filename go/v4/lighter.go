@@ -430,7 +430,7 @@ func (this *LighterCore) HandleAccountIndex(params interface{}, methodName1 inte
 			}
 		}
 
-		ch <- []interface{}{accountIndex, params}
+		ch <- []interface{}{this.ParseToInt(accountIndex), params}
 		return nil
 
 	}()
@@ -577,7 +577,7 @@ func (this *LighterCore) CreateOrderRequest(symbol interface{}, typeVar interfac
 	params = GetValue(orderExpiryparamsVariable, 1)
 	AddElementToObject(request, "nonce", nonce)
 	AddElementToObject(request, "api_key_index", apiKeyIndex)
-	AddElementToObject(request, "account_index", accountIndex)
+	AddElementToObject(request, "account_index", this.ParseToInt(accountIndex))
 	var triggerPrice interface{} = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice interface{} = this.SafeValue(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice interface{} = this.SafeValue(params, "takeProfitPrice")

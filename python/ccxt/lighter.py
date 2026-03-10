@@ -420,7 +420,7 @@ class lighter(Exchange, ImplicitAPI):
                     raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter')
                 accountIndex = account['index']
                 self.options['accountIndex'] = accountIndex
-        return [accountIndex, params]
+        return [self.parse_to_int(accountIndex), params]
 
     def create_sub_account(self, name: str, params={}):
         apiKeyIndex = None
@@ -515,7 +515,7 @@ class lighter(Exchange, ImplicitAPI):
         orderExpiry, params = self.handle_option_and_params(params, 'createOrder', 'orderExpiry', 0)
         request['nonce'] = nonce
         request['api_key_index'] = apiKeyIndex
-        request['account_index'] = accountIndex
+        request['account_index'] = self.parse_to_int(accountIndex)
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')

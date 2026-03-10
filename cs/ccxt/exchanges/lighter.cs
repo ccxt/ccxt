@@ -409,7 +409,7 @@ public partial class lighter : Exchange
                 ((IDictionary<string,object>)this.options)["accountIndex"] = accountIndex;
             }
         }
-        return new List<object>() {accountIndex, parameters};
+        return new List<object> {this.parseToInt(accountIndex), parameters};
     }
 
     public async override Task<object> createSubAccount(object name, object parameters = null)
@@ -551,7 +551,7 @@ public partial class lighter : Exchange
         parameters = ((IList<object>)orderExpiryparametersVariable)[1];
         ((IDictionary<string,object>)request)["nonce"] = nonce;
         ((IDictionary<string,object>)request)["api_key_index"] = apiKeyIndex;
-        ((IDictionary<string,object>)request)["account_index"] = accountIndex;
+        ((IDictionary<string,object>)request)["account_index"] = this.parseToInt(accountIndex);
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
