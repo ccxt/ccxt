@@ -846,7 +846,7 @@
             {
                 "description": "cancel all margin trigger orders",
                 "method": "cancelAllOrders",
-                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/cancel?tradeType=MARGIN_TRADE&trigger=true",
+                "url": "https://api.kucoin.com/api/v3/hf/margin/stop-order/cancel?tradeType=MARGIN_TRADE",
                 "input": [
                     null,
                     {
@@ -1713,7 +1713,7 @@
             {
                 "description": "Fetch swap order by client order id",
                 "method": "fetchOrder",
-                "url": "https://api-futures.kucoin.com/api/v1/orders/?clientOid=2234567890",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/byClientOid?clientOid=2234567890",
                 "input": [
                     "",
                     "LTC/USDT:USDT",
