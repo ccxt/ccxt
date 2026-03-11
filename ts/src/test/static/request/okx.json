@@ -1186,6 +1186,14 @@
                 "input": [
                     "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "Linear isolated swap fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://www.okx.com/api/v5/account/positions?instId=BTC-USDT-SWAP&instType=SWAP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
             }
         ],
         "fetchPositions": [
