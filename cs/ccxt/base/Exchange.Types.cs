@@ -2045,3 +2045,29 @@ public struct ADL
         datetime = Exchange.SafeString(ADLObj, "datetime");
     }
 }
+
+public struct TakerVolume
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public Int64? timestamp;
+    public string? datetime;
+    public string? timeframe;
+    public double? takerBuyBaseVolume;
+    public double? takerSellBaseVolume;
+    public double? takerBuyQuoteVolume;
+    public double? takerSellQuoteVolume;
+
+    public TakerVolume(object takerVolumeObj)
+    {
+        info = Helper.GetInfo(takerVolumeObj);
+        symbol = Exchange.SafeString(takerVolumeObj, "symbol");
+        timestamp = Exchange.SafeInteger(takerVolumeObj, "timestamp");
+        datetime = Exchange.SafeString(takerVolumeObj, "datetime");
+        timeframe = Exchange.SafeString(takerVolumeObj, "timeframe");
+        takerBuyBaseVolume = Exchange.SafeFloat(takerVolumeObj, "takerBuyBaseVolume");
+        takerSellBaseVolume = Exchange.SafeFloat(takerVolumeObj, "takerSellBaseVolume");
+        takerBuyQuoteVolume = Exchange.SafeFloat(takerVolumeObj, "takerBuyQuoteVolume");
+        takerSellQuoteVolume = Exchange.SafeFloat(takerVolumeObj, "takerSellQuoteVolume");
+    }
+}
