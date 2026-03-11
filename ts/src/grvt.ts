@@ -186,6 +186,9 @@ export default class grvt extends Exchange {
                 'networksById': {
                     '1': 'ERC20',
                 },
+                'builderFee': true,
+                'builder': '0x21d2a053495994b1132a38cd1171acec40c6741e',
+                'builderRate': 0.01,
             },
             'precisionMode': TICK_SIZE,
             'features': {
@@ -406,6 +409,26 @@ export default class grvt extends Exchange {
                     { 'name': 'isBuyingContract', 'type': 'bool' },
                 ],
             },
+            'EIP712_ORDER_WITH_BUILDER_TYPE': {
+                'OrderWithBuilderFee': [
+                    { 'name': 'subAccountID', 'type': 'uint64' },
+                    { 'name': 'isMarket', 'type': 'bool' },
+                    { 'name': 'timeInForce', 'type': 'uint8' },
+                    { 'name': 'postOnly', 'type': 'bool' },
+                    { 'name': 'reduceOnly', 'type': 'bool' },
+                    { 'name': 'legs', 'type': 'OrderLeg[]' },
+                    { 'name': 'builder', 'type': 'address' },
+                    { 'name': 'builderFee', 'type': 'uint32' },
+                    { 'name': 'nonce', 'type': 'uint32' },
+                    { 'name': 'expiration', 'type': 'int64' },
+                ],
+                'OrderLeg': [
+                    { 'name': 'assetID', 'type': 'uint256' },
+                    { 'name': 'contractSize', 'type': 'uint64' },
+                    { 'name': 'limitPrice', 'type': 'uint64' },
+                    { 'name': 'isBuyingContract', 'type': 'bool' },
+                ],
+            },
             'EIP712_TRANSFER_TYPE': {
                 'Transfer': [
                     { 'name': 'fromAccount', 'type': 'address' },
@@ -453,6 +476,20 @@ export default class grvt extends Exchange {
         await this.loadAccountInfos ();
     }
 
+    async signInAndLoadAccountInfos () {
+        if (this.privateKey !== undefined || this.apiKey !== undefined) {
+            await this.signIn ();
+            await this.loadAccountInfos ();
+        }
+    }
+
+    usesPrivateKey () {
+        if (this.privateKey !== undefined && this.apiKey !== undefined) {
+            throw new ExchangeError ('You should provide either "privateKey" or "apikey & secret"');
+        }
+        return this.privateKey !== undefined;
+    }
+
     /**
      * @method
      * @name grvt#signIn
@@ -462,11 +499,13 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}) {
-        if (this.privateKey) {
-            return await this.signInWithPrivateKey (params);
+        if (this.usesPrivateKey ()) {
+            await this.signInWithPrivateKey (params);
+            await this.initializeClient (params);
         } else {
-            return await this.signInWithApiKey (params);
+            await this.signInWithApiKey (params);
         }
+        return true;
     }
 
     async signInWithApiKey (params = {}) {
@@ -517,6 +556,71 @@ export default class grvt extends Exchange {
         return response;
     }
 
+    async initializeClient (params = {}) {
+        const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true)); // we shouldn't omit here
+        if (!builderFee) {
+            return false; // skip if builder fee is not enabled
+        }
+        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
+        if (approvedBuilderFee) {
+            return true; // skip if builder fee is already approved
+        }
+        const results = await Promise.all ([ this.privateTradingPostFullV1GetAuthorizedBuilders (), this.loadAccountInfos () ]);
+        //
+        // {
+        //     "results": [{
+        //         "builder_account_id": "GRVT_MAIN_ACCOUNT_ID_HERE",
+        //         "max_futures_fee_rate": 0.001,
+        //         "max_spot_fee_rate": 0.0001
+        //     }]
+        // }
+        //
+        const currentBuilders = results[0];
+        const approvedBuilder = this.safeList (currentBuilders, 'results', []);
+        const length = approvedBuilder.length;
+        let found = false;
+        for (let i = 0; i < length; i++) {
+            const builderInfo = this.safeDict (approvedBuilder, i, {});
+            const builderAccountId = this.safeString (builderInfo, 'builder_account_id');
+            if (builderAccountId === this.safeString (this.options, 'builder')) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            try {
+                const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
+                let request: Dict = {
+                    'main_account_id': defaultFromAccountId,
+                    'builder_account_id': this.safeString (this.options, 'builder'),
+                    'max_futures_fee_rate': this.safeString (this.options, 'builderRate'),
+                    'max_spot_fee_rate': this.safeString (this.options, 'builderRate'),
+                    'signature': this.defaultSignature (),
+                };
+                request = this.createSignedRequest (request, 'EIP712_BUILDER_APPROVAL_TYPE');
+                const authResponse = await this.privateTradingPostFullV1AuthorizeBuilder (this.extend (request, params));
+                //
+                // {
+                //     "result": {
+                //         "ack": "true",
+                //         "tx_id":"0"
+                //     }
+                // }
+                //
+                const authResult = this.safeDict (authResponse, 'result');
+                const ack = this.safeBool (authResult, 'ack');
+                if (!ack) {
+                    throw new ExchangeError ('Builder authorization failed, ' + this.json (authResponse));
+                }
+                this.options['approvedBuilderFee'] = true;
+            } catch (e) {
+                this.options['builderFee'] = false; // disable builder fee if an error occurs
+            }
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @method
      * @name grvt#fetchMarkets
@@ -526,7 +630,7 @@ export default class grvt extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
-        const response = await this.publicMarketPostFullV1AllInstruments (params);
+        const marketsPromise = this.publicMarketPostFullV1AllInstruments (params);
         //
         //    {
         //        "result": [
@@ -553,6 +657,9 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
+        const signInPromise = this.signInAndLoadAccountInfos ();
+        const results = await Promise.all ([ marketsPromise, signInPromise ]);
+        const response = results[0];
         const result = this.safeList (response, 'result', []);
         return this.parseMarkets (result);
     }
@@ -1968,8 +2075,16 @@ export default class grvt extends Exchange {
             };
             params = this.omit (params, [ 'triggerDirection', 'triggerPriceType', 'closePosition' ]);
         }
+        let eipType = 'EIP712_ORDER_TYPE';
+        const builderFee = this.safeBool (params, 'builderFee', this.safeBool (this.options, 'builderFee', true));
+        if (builderFee) {
+            eipType = 'EIP712_ORDER_WITH_BUILDER_TYPE';
+            orderRequest['builder'] = this.safeString (this.options, 'builder');
+            orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
+        }
+        params = this.omit (params, [ 'builderFee' ]);
         // @ts-ignore
-        const signedOrderRequest = this.createSignedRequest (orderRequest, 'EIP712_ORDER_TYPE');
+        const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
         const request = {
             'order': signedOrderRequest,
         };
@@ -2042,7 +2157,7 @@ export default class grvt extends Exchange {
         return parseInt (x);
     }
 
-    eipMessageForOrder (order) {
+    eipMessageForOrder (order, structureType) {
         const priceMultiplier = '1000000000';
         const orderLegs = this.safeList (order, 'legs', []);
         const legs = [];
@@ -2086,6 +2201,10 @@ export default class grvt extends Exchange {
             'nonce': order['signature']['nonce'],
             'expiration': order['signature']['expiration'],
         };
+        if (structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE' && this.safeBool (this.options, 'builderFee', true)) {
+            returnValue['builder'] = order['builder'];
+            returnValue['builderFee'] = this.parseToInt (this.convertToBigIntCustom (this.feeAmountMultiplier ()) * parseFloat (order['builder_fee'])); // the order is matter for Multiply in go, b must be float64 otherwise the value would be 0
+        }
         return returnValue;
     }
 
@@ -3000,6 +3119,10 @@ export default class grvt extends Exchange {
         };
     }
 
+    feeAmountMultiplier () {
+        return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
+    }
+
     createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
         let messageData = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
@@ -3025,10 +3148,10 @@ export default class grvt extends Exchange {
                 'nonce': request['signature']['nonce'],
                 'expiration': request['signature']['expiration'],
             };
-        } else if (structureType === 'EIP712_ORDER_TYPE') {
-            messageData = this.eipMessageForOrder (request);
+        } else if (structureType === 'EIP712_ORDER_TYPE' || structureType === 'EIP712_ORDER_WITH_BUILDER_TYPE') {
+            messageData = this.eipMessageForOrder (request, structureType);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
-            const amountMultiplier = this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
+            const amountMultiplier = this.convertToBigIntCustom (this.feeAmountMultiplier ());
             messageData = {
                 'mainAccountID': request['main_account_id'],
                 'builderAccountID': request['builder_account_id'],
