@@ -1251,6 +1251,9 @@ class bingx(ccxt.async_support.bingx):
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_ws_position(rawPosition)
+            symbol = self.safe_string(position, 'symbol')
+            if symbol is None:
+                continue
             timestamp = self.safe_integer(message, 'E')
             position['timestamp'] = timestamp
             position['datetime'] = self.iso8601(timestamp)
