@@ -628,6 +628,10 @@ export default class lighter extends lighterRest {
         //
         const data = this.safeDict (message, 'trades', {});
         const marketIds = Object.keys (data);
+        const idsLength = marketIds.length;
+        if (idsLength === 0) {
+            return false; // nothing to process
+        }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCache (limit);
@@ -664,7 +668,7 @@ export default class lighter extends lighterRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
-        let accountIndex;
+        let accountIndex = undefined;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
         let messageHash = this.getMessageHash ('myTrades');
         if (symbol !== undefined) {
@@ -673,7 +677,7 @@ export default class lighter extends lighterRest {
             messageHash = this.getMessageHash ('myTrades', symbol);
         }
         const request: Dict = {
-            'channel': 'account_all_trades/' + accountIndex,
+            'channel': 'account_all_trades/' + this.numberToString (accountIndex),
         };
         const trades = await this.subscribePublic (messageHash, this.extend (request, params));
         if (this.newUpdates) {
