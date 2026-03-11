@@ -293,7 +293,7 @@ export default class kucoin extends kucoinRest {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols (symbols);
-        let marketType = 'spot';
+        let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
         const isFuturesMethod = (marketType !== 'spot') && (marketType !== 'margin');
         if (isFuturesMethod && symbols === undefined) {
@@ -1312,8 +1312,8 @@ export default class kucoin extends kucoinRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + symbol;
         }
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, marketType);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
         const url = await this.negotiate (true, isFuturesMethod);
         let topic = trigger ? '/spotMarket/advancedOrders' : '/spotMarket/tradeOrders';
@@ -1521,8 +1521,8 @@ export default class kucoin extends kucoinRest {
             symbol = market['symbol'];
             messageHash = messageHash + ':' + market['symbol'];
         }
-        let marketType = 'spot';
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, marketType);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const isFuturesMethod = ((marketType !== 'spot') && (marketType !== 'margin'));
         const url = await this.negotiate (true, isFuturesMethod);
         let topic = isFuturesMethod ? '/contractMarket/tradeOrders' : '/spotMarket/tradeOrders';
