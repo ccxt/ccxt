@@ -6814,7 +6814,7 @@ export default class okx extends Exchange {
             const balanceChange = this.safeString (entry, 'balChg');
             const positionBalanceChange = this.safeString (entry, 'posBalChg');
             let amount = undefined;
-            if ((balanceChange !== undefined) && (balanceChange !== '0')) {
+            if ((balanceChange !== undefined) && (!Precise.stringEq (balanceChange, '0'))) {
                 amount = balanceChange;
             } else {
                 amount = positionBalanceChange;
