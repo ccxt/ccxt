@@ -367,9 +367,9 @@ public partial class lighter : Exchange
         if (isTrue(isEqual(accountIndex, null)))
         {
             object walletAddress = this.walletAddress;
-            if (isTrue(isEqual(walletAddress, null)))
+            if (isTrue(isTrue(isEqual(walletAddress, null)) || isTrue(isEqual(walletAddress, ""))))
             {
-                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter or walletAddress to fetch accountIndex")) ;
+                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex")) ;
             }
             object res = await this.publicGetAccountsByL1Address(new Dictionary<string, object>() {
                 { "l1_address", walletAddress },
