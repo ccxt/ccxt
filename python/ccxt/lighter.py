@@ -387,8 +387,8 @@ class lighter(Exchange, ImplicitAPI):
         accountIndex, params = self.handle_option_and_params_2(params, methodName1, optionName1, optionName2, defaultValue)
         if accountIndex is None:
             walletAddress = self.walletAddress
-            if walletAddress is None:
-                raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddress to fetch accountIndex')
+            if walletAddress is None or walletAddress == '':
+                raise ArgumentsRequired(self.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex')
             res = self.publicGetAccountsByL1Address({'l1_address': walletAddress})
             #
             # {
