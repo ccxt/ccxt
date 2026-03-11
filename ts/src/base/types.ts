@@ -579,6 +579,18 @@ export interface ADL {
     datetime?: Str;
 }
 
+export interface TakerVolume {
+    info: any,
+    symbol: string,
+    timestamp?: number,
+    datetime?: string,
+    timeframe?: string,
+    takerBuyBaseVolume?: number,
+    takerSellBaseVolume?: number,
+    takerBuyQuoteVolume?: number,
+    takerSellQuoteVolume?: number,
+}
+
 export interface MarginModification {
     'info': any,
     'symbol': string,

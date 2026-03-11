@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, TakerVolume } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -130,6 +130,7 @@ export default class okx extends Exchange {
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTakerBuySellVolume': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
@@ -9198,5 +9199,90 @@ export default class okx extends Exchange {
             'timeframe': undefined,
             'longShortRatio': this.safeNumber (info, 'longShortRatio'),
         } as LongShortRatio;
+    }
+
+    /**
+     * @method
+     * @name okx#fetchTakerBuySellVolume
+     * @description fetches taker buy/sell volume for a symbol
+     * @see https://www.okx.com/docs-v5/en/#trading-statistics-rest-api-get-contract-taker-volume
+     * @param {string} symbol unified symbol of the market to fetch taker buy/sell volume for
+     * @param {string} [timeframe] the period for the volume, e.g. "5m", "1h", "1d"
+     * @param {int} [since] the earliest time in ms to fetch volume for
+     * @param {int} [limit] the maximum number of taker volume structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest volume to fetch
+     * @returns {object[]} an array of [taker buy/sell volume structures]{@link https://docs.ccxt.com/?id=taker-buy-sell-volume-structure}
+     */
+    async fetchTakerBuySellVolume (symbol: string, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TakerVolume[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {};
+        if (timeframe !== undefined) {
+            request['period'] = timeframe;
+        }
+        if (since !== undefined) {
+            request['begin'] = since;
+        }
+        const until = this.safeString2 (params, 'until', 'end');
+        params = this.omit (params, 'until');
+        if (until !== undefined) {
+            request['end'] = until;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (!market['contract']) {
+            throw new BadSymbol (this.id + ' fetchTakerBuySellVolume() supports contract markets only, the OKX spot endpoint aggregates across all pairs of a base currency and is not symbol-specific');
+        }
+        request['instId'] = market['id'];
+        const response = await this.publicGetRubikStatTakerVolumeContract (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             ["1648221300000", "takerSellConQty", "takerBuyConQty"],
+        //             ...
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            result.push ({
+                'timestamp': this.safeString (entry, 0),
+                'takerSellBaseVolume': this.safeString (entry, 1),
+                'takerBuyBaseVolume': this.safeString (entry, 2),
+            });
+        }
+        return this.parseTakerVolumeHistory (result, market, since, limit);
+    }
+
+    parseTakerVolume (info: Dict, market: Market = undefined): TakerVolume {
+        //
+        //     {
+        //         "timestamp": "1648221300000",
+        //         "takerSellBaseVolume": "...",
+        //         "takerBuyBaseVolume": "..."
+        //     }
+        //
+        const timestamp = this.safeInteger (info, 'timestamp');
+        let symbol = undefined;
+        if (market !== undefined) {
+            symbol = market['symbol'];
+        }
+        return {
+            'info': info,
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'timeframe': undefined,
+            'takerBuyBaseVolume': this.safeNumber (info, 'takerBuyBaseVolume'),
+            'takerSellBaseVolume': this.safeNumber (info, 'takerSellBaseVolume'),
+            'takerBuyQuoteVolume': undefined,
+            'takerSellQuoteVolume': undefined,
+        } as TakerVolume;
     }
 }

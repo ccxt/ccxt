@@ -1912,6 +1912,16 @@
                     null
                 ]
             }
+        ],
+        "fetchTakerBuySellVolume": [
+            {
+                "description": "fetch taker buy sell volume - swap",
+                "method": "fetchTakerBuySellVolume",
+                "url": "https://www.okx.com/api/v5/rubik/stat/taker-volume-contract?instId=BTC-USDT-SWAP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
         ]
     }
 }

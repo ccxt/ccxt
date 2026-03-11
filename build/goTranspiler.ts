@@ -355,6 +355,7 @@ const INTERFACE_METHODS = [
     'fetchPositionsRisk',
     'fetchPremiumIndexOHLCV',
     'fetchStatus',
+    'fetchTakerBuySellVolume',
     'fetchTicker',
     'fetchTickers',
     'fetchTime',
