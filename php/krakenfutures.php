@@ -2046,6 +2046,8 @@ class krakenfutures extends Exchange {
             if (($filledOrder === '0') || ($filledOrder === '0.0')) {
                 $filledOrder = null;
             }
+            $fetchOrderPriceTriggerOptions = $this->safe_dict($orderDictFromFetchOrder, 'priceTriggerOptions', array());
+            $fetchOrderTriggerPrice = $this->safe_string($fetchOrderPriceTriggerOptions, 'triggerPrice');
             return $this->safe_order(array(
                 'info' => $order,
                 'id' => $this->safe_string($orderDictFromFetchOrder, 'orderId'),
@@ -2060,8 +2062,9 @@ class krakenfutures extends Exchange {
                 'postOnly' => null,
                 'reduceOnly' => $this->safe_bool($orderDictFromFetchOrder, 'reduceOnly'),
                 'side' => $this->safe_string($orderDictFromFetchOrder, 'side'),
-                'price' => $this->safe_string($orderDictFromFetchOrder, 'limitPrice'),
-                'triggerPrice' => null,
+                'price' => null, // limitPrice is returning inaccurate values https://github.com/ccxt/ccxt/issues/27996#issuecomment-4019280204
+                'triggerPrice' => $fetchOrderTriggerPrice,
+                'stopPrice' => $fetchOrderTriggerPrice,
                 'amount' => $this->safe_string($orderDictFromFetchOrder, 'quantity'),
                 'cost' => null,
                 'average' => null,

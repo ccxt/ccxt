@@ -1976,6 +1976,8 @@ class krakenfutures(Exchange, ImplicitAPI):
             filledOrder = self.safe_string(orderDictFromFetchOrder, 'filled', '0')
             if (filledOrder == '0') or (filledOrder == '0.0'):
                 filledOrder = None
+            fetchOrderPriceTriggerOptions = self.safe_dict(orderDictFromFetchOrder, 'priceTriggerOptions', {})
+            fetchOrderTriggerPrice = self.safe_string(fetchOrderPriceTriggerOptions, 'triggerPrice')
             return self.safe_order({
                 'info': order,
                 'id': self.safe_string(orderDictFromFetchOrder, 'orderId'),
@@ -1990,8 +1992,9 @@ class krakenfutures(Exchange, ImplicitAPI):
                 'postOnly': None,
                 'reduceOnly': self.safe_bool(orderDictFromFetchOrder, 'reduceOnly'),
                 'side': self.safe_string(orderDictFromFetchOrder, 'side'),
-                'price': self.safe_string(orderDictFromFetchOrder, 'limitPrice'),
-                'triggerPrice': None,
+                'price': None,  # limitPrice is returning inaccurate values https://github.com/ccxt/ccxt/issues/27996#issuecomment-4019280204
+                'triggerPrice': fetchOrderTriggerPrice,
+                'stopPrice': fetchOrderTriggerPrice,
                 'amount': self.safe_string(orderDictFromFetchOrder, 'quantity'),
                 'cost': None,
                 'average': None,
