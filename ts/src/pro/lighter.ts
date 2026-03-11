@@ -551,6 +551,46 @@ export default class lighter extends lighterRest {
         client.resolve (stored, messageHash);
     }
 
+    /**
+     * @method
+     * @name lighter#watchTrades
+     * @description get the list of most recent trades for a particular symbol
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'trade/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('trade', market['symbol']);
+        return await this.subscribePublic (messageHash, this.extend (request, params));
+    }
+
+    /**
+     * @method
+     * @name lighter#unWatchTrades
+     * @description unsubscribe from the trades channel
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
+     * @param {string} symbol unified symbol of the market to fetch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'channel': 'trade/' + market['id'],
+        };
+        const messageHash = this.getMessageHash ('unsubscribe', symbol);
+        return await this.unsubscribePublic (messageHash, this.extend (request, params));
+    }
+
     handleMyTrades (client: Client, message) {
         //
         //     {
@@ -613,46 +653,6 @@ export default class lighter extends lighterRest {
 
     /**
      * @method
-     * @name lighter#watchTrades
-     * @description get the list of most recent trades for a particular symbol
-     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {int} [since] timestamp in ms of the earliest trade to fetch
-     * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
-    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'channel': 'trade/' + market['id'],
-        };
-        const messageHash = this.getMessageHash ('trade', market['symbol']);
-        return await this.subscribePublic (messageHash, this.extend (request, params));
-    }
-
-    /**
-     * @method
-     * @name lighter#unWatchTrades
-     * @description unsubscribe from the trades channel
-     * @see https://apidocs.lighter.xyz/docs/websocket-reference#trade
-     * @param {string} symbol unified symbol of the market to fetch trades for
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
-     */
-    async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'channel': 'trade/' + market['id'],
-        };
-        const messageHash = this.getMessageHash ('unsubscribe', symbol);
-        return await this.unsubscribePublic (messageHash, this.extend (request, params));
-    }
-
-    /**
-     * @method
      * @name lighter#watchMyTrades
      * @description subscribe to recent trades of an account.
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
@@ -687,16 +687,23 @@ export default class lighter extends lighterRest {
      * @name lighter#unWatchMyTrades
      * @description unsubscribe from the account trades channel
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+     * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async unWatchMyTrades (params = {}): Promise<any> {
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
         let accountIndex;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'unWatchMyTrades', 'accountIndex', 'account_index');
+        let messageHash = this.getMessageHash ('unsubscribe', 'myTrades');
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = this.getMessageHash ('unsubscribe', symbol);
+        }
         const request: Dict = {
             'channel': 'account_all_trades/' + accountIndex,
         };
-        const messageHash = this.getMessageHash ('unsubscribe', 'myTrades');
         return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
