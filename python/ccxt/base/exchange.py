@@ -5391,7 +5391,8 @@ class Exchange(object):
         return self.create_order(symbol, type, side, amount, price, params)
 
     def edit_order_with_client_order_id(self, clientOrderId: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
-        return self.edit_order('', symbol, type, side, amount, price, self.extend({'clientOrderId': clientOrderId}, params))
+        extendedParams = self.extend(params, {'clientOrderId': clientOrderId})
+        return self.edit_order('', symbol, type, side, amount, price, extendedParams)
 
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order_ws(id, symbol)
