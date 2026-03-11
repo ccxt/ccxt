@@ -593,6 +593,7 @@ export default class lighter extends lighterRest {
             this.myTrades = new ArrayCache (limit);
         }
         const stored = this.myTrades;
+        const messageHash = this.getMessageHash ('myTrades');
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -600,9 +601,13 @@ export default class lighter extends lighterRest {
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseWsTrade (trades[j], market);
                 stored.append (trade);
+                const symbol = trade['symbol'];
+                if (symbol !== undefined) {
+                    const symbolSpecificMessageHash = this.getMessageHash ('myTrades', symbol);
+                    client.resolve (stored, symbolSpecificMessageHash);
+                }
             }
         }
-        const messageHash = this.getMessageHash ('account_all_trades');
         client.resolve (stored, messageHash);
     }
 
@@ -649,20 +654,32 @@ export default class lighter extends lighterRest {
     /**
      * @method
      * @name lighter#watchMyTrades
-     * @description get the list of most recent trades of an account.
+     * @description subscribe to recent trades of an account.
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
-    async watchMyTrades (params = {}): Promise<Trade[]> {
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         await this.loadMarkets ();
         let accountIndex;
         [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
+        let messageHash = this.getMessageHash ('myTrades');
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            messageHash = this.getMessageHash ('myTrades', symbol);
+        }
         const request: Dict = {
             'channel': 'account_all_trades/' + accountIndex,
         };
-        const messageHash = this.getMessageHash ('account_all_trades');
-        return await this.subscribePublic (messageHash, this.extend (request, params));
+        const trades = await this.subscribePublic (messageHash, this.extend (request, params));
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
     /**
@@ -675,11 +692,11 @@ export default class lighter extends lighterRest {
      */
     async unWatchMyTrades (params = {}): Promise<any> {
         let accountIndex;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'watchMyTrades', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = await this.handleAccountIndex (params, 'unWatchMyTrades', 'accountIndex', 'account_index');
         const request: Dict = {
             'channel': 'account_all_trades/' + accountIndex,
         };
-        const messageHash = this.getMessageHash ('unsubscribe', 'account_all_trades');
+        const messageHash = this.getMessageHash ('unsubscribe', 'myTrades');
         return await this.unsubscribePublic (messageHash, this.extend (request, params));
     }
 
