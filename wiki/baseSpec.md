@@ -6312,6 +6312,7 @@ returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if uni
 
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#isunifiedenabled)
+* [hyperliquid](/exchanges/hyperliquid.md#isunifiedenabled)
 
 ---
 
