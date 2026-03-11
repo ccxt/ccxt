@@ -2257,7 +2257,7 @@ class testMainClass {
             // we expect an error here, we're only interested in the headers
             reqHeaders = exchange.last_request_headers;
         }
-        assert (reqHeaders['brokerId'] === id, 'toobit - id: ' + id + ' not in headers.');
+        assert (reqHeaders['X-BB-API-PLATFORM'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }
