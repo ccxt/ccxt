@@ -741,9 +741,9 @@ export default class kucoin extends kucoinRest {
         const parsed = [
             this.safeTimestamp (candles, 0),
             this.safeNumber (candles, 1),
-            this.safeNumber (candles, 2),
             this.safeNumber (candles, 3),
             this.safeNumber (candles, 4),
+            this.safeNumber (candles, 2),
             this.safeNumber (candles, baseVolumeIndex),
         ];
         stored.append (parsed);
