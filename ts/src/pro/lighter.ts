@@ -653,6 +653,7 @@ export default class lighter extends lighterRest {
             }
         }
         client.resolve (stored, messageHash);
+        return true;
     }
 
     /**
