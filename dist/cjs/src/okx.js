@@ -6826,6 +6826,15 @@ class okx extends okx$1["default"] {
             const marketInner = this.safeMarket(instId);
             const currencyId = this.safeString(entry, 'ccy');
             const code = this.safeCurrencyCode(currencyId);
+            const balanceChange = this.safeString(entry, 'balChg');
+            const positionBalanceChange = this.safeString(entry, 'posBalChg');
+            let amount = undefined;
+            if ((balanceChange !== undefined) && (!Precise["default"].stringEq(balanceChange, '0'))) {
+                amount = balanceChange;
+            }
+            else {
+                amount = positionBalanceChange;
+            }
             result.push({
                 'info': entry,
                 'symbol': marketInner['symbol'],
@@ -6833,7 +6842,7 @@ class okx extends okx$1["default"] {
                 'timestamp': timestamp,
                 'datetime': this.iso8601(timestamp),
                 'id': this.safeString(entry, 'billId'),
-                'amount': this.safeNumber(entry, 'balChg'),
+                'amount': this.parseNumber(amount),
             });
         }
         const sorted = this.sortBy(result, 'timestamp');
