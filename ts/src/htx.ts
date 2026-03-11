@@ -1341,6 +1341,7 @@ export default class htx extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000, // 2000 for non-historical
                     },
+                    'rollingWindow': true,
                 },
                 'forDerivatives': {
                     'extends': 'spot',
