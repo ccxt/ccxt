@@ -138,6 +138,29 @@ export default class lighter extends lighterRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
      */
     unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    handleMyTrades(client: Client, message: any): boolean;
+    /**
+     * @method
+     * @name lighter#watchMyTrades
+     * @description subscribe to recent trades of an account.
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] timestamp in ms of the earliest trade to fetch
+     * @param {int} [limit] the maximum amount of trades to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    /**
+     * @method
+     * @name lighter#unWatchMyTrades
+     * @description unsubscribe from the account trades channel
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+     * @param {string} [symbol] unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     */
+    unWatchMyTrades(symbol?: Str, params?: {}): Promise<any>;
     parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     handleLiquidation(client: Client, message: any): void;
     /**

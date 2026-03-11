@@ -382,8 +382,8 @@ class lighter extends lighter$1["default"] {
         [accountIndex, params] = this.handleOptionAndParams2(params, methodName1, optionName1, optionName2, defaultValue);
         if (accountIndex === undefined) {
             const walletAddress = this.walletAddress;
-            if (walletAddress === undefined) {
-                throw new errors.ArgumentsRequired(this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddress to fetch accountIndex');
+            if (walletAddress === undefined || walletAddress === '') {
+                throw new errors.ArgumentsRequired(this.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex');
             }
             const res = await this.publicGetAccountsByL1Address({ 'l1_address': walletAddress });
             //

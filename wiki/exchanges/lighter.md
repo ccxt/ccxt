@@ -47,6 +47,8 @@
 * [unWatchMarkPrices](#unwatchmarkprices)
 * [watchTrades](#watchtrades)
 * [unWatchTrades](#unwatchtrades)
+* [watchMyTrades](#watchmytrades)
+* [unWatchMyTrades](#unwatchmytrades)
 * [watchLiquidations](#watchliquidations)
 
 <a name="createOrder" id="createorder"></a>
@@ -1000,6 +1002,50 @@ unsubscribe from the trades channel
 
 ```javascript
 lighter.unWatchTrades (symbol[, params])
+```
+
+
+<a name="watchMyTrades" id="watchmytrades"></a>
+
+### watchMyTrades{docsify-ignore}
+subscribe to recent trades of an account.
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
+| limit | <code>int</code> | No | the maximum amount of trades to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.watchMyTrades ([symbol, since, limit, params])
+```
+
+
+<a name="unWatchMyTrades" id="unwatchmytrades"></a>
+
+### unWatchMyTrades{docsify-ignore}
+unsubscribe from the account trades channel
+
+**Kind**: instance method of [<code>lighter</code>](#lighter)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/#/?id=public-trades)
+
+**See**: https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+lighter.unWatchMyTrades ([symbol, params])
 ```
 
 
