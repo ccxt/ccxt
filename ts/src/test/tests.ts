@@ -1591,7 +1591,8 @@ class testMainClass {
             this.testCryptomus (),
             this.testDerive (),
             this.testModeTrade (),
-            this.testBackpack ()
+            this.testBackpack (),
+            this.testToobit ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -2240,6 +2241,23 @@ class testMainClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testToobit () {
+        const exchange = this.initOfflineExchange ('toobit');
+        let reqHeaders = undefined;
+        const id = '177321641268789';
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['brokerId'] === id, 'toobit - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }
