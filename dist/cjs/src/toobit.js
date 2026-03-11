@@ -2999,6 +2999,7 @@ class toobit extends toobit$1["default"] {
             headers = {
                 'Referrer': 'CCXT',
                 'X-BB-APIKEY': this.apiKey,
+                'X-BB-API-PLATFORM': this.safeString(this.options, 'brokerId', '177321641268789'),
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
         }
