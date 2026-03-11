@@ -790,7 +790,6 @@
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     {
-                        "type": "swap",
                         "enableUnifiedMargin": true,
                         "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
                     }
