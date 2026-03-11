@@ -6805,6 +6805,14 @@ class okx extends Exchange {
             $marketInner = $this->safe_market($instId);
             $currencyId = $this->safe_string($entry, 'ccy');
             $code = $this->safe_currency_code($currencyId);
+            $balanceChange = $this->safe_string($entry, 'balChg');
+            $positionBalanceChange = $this->safe_string($entry, 'posBalChg');
+            $amount = null;
+            if (($balanceChange !== null) && (!Precise::string_eq($balanceChange, '0'))) {
+                $amount = $balanceChange;
+            } else {
+                $amount = $positionBalanceChange;
+            }
             $result[] = array(
                 'info' => $entry,
                 'symbol' => $marketInner['symbol'],
@@ -6812,7 +6820,7 @@ class okx extends Exchange {
                 'timestamp' => $timestamp,
                 'datetime' => $this->iso8601($timestamp),
                 'id' => $this->safe_string($entry, 'billId'),
-                'amount' => $this->safe_number($entry, 'balChg'),
+                'amount' => $this->parse_number($amount),
             );
         }
         $sorted = $this->sort_by($result, 'timestamp');
