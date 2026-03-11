@@ -4478,6 +4478,80 @@
                     "datetime": null
                 }
             }
+        ],
+        "fetchTakerBuySellVolume": [
+            {
+                "description": "fetch taker buy sell volume - linear",
+                "method": "fetchTakerBuySellVolume",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "buySellRatio": "0.7906",
+                        "buyVol": "30529.42",
+                        "sellVol": "38615.66",
+                        "timestamp": 1729670400000
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "buySellRatio": "0.7906",
+                            "buyVol": "30529.42",
+                            "sellVol": "38615.66",
+                            "timestamp": 1729670400000
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1729670400000,
+                        "datetime": "2024-10-23T08:00:00.000Z",
+                        "timeframe": null,
+                        "takerBuyBaseVolume": 30529.42,
+                        "takerSellBaseVolume": 38615.66,
+                        "takerBuyQuoteVolume": null,
+                        "takerSellQuoteVolume": null
+                    }
+                ]
+            },
+            {
+                "description": "fetch taker buy sell volume - inverse",
+                "method": "fetchTakerBuySellVolume",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": [
+                    {
+                        "pair": "BTCUSD",
+                        "contractType": "ALL",
+                        "takerBuyVol": "5123",
+                        "takerSellVol": "3412",
+                        "takerBuyVolValue": "2.04532141",
+                        "takerSellVolValue": "1.36001241",
+                        "timestamp": 1729670400000
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "pair": "BTCUSD",
+                            "contractType": "ALL",
+                            "takerBuyVol": "5123",
+                            "takerSellVol": "3412",
+                            "takerBuyVolValue": "2.04532141",
+                            "takerSellVolValue": "1.36001241",
+                            "timestamp": 1729670400000
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "timestamp": 1729670400000,
+                        "datetime": "2024-10-23T08:00:00.000Z",
+                        "timeframe": null,
+                        "takerBuyBaseVolume": 5123.0,
+                        "takerSellBaseVolume": 3412.0,
+                        "takerBuyQuoteVolume": 2.04532141,
+                        "takerSellQuoteVolume": 1.36001241
+                    }
+                ]
+            }
         ]
     }
 }

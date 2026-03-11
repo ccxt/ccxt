@@ -4027,6 +4027,24 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchTakerBuySellVolume": [
+            {
+                "description": "fetch taker buy sell volume - linear",
+                "method": "fetchTakerBuySellVolume",
+                "url": "https://fapi.binance.com/futures/data/takerlongshortRatio?period=5m&symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "fetch taker buy sell volume - inverse",
+                "method": "fetchTakerBuySellVolume",
+                "url": "https://dapi.binance.com/futures/data/takerBuySellVol?period=5m&pair=BTCUSD&contractType=ALL",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
