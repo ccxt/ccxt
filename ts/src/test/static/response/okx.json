@@ -6410,6 +6410,39 @@
                     }
                 ]
             }
+        ],
+        "fetchTakerBuySellVolume": [
+            {
+                "description": "fetch taker buy sell volume - swap",
+                "method": "fetchTakerBuySellVolume",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        ["1648221300000", "1234", "5678"]
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "timestamp": "1648221300000",
+                            "takerSellBaseVolume": "1234",
+                            "takerBuyBaseVolume": "5678"
+                        },
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1648221300000,
+                        "datetime": "2022-03-25T15:15:00.000Z",
+                        "timeframe": null,
+                        "takerBuyBaseVolume": 5678.0,
+                        "takerSellBaseVolume": 1234.0,
+                        "takerBuyQuoteVolume": null,
+                        "takerSellQuoteVolume": null
+                    }
+                ]
+            }
         ]
     }
 }
