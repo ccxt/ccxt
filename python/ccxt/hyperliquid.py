@@ -1068,7 +1068,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
         isUnifiedEnabled = None
         isUnifiedEnabled, params = self.is_unified_enabled('fetchBalance', params)
-        isSpot = ((type == 'spot') or isUnifiedEnabled)
+        dex = self.safe_string(params, 'dex')
+        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
         request: dict = {
             'type': 'spotClearinghouseState' if (isSpot) else 'clearinghouseState',
             'user': userAddress,
