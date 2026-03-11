@@ -6491,6 +6491,13 @@ class okx(Exchange, ImplicitAPI):
             marketInner = self.safe_market(instId)
             currencyId = self.safe_string(entry, 'ccy')
             code = self.safe_currency_code(currencyId)
+            balanceChange = self.safe_string(entry, 'balChg')
+            positionBalanceChange = self.safe_string(entry, 'posBalChg')
+            amount = None
+            if (balanceChange is not None) and (not Precise.string_eq(balanceChange, '0')):
+                amount = balanceChange
+            else:
+                amount = positionBalanceChange
             result.append({
                 'info': entry,
                 'symbol': marketInner['symbol'],
@@ -6498,7 +6505,7 @@ class okx(Exchange, ImplicitAPI):
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
                 'id': self.safe_string(entry, 'billId'),
-                'amount': self.safe_number(entry, 'balChg'),
+                'amount': self.parse_number(amount),
             })
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
