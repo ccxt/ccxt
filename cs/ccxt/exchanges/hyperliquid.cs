@@ -1146,7 +1146,8 @@ public partial class hyperliquid : Exchange
         var isUnifiedEnabledparametersVariable = await this.isUnifiedEnabled("fetchBalance", parameters);
         isUnifiedEnabled = ((IList<object>)isUnifiedEnabledparametersVariable)[0];
         parameters = ((IList<object>)isUnifiedEnabledparametersVariable)[1];
-        object isSpot = (isTrue((isEqual(type, "spot"))) || isTrue(isUnifiedEnabled));
+        object dex = this.safeString(parameters, "dex");
+        object isSpot = isTrue((isTrue((isEqual(type, "spot"))) || isTrue(isUnifiedEnabled))) && isTrue((isEqual(dex, null)));
         object request = new Dictionary<string, object>() {
             { "type", ((bool) isTrue((isSpot))) ? "spotClearinghouseState" : "clearinghouseState" },
             { "user", userAddress },
