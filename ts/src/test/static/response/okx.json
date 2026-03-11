@@ -6410,6 +6410,105 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory linear swap",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "bal": "198.873261090904442",
+                            "balChg": "0.0197523380434766",
+                            "billId": "3377454988989915430",
+                            "ccy": "USDT",
+                            "clOrdId": "",
+                            "earnAmt": "",
+                            "earnApr": "",
+                            "execType": "",
+                            "fee": "0",
+                            "fillFwdPx": "",
+                            "fillIdxPx": "",
+                            "fillMarkPx": "",
+                            "fillMarkVol": "",
+                            "fillPxUsd": "",
+                            "fillPxVol": "",
+                            "fillTime": "1773158402431",
+                            "from": "",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "interest": "0",
+                            "mgnMode": "cross",
+                            "notes": "",
+                            "ordId": "",
+                            "pnl": "0.0197523380434766",
+                            "posBal": "0",
+                            "posBalChg": "0",
+                            "px": "71042",
+                            "subType": "174",
+                            "sz": "0.01",
+                            "tag": "",
+                            "to": "",
+                            "tradeId": "0",
+                            "ts": "1773158402431",
+                            "type": "8"
+                        }
+                    ],
+                    "msg": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "bal": "198.873261090904442",
+                            "balChg": "0.0197523380434766",
+                            "billId": "3377454988989915430",
+                            "ccy": "USDT",
+                            "clOrdId": "",
+                            "earnAmt": "",
+                            "earnApr": "",
+                            "execType": "",
+                            "fee": "0",
+                            "fillFwdPx": "",
+                            "fillIdxPx": "",
+                            "fillMarkPx": "",
+                            "fillMarkVol": "",
+                            "fillPxUsd": "",
+                            "fillPxVol": "",
+                            "fillTime": "1773158402431",
+                            "from": "",
+                            "instId": "BTC-USDT-SWAP",
+                            "instType": "SWAP",
+                            "interest": "0",
+                            "mgnMode": "cross",
+                            "notes": "",
+                            "ordId": "",
+                            "pnl": "0.0197523380434766",
+                            "posBal": "0",
+                            "posBalChg": "0",
+                            "px": "71042",
+                            "subType": "174",
+                            "sz": "0.01",
+                            "tag": "",
+                            "to": "",
+                            "tradeId": "0",
+                            "ts": "1773158402431",
+                            "type": "8"
+                        },
+                    "symbol": "BTC/USDT:USDT",
+                    "code": "USDT",
+                    "timestamp": 1773158402431,
+                    "datetime": "2026-03-10T16:00:02.431Z",
+                    "id": "3377454988989915430",
+                    "amount": 0.0197523380434766
+                    }
+                ]
+            }
         ]
     }
 }
