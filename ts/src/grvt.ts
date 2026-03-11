@@ -462,7 +462,14 @@ export default class grvt extends Exchange {
      * @returns response from exchange
      */
     async signIn (params = {}) {
-        this.checkRequiredCredentials ();
+        if (this.privateKey) {
+            return await this.signInWithPrivateKey (params);
+        } else {
+            return await this.signInWithApiKey (params);
+        }
+    }
+
+    async signInWithApiKey (params = {}) {
         const now = this.milliseconds ();
         // expires in 24 hours as CS suggested
         const expires = this.safeInteger (this.options, 'signInExpiration', 0);
@@ -493,9 +500,9 @@ export default class grvt extends Exchange {
         if (expires !== undefined && expires > now + 10000) {
             return {};
         }
-        const walletAddress = this.ethGetAddressFromPrivateKey (this.secret);
+        const walletAddress = this.ethGetAddressFromPrivateKey (this.privateKey);
         let request: Dict = {
-            'signer': walletAddress,
+            'address': walletAddress,
             'signature': this.defaultSignature (),
         };
         request = this.createSignedRequest (request, 'EIP712_WALLETLOGIN_TYPE');
@@ -1822,7 +1829,7 @@ export default class grvt extends Exchange {
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() requires a network parameter');
         }
-        request['signature']['chainId'] = networkId;
+        request['signature']['chain_id'] = networkId;
         request = this.createSignedRequest (request, 'EIP712_WITHDRAWAL_TYPE', currency);
         const response = await this.privateTradingPostFullV1Withdrawal (this.extend (request, query));
         //
@@ -2080,57 +2087,6 @@ export default class grvt extends Exchange {
             'expiration': order['signature']['expiration'],
         };
         return returnValue;
-    }
-
-    eipMessageForWalletLogin (dataObj) {
-        return {
-            'signer': dataObj['signer'],
-            'nonce': dataObj['signature']['nonce'],
-            'expiration': dataObj['signature']['expiration'],
-        };
-    }
-
-    eipMessageForBuilderApproval (dataObj) {
-        const amountMultiplier = this.feeAmountMultiplier ();
-        return {
-            'mainAccountID': dataObj['main_account_id'],
-            'builderAccountID': dataObj['builder_account_id'],
-            'maxFutureFeeRate': this.parseToInt (parseFloat (dataObj['max_futures_fee_rate']) * amountMultiplier),
-            'maxSpotFeeRate': this.parseToInt (parseFloat (dataObj['max_spot_fee_rate']) * amountMultiplier),
-            'nonce': dataObj['signature']['nonce'],
-            'expiration': dataObj['signature']['expiration'],
-        };
-    }
-
-    eipMessageForWithdrawal (withdrawal, currency: Currency = undefined) {
-        const amountMultiplier = this.convertToBigIntCustom ('1000000');
-        return {
-            'fromAccount': withdrawal['from_account_id'],
-            'toEthAddress': withdrawal['to_eth_address'],
-            'tokenCurrency': currency['numericId'],
-            'numTokens': this.parseToInt (withdrawal['num_tokens'] * amountMultiplier),
-            'nonce': withdrawal['signature']['nonce'],
-            'expiration': withdrawal['signature']['expiration'],
-        };
-    }
-
-    eipMessageForTransfer (transfer, currency: Currency = undefined) {
-        const amountMultiplier = this.convertToBigIntCustom ('1000000');
-        const amountInt = transfer['num_tokens'] * amountMultiplier;
-        return {
-            'fromAccount': transfer['from_account_id'],
-            'fromSubAccount': transfer['from_sub_account_id'],
-            'toAccount': transfer['to_account_id'],
-            'toSubAccount': transfer['to_sub_account_id'],
-            'tokenCurrency': currency['numericId'],
-            'numTokens': this.parseToInt (amountInt),
-            'nonce': transfer['signature']['nonce'],
-            'expiration': transfer['signature']['expiration'],
-        };
-    }
-
-    feeAmountMultiplier () {
-        return this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
     }
 
     /**
@@ -3047,21 +3003,52 @@ export default class grvt extends Exchange {
     createSignedRequest (request: any, structureType: string, currencyObj = undefined, signerAddress: Str = undefined): Dict {
         let messageData = undefined;
         if (structureType === 'EIP712_TRANSFER_TYPE') {
-            messageData = this.eipMessageForTransfer (request, currencyObj);
+            const amountMultiplier = this.convertToBigIntCustom ('1000000');
+            const amountInt = request['num_tokens'] * amountMultiplier;
+            messageData = {
+                'fromAccount': request['from_account_id'],
+                'fromSubAccount': request['from_sub_account_id'],
+                'toAccount': request['to_account_id'],
+                'toSubAccount': request['to_sub_account_id'],
+                'tokenCurrency': currencyObj['numericId'],
+                'numTokens': this.parseToInt (amountInt),
+                'nonce': request['signature']['nonce'],
+                'expiration': request['signature']['expiration'],
+            };
         } else if (structureType === 'EIP712_WITHDRAWAL_TYPE') {
-            messageData = this.eipMessageForWithdrawal (request, currencyObj);
+            const amountMultiplier = this.convertToBigIntCustom ('1000000');
+            messageData = {
+                'fromAccount': request['from_account_id'],
+                'toEthAddress': request['to_eth_address'],
+                'tokenCurrency': currencyObj['numericId'],
+                'numTokens': this.parseToInt (request['num_tokens'] * amountMultiplier),
+                'nonce': request['signature']['nonce'],
+                'expiration': request['signature']['expiration'],
+            };
         } else if (structureType === 'EIP712_ORDER_TYPE') {
             messageData = this.eipMessageForOrder (request);
         } else if (structureType === 'EIP712_BUILDER_APPROVAL_TYPE') {
-            messageData = this.eipMessageForBuilderApproval (request);
+            const amountMultiplier = this.convertToBigIntCustom ('10000'); // multiply needed https://t.me/c/3396937126/88
+            messageData = {
+                'mainAccountID': request['main_account_id'],
+                'builderAccountID': request['builder_account_id'],
+                'maxFutureFeeRate': this.parseToInt (parseFloat (request['max_futures_fee_rate']) * amountMultiplier),
+                'maxSpotFeeRate': this.parseToInt (parseFloat (request['max_spot_fee_rate']) * amountMultiplier),
+                'nonce': request['signature']['nonce'],
+                'expiration': request['signature']['expiration'],
+            };
         } else if (structureType === 'EIP712_WALLETLOGIN_TYPE') {
-            messageData = this.eipMessageForWalletLogin (request);
+            messageData = {
+                'signer': request['address'],
+                'nonce': request['signature']['nonce'],
+                'expiration': request['signature']['expiration'],
+            };
         }
         const domainData = this.eipDomainData ();
         const definitions = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const secretOrPrivkey = this.privateKey !== undefined ? this.privateKey : this.privateKey
+        const secretOrPrivkey = this.privateKey !== undefined ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS (signature['r']);
@@ -3089,7 +3076,7 @@ export default class grvt extends Exchange {
             'v': 0,
             'expiration': expiration.toString (),
             'nonce': this.nonce (),
-            'chainID': this.isSandboxModeEnabled ? 326 : 325,
+            'chain_id': this.isSandboxModeEnabled ? '326' : '325',
         };
     }
 
@@ -3123,7 +3110,7 @@ export default class grvt extends Exchange {
             headers = {
                 'Content-Type': 'application/json',
             };
-            if (path === 'auth/api_key/login' || path === 'auth/wallet/login') {
+            if (path.endsWith ('auth/api_key/login') || path.endsWith ('auth/wallet/login')) {
                 headers['Cookie'] = 'rm=true;';
             } else {
                 const accountId = this.safeString (this.options, 'AuthAccountId');
@@ -3139,7 +3126,7 @@ export default class grvt extends Exchange {
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
-        if (url.endsWith ('auth/api_key/login')) {
+        if (url.endsWith ('auth/api_key/login') || url.endsWith ('auth/wallet/login')) {
             const accountId = this.safeString2 (headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             this.options['AuthAccountId'] = accountId;
             const cookie = this.safeString2 (headers, 'Set-Cookie', 'set-cookie');
