@@ -1096,7 +1096,8 @@ class hyperliquid extends hyperliquid$1["default"] {
         [marginMode, params] = this.handleMarginModeAndParams('fetchBalance', params);
         let isUnifiedEnabled = undefined;
         [isUnifiedEnabled, params] = await this.isUnifiedEnabled('fetchBalance', params);
-        const isSpot = ((type === 'spot') || isUnifiedEnabled);
+        const dex = this.safeString(params, 'dex');
+        const isSpot = ((type === 'spot') || isUnifiedEnabled) && (dex === undefined);
         const request = {
             'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
