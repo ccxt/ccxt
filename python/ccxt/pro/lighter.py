@@ -34,7 +34,7 @@ class lighter(ccxt.async_support.lighter):
                 'watchOHLCV': False,
                 'watchOHLCVForSymbols': False,
                 'watchOrders': False,
-                'watchMyTrades': False,
+                'watchMyTrades': True,
                 'watchPositions': False,
                 'watchFundingRate': False,
                 'watchFundingRates': False,
@@ -42,6 +42,7 @@ class lighter(ccxt.async_support.lighter):
                 'unWatchTicker': True,
                 'unWatchTickers': True,
                 'unWatchTrades': True,
+                'unWatchMyTrades': True,
                 'unWatchMarkPrice': True,
                 'unWatchMarkPrices': True,
             },
@@ -536,7 +537,7 @@ class lighter(ccxt.async_support.lighter):
         request: dict = {
             'channel': 'trade/' + market['id'],
         }
-        messageHash = self.get_message_hash('trade', symbol)
+        messageHash = self.get_message_hash('trade', market['symbol'])
         return await self.subscribe_public(messageHash, self.extend(request, params))
 
     async def un_watch_trades(self, symbol: str, params={}) -> Any:
@@ -555,6 +556,116 @@ class lighter(ccxt.async_support.lighter):
             'channel': 'trade/' + market['id'],
         }
         messageHash = self.get_message_hash('unsubscribe', symbol)
+        return await self.unsubscribe_public(messageHash, self.extend(request, params))
+
+    def handle_my_trades(self, client: Client, message):
+        #
+        #     {
+        #         "channel": "account_all_trades:723310",
+        #         "trades": {
+        #              13: [{
+        #                  "trade_id": 526801155,
+        #                  "tx_hash": "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        #                  "type": "trade",
+        #                  "market_id": 0,
+        #                  "size": "0.0346",
+        #                  "price": "3028.85",
+        #                  "usd_amount": "104.798210",
+        #                  "ask_id": 281475673670566,
+        #                  "bid_id": 562949291740362,
+        #                  "ask_client_id": 76303170,
+        #                  "bid_client_id": 27601,
+        #                  "ask_account_id": 99349,
+        #                  "bid_account_id": 243008,
+        #                  "is_maker_ask": False,
+        #                  "block_height": 102322769,
+        #                  "timestamp": 1763623734215,
+        #                  "taker_position_size_before": "0.0346",
+        #                  "taker_entry_quote_before": "104.359926",
+        #                  "taker_initial_margin_fraction_before": 500,
+        #                  "taker_position_sign_changed": True,
+        #                  "maker_fee": 20,
+        #                  "maker_position_size_before": "2.1277",
+        #                  "maker_entry_quote_before": "6444.179555",
+        #                  "maker_initial_margin_fraction_before": 200
+        #              }]
+        #         },
+        #         "type": "update/account_all_trades"
+        #     }
+        #
+        data = self.safe_dict(message, 'trades', {})
+        marketIds = list(data.keys())
+        idsLength = len(marketIds)
+        if idsLength == 0:
+            return False  # nothing to process
+        if self.myTrades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            self.myTrades = ArrayCache(limit)
+        stored = self.myTrades
+        messageHash = self.get_message_hash('myTrades')
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            market = self.safe_market(marketId)
+            trades = self.safe_list(data, marketId, [])
+            for j in range(0, len(trades)):
+                trade = self.parse_ws_trade(trades[j], market)
+                stored.append(trade)
+                symbol = trade['symbol']
+                if symbol is not None:
+                    symbolSpecificMessageHash = self.get_message_hash('myTrades', symbol)
+                    client.resolve(stored, symbolSpecificMessageHash)
+        client.resolve(stored, messageHash)
+        return True
+
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        subscribe to recent trades of an account.
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        accountIndex = None
+        accountIndex, params = await self.handleAccountIndex(params, 'watchMyTrades', 'accountIndex', 'account_index')
+        messageHash = self.get_message_hash('myTrades')
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = self.get_message_hash('myTrades', symbol)
+        request: dict = {
+            'channel': 'account_all_trades/' + self.number_to_string(accountIndex),
+        }
+        trades = await self.subscribe_public(messageHash, self.extend(request, params))
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> Any:
+        """
+        unsubscribe from the account trades channel
+
+        https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+
+        :param str [symbol]: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        accountIndex
+        accountIndex, params = await self.handleAccountIndex(params, 'unWatchMyTrades', 'accountIndex', 'account_index')
+        messageHash = self.get_message_hash('unsubscribe', 'myTrades')
+        if symbol is not None:
+            await self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = self.get_message_hash('unsubscribe', symbol)
+        request: dict = {
+            'channel': 'account_all_trades/' + accountIndex,
+        }
         return await self.unsubscribe_public(messageHash, self.extend(request, params))
 
     def parse_ws_liquidation(self, liquidation, market=None):
@@ -710,6 +821,9 @@ class lighter(ccxt.async_support.lighter):
             return
         if channel.find('trade:') >= 0:
             self.handle_trades(client, message)
+            return
+        if channel.find('account_all_trades:') >= 0:
+            self.handle_my_trades(client, message)
             return
         if channel == '':
             self.handle_subscription_status(client, message)
