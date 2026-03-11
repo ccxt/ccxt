@@ -33,7 +33,7 @@ class lighter extends \ccxt\async\lighter {
                 'watchOHLCV' => false,
                 'watchOHLCVForSymbols' => false,
                 'watchOrders' => false,
-                'watchMyTrades' => false,
+                'watchMyTrades' => true,
                 'watchPositions' => false,
                 'watchFundingRate' => false,
                 'watchFundingRates' => false,
@@ -41,6 +41,7 @@ class lighter extends \ccxt\async\lighter {
                 'unWatchTicker' => true,
                 'unWatchTickers' => true,
                 'unWatchTrades' => true,
+                'unWatchMyTrades' => true,
                 'unWatchMarkPrice' => true,
                 'unWatchMarkPrices' => true,
             ),
@@ -597,7 +598,7 @@ class lighter extends \ccxt\async\lighter {
             $request = array(
                 'channel' => 'trade/' . $market['id'],
             );
-            $messageHash = $this->get_message_hash('trade', $symbol);
+            $messageHash = $this->get_message_hash('trade', $market['symbol']);
             return Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
         }) ();
     }
@@ -619,6 +620,131 @@ class lighter extends \ccxt\async\lighter {
                 'channel' => 'trade/' . $market['id'],
             );
             $messageHash = $this->get_message_hash('unsubscribe', $symbol);
+            return Async\await($this->unsubscribe_public($messageHash, $this->extend($request, $params)));
+        }) ();
+    }
+
+    public function handle_my_trades(Client $client, $message) {
+        //
+        //     {
+        //         "channel" => "account_all_trades:723310",
+        //         "trades" => array(
+        //              13 => [array(
+        //                  "trade_id" => 526801155,
+        //                  "tx_hash" => "1998d9df580acb7540aa141cc369d6ef926d003b3062196d2007bca15f978ab208e0caae4ac5872b",
+        //                  "type" => "trade",
+        //                  "market_id" => 0,
+        //                  "size" => "0.0346",
+        //                  "price" => "3028.85",
+        //                  "usd_amount" => "104.798210",
+        //                  "ask_id" => 281475673670566,
+        //                  "bid_id" => 562949291740362,
+        //                  "ask_client_id" => 76303170,
+        //                  "bid_client_id" => 27601,
+        //                  "ask_account_id" => 99349,
+        //                  "bid_account_id" => 243008,
+        //                  "is_maker_ask" => false,
+        //                  "block_height" => 102322769,
+        //                  "timestamp" => 1763623734215,
+        //                  "taker_position_size_before" => "0.0346",
+        //                  "taker_entry_quote_before" => "104.359926",
+        //                  "taker_initial_margin_fraction_before" => 500,
+        //                  "taker_position_sign_changed" => true,
+        //                  "maker_fee" => 20,
+        //                  "maker_position_size_before" => "2.1277",
+        //                  "maker_entry_quote_before" => "6444.179555",
+        //                  "maker_initial_margin_fraction_before" => 200
+        //              )]
+        //         ),
+        //         "type" => "update/account_all_trades"
+        //     }
+        //
+        $data = $this->safe_dict($message, 'trades', array());
+        $marketIds = is_array($data) ? array_keys($data) : array();
+        $idsLength = count($marketIds);
+        if ($idsLength === 0) {
+            return false; // nothing to process
+        }
+        if ($this->myTrades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $this->myTrades = new ArrayCache ($limit);
+        }
+        $stored = $this->myTrades;
+        $messageHash = $this->get_message_hash('myTrades');
+        for ($i = 0; $i < count($marketIds); $i++) {
+            $marketId = $marketIds[$i];
+            $market = $this->safe_market($marketId);
+            $trades = $this->safe_list($data, $marketId, array());
+            for ($j = 0; $j < count($trades); $j++) {
+                $trade = $this->parse_ws_trade($trades[$j], $market);
+                $stored->append ($trade);
+                $symbol = $trade['symbol'];
+                if ($symbol !== null) {
+                    $symbolSpecificMessageHash = $this->get_message_hash('myTrades', $symbol);
+                    $client->resolve ($stored, $symbolSpecificMessageHash);
+                }
+            }
+        }
+        $client->resolve ($stored, $messageHash);
+        return true;
+    }
+
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * subscribe to recent $trades of an account.
+             *
+             * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-$trades
+             *
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $accountIndex = null;
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'watchMyTrades', 'accountIndex', 'account_index'));
+            $messageHash = $this->get_message_hash('myTrades');
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash = $this->get_message_hash('myTrades', $symbol);
+            }
+            $request = array(
+                'channel' => 'account_all_trades/' . $this->number_to_string($accountIndex),
+            );
+            $trades = Async\await($this->subscribe_public($messageHash, $this->extend($request, $params)));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
+        }) ();
+    }
+
+    public function un_watch_my_trades(?string $symbol = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the account trades channel
+             *
+             * @see https://apidocs.lighter.xyz/docs/websocket-reference#account-all-trades
+             *
+             * @param {string} [$symbol] unified $market $symbol
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            $accountIndex;
+            list($accountIndex, $params) = Async\await($this->handleAccountIndex ($params, 'unWatchMyTrades', 'accountIndex', 'account_index'));
+            $messageHash = $this->get_message_hash('unsubscribe', 'myTrades');
+            if ($symbol !== null) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $messageHash = $this->get_message_hash('unsubscribe', $symbol);
+            }
+            $request = array(
+                'channel' => 'account_all_trades/' . $accountIndex,
+            );
             return Async\await($this->unsubscribe_public($messageHash, $this->extend($request, $params)));
         }) ();
     }
@@ -791,6 +917,10 @@ class lighter extends \ccxt\async\lighter {
         }
         if (mb_strpos($channel, 'trade:') !== false) {
             $this->handle_trades($client, $message);
+            return;
+        }
+        if (mb_strpos($channel, 'account_all_trades:') !== false) {
+            $this->handle_my_trades($client, $message);
             return;
         }
         if ($channel === '') {
