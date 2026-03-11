@@ -1086,7 +1086,7 @@ class hyperliquid extends Exchange {
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->type] wallet $type, ['spot', 'swap'], defaults to swap
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
-         * @param {string} [$params->dex] for hip3 markets, the dex name, eg => 'xyz'
+         * @param {string} [$params->dex] for hip3 markets, the $dex name, eg => 'xyz'
          * @param {string} [$params->subAccountAddress] sub $account user address
          * @param {boolean} [$params->enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
          * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
@@ -1099,7 +1099,8 @@ class hyperliquid extends Exchange {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         $isUnifiedEnabled = null;
         list($isUnifiedEnabled, $params) = $this->is_unified_enabled('fetchBalance', $params);
-        $isSpot = (($type === 'spot') || $isUnifiedEnabled);
+        $dex = $this->safe_string($params, 'dex');
+        $isSpot = (($type === 'spot') || $isUnifiedEnabled) && ($dex === null);
         $request = array(
             'type' => ($isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user' => $userAddress,
