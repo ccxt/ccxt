@@ -1099,6 +1099,7 @@ export default class hyperliquid extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
      * @param {string} [params.subAccountAddress] sub account user address
+     * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT tries to auto-detects this value but you can override it
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
@@ -1108,7 +1109,9 @@ export default class hyperliquid extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        const isSpot = (type === 'spot');
+        let isUnifiedEnabled = undefined;
+        [ isUnifiedEnabled, params ] = await this.isUnifiedEnabled ('fetchBalance', params);
+        const isSpot = ((type === 'spot') || isUnifiedEnabled);
         const request: Dict = {
             'type': (isSpot) ? 'spotClearinghouseState' : 'clearinghouseState',
             'user': userAddress,
@@ -1831,7 +1834,7 @@ export default class hyperliquid extends Exchange {
 
     async initializeClient () {
         try {
-            await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef () ]);
+            await Promise.all ([ this.handleBuilderFeeApproval (), this.setRef (), this.isUnifiedEnabled ('fetchBalance', {}) ]); // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
         } catch (e) {
             return false;
         }
@@ -1856,6 +1859,40 @@ export default class hyperliquid extends Exchange {
             this.options['builderFee'] = false; // disable builder fee if an error occurs
         }
         return true;
+    }
+
+    /**
+     * @method
+     * @name hyperliquid#isUnifiedEnabled
+     * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+     * @description returns enableUnifiedMargin so the user can check if unified account is enabled
+     * @param {string} method the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {bool} enableUnifiedMargin
+     */
+    async isUnifiedEnabled (method: string, params = {}) {
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('isUnifiedEnabled', params);
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, method, 'enableUnifiedMargin');
+        if (enableUnifiedMargin === undefined) {
+            const request: Dict = {
+                'type': 'userAbstraction',
+                'user': userAddress,
+            };
+            let response = undefined;
+            try {
+                response = await this.publicPostInfo (this.extend (request, params));
+            } catch (e) {
+                response = undefined; // ignore this error and assume unified margin is not enabled
+            }
+            //
+            // "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
+            //
+            enableUnifiedMargin = response === '"unifiedAccount"';
+            this.options['enableUnifiedMargin'] = enableUnifiedMargin; // cache this for future calls
+        }
+        return [ enableUnifiedMargin, params ];
     }
 
     /**
