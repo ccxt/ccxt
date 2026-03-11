@@ -1892,6 +1892,18 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history linear swap",
+                "method": "fetchFundingHistory",
+                "url": "https://www.okx.com/api/v5/account/bills-archive?type=8&ctType=linear&ccy=USDT&instType=SWAP",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    null
+                ]
+            }
         ]
     }
 }
