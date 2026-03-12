@@ -99,7 +99,7 @@ export default class grvt extends Exchange {
                 'doc': [
                     'https://api-docs.grvt.io/',
                 ],
-                'fees': '',
+                'fees': 'https://help.grvt.io/en/articles/9614699-how-does-grvt-s-fee-model-work',
             },
             'api': {
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
