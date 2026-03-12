@@ -95,7 +95,7 @@ export default class grvt extends Exchange {
                     'publicMarket': 'https://market-data.testnet.grvt.io/',
                 },
                 'www': 'https://grvt.io',
-                'referral': '----------------------------------------------------',
+                'referral': 'https://grvt.io/?ref=WBLS9D1',
                 'doc': [
                     'https://api-docs.grvt.io/',
                 ],
