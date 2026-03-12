@@ -1600,16 +1600,22 @@ export default class onetrading extends Exchange {
             market = this.market (symbol);
             request['instrument_code'] = market['id'];
         }
+        let until = this.safeInteger (params, 'until');
         if (since !== undefined) {
-            const to = this.safeString (params, 'to');
-            if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
+            if (until === undefined) {
+                until = since + (86400000 * 1000);
             }
             request['from'] = this.iso8601 (since);
+        }
+        if (until !== undefined) {
+            const now = this.milliseconds ();
+            const to = Math.min (until, now);
+            request['to'] = this.iso8601 (to);
         }
         if (limit !== undefined) {
             request['max_page_size'] = limit;
         }
+        params = this.omit (params, 'until');
         const response = await this.privateGetAccountOrders (this.extend (request, params));
         //
         //     {
