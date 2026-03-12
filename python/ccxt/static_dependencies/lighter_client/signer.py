@@ -119,14 +119,15 @@ def load_lighter_library(path):
 def decode_tx_info(result: SignedTxResponse) -> Union[Tuple[str, str, str, None], Tuple[None, None, None, str]]:
     if result.err:
         error = result.err.decode("utf-8")
-        return None, None, None, error
+        return None, None, None, None, error
     
     # Use txType from response if available, otherwise use the provided type
     tx_type = result.txType
     tx_info_str = result.txInfo.decode("utf-8") if result.txInfo else None
     tx_hash_str = result.txHash.decode("utf-8") if result.txHash else None
+    message_to_sign = result.messageToSign.decode("utf-8") if result.messageToSign else None
 
-    return tx_type, tx_info_str, tx_hash_str, None
+    return tx_type, tx_info_str, tx_hash_str, message_to_sign, None
 
 def decode_auth(result: StrOrErr) -> Union[Tuple[str, None], Tuple[None, str]]:
     if result.err:

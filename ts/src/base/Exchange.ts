@@ -2151,6 +2151,23 @@ export default class Exchange {
         return [ res.txType, res.txInfo ];
     }
 
+    // eslint-disable-next-line no-unused-vars
+    lighterSignApproveIntegrator (signer, request): any[] {
+        const res = globalThis.SignApproveIntegrator (
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            request['approval_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index']
+        );
+        this.checkLighterSignedError (res);
+        return [ res.txType, res.txInfo, res.messageToSign];
+    }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
