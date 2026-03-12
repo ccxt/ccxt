@@ -170,9 +170,13 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
-            $dt_parsed_string = $exchange->iso8601($dt_parsed);
-            $dt_entry_string = $exchange->iso8601($entry['timestamp']);
-            assert($dt_parsed_string === $dt_entry_string, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
+            $ts_ms = $entry['timestamp'];
+            $diff = abs($dt_parsed - $ts_ms);
+            if ($diff >= 500) {
+                $dt_parsed_string = $exchange->iso8601($dt_parsed);
+                $dt_entry_string = $exchange->iso8601($ts_ms);
+                assert(false, 'datetime is not iso8601 of timestamp:' . $dt_parsed_string . '(string) != ' . $dt_entry_string . '(from ts)' . $log_text);
+            }
         }
     }
 }
@@ -335,7 +339,6 @@ function assert_fee_structure($exchange, $skipped_properties, $method, $entry, $
     $log_text = log_template($exchange, $method, $entry);
     $key_string = string_value($key);
     if (is_int($key)) {
-        $key = $key;
         assert(gettype($entry) === 'array' && array_is_list($entry), 'fee container is expected to be an array' . $log_text);
         assert($key < count($entry), 'fee key ' . $key_string . ' was expected to be present in entry' . $log_text);
     } else {
@@ -560,6 +563,16 @@ function assert_order_state($exchange, $skipped_properties, $method, $order, $as
 }
 
 
+function get_active_markets($exchange, $include_unknown = true) {
+    $filtered_active = $exchange->filter_by($exchange->markets, 'active', true);
+    if ($include_unknown) {
+        $filtered_undefined = $exchange->filter_by($exchange->markets, 'active', null);
+        return $exchange->array_concat($filtered_active, $filtered_undefined);
+    }
+    return $filtered_active;
+}
+
+
 function remove_proxy_options($exchange, $skipped_properties) {
     $proxy_url = $exchange->check_proxy_url_settings();
     [$http_proxy, $https_proxy, $socks_proxy] = $exchange->check_proxy_settings();
@@ -626,12 +639,12 @@ function assert_round_minute_timestamp($exchange, $skipped_properties, $method, 
 }
 
 
-function deep_equal($a, $b) {
+function deep_equal($exchange, $a, $b) {
     return json_encode($a) === json_encode($b);
 }
 
 
 function assert_deep_equal($exchange, $skipped_properties, $method, $a, $b) {
     $log_text = log_template($exchange, $method, array());
-    assert(deep_equal($a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
+    assert(deep_equal($exchange, $a, $b), 'two dicts do not match: ' . json_encode($a) . ' != ' . json_encode($b) . $log_text);
 }

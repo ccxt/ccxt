@@ -7,338 +7,86 @@
 
 package ccxt
 
-func (this *mercado) PublicGetCoins (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoins", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoins(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoins", args...)
 }
 
-func (this *mercado) PublicGetCoinOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoinOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoinOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoinOrderbook", args...)
 }
 
-func (this *mercado) PublicGetCoinTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoinTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoinTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoinTicker", args...)
 }
 
-func (this *mercado) PublicGetCoinTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoinTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoinTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoinTrades", args...)
 }
 
-func (this *mercado) PublicGetCoinTradesFrom (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoinTradesFrom", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoinTradesFrom(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoinTradesFrom", args...)
 }
 
-func (this *mercado) PublicGetCoinTradesFromTo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoinTradesFromTo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoinTradesFromTo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoinTradesFromTo", args...)
 }
 
-func (this *mercado) PublicGetCoinDaySummaryYearMonthDay (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCoinDaySummaryYearMonthDay", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PublicGetCoinDaySummaryYearMonthDay(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCoinDaySummaryYearMonthDay", args...)
 }
 
-func (this *mercado) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *mercado) PrivatePostGetAccountInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetAccountInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostGetAccountInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetAccountInfo", args...)
 }
 
-func (this *mercado) PrivatePostGetOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostGetOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrder", args...)
 }
 
-func (this *mercado) PrivatePostGetWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostGetWithdrawal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetWithdrawal", args...)
 }
 
-func (this *mercado) PrivatePostListSystemMessages (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostListSystemMessages", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostListSystemMessages(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostListSystemMessages", args...)
 }
 
-func (this *mercado) PrivatePostListOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostListOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostListOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostListOrders", args...)
 }
 
-func (this *mercado) PrivatePostListOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostListOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostListOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostListOrderbook", args...)
 }
 
-func (this *mercado) PrivatePostPlaceBuyOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPlaceBuyOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostPlaceBuyOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPlaceBuyOrder", args...)
 }
 
-func (this *mercado) PrivatePostPlaceSellOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPlaceSellOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostPlaceSellOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPlaceSellOrder", args...)
 }
 
-func (this *mercado) PrivatePostPlaceMarketBuyOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPlaceMarketBuyOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostPlaceMarketBuyOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPlaceMarketBuyOrder", args...)
 }
 
-func (this *mercado) PrivatePostPlaceMarketSellOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPlaceMarketSellOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostPlaceMarketSellOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostPlaceMarketSellOrder", args...)
 }
 
-func (this *mercado) PrivatePostWithdrawCoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawCoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) PrivatePostWithdrawCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawCoin", args...)
 }
 
-func (this *mercado) V4PublicGetCoinCandle (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v4PublicGetCoinCandle", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) V4PublicGetCoinCandle(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v4PublicGetCoinCandle", args...)
 }
 
-func (this *mercado) V4PublicNetGetCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v4PublicNetGetCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *MercadoCore) V4PublicNetGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v4PublicNetGetCandles", args...)
 }

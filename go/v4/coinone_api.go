@@ -7,1010 +7,254 @@
 
 package ccxt
 
-func (this *coinone) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PublicGetOrderbook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *coinone) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PublicGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *coinone) PublicGetTickerUtc (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickerUtc", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PublicGetTickerUtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTickerUtc", args...)
 }
 
-func (this *coinone) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *coinone) V2PublicGetRangeUnits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetRangeUnits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetRangeUnits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetRangeUnits", args...)
 }
 
-func (this *coinone) V2PublicGetMarketsQuoteCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetMarketsQuoteCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetMarketsQuoteCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetMarketsQuoteCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetMarketsQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetMarketsQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetMarketsQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetMarketsQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetOrderbookQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetOrderbookQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetOrderbookQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetOrderbookQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTradesQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetTradesQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetTradesQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTradesQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerNewQuoteCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetTickerNewQuoteCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetTickerNewQuoteCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerNewQuoteCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerNewQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetTickerNewQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetTickerNewQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerNewQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerUtcNewQuoteCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetTickerUtcNewQuoteCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetTickerUtcNewQuoteCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerUtcNewQuoteCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetTickerUtcNewQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetCurrencies", args...)
 }
 
-func (this *coinone) V2PublicGetCurrenciesCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetCurrenciesCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetCurrenciesCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetCurrenciesCurrency", args...)
 }
 
-func (this *coinone) V2PublicGetChartQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PublicGetChartQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PublicGetChartQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PublicGetChartQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) PrivatePostAccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostAccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountDepositAddress", args...)
 }
 
-func (this *coinone) PrivatePostAccountBtcDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBtcDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostAccountBtcDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBtcDepositAddress", args...)
 }
 
-func (this *coinone) PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountBalance", args...)
 }
 
-func (this *coinone) PrivatePostAccountDailyBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountDailyBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostAccountDailyBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountDailyBalance", args...)
 }
 
-func (this *coinone) PrivatePostAccountUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostAccountUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountUserInfo", args...)
 }
 
-func (this *coinone) PrivatePostAccountVirtualAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountVirtualAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostAccountVirtualAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountVirtualAccount", args...)
 }
 
-func (this *coinone) PrivatePostOrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancelAll", args...)
 }
 
-func (this *coinone) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *coinone) PrivatePostOrderLimitBuy (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderLimitBuy", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderLimitBuy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderLimitBuy", args...)
 }
 
-func (this *coinone) PrivatePostOrderLimitSell (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderLimitSell", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderLimitSell(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderLimitSell", args...)
 }
 
-func (this *coinone) PrivatePostOrderCompleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCompleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderCompleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderCompleteOrders", args...)
 }
 
-func (this *coinone) PrivatePostOrderLimitOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderLimitOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderLimitOrders", args...)
 }
 
-func (this *coinone) PrivatePostOrderOrderInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderOrderInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostOrderOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrderOrderInfo", args...)
 }
 
-func (this *coinone) PrivatePostTransactionAuthNumber (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransactionAuthNumber", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostTransactionAuthNumber(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionAuthNumber", args...)
 }
 
-func (this *coinone) PrivatePostTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionHistory", args...)
 }
 
-func (this *coinone) PrivatePostTransactionKrwHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransactionKrwHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostTransactionKrwHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionKrwHistory", args...)
 }
 
-func (this *coinone) PrivatePostTransactionBtc (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransactionBtc", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostTransactionBtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionBtc", args...)
 }
 
-func (this *coinone) PrivatePostTransactionCoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransactionCoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) PrivatePostTransactionCoin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransactionCoin", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountBalance", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostAccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostAccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountDepositAddress", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostAccountUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostAccountUserInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountUserInfo", args...)
 }
 
-func (this *coinone) V2PrivatePostAccountVirtualAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostAccountVirtualAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostAccountVirtualAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostAccountVirtualAccount", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderCancel", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderLimitBuy (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostOrderLimitBuy", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostOrderLimitBuy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderLimitBuy", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderLimitSell (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostOrderLimitSell", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostOrderLimitSell(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderLimitSell", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderLimitOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostOrderLimitOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostOrderLimitOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderLimitOrders", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderCompleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostOrderCompleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostOrderCompleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderCompleteOrders", args...)
 }
 
-func (this *coinone) V2PrivatePostOrderQueryOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostOrderQueryOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostOrderQueryOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostOrderQueryOrder", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionAuthNumber (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostTransactionAuthNumber", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostTransactionAuthNumber(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionAuthNumber", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionBtc (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostTransactionBtc", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostTransactionBtc(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionBtc", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionHistory", args...)
 }
 
-func (this *coinone) V2PrivatePostTransactionKrwHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2PrivatePostTransactionKrwHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2PrivatePostTransactionKrwHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2PrivatePostTransactionKrwHistory", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountBalanceAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostAccountBalanceAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostAccountBalanceAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountBalanceAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountBalance", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountTradeFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostAccountTradeFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostAccountTradeFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountTradeFee", args...)
 }
 
-func (this *coinone) V2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostAccountTradeFeeQuoteCurrencyTargetCurrency", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderLimit", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCancel", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCancelAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderCancelAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderCancelAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCancelAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderOpenOrders", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderOpenOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderOpenOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderOpenOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderOpenOrdersAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCompleteOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderCompleteOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderCompleteOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCompleteOrders", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderCompleteOrdersAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderCompleteOrdersAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderCompleteOrdersAll(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderCompleteOrdersAll", args...)
 }
 
-func (this *coinone) V2_1PrivatePostOrderInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostOrderInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostOrderInfo", args...)
 }
 
-func (this *coinone) V2_1PrivatePostTransactionKrwHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostTransactionKrwHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostTransactionKrwHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostTransactionKrwHistory", args...)
 }
 
-func (this *coinone) V2_1PrivatePostTransactionCoinHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostTransactionCoinHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostTransactionCoinHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostTransactionCoinHistory", args...)
 }
 
-func (this *coinone) V2_1PrivatePostTransactionCoinWithdrawalLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("v2_1PrivatePostTransactionCoinWithdrawalLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CoinoneCore) V2_1PrivatePostTransactionCoinWithdrawalLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("v2_1PrivatePostTransactionCoinWithdrawalLimit", args...)
 }

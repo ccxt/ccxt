@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
@@ -45,17 +46,43 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			panic("headers must be a map[string]interface{}")
 		}
 
-		if this.Verbose {
-			fmt.Println("Headers:", headersMap)
-			fmt.Println("\n\n")
-			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
-			fmt.Println("\n\n")
-			fmt.Printf("Body: %v\n", body)
-			fmt.Println("\n\n")
-		}
-
 		headersStrMap := make(map[string]string)
 		for k, v := range headersMap {
+			headersStrMap[k] = fmt.Sprintf("%v", v)
+		}
+
+		headersOptions, ok := this.Options.Load("headers")
+		if ok {
+			if headersOptions != nil {
+				for key, value := range headersOptions.(map[string]interface{}) {
+					if _, exists := headersStrMap[key]; !exists {
+						headersStrMap[key] = fmt.Sprintf("%v", value)
+					}
+				}
+			} else {
+				panic("headersOptions should be a map[string]interface{}")
+			}
+
+		}
+
+		// check content type for multipart/form-data, used in lighter
+		for k, v := range headersStrMap {
+			lk := strings.ToLower(k)
+			if lk == "content-type" {
+				if v == "multipart/form-data" {
+					var formBody bytes.Buffer
+					writer := multipart.NewWriter(&formBody)
+
+					for fk, fv := range body.(map[string]any) {
+						writer.WriteField(fk, fmt.Sprintf("%v", fv))
+					}
+
+					headersStrMap[k] = writer.FormDataContentType()
+					writer.Close()
+					body = formBody.String()
+				}
+				break
+			}
 			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
@@ -88,22 +115,22 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 				// }
 				req, err = http.NewRequest(methodStr, urlStr, strings.NewReader(v))
 				if err != nil {
-					panic(fmt.Sprintf("error creating request"))
+					panic("error creating request")
 				}
 			default:
 				requestBody, err := json.Marshal(body)
 				if err != nil {
-					panic(fmt.Sprintf("error marshalling JSON"))
+					panic("error marshalling JSON")
 				}
 				req, err = http.NewRequest(methodStr, urlStr, bytes.NewBuffer(requestBody))
 				if err != nil {
-					panic(fmt.Sprintf("error creating request"))
+					panic("error creating request")
 				}
 			}
 		} else {
 			req, err = http.NewRequest(methodStr, urlStr, nil)
 			if err != nil {
-				panic(fmt.Sprintf("error creating request"))
+				panic("error creating request")
 			}
 		}
 		// Create the HTTP request
@@ -123,6 +150,15 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			req.Header.Set(key, value)
 		}
 
+		if this.Verbose {
+			fmt.Println("Headers:", req.Header)
+			fmt.Printf("\n\n\n")
+			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
+			fmt.Printf("\n\n\n")
+			fmt.Printf("Body: %v\n", body)
+			fmt.Printf("\n\n\n")
+		}
+
 		// strings.NewReader()
 		// Send the request
 		resp, err := this.httpClient.Do(req)
@@ -136,7 +172,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-
+		this.Last_response_headers = HeaderToMap(resp.Header)
+		this.LastResponseHeaders = HeaderToMap(resp.Header)
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -160,12 +197,22 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			}
 		}
 
-		// Unmarshal the response body
+		responseHeaders := HeaderToMap(resp.Header)
+
+		// Use ParseJSON to handle JSON parsing with proper number normalization
 		var result interface{}
-		err = json.Unmarshal(respBody, &result)
-		if err != nil {
-			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
+		result = ParseJSON(string(respBody))
+
+		if result == nil {
+			// If ParseJSON failed, fallback to raw string
 			result = string(respBody)
+		} else {
+			if this.ReturnResponseHeaders {
+				if resultMap, ok := result.(map[string]interface{}); ok {
+					resultMap["responseHeaders"] = responseHeaders
+					result = resultMap
+				}
+			}
 		}
 
 		// Log the response (for debugging purposes)
@@ -175,7 +222,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 
 		statusText := http.StatusText(resp.StatusCode)
 		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
-		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {
@@ -209,4 +256,16 @@ func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{},
 		panic(functionError(errorMessage))
 	}
 
+}
+
+func HeaderToMap(header http.Header) map[string]interface{} {
+	result := make(map[string]interface{})
+	for key, values := range header {
+		if len(values) == 1 {
+			result[key] = values[0]
+		} else {
+			result[key] = values
+		}
+	}
+	return result
 }

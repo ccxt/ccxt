@@ -22,25 +22,53 @@
         }
     },
     "USDT": {
+        "info": null,
         "id": "USDT",
+        "numericId": null,
         "code": "USDT",
-        "precision": 1e-12,
+        "precision": 1e-9,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "LTC": {
+        "info": null,
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
         "precision": 0.01,
+        "type": null,
+        "name": null,
+        "active": null,
+        "deposit": null,
+        "withdraw": null,
+        "fee": null,
         "fees": {},
         "networks": {},
         "limits": {
-            "deposit": {},
-            "withdraw": {}
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "DOGE": {

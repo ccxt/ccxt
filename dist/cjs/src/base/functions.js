@@ -12,6 +12,7 @@ var crypto = require('./functions/crypto.js');
 var time = require('./functions/time.js');
 var throttle = require('./functions/throttle.js');
 var misc = require('./functions/misc.js');
+var io = require('./functions/io.js');
 
 // ----------------------------------------------------------------------------
 /*  ------------------------------------------------------------------------ */
@@ -105,6 +106,7 @@ exports.truncate = number.truncate;
 exports.truncate_to_string = number.truncate_to_string;
 exports.base16ToBinary = encode.base16ToBinary;
 exports.base58ToBinary = encode.base58ToBinary;
+exports.base64ToBase64Url = encode.base64ToBase64Url;
 exports.base64ToBinary = encode.base64ToBinary;
 exports.base64ToString = encode.base64ToString;
 exports.binaryConcat = encode.binaryConcat;
@@ -141,7 +143,6 @@ exports.milliseconds = time.milliseconds;
 exports.now = time.now;
 exports.parse8601 = time.parse8601;
 exports.parseDate = time.parseDate;
-exports.rfc2616 = time.rfc2616;
 exports.seconds = time.seconds;
 exports.setTimeout_safe = time.setTimeout_safe;
 exports.sleep = time.sleep;
@@ -159,3 +160,8 @@ exports.parseTimeframe = misc.parseTimeframe;
 exports.roundTimeframe = misc.roundTimeframe;
 exports.selfIsDefined = misc.selfIsDefined;
 exports.vwap = misc.vwap;
+exports.existsFile = io.existsFile;
+exports.getTempDir = io.getTempDir;
+exports.initFileSystem = io.initFileSystem;
+exports.readFile = io.readFile;
+exports.writeFile = io.writeFile;

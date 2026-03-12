@@ -1867,5 +1867,112 @@
         "priceScale": 0,
         "valueScale": null,
         "ratioScale": 0
+    },
+    "ETH/USDC:USDC": {
+        "id": "ETHUSDC",
+        "lowercaseId": null,
+        "symbol": "ETH/USDC:USDC",
+        "base": "ETH",
+        "quote": "USDC",
+        "settle": "USDC",
+        "baseId": "ETH",
+        "quoteId": "USDC",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": null,
+        "maker": null,
+        "contractSize": 0,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.01,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 100
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "perpProductSubType": "Normal",
+            "symbol": "ETHUSDC",
+            "code": "40141",
+            "type": "PerpetualV2",
+            "displaySymbol": "ETH / USDC",
+            "indexSymbol": ".ETHUSDC",
+            "markSymbol": ".METHUSDC",
+            "fundingRateSymbol": ".ETHUSDCFR",
+            "fundingRate8hSymbol": ".ETHUSDCFR8H",
+            "contractUnderlyingAssets": "ETH",
+            "settleCurrency": "USDC",
+            "quoteCurrency": "USDC",
+            "tickSize": "0.01",
+            "priceScale": "0",
+            "ratioScale": "0",
+            "pricePrecision": "2",
+            "baseCurrency": "ETH",
+            "description": "ETH/USDC perpetual contracts are priced on the .ETHUSDC Index. Each contract is worth 1 ETH. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+            "status": "Listed",
+            "tipOrderQty": "0",
+            "listTime": "1747735200000",
+            "majorSymbol": false,
+            "defaultLeverage": "-10",
+            "fundingInterval": "28800",
+            "maxLeverage": "100",
+            "leverageMargin": "1036",
+            "maxOI": "-1.0",
+            "maxOrderQtyRq": "10000",
+            "maxPriceRp": "500000",
+            "minOrderValueRv": "1",
+            "minPriceRp": "100",
+            "qtyPrecision": "2",
+            "qtyStepSize": "0.01",
+            "tipOrderQtyRq": "2000",
+            "maxOpenPosLeverage": "100.0",
+            "steps": "0K",
+            "riskLimits": [
+                {
+                    "limit": "46000000000",
+                    "initialMarginRr": "0.01",
+                    "maintenanceMarginRr": "0.005"
+                }
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "priceScale": 0,
+        "valueScale": null,
+        "ratioScale": 0
     }
 }

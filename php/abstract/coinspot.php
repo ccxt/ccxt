@@ -79,6 +79,141 @@ abstract class coinspot extends \ccxt\Exchange {
     public function private_post_ro_my_referralpayments($params = array()) {
         return $this->request('ro/my/referralpayments', 'private', 'POST', $params, null, null, array());
     }
+    public function v2_public_get_latest($params = array()) {
+        return $this->request('latest', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_latest_cointype($params = array()) {
+        return $this->request('latest/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_latest_cointype_markettype($params = array()) {
+        return $this->request('latest/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_buyprice_cointype($params = array()) {
+        return $this->request('buyprice/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_buyprice_cointype_markettype($params = array()) {
+        return $this->request('buyprice/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_sellprice_cointype($params = array()) {
+        return $this->request('sellprice/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_sellprice_cointype_markettype($params = array()) {
+        return $this->request('sellprice/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_orders_open_cointype($params = array()) {
+        return $this->request('orders/open/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_orders_open_cointype_markettype($params = array()) {
+        return $this->request('orders/open/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_orders_completed_cointype($params = array()) {
+        return $this->request('orders/completed/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_orders_completed_cointype_markettype($params = array()) {
+        return $this->request('orders/completed/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_orders_summary_completed_cointype($params = array()) {
+        return $this->request('orders/summary/completed/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_public_get_orders_summary_completed_cointype_markettype($params = array()) {
+        return $this->request('orders/summary/completed/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2_private_post_status($params = array()) {
+        return $this->request('status', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_coin_deposit($params = array()) {
+        return $this->request('my/coin/deposit', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_quote_buy_now($params = array()) {
+        return $this->request('quote/buy/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_quote_sell_now($params = array()) {
+        return $this->request('quote/sell/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_quote_swap_now($params = array()) {
+        return $this->request('quote/swap/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_buy($params = array()) {
+        return $this->request('my/buy', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_buy_edit($params = array()) {
+        return $this->request('my/buy/edit', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_sell($params = array()) {
+        return $this->request('my/sell', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_sell_edit($params = array()) {
+        return $this->request('my/sell/edit', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_buy_now($params = array()) {
+        return $this->request('my/buy/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_sell_now($params = array()) {
+        return $this->request('my/sell/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_swap_now($params = array()) {
+        return $this->request('my/swap/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_buy_cancel($params = array()) {
+        return $this->request('my/buy/cancel', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_buy_cancel_all($params = array()) {
+        return $this->request('my/buy/cancel/all', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_sell_cancel($params = array()) {
+        return $this->request('my/sell/cancel', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_sell_cancel_all($params = array()) {
+        return $this->request('my/sell/cancel/all', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_coin_withdraw_senddetails($params = array()) {
+        return $this->request('my/coin/withdraw/senddetails', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_my_coin_withdraw_send($params = array()) {
+        return $this->request('my/coin/withdraw/send', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_status($params = array()) {
+        return $this->request('ro/status', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_orders_market_open($params = array()) {
+        return $this->request('ro/orders/market/open', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_orders_market_completed($params = array()) {
+        return $this->request('ro/orders/market/completed', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_balances($params = array()) {
+        return $this->request('ro/my/balances', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_balance_cointype($params = array()) {
+        return $this->request('ro/my/balance/{cointype}', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_orders_market_open($params = array()) {
+        return $this->request('ro/my/orders/market/open', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_orders_limit_open($params = array()) {
+        return $this->request('ro/my/orders/limit/open', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_orders_completed($params = array()) {
+        return $this->request('ro/my/orders/completed', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_orders_market_completed($params = array()) {
+        return $this->request('ro/my/orders/market/completed', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_sendreceive($params = array()) {
+        return $this->request('ro/my/sendreceive', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_deposits($params = array()) {
+        return $this->request('ro/my/deposits', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_withdrawals($params = array()) {
+        return $this->request('ro/my/withdrawals', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_affiliatepayments($params = array()) {
+        return $this->request('ro/my/affiliatepayments', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2_private_post_ro_my_referralpayments($params = array()) {
+        return $this->request('ro/my/referralpayments', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
     public function publicGetLatest($params = array()) {
         return $this->request('latest', 'public', 'GET', $params, null, null, array());
     }
@@ -150,5 +285,140 @@ abstract class coinspot extends \ccxt\Exchange {
     }
     public function privatePostRoMyReferralpayments($params = array()) {
         return $this->request('ro/my/referralpayments', 'private', 'POST', $params, null, null, array());
+    }
+    public function v2PublicGetLatest($params = array()) {
+        return $this->request('latest', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetLatestCointype($params = array()) {
+        return $this->request('latest/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetLatestCointypeMarkettype($params = array()) {
+        return $this->request('latest/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetBuypriceCointype($params = array()) {
+        return $this->request('buyprice/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetBuypriceCointypeMarkettype($params = array()) {
+        return $this->request('buyprice/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetSellpriceCointype($params = array()) {
+        return $this->request('sellprice/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetSellpriceCointypeMarkettype($params = array()) {
+        return $this->request('sellprice/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetOrdersOpenCointype($params = array()) {
+        return $this->request('orders/open/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetOrdersOpenCointypeMarkettype($params = array()) {
+        return $this->request('orders/open/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetOrdersCompletedCointype($params = array()) {
+        return $this->request('orders/completed/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetOrdersCompletedCointypeMarkettype($params = array()) {
+        return $this->request('orders/completed/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetOrdersSummaryCompletedCointype($params = array()) {
+        return $this->request('orders/summary/completed/{cointype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PublicGetOrdersSummaryCompletedCointypeMarkettype($params = array()) {
+        return $this->request('orders/summary/completed/{cointype}/{markettype}', array('v2', 'public'), 'GET', $params, null, null, array());
+    }
+    public function v2PrivatePostStatus($params = array()) {
+        return $this->request('status', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyCoinDeposit($params = array()) {
+        return $this->request('my/coin/deposit', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostQuoteBuyNow($params = array()) {
+        return $this->request('quote/buy/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostQuoteSellNow($params = array()) {
+        return $this->request('quote/sell/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostQuoteSwapNow($params = array()) {
+        return $this->request('quote/swap/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyBuy($params = array()) {
+        return $this->request('my/buy', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyBuyEdit($params = array()) {
+        return $this->request('my/buy/edit', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMySell($params = array()) {
+        return $this->request('my/sell', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMySellEdit($params = array()) {
+        return $this->request('my/sell/edit', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyBuyNow($params = array()) {
+        return $this->request('my/buy/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMySellNow($params = array()) {
+        return $this->request('my/sell/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMySwapNow($params = array()) {
+        return $this->request('my/swap/now', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyBuyCancel($params = array()) {
+        return $this->request('my/buy/cancel', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyBuyCancelAll($params = array()) {
+        return $this->request('my/buy/cancel/all', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMySellCancel($params = array()) {
+        return $this->request('my/sell/cancel', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMySellCancelAll($params = array()) {
+        return $this->request('my/sell/cancel/all', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyCoinWithdrawSenddetails($params = array()) {
+        return $this->request('my/coin/withdraw/senddetails', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostMyCoinWithdrawSend($params = array()) {
+        return $this->request('my/coin/withdraw/send', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoStatus($params = array()) {
+        return $this->request('ro/status', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoOrdersMarketOpen($params = array()) {
+        return $this->request('ro/orders/market/open', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoOrdersMarketCompleted($params = array()) {
+        return $this->request('ro/orders/market/completed', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyBalances($params = array()) {
+        return $this->request('ro/my/balances', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyBalanceCointype($params = array()) {
+        return $this->request('ro/my/balance/{cointype}', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyOrdersMarketOpen($params = array()) {
+        return $this->request('ro/my/orders/market/open', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyOrdersLimitOpen($params = array()) {
+        return $this->request('ro/my/orders/limit/open', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyOrdersCompleted($params = array()) {
+        return $this->request('ro/my/orders/completed', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyOrdersMarketCompleted($params = array()) {
+        return $this->request('ro/my/orders/market/completed', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMySendreceive($params = array()) {
+        return $this->request('ro/my/sendreceive', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyDeposits($params = array()) {
+        return $this->request('ro/my/deposits', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyWithdrawals($params = array()) {
+        return $this->request('ro/my/withdrawals', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyAffiliatepayments($params = array()) {
+        return $this->request('ro/my/affiliatepayments', array('v2', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v2PrivatePostRoMyReferralpayments($params = array()) {
+        return $this->request('ro/my/referralpayments', array('v2', 'private'), 'POST', $params, null, null, array());
     }
 }

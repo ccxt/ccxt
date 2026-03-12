@@ -254,9 +254,9 @@
         "precision": null,
         "type": "crypto",
         "name": "Tether USD",
-        "active": null,
-        "deposit": null,
-        "withdraw": null,
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
         "fee": 0,
         "fees": {},
         "networks": {
@@ -285,9 +285,9 @@
                 "id": "USDTBSC",
                 "numericId": 582,
                 "network": "BEP20",
-                "active": null,
-                "deposit": null,
-                "withdraw": null,
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
                 "fee": 0,
                 "precision": null,
                 "limits": {
@@ -307,7 +307,7 @@
                     "name": "USDT on ETH",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "1.15250200",
+                    "withdrawalFee": "0.60000000",
                     "minConf": 64,
                     "depositAddress": null,
                     "blockchain": "ETH",
@@ -326,10 +326,10 @@
                 "id": "USDTETH",
                 "numericId": 318,
                 "network": "ERC20",
-                "active": null,
-                "deposit": null,
-                "withdraw": null,
-                "fee": 1.152502,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.6,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -348,7 +348,7 @@
                     "name": "USDT",
                     "description": "Sweep to Main Account",
                     "type": "address",
-                    "withdrawalFee": "0.91000000",
+                    "withdrawalFee": "1.00000000",
                     "minConf": 300,
                     "depositAddress": null,
                     "blockchain": "SOL",
@@ -367,10 +367,10 @@
                 "id": "USDTSOL",
                 "numericId": 1936,
                 "network": "SOL",
-                "active": null,
-                "deposit": null,
-                "withdraw": null,
-                "fee": 0.91,
+                "active": false,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 1,
                 "precision": null,
                 "limits": {
                     "withdraw": {
@@ -408,9 +408,9 @@
                 "id": "USDTTRON",
                 "numericId": 316,
                 "network": "TRC20",
-                "active": null,
-                "deposit": null,
-                "withdraw": null,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
                 "fee": 1.2,
                 "precision": null,
                 "limits": {
@@ -454,9 +454,9 @@
                 "id": "USDT",
                 "numericId": 214,
                 "network": "OMNI",
-                "active": null,
-                "deposit": null,
-                "withdraw": null,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
                 "fee": 0,
                 "precision": null,
                 "limits": {
@@ -1177,6 +1177,97 @@
                 "deposit": null,
                 "withdraw": null,
                 "fee": 1.811256,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "索拉拉": {
+        "info": {
+            "id": 2408,
+            "name": "Solara",
+            "description": "Sweep to Main Account",
+            "type": "address",
+            "withdrawalFee": "102.32000000",
+            "minConf": 300,
+            "depositAddress": null,
+            "blockchain": "SOL",
+            "delisted": false,
+            "tradingState": "NORMAL",
+            "walletState": "ENABLED",
+            "walletDepositState": "ENABLED",
+            "walletWithdrawalState": "ENABLED",
+            "supportCollateral": false,
+            "supportBorrow": false,
+            "parentChain": null,
+            "isMultiChain": false,
+            "isChildChain": false,
+            "childChains": []
+        },
+        "id": "索拉拉",
+        "numericId": 2408,
+        "code": "索拉拉",
+        "precision": null,
+        "type": "crypto",
+        "name": "Solara",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 102.32,
+        "fees": {},
+        "networks": {
+            "SOL": {
+                "info": {
+                    "id": 2408,
+                    "name": "Solara",
+                    "description": "Sweep to Main Account",
+                    "type": "address",
+                    "withdrawalFee": "102.32000000",
+                    "minConf": 300,
+                    "depositAddress": null,
+                    "blockchain": "SOL",
+                    "delisted": false,
+                    "tradingState": "NORMAL",
+                    "walletState": "ENABLED",
+                    "walletDepositState": "ENABLED",
+                    "walletWithdrawalState": "ENABLED",
+                    "supportCollateral": false,
+                    "supportBorrow": false,
+                    "parentChain": null,
+                    "isMultiChain": false,
+                    "isChildChain": false,
+                    "childChains": []
+                },
+                "id": "索拉拉",
+                "numericId": 2408,
+                "network": "SOL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 102.32,
                 "precision": null,
                 "limits": {
                     "withdraw": {

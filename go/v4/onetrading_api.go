@@ -7,306 +7,78 @@
 
 package ccxt
 
-func (this *onetrading) PublicGetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *onetrading) PublicGetCandlesticksInstrumentCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesticksInstrumentCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetCandlesticksInstrumentCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetCandlesticksInstrumentCode", args...)
 }
 
-func (this *onetrading) PublicGetFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetFees", args...)
 }
 
-func (this *onetrading) PublicGetInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetInstruments", args...)
 }
 
-func (this *onetrading) PublicGetOrderBookInstrumentCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBookInstrumentCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetOrderBookInstrumentCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetOrderBookInstrumentCode", args...)
 }
 
-func (this *onetrading) PublicGetMarketTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetMarketTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTicker", args...)
 }
 
-func (this *onetrading) PublicGetMarketTickerInstrumentCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTickerInstrumentCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetMarketTickerInstrumentCode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetMarketTickerInstrumentCode", args...)
 }
 
-func (this *onetrading) PublicGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PublicGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *onetrading) PrivateGetAccountBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountBalances(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountBalances", args...)
 }
 
-func (this *onetrading) PrivateGetAccountFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountFees(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountFees", args...)
 }
 
-func (this *onetrading) PrivateGetAccountOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountOrders", args...)
 }
 
-func (this *onetrading) PrivateGetAccountOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountOrdersOrderId", args...)
 }
 
-func (this *onetrading) PrivateGetAccountOrdersOrderIdTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountOrdersOrderIdTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountOrdersOrderIdTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountOrdersOrderIdTrades", args...)
 }
 
-func (this *onetrading) PrivateGetAccountTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountTrades", args...)
 }
 
-func (this *onetrading) PrivateGetAccountTradesTradeId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountTradesTradeId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateGetAccountTradesTradeId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccountTradesTradeId", args...)
 }
 
-func (this *onetrading) PrivatePostAccountOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivatePostAccountOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostAccountOrders", args...)
 }
 
-func (this *onetrading) PrivateDeleteAccountOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteAccountOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateDeleteAccountOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteAccountOrders", args...)
 }
 
-func (this *onetrading) PrivateDeleteAccountOrdersOrderId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteAccountOrdersOrderId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateDeleteAccountOrdersOrderId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteAccountOrdersOrderId", args...)
 }
 
-func (this *onetrading) PrivateDeleteAccountOrdersClientClientId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteAccountOrdersClientClientId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *OnetradingCore) PrivateDeleteAccountOrdersClientClientId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteAccountOrdersClientClientId", args...)
 }

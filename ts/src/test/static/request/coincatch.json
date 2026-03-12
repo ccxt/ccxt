@@ -20,6 +20,13 @@
                 "output": null
             },
             {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.coincatch.com/api/spot/v1/public/currencies",
+                "input": [],
+                "output": null
+            },
+            {
                 "description": "Fetch currencies",
                 "method": "fetchCurrencies",
                 "url": "https://api.coincatch.com/api/spot/v1/public/currencies",
@@ -221,6 +228,96 @@
         ],
         "createOrder": [
             {
+                "description": "Swap market sell for hedged with exchange-specific side",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "close_long",
+                    0.0001,
+                    null
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"orderType\":\"market\",\"side\":\"close_long\"}"
+            },
+            {
+                "description": "Swap market buy for hedged",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.0001,
+                    null,
+                    {
+                        "hedged": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"orderType\":\"market\",\"side\":\"open_long\"}"
+            },
+            {
+                "description": "Swap market sell for non-hedged with exchange-specific side and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.0001,
+                    null,
+                    {
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"orderType\":\"market\",\"side\":\"sell_single\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "Swap limit sell for non-hedged with postOnly and reduceOnly",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    0.0001,
+                    140000,
+                    {
+                        "postOnly": true,
+                        "reduceOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"timeInForceValue\":\"post_only\",\"price\":\"140000\",\"orderType\":\"limit\",\"side\":\"sell_single\",\"reduceOnly\":true}"
+            },
+            {
+                "description": "Swap limit buy for non-hedged with exchange-specific side",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "market",
+                    "buy_single",
+                    0.0001
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"orderType\":\"market\",\"side\":\"buy_single\"}"
+            },
+            {
+                "description": "Swap limit buy for non-hedged with postOnly",
+                "method": "createOrder",
+                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    50000,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.0001\",\"timeInForceValue\":\"post_only\",\"price\":\"50000\",\"orderType\":\"limit\",\"side\":\"buy_single\"}"
+            },
+            {
                 "description": "Spot limit buy order",
                 "method": "createOrder",
                 "url": "https://api.coincatch.com/api/spot/v1/trade/orders",
@@ -244,8 +341,7 @@
                     0.0002,
                     25000,
                     {
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":25000,\"quantity\":\"0.0002\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
@@ -261,8 +357,7 @@
                     0.001,
                     25000,
                     {
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"price\":\"25000\",\"orderType\":\"limit\",\"side\":\"buy_single\",\"marginMode\":\"cross\"}"
@@ -279,8 +374,7 @@
                     25000,
                     {
                         "marginMode": "cross",
-                        "triggerPrice": 26000,
-                        "methodName": "createOrder"
+                        "triggerPrice": 26000
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"orderType\":\"limit\",\"side\":\"buy_single\",\"triggerType\":\"fill_price\",\"executePrice\":\"25000\",\"triggerPrice\":\"26000\",\"marginMode\":\"cross\"}"
@@ -322,8 +416,7 @@
                     null,
                     {
                         "createMarketBuyOrderRequiresPrice": false,
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"10\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
@@ -339,8 +432,7 @@
                     6,
                     1,
                     {
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
+                        "marginMode": "cross"
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT_SPBL\",\"side\":\"buy\",\"orderType\":\"market\",\"quantity\":\"6\",\"force\":\"normal\",\"marginMode\":\"cross\"}"
@@ -356,30 +448,10 @@
                     0.001,
                     25000,
                     {
-                        "postOnly": true,
-                        "methodName": "createOrder"
+                        "postOnly": true
                     }
                 ],
                 "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"25000\",\"orderType\":\"limit\",\"side\":\"buy_single\"}"
-            },
-            {
-                "description": "Swap limit sell order with postOnly and reduceOnly",
-                "method": "createOrder",
-                "url": "https://api.coincatch.com/api/mix/v1/order/placeOrder",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "sell",
-                    0.001,
-                    67753.9,
-                    {
-                        "postOnly": true,
-                        "reduceOnly": true,
-                        "marginMode": "cross",
-                        "methodName": "createOrder"
-                    }
-                ],
-                "output": "{\"symbol\":\"BTCUSDT_UMCBL\",\"marginCoin\":\"USDT\",\"size\":\"0.001\",\"timeInForceValue\":\"post_only\",\"price\":\"67753.9\",\"orderType\":\"limit\",\"side\":\"sell_single\",\"marginMode\":\"cross\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [

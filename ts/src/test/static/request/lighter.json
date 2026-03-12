@@ -1,0 +1,290 @@
+{
+    "exchange": "lighter",
+    "skipKeys": ["OrderExpiry", "Nonce", "AccountIndex", "ApiKeyIndex", "Sig", "ExpiredAt", "account_index", "ClientOrderIndex"],
+    "outputType": "json",
+    "disabledGO": true,
+    "disabledCS": true,
+    "privateKey": "e5b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
+    "options": {
+        "accountIndex": 715085,
+        "apiKeyIndex": 0,
+        "nonce": 0
+    },
+    "methods": {
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [],
+                "output": {
+                    "tx_type": 16,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"TimeInForce\":0,\"Time\":0,\"ExpiredAt\":1772176172357,\"Nonce\":8,\"Sig\":\"NEzOBq4ZOwSoqvH/0RuH0P8b5ReKggfVhUlAge3sjQWc8M4j3qhRNJFaZP6lk36ZtpEQ4+mb2njrcpRgb++cDf77ceZEusyc0lYu/Ijt5Es=\"}"
+                }
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/accountInactiveOrders?market_id=35&account_index=715085&limit=2",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "my trades",
+                "method": "fetchMyTrades",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/trades?sort_by=timestamp&limit=2&account_index=715085&market_id=35",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "output": null
+            },
+            {
+                "description": "my trades with until",
+                "method": "fetchMyTrades",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/trades?sort_by=timestamp&limit=2&account_index=715085&market_id=35&from=1768189847017",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2,
+                    {
+                        "until": 1768189847017
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit  buy order",
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    40
+                ],
+                "output": {
+                    "tx_type": 14,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":489057754,\"BaseAmount\":1000,\"Price\":40000,\"IsAsk\":0,\"Type\":0,\"TimeInForce\":1,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":1774594326601,\"ExpiredAt\":1772175725602,\"Nonce\":7,\"Sig\":\"gl3Tm3SFdCvd5lJw9uByG8sUAThDZ8NpP5SJ8DUKwRwv2DoYAfZoIcjUZCiZjllNS2d/Z6XDlERYaKb4JrfniOXIVZHmfo5ie5I1lKR4UCk=\"}"
+                }
+            },
+            {
+                "description": "create market buy order",
+                "method": "createOrder",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/sendTx",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    60
+                ],
+                "output": {
+                    "tx_type": 14,
+                    "tx_info": "{\"AccountIndex\":715085,\"ApiKeyIndex\":5,\"MarketIndex\":35,\"ClientOrderIndex\":911280573,\"BaseAmount\":100,\"Price\":60000,\"IsAsk\":0,\"Type\":1,\"TimeInForce\":0,\"ReduceOnly\":0,\"TriggerPrice\":0,\"OrderExpiry\":0,\"ExpiredAt\":1772175612201,\"Nonce\":6,\"Sig\":\"6cnea3og5elG3CMCxRpldy7yHQI3ettJVkYKl2VcvF4yIT1/RREaD/m8D+KTbCTGAftezZjNtw8KEo9YoAO68WTdDU8d6bq69BcKlQm1kAk=\"}"
+                }
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://mainnet.zklighter.elliot.ai",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/assetDetails",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookOrders?market_id=0&limit=5",
+                "input": [
+                    "ETH/USDC:USDC",
+                    5
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails?market_id=0",
+                "input": [
+                    "ETH/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/orderBookDetails",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/candles?market_id=0&count_back=0&resolution=5m&start_timestamp=1763060345862&end_timestamp=1763090345862",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "5m",
+                    1763060345862,
+                    100
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/funding-rates",
+                "input": []
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchBalance - by l1_address",
+                "method": "fetchBalance",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchPosition - by l1_address",
+                "method": "fetchPosition",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=715085",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    null,
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchPositions - by l1_address",
+                "method": "fetchPositions",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    null,
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=index&value=0",
+                "input": [
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            },
+            {
+                "description": "fetchAccounts - by l1_address",
+                "method": "fetchAccounts",
+                "url": "https://mainnet.zklighter.elliot.ai/api/v1/account?by=l1_address&value=0xabc123abc123abc123abc123abc123abc123abc1",
+                "input": [
+                    {
+                        "by": "l1_address",
+                        "value": "0xabc123abc123abc123abc123abc123abc123abc1"
+                    }
+                ]
+            }
+        ]
+    }
+}

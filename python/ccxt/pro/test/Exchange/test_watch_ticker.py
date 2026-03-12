@@ -21,13 +21,17 @@ async def test_watch_ticker(exchange, skipped_properties, symbol):
     ends = now + 15000
     while now < ends:
         response = None
+        success = True
         try:
             response = await exchange.watch_ticker(symbol)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
             now = exchange.milliseconds()
-            continue
-        assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
-        now = exchange.milliseconds()
-        test_ticker(exchange, skipped_properties, method, response, symbol)
+            # continue;
+            success = False
+        if success:
+            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
+            now = exchange.milliseconds()
+            test_ticker(exchange, skipped_properties, method, response, symbol)
+    return True

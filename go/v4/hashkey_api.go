@@ -7,1010 +7,254 @@
 
 package ccxt
 
-func (this *hashkey) PublicGetApiV1ExchangeInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetApiV1ExchangeInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetApiV1ExchangeInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetApiV1ExchangeInfo", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1Depth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1Depth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1Depth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1Depth", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1Trades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1Trades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1Trades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1Trades", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1Klines (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1Klines", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1Klines(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1Klines", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1Ticker24hr (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1Ticker24hr", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1Ticker24hr(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1Ticker24hr", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1TickerPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1TickerPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1TickerPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1TickerPrice", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1TickerBookTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1TickerBookTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1TickerBookTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1TickerBookTicker", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1DepthMerged (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1DepthMerged", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1DepthMerged(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1DepthMerged", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1MarkPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1MarkPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1MarkPrice(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1MarkPrice", args...)
 }
 
-func (this *hashkey) PublicGetQuoteV1Index (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteV1Index", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetQuoteV1Index(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetQuoteV1Index", args...)
 }
 
-func (this *hashkey) PublicGetApiV1FuturesFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetApiV1FuturesFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetApiV1FuturesFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetApiV1FuturesFundingRate", args...)
 }
 
-func (this *hashkey) PublicGetApiV1FuturesHistoryFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetApiV1FuturesHistoryFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetApiV1FuturesHistoryFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetApiV1FuturesHistoryFundingRate", args...)
 }
 
-func (this *hashkey) PublicGetApiV1Ping (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetApiV1Ping", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetApiV1Ping(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetApiV1Ping", args...)
 }
 
-func (this *hashkey) PublicGetApiV1Time (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetApiV1Time", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PublicGetApiV1Time(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetApiV1Time", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1SpotOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1SpotOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotOrder", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1SpotOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1SpotOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1SpotOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotOpenOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1SpotTradeOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1SpotTradeOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1SpotTradeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotTradeOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesLeverage", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesOrder", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesOpenOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesUserTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesUserTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesUserTrades", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesPositions", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesHistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesHistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesHistoryOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesBalance", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesLiquidationAssignStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesLiquidationAssignStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesLiquidationAssignStatus(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesLiquidationAssignStatus", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesRiskLimit", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesCommissionRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesCommissionRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesCommissionRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesCommissionRate", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesGetBestOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesGetBestOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesGetBestOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesGetBestOrder", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountVipInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountVipInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountVipInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountVipInfo", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1Account (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1Account", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1Account(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountTrades", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountType (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountType", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountType(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountType", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountCheckApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountCheckApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountCheckApiKey(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountCheckApiKey", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountBalanceFlow (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountBalanceFlow", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountBalanceFlow(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountBalanceFlow", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1SpotSubAccountOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1SpotSubAccountOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1SpotSubAccountOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotSubAccountOpenOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1SpotSubAccountTradeOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1SpotSubAccountTradeOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1SpotSubAccountTradeOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SpotSubAccountTradeOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1SubAccountTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1SubAccountTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1SubAccountTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1SubAccountTrades", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesSubAccountOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesSubAccountOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesSubAccountOpenOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesSubAccountHistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesSubAccountHistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesSubAccountHistoryOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1FuturesSubAccountUserTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1FuturesSubAccountUserTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1FuturesSubAccountUserTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1FuturesSubAccountUserTrades", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountDepositAddress", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountDepositOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountDepositOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountDepositOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountDepositOrders", args...)
 }
 
-func (this *hashkey) PrivateGetApiV1AccountWithdrawOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiV1AccountWithdrawOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateGetApiV1AccountWithdrawOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetApiV1AccountWithdrawOrders", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1UserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1UserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1UserDataStream", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1SpotOrderTest (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1SpotOrderTest", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1SpotOrderTest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1SpotOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1SpotOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SpotOrder", args...)
 }
 
-func (this *hashkey) PrivatePostApiV11SpotOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV11SpotOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV11SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV11SpotOrder", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1SpotBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1SpotBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1SpotBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1SpotBatchOrders", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1FuturesLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1FuturesLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1FuturesLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesLeverage", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1FuturesOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1FuturesOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesOrder", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1FuturesPositionTradingStop (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1FuturesPositionTradingStop", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1FuturesPositionTradingStop(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesPositionTradingStop", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1FuturesBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1FuturesBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1FuturesBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1FuturesBatchOrders", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1AccountAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1AccountAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1AccountAssetTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1AccountAssetTransfer", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1AccountAuthAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1AccountAuthAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1AccountAuthAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1AccountAuthAddress", args...)
 }
 
-func (this *hashkey) PrivatePostApiV1AccountWithdraw (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostApiV1AccountWithdraw", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePostApiV1AccountWithdraw(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostApiV1AccountWithdraw", args...)
 }
 
-func (this *hashkey) PrivatePutApiV1UserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutApiV1UserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivatePutApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePutApiV1UserDataStream", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1SpotOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1SpotOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1SpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1SpotOrder", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1SpotOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1SpotOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1SpotOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1SpotOpenOrders", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1SpotCancelOrderByIds (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1SpotCancelOrderByIds", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1SpotCancelOrderByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1FuturesOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1FuturesOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1FuturesBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1FuturesBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesBatchOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesBatchOrders", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1FuturesCancelOrderByIds (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1FuturesCancelOrderByIds", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
 }
 
-func (this *hashkey) PrivateDeleteApiV1UserDataStream (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteApiV1UserDataStream", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *HashkeyCore) PrivateDeleteApiV1UserDataStream(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateDeleteApiV1UserDataStream", args...)
 }

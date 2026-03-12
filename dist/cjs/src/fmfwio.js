@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var hitbtc = require('./hitbtc.js');
 
 // ----------------------------------------------------------------------------
 //  ----------------------------------------------------------------------------
-class fmfwio extends hitbtc {
+class fmfwio extends hitbtc["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'fmfwio',
@@ -31,4 +33,4 @@ class fmfwio extends hitbtc {
     }
 }
 
-module.exports = fmfwio;
+exports["default"] = fmfwio;

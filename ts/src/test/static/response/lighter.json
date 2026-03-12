@@ -1,0 +1,1836 @@
+{
+    "exchange": "lighter",
+    "disabledGO": true,
+    "disabledCS": true,
+    "privateKey": "e5b975b33b81e53fb5333bd84553f12b3b5327ce5b1595139f49e8bebf734d9b1b81d3351b487d1b",
+    "skipKeys": [
+        "vwap",
+        "nonce",
+        "api_key_index",
+        "account_index",
+        "client_order_index",
+        "clientOrderId"
+    ],
+    "options": {
+        "accountIndex": 715085,
+        "apiKeyIndex": 0,
+        "nonce": 0
+    },
+    "methods": {
+        "fetchClosedOrders": [
+            {
+                "description": "closed orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "next_cursor": "eyJpbmRleCI6MTc3MjE3MzEyMzU2NiwiaW5kZXgyIjoxMDQxNDU3NDAzODE5OTkyNH0=",
+                    "orders": [
+                        {
+                            "order_index": "10414574038195752",
+                            "client_order_index": "911280573",
+                            "order_id": "10414574038195752",
+                            "client_order_id": "911280573",
+                            "market_index": "35",
+                            "owner_account_index": "715085",
+                            "initial_base_amount": "0.100",
+                            "price": "60.000",
+                            "nonce": "281474876612136",
+                            "remaining_base_amount": "0.000",
+                            "is_ask": false,
+                            "base_size": "0",
+                            "base_price": "60000",
+                            "filled_base_amount": "0.100",
+                            "filled_quote_amount": "5.612700",
+                            "side": "",
+                            "type": "market",
+                            "time_in_force": "immediate-or-cancel",
+                            "reduce_only": false,
+                            "trigger_price": "0.000",
+                            "order_expiry": "0",
+                            "status": "filled",
+                            "trigger_status": "na",
+                            "trigger_time": "0",
+                            "parent_order_index": "0",
+                            "parent_order_id": "0",
+                            "to_trigger_order_id_0": "0",
+                            "to_trigger_order_id_1": "0",
+                            "to_cancel_order_id_0": "0",
+                            "block_height": "184491293",
+                            "timestamp": "1772175015",
+                            "created_at": "1772175015",
+                            "updated_at": "1772175015",
+                            "transaction_time": "0"
+                        },
+                        {
+                            "order_index": "10414574038199924",
+                            "client_order_index": "350094596",
+                            "order_id": "10414574038199924",
+                            "client_order_id": "350094596",
+                            "market_index": "35",
+                            "owner_account_index": "715085",
+                            "initial_base_amount": "0.100",
+                            "price": "60.000",
+                            "nonce": "281474876616308",
+                            "remaining_base_amount": "0.000",
+                            "is_ask": false,
+                            "base_size": "0",
+                            "base_price": "60000",
+                            "filled_base_amount": "0.100",
+                            "filled_quote_amount": "5.584800",
+                            "side": "",
+                            "type": "market",
+                            "time_in_force": "immediate-or-cancel",
+                            "reduce_only": false,
+                            "trigger_price": "0.000",
+                            "order_expiry": "0",
+                            "status": "filled",
+                            "trigger_status": "na",
+                            "trigger_time": "0",
+                            "parent_order_index": "0",
+                            "parent_order_id": "0",
+                            "to_trigger_order_id_0": "0",
+                            "to_trigger_order_id_1": "0",
+                            "to_cancel_order_id_0": "0",
+                            "block_height": "184478755",
+                            "timestamp": "1772173123",
+                            "created_at": "1772173123",
+                            "updated_at": "1772173123",
+                            "transaction_time": "0"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "order_index": "10414574038199924",
+                            "client_order_index": "350094596",
+                            "order_id": "10414574038199924",
+                            "client_order_id": "350094596",
+                            "market_index": "35",
+                            "owner_account_index": "715085",
+                            "initial_base_amount": "0.100",
+                            "price": "60.000",
+                            "nonce": "281474876616308",
+                            "remaining_base_amount": "0.000",
+                            "is_ask": false,
+                            "base_size": "0",
+                            "base_price": "60000",
+                            "filled_base_amount": "0.100",
+                            "filled_quote_amount": "5.584800",
+                            "side": "",
+                            "type": "market",
+                            "time_in_force": "immediate-or-cancel",
+                            "reduce_only": false,
+                            "trigger_price": "0.000",
+                            "order_expiry": "0",
+                            "status": "filled",
+                            "trigger_status": "na",
+                            "trigger_time": "0",
+                            "parent_order_index": "0",
+                            "parent_order_id": "0",
+                            "to_trigger_order_id_0": "0",
+                            "to_trigger_order_id_1": "0",
+                            "to_cancel_order_id_0": "0",
+                            "block_height": "184478755",
+                            "timestamp": "1772173123",
+                            "created_at": "1772173123",
+                            "updated_at": "1772173123",
+                            "transaction_time": "0"
+                        },
+                        "id": "10414574038199924",
+                        "clientOrderId": "350094596",
+                        "timestamp": 1772173123000,
+                        "datetime": "2026-02-27T06:18:43.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1772173123000,
+                        "symbol": "LTC/USDC:USDC",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 60,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.1,
+                        "cost": 5.5848,
+                        "average": 55.848,
+                        "filled": 0.1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    },
+                    {
+                        "info": {
+                            "order_index": "10414574038195752",
+                            "client_order_index": "911280573",
+                            "order_id": "10414574038195752",
+                            "client_order_id": "911280573",
+                            "market_index": "35",
+                            "owner_account_index": "715085",
+                            "initial_base_amount": "0.100",
+                            "price": "60.000",
+                            "nonce": "281474876612136",
+                            "remaining_base_amount": "0.000",
+                            "is_ask": false,
+                            "base_size": "0",
+                            "base_price": "60000",
+                            "filled_base_amount": "0.100",
+                            "filled_quote_amount": "5.612700",
+                            "side": "",
+                            "type": "market",
+                            "time_in_force": "immediate-or-cancel",
+                            "reduce_only": false,
+                            "trigger_price": "0.000",
+                            "order_expiry": "0",
+                            "status": "filled",
+                            "trigger_status": "na",
+                            "trigger_time": "0",
+                            "parent_order_index": "0",
+                            "parent_order_id": "0",
+                            "to_trigger_order_id_0": "0",
+                            "to_trigger_order_id_1": "0",
+                            "to_cancel_order_id_0": "0",
+                            "block_height": "184491293",
+                            "timestamp": "1772175015",
+                            "created_at": "1772175015",
+                            "updated_at": "1772175015",
+                            "transaction_time": "0"
+                        },
+                        "id": "10414574038195752",
+                        "clientOrderId": "911280573",
+                        "timestamp": 1772175015000,
+                        "datetime": "2026-02-27T06:50:15.000Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1772175015000,
+                        "symbol": "LTC/USDC:USDC",
+                        "type": "market",
+                        "timeInForce": "IOC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 60,
+                        "triggerPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "amount": 0.1,
+                        "cost": 5.6127,
+                        "average": 56.127,
+                        "filled": 0.1,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "fees": [],
+                        "stopPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "my trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LTC/USDC:USDC",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "next_cursor": "eyJpbmRleCI6MTQ5ODQzNjMyNTN9",
+                    "trades": [
+                        {
+                            "trade_id": "14985275142",
+                            "tx_hash": "7fe8db4db821a7057fe3a034c431e8e546774521777f3289c88e064bfca781f10085bc45ac71f620",
+                            "type": "trade",
+                            "market_id": "35",
+                            "size": "0.100",
+                            "price": "56.127",
+                            "usd_amount": "5.612700",
+                            "ask_id": "10133099263524911",
+                            "bid_id": "10414574038195752",
+                            "ask_client_id": "177213775299611",
+                            "bid_client_id": "911280573",
+                            "ask_account_id": "281474976710654",
+                            "bid_account_id": "715085",
+                            "is_maker_ask": true,
+                            "block_height": "184491293",
+                            "timestamp": "1772175015029",
+                            "taker_position_size_before": "0.300",
+                            "taker_entry_quote_before": "16.895300",
+                            "taker_initial_margin_fraction_before": "1000",
+                            "maker_fee": "28",
+                            "maker_position_size_before": "530.806",
+                            "maker_entry_quote_before": "29618.363006",
+                            "maker_initial_margin_fraction_before": "1000",
+                            "transaction_time": "1772175015029830"
+                        },
+                        {
+                            "trade_id": "14984363253",
+                            "tx_hash": "dbb305153f144c4c1c8b0bf5f53c02539d28ae51f88a7943b597b0e71bc9c2ed7c2361ab0c5ab8c0",
+                            "type": "trade",
+                            "market_id": "35",
+                            "size": "0.100",
+                            "price": "55.848",
+                            "usd_amount": "5.584800",
+                            "ask_id": "10133099263605375",
+                            "bid_id": "10414574038199924",
+                            "ask_client_id": "72012740556",
+                            "bid_client_id": "350094596",
+                            "ask_account_id": "713041",
+                            "bid_account_id": "715085",
+                            "is_maker_ask": true,
+                            "block_height": "184478755",
+                            "timestamp": "1772173123566",
+                            "taker_position_size_before": "0.200",
+                            "taker_entry_quote_before": "11.310500",
+                            "taker_initial_margin_fraction_before": "1000",
+                            "maker_fee": "28",
+                            "maker_position_size_before": "358.400",
+                            "maker_entry_quote_before": "19898.652026",
+                            "maker_initial_margin_fraction_before": "1000",
+                            "transaction_time": "1772173123769026"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "trade_id": "14984363253",
+                            "tx_hash": "dbb305153f144c4c1c8b0bf5f53c02539d28ae51f88a7943b597b0e71bc9c2ed7c2361ab0c5ab8c0",
+                            "type": "trade",
+                            "market_id": "35",
+                            "size": "0.100",
+                            "price": "55.848",
+                            "usd_amount": "5.584800",
+                            "ask_id": "10133099263605375",
+                            "bid_id": "10414574038199924",
+                            "ask_client_id": "72012740556",
+                            "bid_client_id": "350094596",
+                            "ask_account_id": "713041",
+                            "bid_account_id": "715085",
+                            "is_maker_ask": true,
+                            "block_height": "184478755",
+                            "timestamp": "1772173123566",
+                            "taker_position_size_before": "0.200",
+                            "taker_entry_quote_before": "11.310500",
+                            "taker_initial_margin_fraction_before": "1000",
+                            "maker_fee": "28",
+                            "maker_position_size_before": "358.400",
+                            "maker_entry_quote_before": "19898.652026",
+                            "maker_initial_margin_fraction_before": "1000",
+                            "transaction_time": "1772173123769026",
+                            "account_index": 715085
+                        },
+                        "id": "14984363253",
+                        "timestamp": 1772173123566,
+                        "datetime": "2026-02-27T06:18:43.566Z",
+                        "symbol": "LTC/USDC:USDC",
+                        "order": "10414574038199924",
+                        "type": "trade",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 55.848,
+                        "amount": 0.1,
+                        "cost": 5.5848,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "14985275142",
+                            "tx_hash": "7fe8db4db821a7057fe3a034c431e8e546774521777f3289c88e064bfca781f10085bc45ac71f620",
+                            "type": "trade",
+                            "market_id": "35",
+                            "size": "0.100",
+                            "price": "56.127",
+                            "usd_amount": "5.612700",
+                            "ask_id": "10133099263524911",
+                            "bid_id": "10414574038195752",
+                            "ask_client_id": "177213775299611",
+                            "bid_client_id": "911280573",
+                            "ask_account_id": "281474976710654",
+                            "bid_account_id": "715085",
+                            "is_maker_ask": true,
+                            "block_height": "184491293",
+                            "timestamp": "1772175015029",
+                            "taker_position_size_before": "0.300",
+                            "taker_entry_quote_before": "16.895300",
+                            "taker_initial_margin_fraction_before": "1000",
+                            "maker_fee": "28",
+                            "maker_position_size_before": "530.806",
+                            "maker_entry_quote_before": "29618.363006",
+                            "maker_initial_margin_fraction_before": "1000",
+                            "transaction_time": "1772175015029830",
+                            "account_index": 715085,
+                            "next_cursor": "eyJpbmRleCI6MTQ5ODQzNjMyNTN9"
+                        },
+                        "id": "14985275142",
+                        "timestamp": 1772175015029,
+                        "datetime": "2026-02-27T06:50:15.029Z",
+                        "symbol": "LTC/USDC:USDC",
+                        "order": "10414574038195752",
+                        "type": "trade",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 56.127,
+                        "amount": 0.1,
+                        "cost": 5.6127,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit  buy order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    1,
+                    40
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                    "tx_hash": "01c996483f7bd99173796ec87c6af530de3151fa27194b8998f60ba325a3cbc968d9891c5a5afc77",
+                    "predicted_execution_time_ms": "1772175128392"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                        "tx_hash": "01c996483f7bd99173796ec87c6af530de3151fa27194b8998f60ba325a3cbc968d9891c5a5afc77",
+                        "predicted_execution_time_ms": "1772175128392",
+                        "market_index": 35,
+                        "nonce": 7,
+                        "api_key_index": 5,
+                        "account_index": 715085,
+                        "is_ask": 0,
+                        "order_expiry": -1,
+                        "order_type": 0,
+                        "time_in_force": 1,
+                        "reduce_only": 0,
+                        "client_order_index": 489057754,
+                        "base_amount": 1000,
+                        "avg_execution_price": 40000,
+                        "trigger_price": 0
+                    },
+                    "id": null,
+                    "clientOrderId": "489057754",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDC:USDC",
+                    "type": null,
+                    "timeInForce": "1",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "create market buy order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDC:USDC",
+                    "market",
+                    "buy",
+                    0.1,
+                    60
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                    "tx_hash": "7fe8db4db821a7057fe3a034c431e8e546774521777f3289c88e064bfca781f10085bc45ac71f620",
+                    "predicted_execution_time_ms": "1772175015025"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                        "tx_hash": "7fe8db4db821a7057fe3a034c431e8e546774521777f3289c88e064bfca781f10085bc45ac71f620",
+                        "predicted_execution_time_ms": "1772175015025",
+                        "market_index": 35,
+                        "nonce": 6,
+                        "api_key_index": 5,
+                        "account_index": 715085,
+                        "is_ask": 0,
+                        "order_expiry": 0,
+                        "order_type": 1,
+                        "time_in_force": 0,
+                        "reduce_only": 0,
+                        "client_order_index": 911280573,
+                        "base_amount": 100,
+                        "avg_execution_price": 60000,
+                        "trigger_price": 0
+                    },
+                    "id": null,
+                    "clientOrderId": "911280573",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDC:USDC",
+                    "type": null,
+                    "timeInForce": "0",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "method": "cancelOrder",
+                "input": [
+                    562948516578403,
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": "200",
+                    "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                    "tx_hash": "45063756448acfd8e1c697c0ca95f4a42edabc9a0bc434f2e40b582b80136d3545d509871f1610f0",
+                    "predicted_execution_time_ms": "1772175004398"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "200",
+                        "message": "{\"ratelimit\": \"didn't use volume quota\"}",
+                        "tx_hash": "45063756448acfd8e1c697c0ca95f4a42edabc9a0bc434f2e40b582b80136d3545d509871f1610f0",
+                        "predicted_execution_time_ms": "1772175004398"
+                    },
+                    "id": null,
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDC:USDC",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "status": 200,
+                    "network_id": 1,
+                    "timestamp": 1763005601
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "status": 200,
+                        "network_id": 1,
+                        "timestamp": 1763005601
+                    }
+                }
+            }
+        ],
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "status": 200,
+                    "network_id": 1,
+                    "timestamp": 1763005601
+                },
+                "parsedResponse": 1763005601000
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "order_book_details": [
+                        {
+                            "symbol": "ETH",
+                            "market_id": 0,
+                            "status": "active",
+                            "taker_fee": "0.0000",
+                            "maker_fee": "0.0000",
+                            "liquidation_fee": "1.0000",
+                            "min_base_amount": "0.0050",
+                            "min_quote_amount": "10.000000",
+                            "order_quote_limit": "",
+                            "supported_size_decimals": 4,
+                            "supported_price_decimals": 2,
+                            "supported_quote_decimals": 6,
+                            "size_decimals": 4,
+                            "price_decimals": 2,
+                            "quote_multiplier": 1,
+                            "default_initial_margin_fraction": 500,
+                            "min_initial_margin_fraction": 200,
+                            "maintenance_margin_fraction": 120,
+                            "closeout_margin_fraction": 80,
+                            "last_trade_price": 3550.69,
+                            "daily_trades_count": 1197349,
+                            "daily_base_token_volume": 481297.3509,
+                            "daily_quote_token_volume": 1671431095.263844,
+                            "daily_price_low": 3402.41,
+                            "daily_price_high": 3571.45,
+                            "daily_price_change": 0.5294300840859545,
+                            "open_interest": 39559.3278,
+                            "daily_chart": {},
+                            "market_config": {
+                                "market_margin_mode": 0,
+                                "insurance_fund_account_index": 281474976710655,
+                                "liquidation_mode": 0,
+                                "force_reduce_only": false,
+                                "trading_hours": ""
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "0",
+                        "symbol": "ETH/USDC:USDC",
+                        "base": "ETH",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "ETH",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "taker": 0,
+                        "maker": 0,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.0001,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.005,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "ETH",
+                            "market_id": 0,
+                            "status": "active",
+                            "taker_fee": "0.0000",
+                            "maker_fee": "0.0000",
+                            "liquidation_fee": "1.0000",
+                            "min_base_amount": "0.0050",
+                            "min_quote_amount": "10.000000",
+                            "order_quote_limit": "",
+                            "supported_size_decimals": 4,
+                            "supported_price_decimals": 2,
+                            "supported_quote_decimals": 6,
+                            "size_decimals": 4,
+                            "price_decimals": 2,
+                            "quote_multiplier": 1,
+                            "default_initial_margin_fraction": 500,
+                            "min_initial_margin_fraction": 200,
+                            "maintenance_margin_fraction": 120,
+                            "closeout_margin_fraction": 80,
+                            "last_trade_price": 3550.69,
+                            "daily_trades_count": 1197349,
+                            "daily_base_token_volume": 481297.3509,
+                            "daily_quote_token_volume": 1671431095.263844,
+                            "daily_price_low": 3402.41,
+                            "daily_price_high": 3571.45,
+                            "daily_price_change": 0.5294300840859545,
+                            "open_interest": 39559.3278,
+                            "daily_chart": {},
+                            "market_config": {
+                                "market_margin_mode": 0,
+                                "insurance_fund_account_index": 281474976710655,
+                                "liquidation_mode": 0,
+                                "force_reduce_only": false,
+                                "trading_hours": ""
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "asset_details": [
+                        {
+                            "asset_id": 3,
+                            "symbol": "USDC",
+                            "l1_decimals": 6,
+                            "decimals": 6,
+                            "min_transfer_amount": "1.000000",
+                            "min_withdrawal_amount": "1.000000",
+                            "margin_mode": "enabled",
+                            "index_price": "1.000000",
+                            "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDC": {
+                        "info": {
+                            "asset_id": 3,
+                            "symbol": "USDC",
+                            "l1_decimals": 6,
+                            "decimals": 6,
+                            "min_transfer_amount": "1.000000",
+                            "min_withdrawal_amount": "1.000000",
+                            "margin_mode": "enabled",
+                            "index_price": "1.000000",
+                            "l1_address": "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+                        },
+                        "id": "3",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USDC",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "deposit": {
+                                "min": 1,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDC:USDC",
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "total_asks": 1,
+                    "asks": [
+                        {
+                            "order_index": 281475565888172,
+                            "order_id": "281475565888172",
+                            "owner_account_index": 134436,
+                            "initial_base_amount": "0.2000",
+                            "remaining_base_amount": "0.2000",
+                            "price": "3430.00",
+                            "order_expiry": 1765419046807
+                        }
+                    ],
+                    "total_bids": 1,
+                    "bids": [
+                        {
+                            "order_index": 562949401225099,
+                            "order_id": "562949401225099",
+                            "owner_account_index": 314236,
+                            "initial_base_amount": "1.7361",
+                            "remaining_base_amount": "1.3237",
+                            "price": "3429.80",
+                            "order_expiry": 1765419047587
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDC:USDC",
+                    "bids": [
+                        [
+                            3429.8,
+                            1.3237
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            3430,
+                            0.2
+                        ]
+                    ],
+                    "timestamp": null,
+                    "datetime": null,
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "ETH/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "order_book_details": [
+                        {
+                            "symbol": "ETH",
+                            "market_id": 0,
+                            "status": "active",
+                            "taker_fee": "0.0000",
+                            "maker_fee": "0.0000",
+                            "liquidation_fee": "1.0000",
+                            "min_base_amount": "0.0050",
+                            "min_quote_amount": "10.000000",
+                            "order_quote_limit": "",
+                            "supported_size_decimals": 4,
+                            "supported_price_decimals": 2,
+                            "supported_quote_decimals": 6,
+                            "size_decimals": 4,
+                            "price_decimals": 2,
+                            "quote_multiplier": 1,
+                            "default_initial_margin_fraction": 500,
+                            "min_initial_margin_fraction": 200,
+                            "maintenance_margin_fraction": 120,
+                            "closeout_margin_fraction": 80,
+                            "last_trade_price": 3550.69,
+                            "daily_trades_count": 1197349,
+                            "daily_base_token_volume": 481297.3509,
+                            "daily_quote_token_volume": 1671431095.263844,
+                            "daily_price_low": 3402.41,
+                            "daily_price_high": 3571.45,
+                            "daily_price_change": 0.5294300840859545,
+                            "open_interest": 39559.3278,
+                            "daily_chart": {},
+                            "market_config": {
+                                "market_margin_mode": 0,
+                                "insurance_fund_account_index": 281474976710655,
+                                "liquidation_mode": 0,
+                                "force_reduce_only": false,
+                                "trading_hours": ""
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDC:USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "high": 3571.45,
+                    "low": 3402.41,
+                    "bid": null,
+                    "bidVolume": null,
+                    "ask": null,
+                    "askVolume": null,
+                    "vwap": 3472.7618843909245,
+                    "open": 3531.990579306072,
+                    "close": 3550.69,
+                    "last": 3550.69,
+                    "previousClose": null,
+                    "change": 18.69942069392813,
+                    "percentage": 0.5294300840859545,
+                    "average": 3541.34,
+                    "baseVolume": 481297.3509,
+                    "quoteVolume": 1671431095.263844,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "openInterest": "39559.3278",
+                    "info": {
+                        "symbol": "ETH",
+                        "market_id": 0,
+                        "status": "active",
+                        "taker_fee": "0.0000",
+                        "maker_fee": "0.0000",
+                        "liquidation_fee": "1.0000",
+                        "min_base_amount": "0.0050",
+                        "min_quote_amount": "10.000000",
+                        "order_quote_limit": "",
+                        "supported_size_decimals": 4,
+                        "supported_price_decimals": 2,
+                        "supported_quote_decimals": 6,
+                        "size_decimals": 4,
+                        "price_decimals": 2,
+                        "quote_multiplier": 1,
+                        "default_initial_margin_fraction": 500,
+                        "min_initial_margin_fraction": 200,
+                        "maintenance_margin_fraction": 120,
+                        "closeout_margin_fraction": 80,
+                        "last_trade_price": 3550.69,
+                        "daily_trades_count": 1197349,
+                        "daily_base_token_volume": 481297.3509,
+                        "daily_quote_token_volume": 1671431095.263844,
+                        "daily_price_low": 3402.41,
+                        "daily_price_high": 3571.45,
+                        "daily_price_change": 0.5294300840859545,
+                        "open_interest": 39559.3278,
+                        "daily_chart": {},
+                        "market_config": {
+                            "market_margin_mode": 0,
+                            "insurance_fund_account_index": 281474976710655,
+                            "liquidation_mode": 0,
+                            "force_reduce_only": false,
+                            "trading_hours": ""
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "order_book_details": [
+                        {
+                            "symbol": "ETH",
+                            "market_id": 0,
+                            "status": "active",
+                            "taker_fee": "0.0000",
+                            "maker_fee": "0.0000",
+                            "liquidation_fee": "1.0000",
+                            "min_base_amount": "0.0050",
+                            "min_quote_amount": "10.000000",
+                            "order_quote_limit": "",
+                            "supported_size_decimals": 4,
+                            "supported_price_decimals": 2,
+                            "supported_quote_decimals": 6,
+                            "size_decimals": 4,
+                            "price_decimals": 2,
+                            "quote_multiplier": 1,
+                            "default_initial_margin_fraction": 500,
+                            "min_initial_margin_fraction": 200,
+                            "maintenance_margin_fraction": 120,
+                            "closeout_margin_fraction": 80,
+                            "last_trade_price": 3550.69,
+                            "daily_trades_count": 1197349,
+                            "daily_base_token_volume": 481297.3509,
+                            "daily_quote_token_volume": 1671431095.263844,
+                            "daily_price_low": 3402.41,
+                            "daily_price_high": 3571.45,
+                            "daily_price_change": 0.5294300840859545,
+                            "open_interest": 39559.3278,
+                            "daily_chart": {},
+                            "market_config": {
+                                "market_margin_mode": 0,
+                                "insurance_fund_account_index": 281474976710655,
+                                "liquidation_mode": 0,
+                                "force_reduce_only": false,
+                                "trading_hours": ""
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDC:USDC": {
+                        "symbol": "ETH/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 3571.45,
+                        "low": 3402.41,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": 3472.7618843909245,
+                        "open": 3531.990579306072,
+                        "close": 3550.69,
+                        "last": 3550.69,
+                        "previousClose": null,
+                        "change": 18.69942069392813,
+                        "percentage": 0.5294300840859545,
+                        "average": 3541.34,
+                        "baseVolume": 481297.3509,
+                        "quoteVolume": 1671431095.263844,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "openInterest": "39559.3278",
+                        "info": {
+                            "symbol": "ETH",
+                            "market_id": 0,
+                            "status": "active",
+                            "taker_fee": "0.0000",
+                            "maker_fee": "0.0000",
+                            "liquidation_fee": "1.0000",
+                            "min_base_amount": "0.0050",
+                            "min_quote_amount": "10.000000",
+                            "order_quote_limit": "",
+                            "supported_size_decimals": 4,
+                            "supported_price_decimals": 2,
+                            "supported_quote_decimals": 6,
+                            "size_decimals": 4,
+                            "price_decimals": 2,
+                            "quote_multiplier": 1,
+                            "default_initial_margin_fraction": 500,
+                            "min_initial_margin_fraction": 200,
+                            "maintenance_margin_fraction": 120,
+                            "closeout_margin_fraction": 80,
+                            "last_trade_price": 3550.69,
+                            "daily_trades_count": 1197349,
+                            "daily_base_token_volume": 481297.3509,
+                            "daily_quote_token_volume": 1671431095.263844,
+                            "daily_price_low": 3402.41,
+                            "daily_price_high": 3571.45,
+                            "daily_price_change": 0.5294300840859545,
+                            "open_interest": 39559.3278,
+                            "daily_chart": {},
+                            "market_config": {
+                                "market_margin_mode": 0,
+                                "insurance_fund_account_index": 281474976710655,
+                                "liquidation_mode": 0,
+                                "force_reduce_only": false,
+                                "trading_hours": ""
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDC:USDC",
+                    "1m",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "r": "1m",
+                    "c": [
+                        {
+                            "t": 1767700500000,
+                            "o": 3236.86,
+                            "h": 3237.78,
+                            "l": 3235.36,
+                            "c": 3235.39,
+                            "v": 55.1632,
+                            "V": 178530.793575,
+                            "i": 779870452,
+                            "C": "string",
+                            "H": "string",
+                            "L": "string",
+                            "O": "string"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1767700500000,
+                        3236.86,
+                        3237.78,
+                        3235.36,
+                        3235.39,
+                        55.1632
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates",
+                "method": "fetchFundingRates",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "funding_rates": [
+                        {
+                            "market_id": 0,
+                            "exchange": "lighter",
+                            "symbol": "ETH",
+                            "rate": 0.00009599999999999999
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "ETH/USDC:USDC": {
+                        "info": {
+                            "market_id": 0,
+                            "exchange": "lighter",
+                            "symbol": "ETH",
+                            "rate": 0.00009599999999999999
+                        },
+                        "symbol": "ETH/USDC:USDC",
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "fundingRate": 0.00009599999999999999,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": null
+                    }
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "code": 200,
+                    "total": 2,
+                    "accounts": [
+                        {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 1,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "12606.880799",
+                            "status": 1,
+                            "collateral": "9100.242706",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [
+                                {
+                                    "symbol": "ETH",
+                                    "asset_id": 1,
+                                    "balance": "3.00000000",
+                                    "locked_balance": "0.00000000"
+                                },
+                                {
+                                    "symbol": "USDC",
+                                    "asset_id": 3,
+                                    "balance": "989.000000",
+                                    "locked_balance": "100.000000"
+                                }
+                            ],
+                            "total_asset_value": "15323.479477",
+                            "cross_asset_value": "15323.479477",
+                            "shares": []
+                        },
+                        {
+                            "code": 0,
+                            "account_type": 1,
+                            "index": 281474976710608,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "30.000000",
+                            "status": 0,
+                            "collateral": "30.000000",
+                            "account_index": 281474976710608,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [
+                                {
+                                    "symbol": "USDC",
+                                    "asset_id": 3,
+                                    "balance": "11.000000",
+                                    "locked_balance": "0.000000"
+                                }
+                            ],
+                            "total_asset_value": "30",
+                            "cross_asset_value": "30",
+                            "shares": []
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": 200,
+                        "total": 2,
+                        "accounts": [
+                            {
+                                "code": 0,
+                                "account_type": 0,
+                                "index": 1077,
+                                "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                                "cancel_all_time": 0,
+                                "total_order_count": 1,
+                                "total_isolated_order_count": 0,
+                                "pending_order_count": 0,
+                                "available_balance": "12606.880799",
+                                "status": 1,
+                                "collateral": "9100.242706",
+                                "account_index": 1077,
+                                "name": "",
+                                "description": "",
+                                "can_invite": true,
+                                "referral_points_percentage": "",
+                                "positions": [],
+                                "assets": [
+                                    {
+                                        "symbol": "ETH",
+                                        "asset_id": 1,
+                                        "balance": "3.00000000",
+                                        "locked_balance": "0.00000000"
+                                    },
+                                    {
+                                        "symbol": "USDC",
+                                        "asset_id": 3,
+                                        "balance": "989.000000",
+                                        "locked_balance": "100.000000"
+                                    }
+                                ],
+                                "total_asset_value": "15323.479477",
+                                "cross_asset_value": "15323.479477",
+                                "shares": []
+                            },
+                            {
+                                "code": 0,
+                                "account_type": 1,
+                                "index": 281474976710608,
+                                "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                                "cancel_all_time": 0,
+                                "total_order_count": 0,
+                                "total_isolated_order_count": 0,
+                                "pending_order_count": 0,
+                                "available_balance": "30.000000",
+                                "status": 0,
+                                "collateral": "30.000000",
+                                "account_index": 281474976710608,
+                                "name": "",
+                                "description": "",
+                                "can_invite": true,
+                                "referral_points_percentage": "",
+                                "positions": [],
+                                "assets": [
+                                    {
+                                        "symbol": "USDC",
+                                        "asset_id": 3,
+                                        "balance": "11.000000",
+                                        "locked_balance": "0.000000"
+                                    }
+                                ],
+                                "total_asset_value": "30",
+                                "cross_asset_value": "30",
+                                "shares": []
+                            }
+                        ]
+                    },
+                    "USDC": {
+                        "free": null,
+                        "used": null,
+                        "total": 30
+                    },
+                    "free": {
+                        "USDC": null
+                    },
+                    "used": {
+                        "USDC": null
+                    },
+                    "total": {
+                        "USDC": 30
+                    }
+                }
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "input": [
+                    "ETH/USDC:USDC",
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "total": 2,
+                    "accounts": [
+                        {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "12582.743947",
+                            "status": 1,
+                            "collateral": "9100.242706",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [
+                                {
+                                    "market_id": 0,
+                                    "symbol": "ETH",
+                                    "initial_margin_fraction": "5.00",
+                                    "open_order_count": 0,
+                                    "pending_order_count": 0,
+                                    "position_tied_order_count": 0,
+                                    "sign": 1,
+                                    "position": "18.0193",
+                                    "avg_entry_price": "2669.84",
+                                    "position_value": "54306.566340",
+                                    "unrealized_pnl": "6197.829558",
+                                    "realized_pnl": "0.000000",
+                                    "liquidation_price": "2191.1107231380406",
+                                    "margin_mode": 0,
+                                    "allocated_margin": "0.000000"
+                                }
+                            ],
+                            "assets": [],
+                            "total_asset_value": "15298.072264000002",
+                            "cross_asset_value": "15298.072264000002",
+                            "shares": []
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "market_id": 0,
+                        "symbol": "ETH",
+                        "initial_margin_fraction": "5.00",
+                        "open_order_count": 0,
+                        "pending_order_count": 0,
+                        "position_tied_order_count": 0,
+                        "sign": 1,
+                        "position": "18.0193",
+                        "avg_entry_price": "2669.84",
+                        "position_value": "54306.566340",
+                        "unrealized_pnl": "6197.829558",
+                        "realized_pnl": "0.000000",
+                        "liquidation_price": "2191.1107231380406",
+                        "margin_mode": 0,
+                        "allocated_margin": "0.000000"
+                    },
+                    "id": null,
+                    "symbol": "ETH/USDC:USDC",
+                    "timestamp": null,
+                    "datetime": null,
+                    "isolated": false,
+                    "hedged": null,
+                    "side": "long",
+                    "contracts": 18.0193,
+                    "contractSize": 1,
+                    "entryPrice": 2669.84,
+                    "markPrice": null,
+                    "notional": 54306.56634,
+                    "leverage": 20,
+                    "collateral": 0,
+                    "initialMargin": null,
+                    "maintenanceMargin": null,
+                    "initialMarginPercentage": null,
+                    "maintenanceMarginPercentage": null,
+                    "unrealizedPnl": 6197.829558,
+                    "liquidationPrice": 2191.1107231380406,
+                    "marginMode": "cross",
+                    "percentage": null
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "code": "200",
+                    "total": "1",
+                    "accounts": [
+                        {
+                            "code": "0",
+                            "account_type": "0",
+                            "index": "715085",
+                            "l1_address": "0x2653435D52a5f49551eBb757F25b2C8bB954859B",
+                            "cancel_all_time": "0",
+                            "total_order_count": "1",
+                            "total_isolated_order_count": "0",
+                            "pending_order_count": "0",
+                            "available_balance": "23.236217",
+                            "status": "1",
+                            "collateral": "19.933208",
+                            "transaction_time": "1772175128395185",
+                            "account_trading_mode": "0",
+                            "account_index": "715085",
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "created_at": "0",
+                            "positions": [
+                                {
+                                    "market_id": "0",
+                                    "symbol": "ETH",
+                                    "initial_margin_fraction": "5.00",
+                                    "open_order_count": "0",
+                                    "pending_order_count": "0",
+                                    "position_tied_order_count": "0",
+                                    "sign": "1",
+                                    "position": "0.1000",
+                                    "avg_entry_price": "1877.59",
+                                    "position_value": "203.555000",
+                                    "unrealized_pnl": "15.796000",
+                                    "realized_pnl": "0.000000",
+                                    "liquidation_price": "1712.9916700404858",
+                                    "margin_mode": "0",
+                                    "allocated_margin": "0.000000"
+                                },
+                                {
+                                    "market_id": "35",
+                                    "symbol": "LTC",
+                                    "initial_margin_fraction": "10.00",
+                                    "open_order_count": "1",
+                                    "pending_order_count": "0",
+                                    "position_tied_order_count": "0",
+                                    "sign": "1",
+                                    "position": "0.400",
+                                    "avg_entry_price": "56.270",
+                                    "position_value": "22.436400",
+                                    "unrealized_pnl": "-0.071600",
+                                    "realized_pnl": "0.000000",
+                                    "liquidation_price": "0",
+                                    "margin_mode": "0",
+                                    "allocated_margin": "0.000000"
+                                }
+                            ],
+                            "assets": [],
+                            "total_asset_value": "35.657607000000006",
+                            "cross_asset_value": "35.657607000000006",
+                            "shares": [],
+                            "pending_unlocks": []
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "market_id": "0",
+                            "symbol": "ETH",
+                            "initial_margin_fraction": "5.00",
+                            "open_order_count": "0",
+                            "pending_order_count": "0",
+                            "position_tied_order_count": "0",
+                            "sign": "1",
+                            "position": "0.1000",
+                            "avg_entry_price": "1877.59",
+                            "position_value": "203.555000",
+                            "unrealized_pnl": "15.796000",
+                            "realized_pnl": "0.000000",
+                            "liquidation_price": "1712.9916700404858",
+                            "margin_mode": "0",
+                            "allocated_margin": "0.000000"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": false,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 0.1,
+                        "contractSize": 1,
+                        "entryPrice": 1877.59,
+                        "markPrice": null,
+                        "notional": 203.555,
+                        "leverage": 20,
+                        "collateral": 0,
+                        "initialMargin": null,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": 15.796,
+                        "liquidationPrice": 1712.9916700404858,
+                        "marginMode": "cross",
+                        "percentage": null
+                    },
+                    {
+                        "info": {
+                            "market_id": "35",
+                            "symbol": "LTC",
+                            "initial_margin_fraction": "10.00",
+                            "open_order_count": "1",
+                            "pending_order_count": "0",
+                            "position_tied_order_count": "0",
+                            "sign": "1",
+                            "position": "0.400",
+                            "avg_entry_price": "56.270",
+                            "position_value": "22.436400",
+                            "unrealized_pnl": "-0.071600",
+                            "realized_pnl": "0.000000",
+                            "liquidation_price": "0",
+                            "margin_mode": "0",
+                            "allocated_margin": "0.000000"
+                        },
+                        "id": null,
+                        "symbol": "LTC/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": false,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 0.4,
+                        "contractSize": 1,
+                        "entryPrice": 56.27,
+                        "markPrice": null,
+                        "notional": 22.4364,
+                        "leverage": 10,
+                        "collateral": 0,
+                        "initialMargin": null,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": -0.0716,
+                        "liquidationPrice": 0,
+                        "marginMode": "cross",
+                        "percentage": null
+                    }
+                ]
+            },
+            {
+                "description": "fetchPositions",
+                "method": "fetchPositions",
+                "input": [
+                    null,
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "total": 2,
+                    "accounts": [
+                        {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "12582.743947",
+                            "status": 1,
+                            "collateral": "9100.242706",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [
+                                {
+                                    "market_id": 0,
+                                    "symbol": "ETH",
+                                    "initial_margin_fraction": "5.00",
+                                    "open_order_count": 0,
+                                    "pending_order_count": 0,
+                                    "position_tied_order_count": 0,
+                                    "sign": 1,
+                                    "position": "18.0193",
+                                    "avg_entry_price": "2669.84",
+                                    "position_value": "54306.566340",
+                                    "unrealized_pnl": "6197.829558",
+                                    "realized_pnl": "0.000000",
+                                    "liquidation_price": "2191.1107231380406",
+                                    "margin_mode": 0,
+                                    "allocated_margin": "0.000000"
+                                }
+                            ],
+                            "assets": [],
+                            "total_asset_value": "15298.072264000002",
+                            "cross_asset_value": "15298.072264000002",
+                            "shares": []
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "market_id": 0,
+                            "symbol": "ETH",
+                            "initial_margin_fraction": "5.00",
+                            "open_order_count": 0,
+                            "pending_order_count": 0,
+                            "position_tied_order_count": 0,
+                            "sign": 1,
+                            "position": "18.0193",
+                            "avg_entry_price": "2669.84",
+                            "position_value": "54306.566340",
+                            "unrealized_pnl": "6197.829558",
+                            "realized_pnl": "0.000000",
+                            "liquidation_price": "2191.1107231380406",
+                            "margin_mode": 0,
+                            "allocated_margin": "0.000000"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "isolated": false,
+                        "hedged": null,
+                        "side": "long",
+                        "contracts": 18.0193,
+                        "contractSize": 1,
+                        "entryPrice": 2669.84,
+                        "markPrice": null,
+                        "notional": 54306.56634,
+                        "leverage": 20,
+                        "collateral": 0,
+                        "initialMargin": null,
+                        "maintenanceMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMarginPercentage": null,
+                        "unrealizedPnl": 6197.829558,
+                        "liquidationPrice": 2191.1107231380406,
+                        "marginMode": "cross",
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts",
+                "method": "fetchAccounts",
+                "input": [
+                    {
+                        "by": "index",
+                        "value": 0
+                    }
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "total": 3,
+                    "accounts": [
+                        {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "4048.997878",
+                            "status": 1,
+                            "collateral": "4087.486845",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [],
+                            "total_asset_value": "4052.2289849999997",
+                            "cross_asset_value": "4052.2289849999997",
+                            "shares": []
+                        },
+                        {
+                            "code": 0,
+                            "account_type": 1,
+                            "index": 281474976710588,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "0.000000",
+                            "status": 0,
+                            "collateral": "0.000000",
+                            "account_index": 281474976710588,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [],
+                            "total_asset_value": "0",
+                            "cross_asset_value": "0",
+                            "shares": []
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "1077",
+                        "type": "main",
+                        "code": null,
+                        "info": {
+                            "code": 0,
+                            "account_type": 0,
+                            "index": 1077,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "4048.997878",
+                            "status": 1,
+                            "collateral": "4087.486845",
+                            "account_index": 1077,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [],
+                            "total_asset_value": "4052.2289849999997",
+                            "cross_asset_value": "4052.2289849999997",
+                            "shares": []
+                        },
+                        "by": "index",
+                        "value": 0
+                    },
+                    {
+                        "id": "281474976710588",
+                        "type": "subaccount",
+                        "code": null,
+                        "info": {
+                            "code": 0,
+                            "account_type": 1,
+                            "index": 281474976710588,
+                            "l1_address": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+                            "cancel_all_time": 0,
+                            "total_order_count": 0,
+                            "total_isolated_order_count": 0,
+                            "pending_order_count": 0,
+                            "available_balance": "0.000000",
+                            "status": 0,
+                            "collateral": "0.000000",
+                            "account_index": 281474976710588,
+                            "name": "",
+                            "description": "",
+                            "can_invite": true,
+                            "referral_points_percentage": "",
+                            "positions": [],
+                            "assets": [],
+                            "total_asset_value": "0",
+                            "cross_asset_value": "0",
+                            "shares": []
+                        },
+                        "by": "index",
+                        "value": 0
+                    }
+                ]
+            }
+        ]
+    }
+}

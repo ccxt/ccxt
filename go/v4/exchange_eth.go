@@ -4,19 +4,27 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 	"github.com/mitchellh/mapstructure"
 	"github.com/vmihailenco/msgpack/v5"
+
+	"github.com/elliottech/lighter-go/client"
+	"github.com/elliottech/lighter-go/client/http"
+	"github.com/elliottech/lighter-go/types"
+	// "github.com/elliottech/lighter-go/types/txtypes"
 )
 
 // =====================================  Hyperliquid Structs ===================================== //
 // OrderMessage Struct
 // {
-// "brokerCode": 1,
+// "builder": "0xxxxxx",
 // "grouping": "na",
 // "orders": [
 //
@@ -40,24 +48,37 @@ type TimeInForce struct {
 	TIF string `mapstructure:"tif" msgpack:"tif"`
 }
 
-type Limit struct {
-	TimeInForce TimeInForce `mapstructure:"limit" msgpack:"limit"`
+type TriggerSpec struct {
+	IsMarket  bool   `mapstructure:"isMarket" msgpack:"isMarket"`
+	TriggerPx string `mapstructure:"triggerPx" msgpack:"triggerPx"`
+	TPSL      string `mapstructure:"tpsl" msgpack:"tpsl"`
+}
+
+type OrderKind struct {
+	Limit   *TimeInForce `mapstructure:"limit" msgpack:"limit,omitempty"`
+	Trigger *TriggerSpec `mapstructure:"trigger" msgpack:"trigger,omitempty"`
 }
 
 type OrderHyperliquid struct {
-	A int    `mapstructure:"a" msgpack:"a"`
-	B bool   `mapstructure:"b" msgpack:"b"`
-	P string `mapstructure:"p" msgpack:"p"`
-	S string `mapstructure:"s" msgpack:"s"`
-	R bool   `mapstructure:"r" msgpack:"r"`
-	T Limit  `mapstructure:"t" msgpack:"t"`
+	A int       `mapstructure:"a" msgpack:"a"`
+	B bool      `mapstructure:"b" msgpack:"b"`
+	P string    `mapstructure:"p" msgpack:"p"`
+	S string    `mapstructure:"s" msgpack:"s"`
+	R bool      `mapstructure:"r" msgpack:"r"`
+	T OrderKind `mapstructure:"t" msgpack:"t"`
+	C string    `mapstructure:"c,omitempty" msgpack:"c,omitempty"` // optional client order id
 }
 
 type OrderMessage struct {
-	Type       string             `mapstructure:"type" msgpack:"type"`
-	Orders     []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
-	Grouping   string             `mapstructure:"grouping" msgpack:"grouping"`
-	BrokerCode int                `mapstructure:"brokerCode" msgpack:"brokerCode"`
+	Type     string             `mapstructure:"type" msgpack:"type"`
+	Orders   []OrderHyperliquid `mapstructure:"orders" msgpack:"orders"`
+	Grouping string             `mapstructure:"grouping" msgpack:"grouping"`
+	Builder  Builder            `mapstructure:"builder" msgpack:"builder,omitempty"`
+}
+
+type Builder struct {
+	B string `mapstructure:"b" msgpack:"b"`
+	F int    `mapstructure:"f" msgpack:"f"`
 }
 
 // cancel
@@ -81,6 +102,21 @@ type TransferMessage struct {
 	ToPerp           bool   `mapstructure:"toPerp" msgpack:"toPerp"`
 	Nonce            int64  `mapstructure:"nonce" msgpack:"nonce"`
 }
+type SubAccountTransferMessage struct {
+	Type           string `mapstructure:"type" msgpack:"type"`
+	SubAccountUser string `mapstructure:"subAccountUser" msgpack:"subAccountUser"`
+	IsDeposit      bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd            int    `mapstructure:"usd" msgpack:"usd"`
+}
+
+// Vault transfer message
+
+type VaultTransferMessage struct {
+	Type         string `mapstructure:"type" msgpack:"type"`
+	VaultAddress string `mapstructure:"vaultAddress" msgpack:"vaultAddress"`
+	IsDeposit    bool   `mapstructure:"isDeposit" msgpack:"isDeposit"`
+	Usd          int    `mapstructure:"usd" msgpack:"usd"`
+}
 
 // withdraw
 // {"hyperliquidChain":"Mainnet","signatureChainId":"0x66eee","destination":"0xc950889d14a3717f541ec246bc253d7a9e98c78f","amount":"100000","time":1737458231937,"type":"withdraw3"}
@@ -96,14 +132,44 @@ type WithdrawMessage struct {
 // editOrder
 // {"type":"batchModify","modifies":[{"oid":8553833906,"order":{"a":5,"b":true,"p":"151","s":"0.2","r":false,"t":{"limit":{"tif":"Gtc"}}}}]}
 type Modify struct {
-	OID   int64 `mapstructure:"oid" msgpack:"oid"`
-	Order Order `mapstructure:"order" msgpack:"order"`
+	OID   int              `mapstructure:"oid" msgpack:"oid"`
+	Order OrderHyperliquid `mapstructure:"order" msgpack:"order"`
 }
 
 // EditOrderMessage represents the batch modification message.
 type EditOrderMessage struct {
 	Type     string   `mapstructure:"type" msgpack:"type"`
 	Modifies []Modify `mapstructure:"modifies" msgpack:"modifies"`
+}
+
+// CreateSubAccount message
+
+type CreateSubAccountMessage struct {
+	Type string `mapstructure:"type" msgpack:"type"`
+	Name string `mapstructure:"name" msgpack:"name"`
+}
+
+// UpdateLeverage message
+
+type UpdateLeverageMessage struct {
+	Type     string `mapstructure:"type" msgpack:"type"`
+	Asset    int    `mapstructure:"asset" msgpack:"asset"`
+	IsCross  bool   `mapstructure:"isCross" msgpack:"isCross"`
+	Leverage int    `mapstructure:"leverage" msgpack:"leverage"`
+}
+
+// UpdateIsolatedMargin message
+
+type UpdateIsolatedMarginMessage struct {
+	Type  string `mapstructure:"type" msgpack:"type"`
+	Asset int    `mapstructure:"asset" msgpack:"asset"`
+	IsBuy bool   `mapstructure:"isBuy" msgpack:"isBuy"`
+	Ntli  int    `mapstructure:"Ntli" msgpack:"Ntli"`
+}
+
+type ReserveRequestWeightMessage struct {
+	Type   string `mapstructure:"type" msgpack:"type"`
+	Weight int    `mapstructure:"weight" msgpack:"weight"`
 }
 
 // =====================================  Hyperliquid Structs ===================================== //
@@ -262,7 +328,7 @@ func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated i
 				outObj = make(map[string]interface{})
 			}
 			dictX := x.(map[string]interface{})
-			for k, _ := range dictX {
+			for k := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
@@ -345,7 +411,8 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 
 	typeA := this.SafeString(converted, "type", "").(string)
 
-	if typeA == "order" {
+	switch typeA {
+	case "order":
 		var orderMsg OrderMessage
 
 		err := mapstructure.Decode(converted, &orderMsg)
@@ -359,7 +426,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "cancel" {
+	case "cancel":
 		var cancelMsg CancelMessage
 
 		err := mapstructure.Decode(converted, &cancelMsg)
@@ -373,7 +440,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "withdraw3" {
+	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
 		err := mapstructure.Decode(converted, &withdrawMsg)
@@ -386,7 +453,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
-	} else if typeA == "batchModify" {
+	case "batchModify":
 		var editMsg EditOrderMessage
 
 		err := mapstructure.Decode(converted, &editMsg)
@@ -399,6 +466,552 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 			panic(err)
 		}
 		return packed
+	case "subAccountTransfer":
+		var subAccountTransferMsg SubAccountTransferMessage
+
+		err := mapstructure.Decode(converted, &subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(subAccountTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "createSubAccount":
+		var createSubAccountMsg CreateSubAccountMessage
+
+		err := mapstructure.Decode(converted, &createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(createSubAccountMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "updateLeverage":
+		var leverageMsg UpdateLeverageMessage
+
+		err := mapstructure.Decode(converted, &leverageMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(leverageMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "updateIsolatedMargin":
+		var isolatedMarginMsg UpdateIsolatedMarginMessage
+
+		err := mapstructure.Decode(converted, &isolatedMarginMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(isolatedMarginMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "vaultTransfer":
+		var vaultTransferMsg VaultTransferMessage
+
+		err := mapstructure.Decode(converted, &vaultTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(vaultTransferMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
+	case "reserveRequestWeight":
+		var reserveRequestWeightMsg ReserveRequestWeightMessage
+
+		err := mapstructure.Decode(converted, &reserveRequestWeightMsg)
+		if err != nil {
+			panic(err)
+		}
+
+		packed, err := msgpack.Marshal(reserveRequestWeightMsg)
+		if err != nil {
+			panic(err)
+		}
+		return packed
 	}
 	return nil
+}
+
+func SafeInt(v interface{}) int64 {
+	switch val := v.(type) {
+	case int64:
+		return val
+	case float64:
+		return int64(val)
+	case int:
+		return int64(val)
+	case uint32:
+		return int64(val)
+	case uint8:
+		return int64(val)
+	case string:
+		i, err := strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			f, errFloat := strconv.ParseFloat(val, 64)
+			if errFloat != nil {
+				panic(fmt.Sprintf("SafeInt: cannot parse string '%s'", val))
+			}
+			return int64(f)
+		}
+		return i
+	default:
+		panic(fmt.Sprintf("SafeInt: unsupported type %T, value: %v", v, v))
+	}
+}
+
+// it's necessary to load lighter library in python
+// we create client with the given api credential in this function
+func (this *Exchange) LoadLighterLibrary(path interface{}, chainId interface{}, privateKey interface{}, apiKeyIndex interface{}, accountIndex interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() {
+		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+	}()
+	return ch
+}
+
+func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
+	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
+
+	httpClient := http.NewClient(url)
+
+	txClient, err := client.CreateClient(httpClient, privateKey, chainId, apiKeyIndex, accountIndex)
+	if err != nil {
+		panic(err)
+	}
+	return txClient
+}
+
+func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+	ordersRaw, ok := request["orders"]
+	if !ok {
+		panic("Missing 'orders' in request")
+	}
+
+	orders, ok := ordersRaw.([]interface{})
+	if !ok {
+		panic(fmt.Sprintf("'orders' must be an array, got %T", ordersRaw))
+	}
+
+	length := len(orders)
+	ordersArr := make([]*types.CreateOrderTxReq, length)
+
+	for i, item := range orders {
+		orderMap, ok := item.(map[string]interface{})
+		if !ok {
+			panic(fmt.Sprintf("Order %d is not a map[string]interface{}", i))
+		}
+
+		orderExpiry := int64(SafeInt(orderMap["order_expiry"]))
+		if orderExpiry == -1 {
+			orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
+		}
+
+		ordersArr[i] = &types.CreateOrderTxReq{
+			MarketIndex:      int16(SafeInt(orderMap["market_index"])),
+			ClientOrderIndex: int64(SafeInt(orderMap["client_order_index"])),
+			BaseAmount:       int64(SafeInt(orderMap["base_amount"])),
+			Price:            uint32(SafeInt(orderMap["avg_execution_price"])),
+			IsAsk:            uint8(SafeInt(orderMap["is_ask"])),
+			Type:             uint8(SafeInt(orderMap["order_type"])),
+			TimeInForce:      uint8(SafeInt(orderMap["time_in_force"])),
+			ReduceOnly:       uint8(SafeInt(orderMap["reduce_only"])),
+			TriggerPrice:     uint32(SafeInt(orderMap["trigger_price"])),
+			OrderExpiry:      orderExpiry,
+		}
+	}
+
+	tx := &types.CreateGroupedOrdersTxReq{
+		GroupingType: uint8(SafeInt(request["grouping_type"])),
+		Orders:       ordersArr,
+	}
+
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateGroupedOrdersTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
+
+	return res
+}
+
+func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	orderExpiry := int64(SafeInt(request["order_expiry"]))
+	if orderExpiry == -1 {
+		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
+	}
+
+	tx := &types.CreateOrderTxReq{
+		MarketIndex:      int16(SafeInt(request["market_index"])),
+		ClientOrderIndex: int64(SafeInt(request["client_order_index"])),
+		BaseAmount:       int64(SafeInt(request["base_amount"])),
+		Price:            uint32(SafeInt(request["avg_execution_price"])),
+		IsAsk:            uint8(SafeInt(request["is_ask"])),
+		Type:             uint8(SafeInt(request["order_type"])),
+		TimeInForce:      uint8(SafeInt(request["time_in_force"])),
+		ReduceOnly:       uint8(SafeInt(request["reduce_only"])),
+		TriggerPrice:     uint32(SafeInt(request["trigger_price"])),
+		OrderExpiry:      orderExpiry,
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
+
+	return res
+}
+
+func (this *Exchange) LighterSignCancelOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCancelOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.CancelOrderTxReq{
+		MarketIndex: int16(SafeInt(request["market_index"])),
+		Index:       int64(SafeInt(request["order_index"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCancelOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignWithdraw(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignWithdraw(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.WithdrawTxReq{
+		AssetIndex: int16(SafeInt(request["asset_index"])),
+		RouteType:  uint8(SafeInt(request["route_type"])),
+		Amount:     uint64(SafeInt(request["amount"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetWithdrawTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignCreateSubAccount(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCreateSubAccount(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]interface{}) interface{} {
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCreateSubAccountTransaction(ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignCancelAllOrders(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignCancelAllOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.CancelAllOrdersTxReq{
+		TimeInForce: uint8(SafeInt(request["time_in_force"])),
+		Time:        int64(SafeInt(request["time"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetCancelAllOrdersTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignModifyOrder(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignModifyOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.ModifyOrderTxReq{
+		MarketIndex:  int16(SafeInt(request["market_index"])),
+		Index:        int64(SafeInt(request["index"])),
+		BaseAmount:   int64(SafeInt(request["base_amount"])),
+		Price:        uint32(SafeInt(request["price"])),
+		TriggerPrice: uint32(SafeInt(request["trigger_price"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetModifyOrderTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignTransfer(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignTransfer(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]interface{}) interface{} {
+	var memoArr [32]byte
+	bs := []byte(request["memo"].(string))
+	if len(bs) != 32 {
+		panic(fmt.Errorf("memo expected to be 32 bytes long"))
+	}
+	for i := 0; i < 32; i++ {
+		memoArr[i] = bs[i]
+	}
+	tx := &types.TransferTxReq{
+		ToAccountIndex: int64(SafeInt(request["to_account_index"])),
+		AssetIndex:     int16(SafeInt(request["asset_index"])),
+		FromRouteType:  uint8(SafeInt(request["from_route_type"])),
+		ToRouteType:    uint8(SafeInt(request["to_route_type"])),
+		Amount:         int64(SafeInt(request["amount"])),
+		USDCFee:        int64(SafeInt(request["usdc_fee"])),
+		Memo:           memoArr,
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetTransferTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterSignUpdateLeverage(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignUpdateLeverage(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.UpdateLeverageTxReq{
+		MarketIndex:           int16(SafeInt(request["market_index"])),
+		InitialMarginFraction: uint16(SafeInt(request["initial_margin_fraction"])),
+		MarginMode:            uint8(SafeInt(request["margin_mode"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetUpdateLeverageTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interface{}) interface{} {
+	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
+	deadline := time.Unix(int64(SafeInt(request["deadline"])), 0)
+
+	auth, err := signer.GetAuthToken(deadline)
+	if err != nil {
+		panic(err)
+	}
+
+	return auth
+}
+
+func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interface{}) interface{} {
+	return this.lighterSignUpdateMargin(signer.(*client.TxClient), request.(map[string]interface{}))
+}
+
+func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]interface{}) interface{} {
+	tx := &types.UpdateMarginTxReq{
+		MarketIndex: int16(SafeInt(request["market_index"])),
+		USDCAmount:  int64(SafeInt(request["usdc_amount"])),
+		Direction:   uint8(SafeInt(request["direction"])),
+	}
+	nonce := int64(SafeInt(request["nonce"]))
+	ops := &types.TransactOpts{
+		Nonce: &nonce,
+	}
+
+	txInfo, err := signer.GetUpdateMarginTransaction(tx, ops)
+	if err != nil {
+		panic(err)
+	}
+	txInfoStr, err := txInfo.GetTxInfo()
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]interface{}, 0)
+	res = append(res, txInfo.GetTxType())
+	res = append(res, txInfoStr)
+	return res
+}
+
+func (this *Exchange) EthGetAddressFromPrivateKey(privateKey interface{}) string {
+	// Convert interface{} to string
+	privateKeyStr, ok := privateKey.(string)
+	if !ok {
+		panic("privateKey must be a string")
+	}
+
+	// Remove "0x" prefix if present
+	cleanPrivateKey := strings.TrimPrefix(privateKeyStr, "0x")
+
+	// Parse the hex string to bytes
+	privateKeyBytes, err := hexutil.Decode("0x" + cleanPrivateKey)
+	if err != nil {
+		panic(fmt.Sprintf("failed to decode private key: %v", err))
+	}
+
+	// Convert bytes to ECDSA private key
+	privKey, err := crypto.ToECDSA(privateKeyBytes)
+	if err != nil {
+		panic(fmt.Sprintf("failed to parse private key: %v", err))
+	}
+
+	// Get the uncompressed public key (remove the 0x04 prefix to get just the coordinates)
+	publicKeyBytes := crypto.FromECDSAPub(&privKey.PublicKey)
+	if publicKeyBytes == nil {
+		panic("failed to get public key bytes")
+	}
+
+	// Remove the first byte (0x04 prefix) - we only want the 64 bytes (X + Y coordinates)
+	publicKeyWithoutPrefix := publicKeyBytes[1:]
+
+	// Hash the public key with Keccak256
+	addressHash := crypto.Keccak256(publicKeyWithoutPrefix)
+
+	// Take the last 20 bytes (40 hex chars) as the address
+	addressBytes := addressHash[len(addressHash)-20:]
+
+	// Convert to hex and add 0x prefix
+	return "0x" + hexutil.Encode(addressBytes)[2:]
 }

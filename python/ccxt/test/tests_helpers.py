@@ -4,6 +4,7 @@ import argparse
 import json
 # import logging
 import os
+import platform
 import sys
 from traceback import format_tb, format_exception
 
@@ -96,7 +97,7 @@ Error = Exception
 
 
 def handle_all_unhandled_exceptions(type, value, traceback):
-    dump((type), (value), '\n<UNHANDLED EXCEPTION>\n' + ('\n'.join(format_tb(traceback))))
+    dump('[TEST_FAILURE]', (type), (value), '\n<UNHANDLED EXCEPTION>\n' + ('\n'.join(format_tb(traceback))))
     exit(1)  # unrecoverable crash
 
 
@@ -235,8 +236,8 @@ def get_test_files_sync(properties, ws=False):
         module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
         if (ws):
             prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/exchange/'
-            module_string = 'ccxt.pro.test.exchange.test_' + name_snake_case
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
+            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
         filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
         if (io_file_exists (filePathWithExt)):
             imp = importlib.import_module(module_string)
@@ -278,6 +279,16 @@ def get_env_vars():
 
 def is_sync():
     return IS_SYNCHRONOUS
+
+def is_windows() -> bool:
+    return sys.platform.startswith("win")
+
+def is_linux() -> bool:
+    return sys.platform.startswith("linux")
+
+def is_amd64() -> bool:
+    m = platform.machine()
+    return m in ("x86_64", "AMD64", "amd64")
 
 argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None

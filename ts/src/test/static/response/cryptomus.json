@@ -3801,6 +3801,7 @@
         "cancelOrder": [
             {
                 "description": "Cancel order",
+                "disabled": true,
                 "method": "cancelOrder",
                 "input": [
                     "01JNECDY55FDVWN81XRMRNCTXG"

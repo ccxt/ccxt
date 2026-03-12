@@ -7,658 +7,166 @@
 
 package ccxt
 
-func (this *bigone) PublicGetPing (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPing", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *bigone) PublicGetAssetPairs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetPairs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetAssetPairs(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairs", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetPairsAssetPairNameDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameDepth", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetPairsAssetPairNameTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTrades", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetPairsAssetPairNameTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameTicker", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsAssetPairNameCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetPairsAssetPairNameCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetAssetPairsAssetPairNameCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsAssetPairNameCandles", args...)
 }
 
-func (this *bigone) PublicGetAssetPairsTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAssetPairsTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PublicGetAssetPairsTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicGetAssetPairsTickers", args...)
 }
 
-func (this *bigone) PrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *bigone) PrivateGetFundAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetFundAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetFundAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetFundAccounts", args...)
 }
 
-func (this *bigone) PrivateGetAssetsAssetSymbolAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetsAssetSymbolAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetAssetsAssetSymbolAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetAssetsAssetSymbolAddress", args...)
 }
 
-func (this *bigone) PrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *bigone) PrivateGetOrdersId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *bigone) PrivateGetOrdersMulti (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrdersMulti", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetOrdersMulti(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetOrdersMulti", args...)
 }
 
-func (this *bigone) PrivateGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetTrades", args...)
 }
 
-func (this *bigone) PrivateGetWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetWithdrawals", args...)
 }
 
-func (this *bigone) PrivateGetDeposits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetDeposits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivateGetDeposits(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetDeposits", args...)
 }
 
-func (this *bigone) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *bigone) PrivatePostOrdersIdCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersIdCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivatePostOrdersIdCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersIdCancel", args...)
 }
 
-func (this *bigone) PrivatePostOrdersCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrdersCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivatePostOrdersCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostOrdersCancel", args...)
 }
 
-func (this *bigone) PrivatePostWithdrawals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivatePostWithdrawals(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostWithdrawals", args...)
 }
 
-func (this *bigone) PrivatePostTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) PrivatePostTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostTransfer", args...)
 }
 
-func (this *bigone) ContractPublicGetSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPublicGetSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetSymbols", args...)
 }
 
-func (this *bigone) ContractPublicGetInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPublicGetInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetInstruments", args...)
 }
 
-func (this *bigone) ContractPublicGetDepthSymbolSnapshot (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetDepthSymbolSnapshot", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPublicGetDepthSymbolSnapshot(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetDepthSymbolSnapshot", args...)
 }
 
-func (this *bigone) ContractPublicGetInstrumentsDifference (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetInstrumentsDifference", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPublicGetInstrumentsDifference(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetInstrumentsDifference", args...)
 }
 
-func (this *bigone) ContractPublicGetInstrumentsPrices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPublicGetInstrumentsPrices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPublicGetInstrumentsPrices(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPublicGetInstrumentsPrices", args...)
 }
 
-func (this *bigone) ContractPrivateGetAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetAccounts(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetAccounts", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetOrdersId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersId", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrders", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersOpening (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetOrdersOpening", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetOrdersOpening(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersOpening", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersCount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetOrdersCount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetOrdersCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersCount", args...)
 }
 
-func (this *bigone) ContractPrivateGetOrdersOpeningCount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetOrdersOpeningCount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetOrdersOpeningCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetOrdersOpeningCount", args...)
 }
 
-func (this *bigone) ContractPrivateGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetTrades", args...)
 }
 
-func (this *bigone) ContractPrivateGetTradesCount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateGetTradesCount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateGetTradesCount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateGetTradesCount", args...)
 }
 
-func (this *bigone) ContractPrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivatePostOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrders", args...)
 }
 
-func (this *bigone) ContractPrivatePostOrdersBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivatePostOrdersBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivatePostOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePostOrdersBatch", args...)
 }
 
-func (this *bigone) ContractPrivatePutPositionsSymbolMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivatePutPositionsSymbolMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivatePutPositionsSymbolMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePutPositionsSymbolMargin", args...)
 }
 
-func (this *bigone) ContractPrivatePutPositionsSymbolRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivatePutPositionsSymbolRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivatePutPositionsSymbolRiskLimit(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivatePutPositionsSymbolRiskLimit", args...)
 }
 
-func (this *bigone) ContractPrivateDeleteOrdersId (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateDeleteOrdersId", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateDeleteOrdersId", args...)
 }
 
-func (this *bigone) ContractPrivateDeleteOrdersBatch (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("contractPrivateDeleteOrdersBatch", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) ContractPrivateDeleteOrdersBatch(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("contractPrivateDeleteOrdersBatch", args...)
 }
 
-func (this *bigone) WebExchangeGetV3Assets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("webExchangeGetV3Assets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BigoneCore) WebExchangeGetV3Assets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("webExchangeGetV3Assets", args...)
 }

@@ -170,15 +170,22 @@ func (this *Exchange) truncateToString(num interface{}, precision int) string {
 	if precision > 0 {
 		re, exists := truncateRegExpCache[precision]
 		if !exists {
-			re = regexp.MustCompile(fmt.Sprintf(`([-]*\d+\.\d{%d})(\d)`, precision))
+			re = regexp.MustCompile(fmt.Sprintf(`^([-]*\d+\.\d{0,%d})`, precision))
 			truncateRegExpCache[precision] = re
 		}
 		match := re.FindStringSubmatch(numStr)
 		if len(match) > 1 {
-			return match[1]
+			result := match[1]
+			// If we have fewer decimal places than precision, return as-is
+			parts := strings.Split(result, ".")
+			if len(parts) == 2 && len(parts[1]) > precision {
+				result = parts[0] + "." + parts[1][:precision]
+			}
+			return result
 		}
 	}
-	intNum, _ := strconv.Atoi(numStr)
+	// Fallback for precision <= 0 or no decimal point
+	intNum, _ := strconv.Atoi(strings.Split(numStr, ".")[0])
 	return strconv.Itoa(intNum)
 }
 
@@ -274,6 +281,26 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 	if countMode == TICK_SIZE {
 		precisionDigitsString := this._decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
 		newNumPrecisionDigits := this.PrecisionFromString(precisionDigitsString)
+		if roundingMode == TRUNCATE {
+			xStr := NumberToString(x)
+			truncatedX := this.truncateToString(xStr, int(math.Max(0, float64(newNumPrecisionDigits))))
+			truncatedParsedX := ToFloat64(truncatedX)
+			scale := math.Pow(10, math.Max(float64(newNumPrecisionDigits), 10))
+			xScaled := math.Round(truncatedParsedX * scale)
+			tickScaled := math.Round(numPrecisionDigits * scale)
+			ticks := math.Trunc(xScaled / tickScaled)
+			parsedX = (ticks * tickScaled) / scale
+
+			if paddingMode == NO_PADDING {
+				// Format with fixed precision
+				formatted := strconv.FormatFloat(parsedX, 'f', newNumPrecisionDigits, 64)
+				// Convert back to float to remove trailing zeros
+				floatVal, _ := strconv.ParseFloat(formatted, 64)
+				return strconv.FormatFloat(floatVal, 'f', -1, 64)
+			}
+
+			return this._decimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+		}
 		missing := math.Mod(parsedX, numPrecisionDigits)
 		missingRes := this._decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING)
 		missingFloat, _ := strconv.ParseFloat(missingRes, 64)
@@ -282,7 +309,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 		fpErrorStr := this._decimalToPrecision(fpError, ROUND, math.Max(float64(newNumPrecisionDigits), 8), DECIMAL_PLACES, NO_PADDING)
 		fpErrorResult := this.PrecisionFromString(fpErrorStr)
 		if fpErrorResult != 0 {
-			if roundingMode == ROUND {
+			switch roundingMode {
+			case ROUND:
 				if parsedX > 0 {
 					if missing >= numPrecisionDigits/2 {
 						parsedX = parsedX - missing + numPrecisionDigits
@@ -296,7 +324,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 						parsedX = parsedX - missing - numPrecisionDigits
 					}
 				}
-			} else if roundingMode == TRUNCATE {
+			case TRUNCATE:
 				parsedX = parsedX - missing
 			}
 		}

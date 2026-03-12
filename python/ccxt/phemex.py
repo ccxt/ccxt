@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.phemex import ImplicitAPI
 import hashlib
 import numbers
-from ccxt.base.types import Any, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, ADL, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -47,6 +47,9 @@ class phemex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closePosition': False,
@@ -57,9 +60,14 @@ class phemex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchConvertQuote': True,
                 'fetchConvertTrade': False,
@@ -76,6 +84,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchFundingRateHistories': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -88,10 +97,14 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionADLRank': True,
                 'fetchPositions': True,
+                'fetchPositionsADLRank': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
@@ -100,8 +113,11 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
@@ -205,7 +221,8 @@ class phemex(Exchange, ImplicitAPI):
                         # swap
                         'accounts/accountPositions': 1,  # ?currency=<currency>
                         'g-accounts/accountPositions': 1,  # ?currency=<currency>
-                        'accounts/positions': 25,  # ?currency=<currency>
+                        'g-accounts/positions': 25,  # ?currency=<currency>
+                        'g-accounts/risk-unit': 1,
                         'api-data/futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/g-futures/funding-fees': 5,  # ?symbol=<symbol>
                         'api-data/futures/orders': 5,  # ?symbol=<symbol>
@@ -281,6 +298,7 @@ class phemex(Exchange, ImplicitAPI):
                         # swap
                         'orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
                         'g-orders/replace': 1,  # ?symbol=<symbol>&orderID=<orderID>&origClOrdID=<origClOrdID>&clOrdID=<clOrdID>&price=<price>&priceEp=<priceEp>&orderQty=<orderQty>&stopPx=<stopPx>&stopPxEp=<stopPxEp>&takeProfit=<takeProfit>&takeProfitEp=<takeProfitEp>&stopLoss=<stopLoss>&stopLossEp=<stopLossEp>&pegOffsetValueEp=<pegOffsetValueEp>&pegPriceType=<pegPriceType>
+                        'g-orders/create': 1,
                         'positions/leverage': 5,  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/leverage': 5,  # ?symbol=<symbol>&leverage=<leverage>&leverageEr=<leverageEr>
                         'g-positions/switch-pos-mode-sync': 5,  # ?symbol=<symbol>&targetPosMode=<targetPosMode>
@@ -1209,7 +1227,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1218,7 +1236,8 @@ class phemex(Exchange, ImplicitAPI):
             # 'id': 123456789,  # optional request id
         }
         response = None
-        if market['linear'] and market['settle'] == 'USDT':
+        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        if market['linear'] and isStableSettled:
             response = self.v2GetMdV2Orderbook(self.extend(request, params))
         else:
             if (limit is not None) and (limit <= 30):
@@ -1265,7 +1284,7 @@ class phemex(Exchange, ImplicitAPI):
         preciseString = str(precise)
         return self.parse_to_numeric(preciseString)
 
-    def to_ev(self, amount, market: Market = None):
+    def to_ev(self, amount, market: dict = None):
         if (amount is None) or (market is None):
             return amount
         return self.to_en(amount, market['valueScale'])
@@ -1326,7 +1345,7 @@ class phemex(Exchange, ImplicitAPI):
             baseVolume,
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1350,7 +1369,8 @@ class phemex(Exchange, ImplicitAPI):
         }
         until = self.safe_integer_2(params, 'until', 'to')
         params = self.omit(params, ['until'])
-        usesSpecialFromToEndpoint = ((market['linear'] or market['settle'] == 'USDT')) and ((since is not None) or (until is not None))
+        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        usesSpecialFromToEndpoint = ((market['linear'] or isStableSettled)) and ((since is not None) or (until is not None))
         maxLimit = 1000
         if usesSpecialFromToEndpoint:
             maxLimit = 2000
@@ -1358,7 +1378,7 @@ class phemex(Exchange, ImplicitAPI):
             limit = maxLimit
         request['limit'] = min(limit, maxLimit)
         response = None
-        if market['linear'] or market['settle'] == 'USDT':
+        if market['linear'] or isStableSettled:
             if (until is not None) or (since is not None):
                 candleDuration = self.parse_timeframe(timeframe)
                 if since is not None:
@@ -1500,7 +1520,7 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1573,7 +1593,7 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         self.load_markets()
         market: Market = None
@@ -1605,7 +1625,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -1614,7 +1634,8 @@ class phemex(Exchange, ImplicitAPI):
             # 'id': 123456789,  # optional request id
         }
         response = None
-        if market['linear'] and market['settle'] == 'USDT':
+        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
+        if market['linear'] and isStableSettled:
             response = self.v2GetMdV2Trade(self.extend(request, params))
         else:
             response = self.v1GetMdTrade(self.extend(request, params))
@@ -1853,7 +1874,7 @@ class phemex(Exchange, ImplicitAPI):
                 timestamp = self.safe_integer(trade, 'createdAt')
             id = self.safe_string_2(trade, 'execId', 'execID')
             orderId = self.safe_string(trade, 'orderID')
-            if market['settle'] == 'USDT':
+            if market['settle'] == 'USDT' or market['settle'] == 'USDC':
                 sideId = self.safe_string_lower(trade, 'side')
                 if (sideId == 'buy') or (sideId == 'sell'):
                     side = sideId
@@ -2031,7 +2052,7 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or swap
         :param str [params.code]: *swap only* currency code of the balance to query(USD, USDT, etc), default is USDT
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         self.load_markets()
         type = None
@@ -2550,7 +2571,7 @@ class phemex(Exchange, ImplicitAPI):
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param str [params.posSide]: *swap only* "Merged" for one way mode, "Long" for buy side of hedged mode, "Short" for sell side of hedged mode
         :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2586,9 +2607,10 @@ class phemex(Exchange, ImplicitAPI):
         }
         clientOrderId = self.safe_string_2(params, 'clOrdID', 'clientOrderId')
         stopLoss = self.safe_value(params, 'stopLoss')
-        stopLossDefined = (stopLoss is not None)
         takeProfit = self.safe_value(params, 'takeProfit')
-        takeProfitDefined = (takeProfit is not None)
+        hasStopLoss = (stopLoss is not None)
+        hasTakeProfit = (takeProfit is not None)
+        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
         if clientOrderId is None:
             brokerId = self.safe_string(self.options, 'brokerId', 'CCXT123456')
             if brokerId is not None:
@@ -2598,7 +2620,7 @@ class phemex(Exchange, ImplicitAPI):
             params = self.omit(params, ['clOrdID', 'clientOrderId'])
         triggerPrice = self.safe_string_n(params, ['stopPx', 'stopPrice', 'triggerPrice'])
         if triggerPrice is not None:
-            if market['settle'] == 'USDT':
+            if isStableSettled:
                 request['stopPxRp'] = self.price_to_precision(symbol, triggerPrice)
             else:
                 request['stopPxEp'] = self.to_ep(triggerPrice, market)
@@ -2647,7 +2669,7 @@ class phemex(Exchange, ImplicitAPI):
                     posSide = 'Merged'
             posSide = self.capitalize(posSide)
             request['posSide'] = posSide
-            if market['settle'] == 'USDT':
+            if isStableSettled:
                 request['orderQtyRq'] = amount
             else:
                 request['orderQty'] = self.parse_to_int(amount)
@@ -2670,12 +2692,12 @@ class phemex(Exchange, ImplicitAPI):
                         request['ordType'] = 'Stop' if (type == 'Market') else 'StopLimit'
                     elif side == 'buy':
                         request['ordType'] = 'MarketIfTouched' if (type == 'Market') else 'LimitIfTouched'
-            if stopLossDefined or takeProfitDefined:
-                if stopLossDefined:
+            if hasStopLoss or hasTakeProfit:
+                if hasStopLoss:
                     stopLossTriggerPrice = self.safe_value_2(stopLoss, 'triggerPrice', 'stopPrice')
                     if stopLossTriggerPrice is None:
                         raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["stopLoss"]["triggerPrice"] for a stop loss order')
-                    if market['settle'] == 'USDT':
+                    if isStableSettled:
                         request['stopLossRp'] = self.price_to_precision(symbol, stopLossTriggerPrice)
                     else:
                         request['stopLossEp'] = self.to_ep(stopLossTriggerPrice, market)
@@ -2685,11 +2707,11 @@ class phemex(Exchange, ImplicitAPI):
                     slLimitPrice = self.safe_string(stopLoss, 'price')
                     if slLimitPrice is not None:
                         request['slPxRp'] = self.price_to_precision(symbol, slLimitPrice)
-                if takeProfitDefined:
+                if hasTakeProfit:
                     takeProfitTriggerPrice = self.safe_value_2(takeProfit, 'triggerPrice', 'stopPrice')
                     if takeProfitTriggerPrice is None:
                         raise InvalidOrder(self.id + ' createOrder() requires a trigger price in params["takeProfit"]["triggerPrice"] for a take profit order')
-                    if market['settle'] == 'USDT':
+                    if isStableSettled:
                         request['takeProfitRp'] = self.price_to_precision(symbol, takeProfitTriggerPrice)
                     else:
                         request['takeProfitEp'] = self.to_ep(takeProfitTriggerPrice, market)
@@ -2700,27 +2722,27 @@ class phemex(Exchange, ImplicitAPI):
                     if tpLimitPrice is not None:
                         request['tpPxRp'] = self.price_to_precision(symbol, tpLimitPrice)
         if (type == 'Limit') or (type == 'StopLimit') or (type == 'LimitIfTouched'):
-            if market['settle'] == 'USDT':
+            if isStableSettled:
                 request['priceRp'] = self.price_to_precision(symbol, price)
             else:
                 priceString = self.number_to_string(price)
                 request['priceEp'] = self.to_ep(priceString, market)
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         if takeProfitPrice is not None:
-            if market['settle'] == 'USDT':
+            if isStableSettled:
                 request['takeProfitRp'] = self.price_to_precision(symbol, takeProfitPrice)
             else:
                 request['takeProfitEp'] = self.to_ep(takeProfitPrice, market)
             params = self.omit(params, 'takeProfitPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         if stopLossPrice is not None:
-            if market['settle'] == 'USDT':
+            if isStableSettled:
                 request['stopLossRp'] = self.price_to_precision(symbol, stopLossPrice)
             else:
                 request['stopLossEp'] = self.to_ep(stopLossPrice, market)
             params = self.omit(params, 'stopLossPrice')
         response = None
-        if market['settle'] == 'USDT':
+        if isStableSettled:
             response = self.privatePostGOrders(self.extend(request, params))
         elif market['contract']:
             response = self.privatePostOrders(self.extend(request, params))
@@ -2819,7 +2841,7 @@ class phemex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -2828,13 +2850,13 @@ class phemex(Exchange, ImplicitAPI):
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clOrdID')
         params = self.omit(params, ['clientOrderId', 'clOrdID'])
-        isUSDTSettled = (market['settle'] == 'USDT')
+        isStableSettled = (market['settle'] == 'USDT') or (market['settle'] == 'USDC')
         if clientOrderId is not None:
             request['clOrdID'] = clientOrderId
         else:
             request['orderID'] = id
         if price is not None:
-            if isUSDTSettled:
+            if isStableSettled:
                 request['priceRp'] = self.price_to_precision(market['symbol'], price)
             else:
                 request['priceEp'] = self.to_ep(price, market)
@@ -2844,19 +2866,19 @@ class phemex(Exchange, ImplicitAPI):
         if finalQty is not None:
             request['baseQtyEV'] = finalQty
         elif amount is not None:
-            if isUSDTSettled:
+            if isStableSettled:
                 request['orderQtyRq'] = self.amount_to_precision(market['symbol'], amount)
             else:
                 request['baseQtyEV'] = self.to_ev(amount, market)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         if triggerPrice is not None:
-            if isUSDTSettled:
+            if isStableSettled:
                 request['stopPxRp'] = self.price_to_precision(symbol, triggerPrice)
             else:
                 request['stopPxEp'] = self.to_ep(triggerPrice, market)
         params = self.omit(params, ['triggerPrice', 'stopPx', 'stopPrice'])
         response = None
-        if isUSDTSettled:
+        if isStableSettled:
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
@@ -2878,7 +2900,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -2894,7 +2916,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['orderID'] = id
         response = None
-        if market['settle'] == 'USDT':
+        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
             posSide = self.safe_string(params, 'posSide')
             if posSide is None:
                 request['posSide'] = 'Merged'
@@ -2914,7 +2936,7 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -2930,7 +2952,7 @@ class phemex(Exchange, ImplicitAPI):
         if trigger:
             request['untriggerred'] = trigger
         response = None
-        if market['settle'] == 'USDT':
+        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
             response = self.privateDeleteGOrdersAll(self.extend(request, params))
             #
             #    {
@@ -2974,7 +2996,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -2990,7 +3012,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             request['orderID'] = id
         response = None
-        if market['settle'] == 'USDT':
+        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
             response = self.privateGetApiDataGFuturesOrdersByOrderId(self.extend(request, params))
         elif market['spot']:
             response = self.privateGetApiDataSpotsOrdersByOrderId(self.extend(request, params))
@@ -3021,7 +3043,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
@@ -3035,7 +3057,7 @@ class phemex(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if market['settle'] == 'USDT':
+        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
             request['currency'] = market['settle']
             response = self.privateGetExchangeOrderV2OrderList(self.extend(request, params))
         elif market['swap']:
@@ -3058,7 +3080,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         if symbol is None:
@@ -3070,7 +3092,7 @@ class phemex(Exchange, ImplicitAPI):
         }
         response = None
         try:
-            if market['settle'] == 'USDT':
+            if market['settle'] == 'USDT' or market['settle'] == 'USDC':
                 response = self.privateGetGOrdersActiveList(self.extend(request, params))
             elif market['swap']:
                 response = self.privateGetOrdersActiveList(self.extend(request, params))
@@ -3101,7 +3123,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.settle]: the settlement currency to fetch orders for
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.load_markets()
         market = None
@@ -3178,30 +3200,33 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
         request: dict = {}
         if limit is not None:
             limit = min(200, limit)
             request['limit'] = limit
-        isUSDTSettled = (symbol is None) or (self.safe_string(market, 'settle') == 'USDT')
+        isUSDTSettled = (type != 'spot') and ((symbol is None) or (self.safe_string(market, 'settle') == 'USDT'))
         if isUSDTSettled:
             request['currency'] = 'USDT'
             request['offset'] = 0
             if limit is None:
                 request['limit'] = 200
-        else:
+        elif symbol is not None:
             request['symbol'] = market['id']
         if since is not None:
             request['start'] = since
         response = None
         if isUSDTSettled:
             response = self.privateGetExchangeOrderV2TradingList(self.extend(request, params))
-        elif market['swap']:
+        elif type == 'swap':
+            request['tradeType'] = 'Trade'
             response = self.privateGetExchangeOrderTrade(self.extend(request, params))
         else:
             response = self.privateGetExchangeSpotOrderTrades(self.extend(request, params))
@@ -3323,7 +3348,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.network]: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -3375,7 +3400,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -3412,7 +3437,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.load_markets()
         currency = None
@@ -3588,8 +3613,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetAccountsPositions' default is 'privateGetGAccountsAccountPositions'
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -3624,7 +3649,7 @@ class phemex(Exchange, ImplicitAPI):
             if method == 'privateGetGAccountsAccountPositions':
                 response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
             else:
-                response = self.privateGetAccountsPositions(self.extend(request, params))
+                response = self.privateGetGAccountsPositions(self.extend(request, params))
         else:
             response = self.privateGetAccountsAccountPositions(self.extend(request, params))
         #
@@ -3794,7 +3819,7 @@ class phemex(Exchange, ImplicitAPI):
         initialMarginPercentageString = Precise.string_div(initialMarginString, notionalString)
         liquidationPrice = self.safe_number_2(position, 'liquidationPrice', 'liquidationPriceRp')
         markPriceString = self.safe_string_2(position, 'markPrice', 'markPriceRp')
-        contracts = self.safe_string(position, 'size')
+        contracts = self.safe_string_2(position, 'size', 'sizeRq')
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
         leverage = self.parse_number(Precise.string_abs((self.safe_string_2(position, 'leverage', 'leverageRr'))))
@@ -3803,9 +3828,12 @@ class phemex(Exchange, ImplicitAPI):
         side = None
         if rawSide is not None:
             side = 'long' if (rawSide == 'Buy') else 'short'
+        # Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
+        # Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
+        # Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
+        # Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
         priceDiff = None
-        currency = self.safe_string(position, 'currency')
-        if currency == 'USD':
+        if market['linear']:
             if side == 'long':
                 priceDiff = Precise.string_sub(markPriceString, entryPriceString)
             else:
@@ -3817,15 +3845,18 @@ class phemex(Exchange, ImplicitAPI):
             else:
                 priceDiff = Precise.string_sub(Precise.string_div('1', markPriceString), Precise.string_div('1', entryPriceString))
         unrealizedPnl = Precise.string_mul(Precise.string_mul(priceDiff, contracts), contractSizeString)
+        # the unrealizedPnl is only available in a specific endpoint which much higher RL limits
+        apiUnrealizedPnl = self.safe_string(position, 'unRealisedPnlRv', unrealizedPnl)
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
         isCross = self.safe_value(position, 'crossMargin')
         return self.safe_position({
             'info': position,
-            'id': None,
+            'id': self.safe_string(position, 'execSeq'),
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
-            'unrealizedPnl': self.parse_number(unrealizedPnl),
+            'realizedPnl': self.safe_number(position, 'curTermRealisedPnlRv'),
+            'unrealizedPnl': self.parse_number(apiUnrealizedPnl),
             'leverage': leverage,
             'liquidationPrice': liquidationPrice,
             'collateral': self.parse_number(collateral),
@@ -3834,7 +3865,7 @@ class phemex(Exchange, ImplicitAPI):
             'lastPrice': None,
             'entryPrice': self.parse_number(entryPriceString),
             'timestamp': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer_product(position, 'transactTimeNs', 0.000001),
             'initialMargin': self.parse_number(initialMarginString),
             'initialMarginPercentage': self.parse_number(initialMarginPercentageString),
             'maintenanceMargin': self.parse_number(maintenanceMarginString),
@@ -3843,7 +3874,7 @@ class phemex(Exchange, ImplicitAPI):
             'datetime': None,
             'marginMode': 'cross' if isCross else 'isolated',
             'side': side,
-            'hedged': False,
+            'hedged': self.safe_string(position, 'posMode') == 'Hedged',
             'percentage': None,
             'stopLossPrice': None,
             'takeProfitPrice': None,
@@ -3859,7 +3890,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
@@ -3875,8 +3906,8 @@ class phemex(Exchange, ImplicitAPI):
                 raise BadRequest(self.id + ' fetchFundingHistory() limit argument cannot exceed 200')
             request['limit'] = limit
         response = None
-        isUsdt = market['settle'] == 'USDT'
-        if isUsdt:
+        isStableSettled = market['settle'] == 'USDT' or market['settle'] == 'USDC'
+        if isStableSettled:
             response = self.privateGetApiDataGFuturesFundingFees(self.extend(request, params))
         else:
             response = self.privateGetApiDataFuturesFundingFees(self.extend(request, params))
@@ -3925,8 +3956,8 @@ class phemex(Exchange, ImplicitAPI):
         if value is None or currencyCode is None:
             return value
         # it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        isUsdt = market['settle'] == 'USDT'
-        if not isUsdt:
+        isStableSettled = market['settle'] == 'USDT' or market['settle'] == 'USDC'
+        if not isStableSettled:
             currency = self.safe_currency(currencyCode)
             scale = self.safe_string(currency['info'], 'valueScale')
             tickPrecision = self.parse_precision(scale)
@@ -3938,7 +3969,7 @@ class phemex(Exchange, ImplicitAPI):
         fetch the current funding rate
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4053,7 +4084,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the exchange API endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/#/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4118,20 +4149,27 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        if not market['swap'] or market['settle'] == 'USDT':
-            raise BadSymbol(self.id + ' setMarginMode() supports swap(non USDT based) contracts only')
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
         marginMode = marginMode.lower()
         if marginMode != 'isolated' and marginMode != 'cross':
             raise BadRequest(self.id + ' setMarginMode() marginMode argument should be isolated or cross')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        isCross = marginMode == 'cross'
+        if self.in_array(market['settle'], ['USDT', 'USDC']):
+            currentLeverage = self.safe_string(params, 'leverage')
+            if currentLeverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a "leverage" parameter for USDT markets')
+            request['leverageRr'] = Precise.string_neg(Precise.string_abs(currentLeverage)) if isCross else Precise.string_abs(currentLeverage)
+            return self.privatePutGPositionsLeverage(self.extend(request, params))
         leverage = self.safe_integer(params, 'leverage')
         if marginMode == 'cross':
             leverage = 0
         if leverage is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a leverage parameter')
-        request: dict = {
-            'symbol': market['id'],
-            'leverage': leverage,
-        }
+        request['leverage'] = leverage
         return self.privatePutPositionsLeverage(self.extend(request, params))
 
     def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
@@ -4164,7 +4202,7 @@ class phemex(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         self.load_markets()
         if symbols is not None:
@@ -4326,7 +4364,7 @@ class phemex(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api]) + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def set_leverage(self, leverage: Int, symbol: Str = None, params={}):
+    def set_leverage(self, leverage: int, symbol: Str = None, params={}):
         """
         set the level of leverage for a market
 
@@ -4355,7 +4393,7 @@ class phemex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         response = None
-        if market['settle'] == 'USDT':
+        if market['settle'] == 'USDT' or market['settle'] == 'USDC':
             if not isHedged and longLeverageRr is None and shortLeverageRr is None:
                 request['leverageRr'] = leverage
             else:
@@ -4382,7 +4420,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bizType]: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         currency = self.currency(code)
@@ -4459,7 +4497,7 @@ class phemex(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch transfers for
         :param int [limit]: the maximum number of  transfers structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         self.load_markets()
         if code is None:
@@ -4568,17 +4606,17 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param int [params.until]: timestamp in ms of the latest funding rate
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        isUsdtSettled = market['settle'] == 'USDT'
+        isUsdtSettled = market['settle'] == 'USDT' or market['settle'] == 'USDC'
         if not market['swap']:
             raise BadRequest(self.id + ' fetchFundingRateHistory() supports swap contracts only')
         paginate = False
@@ -4635,7 +4673,7 @@ class phemex(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -4711,7 +4749,7 @@ class phemex(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         self.load_markets()
         market = self.market(symbol)
@@ -4786,7 +4824,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str toCode: the currency that you want to buy and convert into
         :param float amount: how much you want to trade in units of the from currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
         self.load_markets()
         fromCurrency = self.currency(fromCode)
@@ -4830,7 +4868,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str toCode: the currency that you want to buy and convert into
         :param float [amount]: how much you want to trade in units of the from currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `conversion structure <https://docs.ccxt.com/#/?id=conversion-structure>`
+        :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
         self.load_markets()
         fromCurrency = self.currency(fromCode)
@@ -4879,7 +4917,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.until]: the end time in ms
         :param str [params.fromCurrency]: the currency that you sold and converted from
         :param str [params.toCurrency]: the currency that you bought and converted into
-        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/#/?id=conversion-structure>`
+        :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
         self.load_markets()
         request: dict = {}
@@ -4986,6 +5024,339 @@ class phemex(Exchange, ImplicitAPI):
             'toAmount': self.parse_number(toAmount),
             'price': self.safe_number(quoteArgs, 'price'),
             'fee': None,
+        }
+
+    def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+        """
+        fetches the auto deleveraging rank and risk percentage for a list of symbols
+
+        https://phemex-docs.github.io/#query-account-positions
+        https://phemex-docs.github.io/#query-trading-account-and-positions
+        https://phemex-docs.github.io/#query-account-positions-with-unrealized-pnl
+
+        :param str[] [symbols]: list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.code]: the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+        :returns dict: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, True, True)
+        subType = None
+        code = self.safe_string_2(params, 'currency', 'code', 'USDT')
+        params = self.omit(params, ['currency', 'code'])
+        settle = None
+        market = None
+        firstSymbol = self.safe_string(symbols, 0)
+        if firstSymbol is not None:
+            market = self.market(firstSymbol)
+            settle = market['settle']
+            code = market['settle']
+        else:
+            settle, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'settle', code)
+        subType, params = self.handle_sub_type_and_params('fetchPositionsADLRank', market, params)
+        isUSDTSettled = settle == 'USDT'
+        if isUSDTSettled:
+            code = 'USDT'
+        elif settle == 'BTC':
+            code = 'BTC'
+        elif code is None:
+            code = 'USD' if (subType == 'linear') else 'BTC'
+        currency = self.currency(code)
+        request: dict = {
+            'currency': currency['id'],
+        }
+        response = None
+        if isUSDTSettled:
+            method = None
+            method, params = self.handle_option_and_params(params, 'fetchPositionsADLRank', 'method', 'privateGetGAccountsAccountPositions')
+            if method == 'privateGetGAccountsAccountPositions':
+                response = self.privateGetGAccountsAccountPositions(self.extend(request, params))
+            else:
+                response = self.privateGetGAccountsPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "account": {
+            #                 "userID": 940666,
+            #                 "accountId": 9406660003,
+            #                 "currency": "USDT",
+            #                 "accountBalanceRv": "439.96184445932",
+            #                 "totalUsedBalanceRv": "89.22502732",
+            #                 "bonusBalanceRv": "0",
+            #                 "status": 0,
+            #                 "userMode": 1
+            #             },
+            #             "positions": [
+            #                 {
+            #                     "userID": 940666,
+            #                     "accountID": 9406660003,
+            #                     "symbol": "BTCUSDT",
+            #                     "currency": "USDT",
+            #                     "side": "Buy",
+            #                     "positionStatus": "Normal",
+            #                     "crossMargin": True,
+            #                     "leverageRr": "-10",
+            #                     "initMarginReqRr": "0.1",
+            #                     "maintMarginReqRr": "0.005",
+            #                     "riskLimitRv": "20000000",
+            #                     "size": "0.01",
+            #                     "valueRv": "887.531",
+            #                     "avgEntryPriceRp": "88753.1",
+            #                     "avgEntryPrice": "88753.1",
+            #                     "posCostRv": "89.22502732",
+            #                     "assignedPosBalanceRv": "89.29802732",
+            #                     "bankruptCommRv": "0.529812426",
+            #                     "bankruptPriceRp": "44783.79",
+            #                     "positionMarginRv": "88.695214894",
+            #                     "liquidationPriceRp": "45009",
+            #                     "deleveragePercentileRr": "0",
+            #                     "buyValueToCostRr": "0.10114",
+            #                     "sellValueToCostRr": "0.10126",
+            #                     "markPriceRp": "88747.2",
+            #                     "estimatedOrdLossRv": "0",
+            #                     "usedBalanceRv": "89.22502732",
+            #                     "cumClosedPnlRv": "425.97796",
+            #                     "cumFundingFeeRv": "54.892930099379",
+            #                     "cumTransactFeeRv": "1.288782144",
+            #                     "transactTimeNs": 1767176685241254818,
+            #                     "takerFeeRateRr": "-1",
+            #                     "makerFeeRateRr": "-1",
+            #                     "term": 6,
+            #                     "lastTermEndTimeNs": 1759835547751667598,
+            #                     "lastFundingTimeNs": 1759824000000000000,
+            #                     "curTermRealisedPnlRv": "-0.5325186",
+            #                     "execSeq": 47732822790,
+            #                     "posSide": "Long",
+            #                     "posMode": "Hedged",
+            #                     "buyLeavesValueRv": "0",
+            #                     "buyLeavesQtyRq": "0",
+            #                     "sellLeavesValueRv": "0",
+            #                     "sellLeavesQtyRq": "0"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
+        else:
+            response = self.privateGetAccountsAccountPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "account": {
+            #                 "userID": 940666,
+            #                 "accountId": 9406660001,
+            #                 "currency": "BTC",
+            #                 "accountBalanceEv": 50050270,
+            #                 "totalUsedBalanceEv": 58,
+            #                 "bonusBalanceEv": 0
+            #             },
+            #             "positions": [
+            #                 {
+            #                     "userID": 940666,
+            #                     "accountID": 9406660001,
+            #                     "symbol": "BTCUSD",
+            #                     "currency": "BTC",
+            #                     "side": "Buy",
+            #                     "positionStatus": "Normal",
+            #                     "crossMargin": False,
+            #                     "leverageEr": -2000000000,
+            #                     "leverage": -20.00000000,
+            #                     "initMarginReqEr": 5000000,
+            #                     "initMarginReq": 0.05000000,
+            #                     "maintMarginReqEr": 500000,
+            #                     "maintMarginReq": 0.00500000,
+            #                     "riskLimitEv": 150000000000,
+            #                     "riskLimit": 1500.00000000,
+            #                     "size": 1,
+            #                     "value": 0.00001128,
+            #                     "valueEv": 1128,
+            #                     "avgEntryPriceEp": 886524823,
+            #                     "avgEntryPrice": 88652.48230000,
+            #                     "posCostEv": 58,
+            #                     "posCost": 5.8E-7,
+            #                     "assignedPosBalanceEv": 58,
+            #                     "assignedPosBalance": 5.8E-7,
+            #                     "bankruptCommEv": 1,
+            #                     "bankruptComm": 1E-8,
+            #                     "bankruptPriceEp": 100000,
+            #                     "bankruptPrice": 10.00000000,
+            #                     "positionMarginEv": 57,
+            #                     "positionMargin": 5.7E-7,
+            #                     "liquidationPriceEp": 100000,
+            #                     "liquidationPrice": 10.00000000,
+            #                     "deleveragePercentileEr": 0,
+            #                     "deleveragePercentile": 0E-8,
+            #                     "buyValueToCostEr": 5123000,
+            #                     "buyValueToCost": 0.05123000,
+            #                     "sellValueToCostEr": 5117000,
+            #                     "sellValueToCost": 0.05117000,
+            #                     "markPriceEp": 886028000,
+            #                     "markPrice": 88602.80000000,
+            #                     "estimatedOrdLossEv": 0,
+            #                     "estimatedOrdLoss": 0E-8,
+            #                     "usedBalanceEv": 58,
+            #                     "usedBalance": 5.8E-7,
+            #                     "cumClosedPnlEv": 127,
+            #                     "cumFundingFeeEv": -146,
+            #                     "cumTransactFeeEv": 3,
+            #                     "transactTimeNs": 1767177964554892106,
+            #                     "takerFeeRateEr": 60000,
+            #                     "makerFeeRateEr": 10000,
+            #                     "term": 2,
+            #                     "lastTermEndTimeNs": 1716225275381802994,
+            #                     "lastFundingTimeNs": 1767168000000000000,
+            #                     "curTermRealisedPnlEv": -1,
+            #                     "execSeq": 1104909332,
+            #                     "freeQty": -1,
+            #                     "freeCostEv": 0,
+            #                     "buyLeavesValueEv": 0,
+            #                     "sellLeavesValueEv": 0,
+            #                     "buyLeavesQty": 0,
+            #                     "sellLeavesQty": 0
+            #                 }
+            #             ]
+            #         }
+            #     }
+            #
+        data = self.safe_value(response, 'data', {})
+        ranks = self.safe_value(data, 'positions', [])
+        result = []
+        for i in range(0, len(ranks)):
+            rank = ranks[i]
+            result.append(self.parse_adl_rank(rank))
+        return self.filter_by_array_adl_ranks(result, 'symbol', symbols, False)
+
+    def parse_adl_rank(self, info: dict, market: Market = None) -> ADL:
+        #
+        # fetchPositionADLRank: linear
+        #
+        #     {
+        #         "userID": 940666,
+        #         "accountID": 9406660003,
+        #         "symbol": "BTCUSDT",
+        #         "currency": "USDT",
+        #         "side": "Buy",
+        #         "positionStatus": "Normal",
+        #         "crossMargin": True,
+        #         "leverageRr": "-10",
+        #         "initMarginReqRr": "0.1",
+        #         "maintMarginReqRr": "0.005",
+        #         "riskLimitRv": "20000000",
+        #         "size": "0.01",
+        #         "valueRv": "887.531",
+        #         "avgEntryPriceRp": "88753.1",
+        #         "avgEntryPrice": "88753.1",
+        #         "posCostRv": "89.22502732",
+        #         "assignedPosBalanceRv": "89.29802732",
+        #         "bankruptCommRv": "0.529812426",
+        #         "bankruptPriceRp": "44783.79",
+        #         "positionMarginRv": "88.695214894",
+        #         "liquidationPriceRp": "45009",
+        #         "deleveragePercentileRr": "0",
+        #         "buyValueToCostRr": "0.10114",
+        #         "sellValueToCostRr": "0.10126",
+        #         "markPriceRp": "88747.2",
+        #         "estimatedOrdLossRv": "0",
+        #         "usedBalanceRv": "89.22502732",
+        #         "cumClosedPnlRv": "425.97796",
+        #         "cumFundingFeeRv": "54.892930099379",
+        #         "cumTransactFeeRv": "1.288782144",
+        #         "transactTimeNs": 1767176685241254818,
+        #         "takerFeeRateRr": "-1",
+        #         "makerFeeRateRr": "-1",
+        #         "term": 6,
+        #         "lastTermEndTimeNs": 1759835547751667598,
+        #         "lastFundingTimeNs": 1759824000000000000,
+        #         "curTermRealisedPnlRv": "-0.5325186",
+        #         "execSeq": 47732822790,
+        #         "posSide": "Long",
+        #         "posMode": "Hedged",
+        #         "buyLeavesValueRv": "0",
+        #         "buyLeavesQtyRq": "0",
+        #         "sellLeavesValueRv": "0",
+        #         "sellLeavesQtyRq": "0"
+        #     }
+        #
+        # fetchPositionADLRank: inverse
+        #
+        #     {
+        #         "userID": 940666,
+        #         "accountID": 9406660001,
+        #         "symbol": "BTCUSD",
+        #         "currency": "BTC",
+        #         "side": "Buy",
+        #         "positionStatus": "Normal",
+        #         "crossMargin": False,
+        #         "leverageEr": -2000000000,
+        #         "leverage": -20.00000000,
+        #         "initMarginReqEr": 5000000,
+        #         "initMarginReq": 0.05000000,
+        #         "maintMarginReqEr": 500000,
+        #         "maintMarginReq": 0.00500000,
+        #         "riskLimitEv": 150000000000,
+        #         "riskLimit": 1500.00000000,
+        #         "size": 1,
+        #         "value": 0.00001128,
+        #         "valueEv": 1128,
+        #         "avgEntryPriceEp": 886524823,
+        #         "avgEntryPrice": 88652.48230000,
+        #         "posCostEv": 58,
+        #         "posCost": 5.8E-7,
+        #         "assignedPosBalanceEv": 58,
+        #         "assignedPosBalance": 5.8E-7,
+        #         "bankruptCommEv": 1,
+        #         "bankruptComm": 1E-8,
+        #         "bankruptPriceEp": 100000,
+        #         "bankruptPrice": 10.00000000,
+        #         "positionMarginEv": 57,
+        #         "positionMargin": 5.7E-7,
+        #         "liquidationPriceEp": 100000,
+        #         "liquidationPrice": 10.00000000,
+        #         "deleveragePercentileEr": 0,
+        #         "deleveragePercentile": 0E-8,
+        #         "buyValueToCostEr": 5123000,
+        #         "buyValueToCost": 0.05123000,
+        #         "sellValueToCostEr": 5117000,
+        #         "sellValueToCost": 0.05117000,
+        #         "markPriceEp": 886028000,
+        #         "markPrice": 88602.80000000,
+        #         "estimatedOrdLossEv": 0,
+        #         "estimatedOrdLoss": 0E-8,
+        #         "usedBalanceEv": 58,
+        #         "usedBalance": 5.8E-7,
+        #         "cumClosedPnlEv": 127,
+        #         "cumFundingFeeEv": -146,
+        #         "cumTransactFeeEv": 3,
+        #         "transactTimeNs": 1767177964554892106,
+        #         "takerFeeRateEr": 60000,
+        #         "makerFeeRateEr": 10000,
+        #         "term": 2,
+        #         "lastTermEndTimeNs": 1716225275381802994,
+        #         "lastFundingTimeNs": 1767168000000000000,
+        #         "curTermRealisedPnlEv": -1,
+        #         "execSeq": 1104909332,
+        #         "freeQty": -1,
+        #         "freeCostEv": 0,
+        #         "buyLeavesValueEv": 0,
+        #         "sellLeavesValueEv": 0,
+        #         "buyLeavesQty": 0,
+        #         "sellLeavesQty": 0
+        #     }
+        #
+        marketId = self.safe_string(info, 'symbol')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
+            'rank': None,
+            'rating': None,
+            'percentage': self.safe_number_2(info, 'deleveragePercentileRr', 'deleveragePercentileEr'),
+            'timestamp': None,
+            'datetime': None,
         }
 
     def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):

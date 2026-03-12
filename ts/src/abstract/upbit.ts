@@ -30,7 +30,7 @@ interface Exchange {
     publicGetTicker (params?: {}): Promise<implicitReturnType>;
     publicGetTickerAll (params?: {}): Promise<implicitReturnType>;
     publicGetOrderbook (params?: {}): Promise<implicitReturnType>;
-    publicGetOrderbookSupportedLevels (params?: {}): Promise<implicitReturnType>;
+    publicGetOrderbookInstruments (params?: {}): Promise<implicitReturnType>;
     privateGetAccounts (params?: {}): Promise<implicitReturnType>;
     privateGetOrdersChance (params?: {}): Promise<implicitReturnType>;
     privateGetOrder (params?: {}): Promise<implicitReturnType>;
@@ -50,6 +50,7 @@ interface Exchange {
     privateGetStatusWallet (params?: {}): Promise<implicitReturnType>;
     privateGetApiKeys (params?: {}): Promise<implicitReturnType>;
     privatePostOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostOrdersTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrdersCancelAndNew (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawsCoin (params?: {}): Promise<implicitReturnType>;
     privatePostWithdrawsKrw (params?: {}): Promise<implicitReturnType>;
@@ -60,6 +61,7 @@ interface Exchange {
     privateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersOpen (params?: {}): Promise<implicitReturnType>;
     privateDeleteOrdersUuids (params?: {}): Promise<implicitReturnType>;
+    privateDeleteWithdrawsCoin (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 

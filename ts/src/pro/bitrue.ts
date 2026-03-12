@@ -62,7 +62,7 @@ export default class bitrue extends bitrueRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#balance-update
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         const url = await this.authenticate ();
@@ -180,7 +180,7 @@ export default class bitrue extends bitrueRest {
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum amount of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();

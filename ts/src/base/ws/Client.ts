@@ -68,6 +68,10 @@ export default class Client {
 
     throttle: any
 
+    cookies: Dictionary<any>
+
+    decompressBinary = true
+
     constructor (url: string, onMessageCallback: Function | undefined, onErrorCallback: Function | undefined, onCloseCallback: Function | undefined, onConnectedCallback: Function | undefined, config = {}) {
         const defaults = {
             url,
@@ -102,6 +106,11 @@ export default class Client {
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
         this.connected = Future ()
+    }
+
+    reusableFuture (messageHash: string) {
+        // only used in go
+        return this.future (messageHash)
     }
 
     future (messageHash: string) {
@@ -215,6 +224,9 @@ export default class Client {
                 if (this.ping) {
                     message = this.ping (this);
                 }
+                if (this.verbose) {
+                    this.log (new Date (), 'onPingInterval', '|', this.url);
+                }
                 if (message) {
                     this.send (message).catch ((error) => {
                         this.onError (error);
@@ -236,7 +248,7 @@ export default class Client {
 
     onOpen () {
         if (this.verbose) {
-            this.log (new Date (), 'onOpen')
+            this.log (new Date (), 'onOpen', '|', this.url)
         }
         this.connectionEstablished = milliseconds ()
         this.isConnected = true;
@@ -252,20 +264,20 @@ export default class Client {
     // however, some devs may want to track connection states in their app
     onPing () {
         if (this.verbose) {
-            this.log (new Date (), 'onPing')
+            this.log (new Date (), 'onPing', '|', this.url)
         }
     }
 
     onPong () {
         this.lastPong = milliseconds ()
         if (this.verbose) {
-            this.log (new Date (), 'onPong')
+            this.log (new Date (), 'onPong', '|', this.url)
         }
     }
 
     onError (error: any) {
         if (this.verbose) {
-            this.log (new Date (), 'onError', error.message)
+            this.log (new Date (), 'onError', error.message, '|', this.url)
         }
         if (!(error instanceof BaseError)) {
             // in case of ErrorEvent from node_modules/ws/lib/event-target.js
@@ -279,7 +291,7 @@ export default class Client {
     /* eslint-disable no-shadow */
     onClose (event: any) {
         if (this.verbose) {
-            this.log (new Date (), 'onClose', event)
+            this.log (new Date (), 'onClose', event, '|', this.url)
         }
         if (!this.error) {
             // todo: exception types for server-side disconnects
@@ -298,7 +310,7 @@ export default class Client {
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message: any) {
         if (this.verbose) {
-            this.log (new Date (), 'onUpgrade')
+            this.log (new Date (), 'onUpgrade', '|', this.url)
         }
     }
 
@@ -346,11 +358,14 @@ export default class Client {
                 }
                 message = utf8.encode (arrayBuffer)
             } else {
-                message = message.toString ()
+                if (this.decompressBinary) {
+                    message = message.toString ()
+                }
             }
         }
         try {
             if (isJsonEncodedObject (message)) {
+                message = message.toString ()
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }
             if (this.verbose) {
@@ -360,7 +375,7 @@ export default class Client {
                 // this.log (new Date (), 'onMessage', JSON.stringify (message, null, 4))
             }
         } catch (e) {
-            this.log (new Date (), 'onMessage JSON.parse', e)
+            this.log (new Date (), 'onMessage JSON.parse', e, '|', this.url)
             // reset with a json encoding error ?
         }
         try {

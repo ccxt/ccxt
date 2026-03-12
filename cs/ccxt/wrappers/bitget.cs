@@ -33,7 +33,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Symbols"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbols-Contracts"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/common/support-currencies"/>  <br/>
-    /// See <see href="https://www.bitget.bike/api-doc/uta/public/Instruments"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -44,7 +44,7 @@ public partial class bitget
     /// <item>
     /// <term>params.uta</term>
     /// <description>
-    /// string : set to true to fetch markets for the unified trading account (uta), defaults to false
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -72,6 +72,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-Query-Position-Lever"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/account/Cross-Tier-Data"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/account/Isolated-Tier-Data"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Position-Tier-Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -94,12 +95,18 @@ public partial class bitget
     /// <item>
     /// <term>params.productType</term>
     /// <description>
-    /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// string : *contract and uta only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}.</returns>
+    /// <returns> <term>object</term> a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}.</returns>
     public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
@@ -149,7 +156,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -177,8 +184,8 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -227,7 +234,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -249,7 +256,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
@@ -261,6 +268,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Orderbook"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Merge-Depth"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/OrderBook"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -274,9 +282,15 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -289,6 +303,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Tickers"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Ticker"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -296,9 +311,15 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -318,7 +339,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkPrice(symbol, parameters);
@@ -330,11 +351,18 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Tickers"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -351,7 +379,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -365,6 +393,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/market/Get-Market-Trades"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Recent-Fills"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Fills-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -385,6 +414,12 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.until</term>
     /// <description>
     /// int : *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* the latest time in ms to fetch trades for
@@ -398,7 +433,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -426,7 +461,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
@@ -460,7 +495,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -476,6 +511,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Candle-Data"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Index-Candle-Data"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Mark-Candle-Data"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Candle-Data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -493,6 +529,12 @@ public partial class bitget
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -545,6 +587,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/account/Get-Isolated-Assets"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-cross-assets"/>  <br/>
     /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#get-isolated-assets"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Get-Account"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -558,9 +601,15 @@ public partial class bitget
     /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// string : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -582,7 +631,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
@@ -599,6 +648,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Place-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Place-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Place-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Place-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Place-Strategy-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -708,20 +759,43 @@ public partial class bitget
     /// bool : true or false whether the order is reduce-only
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.posSide</term>
+    /// <description>
+    /// string : *uta only* hedged two-way position side, long or short
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    public async Task<List<Order>> CreateUtaOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createUtaOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// create a list of trade orders (all orders should be of the same symbol)
@@ -731,6 +805,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Place-Batch"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -738,9 +813,15 @@ public partial class bitget
     /// object : extra parameters specific to the api endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
@@ -751,9 +832,12 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/plan/Modify-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Replace-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Modify-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Tpsl-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Modify-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Modify-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Modify-Strategy-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -815,9 +899,15 @@ public partial class bitget
     /// string : *swap and future only* 'fill_price', 'mark_price' or 'index_price'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -835,6 +925,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Cancel-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Cancel-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Cancel-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Cancel-Strategy-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -866,13 +958,30 @@ public partial class bitget
     /// boolean : set to true if you want to cancel a trailing order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return new Order(res);
+    }
+    public async Task<List<Order>> CancelUtaOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelUtaOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// cancel multiple orders
@@ -881,6 +990,49 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/spot/trade/Batch-Cancel-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/Cancel-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Cancel-Batch"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'isolated' or 'cross' for spot margin trading
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : *contract only* set to true for canceling trigger orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// cancel all open orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Cross-Batch-Cancel-Order"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Batch-Cancel-Orders"/>  <br/>
     /// <list type="table">
@@ -902,45 +1054,15 @@ public partial class bitget
     /// boolean : *contract only* set to true for canceling trigger orders
     /// </description>
     /// </item>
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>object</term> an array of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    /// <summary>
-    /// cancel all open orders
-    /// </summary>
-    /// <remarks>
-    /// See <see href="https://www.bitget.com/api-doc/spot/trade/Cancel-Symbol-Orders"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/spot/plan/Batch-Cancel-Plan-Order"/>  <br/>
-    /// See <see href="https://www.bitget.com/api-doc/contract/trade/Batch-Cancel-Orders"/>  <br/>
-    /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#isolated-batch-cancel-orders"/>  <br/>
-    /// See <see href="https://bitgetlimited.github.io/apidoc/en/margin/#cross-batch-cancel-order"/>  <br/>
-    /// <list type="table">
     /// <item>
-    /// <term>params</term>
+    /// <term>params.uta</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.marginMode</term>
-    /// <description>
-    /// string : 'isolated' or 'cross' for spot margin trading
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.trigger</term>
-    /// <description>
-    /// boolean : *contract only* set to true for canceling trigger orders
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
@@ -952,6 +1074,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/spot/trade/Get-Order-Info"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Get-Order-Details"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-Details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -959,9 +1082,21 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -977,6 +1112,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/get-orders-plan-pending"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Open-Orders"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Isolated-Open-Orders"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Get-Unfilled-Strategy-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1032,9 +1168,15 @@ public partial class bitget
     /// boolean : set to true if you want to fetch trailing orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1052,6 +1194,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/orders-plan-history"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1109,7 +1252,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1127,6 +1270,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/orders-plan-history"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1184,7 +1328,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1202,6 +1346,8 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/plan/orders-plan-history"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-History"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-History"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/strategy/Get-History-Strategy-Orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1257,14 +1403,27 @@ public partial class bitget
     /// boolean : set to true if you want to fetch trailing orders
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> FetchUtaCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchUtaCanceledAndClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
@@ -1324,7 +1483,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}.</returns>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
     public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1340,6 +1499,7 @@ public partial class bitget
     /// See <see href="https://www.bitget.com/api-doc/contract/trade/Get-Order-Fills"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/trade/Get-Cross-Order-Fills"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/margin/isolated/trade/Get-Isolated-Transaction-Details"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Order-Fills"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1366,6 +1526,12 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1373,7 +1539,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1386,6 +1552,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/get-single-position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1393,9 +1560,15 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
@@ -1407,6 +1580,7 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/get-all-position"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1441,12 +1615,18 @@ public partial class bitget
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either (default) 'privateMixGetV2MixPositionAllPosition' or 'privateMixGetV2MixPositionHistoryPosition'
+    /// string : either (default) 'privateMixGetV2MixPositionAllPosition', 'privateMixGetV2MixPositionHistoryPosition', or 'privateUtaGetV3PositionCurrentPosition'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
@@ -1457,6 +1637,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-History-Funding-Rate"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-History-Funding-Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1477,6 +1658,12 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.paginate</term>
     /// <description>
     /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1484,7 +1671,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
     public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1498,11 +1685,18 @@ public partial class bitget
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Current-Funding-Rate"/>  <br/>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// <item>
@@ -1513,7 +1707,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
     public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
@@ -1543,12 +1737,44 @@ public partial class bitget
     /// string : *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
     public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
+        return new FundingRates(res);
+    }
+    /// <summary>
+    /// fetch the funding rate interval for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-All-Symbol-Ticker"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.productType</term>
+    /// <description>
+    /// string : 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchFundingIntervals(symbols, parameters);
         return new FundingRates(res);
     }
     /// <summary>
@@ -1589,7 +1815,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding history structures]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
     public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1611,7 +1837,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
     public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
@@ -1622,6 +1848,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/account/Change-Leverage"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Change-Leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1633,6 +1860,18 @@ public partial class bitget
     /// <term>params.holdSide</term>
     /// <description>
     /// string : *isolated only* position direction, 'long' or 'short'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.posSide</term>
+    /// <description>
+    /// boolean : required for uta isolated margin, long or short
     /// </description>
     /// </item>
     /// </list>
@@ -1668,6 +1907,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/account/Change-Hold-Mode"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/account/Change-Position-Mode"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1678,7 +1918,13 @@ public partial class bitget
     /// <item>
     /// <term>params.productType</term>
     /// <description>
-    /// string : required if symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// string : required if not uta and symbol is undefined: 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1694,6 +1940,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Open-Interest"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Open-Interest"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1701,9 +1948,15 @@ public partial class bitget
     /// object : exchange specific parameters
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}.</returns>
+    /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
     public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterest(symbol, parameters);
@@ -1741,7 +1994,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1775,7 +2028,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
@@ -1795,7 +2048,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
@@ -1852,7 +2105,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}.</returns>
+    /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}.</returns>
     public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1874,7 +2127,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}.</returns>
+    /// <returns> <term>object</term> an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}.</returns>
     public async Task<IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
@@ -1885,6 +2138,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/margin/cross/account/Get-Cross-Margin-Interest-Rate-And-Borrowable"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Margin-Loans"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1893,9 +2147,9 @@ public partial class bitget
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.symbol</term>
+    /// <term>params.uta</term>
     /// <description>
-    /// string : required for isolated margin
+    /// boolean : set to true for the unified trading account (uta), defaults to false
     /// </description>
     /// </item>
     /// </list>
@@ -1951,7 +2205,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}.</returns>
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1973,7 +2227,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
+    /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
     public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);
@@ -1984,6 +2238,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/position/Get-History-Position"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/trade/Get-Position-History"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -2009,9 +2264,15 @@ public partial class bitget
     /// string : USDT-FUTURES (default), COIN-FUTURES, USDC-FUTURES, SUSDT-FUTURES, SCOIN-FUTURES, or SUSDC-FUTURES
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2039,7 +2300,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -2060,7 +2321,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;
@@ -2099,7 +2360,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/#/?id=conversion-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
     public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -2132,6 +2393,7 @@ public partial class bitget
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.bitget.com/api-doc/contract/market/Get-Symbol-Next-Funding-Time"/>  <br/>
+    /// See <see href="https://www.bitget.com/api-doc/uta/public/Get-Current-Funding-Rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -2139,9 +2401,15 @@ public partial class bitget
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), defaults to false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}.</returns>
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
     public async Task<FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingInterval(symbol, parameters);
@@ -2180,7 +2448,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/#/?id=long-short-ratio-structure}.</returns>
+    /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}.</returns>
     public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

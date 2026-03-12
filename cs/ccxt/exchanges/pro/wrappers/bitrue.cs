@@ -20,7 +20,7 @@ public partial class bitrue
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBalance(parameters);
@@ -52,7 +52,7 @@ public partial class bitrue
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order structure]{@link https://docs.ccxt.com/?id=order-structure} indexed by market symbols.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

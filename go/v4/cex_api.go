@@ -7,450 +7,114 @@
 
 package ccxt
 
-func (this *cex) PublicPostGetServerTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetServerTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetServerTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetServerTime", args...)
 }
 
-func (this *cex) PublicPostGetPairsInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetPairsInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetPairsInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetPairsInfo", args...)
 }
 
-func (this *cex) PublicPostGetCurrenciesInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetCurrenciesInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetCurrenciesInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetCurrenciesInfo", args...)
 }
 
-func (this *cex) PublicPostGetProcessingInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetProcessingInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetProcessingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetProcessingInfo", args...)
 }
 
-func (this *cex) PublicPostGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTicker", args...)
 }
 
-func (this *cex) PublicPostGetTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetTradeHistory", args...)
 }
 
-func (this *cex) PublicPostGetOrderBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetOrderBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetOrderBook", args...)
 }
 
-func (this *cex) PublicPostGetCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicPostGetCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PublicPostGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicPostGetCandles", args...)
 }
 
-func (this *cex) PrivatePostGetMyCurrentFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyCurrentFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyCurrentFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyCurrentFee", args...)
 }
 
-func (this *cex) PrivatePostGetFeeStrategy (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetFeeStrategy", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetFeeStrategy(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetFeeStrategy", args...)
 }
 
-func (this *cex) PrivatePostGetMyVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyVolume(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyVolume", args...)
 }
 
-func (this *cex) PrivatePostDoCreateAccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoCreateAccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoCreateAccount(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoCreateAccount", args...)
 }
 
-func (this *cex) PrivatePostGetMyAccountStatusV3 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyAccountStatusV3", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyAccountStatusV3(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyAccountStatusV3", args...)
 }
 
-func (this *cex) PrivatePostGetMyWalletBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyWalletBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyWalletBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyWalletBalance", args...)
 }
 
-func (this *cex) PrivatePostGetMyOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyOrders", args...)
 }
 
-func (this *cex) PrivatePostDoMyNewOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoMyNewOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoMyNewOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoMyNewOrder", args...)
 }
 
-func (this *cex) PrivatePostDoCancelMyOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoCancelMyOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoCancelMyOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoCancelMyOrder", args...)
 }
 
-func (this *cex) PrivatePostDoCancelAllOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoCancelAllOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoCancelAllOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoCancelAllOrders", args...)
 }
 
-func (this *cex) PrivatePostGetOrderBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetOrderBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetOrderBook", args...)
 }
 
-func (this *cex) PrivatePostGetCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetCandles", args...)
 }
 
-func (this *cex) PrivatePostGetTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetTradeHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetTradeHistory", args...)
 }
 
-func (this *cex) PrivatePostGetMyTransactionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyTransactionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyTransactionHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyTransactionHistory", args...)
 }
 
-func (this *cex) PrivatePostGetMyFundingHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetMyFundingHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetMyFundingHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetMyFundingHistory", args...)
 }
 
-func (this *cex) PrivatePostDoMyInternalTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoMyInternalTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoMyInternalTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoMyInternalTransfer", args...)
 }
 
-func (this *cex) PrivatePostGetProcessingInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetProcessingInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetProcessingInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetProcessingInfo", args...)
 }
 
-func (this *cex) PrivatePostGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostGetDepositAddress", args...)
 }
 
-func (this *cex) PrivatePostDoDepositFundsFromWallet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoDepositFundsFromWallet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoDepositFundsFromWallet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoDepositFundsFromWallet", args...)
 }
 
-func (this *cex) PrivatePostDoWithdrawalFundsToWallet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDoWithdrawalFundsToWallet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *CexCore) PrivatePostDoWithdrawalFundsToWallet(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostDoWithdrawalFundsToWallet", args...)
 }

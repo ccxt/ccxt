@@ -7,1410 +7,354 @@
 
 package ccxt
 
-func (this *digifinex) PublicSpotGetMarketSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetMarketSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetMarginCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetMarginCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetMarginSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetMarginSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetOrderBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetOrderBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetPing (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetPing", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetSpotSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetSpotSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetTradesSymbols (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetTradesSymbols", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSpotGetCurrencies (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSpotGetCurrencies", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicApiWeight (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicApiWeight", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicCandlesHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicCandlesHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicDepth (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicDepth", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicFundingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicFundingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicInstrument (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicInstrument", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicTime (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicTime", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PublicSwapGetPublicTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicSwapGetPublicTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarketFinancelog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarketFinancelog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarketMytrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarketMytrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarketOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarketOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarketOrderDetail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarketOrderDetail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarketOrderCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarketOrderCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarketOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarketOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginFinancelog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginFinancelog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginMytrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginMytrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginOrderCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginOrderCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetMarginPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetMarginPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetOtcFinancelog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetOtcFinancelog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetSpotAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetSpotAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetSpotFinancelog (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetSpotFinancelog", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetSpotMytrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetSpotMytrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetSpotOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetSpotOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetSpotOrderCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetSpotOrderCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetSpotOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetSpotOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotGetWithdrawHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotGetWithdrawHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostMarketOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostMarketOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostMarketOrderNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostMarketOrderNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostMarketOrderBatchNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostMarketOrderBatchNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostMarginOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostMarginOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostMarginOrderNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostMarginOrderNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostMarginPositionClose (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostMarginPositionClose", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostSpotOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostSpotOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostSpotOrderNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostSpotOrderNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostWithdrawNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostWithdrawNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSpotPostWithdrawCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSpotPostWithdrawCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetAccountPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetAccountPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetAccountFinanceRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetAccountFinanceRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetAccountTradingFeeRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetAccountTradingFeeRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetAccountTransferRecord (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetAccountTransferRecord", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetAccountFundingFee (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetAccountFundingFee", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetTradeHistoryOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetTradeHistoryOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetTradeHistoryTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetTradeHistoryTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetTradeOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetTradeOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapGetTradeOrderInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapGetTradeOrderInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostAccountTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostAccountTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostAccountLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostAccountLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostAccountPositionMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostAccountPositionMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostAccountPositionMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostAccountPositionMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostTradeBatchCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostTradeBatchCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostTradeBatchOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostTradeBatchOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostTradeCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostTradeOrderPlace (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostTradeOrderPlace", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowSponsorOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowSponsorOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowCloseOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowCloseOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowUserCenterCurrent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowUserCenterCurrent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowUserCenterHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowUserCenterHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowExpertCurrentOpenOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowExpertCurrentOpenOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowAddAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowAddAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowCancelAlgo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowCancelAlgo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowAccountAvailable (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowAccountAvailable", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowPlanTask (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowPlanTask", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *digifinex) PrivateSwapPostFollowInstrumentList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateSwapPostFollowInstrumentList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *DigifinexCore) PublicSpotGetMarketSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarketSymbols", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetKline(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetKline", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetMarginCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarginCurrencies", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetMarginSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarginSymbols", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetMarkets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetMarkets", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetOrderBook(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetOrderBook", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetPing(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetPing", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetSpotSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetSpotSymbols", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTime", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTrades", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetTradesSymbols(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTradesSymbols", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetTicker", args...)
+}
+
+func (this *DigifinexCore) PublicSpotGetCurrencies(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSpotGetCurrencies", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicApiWeight(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicApiWeight", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicCandles(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicCandles", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicCandlesHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicCandlesHistory", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicDepth(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicDepth", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicFundingRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicFundingRate", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicFundingRateHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicFundingRateHistory", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicInstrument(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicInstrument", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicInstruments(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicInstruments", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicTicker(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTicker", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicTickers(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTickers", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicTime(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTime", args...)
+}
+
+func (this *DigifinexCore) PublicSwapGetPublicTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("publicSwapGetPublicTrades", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarketFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketFinancelog", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarketMytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketMytrades", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarketOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarketOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrderDetail", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarketOrderCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrderCurrent", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarketOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarketOrderHistory", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginAssets", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginFinancelog", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginMytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginMytrades", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginOrderCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginOrderCurrent", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginOrderHistory", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetMarginPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetMarginPositions", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetOtcFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetOtcFinancelog", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetSpotAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotAssets", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetSpotFinancelog(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotFinancelog", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetSpotMytrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotMytrades", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetSpotOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetSpotOrderCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotOrderCurrent", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetSpotOrderHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetSpotOrderHistory", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetDepositAddress(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetDepositAddress", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetDepositHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetDepositHistory", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotGetWithdrawHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotGetWithdrawHistory", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostMarketOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarketOrderCancel", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostMarketOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarketOrderNew", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostMarketOrderBatchNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarketOrderBatchNew", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostMarginOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarginOrderCancel", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostMarginOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarginOrderNew", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostMarginPositionClose(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostMarginPositionClose", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostSpotOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostSpotOrderCancel", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostSpotOrderNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostSpotOrderNew", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostTransfer", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostWithdrawNew(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostWithdrawNew", args...)
+}
+
+func (this *DigifinexCore) PrivateSpotPostWithdrawCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSpotPostWithdrawCancel", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetAccountBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountBalance", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetAccountPositions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountPositions", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetAccountFinanceRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountFinanceRecord", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetAccountTradingFeeRate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountTradingFeeRate", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetAccountTransferRecord(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountTransferRecord", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetAccountFundingFee(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetAccountFundingFee", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetTradeHistoryOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeHistoryOrders", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetTradeHistoryTrades(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeHistoryTrades", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetTradeOpenOrders(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeOpenOrders", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapGetTradeOrderInfo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapGetTradeOrderInfo", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostAccountTransfer(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountTransfer", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostAccountLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountLeverage", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostAccountPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountPositionMode", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostAccountPositionMargin(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostAccountPositionMargin", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostTradeBatchCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeBatchCancelOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostTradeBatchOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeBatchOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostTradeCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeCancelOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostTradeOrderPlace(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostTradeOrderPlace", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowSponsorOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowSponsorOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowCloseOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowCloseOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowCancelOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowCancelOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowUserCenterCurrent(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowUserCenterCurrent", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowUserCenterHistory(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowUserCenterHistory", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowExpertCurrentOpenOrder(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowExpertCurrentOpenOrder", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowAddAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowAddAlgo", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowCancelAlgo(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowCancelAlgo", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowAccountAvailable(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowAccountAvailable", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowPlanTask(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowPlanTask", args...)
+}
+
+func (this *DigifinexCore) PrivateSwapPostFollowInstrumentList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateSwapPostFollowInstrumentList", args...)
 }

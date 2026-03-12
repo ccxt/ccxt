@@ -34,11 +34,15 @@ class cryptomus(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': False,
                 'cancelAllOrdersAfter': False,
                 'cancelOrder': True,
                 'cancelOrders': False,
                 'cancelWithdraw': False,
+                'closeAllPositions': False,
                 'closePosition': False,
                 'createConvertTrade': False,
                 'createDepositAddress': False,
@@ -48,6 +52,8 @@ class cryptomus(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
                 'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopLossOrder': False,
@@ -59,6 +65,12 @@ class cryptomus(Exchange, ImplicitAPI):
                 'createTriggerOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': False,
                 'fetchClosedOrder': False,
@@ -67,27 +79,48 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchConvertQuote': False,
                 'fetchConvertTrade': False,
                 'fetchConvertTradeHistory': False,
-                'fetchCurrencies': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,  # temporarily, until they fix the endpoint
                 'fetchDepositAddress': False,
                 'fetchDeposits': False,
                 'fetchDepositsWithdrawals': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': False,
                 'fetchOHLCV': False,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': False,
@@ -98,7 +131,9 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchPositions': False,
                 'fetchPositionsForSymbol': False,
                 'fetchPositionsHistory': False,
+                'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchStatus': False,
                 'fetchTicker': False,
                 'fetchTickers': True,
@@ -108,11 +143,16 @@ class cryptomus(Exchange, ImplicitAPI):
                 'fetchTradingFees': True,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
                 'sandbox': False,
                 'setLeverage': False,
                 'setMargin': False,
+                'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': False,
@@ -415,7 +455,7 @@ class cryptomus(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -481,7 +521,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.level]: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -525,7 +565,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch(maximum value is 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -588,7 +628,7 @@ class cryptomus(Exchange, ImplicitAPI):
         https://doc.cryptomus.com/personal/converts/balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -643,7 +683,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: *market buy only* the quote quantity that can be used alternative for the amount
         :param str [params.clientOrderId]: a unique identifier for the order(optional)
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -687,7 +727,7 @@ class cryptomus(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' createOrder() requires a type parameter(limit or market)')
         #
         #     {
-        #         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        #         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         #     }
         #
         return self.parse_order(response, market)
@@ -701,7 +741,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in(not used in cryptomus)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -712,7 +752,7 @@ class cryptomus(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        return response
+        return self.safe_order({'info': response})
 
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -729,7 +769,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.client_order_id]: client order id
         :param str [params.limit]: A special parameter that sets the maximum number of records the request will return
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         request: dict = {}
@@ -801,7 +841,7 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.client_order_id]: client order id
         :param str [params.limit]: A special parameter that sets the maximum number of records the request will return
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -959,7 +999,7 @@ class cryptomus(Exchange, ImplicitAPI):
         https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
         response = await self.privateGetV2UserApiExchangeAccountTariffs(params)
         #

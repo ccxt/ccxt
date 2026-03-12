@@ -10,6 +10,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
     const ends = now + 15000;
     while (now < ends) {
         let response = undefined;
+        const success = true;
         try {
             response = await exchange.watchTradesForSymbols (symbols);
         } catch (e) {
@@ -17,21 +18,24 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
         }
-        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
-        now = exchange.milliseconds ();
-        let symbol = undefined;
-        for (let i = 0; i < response.length; i++) {
-            const trade = response[i];
-            symbol = trade['symbol'];
-            testTrade (exchange, skippedProperties, method, trade, symbol, now);
-            testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
-        }
-        if (!('timestamp' in skippedProperties)) {
-            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        if (success === true) {
+            assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            let symbol = undefined;
+            for (let i = 0; i < response.length; i++) {
+                const trade = response[i];
+                symbol = trade['symbol'];
+                testTrade (exchange, skippedProperties, method, trade, symbol, now);
+                testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
+            }
+            if (!('timestamp' in skippedProperties)) {
+                testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+            }
         }
     }
+    return true;
 }
 
 export default testWatchTradesForSymbols;

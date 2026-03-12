@@ -1,6 +1,8 @@
 import asyncio
 
-
+# Test by running:
+# - python python/ccxt/pro/test/base/test_close.py
+# - python python/ccxt/pro/test/base/test_future.py
 class Future(asyncio.Future):
 
     def resolve(self, result=None):
@@ -13,30 +15,62 @@ class Future(asyncio.Future):
 
     @classmethod
     def race(cls, futures):
-        future = Future()
-        coro = asyncio.wait(futures, return_when=asyncio.FIRST_COMPLETED)
-        task = asyncio.create_task(coro)
+        """
+        Return a Future that resolves/rejects with the first completed input future.
 
-        def callback(done):
-            complete, _ = done.result()
-            # check for exceptions
-            exceptions = []
-            cancelled = False
-            for f in complete:
+        IMPORTANT:
+        - No asyncio.create_task(asyncio.wait(...)) => avoids massive Task churn.
+        - We attach done callbacks and detach them immediately once a winner is chosen.
+        """
+
+        out = cls()
+
+        if not futures:
+            out.set_exception(Exception("Future.race() called with empty futures"))
+            return out
+
+        callbacks = {}  # future -> callback
+
+        def detach_all():
+            for f, cb in list(callbacks.items()):
+                try:
+                    f.remove_done_callback(cb)
+                except Exception:
+                    pass
+            callbacks.clear()
+
+        def settle_from(f):
+            if out.done():
+                detach_all()
+                return
+            try:
                 if f.cancelled():
-                    cancelled = True
+                    out.cancel()
+                    return
+                err = f.exception()
+                if err is not None:
+                    out.set_exception(err)
                 else:
-                    err = f.exception()
-                    if err:
-                        exceptions.append(err)
-            # if any exceptions return with first exception
-            if len(exceptions) > 0:
-                future.set_exception(exceptions[0])
-            # else return first result
-            elif cancelled:
-                future.cancel()
-            else:
-                first_result = list(complete)[0].result()
-                future.set_result(first_result)
-        task.add_done_callback(callback)
-        return future
+                    out.set_result(f.result())
+            finally:
+                detach_all()
+
+        # Fast path: if any future is already done, settle immediately.
+        for f in futures:
+            if f.done():
+                settle_from(f)
+                return out
+
+        # Attach callbacks to settle on first completion.
+        for f in futures:
+            def _cb(ff, _settle=settle_from):
+                _settle(ff)
+            callbacks[f] = _cb
+            f.add_done_callback(_cb)
+
+        # If the returned future is cancelled externally, detach callbacks.
+        def _out_done(_):
+            detach_all()
+        out.add_done_callback(_out_done)
+
+        return out

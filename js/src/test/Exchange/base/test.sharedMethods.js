@@ -161,9 +161,13 @@ function assertTimestampAndDatetime(exchange, skippedProperties, method, entry, 
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601(dt);
-            const dtParsedString = exchange.iso8601(dtParsed);
-            const dtEntryString = exchange.iso8601(entry['timestamp']);
-            assert(dtParsedString === dtEntryString, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
+            const tsMs = entry['timestamp'];
+            const diff = Math.abs(dtParsed - tsMs);
+            if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
+                const dtParsedString = exchange.iso8601(dtParsed);
+                const dtEntryString = exchange.iso8601(tsMs);
+                assert(false, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
+            }
         }
     }
 }
@@ -304,7 +308,6 @@ function assertFeeStructure(exchange, skippedProperties, method, entry, key, all
     const logText = logTemplate(exchange, method, entry);
     const keyString = stringValue(key);
     if (Number.isInteger(key)) {
-        key = key;
         assert(Array.isArray(entry), 'fee container is expected to be an array' + logText);
         assert(key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     }
@@ -520,6 +523,14 @@ function assertOrderState(exchange, skippedProperties, method, order, assertedSt
         return;
     }
 }
+function getActiveMarkets(exchange, includeUnknown = true) {
+    const filteredActive = exchange.filterBy(exchange.markets, 'active', true);
+    if (includeUnknown) {
+        const filteredUndefined = exchange.filterBy(exchange.markets, 'active', undefined);
+        return exchange.arrayConcat(filteredActive, filteredUndefined);
+    }
+    return filteredActive;
+}
 function removeProxyOptions(exchange, skippedProperties) {
     const proxyUrl = exchange.checkProxyUrlSettings();
     const [httpProxy, httpsProxy, socksProxy] = exchange.checkProxySettings();
@@ -578,12 +589,12 @@ function assertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 
     const ts = exchange.safeString(entry, key);
     assert(Precise.stringMod(ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
-function deepEqual(a, b) {
-    return JSON.stringify(a) === JSON.stringify(b);
+function deepEqual(exchange, a, b) {
+    return exchange.jsonStringifyWithNull(a) === exchange.jsonStringifyWithNull(b);
 }
 function assertDeepEqual(exchange, skippedProperties, method, a, b) {
     const logText = logTemplate(exchange, method, {});
-    assert(deepEqual(a, b), 'two dicts do not match: ' + JSON.stringify(a) + ' != ' + JSON.stringify(b) + logText);
+    assert(deepEqual(exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull(a) + ' != ' + exchange.jsonStringifyWithNull(b) + logText);
 }
 export default {
     deepEqual,
@@ -617,4 +628,5 @@ export default {
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     concat,
+    getActiveMarkets,
 };

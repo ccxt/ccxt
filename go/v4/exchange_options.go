@@ -383,6 +383,8 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	}
 	this.EnableRateLimit = SafeValue(extendedProperties, "enableRateLimit", true).(bool)
 	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
+	this.RollingWindowSize = SafeFloat(extendedProperties, "rollingWindowSize", 0.0).(float64)
+	this.RateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket").(string)
 	// this.status = SafeValue(extendedProperties, "status",map[string]interface{}{}).(map[string]interface{})
 	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode).(int64))
 	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode).(int64))
@@ -398,6 +400,8 @@ func (this *Exchange) initializeProperties(extendedProperties map[string]interfa
 	this.HttpExceptions = SafeValue(extendedProperties, "httpExceptions", map[string]interface{}{}).(map[string]interface{})
 	this.Headers = SafeValue(extendedProperties, "headers", map[string]interface{}{}).(map[string]interface{})
 	this.ReduceFees = SafeValue(extendedProperties, "reduceFees", true).(bool)
+
+	this.ReturnResponseHeaders = SafeValue(extendedProperties, "returnResponseHeaders", false).(bool)
 }
 
 func (this *Exchange) MapToSafeMap(input map[string]interface{}) *sync.Map {

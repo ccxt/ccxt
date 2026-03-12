@@ -11,6 +11,7 @@ require('./utils/utf8.js');
 require('../../base/functions/platform.js');
 require('../../base/functions/encode.js');
 require('../../base/functions/crypto.js');
+require('../../base/functions/io.js');
 require('../noble-hashes/sha3.js');
 require('../noble-hashes/sha256.js');
 var abstractCoder = require('./coders/abstract-coder.js');
@@ -43,7 +44,7 @@ var fragments = require('./fragments.js');
  *
  *  @_section api/abi/abi-coder:ABI Encoding
  */
-var __classPrivateFieldGet = (undefined && undefined.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+var __classPrivateFieldGet = (globalThis && globalThis.__classPrivateFieldGet) || function (receiver, state, kind, f) {
     if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);

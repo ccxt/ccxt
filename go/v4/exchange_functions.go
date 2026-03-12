@@ -2,18 +2,12 @@ package ccxt
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"regexp"
 	"sort"
 	"sync"
 )
-
-func (this *Exchange) Ordered(a interface{}) interface{} {
-	if reflect.TypeOf(a).Kind() == reflect.Map {
-		return this.Keysort(a)
-	}
-	return a
-}
 
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
 // func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
@@ -66,25 +60,45 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 	return outDict
 }
 
-func (this *Exchange) Sort(input interface{}) []string {
-	var list []string
+func (this *Exchange) Sort(input interface{}) []interface{} {
+	var list []interface{}
 
 	switch v := input.(type) {
 	case []string:
-		list = append([]string{}, v...) // Copy to avoid modifying the original
-	case []interface{}:
 		for _, item := range v {
-			if str, ok := item.(string); ok {
-				list = append(list, str)
-			}
+			list = append(list, item)
 		}
+	case []interface{}:
+		list = append([]interface{}{}, v...)
 	default:
-		// Unsupported type
-		return []string{}
+		return []interface{}{}
 	}
 
-	sort.Strings(list)
+	sort.Slice(list, func(i, j int) bool {
+		ai, aok := toFloat64(list[i])
+		bi, bok := toFloat64(list[j])
+		if aok && bok {
+			return ai < bi
+		}
+		return fmt.Sprintf("%v", list[i]) < fmt.Sprintf("%v", list[j])
+	})
 	return list
+}
+
+func toFloat64(v interface{}) (float64, bool) {
+	switch n := v.(type) {
+	case int:
+		return float64(n), true
+	case int32:
+		return float64(n), true
+	case int64:
+		return float64(n), true
+	case float32:
+		return float64(n), true
+	case float64:
+		return n, true
+	}
+	return 0, false
 }
 
 // omit removes specified keys from a map.
@@ -120,9 +134,7 @@ func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{}
 
 	// Handle variadic parameters as individual keys
 	keys := make([]interface{}, len(parameters))
-	for i, parameter := range parameters {
-		keys[i] = parameter
-	}
+	copy(keys, parameters)
 	return this.OmitMap(a, keys)
 }
 
@@ -141,6 +153,18 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 		return aa
 	}
 
+	// Handle case where aa is not a map (e.g., string, nil, etc.)
+	if aa == nil {
+		return aa
+	}
+
+	// Try to convert to map, if it fails, return the original value
+	a, ok := aa.(map[string]interface{})
+	if !ok {
+		// If it's not a map, return the original value
+		return aa
+	}
+
 	var keys []interface{}
 	switch k.(type) {
 	case string:
@@ -151,7 +175,6 @@ func (this *Exchange) OmitMap(aa interface{}, k interface{}) interface{} {
 		}
 	}
 
-	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
 	for key, value := range a {
 		if !this.Contains(keys, key) {
@@ -218,6 +241,11 @@ func (this *Exchange) ToArray(a interface{}) []interface{} {
 		return slice
 	}
 
+	// Check if `a` implements IArrayCache interface (handles all cache types)
+	if cache, ok := a.(IArrayCache); ok {
+		return cache.ToArray()
+	}
+
 	// Check if `a` is a map of `map[string]interface{}`
 	if m, ok := a.(map[string]interface{}); ok {
 		outList := make([]interface{}, 0, len(m))
@@ -261,9 +289,29 @@ func (this *Exchange) ArrayConcat(aa, bb interface{}) interface{} {
 }
 
 // aggregate is a stub function that returns an empty slice.
+// func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
+// 	var outList []interface{}
+// 	return outList
+// }
+
 func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
-	var outList []interface{}
-	return outList
+	result := make(map[float64]float64)
+
+	for _, pair := range bidasks.([][]interface{}) {
+		if len(pair) >= 2 {
+			price := ToFloat64(pair[0])
+			volume := ToFloat64(pair[1])
+			result[price] += volume
+		}
+	}
+
+	// Convert map back to [][]interface{}
+	res := make([]interface{}, 0, len(result))
+	for price, volume := range result {
+		res = append(res, []interface{}{price, volume})
+	}
+
+	return res
 }
 
 func (this *Exchange) ExtractParams(str2 interface{}) []interface{} {

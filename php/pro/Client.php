@@ -34,6 +34,8 @@ class Client {
     public $rejections = array();
     public $options = array();
 
+    public $cookies = array();
+
     public $on_message_callback;
     public $on_error_callback;
     public $on_close_callback;
@@ -65,6 +67,8 @@ class Client {
     public $watchTradesForSymbols = null;
     public $watchOrderBookForSymbols = null;
 
+    public $decompressBinary = true;
+
     // ratchet/pawl/reactphp stuff
     public $connector = null;
 
@@ -83,6 +87,13 @@ class Client {
         return $future;
     }
 
+    public function reusable_future($message_hash) {
+        return $this->future($message_hash);  // only used in go
+    }
+
+    public function reusableFuture($message_hash) {
+        return $this->future($message_hash);  // only used in go
+    }
     public function resolve($result, $message_hash) {
         if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
@@ -138,7 +149,6 @@ class Client {
                     array_replace_recursive($this->{$key}, $value) :
                     $value;
         }
-
         $this->connected = new Future();
     }
 
@@ -167,6 +177,13 @@ class Client {
                 echo date('c'), ' connecting to ', $this->url, "\n";
             }
             $headers = property_exists($this, 'options') && array_key_exists('headers', $this->options) ? $this->options['headers'] : [];
+            if (is_array($this->cookies) && count($this->cookies)) {
+                $cookie_string = '';
+                foreach ($this->cookies as $key => $value) {
+                    $cookie_string .= $key . '=' . $value . '; ';
+                }
+                $headers['Cookie'] = rtrim($cookie_string, '; ');
+            }
             $promise = call_user_func($this->connector, $this->url, [], $headers);
             Timer\timeout($promise, $timeout, Loop::get())->then(
                 function(WebSocket $connection) {
@@ -267,8 +284,11 @@ class Client {
     }
 
     public function on_message(Message $message) {
-        if (preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0) { // only decompress if the message is a binary
-            if ($this->gunzip) {
+        $is_binary = preg_match('~[^\x20-\x7E\t\r\n]~', $message) > 0;
+        if ($is_binary) { // only decompress if the message is a binary
+            if (!$this->decompressBinary) {
+                // do nothing, we need it as is
+            } else if ($this->gunzip) {
                 $message = \ccxt\pro\gunzip($message);
             } else if ($this->inflate) {
                 $message = \ccxt\pro\inflate($message);
@@ -277,6 +297,11 @@ class Client {
 
         try {
             $message = (string) $message;
+            // if (!$is_binary) {
+            //     $message = (string) $message;
+            // } else {
+            //     $message = $message->getContents();
+            // }
             if ($this->verbose) {
                 echo date('c'), ' on_message ', $message, "\n";
             }
