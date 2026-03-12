@@ -3,6 +3,55 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "universe": [
+                        {
+                            "szDecimals": "5",
+                            "name": "BTC",
+                            "maxLeverage": "40",
+                            "marginTableId": "40"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "szDecimals": "5",
+                            "name": "BTC",
+                            "maxLeverage": "40",
+                            "marginTableId": "40"
+                        },
+                        "id": 0,
+                        "numericId": null,
+                        "code": "BTC",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": "BTC",
+                        "active": null,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "user trades",
