@@ -8225,7 +8225,7 @@ export default class kucoin extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let uta = true; // for backward compatibility, dafult endpoint is uta
+        let uta = false; // for backward compatibility, dafult endpoint is uta
         [ uta, params ] = this.handleOptionAndParams (params, 'fetchFundingRate', 'uta', uta);
         let response = undefined;
         if (uta) {
@@ -8288,7 +8288,8 @@ export default class kucoin extends Exchange {
         //         "fundingTime": 1771776000000
         //     }
         //
-        const fundingTimestamp = this.safeInteger2 (data, 'fundingTime', 'timePoint');
+        const fundingTimestamp = this.safeInteger (data, 'fundingTime');
+        const previousFundingTimestamp = this.safeInteger (data, 'timePoint');
         const marketId = this.safeString (data, 'symbol');
         return {
             'info': data,
@@ -8306,8 +8307,8 @@ export default class kucoin extends Exchange {
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
             'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
             'interval': this.parseFundingInterval (this.safeString (data, 'granularity')),
         } as FundingRate;
     }
