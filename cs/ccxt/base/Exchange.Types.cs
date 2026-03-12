@@ -1030,6 +1030,10 @@ public struct Liquidation
     public Int64? timestamp;
     public string? datetime;
     public string? side;
+
+    public double? contractSize;
+
+    public double? contracts;
     public Dictionary<string, object> info;
 
     public Liquidation(object openInterest)
@@ -1040,6 +1044,8 @@ public struct Liquidation
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
         side = Exchange.SafeString(openInterest, "side");
+        contractSize = Exchange.SafeFloat(openInterest, "contractSize");
+        contracts = Exchange.SafeFloat(openInterest, "contracts");
         info = Helper.GetInfo(openInterest);
     }
 }
@@ -2015,5 +2021,27 @@ public struct LongShortRatio
         datetime = Exchange.SafeString(lsRatio, "datetime");
         timeframe = Exchange.SafeString(lsRatio, "timeframe");
         longShortRatio = Exchange.SafeFloat(lsRatio, "longShortRatio");
+    }
+}
+
+public struct ADL
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public Int64? rank;
+    public string? rating;
+    public double? percentage;
+    public Int64? timestamp;
+    public string? datetime;
+
+    public ADL(object ADLObj)
+    {
+        info = Helper.GetInfo(ADLObj);
+        symbol = Exchange.SafeString(ADLObj, "symbol");
+        rank = Exchange.SafeInteger(ADLObj, "rank");
+        rating = Exchange.SafeString(ADLObj, "rating");
+        percentage = Exchange.SafeFloat(ADLObj, "percentage");
+        timestamp = Exchange.SafeInteger(ADLObj, "timestamp");
+        datetime = Exchange.SafeString(ADLObj, "datetime");
     }
 }

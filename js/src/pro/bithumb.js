@@ -6,15 +6,18 @@
 
 //  ---------------------------------------------------------------------------
 import bithumbRest from '../bithumb.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { ExchangeError } from '../base/errors.js';
+import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { jwt } from '../base/functions/rsa.js';
 //  ---------------------------------------------------------------------------
 export default class bithumb extends bithumbRest {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -23,7 +26,11 @@ export default class bithumb extends bithumbRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://pubwss.bithumb.com/pub/ws',
+                    'ws': {
+                        'public': 'wss://pubwss.bithumb.com/pub/ws',
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',
+                        'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private', // v2.1.5
+                    },
                 },
             },
             'options': {},
@@ -42,7 +49,7 @@ export default class bithumb extends bithumbRest {
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         await this.loadMarkets();
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
@@ -60,11 +67,11 @@ export default class bithumb extends bithumbRest {
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B9%97%EC%8D%B8-%EA%B1%B0%EB%9E%98%EC%86%8C-%EC%A0%95%EB%B3%B4-%EC%88%98%EC%8B%A0
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const marketIds = [];
         const messageHashes = [];
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
@@ -180,7 +187,7 @@ export default class bithumb extends bithumbRest {
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook' + ':' + symbol;
@@ -268,7 +275,7 @@ export default class bithumb extends bithumbRest {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
-        const url = this.urls['api']['ws'];
+        const url = this.urls['api']['ws']['public'];
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -375,6 +382,253 @@ export default class bithumb extends bithumbRest {
         }
         return true;
     }
+    /**
+     * @method
+     * @name bithumb#watchBalance
+     * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
+     */
+    async watchBalance(params = {}) {
+        await this.loadMarkets();
+        await this.authenticate();
+        const url = this.urls['api']['ws']['privateV2'];
+        const messageHash = 'myAsset';
+        const request = [
+            { 'ticket': 'ccxt' },
+            { 'type': messageHash },
+        ];
+        const balance = await this.watch(url, messageHash, request, messageHash);
+        return balance;
+    }
+    handleBalance(client, message) {
+        //
+        //    {
+        //        "type": "myAsset",
+        //        "assets": [
+        //            {
+        //                "currency": "KRW",
+        //                "balance": "2061832.35",
+        //                "locked": "3824127.3"
+        //            }
+        //        ],
+        //        "asset_timestamp": 1727052537592,
+        //        "timestamp": 1727052537687,
+        //        "stream_type": "REALTIME"
+        //    }
+        //
+        const messageHash = 'myAsset';
+        const assets = this.safeList(message, 'assets', []);
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            const currencyId = this.safeString(asset, 'currency');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            account['free'] = this.safeString(asset, 'balance');
+            account['used'] = this.safeString(asset, 'locked');
+            this.balance[code] = account;
+        }
+        this.balance['info'] = message;
+        const timestamp = this.safeInteger(message, 'timestamp');
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601(timestamp);
+        this.balance = this.safeBalance(this.balance);
+        client.resolve(this.balance, messageHash);
+    }
+    async authenticate(params = {}) {
+        this.checkRequiredCredentials();
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const authenticated = this.safeString(wsOptions, 'token');
+        if (authenticated === undefined) {
+            const payload = {
+                'access_key': this.apiKey,
+                'nonce': this.uuid(),
+                'timestamp': this.milliseconds(),
+            };
+            const jwtToken = jwt(payload, this.encode(this.secret), sha256);
+            wsOptions['token'] = jwtToken;
+            wsOptions['options'] = {
+                'headers': {
+                    'authorization': 'Bearer ' + jwtToken,
+                },
+            };
+            this.options['ws'] = wsOptions;
+        }
+        const url = this.urls['api']['ws']['privateV2'];
+        const client = this.client(url);
+        return client;
+    }
+    /**
+     * @method
+     * @name bithumb#watchOrders
+     * @description watches information on multiple orders made by the user
+     * @see https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string[]} [params.codes] market codes to filter orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets();
+        await this.authenticate();
+        const url = this.urls['api']['ws']['privateV2'];
+        let messageHash = 'myOrder';
+        const codes = this.safeList(params, 'codes', []);
+        const request = [
+            { 'ticket': 'ccxt' },
+            { 'type': messageHash, 'codes': codes },
+        ];
+        if (symbol !== undefined) {
+            const market = this.market(symbol);
+            symbol = market['symbol'];
+            messageHash = messageHash + ':' + symbol;
+        }
+        const orders = await this.watch(url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit(symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+    }
+    handleOrders(client, message) {
+        //
+        //    {
+        //        "type": "myOrder",
+        //        "code": "KRW-BTC",
+        //        "uuid": "C0101000000001818113",
+        //        "ask_bid": "BID",
+        //        "order_type": "limit",
+        //        "state": "trade",
+        //        "trade_uuid": "C0101000000001744207",
+        //        "price": 1927000,
+        //        "volume": 0.4697,
+        //        "remaining_volume": 0.0803,
+        //        "executed_volume": 0.4697,
+        //        "trades_count": 1,
+        //        "reserved_fee": 0,
+        //        "remaining_fee": 0,
+        //        "paid_fee": 0,
+        //        "executed_funds": 905111.9000,
+        //        "trade_timestamp": 1727052318148,
+        //        "order_timestamp": 1727052318074,
+        //        "timestamp": 1727052318369,
+        //        "stream_type": "REALTIME"
+        //    }
+        //
+        const messageHash = 'myOrder';
+        const parsed = this.parseWsOrder(message);
+        const symbol = this.safeString(parsed, 'symbol');
+        // const orderId = this.safeString (parsed, 'id');
+        if (this.orders === undefined) {
+            const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById(limit);
+        }
+        const cachedOrders = this.orders;
+        cachedOrders.append(parsed);
+        client.resolve(cachedOrders, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve(cachedOrders, symbolSpecificMessageHash);
+    }
+    parseWsOrder(order, market = undefined) {
+        //
+        //    {
+        //        "type": "myOrder",
+        //        "code": "KRW-BTC",
+        //        "uuid": "C0101000000001818113",
+        //        "ask_bid": "BID",
+        //        "order_type": "limit",
+        //        "state": "trade",
+        //        "trade_uuid": "C0101000000001744207",
+        //        "price": 1927000,
+        //        "volume": 0.4697,
+        //        "remaining_volume": 0.0803,
+        //        "executed_volume": 0.4697,
+        //        "trades_count": 1,
+        //        "reserved_fee": 0,
+        //        "remaining_fee": 0,
+        //        "paid_fee": 0,
+        //        "executed_funds": 905111.9000,
+        //        "trade_timestamp": 1727052318148,
+        //        "order_timestamp": 1727052318074,
+        //        "timestamp": 1727052318369,
+        //        "stream_type": "REALTIME"
+        //    }
+        //
+        const marketId = this.safeString(order, 'code');
+        const symbol = this.safeSymbol(marketId, market, '-');
+        const timestamp = this.safeInteger(order, 'order_timestamp');
+        const sideId = this.safeString(order, 'ask_bid');
+        const side = (sideId === 'BID') ? ('buy') : ('sell');
+        const typeId = this.safeString(order, 'order_type');
+        let type = undefined;
+        if (typeId === 'limit') {
+            type = 'limit';
+        }
+        else if (typeId === 'price') {
+            type = 'market';
+        }
+        else if (typeId === 'market') {
+            type = 'market';
+        }
+        const stateId = this.safeString(order, 'state');
+        let status = undefined;
+        if (stateId === 'wait') {
+            status = 'open';
+        }
+        else if (stateId === 'trade') {
+            status = 'open';
+        }
+        else if (stateId === 'done') {
+            status = 'closed';
+        }
+        else if (stateId === 'cancel') {
+            status = 'canceled';
+        }
+        const price = this.safeString(order, 'price');
+        const amount = this.safeString(order, 'volume');
+        const remaining = this.safeString(order, 'remaining_volume');
+        const filled = this.safeString(order, 'executed_volume');
+        const cost = this.safeString(order, 'executed_funds');
+        const feeCost = this.safeString(order, 'paid_fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            const marketForFee = this.safeMarket(marketId, market);
+            const feeCurrency = this.safeString(marketForFee, 'quote');
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeOrder({
+            'info': order,
+            'id': this.safeString(order, 'uuid'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'lastTradeTimestamp': this.safeInteger(order, 'trade_timestamp'),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': side,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': cost,
+            'average': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': undefined,
+        }, market);
+    }
     handleMessage(client, message) {
         if (!this.handleErrorMessage(client, message)) {
             return;
@@ -385,6 +639,8 @@ export default class bithumb extends bithumbRest {
                 'ticker': this.handleTicker,
                 'orderbookdepth': this.handleOrderBook,
                 'transaction': this.handleTrades,
+                'myAsset': this.handleBalance,
+                'myOrder': this.handleOrders,
             };
             const method = this.safeValue(methods, topic);
             if (method !== undefined) {

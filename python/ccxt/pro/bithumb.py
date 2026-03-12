@@ -4,8 +4,8 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import ccxt.async_support
-from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Bool, Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,7 +17,8 @@ class bithumb(ccxt.async_support.bithumb):
         return self.deep_extend(super(bithumb, self).describe(), {
             'has': {
                 'ws': True,
-                'watchBalance': False,
+                'watchBalance': True,
+                'watchOrders': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -26,7 +27,11 @@ class bithumb(ccxt.async_support.bithumb):
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://pubwss.bithumb.com/pub/ws',
+                    'ws': {
+                        'public': 'wss://pubwss.bithumb.com/pub/ws',  # v1.2.0
+                        'publicV2': 'wss://ws-api.bithumb.com/websocket/v1',  # v2.1.5
+                        'privateV2': 'wss://ws-api.bithumb.com/websocket/v1/private',  # v2.1.5
+                    },
                 },
             },
             'options': {},
@@ -45,7 +50,7 @@ class bithumb(ccxt.async_support.bithumb):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
-        url = self.urls['api']['ws']
+        url = self.urls['api']['ws']['public']
         await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
@@ -64,10 +69,10 @@ class bithumb(ccxt.async_support.bithumb):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.urls['api']['ws']['public']
         marketIds = []
         messageHashes = []
         symbols = self.market_symbols(symbols, None, False, True, True)
@@ -181,7 +186,7 @@ class bithumb(ccxt.async_support.bithumb):
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
@@ -267,7 +272,7 @@ class bithumb(ccxt.async_support.bithumb):
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
         await self.load_markets()
-        url = self.urls['api']['ws']
+        url = self.urls['api']['ws']['public']
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
@@ -367,6 +372,239 @@ class bithumb(ccxt.async_support.bithumb):
             client.reject(e)
         return True
 
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%9E%90%EC%82%B0-myasset
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['privateV2']
+        messageHash = 'myAsset'
+        request = [
+            {'ticket': 'ccxt'},
+            {'type': messageHash},
+        ]
+        balance = await self.watch(url, messageHash, request, messageHash)
+        return balance
+
+    def handle_balance(self, client: Client, message):
+        #
+        #    {
+        #        "type": "myAsset",
+        #        "assets": [
+        #            {
+        #                "currency": "KRW",
+        #                "balance": "2061832.35",
+        #                "locked": "3824127.3"
+        #            }
+        #        ],
+        #        "asset_timestamp": 1727052537592,
+        #        "timestamp": 1727052537687,
+        #        "stream_type": "REALTIME"
+        #    }
+        #
+        messageHash = 'myAsset'
+        assets = self.safe_list(message, 'assets', [])
+        if self.balance is None:
+            self.balance = {}
+        for i in range(0, len(assets)):
+            asset = assets[i]
+            currencyId = self.safe_string(asset, 'currency')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(asset, 'balance')
+            account['used'] = self.safe_string(asset, 'locked')
+            self.balance[code] = account
+        self.balance['info'] = message
+        timestamp = self.safe_integer(message, 'timestamp')
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance = self.safe_balance(self.balance)
+        client.resolve(self.balance, messageHash)
+
+    async def authenticate(self, params={}):
+        self.check_required_credentials()
+        wsOptions: dict = self.safe_dict(self.options, 'ws', {})
+        authenticated = self.safe_string(wsOptions, 'token')
+        if authenticated is None:
+            payload: dict = {
+                'access_key': self.apiKey,
+                'nonce': self.uuid(),
+                'timestamp': self.milliseconds(),
+            }
+            jwtToken = self.jwt(payload, self.encode(self.secret), 'sha256')
+            wsOptions['token'] = jwtToken
+            wsOptions['options'] = {
+                'headers': {
+                    'authorization': 'Bearer ' + jwtToken,
+                },
+            }
+            self.options['ws'] = wsOptions
+        url = self.urls['api']['ws']['privateV2']
+        client = self.client(url)
+        return client
+
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        watches information on multiple orders made by the user
+
+        https://apidocs.bithumb.com/v2.1.5/reference/%EB%82%B4-%EC%A3%BC%EB%AC%B8-%EB%B0%8F-%EC%B2%B4%EA%B2%B0-myorder
+
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int [since]: the earliest time in ms to fetch orders for
+        :param int [limit]: the maximum number of order structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.codes]: market codes to filter orders
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
+        """
+        await self.load_markets()
+        await self.authenticate()
+        url = self.urls['api']['ws']['privateV2']
+        messageHash = 'myOrder'
+        codes = self.safe_list(params, 'codes', [])
+        request = [
+            {'ticket': 'ccxt'},
+            {'type': messageHash, 'codes': codes},
+        ]
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+            messageHash = messageHash + ':' + symbol
+        orders = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            limit = orders.getLimit(symbol, limit)
+        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    def handle_orders(self, client: Client, message):
+        #
+        #    {
+        #        "type": "myOrder",
+        #        "code": "KRW-BTC",
+        #        "uuid": "C0101000000001818113",
+        #        "ask_bid": "BID",
+        #        "order_type": "limit",
+        #        "state": "trade",
+        #        "trade_uuid": "C0101000000001744207",
+        #        "price": 1927000,
+        #        "volume": 0.4697,
+        #        "remaining_volume": 0.0803,
+        #        "executed_volume": 0.4697,
+        #        "trades_count": 1,
+        #        "reserved_fee": 0,
+        #        "remaining_fee": 0,
+        #        "paid_fee": 0,
+        #        "executed_funds": 905111.9000,
+        #        "trade_timestamp": 1727052318148,
+        #        "order_timestamp": 1727052318074,
+        #        "timestamp": 1727052318369,
+        #        "stream_type": "REALTIME"
+        #    }
+        #
+        messageHash = 'myOrder'
+        parsed = self.parse_ws_order(message)
+        symbol = self.safe_string(parsed, 'symbol')
+        # orderId = self.safe_string(parsed, 'id')
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
+        cachedOrders = self.orders
+        cachedOrders.append(parsed)
+        client.resolve(cachedOrders, messageHash)
+        symbolSpecificMessageHash = messageHash + ':' + symbol
+        client.resolve(cachedOrders, symbolSpecificMessageHash)
+
+    def parse_ws_order(self, order, market=None):
+        #
+        #    {
+        #        "type": "myOrder",
+        #        "code": "KRW-BTC",
+        #        "uuid": "C0101000000001818113",
+        #        "ask_bid": "BID",
+        #        "order_type": "limit",
+        #        "state": "trade",
+        #        "trade_uuid": "C0101000000001744207",
+        #        "price": 1927000,
+        #        "volume": 0.4697,
+        #        "remaining_volume": 0.0803,
+        #        "executed_volume": 0.4697,
+        #        "trades_count": 1,
+        #        "reserved_fee": 0,
+        #        "remaining_fee": 0,
+        #        "paid_fee": 0,
+        #        "executed_funds": 905111.9000,
+        #        "trade_timestamp": 1727052318148,
+        #        "order_timestamp": 1727052318074,
+        #        "timestamp": 1727052318369,
+        #        "stream_type": "REALTIME"
+        #    }
+        #
+        marketId = self.safe_string(order, 'code')
+        symbol = self.safe_symbol(marketId, market, '-')
+        timestamp = self.safe_integer(order, 'order_timestamp')
+        sideId = self.safe_string(order, 'ask_bid')
+        side = ('buy') if (sideId == 'BID') else ('sell')
+        typeId = self.safe_string(order, 'order_type')
+        type = None
+        if typeId == 'limit':
+            type = 'limit'
+        elif typeId == 'price':
+            type = 'market'
+        elif typeId == 'market':
+            type = 'market'
+        stateId = self.safe_string(order, 'state')
+        status = None
+        if stateId == 'wait':
+            status = 'open'
+        elif stateId == 'trade':
+            status = 'open'
+        elif stateId == 'done':
+            status = 'closed'
+        elif stateId == 'cancel':
+            status = 'canceled'
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'volume')
+        remaining = self.safe_string(order, 'remaining_volume')
+        filled = self.safe_string(order, 'executed_volume')
+        cost = self.safe_string(order, 'executed_funds')
+        feeCost = self.safe_string(order, 'paid_fee')
+        fee = None
+        if feeCost is not None:
+            marketForFee = self.safe_market(marketId, market)
+            feeCurrency = self.safe_string(marketForFee, 'quote')
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            }
+        return self.safe_order({
+            'info': order,
+            'id': self.safe_string(order, 'uuid'),
+            'clientOrderId': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'lastTradeTimestamp': self.safe_integer(order, 'trade_timestamp'),
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': None,
+            'postOnly': None,
+            'side': side,
+            'price': price,
+            'stopPrice': None,
+            'triggerPrice': None,
+            'amount': amount,
+            'cost': cost,
+            'average': None,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
+            'fee': fee,
+            'trades': None,
+        }, market)
+
     def handle_message(self, client: Client, message):
         if not self.handle_error_message(client, message):
             return
@@ -376,6 +614,8 @@ class bithumb(ccxt.async_support.bithumb):
                 'ticker': self.handle_ticker,
                 'orderbookdepth': self.handle_order_book,
                 'transaction': self.handle_trades,
+                'myAsset': self.handle_balance,
+                'myOrder': self.handle_orders,
             }
             method = self.safe_value(methods, topic)
             if method is not None:

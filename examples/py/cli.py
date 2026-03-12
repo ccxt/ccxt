@@ -26,6 +26,7 @@ class Argv(object):
     table = False
     verbose = False
     sandbox = False
+    demo = False
     testnet = False
     test = False
     nonce = None
@@ -53,6 +54,7 @@ parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--debug', action='store_true', help='enable debug output')
 parser.add_argument('--sandbox', action='store_true', help='enable sandbox/testnet')
+parser.add_argument('--demo', action='store_true', help='enable demo mode')
 parser.add_argument('--testnet', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--test', action='store_true', help='enable sandbox/testnet')
 parser.add_argument('--spot', action='store_true', help='enable spot markets')
@@ -203,6 +205,8 @@ async def main():
 
     if argv.testnet or argv.sandbox or argv.test:
         exchange.set_sandbox_mode(True)
+    elif argv.demo:
+        exchange.enable_demo_trading(True)
 
     if argv.verbose and argv.debug:
         exchange.verbose = argv.verbose

@@ -201,3 +201,7 @@ export function randomBytes(bytesLength = 32): Uint8Array {
   }
   throw new Error('crypto.getRandomValues must be defined');
 }
+
+export const abytes = (b: unknown): void => {
+  if (!(b instanceof Uint8Array || (ArrayBuffer.isView(b) && b.constructor.name === 'Uint8Array'))) throw new Error('Uint8Array expected');
+}

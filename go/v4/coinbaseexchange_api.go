@@ -7,258 +7,318 @@
 
 package ccxt
 
-func (this *coinbaseexchange) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetCurrencies(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetCurrencies", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProducts(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProducts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProducts", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsId", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsIdBook(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsIdBook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsIdBook", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsIdCandles(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsIdCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsIdCandles", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsIdStats(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsIdStats(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsIdStats", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsIdTicker(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsIdTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsIdTicker", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsIdTrades(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsIdTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsIdTrades", args...)
 }
 
-func (this *coinbaseexchange) PublicGetTime(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetTime(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsSparkLines(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsSparkLines(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsSparkLines", args...)
 }
 
-func (this *coinbaseexchange) PublicGetProductsVolumeSummary(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PublicGetProductsVolumeSummary(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetProductsVolumeSummary", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetAddressBook(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetAddressBook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAddressBook", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccounts", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetAccountsId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetAccountsId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountsId", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetAccountsIdHolds(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetAccountsIdHolds(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountsIdHolds", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetAccountsIdLedger(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetAccountsIdLedger(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountsIdLedger", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetAccountsIdTransfers(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetAccountsIdTransfers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetAccountsIdTransfers", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetCoinbaseAccounts(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetCoinbaseAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetCoinbaseAccounts", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetFills(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetFills(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFills", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetFunding(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetFunding(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFunding", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetFees(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFees", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginProfileInformation(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginProfileInformation(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginProfileInformation", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginBuyingPower(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginBuyingPower(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginBuyingPower", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginWithdrawalPower(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginWithdrawalPower(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginWithdrawalPower", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginWithdrawalPowerAll(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginWithdrawalPowerAll(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginWithdrawalPowerAll", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginExitPlan(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginExitPlan(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginExitPlan", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginLiquidationHistory(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginLiquidationHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginLiquidationHistory", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginPositionRefreshAmounts(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginPositionRefreshAmounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginPositionRefreshAmounts", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetMarginStatus(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetMarginStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginStatus", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetOracle(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetOracle(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetOracle", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetOrders(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetOrders", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetOrdersId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetOrdersId", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetOrdersClientClientOid(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetOrdersClientClientOid(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetOrdersClientClientOid", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetOtcOrders(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetOtcOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetOtcOrders", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetPaymentMethods(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetPaymentMethods(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetPaymentMethods", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetPosition(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetPosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetPosition", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetProfiles(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetProfiles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetProfiles", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetProfilesId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetProfilesId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetProfilesId", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetReportsReportId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetReportsReportId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetReportsReportId", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetTransfers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTransfers", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetTransfersTransferId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetTransfersTransferId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetTransfersTransferId", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetUsersSelfExchangeLimits(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetUsersSelfExchangeLimits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersSelfExchangeLimits", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetUsersSelfHoldBalances(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetUsersSelfHoldBalances(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersSelfHoldBalances", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetUsersSelfTrailingVolume(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetUsersSelfTrailingVolume(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetUsersSelfTrailingVolume", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetWithdrawalsFeeEstimate(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetWithdrawalsFeeEstimate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWithdrawalsFeeEstimate", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetConversionsConversionId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetConversionsConversionId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetConversionsConversionId", args...)
 }
 
-func (this *coinbaseexchange) PrivateGetConversionsFees(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetConversions(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetConversions", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetConversionsFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetConversionsFees", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostConversions(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateGetLoansLendingOverview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansLendingOverview", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansLendingOverviewXm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansLendingOverviewXm", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansLoanPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansLoanPreview", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansLoanPreviewXm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansLoanPreviewXm", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansRepaymentPreview(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansRepaymentPreview", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansRepaymentPreviewXm(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansRepaymentPreviewXm", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansInterestLoanId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansInterestLoanId", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansInterestHistoryLoanId(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansInterestHistoryLoanId", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansInterest", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoansAssets(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoansAssets", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateGetLoans(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateGetLoans", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivatePostConversions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostConversions", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostDepositsCoinbaseAccount(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostDepositsCoinbaseAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostDepositsCoinbaseAccount", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostDepositsPaymentMethod(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostDepositsPaymentMethod(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostDepositsPaymentMethod", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostCoinbaseAccountsIdAddresses(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostCoinbaseAccountsIdAddresses(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCoinbaseAccountsIdAddresses", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostFundingRepay(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostFundingRepay(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFundingRepay", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostOrders(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostPositionClose(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostPositionClose(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostPositionClose", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostProfilesMarginTransfer(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostProfilesMarginTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostProfilesMarginTransfer", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostProfilesTransfer(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostProfilesTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostProfilesTransfer", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostReports(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostReports(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostReports", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostWithdrawalsCoinbase(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCoinbase(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWithdrawalsCoinbase", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostWithdrawalsCoinbaseAccount(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCoinbaseAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWithdrawalsCoinbaseAccount", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostWithdrawalsCrypto(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCrypto(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWithdrawalsCrypto", args...)
 }
 
-func (this *coinbaseexchange) PrivatePostWithdrawalsPaymentMethod(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsPaymentMethod(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWithdrawalsPaymentMethod", args...)
 }
 
-func (this *coinbaseexchange) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivatePostLoansOpen(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLoansOpen", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivatePostLoansRepayInterest(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLoansRepayInterest", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivatePostLoansRepayPrincipal(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privatePostLoansRepayPrincipal", args...)
+}
+
+func (this *CoinbaseexchangeCore) PrivateDeleteOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
 }
 
-func (this *coinbaseexchange) PrivateDeleteOrdersClientClientOid(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateDeleteOrdersClientClientOid(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteOrdersClientClientOid", args...)
 }
 
-func (this *coinbaseexchange) PrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
+func (this *CoinbaseexchangeCore) PrivateDeleteOrdersId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteOrdersId", args...)
 }

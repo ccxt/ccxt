@@ -154,4 +154,4 @@ class ImplicitAPI:
     private_user_post_user_account = privateUserPostUserAccount = Entry('user/account', ['private', 'user'], 'POST', {'cost': 1})
     private_user_post_user_account_api_key = privateUserPostUserAccountApiKey = Entry('user/account/api-key', ['private', 'user'], 'POST', {'cost': 1})
     private_user_put_user_account_api_key = privateUserPutUserAccountApiKey = Entry('user/account/api-key', ['private', 'user'], 'PUT', {'cost': 1})
-    private_user_delete_user_account_apikeyid = privateUserDeleteUserAccountApikeyId = Entry('user/account/{apikeyId}', ['private', 'user'], 'DELETE', {'cost': 1})
+    private_user_delete_user_account_apikeyid = privateUserDeleteUserAccountApiKeyId = Entry('user/account/{apiKeyId}', ['private', 'user'], 'DELETE', {'cost': 1})

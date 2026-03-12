@@ -3,3 +3,5 @@ include LICENSE.txt
 
 # Include the package.json file
 include package.json
+
+recursive-include ccxt/static_dependencies/mnemonic/wordlist *.txt

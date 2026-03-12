@@ -771,9 +771,9 @@ public partial class xt : Exchange
         return await this.callAsync ("privateUserPutUserAccountApiKey",parameters);
     }
 
-    public async Task<object> privateUserDeleteUserAccountApikeyId (object parameters = null)
+    public async Task<object> privateUserDeleteUserAccountApiKeyId (object parameters = null)
     {
-        return await this.callAsync ("privateUserDeleteUserAccountApikeyId",parameters);
+        return await this.callAsync ("privateUserDeleteUserAccountApiKeyId",parameters);
     }
 
 }

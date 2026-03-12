@@ -48,9 +48,6 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-    - name: Debug Node version smart bump tmp remove
-      run: |
-        echo "Test smart version: $(./build/smart-bump.sh)"
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Debug files changes
@@ -72,6 +69,9 @@ jobs:
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
+    - name: Build JS Docs
+      if: env.important_modified == 'true'
+      run: npm run build-docs
     - name: Pre-transpile and transpile TS (Simplified)
       if: env.important_modified == 'false'
       run: npm run pre-transpile-js-simple
@@ -179,6 +179,9 @@ jobs:
         run: npm ci --include=dev
       - name: Export exchanges
         run: npm run export-exchanges
+      - name: 🔎 Check Runner IP
+        run: curl https://api.ipify.org
+        continue-on-error: true
       - name: Live tests
         if: env.important_modified == 'true'
         run: ./run-tests-simul.sh --js

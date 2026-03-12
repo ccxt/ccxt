@@ -100,6 +100,7 @@ class kucoinfutures extends kucoin {
                 'fetchWithdrawals' => true,
                 'setLeverage' => false,
                 'setMarginMode' => true,
+                'setPositionMode' => true,
                 'transfer' => true,
                 'withdraw' => null,
             ),
@@ -194,6 +195,7 @@ class kucoinfutures extends kucoin {
                         'sub/api-key/update' => 1,
                         'changeCrossUserLeverage' => 1,
                         'position/changeMarginMode' => 1,
+                        'position/switchPositionMode' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -338,6 +340,7 @@ class kucoinfutures extends kucoin {
                             'transfer-out' => 'v2',
                             'changeCrossUserLeverage' => 'v2',
                             'position/changeMarginMode' => 'v2',
+                            'position/switchPositionMode' => 'v2',
                         ),
                     ),
                     'futuresPublic' => array(
@@ -454,7 +457,7 @@ class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-service-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
          */
         $response = $this->futuresPublicGetStatus ($params);
         //
@@ -555,7 +558,7 @@ class kucoinfutures extends kucoin {
             $market = $data[$i];
             $id = $this->safe_string($market, 'symbol');
             $expiry = $this->safe_integer($market, 'expireDate');
-            $future = $expiry ? true : false;
+            $future = $this->safe_string($market, 'nextFundingRateTime') === null;
             $swap = !$future;
             $baseId = $this->safe_string($market, 'baseCurrency');
             $quoteId = $this->safe_string($market, 'quoteCurrency');
@@ -662,7 +665,7 @@ class kucoinfutures extends kucoin {
         return $this->safe_integer($response, 'data');
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -751,7 +754,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -793,7 +796,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
          */
         $this->load_markets();
         $level = $this->safe_number($params, 'level');
@@ -847,7 +850,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -884,7 +887,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -905,7 +908,7 @@ class kucoinfutures extends kucoin {
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->method] the $method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1106,7 +1109,7 @@ class kucoinfutures extends kucoin {
          * fetches the bid and ask price and volume for multiple markets
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         $request = array(
             'method' => 'futuresPublicGetAllTickers',
@@ -1124,7 +1127,7 @@ class kucoinfutures extends kucoin {
          * @param {int} [$since] the earliest time in ms to fetch funding history for
          * @param {int} [$limit] the maximum number of funding history structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
@@ -1195,7 +1198,7 @@ class kucoinfutures extends kucoin {
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1259,7 +1262,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         $response = $this->futuresPrivateGetPositions ($params);
@@ -1325,7 +1328,7 @@ class kucoinfutures extends kucoin {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] closing end time
          * @param {int} [$params->pageId] page id
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->load_markets();
         if ($limit === null) {
@@ -1540,6 +1543,7 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->postOnly] Post only flag, invalid when timeInForce is IOC or FOK
          * @param {float} [$params->cost] the cost of the order in units of USDT
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'isolated'
+         * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * ----------------- Exchange Specific Parameters -----------------
          * @param {float} [$params->leverage] Leverage size of the order (mandatory param in request, default is 1)
          * @param {string} [$params->clientOid] client order id, defaults to uuid if not passed
@@ -1549,20 +1553,21 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->stopPriceType] exchange-specific alternative for triggerPriceType => TP, IP or MP
          * @param {bool} [$params->closeOrder] set to true to close position
          * @param {bool} [$params->test] set to true to use the test order endpoint (does not submit order, use to validate $params)
-         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {bool} [$params->forceHold] A mark to forcely hold the funds for an order, even though it's an order to reduce the position size. This helps the order stay on the order book and not get canceled when the position size changes. Set to false by default.\
+         * @param {string} [$params->positionSide] *swap and future only* hedged two-way position $side, LONG or SHORT
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
-        $isTpAndSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
+        $hasTpOrSlOrder = ($this->safe_value($params, 'stopLoss') !== null) || ($this->safe_value($params, 'takeProfit') !== null);
         $orderRequest = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = null;
         if ($testOrder) {
             $response = $this->futuresPrivatePostOrdersTest ($orderRequest);
         } else {
-            if ($isTpAndSlOrder) {
+            if ($hasTpOrSlOrder) {
                 $response = $this->futuresPrivatePostStOrders ($orderRequest);
             } else {
                 $response = $this->futuresPrivatePostOrders ($orderRequest);
@@ -1588,7 +1593,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
         $ordersRequests = array();
@@ -1660,6 +1665,8 @@ class kucoinfutures extends kucoin {
         list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         $takeProfit = $this->safe_dict($params, 'takeProfit');
+        $hasStopLoss = $stopLoss !== null;
+        $hasTakeProfit = $takeProfit !== null;
         // $isTpAndSl = $stopLossPrice && $takeProfitPrice;
         $triggerPriceTypes = array(
             'mark' => 'MP',
@@ -1673,15 +1680,15 @@ class kucoinfutures extends kucoin {
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $request['stopPrice'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['stopPriceType'] = $triggerPriceTypeValue;
-        } elseif ($stopLoss !== null || $takeProfit !== null) {
+        } elseif ($hasStopLoss || $hasTakeProfit) {
             $priceType = $triggerPriceTypeValue;
-            if ($stopLoss !== null) {
+            if ($hasStopLoss) {
                 $slPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice');
                 $request['triggerStopDownPrice'] = $this->price_to_precision($symbol, $slPrice);
                 $priceType = $this->safe_string($stopLoss, 'triggerPriceType', 'mark');
                 $priceType = $this->safe_string($triggerPriceTypes, $priceType, $priceType);
             }
-            if ($takeProfit !== null) {
+            if ($hasTakeProfit) {
                 $tpPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'takeProfitPrice');
                 $request['triggerStopUpPrice'] = $this->price_to_precision($symbol, $tpPrice);
                 $priceType = $this->safe_string($takeProfit, 'triggerPriceType', 'mark');
@@ -1727,7 +1734,22 @@ class kucoinfutures extends kucoin {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $visibleSize parameter for $iceberg orders');
             }
         }
-        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
+        $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
+        $hedged = null;
+        list($hedged, $params) = $this->handle_param_bool($params, 'hedged', false);
+        if ($reduceOnly) {
+            $request['reduceOnly'] = $reduceOnly;
+            if ($hedged) {
+                $reduceOnlyPosSide = ($side === 'sell') ? 'LONG' : 'SHORT';
+                $request['positionSide'] = $reduceOnlyPosSide;
+            }
+        } else {
+            if ($hedged) {
+                $posSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                $request['positionSide'] = $posSide;
+            }
+        }
+        $params = $this->omit($params, array( 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' )); // Time in force only valid for limit orders, exchange error when gtc for $market orders
         return $this->extend($request, $params);
     }
 
@@ -1741,7 +1763,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] cancel order by client order $id
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
@@ -1773,7 +1795,7 @@ class kucoinfutures extends kucoin {
         return $this->safe_order(array( 'info' => $response ));
     }
 
-    public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple $orders
          *
@@ -1783,7 +1805,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $market = null;
@@ -1883,7 +1905,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $symbol unified $market $symbol
          * @param {float} $amount amount of margin to add
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2034,7 +2056,7 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit or $market
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return An ~@link https://docs.ccxt.com/#/?id=order-structure array of order structures~
+         * @return An ~@link https://docs.ccxt.com/?id=order-structure array of order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2143,7 +2165,7 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->side] buy or sell
          * @param {string} [$params->type] $limit, or market
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2170,7 +2192,7 @@ class kucoinfutures extends kucoin {
          * @param {string} [$params->type] $limit, or market
          * @param {boolean} [$params->trigger] set to true to retrieve untriggered stop orders
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2190,7 +2212,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();
         $request = array();
@@ -2397,7 +2419,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2430,7 +2452,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
         return $this->fetch_funding_rate($symbol, $params);
     }
@@ -2504,7 +2526,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->code] the unified $currency $code to fetch the balance for, if not provided, the default .options['fetchBalance']['code'] will be used
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets();
         // only fetches one balance at a time
@@ -2547,7 +2569,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -2678,7 +2700,7 @@ class kucoinfutures extends kucoin {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] End time in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets();
         $paginate = false;
@@ -2755,7 +2777,7 @@ class kucoinfutures extends kucoin {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -2926,7 +2948,7 @@ class kucoinfutures extends kucoin {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array();
@@ -2980,7 +3002,7 @@ class kucoinfutures extends kucoin {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
         $request = array();
@@ -3035,7 +3057,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-tiers-structure leverage tiers structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3110,10 +3132,10 @@ class kucoinfutures extends kucoin {
          * fetches historical funding rate prices
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] not used by kucuoinfutures
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end time in ms
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
@@ -3178,7 +3200,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $side not used by kucoinfutures closePositions
          * @param {array} [$params] extra parameters specific to the okx api endpoint
          * @param {string} [$params->clientOrderId] client order id of the order
-         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=position-structure A list of position structures~
+         * @return {array[]} ~@link https://docs.ccxt.com/?id=position-structure A list of position structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3211,7 +3233,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3250,7 +3272,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -3316,6 +3338,34 @@ class kucoinfutures extends kucoin {
         return $this->parse_margin_mode($data, $market);
     }
 
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+        /**
+         * set $hedged to true or false for a market
+         *
+         * @see https://www.kucoin.com/docs-new/3475097e0
+         *
+         * @param {bool} $hedged set to true to use two way position
+         * @param {string} [$symbol] not used by bybit setPositionMode ()
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a $response from the exchange
+         */
+        $this->load_markets();
+        $posMode = $hedged ? '1' : '0';
+        $request = array(
+            'positionMode' => $posMode,
+        );
+        $response = $this->futuresPrivatePostPositionSwitchPositionMode ($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => {
+        //             "positionMode" => 1
+        //         }
+        //     }
+        //
+        return $response;
+    }
+
     public function fetch_leverage(string $symbol, $params = array ()): array {
         /**
          * fetch the set leverage for a $market
@@ -3324,7 +3374,7 @@ class kucoinfutures extends kucoin {
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params($symbol, $params);

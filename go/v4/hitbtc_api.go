@@ -7,446 +7,446 @@
 
 package ccxt
 
-func (this *hitbtc) PublicGetPublicCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicCurrency", args...)
 }
 
-func (this *hitbtc) PublicGetPublicCurrencyCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicCurrencyCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicCurrencyCurrency", args...)
 }
 
-func (this *hitbtc) PublicGetPublicSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicSymbolSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicSymbolSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicSymbolSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicTicker(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicTicker", args...)
 }
 
-func (this *hitbtc) PublicGetPublicTickerSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicTickerSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicTickerSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicPriceRate(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicPriceRate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicPriceRate", args...)
 }
 
-func (this *hitbtc) PublicGetPublicPriceHistory(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicPriceHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicPriceHistory", args...)
 }
 
-func (this *hitbtc) PublicGetPublicPriceTicker(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicPriceTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicPriceTicker", args...)
 }
 
-func (this *hitbtc) PublicGetPublicPriceTickerSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicPriceTickerSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicPriceTickerSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicTrades(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicTrades", args...)
 }
 
-func (this *hitbtc) PublicGetPublicTradesSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicTradesSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicTradesSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicOrderbook(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicOrderbook(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicOrderbook", args...)
 }
 
-func (this *hitbtc) PublicGetPublicOrderbookSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicOrderbookSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicOrderbookSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicCandles(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicCandles", args...)
 }
 
-func (this *hitbtc) PublicGetPublicCandlesSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicCandlesSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicCandlesSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicConvertedCandles(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicConvertedCandles(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicConvertedCandles", args...)
 }
 
-func (this *hitbtc) PublicGetPublicConvertedCandlesSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicConvertedCandlesSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicConvertedCandlesSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesInfo(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesInfo", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesInfoSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesInfoSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesInfoSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesHistoryFunding(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesHistoryFunding(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesHistoryFunding", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesHistoryFundingSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesHistoryFundingSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesHistoryFundingSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesIndexPrice(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesIndexPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPrice", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesIndexPriceSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesIndexPriceSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesIndexPriceSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesMarkPrice(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesMarkPrice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPrice", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesMarkPriceSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesMarkPriceSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesMarkPriceSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesPremiumIndex(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesPremiumIndex(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndex", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesPremiumIndexSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesPremiumIndexSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesPremiumIndexSymbol", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesOpenInterest(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesOpenInterest(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterest", args...)
 }
 
-func (this *hitbtc) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PublicGetPublicFuturesCandlesOpenInterestSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPublicFuturesCandlesOpenInterestSymbol", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotBalance(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotBalance", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotBalanceCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotBalanceCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotBalanceCurrency", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotOrder", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotFee(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotFee(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotFee", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotFeeSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotFeeSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotFeeSymbol", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotHistoryOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotHistoryOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotHistoryOrder", args...)
 }
 
-func (this *hitbtc) PrivateGetSpotHistoryTrade(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSpotHistoryTrade(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSpotHistoryTrade", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginAccount", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginAccountCrossCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginAccountCrossCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginAccountCrossCurrency", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginOrder", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginConfig(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginConfig(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginConfig", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginHistoryOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginHistoryOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginHistoryOrder", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginHistoryTrade(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginHistoryTrade(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginHistoryTrade", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginHistoryPositions(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginHistoryPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginHistoryPositions", args...)
 }
 
-func (this *hitbtc) PrivateGetMarginHistoryClearing(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetMarginHistoryClearing(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesBalance(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesBalance", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesBalanceCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesBalanceCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesBalanceCurrency", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesAccount(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesAccount", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesOrder", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesConfig(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesConfig(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesConfig", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesFee(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesFee(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesFee", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesFeeSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesFeeSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesFeeSymbol", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesHistoryOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesHistoryOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesHistoryOrder", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesHistoryTrade(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesHistoryTrade(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesHistoryTrade", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesHistoryPositions(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesHistoryPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesHistoryPositions", args...)
 }
 
-func (this *hitbtc) PrivateGetFuturesHistoryClearing(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetFuturesHistoryClearing(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletBalance(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletBalance(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletBalance", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletBalanceCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletBalanceCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletCryptoAddress(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletCryptoAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletCryptoAddress", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletCryptoAddressRecentDeposit(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressRecentDeposit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentDeposit", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletCryptoAddressRecentWithdraw(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressRecentWithdraw(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletCryptoAddressRecentWithdraw", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletCryptoAddressCheckMine(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressCheckMine(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletCryptoAddressCheckMine", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletTransactions", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletTransactionsTxId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletTransactionsTxId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletTransactionsTxId", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletCryptoFeeEstimate(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletCryptoFeeEstimate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletAirdrops(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletAirdrops(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletAirdrops", args...)
 }
 
-func (this *hitbtc) PrivateGetWalletAmountLocks(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetWalletAmountLocks(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetWalletAmountLocks", args...)
 }
 
-func (this *hitbtc) PrivateGetSubAccount(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSubAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSubAccount", args...)
 }
 
-func (this *hitbtc) PrivateGetSubAccountAcl(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSubAccountAcl(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSubAccountAcl", args...)
 }
 
-func (this *hitbtc) PrivateGetSubAccountBalanceSubAccID(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSubAccountBalanceSubAccID(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSubAccountBalanceSubAccID", args...)
 }
 
-func (this *hitbtc) PrivateGetSubAccountCryptoAddressSubAccIDCurrency(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateGetSubAccountCryptoAddressSubAccIDCurrency(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetSubAccountCryptoAddressSubAccIDCurrency", args...)
 }
 
-func (this *hitbtc) PrivatePostSpotOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostSpotOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSpotOrder", args...)
 }
 
-func (this *hitbtc) PrivatePostSpotOrderList(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostSpotOrderList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSpotOrderList", args...)
 }
 
-func (this *hitbtc) PrivatePostMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostMarginOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostMarginOrder", args...)
 }
 
-func (this *hitbtc) PrivatePostMarginOrderList(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostMarginOrderList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostMarginOrderList", args...)
 }
 
-func (this *hitbtc) PrivatePostFuturesOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostFuturesOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFuturesOrder", args...)
 }
 
-func (this *hitbtc) PrivatePostFuturesOrderList(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostFuturesOrderList(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostFuturesOrderList", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletCryptoAddress(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletCryptoAddress(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletCryptoAddress", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletCryptoWithdraw(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletCryptoWithdraw(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletCryptoWithdraw", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletConvert(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletConvert(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletConvert", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletTransfer(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletTransfer", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletInternalWithdraw(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletInternalWithdraw(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletInternalWithdraw", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletCryptoCheckOffchainAvailable(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletCryptoCheckOffchainAvailable(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletCryptoCheckOffchainAvailable", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletCryptoFeesEstimate(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletCryptoFeesEstimate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
 }
 
-func (this *hitbtc) PrivatePostWalletAirdropsIdClaim(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostWalletAirdropsIdClaim(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
 }
 
-func (this *hitbtc) PrivatePostSubAccountFreeze(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostSubAccountFreeze(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubAccountFreeze", args...)
 }
 
-func (this *hitbtc) PrivatePostSubAccountActivate(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostSubAccountActivate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubAccountActivate", args...)
 }
 
-func (this *hitbtc) PrivatePostSubAccountTransfer(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostSubAccountTransfer(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
 }
 
-func (this *hitbtc) PrivatePostSubAccountAcl(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePostSubAccountAcl(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubAccountAcl", args...)
 }
 
-func (this *hitbtc) PrivatePatchSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePatchSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePatchSpotOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivatePatchMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePatchMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePatchMarginOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivatePatchFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePatchFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePatchFuturesOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateDeleteSpotOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteSpotOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteSpotOrder", args...)
 }
 
-func (this *hitbtc) PrivateDeleteSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteSpotOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteSpotOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateDeleteMarginPosition(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteMarginPosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteMarginPosition", args...)
 }
 
-func (this *hitbtc) PrivateDeleteMarginPositionIsolatedSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteMarginPositionIsolatedSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteMarginPositionIsolatedSymbol", args...)
 }
 
-func (this *hitbtc) PrivateDeleteMarginOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteMarginOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteMarginOrder", args...)
 }
 
-func (this *hitbtc) PrivateDeleteMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteMarginOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteMarginOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateDeleteFuturesPosition(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteFuturesPosition(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteFuturesPosition", args...)
 }
 
-func (this *hitbtc) PrivateDeleteFuturesPositionMarginModeSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteFuturesPositionMarginModeSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteFuturesPositionMarginModeSymbol", args...)
 }
 
-func (this *hitbtc) PrivateDeleteFuturesOrder(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteFuturesOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteFuturesOrder", args...)
 }
 
-func (this *hitbtc) PrivateDeleteFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteFuturesOrderClientOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteFuturesOrderClientOrderId", args...)
 }
 
-func (this *hitbtc) PrivateDeleteWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivateDeleteWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateDeleteWalletCryptoWithdrawId", args...)
 }
 
-func (this *hitbtc) PrivatePutMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePutMarginAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
 }
 
-func (this *hitbtc) PrivatePutFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePutFuturesAccountIsolatedSymbol(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
 }
 
-func (this *hitbtc) PrivatePutWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
+func (this *HitbtcCore) PrivatePutWalletCryptoWithdrawId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePutWalletCryptoWithdrawId", args...)
 }

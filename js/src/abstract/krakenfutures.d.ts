@@ -19,6 +19,7 @@ interface Exchange {
     privateGetPnlpreferences(params?: {}): Promise<implicitReturnType>;
     privateGetAssignmentprogramCurrent(params?: {}): Promise<implicitReturnType>;
     privateGetAssignmentprogramHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetOrdersStatus(params?: {}): Promise<implicitReturnType>;
     privatePostSendorder(params?: {}): Promise<implicitReturnType>;
     privatePostEditorder(params?: {}): Promise<implicitReturnType>;
     privatePostCancelorder(params?: {}): Promise<implicitReturnType>;

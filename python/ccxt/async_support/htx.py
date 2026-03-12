@@ -176,7 +176,7 @@ class htx(Exchange, ImplicitAPI):
                 # },
                 'logo': 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames': {
-                    'contract': 'api.hbdm.com',
+                    'contract': 'api.hbdm.vn',  # alternatively use api.hbdm.com
                     'spot': 'api.huobi.pro',
                     'status': {
                         'spot': 'status.huobigroup.com',
@@ -650,6 +650,20 @@ class htx(Exchange, ImplicitAPI):
                             'linear-swap-api/v3/fix_position_margin_change_record': 1,
                             'linear-swap-api/v3/swap_unified_account_type': 1,
                             'linear-swap-api/v3/linear_swap_overview_account_info': 1,
+                            'v5/account/balance': 1,
+                            'v5/account/asset_mode': 1,
+                            'v5/trade/position/opens': 1,
+                            'v5/trade/order/opens': 1,
+                            'v5/trade/order/details': 1,
+                            'v5/trade/order/history': 1,
+                            'v5/trade/order': 1,
+                            'v5/position/lever': 1,
+                            'v5/position/mode': 1,
+                            'v5/position/risk/limit': 1,
+                            'v5/position/risk/limit_tier': 1,
+                            'v5/market/risk/limit': 1,
+                            'v5/market/assets_deduction_currency': 1,
+                            'v5/market/multi_assets_margin': 1,
                         },
                         'post': {
                             # Future Account Interface
@@ -878,6 +892,17 @@ class htx(Exchange, ImplicitAPI):
                             'linear-swap-api/v1/swap_cross_track_openorders': 1,
                             'linear-swap-api/v1/swap_track_hisorders': 1,
                             'linear-swap-api/v1/swap_cross_track_hisorders': 1,
+                            'v5/account/asset_mode': 1,
+                            'v5/trade/order': 1,
+                            'v5/trade/batch_orders': 1,
+                            'v5/trade/cancel_order': 1,
+                            'v5/trade/cancel_batch_orders': 1,
+                            'v5/trade/cancel_all_orders': 1,
+                            'v5/trade/position': 1,
+                            'v5/trade/position_all': 1,
+                            'v5/position/lever': 1,
+                            'v5/position/mode': 1,
+                            'v5/account/fee_deduction_currency': 1,
                         },
                     },
                 },
@@ -933,6 +958,10 @@ class htx(Exchange, ImplicitAPI):
                     'order-marketorder-amount-min-error': InvalidOrder,  # market order amount error, min: `0.01`
                     'order-limitorder-price-min-error': InvalidOrder,  # limit order price error
                     'order-limitorder-price-max-error': InvalidOrder,  # limit order price error
+                    'order-limitorder-price-buy-min-error': InvalidOrder,  # {"status":"error","err-code":"order-limitorder-price-buy-min-error","err-msg":"The price cannot be lower than 0.0006 USDT","data":null}
+                    'order-limitorder-price-buy-max-error': InvalidOrder,  # limit order price error
+                    'order-limitorder-price-sell-min-error': InvalidOrder,  # limit order price error
+                    'order-limitorder-price-sell-max-error': InvalidOrder,  # limit order price error
                     'order-stop-order-hit-trigger': InvalidOrder,  # {"status":"error","err-code":"order-stop-order-hit-trigger","err-msg":"Orders that are triggered immediately are not supported.","data":null}
                     'order-value-min-error': InvalidOrder,  # {"status":"error","err-code":"order-value-min-error","err-msg":"Order total cannot be lower than: 1 USDT","data":null}
                     'order-invalid-price': InvalidOrder,  # {"status":"error","err-code":"order-invalid-price","err-msg":"invalid price","data":null}
@@ -949,6 +978,7 @@ class htx(Exchange, ImplicitAPI):
                     'base-symbol-error': BadSymbol,  # {"status":"error","err-code":"base-symbol-error","err-msg":"The symbol is invalid","data":null}
                     'system-maintenance': OnMaintenance,  # {"status": "error", "err-code": "system-maintenance", "err-msg": "System is in maintenance!", "data": null}
                     'base-request-exceed-frequency-limit': RateLimitExceeded,  # {"status":"error","err-code":"base-request-exceed-frequency-limit","err-msg":"Frequency of requests has exceeded the limit, please try again later","data":null}
+                    'rate-too-many-requests': RateLimitExceeded,  # {"status":"error","err-code":"rate-too-many-requests","err-msg":"exceeded rate limit","data":null}
                     # err-msg
                     'invalid symbol': BadSymbol,  # {"ts":1568813334794,"status":"error","err-code":"invalid-parameter","err-msg":"invalid symbol"}
                     'symbol trade not open now': BadSymbol,  # {"ts":1576210479343,"status":"error","err-code":"invalid-parameter","err-msg":"symbol trade not open now"}
@@ -1398,7 +1428,7 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available  # contractPublicGetHeartbeat
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
         """
         await self.load_markets()
         marketType = None
@@ -1666,7 +1696,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2225,7 +2255,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2305,7 +2335,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -2529,7 +2559,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2717,7 +2747,15 @@ class htx(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': feeCurrency,
             }
-        id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
+        # htx's multi-market trade-id is a bit complex to parse accordingly.
+        # - for `id` which contains hyphen, it would be the unique id, eg. xxxxxx-1, xxxxxx-2(self happens mostly for contract markets)
+        # - otherwise the least priority is given to the `id` key
+        id: Str = None
+        safeId = self.safe_string(trade, 'id')
+        if safeId is not None and safeId.find('-') >= 0:
+            id = safeId
+        else:
+            id = self.safe_string_n(trade, ['trade_id', 'trade-id', 'id'])
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -2745,7 +2783,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         market = None
         if symbol is not None:
@@ -2768,7 +2806,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         request: dict = {
@@ -2791,7 +2829,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -2945,7 +2983,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -3028,7 +3066,7 @@ class htx(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'amount'),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3164,7 +3202,7 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         await self.load_markets()
         response = await self.spotPrivateGetV1AccountAccounts(params)
@@ -3209,7 +3247,7 @@ class htx(Exchange, ImplicitAPI):
         :param str [marginMode]: 'cross' or 'isolated'
         :param str [symbol]: unified ccxt market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/#/?id=account-structure>` indexed by the account type
+        :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         accounts = await self.load_accounts()
         accountId = self.safe_value_2(params, 'accountId', 'account-id')
@@ -3376,6 +3414,7 @@ class htx(Exchange, ImplicitAPI):
 
     async def fetch_balance(self, params={}) -> Balances:
         """
+        query for balance and get the amount of funds available for trading or funds locked in orders
 
         https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
         https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -3384,34 +3423,37 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
         https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
+        https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
 
-        query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param bool [params.unified]: provide self parameter if you have a recent account with unified cross+isolated margin account
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :param str [params.subType]: linear or future
+        :param bool [params.uta]: provide self parameter if you have a recent account with unified cross+isolated margin account
+        :param bool [params.multiAssetMode]: set to True if you are using multi-asset mode for USDT-margined contracts
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
-        options = self.safe_value(self.options, 'fetchBalance', {})
-        isUnifiedAccount = self.safe_value_2(params, 'isUnifiedAccount', 'unified', False)
-        params = self.omit(params, ['isUnifiedAccount', 'unified'])
+        subType = None
+        isUnifiedAccount = None
+        isMultiAssetMode = None
+        subType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'defaultSubType', 'subType', 'linear')
+        isUnifiedAccount, params = self.handle_option_and_params_2(params, 'fetchBalance', 'unified', 'uta', False)
+        isMultiAssetMode, params = self.handle_option_and_params(params, 'fetchBalance', 'multiAssetMode', False)
         request: dict = {}
         spot = (type == 'spot')
         future = (type == 'future')
-        defaultSubType = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-        subType = self.safe_string_2(options, 'defaultSubType', 'subType', defaultSubType)
-        subType = self.safe_string_2(params, 'defaultSubType', 'subType', subType)
         inverse = (subType == 'inverse')
         linear = (subType == 'linear')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        params = self.omit(params, ['defaultSubType', 'subType'])
         isolated = (marginMode == 'isolated')
         cross = (marginMode == 'cross')
         margin = (type == 'margin') or (spot and (cross or isolated))
         response = None
-        if spot or margin:
+        if isMultiAssetMode:
+            response = await self.contractPrivateGetV5AccountBalance(self.extend(request, params))
+        elif spot or margin:
             if margin:
                 if isolated:
                     response = await self.spotPrivateGetV1MarginAccountsBalance(self.extend(request, params))
@@ -3591,11 +3633,59 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1640915104870
         #     }
         #
-        # TODO add balance parsing for linear swap
+        # multi asset mode
+        #
+        #     {
+        #         "code": 200,
+        #         "message": "Success",
+        #         "data": {
+        #             "state": "normal",
+        #             "equity": "174.216697577770536136",
+        #             "details": [
+        #                 {
+        #                     "currency": "USDT",
+        #                     "equity": "174.216697577770536136",
+        #                     "available": "174.216697577770536136",
+        #                     "profit_unreal": "0",
+        #                     "initial_margin": "0",
+        #                     "maintenance_margin": "0",
+        #                     "maintenance_margin_rate": "0",
+        #                     "initial_margin_rate": "0",
+        #                     "available_margin": "174.216697577770536136",
+        #                     "voucher": "0",
+        #                     "voucher_value": "0",
+        #                     "withdraw_available": "174.216697577770536136",
+        #                     "created_time": 1770293270932,
+        #                     "updated_time": 1770293270932,
+        #                     "isolated_equity": "0",
+        #                     "isolated_profit_unreal": "0"
+        #                 }
+        #             ],
+        #             "initial_margin": "0",
+        #             "maintenance_margin": "0",
+        #             "maintenance_margin_rate": "0",
+        #             "profit_unreal": "0",
+        #             "available_margin": "174.216697577770536136",
+        #             "voucher_value": "0",
+        #             "created_time": 1770293268881,
+        #             "updated_time": 1770293270932
+        #         },
+        #         "ts": 1770293281344
+        #     }
         #
         result: dict = {'info': response}
         data = self.safe_value(response, 'data')
-        if spot or margin:
+        if isMultiAssetMode:
+            details = self.safe_list(data, 'details', [])
+            for i in range(0, len(details)):
+                balance = details[i]
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'withdraw_available')
+                result[code] = account
+            result = self.safe_balance(result)
+        elif spot or margin:
             if isolated:
                 for i in range(0, len(data)):
                     entry = data[i]
@@ -3694,7 +3784,7 @@ class htx(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -4213,7 +4303,7 @@ class htx(Exchange, ImplicitAPI):
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -4246,7 +4336,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -4278,7 +4368,7 @@ class htx(Exchange, ImplicitAPI):
         :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param boolean [params.trailing]: *contract only* set to True if you want to fetch trailing stop orders
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -5008,7 +5098,7 @@ class htx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -5028,7 +5118,7 @@ class htx(Exchange, ImplicitAPI):
         :param float trailingPercent: the percent to trail away from the current market price
         :param float trailingTriggerPrice: the price to activate a trailing order, default uses the price argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if trailingPercent is None:
             raise ArgumentsRequired(self.id + ' createTrailingPercentOrder() requires a trailingPercent argument')
@@ -5209,7 +5299,8 @@ class htx(Exchange, ImplicitAPI):
                 request['client_order_id'] = clientOrderId
                 params = self.omit(params, ['clientOrderId'])
             if type == 'limit' or type == 'ioc' or type == 'fok' or type == 'post_only':
-                request['price'] = self.price_to_precision(symbol, price)
+                if price is not None:
+                    request['price'] = self.price_to_precision(symbol, price)
         reduceOnly = self.safe_bool_2(params, 'reduceOnly', 'reduce_only', False)
         if not isStopLossTriggerOrder and not isTakeProfitTriggerOrder:
             if reduceOnly:
@@ -5264,7 +5355,7 @@ class htx(Exchange, ImplicitAPI):
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :param bool [params.hedged]: *contract only* True for hedged mode, False for one way mode, default is False
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -5403,7 +5494,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         ordersRequests = []
@@ -5516,7 +5607,7 @@ class htx(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: *contract only* if the order is a trigger trigger order or not
         :param boolean [params.stopLossTakeProfit]: *contract only* if the order is a stop-loss or take-profit order
         :param boolean [params.trailing]: *contract only* set to True if you want to cancel a trailing order
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -5630,7 +5721,7 @@ class htx(Exchange, ImplicitAPI):
             'status': 'canceled',
         })
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
         :param str[] ids: order ids
@@ -5638,7 +5729,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param bool [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market: Market = None
@@ -5840,7 +5931,7 @@ class htx(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: *contract only* if the orders are trigger trigger orders or not
         :param boolean [params.stopLossTakeProfit]: *contract only* if the orders are stop-loss or take-profit orders
         :param boolean [params.trailing]: *contract only* set to True if you want to cancel all trailing orders
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -6010,7 +6101,7 @@ class htx(Exchange, ImplicitAPI):
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/#/?id=address-structure>` indexed by the network
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -6043,7 +6134,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -6094,7 +6185,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if limit is None or limit > 100:
             limit = 100
@@ -6150,7 +6241,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         if limit is None or limit > 100:
             limit = 100
@@ -6306,6 +6397,7 @@ class htx(Exchange, ImplicitAPI):
             'repealed': 'failed',
             'wallet-transfer': 'pending',
             'pre-transfer': 'pending',
+            'verifying': 'pending',
         }
         return self.safe_string(statuses, status, status)
 
@@ -6320,7 +6412,7 @@ class htx(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         await self.load_markets()
@@ -6407,7 +6499,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.symbol]: used for isolated margin transfer
         :param str [params.subType]: 'linear' or 'inverse', only used when transfering to/from swap accounts
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -6479,7 +6571,7 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure>`
+        :returns dict: a list of `isolated borrow rate structures <https://docs.ccxt.com/?id=isolated-borrow-rate-structure>`
         """
         await self.load_markets()
         response = await self.spotPrivateGetV1MarginLoanInfo(params)
@@ -6570,7 +6662,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [limit]: not used by huobi, but filtered internally by ccxt
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
@@ -6700,7 +6792,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -6741,7 +6833,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -6796,7 +6888,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch borrrow interest for
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/#/?id=borrow-interest-structure>`
+        :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
         await self.load_markets()
         marginMode = None
@@ -7022,7 +7114,7 @@ class htx(Exchange, ImplicitAPI):
             return None  # fallback to default error handler
         if 'status' in response:
             #
-            #     {"status":"error","err-code":"order-limitorder-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
+            #     {"status":"error","err-code":"o-amount-min-error","err-msg":"limit order amount error, min: `0.001`","data":null}
             #     {"status":"ok","data":{"errors":[{"order_id":"1349442392365359104","err_code":1061,"err_msg":"The order does not exist."}],"successes":""},"ts":1741773744526}
             #
             status = self.safe_string(response, 'status')
@@ -7062,7 +7154,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -7339,7 +7431,7 @@ class htx(Exchange, ImplicitAPI):
         :param str [params.subType]: 'linear' or 'inverse'
         :param str [params.type]: *inverse only* 'future', or 'swap'
         :param str [params.marginMode]: *linear only* 'cross' or 'isolated'
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -7472,7 +7564,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -7781,7 +7873,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         paginate = False
@@ -7849,7 +7941,7 @@ class htx(Exchange, ImplicitAPI):
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/#/?id=leverage-tiers-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
         await self.load_markets()
         response = await self.contractPublicGetLinearSwapApiV1SwapAdjustfactor(params)
@@ -7924,7 +8016,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: Exchange specific parameters
         :param int [params.amount_type]: *required* Open interest unit. 1-cont，2-cryptocurrency
         :param int [params.pair]: eg BTC-USDT *Only for USDT-M*
-        :returns dict: an array of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict: an array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         if timeframe != '1h' and timeframe != '4h' and timeframe != '12h' and timeframe != '1d':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe')
@@ -8033,7 +8125,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: a list of unified CCXT market symbols
         :param dict [params]: exchange specific parameters
-        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/#/?id=open-interest-structure>`
+        :returns dict[]: a list of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -8045,9 +8137,9 @@ class htx(Exchange, ImplicitAPI):
                 market = self.market(first)
         request: dict = {}
         subType = None
-        subType, params = self.handle_sub_type_and_params('fetchPositions', market, params, 'linear')
+        subType, params = self.handle_sub_type_and_params('fetchOpenInterests', market, params, 'linear')
         marketType = None
-        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        marketType, params = self.handle_market_type_and_params('fetchOpenInterests', market, params)
         response = None
         if marketType == 'future':
             response = await self.contractPublicGetApiV1ContractOpenInterest(self.extend(request, params))
@@ -8126,7 +8218,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param dict [params]: exchange specific parameters
-        :returns dict} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure:
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -8297,7 +8389,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -8331,7 +8423,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency to borrow
         :param float amount: the amount to borrow
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -8363,7 +8455,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -8402,7 +8494,7 @@ class htx(Exchange, ImplicitAPI):
         :param str code: unified currency code of the currency to repay
         :param float amount: the amount to repay
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin loan structure <https://docs.ccxt.com/#/?id=margin-loan-structure>`
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
@@ -8479,7 +8571,7 @@ class htx(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms, value range = start_time -> current time，default = current time
         :param int [params.page_index]: page index, default page 1 if not filled
         :param int [params.code]: unified currency code, can be used when symbol is None
-        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/#/?id=settlement-history-structure>`
+        :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument')
@@ -8570,7 +8662,7 @@ class htx(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict[]: a list of `fees structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         await self.load_markets()
         response = await self.spotPublicGetV2ReferenceCurrencies(params)
@@ -8779,7 +8871,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters for the huobi api endpoint
         :param int [params.until]: timestamp in ms of the latest liquidation
         :param int [params.tradeType]: default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
-        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/#/?id=liquidation-structure>`
+        :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -8878,7 +8970,7 @@ class htx(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param number [params.amount]: order quantity
         :param str [params.order_price_type]: 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
-        :returns dict: `an order structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict: `an order structure <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

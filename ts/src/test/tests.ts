@@ -87,6 +87,15 @@ class testMainClass {
     }
 
     async init (exchangeId, symbolArgv, methodArgv) {
+        try {
+            await this.initInner (exchangeId, symbolArgv, methodArgv);
+        } catch (e) {
+            dump ('[TEST_FAILURE]'); // tell run-tests.js this is failure
+            throw e;
+        }
+    }
+
+    async initInner (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgsAndProps ();
 
         if (this.requestTests && this.responseTests) {
@@ -116,6 +125,7 @@ class testMainClass {
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
         if (exchange.alias) {
+            dump (this.addPadding ("[INFO] skipping alias", 25));
             exitScript (0);
         }
         await this.importFiles (exchange);
@@ -436,6 +446,7 @@ class testMainClass {
                     // If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if (isPublic && isAuthError) {
                         if (this.info) {
+                            // todo - turn into warning
                             dump ('[INFO]', 'Authentication problem for public method', exceptionMessage (e), exchange.id, methodName, argsStringified);
                         }
                         return true;
@@ -1580,6 +1591,7 @@ class testMainClass {
             this.testCryptomus (),
             this.testDerive (),
             this.testModeTrade (),
+            this.testBackpack ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1622,6 +1634,19 @@ class testMainClass {
         // inverse swap
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
+        // linear swap conditional order
+        let swapAlgoOrderRequest = undefined;
+        try {
+            await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
+            const checkOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+            const algoOrderIdDefined = (checkOrderRequest['algoOrderId'] !== undefined);
+            assert (algoOrderIdDefined, 'binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined');
+            const clientAlgoIdSwap = swapAlgoOrderRequest['clientAlgoId'];
+            const swapAlgoIdString = swapId.toString ();
+            assert (clientAlgoIdSwap.startsWith (swapAlgoIdString), 'binance - swap clientOrderId: ' + clientAlgoIdSwap + ' does not start with swapId' + swapAlgoIdString);
+        } catch (e) {
+            swapAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
+        }
         let createOrdersRequest = undefined;
         try {
             const orders = [
@@ -2196,6 +2221,25 @@ class testMainClass {
         }
         const brokerId = request['order_tag'];
         assert (brokerId === id, 'modetrade - id: ' + id + ' different from  broker_id: ' + brokerId);
+        if (!isSync ()) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testBackpack () {
+        const exchange = this.initOfflineExchange ('backpack');
+        exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
+        exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
+        let reqHeaders = undefined;
+        const id = '1400';
+        try {
+            await exchange.createOrder ('ETH/USDC', 'limit', 'buy', 1, 5000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['X-Broker-Id'] === id, 'backpack - id: ' + id + ' not in headers.');
         if (!isSync ()) {
             await close (exchange);
         }

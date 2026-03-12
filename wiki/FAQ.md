@@ -81,10 +81,72 @@
 
 
   ## How to create an order with takeProfit+stopLoss?
-  To create an order with both takeProfit and stopLoss parameters, you'll need to use a method that supports setting these parameters directly if the exchange allows it. You can check by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`.
+  Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
 
-  Some exchanges might require you to create separate orders for takeProfit and stopLoss. For exchanges that support it directly, you would typically use the createOrder method with additional parameters for takeProfit and stopLoss.
-  See more at [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position)
+  ## What is the difference between `takeProfit/stopLoss` and `takeProfitPrice/stopLossPrice` orders
+
+  At CCXT, we distinguish between several types of takeProfit/stopLoss orders. If you want to place an order that opens a position and simultaneously attaches a take-profit or stop-loss order within the same request (provided the exchange supports this feature), you should use the `takeProfit/stopLoss` syntax.
+  We refer to these attached TP/SL orders **type 3**.
+
+  Example:
+  ```Python
+    params = {
+      'stopLoss': {
+          'triggerPrice': 12.34,  # at what price it will trigger
+          'price': 12.00,  # if exchange supports, 'price' param would be limit price (for market orders, don't include this param)
+        },
+        'takeProfit': {
+            # similar params here
+        }
+    }
+    order = exchange.create_order ('SOL/USDT', 'limit', 'buy', 0.5, 13, params)
+  ```
+
+  If the exchange does not support these attached orders, or you want to place an independent order that will act as a stop Loss/take profit order then you can place a `stopLossPrice` **or** `takeProfitPrice` order, we call these independent sl/tp orders **type 2**.
+
+  Example
+  ```Python
+      symbol = 'ADA/USDT:USDT'
+      main_order = await binance.create_order(symbol, 'market', 'buy', 50) # open position
+      tp_order = await binance.create_order(symbol, 'limit', 'sell', 50, 1.5, {"takeProfitPrice": 1.6}) # take profit order
+      sl_order = await binance.create_order(symbol, 'limit', 'sell', 50, 0.24, {"stopLossPrice": 0.25}) # stop loss order
+  ```
+
+ ## How do trailing orders work?
+  Some exchanges support using `createOrder` to create a `trailingPercent` or `trailingAmount` order - view: [Trailing Orders](Manual.md#trailing-orders)
+  
+  Trailing orders follow behind the current market price by either a percentange or a quote amount. The order trails in one direction but not the other so that it can eventually be executed. The executed order can be a market order or a limit order. A trailing order can usually be placed to open a position, or combined with the `reduceOnly` parameter set to true in order to close a position. These details about what orders are allowed depends on the exchange. Trailing orders often support a `trailingTriggerPrice` parameter and if the current market price crosses that value it will start the trailing function set by `trailingPercent` or `trailingAmount`.
+  
+  Some exchanges might not support this trailing feature. You can check the `.features` property. You can also check if `createOrder` on the exchange you're using has `trailingPercent` or `trailingAmount` as an available parameter in the docstring. Some exchanges might have `exchange.has['createTrailingPercentOrder']`, or `exchange.has['createTrailingAmountOrder']` set to true, which signals that the `trailingPercent` or `trailingAmount` parameters are available in `createOrder`.
+
+  Examples of creating `trailingPercent` and `trailingAmount` orders:
+  ```Python
+    params = {
+      'trailingPercent': 1.0, # percentage away from the current market price, 1.0 means 1%
+      # 'trailingAmount': 100.0, # quote amount away from the current market price, for a SOL/USDT pair this is 100 USDT away from the current market price.
+      # 'trailingTriggerPrice': 44500.0, # the price to trigger activating a trailing stop order
+      'reduceOnly': True, # set to true if you want to close a position, set to false if you want to open a new position
+    }
+    order = exchange.create_order ('SOL/USDT:USDT', 'market', 'sell', 0.5, None, params)
+  ```
+  ```Python
+    trailingAmount = 100.0
+    trailingTriggerPrice = 115.0
+    params = {
+        'reduceOnly': True,
+    }
+    order = exchange.create_trailing_amount_order ('SOL/USDT:USDT', 'market', 'sell', 0.5, None, trailingAmount, trailingTriggerPrice, params)
+  ```
+  ```Python
+    trailingPercent = 1.0
+    trailingTriggerPrice = 115.0
+    params = {
+        'reduceOnly': False,
+    }
+    order = exchange.create_trailing_percent_order ('SOL/USDT:USDT', 'limit', 'buy', 0.5, 13, trailingPercent, trailingTriggerPrice, params)
+  ```
 
   ## How to create a spot market buy with cost?
   To create a market-buy order with cost, first, you need to check if the exchange supports that feature (`exchange.has['createMarketBuyOrderWithCost']).
@@ -129,6 +191,40 @@ Alternatively, you can use the functions `createMarketBuyOrderWithCost`/ `create
   print(market['contractSize'])
   ```
 
+  ## Why am I getting an error that says "must be greater than minimum amount precision of 1"?
+  This is a common error that happens when creating orders for contract markets. This error happens when the exchange is expecting a natural number of contracts (1,2,3, etc) in the amount argument of createOrder.
+  
+  Each contract is worth a certain amount of the base asset, determined by the contractSize. You can retrieve the contractSize from a symbols market structure like this:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  print(market['contractSize'])
+  ```
+
+  If you create an order with `amount = 1`, the amount of the base asset that is used for the order will vary depending on the symbols `contractSize`.
+
+  Below is a formula and example to find the number of `contracts` that you should use for the amount argument if you want to use 0.5 of the base asset:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Converting a 0.5 base amount to the number of contracts:
+  # Formula: contracts = (base amount / contract size)
+  contracts = round(0.5 / market['contractSize'])
+  ```
+
+  Here is an example of finding the base amount that will be used with an amount argument of 1 contract:
+  ```Python
+  await exchange.loadMarkets()
+  symbol = 'SOL/USDT:USDT'
+  market = exchange.market(symbol)
+  # Finding the base amount that will be used with 1 contract:
+  # Formula: base amount = (contracts * contract size)
+  contracts = 1
+  base_amount = (contracts * market['contractSize'])
+  ```
+
   ## How to place a reduceOnly order?
   A reduceOnly order is a type of order that can only reduce a position, not increase it. To place a reduceOnly order, you typically use the createOrder method with a reduceOnly parameter set to true. This ensures that the order will only execute if it decreases the size of an open position, and it will either partially fill or not fill at all if executing it would increase the position size.
 
@@ -156,8 +252,6 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 ```
 <!-- tabs:end -->
 
-
-  See more: [Trailing Orders](Manual.md#trailing-orders)
 
   ## How to check the endpoint used by the unified method?
   To check the endpoint used by a unified method in the CCXT library, you would typically need to refer to the source code of the library for the specific exchange implementation you're interested in. The unified methods in CCXT abstract away the details of the specific endpoints they interact with, so this information is not directly exposed via the library's API. For detailed inspection, you can look at the implementation of the method for the particular exchange in the CCXT library's source code on GitHub.

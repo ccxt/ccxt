@@ -18,8 +18,11 @@ func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties interfac
 		var numInactiveCurrencies interface{} = 0
 		var maxInactiveCurrenciesPercentage interface{} = exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50) // no more than X% currencies should be inactive
 		var requiredActiveCurrencies interface{} = []interface{}{"BTC", "ETH", "USDT", "USDC"}
-		// todo: remove undefined check
-		if IsTrue(!IsEqual(currencies, nil)) {
+		var features interface{} = exchange.GetFeatures()
+		var featuresSpot interface{} = exchange.SafeDict(features, "spot", map[string]interface{}{})
+		var fetchCurrencies interface{} = exchange.SafeDict(featuresSpot, "fetchCurrencies", map[string]interface{}{})
+		var isFetchCurrenciesPrivate interface{} = exchange.SafeValue(fetchCurrencies, "private", false)
+		if !IsTrue(isFetchCurrenciesPrivate) {
 			var values interface{} = ObjectValues(currencies)
 			AssertNonEmtpyArray(exchange, skippedProperties, method, values)
 			var currenciesLength interface{} = GetArrayLength(values)

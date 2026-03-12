@@ -237,7 +237,7 @@ function createImplicitMethodsGo(){
 
         const methods = methodNames.map(method=> {
             return [
-                `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+                `func (this *${capitalize(exchange)}Core) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
                 `   return this.callEndpointAsync("${method}", args...)`,
                 `}`,
                 ``,

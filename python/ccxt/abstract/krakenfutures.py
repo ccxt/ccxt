@@ -20,6 +20,7 @@ class ImplicitAPI:
     private_get_pnlpreferences = privateGetPnlpreferences = Entry('pnlpreferences', 'private', 'GET', {})
     private_get_assignmentprogram_current = privateGetAssignmentprogramCurrent = Entry('assignmentprogram/current', 'private', 'GET', {})
     private_get_assignmentprogram_history = privateGetAssignmentprogramHistory = Entry('assignmentprogram/history', 'private', 'GET', {})
+    private_get_orders_status = privateGetOrdersStatus = Entry('orders/status', 'private', 'GET', {})
     private_post_sendorder = privatePostSendorder = Entry('sendorder', 'private', 'POST', {})
     private_post_editorder = privatePostEditorder = Entry('editorder', 'private', 'POST', {})
     private_post_cancelorder = privatePostCancelorder = Entry('cancelorder', 'private', 'POST', {})

@@ -7,374 +7,374 @@
 
 package ccxt
 
-func (this *ndax) PublicGetActivate2FA(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetActivate2FA(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetActivate2FA", args...)
 }
 
-func (this *ndax) PublicGetAuthenticate2FA(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetAuthenticate2FA(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAuthenticate2FA", args...)
 }
 
-func (this *ndax) PublicGetAuthenticateUser(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetAuthenticateUser(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAuthenticateUser", args...)
 }
 
-func (this *ndax) PublicGetGetL2Snapshot(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetL2Snapshot(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetL2Snapshot", args...)
 }
 
-func (this *ndax) PublicGetGetLevel1(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetLevel1(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetLevel1", args...)
 }
 
-func (this *ndax) PublicGetGetValidate2FARequiredEndpoints(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetValidate2FARequiredEndpoints(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetValidate2FARequiredEndpoints", args...)
 }
 
-func (this *ndax) PublicGetLogOut(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetLogOut(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetLogOut", args...)
 }
 
-func (this *ndax) PublicGetGetTickerHistory(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetTickerHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetTickerHistory", args...)
 }
 
-func (this *ndax) PublicGetGetProduct(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetProduct(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetProduct", args...)
 }
 
-func (this *ndax) PublicGetGetProducts(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetProducts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetProducts", args...)
 }
 
-func (this *ndax) PublicGetGetInstrument(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetInstrument(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetInstrument", args...)
 }
 
-func (this *ndax) PublicGetGetInstruments(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetInstruments(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetInstruments", args...)
 }
 
-func (this *ndax) PublicGetPing(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetPing(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetPing", args...)
 }
 
-func (this *ndax) PublicGetTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *ndax) PublicGetGetLastTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetGetLastTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetGetLastTrades", args...)
 }
 
-func (this *ndax) PublicGetSubscribeLevel1(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetSubscribeLevel1(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetSubscribeLevel1", args...)
 }
 
-func (this *ndax) PublicGetSubscribeLevel2(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetSubscribeLevel2(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetSubscribeLevel2", args...)
 }
 
-func (this *ndax) PublicGetSubscribeTicker(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetSubscribeTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetSubscribeTicker", args...)
 }
 
-func (this *ndax) PublicGetSubscribeTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetSubscribeTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetSubscribeTrades", args...)
 }
 
-func (this *ndax) PublicGetSubscribeBlockTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetSubscribeBlockTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetSubscribeBlockTrades", args...)
 }
 
-func (this *ndax) PublicGetUnsubscribeBlockTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetUnsubscribeBlockTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetUnsubscribeBlockTrades", args...)
 }
 
-func (this *ndax) PublicGetUnsubscribeLevel1(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetUnsubscribeLevel1(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetUnsubscribeLevel1", args...)
 }
 
-func (this *ndax) PublicGetUnsubscribeLevel2(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetUnsubscribeLevel2(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetUnsubscribeLevel2", args...)
 }
 
-func (this *ndax) PublicGetUnsubscribeTicker(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetUnsubscribeTicker(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetUnsubscribeTicker", args...)
 }
 
-func (this *ndax) PublicGetUnsubscribeTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetUnsubscribeTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetUnsubscribeTrades", args...)
 }
 
-func (this *ndax) PublicGetAuthenticate(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PublicGetAuthenticate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("publicGetAuthenticate", args...)
 }
 
-func (this *ndax) PrivateGetGetUserAccountInfos(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserAccountInfos(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserAccountInfos", args...)
 }
 
-func (this *ndax) PrivateGetGetUserAccounts(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserAccounts(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserAccounts", args...)
 }
 
-func (this *ndax) PrivateGetGetUserAffiliateCount(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserAffiliateCount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserAffiliateCount", args...)
 }
 
-func (this *ndax) PrivateGetGetUserAffiliateTag(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserAffiliateTag(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserAffiliateTag", args...)
 }
 
-func (this *ndax) PrivateGetGetUserConfig(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserConfig(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserConfig", args...)
 }
 
-func (this *ndax) PrivateGetGetAllUnredactedUserConfigsForUser(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAllUnredactedUserConfigsForUser(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAllUnredactedUserConfigsForUser", args...)
 }
 
-func (this *ndax) PrivateGetGetUnredactedUserConfigByKey(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUnredactedUserConfigByKey(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUnredactedUserConfigByKey", args...)
 }
 
-func (this *ndax) PrivateGetGetUserDevices(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserDevices(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserDevices", args...)
 }
 
-func (this *ndax) PrivateGetGetUserReportTickets(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserReportTickets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserReportTickets", args...)
 }
 
-func (this *ndax) PrivateGetGetUserReportWriterResultRecords(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetUserReportWriterResultRecords(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetUserReportWriterResultRecords", args...)
 }
 
-func (this *ndax) PrivateGetGetAccountInfo(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAccountInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAccountInfo", args...)
 }
 
-func (this *ndax) PrivateGetGetAccountPositions(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAccountPositions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAccountPositions", args...)
 }
 
-func (this *ndax) PrivateGetGetAllAccountConfigs(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAllAccountConfigs(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAllAccountConfigs", args...)
 }
 
-func (this *ndax) PrivateGetGetTreasuryProductsForAccount(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetTreasuryProductsForAccount(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetTreasuryProductsForAccount", args...)
 }
 
-func (this *ndax) PrivateGetGetAccountTrades(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAccountTrades(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAccountTrades", args...)
 }
 
-func (this *ndax) PrivateGetGetAccountTransactions(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAccountTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAccountTransactions", args...)
 }
 
-func (this *ndax) PrivateGetGetOpenTradeReports(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOpenTradeReports(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOpenTradeReports", args...)
 }
 
-func (this *ndax) PrivateGetGetAllOpenTradeReports(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAllOpenTradeReports(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAllOpenTradeReports", args...)
 }
 
-func (this *ndax) PrivateGetGetTradesHistory(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetTradesHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetTradesHistory", args...)
 }
 
-func (this *ndax) PrivateGetGetOpenOrders(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOpenOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOpenOrders", args...)
 }
 
-func (this *ndax) PrivateGetGetOpenQuotes(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOpenQuotes(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOpenQuotes", args...)
 }
 
-func (this *ndax) PrivateGetGetOrderFee(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOrderFee(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOrderFee", args...)
 }
 
-func (this *ndax) PrivateGetGetOrderHistory(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOrderHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOrderHistory", args...)
 }
 
-func (this *ndax) PrivateGetGetOrdersHistory(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOrdersHistory(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOrdersHistory", args...)
 }
 
-func (this *ndax) PrivateGetGetOrderStatus(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOrderStatus(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOrderStatus", args...)
 }
 
-func (this *ndax) PrivateGetGetOmsFeeTiers(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOmsFeeTiers(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOmsFeeTiers", args...)
 }
 
-func (this *ndax) PrivateGetGetAccountDepositTransactions(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAccountDepositTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAccountDepositTransactions", args...)
 }
 
-func (this *ndax) PrivateGetGetAccountWithdrawTransactions(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAccountWithdrawTransactions(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAccountWithdrawTransactions", args...)
 }
 
-func (this *ndax) PrivateGetGetAllDepositRequestInfoTemplates(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetAllDepositRequestInfoTemplates(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetAllDepositRequestInfoTemplates", args...)
 }
 
-func (this *ndax) PrivateGetGetDepositInfo(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetDepositInfo(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetDepositInfo", args...)
 }
 
-func (this *ndax) PrivateGetGetDepositRequestInfoTemplate(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetDepositRequestInfoTemplate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetDepositRequestInfoTemplate", args...)
 }
 
-func (this *ndax) PrivateGetGetDeposits(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetDeposits(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetDeposits", args...)
 }
 
-func (this *ndax) PrivateGetGetDepositTicket(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetDepositTicket(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetDepositTicket", args...)
 }
 
-func (this *ndax) PrivateGetGetDepositTickets(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetDepositTickets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetDepositTickets", args...)
 }
 
-func (this *ndax) PrivateGetGetOMSWithdrawFees(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetOMSWithdrawFees(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetOMSWithdrawFees", args...)
 }
 
-func (this *ndax) PrivateGetGetWithdrawFee(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetWithdrawFee(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetWithdrawFee", args...)
 }
 
-func (this *ndax) PrivateGetGetWithdraws(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetWithdraws(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetWithdraws", args...)
 }
 
-func (this *ndax) PrivateGetGetWithdrawTemplate(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetWithdrawTemplate(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetWithdrawTemplate", args...)
 }
 
-func (this *ndax) PrivateGetGetWithdrawTemplateTypes(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetWithdrawTemplateTypes(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetWithdrawTemplateTypes", args...)
 }
 
-func (this *ndax) PrivateGetGetWithdrawTicket(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetWithdrawTicket(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetWithdrawTicket", args...)
 }
 
-func (this *ndax) PrivateGetGetWithdrawTickets(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivateGetGetWithdrawTickets(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateGetGetWithdrawTickets", args...)
 }
 
-func (this *ndax) PrivatePostAddUserAffiliateTag(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostAddUserAffiliateTag(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostAddUserAffiliateTag", args...)
 }
 
-func (this *ndax) PrivatePostCancelUserReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCancelUserReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCancelUserReport", args...)
 }
 
-func (this *ndax) PrivatePostRegisterNewDevice(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostRegisterNewDevice(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostRegisterNewDevice", args...)
 }
 
-func (this *ndax) PrivatePostSubscribeAccountEvents(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostSubscribeAccountEvents(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubscribeAccountEvents", args...)
 }
 
-func (this *ndax) PrivatePostUpdateUserAffiliateTag(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostUpdateUserAffiliateTag(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUpdateUserAffiliateTag", args...)
 }
 
-func (this *ndax) PrivatePostGenerateTradeActivityReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostGenerateTradeActivityReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostGenerateTradeActivityReport", args...)
 }
 
-func (this *ndax) PrivatePostGenerateTransactionActivityReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostGenerateTransactionActivityReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostGenerateTransactionActivityReport", args...)
 }
 
-func (this *ndax) PrivatePostGenerateTreasuryActivityReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostGenerateTreasuryActivityReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostGenerateTreasuryActivityReport", args...)
 }
 
-func (this *ndax) PrivatePostScheduleTradeActivityReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostScheduleTradeActivityReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostScheduleTradeActivityReport", args...)
 }
 
-func (this *ndax) PrivatePostScheduleTransactionActivityReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostScheduleTransactionActivityReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostScheduleTransactionActivityReport", args...)
 }
 
-func (this *ndax) PrivatePostScheduleTreasuryActivityReport(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostScheduleTreasuryActivityReport(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostScheduleTreasuryActivityReport", args...)
 }
 
-func (this *ndax) PrivatePostCancelAllOrders(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCancelAllOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCancelAllOrders", args...)
 }
 
-func (this *ndax) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCancelOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *ndax) PrivatePostCancelQuote(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCancelQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCancelQuote", args...)
 }
 
-func (this *ndax) PrivatePostCancelReplaceOrder(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCancelReplaceOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCancelReplaceOrder", args...)
 }
 
-func (this *ndax) PrivatePostCreateQuote(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCreateQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCreateQuote", args...)
 }
 
-func (this *ndax) PrivatePostModifyOrder(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostModifyOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostModifyOrder", args...)
 }
 
-func (this *ndax) PrivatePostSendOrder(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostSendOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSendOrder", args...)
 }
 
-func (this *ndax) PrivatePostSubmitBlockTrade(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostSubmitBlockTrade(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubmitBlockTrade", args...)
 }
 
-func (this *ndax) PrivatePostUpdateQuote(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostUpdateQuote(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostUpdateQuote", args...)
 }
 
-func (this *ndax) PrivatePostCancelWithdraw(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCancelWithdraw(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCancelWithdraw", args...)
 }
 
-func (this *ndax) PrivatePostCreateDepositTicket(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCreateDepositTicket(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCreateDepositTicket", args...)
 }
 
-func (this *ndax) PrivatePostCreateWithdrawTicket(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostCreateWithdrawTicket(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostCreateWithdrawTicket", args...)
 }
 
-func (this *ndax) PrivatePostSubmitDepositTicketComment(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostSubmitDepositTicketComment(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubmitDepositTicketComment", args...)
 }
 
-func (this *ndax) PrivatePostSubmitWithdrawTicketComment(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostSubmitWithdrawTicketComment(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostSubmitWithdrawTicketComment", args...)
 }
 
-func (this *ndax) PrivatePostGetOrderHistoryByOrderId(args ...interface{}) <-chan interface{} {
+func (this *NdaxCore) PrivatePostGetOrderHistoryByOrderId(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privatePostGetOrderHistoryByOrderId", args...)
 }

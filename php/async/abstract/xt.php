@@ -464,7 +464,7 @@ abstract class xt extends \ccxt\async\Exchange {
         return $this->request('user/account/api-key', array('private', 'user'), 'PUT', $params, null, null, array("cost" => 1));
     }
     public function private_user_delete_user_account_apikeyid($params = array()) {
-        return $this->request('user/account/{apikeyId}', array('private', 'user'), 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('user/account/{apiKeyId}', array('private', 'user'), 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function publicSpotGetCurrencies($params = array()) {
         return $this->request('currencies', array('public', 'spot'), 'GET', $params, null, null, array("cost" => 1));
@@ -922,7 +922,7 @@ abstract class xt extends \ccxt\async\Exchange {
     public function privateUserPutUserAccountApiKey($params = array()) {
         return $this->request('user/account/api-key', array('private', 'user'), 'PUT', $params, null, null, array("cost" => 1));
     }
-    public function privateUserDeleteUserAccountApikeyId($params = array()) {
-        return $this->request('user/account/{apikeyId}', array('private', 'user'), 'DELETE', $params, null, null, array("cost" => 1));
+    public function privateUserDeleteUserAccountApiKeyId($params = array()) {
+        return $this->request('user/account/{apiKeyId}', array('private', 'user'), 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

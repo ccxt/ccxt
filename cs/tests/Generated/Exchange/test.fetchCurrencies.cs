@@ -15,8 +15,11 @@ public partial class testMainClass : BaseTest
         object numInactiveCurrencies = 0;
         object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
         object requiredActiveCurrencies = new List<object>() {"BTC", "ETH", "USDT", "USDC"};
-        // todo: remove undefined check
-        if (isTrue(!isEqual(currencies, null)))
+        object features = exchange.features;
+        object featuresSpot = exchange.safeDict(features, "spot", new Dictionary<string, object>() {});
+        object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new Dictionary<string, object>() {});
+        object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
+        if (!isTrue(isFetchCurrenciesPrivate))
         {
             object values = new List<object>(((IDictionary<string,object>)currencies).Values);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values);

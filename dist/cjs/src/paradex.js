@@ -71,9 +71,9 @@ class paradex extends paradex$1["default"] {
                 'fetchDeposits': true,
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
-                'fetchFundingHistory': false,
+                'fetchFundingHistory': true,
                 'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': false,
@@ -383,7 +383,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://docs.api.testnet.paradex.trade/#get-system-time-unix-milliseconds
+     * @see https://docs.paradex.trade/api/prod/system/get-time-unix-milliseconds
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -400,9 +400,9 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://docs.api.testnet.paradex.trade/#get-system-state
+     * @see https://docs.paradex.trade/api/prod/system/get-state
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus(params = {}) {
         const response = await this.publicGetSystemState(params);
@@ -424,7 +424,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchMarkets
      * @description retrieves data on all markets for bitget
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -624,13 +624,14 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.api.testnet.paradex.trade/#ohlcv-for-a-symbol
+     * @see https://docs.paradex.trade/api/prod/markets/klines
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+     * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -643,7 +644,11 @@ class paradex extends paradex$1["default"] {
         const now = this.milliseconds();
         const duration = this.parseTimeframe(timeframe);
         const until = this.safeInteger2(params, 'until', 'till', now);
-        params = this.omit(params, ['until', 'till']);
+        const price = this.safeString(params, 'price');
+        if (price !== undefined) {
+            request['price_kind'] = price;
+        }
+        params = this.omit(params, ['until', 'till', 'price']);
         if (since !== undefined) {
             request['start_at'] = since;
             if (limit !== undefined) {
@@ -704,10 +709,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -744,10 +749,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -836,11 +841,11 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.api.testnet.paradex.trade/#get-market-orderbook
+     * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -878,14 +883,14 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.api.testnet.paradex.trade/#trade-tape
+     * @see https://docs.paradex.trade/api/prod/trades/trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -997,10 +1002,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchOpenInterest
      * @description retrieves the open interest of a contract trading pair
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string} symbol unified CCXT market symbol
      * @param {object} [params] exchange specific parameters
-     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
         await this.loadMarkets();
@@ -1350,7 +1355,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#createOrder
      * @description create a trade order
-     * @see https://docs.api.prod.paradex.trade/#create-order
+     * @see https://docs.paradex.trade/api/prod/orders/new
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1365,7 +1370,7 @@ class paradex extends paradex$1["default"] {
      * @param {bool} [params.postOnly] true or false
      * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.authenticateRest();
@@ -1516,13 +1521,13 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#cancelOrder
      * @description cancels an open order
-     * @see https://docs.api.prod.paradex.trade/#cancel-order
-     * @see https://docs.api.prod.paradex.trade/#cancel-open-order-by-client-order-id
+     * @see https://docs.paradex.trade/api/prod/orders/cancel
+     * @see https://docs.paradex.trade/api/prod/orders/cancel-by-client-id
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.authenticateRest();
@@ -1547,10 +1552,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#cancelAllOrders
      * @description cancel all open orders in a market
-     * @see https://docs.api.prod.paradex.trade/#cancel-all-open-orders
+     * @see https://docs.paradex.trade/api/prod/orders/cancel-all
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1572,13 +1577,13 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://docs.api.prod.paradex.trade/#get-order
-     * @see https://docs.api.prod.paradex.trade/#get-order-by-client-id
+     * @see https://docs.paradex.trade/api/prod/orders/get
+     * @see https://docs.paradex.trade/api/prod/orders/get-by-client-id
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.authenticateRest();
@@ -1627,7 +1632,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.api.prod.paradex.trade/#get-orders
+     * @see https://docs.paradex.trade/api/prod/orders/get-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1635,7 +1640,7 @@ class paradex extends paradex$1["default"] {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @param {int} params.until timestamp in ms of the latest order to fetch
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
@@ -1707,12 +1712,12 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-orders
+     * @see https://docs.paradex.trade/api/prod/orders/get-open-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
@@ -1763,9 +1768,9 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.api.prod.paradex.trade/#list-balances
+     * @see https://docs.paradex.trade/api/prod/account/get-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.authenticateRest();
@@ -1801,14 +1806,14 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://docs.api.prod.paradex.trade/#list-fills
+     * @see https://docs.paradex.trade/api/prod/account/list-fills
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
@@ -1838,7 +1843,7 @@ class paradex extends paradex$1["default"] {
         //         "prev": null,
         //         "results": [
         //             {
-        //                 "id": "1718947571560201703986670001",
+        //                 "id": "1718947571560201703986670002",
         //                 "side": "BUY",
         //                 "liquidity": "TAKER",
         //                 "market": "BTC-USD-PERP",
@@ -1865,10 +1870,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchPosition
      * @description fetch data on an open position
-     * @see https://docs.api.prod.paradex.trade/#list-open-positions
+     * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
         await this.authenticateRest();
@@ -1881,10 +1886,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchPositions
      * @description fetch all open positions
-     * @see https://docs.api.prod.paradex.trade/#list-open-positions
+     * @see https://docs.paradex.trade/api/prod/account/get-positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.authenticateRest();
@@ -1980,13 +1985,13 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchLiquidations
      * @description retrieves the public liquidations of a trading pair
-     * @see https://docs.api.prod.paradex.trade/#list-liquidations
+     * @see https://docs.paradex.trade/api/prod/liquidations/get-liquidations
      * @param {string} symbol unified CCXT market symbol
      * @param {int} [since] the earliest time in ms to fetch liquidations for
      * @param {int} [limit] the maximum number of liquidation structures to retrieve
      * @param {object} [params] exchange specific parameters for the huobi api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
@@ -2038,14 +2043,14 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchTransfers
      * @description fetch all deposits made to an account
-     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+     * @see https://docs.paradex.trade/api/prod/transfers/get
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
@@ -2099,14 +2104,14 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.api.prod.paradex.trade/#paradex-rest-api-transfers
+     * @see https://docs.paradex.trade/api/prod/transfers/get
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch withdrawals for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticateRest();
@@ -2221,10 +2226,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchMarginMode
      * @description fetches the margin mode of a specific symbol
-     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @see https://docs.paradex.trade/api/prod/account/get-account-margin
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
+     * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
         await this.authenticateRest();
@@ -2263,7 +2268,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#setMarginMode
      * @description set margin mode to 'cross' or 'isolated'
-     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
      * @param {string} marginMode 'cross' or 'isolated'
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2288,10 +2293,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://docs.api.testnet.paradex.trade/#get-account-margin-configuration
+     * @see https://docs.paradex.trade/api/prod/account/get-account-margin
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.authenticateRest();
@@ -2339,7 +2344,7 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#setLeverage
      * @description set the level of leverage for a market
-     * @see https://docs.api.testnet.paradex.trade/#set-margin-configuration
+     * @see https://docs.paradex.trade/api/prod/account/upsert-account-margin
      * @param {float} leverage the rate of leverage
      * @param {string} [symbol] unified market symbol (is mandatory for swap markets)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2364,10 +2369,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchGreeks
      * @description fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string} symbol unified symbol of the market to fetch greeks for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
         await this.loadMarkets();
@@ -2418,10 +2423,10 @@ class paradex extends paradex$1["default"] {
      * @method
      * @name paradex#fetchAllGreeks
      * @description fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
-     * @see https://docs.api.testnet.paradex.trade/#list-available-markets-summary
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
+     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -2526,6 +2531,76 @@ class paradex extends paradex$1["default"] {
             'underlyingPrice': this.safeNumber(greeks, 'underlying_price'),
             'info': greeks,
         };
+    }
+    /**
+     * @method
+     * @name paradex#fetchFundingRateHistory
+     * @description fetches historical funding rate prices
+     * @see https://docs.paradex.trade/api/prod/markets/get-funding-data
+     * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+     * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+     * @param {int} [limit] the maximum amount of funding rate structures
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+     */
+    async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'market': market['id'],
+        };
+        if (limit !== undefined) {
+            request['page_size'] = Math.min(limit, 5000); // api maximum 5000
+        }
+        else {
+            request['page_size'] = 1000; // max is 5000
+        }
+        if (since !== undefined) {
+            request['start_at'] = since;
+        }
+        const until = this.safeInteger(params, 'until');
+        if (until !== undefined) {
+            params = this.omit(params, 'until');
+            request['end_at'] = until;
+        }
+        const response = await this.publicGetFundingData(this.extend(request, params));
+        //
+        // {
+        //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
+        //     "prev": "eyJmaWx0ZXIiOnsiTGltaXQiOjkwfSwidGltZSI6MTY4MTY3OTgzNzk3MTMwOTk1MywibWFya2VyIjp7Im1zMjExMD==",
+        //     "results": [
+        //          {
+        //              "market":"BTC-USD-PERP",
+        //              "funding_index":"20511.93608234044552",
+        //              "funding_premium":"-6.04646651485986656",
+        //              "funding_rate":"-0.00006992598926",
+        //              "funding_rate_8h":"",
+        //              "funding_period_hours":0,
+        //              "created_at":1764160327843
+        //          }
+        //     ]
+        // }
+        //
+        const results = this.safeList(response, 'results', []);
+        const rates = [];
+        for (let i = 0; i < results.length; i++) {
+            const rate = results[i];
+            const timestamp = this.safeInteger(rate, 'created_at');
+            const datetime = this.iso8601(timestamp);
+            rates.push({
+                'info': rate,
+                'symbol': market['symbol'],
+                'fundingRate': this.safeNumber(rate, 'funding_rate'),
+                'timestamp': timestamp,
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy(rates, 'timestamp');
+        return this.filterBySymbolSinceLimit(sorted, market['symbol'], since, limit);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname(this.urls['api'][this.version]) + '/' + this.implodeParams(path, params);

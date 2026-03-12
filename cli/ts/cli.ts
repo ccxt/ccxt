@@ -59,6 +59,7 @@ interface CLIOptions {
     refreshMarkets?: boolean;
     testnet?: boolean;
     sandbox?: boolean;
+    demo?: boolean;
     signIn?: boolean;
     spot?: boolean;
     swap?: boolean;
@@ -113,6 +114,7 @@ program
 program
     .option ('--verbose', 'enables the verbose mode')
     .option ('--sandbox', 'enables the sandbox mode')
+    .option ('--demo', 'enables the demo mode')
     .option ('--no-keys', 'does not set any apiKeys even if detected')
     .option ('--param <keyValue>', 'Pass key=value pair', collectKeyValue, {})
     .option ('--raw', 'keeps the output pristine without extra logs or formatting')
@@ -134,6 +136,7 @@ program
 // dev related options, docs not needed
 program.addOption (new Option ('--debug').hideHelp ());
 program.addOption (new Option ('--testnet').hideHelp ());
+// program.addOption (new Option ('--demo').hideHelp ());
 program.addOption (new Option ('--no-send').hideHelp ());
 program.addOption (new Option ('--request').hideHelp ());
 program.addOption (new Option ('--table').hideHelp ());

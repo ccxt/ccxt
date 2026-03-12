@@ -38,7 +38,8 @@ function crc32(...$arg) {
 
 function rsa(...$arg) {
     return Exchange::rsa(...$arg);
-}
+}// NO_AUTO_TRANSPILE
+
 
 // even though no AUTO_TRANSP flag here, this file is manually transpiled
 
