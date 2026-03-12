@@ -14441,6 +14441,7 @@ export default class binance extends Exchange {
      * @param {int} [limit] the maximum number of taker volume structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest volume to fetch
+     * @param {string} [params.contractType] for inverse (coin-m) markets: 'PERPETUAL', 'CURRENT_QUARTER', 'NEXT_QUARTER', or 'ALL' - defaults to the contract type of the provided symbol
      * @returns {object[]} an array of [taker buy/sell volume structures]{@link https://docs.ccxt.com/?id=taker-buy-sell-volume-structure}
      */
     async fetchTakerBuySellVolume (symbol: string, timeframe: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TakerVolume[]> {
@@ -14479,7 +14480,8 @@ export default class binance extends Exchange {
             //
         } else if (market['inverse']) {
             request['pair'] = market['info']['pair'];
-            request['contractType'] = this.safeString (params, 'contractType', 'ALL');
+            const defaultContractType = this.safeString (market['info'], 'contractType', 'ALL');
+            request['contractType'] = this.safeString (params, 'contractType', defaultContractType);
             params = this.omit (params, 'contractType');
             response = await this.dapiDataGetTakerBuySellVol (this.extend (request, params));
             //

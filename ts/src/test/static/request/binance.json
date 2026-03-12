@@ -4040,7 +4040,7 @@
             {
                 "description": "fetch taker buy sell volume - inverse",
                 "method": "fetchTakerBuySellVolume",
-                "url": "https://dapi.binance.com/futures/data/takerBuySellVol?period=5m&pair=BTCUSD&contractType=ALL",
+                "url": "https://dapi.binance.com/futures/data/takerBuySellVol?period=5m&pair=BTCUSD&contractType=PERPETUAL",
                 "input": [
                     "BTC/USD:BTC"
                 ]
