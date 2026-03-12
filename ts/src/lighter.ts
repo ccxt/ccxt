@@ -519,7 +519,6 @@ export default class lighter extends Exchange {
             return true;
         }
         try {
-            const ethPrivateKey = this.safeString (this.options, 'eth_private_key');
             const builder = this.safeNumber (this.options, 'integratorAccountIndex', 0);
             const takerFeeRate = this.safeNumber (this.options, 'integratorTakerFee', 1000);
             const makerFeeRate = this.safeNumber (this.options, 'integratorMakerFee', 1000);
