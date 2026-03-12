@@ -587,7 +587,9 @@ export default class grvt extends Exchange {
                 break;
             }
         }
-        if (!found) {
+        if (found) {
+            this.options['approvedBuilderFee'] = true;
+        } else {
             try {
                 const defaultFromAccountId = this.safeString (this.options, 'userMainAccountId'); // this.ethGetAddressFromPrivateKey (this.secret); // this.safeString (this.options, 'userMainAccountId');
                 let request: Dict = {
@@ -616,9 +618,8 @@ export default class grvt extends Exchange {
             } catch (e) {
                 this.options['builderFee'] = false; // disable builder fee if an error occurs
             }
-            return true;
         }
-        return false;
+        return undefined; // just c#
     }
 
     /**
@@ -1979,6 +1980,8 @@ export default class grvt extends Exchange {
         };
         if (price !== undefined) {
             orderLeg['limit_price'] = this.priceToPrecision (symbol, price);
+        } else {
+            orderLeg['limit_price'] = null;
         }
         if (side === 'sell') {
             orderLeg['is_buying_asset'] = false;
@@ -1994,8 +1997,7 @@ export default class grvt extends Exchange {
             'legs': [ orderLeg ],
             'signature': this.defaultSignature (),
             'metadata': {
-                'client_order_id': this.nonce ().toString (),
-                // 'create_time': (this.milliseconds() * str(1000000)),
+                'client_order_id': this.nonce ().toString () + '000' + this.requestId ().toString (),
             },
             'is_market': isMarketOrder,
             'post_only': false,
@@ -2083,7 +2085,6 @@ export default class grvt extends Exchange {
             orderRequest['builder_fee'] = this.safeString (this.options, 'builderRate');
         }
         params = this.omit (params, [ 'builderFee' ]);
-        // @ts-ignore
         const signedOrderRequest = this.createSignedRequest (orderRequest, eipType);
         const request = {
             'order': signedOrderRequest,
@@ -2179,7 +2180,8 @@ export default class grvt extends Exchange {
                 'contractSize': this.parseToInt (sizeInteger),
                 'isBuyingContract': leg['is_buying_asset'],
             };
-            if ('limit_price' in leg) {
+            const limitPrice = this.safeString (leg, 'limit_price');
+            if (this.omitZero (limitPrice) !== undefined) {
                 const price = leg['limit_price'];
                 const limitParts = price.split ('.');
                 const limitDec = this.safeString (limitParts, 1, '');
@@ -2188,6 +2190,8 @@ export default class grvt extends Exchange {
                 const powerNum = limitDecLengthStr === '0' ? 0 : this.convertToBigIntCustom (limitDecLengthStr);
                 const priceInteger = (this.convertToBigIntCustom (price.replace ('.', '')) * this.convertToBigIntCustom (priceMultiplier) / (Math.pow (bigInt10, powerNum)));
                 legOrder['limitPrice'] = this.parseToInt (priceInteger);
+            } else {
+                legOrder['limitPrice'] = 0; // should be zero to validate type-check
             }
             legs.push (legOrder);
         }
@@ -3210,6 +3214,12 @@ export default class grvt extends Exchange {
             params = this.omit (params, [ 'until', 'till' ]);
         }
         return [ request, params ];
+    }
+
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
