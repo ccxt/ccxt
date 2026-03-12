@@ -348,6 +348,9 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        if (this.checkRequiredCredentials (false)) {
+            await this.handleBuilderFeeApproval ();
+        }
         const promises = [];
         promises.push (this.publicPostInfo (this.extend ({ 'type': 'meta' }, params)));
         //
