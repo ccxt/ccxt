@@ -5731,7 +5731,8 @@ export default class Exchange {
     }
 
     async editOrderWithClientOrderId (clientOrderId: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        return await this.editOrder ('', symbol, type, side, amount, price, this.extend ({ 'clientOrderId': clientOrderId }, params));
+        const extendedParams = this.extend (params, { 'clientOrderId': clientOrderId });
+        return await this.editOrder ('', symbol, type, side, amount, price, extendedParams);
     }
 
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {

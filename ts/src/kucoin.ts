@@ -1424,6 +1424,7 @@ export default class kucoin extends Exchange {
                     },
                 },
             },
+            'rollingWindowSize': 30000.0,  // https://www.kucoin.com/docs-new/rate-limit
         });
     }
 

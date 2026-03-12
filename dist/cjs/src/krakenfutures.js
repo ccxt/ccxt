@@ -2043,6 +2043,8 @@ class krakenfutures extends krakenfutures$1["default"] {
             if ((filledOrder === '0') || (filledOrder === '0.0')) {
                 filledOrder = undefined;
             }
+            const fetchOrderPriceTriggerOptions = this.safeDict(orderDictFromFetchOrder, 'priceTriggerOptions', {});
+            const fetchOrderTriggerPrice = this.safeString(fetchOrderPriceTriggerOptions, 'triggerPrice');
             return this.safeOrder({
                 'info': order,
                 'id': this.safeString(orderDictFromFetchOrder, 'orderId'),
@@ -2057,8 +2059,9 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'postOnly': undefined,
                 'reduceOnly': this.safeBool(orderDictFromFetchOrder, 'reduceOnly'),
                 'side': this.safeString(orderDictFromFetchOrder, 'side'),
-                'price': this.safeString(orderDictFromFetchOrder, 'limitPrice'),
-                'triggerPrice': undefined,
+                'price': undefined,
+                'triggerPrice': fetchOrderTriggerPrice,
+                'stopPrice': fetchOrderTriggerPrice,
                 'amount': this.safeString(orderDictFromFetchOrder, 'quantity'),
                 'cost': undefined,
                 'average': undefined,

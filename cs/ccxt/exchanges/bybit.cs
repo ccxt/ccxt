@@ -1272,6 +1272,7 @@ public partial class bybit : Exchange
                     { "deposit", new Dictionary<string, object>() {} },
                 } },
             } },
+            { "rollingWindowSize", 5000 },
         });
     }
 

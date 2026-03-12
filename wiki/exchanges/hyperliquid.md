@@ -19,6 +19,7 @@
 * [fetchFundingRates](#fetchfundingrates)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTrades](#fetchtrades)
+* [isUnifiedEnabled](#isunifiedenabled)
 * [setUserAbstraction](#setuserabstraction)
 * [enableUserDexAbstraction](#enableuserdexabstraction)
 * [setAgentAbstraction](#setagentabstraction)
@@ -268,6 +269,7 @@ query for balance and get the amount of funds available for trading or funds loc
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null |
 | params.dex | <code>string</code> | No | for hip3 markets, the dex name, eg: 'xyz' |
 | params.subAccountAddress | <code>string</code> | No | sub account user address |
+| params.enableUnifiedMargin | <code>boolean</code> | No | enable unified margin, CCXT tries to auto-detects this value but you can override it |
 
 
 ```javascript
@@ -398,6 +400,27 @@ get the list of most recent trades for a particular symbol
 
 ```javascript
 hyperliquid.fetchTrades (symbol[, since, limit, params])
+```
+
+
+<a name="isUnifiedEnabled" id="isunifiedenabled"></a>
+
+### isUnifiedEnabled{docsify-ignore}
+returns enableUnifiedMargin so the user can check if unified account is enabled
+
+**Kind**: instance method of [<code>hyperliquid</code>](#hyperliquid)  
+**Returns**: <code>bool</code> - enableUnifiedMargin
+
+**See**: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| method | <code>string</code> | Yes | the method for which we want to check if unified margin is enabled, this is used to check options for specific methods (e.g. fetchBalance can have a specific option to enable unified margin) |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hyperliquid.isUnifiedEnabled (method[, params])
 ```
 
 

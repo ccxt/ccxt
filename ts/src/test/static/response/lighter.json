@@ -375,7 +375,8 @@
                             "maker_entry_quote_before": "29618.363006",
                             "maker_initial_margin_fraction_before": "1000",
                             "transaction_time": "1772175015029830",
-                            "account_index": 715085
+                            "account_index": 715085,
+                            "next_cursor": "eyJpbmRleCI6MTQ5ODQzNjMyNTN9"
                         },
                         "id": "14985275142",
                         "timestamp": 1772175015029,

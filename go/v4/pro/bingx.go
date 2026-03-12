@@ -1445,7 +1445,7 @@ func  (this *BingxCore) WatchPositions(optionalArgs ...interface{}) <- chan inte
             }
             var typeVar interface{} = nil
             var subType interface{} = nil
-            typeVarparamsVariable := this.HandleMarketTypeAndParams("watchPositions", market, params)
+            typeVarparamsVariable := this.HandleMarketTypeAndParams("watchPositions", market, params, "swap")
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
             params = ccxt.GetValue(typeVarparamsVariable,1)
             subTypeparamsVariable := this.HandleSubTypeAndParams("watchPositions", market, params, "linear")
@@ -1635,6 +1635,10 @@ func  (this *BingxCore) HandlePositions(client interface{}, message interface{})
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
         var rawPosition interface{} = ccxt.GetValue(rawPositions, i)
         var position interface{} = this.ParseWsPosition(rawPosition)
+        var symbol interface{} = this.SafeString(position, "symbol")
+        if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+            continue
+        }
         var timestamp interface{} = this.SafeInteger(message, "E")
         ccxt.AddElementToObject(position, "timestamp", timestamp)
         ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
@@ -1738,10 +1742,10 @@ func  (this *BingxCore) KeepAliveListenKey(optionalArgs ...interface{}) <- chan 
                         }()
             		    // try block:
                         
-                    retRes139012 := (<-this.UserAuthPrivatePutUserDataStream(map[string]interface{} {
+                    retRes139412 := (<-this.UserAuthPrivatePutUserDataStream(map[string]interface{} {
                         "listenKey": listenKey,
                     }))
-                    ccxt.PanicOnError(retRes139012) // extend the expiry
+                    ccxt.PanicOnError(retRes139412) // extend the expiry
             		    return nil
             	    }(this)
                 
@@ -1799,17 +1803,17 @@ func  (this *BingxCore) Pong(client interface{}, message interface{}) <- chan in
             		    // try block:
                                 if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
             
-                        retRes144016 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-                        ccxt.PanicOnError(retRes144016)
+                        retRes144416 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+                        ccxt.PanicOnError(retRes144416)
                     } else {
                         var ping interface{} = this.SafeString(message, "ping")
                         var time interface{} = this.SafeString(message, "time")
             
-                        retRes144416 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
+                        retRes144816 := (<-client.(ccxt.ClientInterface).Send(map[string]interface{} {
                             "pong": ping,
                             "time": time,
                         }))
-                        ccxt.PanicOnError(retRes144416)
+                        ccxt.PanicOnError(retRes144816)
                     }
             		    return nil
             	    }(this)

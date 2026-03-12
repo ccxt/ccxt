@@ -275,8 +275,8 @@ Lighter is available as part of CCXT and it works similarly to any other CCXT ex
 
 Lighter requires the following :
 - `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey (https://app.lighter.xyz/apikeys)
-- `apiKeyIndex` in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
-- `accountIndex` in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
+- `apiKeyIndex` (an integer) in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
+- `accountIndex` (an integer) in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
 
 
 
@@ -289,7 +289,7 @@ lighter = ccxt.lighter({
 	'privateKey': 'XXXXXXX',
 	'options': {
 		'apiKeyIndex': 3,
-		'accountIndex': '715085'
+		'accountIndex': 715085
 	}
 })
 ```
@@ -329,3 +329,61 @@ lighter = ccxt.lighter({
 ### GO users
 
 - Nothing is required, CCXT is consuming the official GO package you just need to provide the credentials
+
+
+## How to use the DyDx Exchange in CCXT?
+
+DyDx is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+Due to current signing-related dependency requirements, the exchange is available only in Python and JavaScript. Support for additional languages will be introduced once the necessary dependencies have been ported.
+
+
+## Credentials requirements
+
+DyDx requires one of the following :
+- `privateKey`: the l1 private key (hex) used on dydx, or you can set l2 mnemonic in options
+- `mnemonic` in `exchange.options`: the 24 words to retrieve your l2 private key, you can find it on the web UI
+
+Example
+
+```Python
+dydx = ccxt.dydx({
+	'privateKey': 'XXXXXXX',
+})
+
+# or
+dydx = ccxt.dydx({
+	'options': {
+		'mnemonic': 'test test ...',
+	}
+})
+```
+
+### Dependencies requirements
+
+DyDx requires another dependency for python users. Before use it, you need to install pycryptodom locally.
+
+```BASH
+$ pip3 install pycryptodom
+```
+
+
+Additionally, protobuf is also required, but it is not a direct dependency of CCXT. You will need to install it manually:
+
+```
+npm install protobufjs // javascript/typescript
+pip install "protobuf==5.29.5" // python
+```
+
+### Usage
+
+Usage is largely consistent with other exchanges, though certain behaviors differ.
+
+For example, while orders can be placed normally, cancelling an order on dYdX does not use the traditional orderId. Instead, dYdX requires additional fields such as:
+
+- clientOrderId, not the orderId
+- orderFlags (0 for market and non-limit GTT orders, 64 for limit GTT orders, and 32 for conditional orders), ccxt assumes 64 as default
+- goodTillBlockTimeInSeconds (required for long-term and conditional orders; CCXT assumes a default of 30 days)
+- subAccountId, ccxt assumes 0 as default
+
+CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.

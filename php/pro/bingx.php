@@ -1213,7 +1213,7 @@ class bingx extends \ccxt\async\bingx {
             }
             $type = null;
             $subType = null;
-            list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params);
+            list($type, $params) = $this->handle_market_type_and_params('watchPositions', $market, $params, 'swap');
             list($subType, $params) = $this->handle_sub_type_and_params('watchPositions', $market, $params, 'linear');
             if ($type === 'spot') {
                 throw new NotSupported($this->id . ' watchPositions is not supported for spot markets');
@@ -1373,6 +1373,10 @@ class bingx extends \ccxt\async\bingx {
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_ws_position($rawPosition);
+            $symbol = $this->safe_string($position, 'symbol');
+            if ($symbol === null) {
+                continue;
+            }
             $timestamp = $this->safe_integer($message, 'E');
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);

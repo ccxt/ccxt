@@ -353,8 +353,12 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #
         marketId = self.safe_string(position, 'instrument')
         hedged = 'both'
-        balance = self.safe_number(position, 'balance')
-        side = 'long' if (balance > 0) else 'short'
+        balanceString = self.safe_string(position, 'balance')
+        side = None
+        if Precise.string_gt(balanceString, '0'):
+            side = 'long'
+        elif Precise.string_lt(balanceString, '0'):
+            side = 'short'
         return self.safe_position({
             'info': position,
             'id': None,
@@ -365,7 +369,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             'entryPrice': self.safe_number(position, 'entry_price'),
             'unrealizedPnl': self.safe_number(position, 'pnl'),
             'percentage': self.safe_number(position, 'return_on_equity'),
-            'contracts': self.parse_number(Precise.string_abs(self.number_to_string(balance))),
+            'contracts': self.parse_number(Precise.string_abs(balanceString)),
             'contractSize': None,
             'markPrice': self.safe_number(position, 'mark_price'),
             'side': side,

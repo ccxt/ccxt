@@ -23,6 +23,8 @@
         "skipWs": "private endpoints, todo"
     },
     "arkham": {
+        "skip": "exchange closed",
+        "skipWs": "same",
         "preferredSpotSymbol": "ETH/USDT",
         "preferredSwapSymbol": "ETH/USDT:USDT",
         "skipMethods": {
@@ -854,7 +856,9 @@
                 "compareOHLC": "todo"
             },
             "fetchOHLCV": "cant be tested because of additional required param",
-            "watchOHLCV": "does not work for 1min"
+            "watchOHLCV": "does not work for 1min",
+            "watchTicker": "private endpoint",
+            "watchOrderBook": "private endpoint"
         }
     },
     "coinex": {

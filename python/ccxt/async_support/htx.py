@@ -1417,6 +1417,7 @@ class htx(Exchange, ImplicitAPI):
                     },
                 },
             },
+            'rollingWindowSize': 2000.0,
         })
 
     async def fetch_status(self, params={}):

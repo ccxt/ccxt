@@ -5143,7 +5143,8 @@ class Exchange {
         return await this.createOrder(symbol, type, side, amount, price, params);
     }
     async editOrderWithClientOrderId(clientOrderId, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        return await this.editOrder('', symbol, type, side, amount, price, this.extend({ 'clientOrderId': clientOrderId }, params));
+        const extendedParams = this.extend(params, { 'clientOrderId': clientOrderId });
+        return await this.editOrder('', symbol, type, side, amount, price, extendedParams);
     }
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);

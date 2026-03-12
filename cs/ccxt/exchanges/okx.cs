@@ -1307,6 +1307,7 @@ public partial class okx : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "AE", "AET" },
             } },
+            { "rollingWindowSize", 0 },
         });
     }
 
@@ -6473,7 +6474,13 @@ public partial class okx : Exchange
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (isTrue(isEqual(initialMarginString, null)))
         {
-            initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
+            if (isTrue(getValue(market, "linear")))
+            {
+                initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            } else
+            {
+                initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
+            }
         }
         object rounder = "0.00005"; // round to closest 0.01%
         object maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), "1", 4));
@@ -7099,6 +7106,16 @@ public partial class okx : Exchange
             object marketInner = this.safeMarket(instId);
             object currencyId = this.safeString(entry, "ccy");
             object code = this.safeCurrencyCode(currencyId);
+            object balanceChange = this.safeString(entry, "balChg");
+            object positionBalanceChange = this.safeString(entry, "posBalChg");
+            object amount = null;
+            if (isTrue(isTrue((!isEqual(balanceChange, null))) && isTrue((!isTrue(Precise.stringEq(balanceChange, "0"))))))
+            {
+                amount = balanceChange;
+            } else
+            {
+                amount = positionBalanceChange;
+            }
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", getValue(marketInner, "symbol") },
@@ -7106,7 +7123,7 @@ public partial class okx : Exchange
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },
                 { "id", this.safeString(entry, "billId") },
-                { "amount", this.safeNumber(entry, "balChg") },
+                { "amount", this.parseNumber(amount) },
             });
         }
         object sorted = this.sortBy(result, "timestamp");

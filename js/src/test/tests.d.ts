@@ -98,5 +98,6 @@ declare class testMainClass {
     testDerive(): Promise<boolean>;
     testModeTrade(): Promise<boolean>;
     testBackpack(): Promise<boolean>;
+    testToobit(): Promise<boolean>;
 }
 export default testMainClass;

@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.42';
+$version = '4.5.43';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,7 +63,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.42';
+    const VERSION = '4.5.43';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -6215,7 +6215,8 @@ class Exchange {
     }
 
     public function edit_order_with_client_order_id(string $clientOrderId, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
-        return $this->edit_order('', $symbol, $type, $side, $amount, $price, $this->extend(array( 'clientOrderId' => $clientOrderId ), $params));
+        $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+        return $this->edit_order('', $symbol, $type, $side, $amount, $price, $extendedParams);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {

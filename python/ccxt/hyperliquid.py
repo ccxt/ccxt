@@ -1057,6 +1057,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str [params.dex]: for hip3 markets, the dex name, eg: 'xyz'
         :param str [params.subAccountAddress]: sub account user address
+        :param boolean [params.enableUnifiedMargin]: enable unified margin, CCXT tries to auto-detects self value but you can override it
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         userAddress = None
@@ -1065,7 +1066,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
-        isSpot = (type == 'spot')
+        isUnifiedEnabled = None
+        isUnifiedEnabled, params = self.is_unified_enabled('fetchBalance', params)
+        dex = self.safe_string(params, 'dex')
+        isSpot = ((type == 'spot') or isUnifiedEnabled) and (dex is None)
         request: dict = {
             'type': 'spotClearinghouseState' if (isSpot) else 'clearinghouseState',
             'user': userAddress,
@@ -1743,7 +1747,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     def initialize_client(self):
         try:
-            [self.handle_builder_fee_approval(), self.set_ref()]
+            [self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', {})]  # for now only fetchBalance requires the unified knowledge, but we can self.extend self to other methods
         except Exception as e:
             return False
         return True
@@ -1763,6 +1767,37 @@ class hyperliquid(Exchange, ImplicitAPI):
         except Exception as e:
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return True
+
+    def is_unified_enabled(self, method: str, params={}):
+        """
+
+        https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#query-a-users-abstraction-state
+
+        returns enableUnifiedMargin so the user can check if unified account is enabled
+        :param str method: the method for which we want to check if unified margin is enabled, self is used to check options for specific methods(e.g. fetchBalance can have a specific option to enable unified margin)
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns bool: enableUnifiedMargin
+        """
+        userAddress = None
+        userAddress, params = self.handle_public_address('isUnifiedEnabled', params)
+        enableUnifiedMargin = None
+        enableUnifiedMargin, params = self.handle_option_and_params(params, method, 'enableUnifiedMargin')
+        if enableUnifiedMargin is None:
+            request: dict = {
+                'type': 'userAbstraction',
+                'user': userAddress,
+            }
+            response = None
+            try:
+                response = self.publicPostInfo(self.extend(request, params))
+            except Exception as e:
+                response = None  # ignore self error and assume unified margin is not enabled
+            #
+            # "unifiedAccount" | "portfolioMargin" | "disabled" | "default" | "dexAbstraction"
+            #
+            enableUnifiedMargin = response == '"unifiedAccount"'
+            self.options['enableUnifiedMargin'] = enableUnifiedMargin  # cache self for future calls
+        return [enableUnifiedMargin, params]
 
     def set_user_abstraction(self, abstraction: str, params={}):
         """

@@ -1174,7 +1174,7 @@ class bingx extends bingx$1["default"] {
         }
         let type = undefined;
         let subType = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params);
+        [type, params] = this.handleMarketTypeAndParams('watchPositions', market, params, 'swap');
         [subType, params] = this.handleSubTypeAndParams('watchPositions', market, params, 'linear');
         if (type === 'spot') {
             throw new errors.NotSupported(this.id + ' watchPositions is not supported for spot markets');
@@ -1329,6 +1329,10 @@ class bingx extends bingx$1["default"] {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parseWsPosition(rawPosition);
+            const symbol = this.safeString(position, 'symbol');
+            if (symbol === undefined) {
+                continue;
+            }
             const timestamp = this.safeInteger(message, 'E');
             position['timestamp'] = timestamp;
             position['datetime'] = this.iso8601(timestamp);
