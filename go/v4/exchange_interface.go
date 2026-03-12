@@ -29,6 +29,8 @@ type IBaseExchange interface {
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
+	GetLast_response_headers() map[string]interface{}
+	GetLastResponseHeaders() map[string]interface{}
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val interface{})
 	GetHas() map[string]interface{}
@@ -53,6 +55,7 @@ type IBaseExchange interface {
 	GetCurrenciesList() []Currency
 	Throttle(cost interface{}) <-chan interface{}
 	Close() []error
+	ParseTimeframe(timeframe interface{}) interface{}
 	// methods from base
 }
 
@@ -147,7 +150,6 @@ type ICoreExchange interface {
 	ParseNumber(v interface{}, a ...interface{}) interface{}
 	OmitZero(v interface{}) interface{}
 	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	ParseTimeframe(timeframe interface{}) interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
 	FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -318,6 +320,7 @@ type ICoreExchange interface {
 	WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WithdrawWs(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{}
 	Close() []error
+	ParseTimeframe(timeframe interface{}) interface{}
 }
 
 type IDerivedExchange interface {
@@ -405,6 +408,8 @@ type IDerivedExchange interface {
 	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
+	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
 }
 
 type Describer interface {

@@ -33,7 +33,6 @@ var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
 var sha1 = require('../static_dependencies/noble-hashes/sha1.js');
 var onboarding = require('../static_dependencies/dydx-v4-client/onboarding.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
-var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
 var index$3 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 
@@ -191,8 +190,6 @@ class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = generic.keys;
-        this.values = generic.values;
         this.extend = extend;
         this.clone = clone;
         this.flatten = flatten;
@@ -2696,7 +2693,13 @@ class Exchange {
         throw new errors.NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new errors.NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -5505,6 +5508,9 @@ class Exchange {
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createOrder() is not supported yet');
+    }
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        throw new errors.NotSupported(this.id + ' createTwapOrder() is not supported yet');
     }
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
         throw new errors.NotSupported(this.id + ' createConvertTrade() is not supported yet');

@@ -1556,6 +1556,11 @@ public partial class bybit : Exchange
         return await this.callAsync ("privatePostV5AccountNoConvertRepay",parameters);
     }
 
+    public async Task<object> privatePostV5AccountSetLimitPxAction (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV5AccountSetLimitPxAction",parameters);
+    }
+
     public async Task<object> privatePostV5AssetExchangeQuoteApply (object parameters = null)
     {
         return await this.callAsync ("privatePostV5AssetExchangeQuoteApply",parameters);

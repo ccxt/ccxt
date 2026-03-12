@@ -15,17 +15,8 @@ function test_aggregate() {
     ));
     $bids = [[789.1, 123], [789.1, 123], [123, 456], [789, 123], [789.1, 123]];
     $asks = [[123, 456], [789, 123], [789.1, 123]];
-    try {
-        assert_deep_equal($exchange, null, 'aggregate', $exchange->aggregate($exchange->sort_by($bids, 0)), [[123, 456], [789, 123], [789.1, 369]]);
-        assert_deep_equal($exchange, null, 'aggregate', $exchange->aggregate($exchange->sort_by($asks, 0)), [[123, 456], [789, 123], [789.1, 123]]);
-    } catch(\Throwable $e) {
-        // skip c# , todo
-        if (in_array('BaseTest.assert', (((string) $e))) || in_array('at System.', (((string) $e)))) {
-            return;
-        } else {
-            throw $e;
-        }
-    }
+    assert_deep_equal($exchange, null, 'aggregate', $exchange->aggregate($exchange->sort_by($bids, 0)), [[123, 456], [789, 123], [789.1, 369]]);
+    assert_deep_equal($exchange, null, 'aggregate', $exchange->aggregate($exchange->sort_by($asks, 0)), [[123, 456], [789, 123], [789.1, 123]]);
     assert_deep_equal($exchange, null, 'aggregate', $exchange->aggregate([]), []);
     // Test 1: Simple aggregation - same price combined
     $result1 = $exchange->aggregate([[100, 1], [101, 2], [100, 0.5]]);

@@ -2,9 +2,9 @@
 
 import * as functions from './functions.js';
 import {
+    // keys as keysFunc,
+    // values as valuesFunc,
     // inArray as inArrayFunc,
-    keys as keysFunc,
-    values as valuesFunc,
     vwap as vwapFunc,
 } from './functions.js';
 // import exceptions from "./errors.js"
@@ -41,6 +41,7 @@ import { axolotl } from './functions/crypto.js';
 // import types
 import type {
     Account,
+    ADL,
     Balance,
     BalanceAccount,
     Balances,
@@ -239,6 +240,7 @@ const {
 
 export type {
     Account,
+    ADL,
     Balance,
     BalanceAccount,
     Balances,
@@ -566,7 +568,6 @@ export default class Exchange {
     isNode = isNode;
     iso8601 = iso8601;
     json = json;
-    keys = keysFunc;
     keysort = keysort;
     merge = merge;
     microseconds = microseconds;
@@ -627,7 +628,6 @@ export default class Exchange {
     uuid16 = uuid16;
     uuid22 = uuid22;
     uuidv1 = uuidv1;
-    values = valuesFunc;
     vwap = vwapFunc;
     ymd = ymd;
     ymdhms = ymdhms;
@@ -2206,6 +2206,7 @@ export default class Exchange {
                 'editOrders': undefined,
                 'editOrderWs': undefined,
                 'fetchAccounts': undefined,
+                'fetchADLRank': undefined,
                 'fetchBalance': true,
                 'fetchBalanceWs': undefined,
                 'fetchBidsAsks': undefined,
@@ -2292,6 +2293,8 @@ export default class Exchange {
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
                 'fetchPosition': undefined,
+                'fetchPositionADLRank': undefined,
+                'fetchPositionsADLRank': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionMode': undefined,
                 'fetchPositions': undefined,
@@ -3283,7 +3286,12 @@ export default class Exchange {
     }
 
     async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
-        throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests ([ symbol ], params);
+            return this.safeDict (openInterests, symbol) as OpenInterest;
+        } else {
+            throw new NotSupported (this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
 
     async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
@@ -5254,6 +5262,21 @@ export default class Exchange {
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
 
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        throw new NotSupported (this.id + ' parseADLRank() is not supported yet');
+    }
+
+    parseADLRanks (ranks: any[], symbols: string[] = undefined, params = {}): ADL[] {
+        symbols = this.marketSymbols (symbols);
+        ranks = this.toArray (ranks);
+        const result = [];
+        for (let i = 0; i < ranks.length; i++) {
+            const rank = this.extend (this.parseADLRank (ranks[i], undefined), params);
+            result.push (rank);
+        }
+        return this.filterByArrayPositions (result, 'symbol', symbols, false);
+    }
+
     parseAccounts (accounts: any[], params = {}): Account[] {
         accounts = this.toArray (accounts);
         const result = [];
@@ -6196,6 +6219,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' createTwapOrder() is not supported yet');
+    }
+
     async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params = {}): Promise<Conversion> {
         throw new NotSupported (this.id + ' createConvertTrade() is not supported yet');
     }
@@ -6210,6 +6237,31 @@ export default class Exchange {
 
     async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<{}> {
         throw new NotSupported (this.id + ' fetchPositionMode() is not supported yet');
+    }
+
+    async fetchADLRank (symbol: string, params = {}): Promise<ADL> {
+        throw new NotSupported (this.id + ' fetchADLRank() is not supported yet');
+    }
+
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
+    }
+
+    async fetchPositionADLRank (symbol: string, params = {}): Promise<ADL> {
+        if (this.has['fetchPositionsADLRank']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const ranks = await this.fetchPositionsADLRank ([ symbol ], params);
+            const rank = this.safeDict (ranks, 0);
+            if (rank === undefined) {
+                throw new NullResponse (this.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol);
+            } else {
+                return rank as ADL;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionsADLRank() is not supported yet');
+        }
     }
 
     async createTrailingAmountOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, trailingAmount: Num = undefined, trailingTriggerPrice: Num = undefined, params = {}): Promise<Order> {
@@ -7999,6 +8051,15 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+    }
+
+    filterByArrayADLRanks (objects, key: IndexType, values = undefined, indexed = true): ADL[] {
+        /**
+         * @ignore
+         * @method
+         * @description Typed wrapper for filterByArray that returns a list of ADL Ranks
+         */
+        return this.filterByArray (objects, key, values, indexed) as ADL[];
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {

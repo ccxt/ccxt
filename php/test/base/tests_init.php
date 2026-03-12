@@ -27,8 +27,10 @@ include_once __DIR__ . '/test_sort_by.php';
 include_once __DIR__ . '/test_sum.php';
 include_once __DIR__ . '/test_omit.php';
 include_once __DIR__ . '/test_group_by.php';
-include_once __DIR__ . '/test_urlencode_base64.php';
+include_once __DIR__ . '/test_index_by.php';
 include_once __DIR__ . '/test_filter_by.php';
+include_once __DIR__ . '/test_precision_from_string.php';
+include_once __DIR__ . '/test_urlencode_base64.php';
 include_once __DIR__ . '/test_after_constructor.php';
 include_once __DIR__ . '/test_handle_methods.php';
 include_once __DIR__ . '/test_remove_repeated_elements_from_array.php';
@@ -36,11 +38,14 @@ include_once __DIR__ . '/test_parse_precision.php';
 include_once __DIR__ . '/test_arrays_concat.php';
 include_once __DIR__ . '/test_sleep.php';
 include_once __DIR__ . '/test_eth_methods.php';
+include_once __DIR__ . '/test_keysort.php';
 include_once __DIR__ . '/test_capitalize.php';
+include_once __DIR__ . '/test_constants.php';
 
 function base_tests_init() {
     return Async\async(function () {
         test_language_specific();
+        test_constants();
         test_after_constructor();
         test_extend();
         test_deep_extend();
@@ -59,13 +64,16 @@ function base_tests_init() {
         test_urlencode_base64();
         test_omit();
         test_group_by();
+        test_index_by();
         test_filter_by();
         test_handle_methods();
         test_remove_repeated_elements_from_array();
         test_parse_precision();
+        test_precision_from_string();
         test_extract_params();
         test_arrays_concat();
         test_eth_methods();
+        test_keysort();
         Async\await(test_sleep());
     }) ();
 }

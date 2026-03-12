@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 function testUrlencodeBase64() {
@@ -35,5 +34,10 @@ function testUrlencodeBase64() {
     assert(exchange.urlencodeBase64('The quick brown fox') === 'VGhlIHF1aWNrIGJyb3duIGZveA');
     // Test 12: Numbers as string
     assert(exchange.urlencodeBase64('123456789') === 'MTIzNDU2Nzg5');
+    //
+    // add binary tests
+    //
+    const binaryData = exchange.base16ToBinary('191919191919');
+    assert(exchange.urlencodeBase64(binaryData) === 'GRkZGRkZ');
 }
 export default testUrlencodeBase64;

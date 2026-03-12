@@ -561,6 +561,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/account/borrow': 5,
                         'v5/account/repay': 5,
                         'v5/account/no-convert-repay': 5,
+                        'v5/account/set-limit-px-action': 5,
                         # asset
                         'v5/asset/exchange/quote-apply': 1,  # 50/s
                         'v5/asset/exchange/convert-execute': 1,  # 50/s
@@ -4012,10 +4013,13 @@ class bybit(Exchange, ImplicitAPI):
                             tpslModeTp = 'Partial'
                         else:
                             tpslModeTp = 'Full'
-                if tpslModeSl != tpslModeTp:
+                if isTakeProfitOrder and isStopLossOrder and tpslModeSl != tpslModeTp:
                     raise InvalidOrder(self.id + ' createOrder() requires both stopLoss and takeProfit to be full or partial when using combination')
-                request['tpslMode'] = tpslModeSl  # same
-                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice'])
+                if tpslModeSl is not None:
+                    request['tpslMode'] = tpslModeSl
+                else:
+                    request['tpslMode'] = tpslModeTp
+                params = self.omit(params, ['stopLossLimitPrice', 'takeProfitLimitPrice', 'tradingStopEndpoint'])
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
@@ -6485,7 +6489,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'notional': self.parse_number(notional),
             'leverage': self.parse_number(leverage),
             'unrealizedPnl': self.parse_number(unrealisedPnl),
-            'realizedPnl': self.safe_number(position, 'closedPnl'),
+            'realizedPnl': self.safe_number_2(position, 'curRealisedPnl', 'closedPnl'),
             'contracts': self.parse_number(size),  # in USD for inverse swaps
             'contractSize': self.safe_number(market, 'contractSize'),
             'marginRatio': self.parse_number(marginRatio),

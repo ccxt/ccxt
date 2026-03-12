@@ -1396,7 +1396,7 @@ class btcmarkets extends Exchange {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
-                'currency_id' => $currency['id'],
+                'assetName' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
             if ($code !== 'AUD') {

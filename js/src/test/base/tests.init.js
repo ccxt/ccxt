@@ -4,7 +4,6 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-// AUTO_TRANSPILE_ENABLED
 import testDecimalToPrecision from './test.decimalToPrecision.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
 import testNumberToString from './test.numberToString.js';
@@ -22,8 +21,10 @@ import testSortBy from './test.sortBy.js';
 import testSum from './test.sum.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
-import testUrlencodeBase64 from './test.urlencodeBase64.js';
+import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
+import testPrecisionFromString from './test.precisionFromString.js';
+import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
@@ -31,9 +32,12 @@ import testParsePrecision from './test.parsePrecision.js';
 import testArraysConcat from './test.arraysConcat.js';
 import testSleep from './test.sleep.js';
 import testEthMethods from './test.ethMethods.js';
+import testKeysort from './test.keysort.js';
 import testCapitalize from './test.capitalize.js';
+import testConstants from './test.constants.js';
 async function baseTestsInit() {
     testLanguageSpecific();
+    testConstants();
     testAfterConstructor();
     testExtend();
     testDeepExtend();
@@ -52,13 +56,16 @@ async function baseTestsInit() {
     testUrlencodeBase64();
     testOmit();
     testGroupBy();
+    testIndexBy();
     testFilterBy();
     testHandleMethods();
     testRemoveRepeatedElementsFromArray();
     testParsePrecision();
+    testPrecisionFromString();
     testExtractParams();
     testArraysConcat();
     testEthMethods();
+    testKeysort();
     await testSleep();
 }
 export default baseTestsInit;

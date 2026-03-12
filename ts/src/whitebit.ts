@@ -309,9 +309,7 @@ export default class whitebit extends Exchange {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
-                'networksById': {
-                    'BEP20': 'BSC',
-                },
+                'networksById': {},
                 'defaultType': 'spot',
                 'brokerId': 'ccxt',
             },
@@ -515,6 +513,7 @@ export default class whitebit extends Exchange {
         const taker = Precise.stringDiv (takerFeeRate, '100');
         const makerFeeRate = this.safeString (market, 'makerFee');
         const maker = Precise.stringDiv (makerFeeRate, '100');
+        const isSpot = !swap;
         return {
             'id': id,
             'symbol': symbol,
@@ -525,7 +524,7 @@ export default class whitebit extends Exchange {
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': !swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': false,
@@ -536,7 +535,7 @@ export default class whitebit extends Exchange {
             'inverse': inverse,
             'taker': this.parseNumber (taker),
             'maker': this.parseNumber (maker),
-            'contractSize': contractSize,
+            'contractSize': isSpot ? undefined : contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -662,6 +661,8 @@ export default class whitebit extends Exchange {
             for (let j = 0; j < allNetworks.length; j++) {
                 const networkId = allNetworks[j];
                 const networkCode = this.networkIdToCode (networkId);
+                const networkDepositLimits = this.safeDict (depositLimits, networkId, {});
+                const networkWithdrawLimits = this.safeDict (withdrawLimits, networkId, {});
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -672,12 +673,12 @@ export default class whitebit extends Exchange {
                     'precision': undefined,
                     'limits': {
                         'deposit': {
-                            'min': this.safeNumber (depositLimits, 'min', undefined),
-                            'max': this.safeNumber (depositLimits, 'max', undefined),
+                            'min': this.safeNumber (networkDepositLimits, 'min'),
+                            'max': this.safeNumber (networkDepositLimits, 'max'),
                         },
                         'withdraw': {
-                            'min': this.safeNumber (withdrawLimits, 'min', undefined),
-                            'max': this.safeNumber (withdrawLimits, 'max', undefined),
+                            'min': this.safeNumber (networkWithdrawLimits, 'min'),
+                            'max': this.safeNumber (networkWithdrawLimits, 'max'),
                         },
                     },
                 };
@@ -691,7 +692,7 @@ export default class whitebit extends Exchange {
                 'deposit': this.safeBool (currency, 'can_deposit'),
                 'withdraw': this.safeBool (currency, 'can_withdraw'),
                 'fee': undefined,
-                'networks': undefined, // todo
+                'networks': networks,
                 'type': hasProvider ? 'fiat' : 'crypto',
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'currency_precision'))),
                 'limits': {
@@ -1814,7 +1815,7 @@ export default class whitebit extends Exchange {
         //         "time":1737380046
         //     }
         //
-        return this.safeInteger (response, 'time');
+        return this.safeIntegerProduct (response, 'time', 1000);
     }
 
     /**
@@ -2445,7 +2446,7 @@ export default class whitebit extends Exchange {
             'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'status': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'side': side,
             'price': price,
             'type': orderType,
@@ -2458,6 +2459,16 @@ export default class whitebit extends Exchange {
             'fee': fee,
             'trades': undefined,
         }, market);
+    }
+
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
+            'CANCELED': 'canceled',
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+        };
+        return this.safeStringLower (statuses, status, status);
     }
 
     /**

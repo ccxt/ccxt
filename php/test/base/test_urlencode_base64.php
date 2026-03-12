@@ -37,4 +37,9 @@ function test_urlencode_base64() {
     assert($exchange->urlencode_base64('The quick brown fox') === 'VGhlIHF1aWNrIGJyb3duIGZveA');
     // Test 12: Numbers as string
     assert($exchange->urlencode_base64('123456789') === 'MTIzNDU2Nzg5');
+    //
+    // add binary tests
+    //
+    $binary_data = $exchange->base16_to_binary('191919191919');
+    assert($exchange->urlencode_base64($binary_data) === 'GRkZGRkZ');
 }

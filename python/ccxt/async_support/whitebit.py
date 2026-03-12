@@ -321,9 +321,7 @@ class whitebit(Exchange, ImplicitAPI):
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
-                'networksById': {
-                    'BEP20': 'BSC',
-                },
+                'networksById': {},
                 'defaultType': 'spot',
                 'brokerId': 'ccxt',
             },
@@ -523,6 +521,7 @@ class whitebit(Exchange, ImplicitAPI):
         taker = Precise.string_div(takerFeeRate, '100')
         makerFeeRate = self.safe_string(market, 'makerFee')
         maker = Precise.string_div(makerFeeRate, '100')
+        isSpot = not swap
         return {
             'id': id,
             'symbol': symbol,
@@ -533,7 +532,7 @@ class whitebit(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': not swap,
+            'spot': isSpot,
             'margin': margin,
             'swap': swap,
             'future': False,
@@ -544,7 +543,7 @@ class whitebit(Exchange, ImplicitAPI):
             'inverse': inverse,
             'taker': self.parse_number(taker),
             'maker': self.parse_number(maker),
-            'contractSize': contractSize,
+            'contractSize': None if isSpot else contractSize,
             'expiry': None,
             'expiryDatetime': None,
             'strike': None,
@@ -669,6 +668,8 @@ class whitebit(Exchange, ImplicitAPI):
             for j in range(0, len(allNetworks)):
                 networkId = allNetworks[j]
                 networkCode = self.network_id_to_code(networkId)
+                networkDepositLimits = self.safe_dict(depositLimits, networkId, {})
+                networkWithdrawLimits = self.safe_dict(withdrawLimits, networkId, {})
                 networks[networkCode] = {
                     'id': networkId,
                     'network': networkCode,
@@ -679,12 +680,12 @@ class whitebit(Exchange, ImplicitAPI):
                     'precision': None,
                     'limits': {
                         'deposit': {
-                            'min': self.safe_number(depositLimits, 'min', None),
-                            'max': self.safe_number(depositLimits, 'max', None),
+                            'min': self.safe_number(networkDepositLimits, 'min'),
+                            'max': self.safe_number(networkDepositLimits, 'max'),
                         },
                         'withdraw': {
-                            'min': self.safe_number(withdrawLimits, 'min', None),
-                            'max': self.safe_number(withdrawLimits, 'max', None),
+                            'min': self.safe_number(networkWithdrawLimits, 'min'),
+                            'max': self.safe_number(networkWithdrawLimits, 'max'),
                         },
                     },
                 }
@@ -697,7 +698,7 @@ class whitebit(Exchange, ImplicitAPI):
                 'deposit': self.safe_bool(currency, 'can_deposit'),
                 'withdraw': self.safe_bool(currency, 'can_withdraw'),
                 'fee': None,
-                'networks': None,  # todo
+                'networks': networks,
                 'type': 'fiat' if hasProvider else 'crypto',
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'currency_precision'))),
                 'limits': {
@@ -1752,7 +1753,7 @@ class whitebit(Exchange, ImplicitAPI):
         #         "time":1737380046
         #     }
         #
-        return self.safe_integer(response, 'time')
+        return self.safe_integer_product(response, 'time', 1000)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
@@ -2325,7 +2326,7 @@ class whitebit(Exchange, ImplicitAPI):
             'lastTradeTimestamp': lastTradeTimestamp,
             'timeInForce': None,
             'postOnly': None,
-            'status': None,
+            'status': self.parse_order_status(self.safe_string(order, 'status')),
             'side': side,
             'price': price,
             'type': orderType,
@@ -2338,6 +2339,15 @@ class whitebit(Exchange, ImplicitAPI):
             'fee': fee,
             'trades': None,
         }, market)
+
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
+            'CANCELED': 'canceled',
+            'OPEN': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'FILLED': 'closed',
+        }
+        return self.safe_string_lower(statuses, status, status)
 
     async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """

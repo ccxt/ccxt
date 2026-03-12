@@ -112,7 +112,8 @@ class blofin(ccxt.async_support.blofin):
             firstMarket = self.safe_dict(trades, 0)
             firstSymbol = self.safe_string(firstMarket, 'symbol')
             limit = trades.getLimit(firstSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
 
     def handle_trades(self, client: Client, message):
         #

@@ -34,6 +34,7 @@
 * [setMarginMode](#setmarginmode)
 * [fetchDepositAddress](#fetchdepositaddress)
 * [fetchDepositWithdrawFees](#fetchdepositwithdrawfees)
+* [fetchOpenInterests](#fetchopeninterests)
 * [fetchLiquidations](#fetchliquidations)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
@@ -698,6 +699,27 @@ fetch deposit and withdraw fees
 
 ```javascript
 bitmex.fetchDepositWithdrawFees (codes[, params])
+```
+
+
+<a name="fetchOpenInterests" id="fetchopeninterests"></a>
+
+### fetchOpenInterests{docsify-ignore}
+Retrieves the open interest for a list of symbols
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [open interest structures](https://docs.ccxt.com/?id=open-interest-structure)
+
+**See**: https://docs.bitmex.com/api-explorer/get-stats  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified CCXT market symbols |
+| params | <code>object</code> | No | exchange specific parameters |
+
+
+```javascript
+bitmex.fetchOpenInterests ([symbols, params])
 ```
 
 
