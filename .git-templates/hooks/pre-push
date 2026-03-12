@@ -13,13 +13,6 @@ for DIR in $CHECK_DIRECTORIES; do
     fi
 done
 
-function check_exit_status() {
-    if [ $1 -ne 0 ]; then
-        echo "$2 : Linting failed, check the files..."
-        exit 1
-    fi
-}
-
 if [ "$HAS_RELEVANT_CHANGES" = "false" ]; then
     echo "No relevant changes, skipping checks..."
     exit 0
@@ -34,15 +27,29 @@ if [ "$MODIFIED_TS_FILES" != "" ]; then
     eslint $MODIFIED_TS_FILES
     ESLINT_EXIT_CODE=$?
 fi
-check_exit_status $ESLINT_EXIT_CODE "ESLint"
+
+if [ $ESLINT_EXIT_CODE -ne 0 ]; then
+    echo "ESLint failed, check the TypeScript files..."
+    exit $ESLINT_EXIT_CODE
+fi
 
 # Run python linting
-npm run check-python-ruff
-check_exit_status $? "Python"
+npm run check-python-syntax
+PYTHON_EXIT_CODE=$?
+
+if [ $PYTHON_EXIT_CODE -ne 0 ]; then
+    echo "Python linting failed, check the Python files..."
+    exit $PYTHON_EXIT_CODE
+fi
 
 # Run PHP linting
 npm run check-php-syntax
-check_exit_status $? "PHP"
+PHP_EXIT_CODE=$?
 
-echo "All checks passed, pushing starts ..."
+if [ $PHP_EXIT_CODE -ne 0 ]; then
+    echo "PHP linting failed, check the PHP files..."
+    exit $PHP_EXIT_CODE
+fi
+
+echo "All checks passed, pushing..."
 exit 0
