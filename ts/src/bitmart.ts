@@ -1185,8 +1185,9 @@ export default class bitmart extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        const spot = await this.fetchSpotMarkets (params);
-        const contract = await this.fetchContractMarkets (params);
+        const spotPromise = this.fetchSpotMarkets (params);
+        const contractPromise = this.fetchContractMarkets (params);
+        const [ spot, contract ] = await Promise.all ([ spotPromise, contractPromise ]);
         return this.arrayConcat (spot, contract);
     }
 
@@ -5282,7 +5283,7 @@ export default class bitmart extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         await this.loadMarkets ();

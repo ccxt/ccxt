@@ -1191,8 +1191,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             self.load_time_difference()
-        spot = self.fetch_spot_markets(params)
-        contract = self.fetch_contract_markets(params)
+        spotPromise = self.fetch_spot_markets(params)
+        contractPromise = self.fetch_contract_markets(params)
+        spot, contract = [spotPromise, contractPromise]
         return self.array_concat(spot, contract)
 
     def fetch_currencies(self, params={}) -> Currencies:
@@ -5023,7 +5024,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         currency = None

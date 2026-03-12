@@ -1799,8 +1799,10 @@ class okx extends Exchange {
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
         $status = $this->safe_string($market, 'state');
+        $instIdCode = $this->safe_integer($market, 'instIdCode');
         return $this->extend($fees, array(
             'id' => $id,
+            'instIdCode' => $instIdCode,
             'symbol' => $symbol,
             'base' => $base,
             'quote' => $quote,
@@ -3061,6 +3063,9 @@ class okx extends Exchange {
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         $market = $this->market($symbol);
+        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $request = array(
             'instId' => $market['id'],
             // 'ccy' => $currency['id'], // only applicable to cross MARGIN orders in single-$currency $margin
@@ -3071,7 +3076,7 @@ class okx extends Exchange {
             'ordType' => $type,
             // 'ordType' => $type, // privatePostTradeOrder => $market, limit, post_only, $fok, $ioc, optimal_limit_ioc
             // 'ordType' => $type, // privatePostTradeOrderAlgo => $conditional, oco, $trigger, move_order_stop, iceberg, twap
-            'sz' => $this->amount_to_precision($symbol, $amount),
+            // 'sz' => $this->amount_to_precision($symbol, $amount),
             // 'px' => $this->price_to_precision($symbol, $price), // limit orders only
             // 'reduceOnly' => false,
             //
@@ -3087,14 +3092,20 @@ class okx extends Exchange {
             // 'slTriggerPxType' => 'last', // Conditional default is last, mark or index ($conditional orders)
             // 'slOrdPx' => 10, // Order $price for Stop-Loss orders, if -1 will be executed at $market $price ($conditional orders)
         );
+        $isConditionalOrOCO = $conditional || ($type === 'oco');
+        $closeFraction = $this->safe_string($params, 'closeFraction');
+        $shouldOmitSize = $isConditionalOrOCO && $closeFraction !== null;
+        if (!$shouldOmitSize) {
+            $request['sz'] = $this->amount_to_precision($symbol, $amount);
+        }
         $spot = $market['spot'];
         $contract = $market['contract'];
         $triggerPrice = $this->safe_value_n($params, array( 'triggerPrice', 'stopPrice', 'triggerPx' ));
         $timeInForce = $this->safe_string($params, 'timeInForce', 'GTC');
-        $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
+        // $takeProfitPrice = $this->safe_value_2($params, 'takeProfitPrice', 'tpTriggerPx');
         $tpOrdPx = $this->safe_value($params, 'tpOrdPx', $price);
         $tpTriggerPxType = $this->safe_string($params, 'tpTriggerPxType', 'last');
-        $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
+        // $stopLossPrice = $this->safe_value_2($params, 'stopLossPrice', 'slTriggerPx');
         $slOrdPx = $this->safe_value($params, 'slOrdPx', $price);
         $slTriggerPxType = $this->safe_string($params, 'slTriggerPxType', 'last');
         $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
@@ -3107,7 +3118,7 @@ class okx extends Exchange {
         $trailingPrice = $this->safe_string_2($params, 'trailingPrice', 'callbackSpread');
         $isTrailingPriceOrder = $trailingPrice !== null;
         $trigger = ($triggerPrice !== null) || ($type === 'trigger');
-        $isReduceOnly = $this->safe_value($params, 'reduceOnly', false);
+        $isReduceOnly = $this->safe_value($params, 'reduceOnly', false) || ($closeFraction !== null);
         $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
         $marginMode = $this->safe_string_2($params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so be extended into the $request
         $margin = false;
@@ -3158,7 +3169,7 @@ class okx extends Exchange {
         $params = $this->omit($params, array( 'currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent' ));
         $ioc = ($timeInForce === 'IOC') || ($type === 'ioc');
         $fok = ($timeInForce === 'FOK') || ($type === 'fok');
-        $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
+        // $conditional = ($stopLossPrice !== null) || ($takeProfitPrice !== null) || ($type === 'conditional');
         $marketIOC = ($isMarketOrder && $ioc) || ($type === 'optimal_limit_ioc');
         $defaultTgtCcy = $this->safe_string($this->options, 'tgtCcy', 'base_ccy');
         $tgtCcy = $this->safe_string($params, 'tgtCcy', $defaultTgtCcy);
@@ -5029,7 +5040,7 @@ class okx extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -6240,7 +6251,7 @@ class okx extends Exchange {
         if ($initialMarginPercentage === null) {
             $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
         } elseif ($initialMarginString === null) {
-            $initialMarginString = Precise::string_mul($initialMarginPercentage, $notionalString);
+            $initialMarginString = Precise::string_div(Precise::string_div(Precise::string_mul($contractsAbs, $contractSizeString), $entryPriceString), $leverageString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
         $maintenanceMarginPercentage = $this->parse_number(Precise::string_div(Precise::string_add($maintenanceMarginPercentageString, $rounder), '1', 4));
@@ -7444,7 +7455,7 @@ class okx extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount the $amount of margin to remove
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();
@@ -7460,7 +7471,7 @@ class okx extends Exchange {
              * @param {string} $symbol unified market $symbol
              * @param {float} $amount amount of margin to add
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();

@@ -1531,7 +1531,7 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint.
              * @param {string} [$params->positionId] PositionId of the order to add margin.
              * @param {string} [$params->timestamp] Tiemstamp.
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1578,7 +1578,7 @@ class zebpay extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint.
              * @param {string} [$params->positionId] PositionId of the order to add margin.
              * @param {string} [$params->timestamp] Tiemstamp.
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

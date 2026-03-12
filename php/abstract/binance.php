@@ -670,6 +670,9 @@ abstract class binance extends \ccxt\Exchange {
     public function sapi_get_portfolio_earn_asset_balance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapi_get_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapi_get_staking_productlist($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -778,6 +781,15 @@ abstract class binance extends \ccxt\Exchange {
     public function sapi_get_dci_product_accounts($params = array()) {
         return $this->request('dci/product/accounts', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapi_get_accumulator_product_list($params = array()) {
+        return $this->request('accumulator/product/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_accumulator_product_position_list($params = array()) {
+        return $this->request('accumulator/product/position/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_get_accumulator_product_sum_holding($params = array()) {
+        return $this->request('accumulator/product/sum-holding', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapi_post_asset_dust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 0.06667));
     }
@@ -885,6 +897,9 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapi_post_userdatastream_isolated($params = array()) {
         return $this->request('userDataStream/isolated', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_userlistentoken($params = array()) {
+        return $this->request('userListenToken', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_post_futures_transfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -1099,6 +1114,9 @@ abstract class binance extends \ccxt\Exchange {
     public function sapi_post_portfolio_earn_asset_transfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
+    public function sapi_post_portfolio_delta_mode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
     public function sapi_post_lending_auto_invest_plan_add($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -1140,6 +1158,9 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapi_post_dci_product_auto_compound_edit($params = array()) {
         return $this->request('dci/product/auto_compound/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapi_post_accumulator_product_subscribe($params = array()) {
+        return $this->request('accumulator/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapi_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
@@ -1855,6 +1876,9 @@ abstract class binance extends \ccxt\Exchange {
     public function eapiprivate_get_blocktrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function eapiprivate_get_comission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiprivate_post_order($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -2007,6 +2031,12 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function private_post_orderlist_otoco($params = array()) {
         return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_opo($params = array()) {
+        return $this->request('orderList/opo', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_opoco($params = array()) {
+        return $this->request('orderList/opoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
@@ -3004,6 +3034,9 @@ abstract class binance extends \ccxt\Exchange {
     public function sapiGetPortfolioEarnAssetBalance($params = array()) {
         return $this->request('portfolio/earn-asset-balance', 'sapi', 'GET', $params, null, null, array("cost" => 150));
     }
+    public function sapiGetPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'GET', $params, null, null, array("cost" => 150));
+    }
     public function sapiGetStakingProductList($params = array()) {
         return $this->request('staking/productList', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
@@ -3112,6 +3145,15 @@ abstract class binance extends \ccxt\Exchange {
     public function sapiGetDciProductAccounts($params = array()) {
         return $this->request('dci/product/accounts', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
     }
+    public function sapiGetAccumulatorProductList($params = array()) {
+        return $this->request('accumulator/product/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetAccumulatorProductPositionList($params = array()) {
+        return $this->request('accumulator/product/position/list', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiGetAccumulatorProductSumHolding($params = array()) {
+        return $this->request('accumulator/product/sum-holding', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
     public function sapiPostAssetDust($params = array()) {
         return $this->request('asset/dust', 'sapi', 'POST', $params, null, null, array("cost" => 0.06667));
     }
@@ -3219,6 +3261,9 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapiPostUserDataStreamIsolated($params = array()) {
         return $this->request('userDataStream/isolated', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostUserListenToken($params = array()) {
+        return $this->request('userListenToken', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPostFuturesTransfer($params = array()) {
         return $this->request('futures/transfer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
@@ -3433,6 +3478,9 @@ abstract class binance extends \ccxt\Exchange {
     public function sapiPostPortfolioEarnAssetTransfer($params = array()) {
         return $this->request('portfolio/earn-asset-transfer', 'sapi', 'POST', $params, null, null, array("cost" => 150));
     }
+    public function sapiPostPortfolioDeltaMode($params = array()) {
+        return $this->request('portfolio/delta-mode', 'sapi', 'POST', $params, null, null, array("cost" => 150));
+    }
     public function sapiPostLendingAutoInvestPlanAdd($params = array()) {
         return $this->request('lending/auto-invest/plan/add', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -3474,6 +3522,9 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function sapiPostDciProductAutoCompoundEdit($params = array()) {
         return $this->request('dci/product/auto_compound/edit', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    public function sapiPostAccumulatorProductSubscribe($params = array()) {
+        return $this->request('accumulator/product/subscribe', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
     }
     public function sapiPutUserDataStream($params = array()) {
         return $this->request('userDataStream', 'sapi', 'PUT', $params, null, null, array("cost" => 0.1));
@@ -4189,6 +4240,9 @@ abstract class binance extends \ccxt\Exchange {
     public function eapiPrivateGetBlockTrades($params = array()) {
         return $this->request('blockTrades', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function eapiPrivateGetComission($params = array()) {
+        return $this->request('comission', 'eapiPrivate', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function eapiPrivatePostOrder($params = array()) {
         return $this->request('order', 'eapiPrivate', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -4341,6 +4395,12 @@ abstract class binance extends \ccxt\Exchange {
     }
     public function privatePostOrderListOtoco($params = array()) {
         return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOpo($params = array()) {
+        return $this->request('orderList/opo', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOpoco($params = array()) {
+        return $this->request('orderList/opoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));

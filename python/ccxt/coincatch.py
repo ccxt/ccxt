@@ -4613,7 +4613,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         params['methodName'] = 'reduceMargin'
         return self.modify_margin_helper(symbol, -amount, 'reduce', params)
@@ -4628,7 +4628,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.side]: *for isolated margin mode with hedged position mode only* 'long' or 'short'
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         params['methodName'] = 'addMargin'
         return self.modify_margin_helper(symbol, amount, 'add', params)
@@ -4892,7 +4892,7 @@ class coincatch(Exchange, ImplicitAPI):
         :param str [params.business]: *swap only*
         :param str [params.lastEndId]: *swap only*
         :param bool [params.next]: *swap only*
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         methodName = 'fetchLedger'
         self.load_markets()

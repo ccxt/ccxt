@@ -281,6 +281,7 @@ public partial class bitget : Exchange
                             { "v3/market/tickers", 1 },
                             { "v3/market/orderbook", 1 },
                             { "v3/market/fills", 1 },
+                            { "v3/market/proof-of-reserves", 1 },
                             { "v3/market/open-interest", 1 },
                             { "v3/market/candles", 1 },
                             { "v3/market/history-candles", 1 },
@@ -291,6 +292,7 @@ public partial class bitget : Exchange
                             { "v3/market/margin-loans", 1 },
                             { "v3/market/position-tier", 1 },
                             { "v3/market/oi-limit", 2 },
+                            { "v3/market/index-components", 2 },
                         } },
                     } },
                 } },
@@ -328,6 +330,7 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/deposit-address", 2 },
                             { "v2/spot/wallet/deposit-records", 2 },
                             { "v2/spot/wallet/withdrawal-records", 2 },
+                            { "v2/spot/account/upgrade-status", 20 },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "spot/v1/wallet/transfer", 4 },
@@ -397,6 +400,7 @@ public partial class bitget : Exchange
                             { "v2/spot/wallet/withdrawal", 2 },
                             { "v2/spot/wallet/cancel-withdrawal", 2 },
                             { "v2/spot/wallet/modify-deposit-account", 2 },
+                            { "v2/spot/account/upgrade", 20 },
                         } },
                     } },
                     { "mix", new Dictionary<string, object>() {
@@ -805,14 +809,29 @@ public partial class bitget : Exchange
                     { "uta", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "v3/account/assets", 1 },
+                            { "v3/account/funding-assets", 1 },
                             { "v3/account/settings", 1 },
-                            { "v3/account/deposit-records", 2 },
                             { "v3/account/financial-records", 1 },
                             { "v3/account/repayable-coins", 2 },
                             { "v3/account/payment-coins", 2 },
                             { "v3/account/convert-records", 1 },
+                            { "v3/account/deduct-info", 20 },
+                            { "v3/account/fee-rate", 6.6667 },
+                            { "v3/account/switch-status", 4 },
+                            { "v3/account/max-transferable", 6.6667 },
+                            { "v3/account/open-interest-limit", 4 },
+                            { "v3/account/sub-unified-assets", 20 },
                             { "v3/account/transferable-coins", 2 },
                             { "v3/account/sub-transfer-record", 4 },
+                            { "v3/account/deposit-address", 2 },
+                            { "v3/account/sub-deposit-address", 2 },
+                            { "v3/account/deposit-records", 2 },
+                            { "v3/account/sub-deposit-records", 2 },
+                            { "v3/account/withdrawal-records", 2 },
+                            { "v3/broker/sub-list", 1 },
+                            { "v3/broker/all-sub-deposit-withdrawal", 1 },
+                            { "v3/broker/commission", 1 },
+                            { "v3/broker/query-sub-apikey", 1 },
                             { "v3/ins-loan/transfered", 6.6667 },
                             { "v3/ins-loan/symbols", 6.6667 },
                             { "v3/ins-loan/risk-unit", 6.6667 },
@@ -821,8 +840,18 @@ public partial class bitget : Exchange
                             { "v3/ins-loan/loan-order", 6.6667 },
                             { "v3/ins-loan/ltv-convert", 6.6667 },
                             { "v3/ins-loan/ensure-coins-convert", 6.6667 },
+                            { "v3/loan/coins", 2 },
+                            { "v3/loan/interest", 2 },
+                            { "v3/loan/borrow-ongoing", 2 },
+                            { "v3/loan/borrow-history", 2 },
+                            { "v3/loan/repay-history", 2 },
+                            { "v3/loan/pledge-rate-history", 2 },
+                            { "v3/loan/debts", 2 },
+                            { "v3/loan/reduces", 2 },
                             { "v3/position/current-position", 1 },
                             { "v3/position/history-position", 1 },
+                            { "v3/position/adlRank", 20 },
+                            { "v3/tax/records", 20 },
                             { "v3/trade/order-info", 1 },
                             { "v3/trade/unfilled-orders", 1 },
                             { "v3/trade/unfilled-strategy-orders", 1 },
@@ -836,10 +865,26 @@ public partial class bitget : Exchange
                             { "v3/account/set-leverage", 2 },
                             { "v3/account/set-hold-mode", 2 },
                             { "v3/account/repay", 4 },
+                            { "v3/account/switch-deduct", 20 },
+                            { "v3/account/deposit-account", 20 },
+                            { "v3/account/switch", 20 },
+                            { "v3/account/adjust-account-mode", 20 },
                             { "v3/account/transfer", 4 },
                             { "v3/account/sub-transfer", 4 },
+                            { "v3/account/sub-master-transfer", 4 },
                             { "v3/account/max-open-available", 4 },
+                            { "v3/account/withdrawal", 20 },
+                            { "v3/broker/create-sub", 1 },
+                            { "v3/broker/modify-sub", 1 },
+                            { "v3/broker/sub-withdrawal", 1 },
+                            { "v3/broker/sub-deposit-address", 1 },
+                            { "v3/broker/create-sub-apikey", 1 },
+                            { "v3/broker/modify-sub-apikey", 1 },
+                            { "v3/broker/delete-sub-apikey", 1 },
                             { "v3/ins-loan/bind-uid", 6.6667 },
+                            { "v3/loan/borrow", 2 },
+                            { "v3/loan/repay", 2 },
+                            { "v3/loan/revise-pledge", 2 },
                             { "v3/trade/place-order", 2 },
                             { "v3/trade/place-strategy-order", 2 },
                             { "v3/trade/modify-order", 2 },
@@ -851,6 +896,7 @@ public partial class bitget : Exchange
                             { "v3/trade/cancel-batch", 4 },
                             { "v3/trade/cancel-symbol-order", 4 },
                             { "v3/trade/close-positions", 4 },
+                            { "v3/trade/countdown-cancel-all", 20 },
                             { "v3/user/create-sub", 2 },
                             { "v3/user/freeze-sub", 2 },
                             { "v3/user/create-sub-api", 2 },
@@ -2406,7 +2452,7 @@ public partial class bitget : Exchange
                         { "max", null },
                     } },
                     { "cost", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(market, "minOrderAmount") },
                         { "max", null },
                     } },
                 } },
@@ -3351,7 +3397,6 @@ public partial class bitget : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object close = this.safeString2(ticker, "lastPr", "lastPrice");
         object timestamp = this.safeIntegerOmitZero(ticker, "ts"); // exchange bitget provided 0
-        object change = this.safeString(ticker, "change24h");
         object category = this.safeString(ticker, "category");
         object markPrice = this.safeString(ticker, "markPrice");
         object marketType = null;
@@ -3365,7 +3410,8 @@ public partial class bitget : Exchange
         object percentage = this.safeString(ticker, "price24hPcnt");
         if (isTrue(isEqual(percentage, null)))
         {
-            percentage = Precise.stringMul(change, "100");
+            object change24h = this.safeString(ticker, "change24h");
+            percentage = Precise.stringMul(change24h, "100");
         }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market, null, marketType) },
@@ -3382,7 +3428,7 @@ public partial class bitget : Exchange
             { "close", close },
             { "last", close },
             { "previousClose", null },
-            { "change", change },
+            { "change", null },
             { "percentage", percentage },
             { "average", null },
             { "baseVolume", this.safeString2(ticker, "baseVolume", "volume24h") },
@@ -6134,7 +6180,10 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["productType"] = productType;
             if (isTrue(!isTrue(isTakeProfitOrder) && !isTrue(isStopLossOrder)))
             {
-                ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                if (isTrue(!isEqual(amount, null)))
+                {
+                    ((IDictionary<string,object>)request)["newSize"] = this.amountToPrecision(symbol, amount);
+                }
                 if (isTrue(isTrue((!isEqual(price, null))) && !isTrue(isTrailingPercentOrder)))
                 {
                     ((IDictionary<string,object>)request)["newPrice"] = this.priceToPrecision(symbol, price);
@@ -7385,7 +7434,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -7905,7 +7954,7 @@ public partial class bitget : Exchange
      * @param {string} [params.symbol] *contract only* unified market symbol
      * @param {string} [params.productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -9539,7 +9588,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
     {
@@ -9564,7 +9613,7 @@ public partial class bitget : Exchange
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
     {

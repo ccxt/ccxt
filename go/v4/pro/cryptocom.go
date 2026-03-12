@@ -78,7 +78,7 @@ func  (this *CryptocomCore) Pong(client interface{}, message interface{}) <- cha
                                 }
                                 ret_ = func(this *CryptocomCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " pong failed with error "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " pong failed with error "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)

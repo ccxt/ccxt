@@ -165,7 +165,7 @@ class htx extends Exchange {
                 // ),
                 'logo' => 'https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg',
                 'hostnames' => array(
-                    'contract' => 'api.hbdm.com',
+                    'contract' => 'api.hbdm.vn', // alternatively use api.hbdm.com
                     'spot' => 'api.huobi.pro',
                     'status' => array(
                         'spot' => 'status.huobigroup.com',
@@ -639,6 +639,20 @@ class htx extends Exchange {
                             'linear-swap-api/v3/fix_position_margin_change_record' => 1,
                             'linear-swap-api/v3/swap_unified_account_type' => 1,
                             'linear-swap-api/v3/linear_swap_overview_account_info' => 1,
+                            'v5/account/balance' => 1,
+                            'v5/account/asset_mode' => 1,
+                            'v5/trade/position/opens' => 1,
+                            'v5/trade/order/opens' => 1,
+                            'v5/trade/order/details' => 1,
+                            'v5/trade/order/history' => 1,
+                            'v5/trade/order' => 1,
+                            'v5/position/lever' => 1,
+                            'v5/position/mode' => 1,
+                            'v5/position/risk/limit' => 1,
+                            'v5/position/risk/limit_tier' => 1,
+                            'v5/market/risk/limit' => 1,
+                            'v5/market/assets_deduction_currency' => 1,
+                            'v5/market/multi_assets_margin' => 1,
                         ),
                         'post' => array(
                             // Future Account Interface
@@ -867,6 +881,17 @@ class htx extends Exchange {
                             'linear-swap-api/v1/swap_cross_track_openorders' => 1,
                             'linear-swap-api/v1/swap_track_hisorders' => 1,
                             'linear-swap-api/v1/swap_cross_track_hisorders' => 1,
+                            'v5/account/asset_mode' => 1,
+                            'v5/trade/order' => 1,
+                            'v5/trade/batch_orders' => 1,
+                            'v5/trade/cancel_order' => 1,
+                            'v5/trade/cancel_batch_orders' => 1,
+                            'v5/trade/cancel_all_orders' => 1,
+                            'v5/trade/position' => 1,
+                            'v5/trade/position_all' => 1,
+                            'v5/position/lever' => 1,
+                            'v5/position/mode' => 1,
+                            'v5/account/fee_deduction_currency' => 1,
                         ),
                     ),
                 ),
@@ -3559,6 +3584,7 @@ class htx extends Exchange {
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             * query for $balance and get the amount of funds available for trading or funds locked in orders
              *
              * @see https://huobiapi.github.io/docs/spot/v1/en/#get-$account-$balance-of-a-specific-$account
              * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
@@ -3567,34 +3593,37 @@ class htx extends Exchange {
              * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-$account-information
              * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$isolated-query-user-s-$account-information
              * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#$cross-query-user-39-s-$account-information
+             * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
              *
-             * query for $balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->unified] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
+             * @param {string} [$params->subType] $linear or $future
+             * @param {bool} [$params->uta] provide this parameter if you have a recent $account with unified $cross+$isolated $margin $account
+             * @param {bool} [$params->multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
             Async\await($this->load_markets());
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            $options = $this->safe_value($this->options, 'fetchBalance', array());
-            $isUnifiedAccount = $this->safe_value_2($params, 'isUnifiedAccount', 'unified', false);
-            $params = $this->omit($params, array( 'isUnifiedAccount', 'unified' ));
+            $subType = null;
+            $isUnifiedAccount = null;
+            $isMultiAssetMode = null;
+            list($subType, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'defaultSubType', 'subType', 'linear');
+            list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
+            list($isMultiAssetMode, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'multiAssetMode', false);
             $request = array();
             $spot = ($type === 'spot');
             $future = ($type === 'future');
-            $defaultSubType = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-            $subType = $this->safe_string_2($options, 'defaultSubType', 'subType', $defaultSubType);
-            $subType = $this->safe_string_2($params, 'defaultSubType', 'subType', $subType);
             $inverse = ($subType === 'inverse');
             $linear = ($subType === 'linear');
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-            $params = $this->omit($params, array( 'defaultSubType', 'subType' ));
             $isolated = ($marginMode === 'isolated');
             $cross = ($marginMode === 'cross');
             $margin = ($type === 'margin') || ($spot && ($cross || $isolated));
             $response = null;
-            if ($spot || $margin) {
+            if ($isMultiAssetMode) {
+                $response = Async\await($this->contractPrivateGetV5AccountBalance ($this->extend($request, $params)));
+            } elseif ($spot || $margin) {
                 if ($margin) {
                     if ($isolated) {
                         $response = Async\await($this->spotPrivateGetV1MarginAccountsBalance ($this->extend($request, $params)));
@@ -3779,11 +3808,60 @@ class htx extends Exchange {
             //         "ts" => 1640915104870
             //     }
             //
-            // TODO add $balance parsing for $linear swap
+            // multi asset mode
+            //
+            //     {
+            //         "code" => 200,
+            //         "message" => "Success",
+            //         "data" => {
+            //             "state" => "normal",
+            //             "equity" => "174.216697577770536136",
+            //             "details" => array(
+            //                 array(
+            //                     "currency" => "USDT",
+            //                     "equity" => "174.216697577770536136",
+            //                     "available" => "174.216697577770536136",
+            //                     "profit_unreal" => "0",
+            //                     "initial_margin" => "0",
+            //                     "maintenance_margin" => "0",
+            //                     "maintenance_margin_rate" => "0",
+            //                     "initial_margin_rate" => "0",
+            //                     "available_margin" => "174.216697577770536136",
+            //                     "voucher" => "0",
+            //                     "voucher_value" => "0",
+            //                     "withdraw_available" => "174.216697577770536136",
+            //                     "created_time" => 1770293270932,
+            //                     "updated_time" => 1770293270932,
+            //                     "isolated_equity" => "0",
+            //                     "isolated_profit_unreal" => "0"
+            //                 }
+            //             ),
+            //             "initial_margin" => "0",
+            //             "maintenance_margin" => "0",
+            //             "maintenance_margin_rate" => "0",
+            //             "profit_unreal" => "0",
+            //             "available_margin" => "174.216697577770536136",
+            //             "voucher_value" => "0",
+            //             "created_time" => 1770293268881,
+            //             "updated_time" => 1770293270932
+            //         ),
+            //         "ts" => 1770293281344
+            //     }
             //
             $result = array( 'info' => $response );
             $data = $this->safe_value($response, 'data');
-            if ($spot || $margin) {
+            if ($isMultiAssetMode) {
+                $details = $this->safe_list($data, 'details', array());
+                for ($i = 0; $i < count($details); $i++) {
+                    $balance = $details[$i];
+                    $currencyId = $this->safe_string($balance, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($balance, 'withdraw_available');
+                    $result[$code] = $account;
+                }
+                $result = $this->safe_balance($result);
+            } elseif ($spot || $margin) {
                 if ($isolated) {
                     for ($i = 0; $i < count($data); $i++) {
                         $entry = $data[$i];
@@ -8347,7 +8425,7 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -8632,9 +8710,9 @@ class htx extends Exchange {
             }
             $request = array();
             $subType = null;
-            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params, 'linear');
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenInterests', $market, $params, 'linear');
             $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenInterests', $market, $params);
             $response = null;
             if ($marketType === 'future') {
                 $response = Async\await($this->contractPublicGetApiV1ContractOpenInterest ($this->extend($request, $params)));

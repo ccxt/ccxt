@@ -90,6 +90,7 @@ class ImplicitAPI:
     swap_v2_private_get_user_income_export = swapV2PrivateGetUserIncomeExport = Entry('user/income/export', ['swap', 'v2', 'private'], 'GET', {'cost': 2})
     swap_v2_private_get_user_commissionrate = swapV2PrivateGetUserCommissionRate = Entry('user/commissionRate', ['swap', 'v2', 'private'], 'GET', {'cost': 2})
     swap_v2_private_get_quote_bookticker = swapV2PrivateGetQuoteBookTicker = Entry('quote/bookTicker', ['swap', 'v2', 'private'], 'GET', {'cost': 1})
+    swap_v2_private_post_trade_getvst = swapV2PrivatePostTradeGetVst = Entry('trade/getVst', ['swap', 'v2', 'private'], 'POST', {'cost': 5})
     swap_v2_private_post_trade_order = swapV2PrivatePostTradeOrder = Entry('trade/order', ['swap', 'v2', 'private'], 'POST', {'cost': 2})
     swap_v2_private_post_trade_batchorders = swapV2PrivatePostTradeBatchOrders = Entry('trade/batchOrders', ['swap', 'v2', 'private'], 'POST', {'cost': 2})
     swap_v2_private_post_trade_closeallpositions = swapV2PrivatePostTradeCloseAllPositions = Entry('trade/closeAllPositions', ['swap', 'v2', 'private'], 'POST', {'cost': 2})

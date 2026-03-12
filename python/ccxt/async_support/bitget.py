@@ -323,6 +323,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/market/tickers': 1,
                             'v3/market/orderbook': 1,
                             'v3/market/fills': 1,
+                            'v3/market/proof-of-reserves': 1,
                             'v3/market/open-interest': 1,
                             'v3/market/candles': 1,
                             'v3/market/history-candles': 1,
@@ -333,6 +334,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/market/margin-loans': 1,
                             'v3/market/position-tier': 1,
                             'v3/market/oi-limit': 2,
+                            'v3/market/index-components': 2,
                         },
                     },
                 },
@@ -370,6 +372,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/wallet/deposit-address': 2,
                             'v2/spot/wallet/deposit-records': 2,
                             'v2/spot/wallet/withdrawal-records': 2,
+                            'v2/spot/account/upgrade-status': 20,
                         },
                         'post': {
                             'spot/v1/wallet/transfer': 4,
@@ -439,6 +442,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v2/spot/wallet/withdrawal': 2,
                             'v2/spot/wallet/cancel-withdrawal': 2,
                             'v2/spot/wallet/modify-deposit-account': 2,
+                            'v2/spot/account/upgrade': 20,
                         },
                     },
                     'mix': {
@@ -847,14 +851,29 @@ class bitget(Exchange, ImplicitAPI):
                     'uta': {
                         'get': {
                             'v3/account/assets': 1,
+                            'v3/account/funding-assets': 1,
                             'v3/account/settings': 1,
-                            'v3/account/deposit-records': 2,
                             'v3/account/financial-records': 1,
                             'v3/account/repayable-coins': 2,
                             'v3/account/payment-coins': 2,
                             'v3/account/convert-records': 1,
+                            'v3/account/deduct-info': 20,
+                            'v3/account/fee-rate': 6.6667,
+                            'v3/account/switch-status': 4,
+                            'v3/account/max-transferable': 6.6667,
+                            'v3/account/open-interest-limit': 4,
+                            'v3/account/sub-unified-assets': 20,
                             'v3/account/transferable-coins': 2,
                             'v3/account/sub-transfer-record': 4,
+                            'v3/account/deposit-address': 2,
+                            'v3/account/sub-deposit-address': 2,
+                            'v3/account/deposit-records': 2,
+                            'v3/account/sub-deposit-records': 2,
+                            'v3/account/withdrawal-records': 2,
+                            'v3/broker/sub-list': 1,
+                            'v3/broker/all-sub-deposit-withdrawal': 1,
+                            'v3/broker/commission': 1,
+                            'v3/broker/query-sub-apikey': 1,
                             'v3/ins-loan/transfered': 6.6667,
                             'v3/ins-loan/symbols': 6.6667,
                             'v3/ins-loan/risk-unit': 6.6667,
@@ -863,8 +882,18 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/ins-loan/loan-order': 6.6667,
                             'v3/ins-loan/ltv-convert': 6.6667,
                             'v3/ins-loan/ensure-coins-convert': 6.6667,
+                            'v3/loan/coins': 2,
+                            'v3/loan/interest': 2,
+                            'v3/loan/borrow-ongoing': 2,
+                            'v3/loan/borrow-history': 2,
+                            'v3/loan/repay-history': 2,
+                            'v3/loan/pledge-rate-history': 2,
+                            'v3/loan/debts': 2,
+                            'v3/loan/reduces': 2,
                             'v3/position/current-position': 1,
                             'v3/position/history-position': 1,
+                            'v3/position/adlRank': 20,
+                            'v3/tax/records': 20,
                             'v3/trade/order-info': 1,
                             'v3/trade/unfilled-orders': 1,
                             'v3/trade/unfilled-strategy-orders': 1,
@@ -878,10 +907,26 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/account/set-leverage': 2,
                             'v3/account/set-hold-mode': 2,
                             'v3/account/repay': 4,
+                            'v3/account/switch-deduct': 20,
+                            'v3/account/deposit-account': 20,
+                            'v3/account/switch': 20,
+                            'v3/account/adjust-account-mode': 20,
                             'v3/account/transfer': 4,
                             'v3/account/sub-transfer': 4,
+                            'v3/account/sub-master-transfer': 4,
                             'v3/account/max-open-available': 4,
+                            'v3/account/withdrawal': 20,
+                            'v3/broker/create-sub': 1,
+                            'v3/broker/modify-sub': 1,
+                            'v3/broker/sub-withdrawal': 1,
+                            'v3/broker/sub-deposit-address': 1,
+                            'v3/broker/create-sub-apikey': 1,
+                            'v3/broker/modify-sub-apikey': 1,
+                            'v3/broker/delete-sub-apikey': 1,
                             'v3/ins-loan/bind-uid': 6.6667,
+                            'v3/loan/borrow': 2,
+                            'v3/loan/repay': 2,
+                            'v3/loan/revise-pledge': 2,
                             'v3/trade/place-order': 2,
                             'v3/trade/place-strategy-order': 2,
                             'v3/trade/modify-order': 2,
@@ -893,6 +938,7 @@ class bitget(Exchange, ImplicitAPI):
                             'v3/trade/cancel-batch': 4,
                             'v3/trade/cancel-symbol-order': 4,
                             'v3/trade/close-positions': 4,
+                            'v3/trade/countdown-cancel-all': 20,
                             'v3/user/create-sub': 2,
                             'v3/user/freeze-sub': 2,
                             'v3/user/create-sub-api': 2,
@@ -2394,7 +2440,7 @@ class bitget(Exchange, ImplicitAPI):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'minOrderAmount'),
                         'max': None,
                     },
                 },
@@ -3222,7 +3268,6 @@ class bitget(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         close = self.safe_string_2(ticker, 'lastPr', 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'ts')  # exchange bitget provided 0
-        change = self.safe_string(ticker, 'change24h')
         category = self.safe_string(ticker, 'category')
         markPrice = self.safe_string(ticker, 'markPrice')
         marketType: str
@@ -3232,7 +3277,8 @@ class bitget(Exchange, ImplicitAPI):
             marketType = 'spot'
         percentage = self.safe_string(ticker, 'price24hPcnt')
         if percentage is None:
-            percentage = Precise.string_mul(change, '100')
+            change24h = self.safe_string(ticker, 'change24h')
+            percentage = Precise.string_mul(change24h, '100')
         return self.safe_ticker({
             'symbol': self.safe_symbol(marketId, market, None, marketType),
             'timestamp': timestamp,
@@ -3248,7 +3294,7 @@ class bitget(Exchange, ImplicitAPI):
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': change,
+            'change': None,
             'percentage': percentage,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'baseVolume', 'volume24h'),
@@ -5525,7 +5571,8 @@ class bitget(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
             request['productType'] = productType
             if not isTakeProfitOrder and not isStopLossOrder:
-                request['newSize'] = self.amount_to_precision(symbol, amount)
+                if amount is not None:
+                    request['newSize'] = self.amount_to_precision(symbol, amount)
                 if (price is not None) and not isTrailingPercentOrder:
                     request['newPrice'] = self.price_to_precision(symbol, price)
             if isTrailingPercentOrder:
@@ -6999,7 +7046,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str [params.symbol]: *contract only* unified market symbol
         :param str [params.productType]: *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         symbol = self.safe_string(params, 'symbol')
@@ -8435,7 +8482,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         if amount > 0:
             raise BadRequest(self.id + ' reduceMargin() amount parameter must be a negative value')
@@ -8453,7 +8500,7 @@ class bitget(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         holdSide = self.safe_string(params, 'holdSide')
         if holdSide is None:

@@ -47,6 +47,9 @@ class phemex(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'closePosition': False,
@@ -57,9 +60,14 @@ class phemex(Exchange, ImplicitAPI):
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
                 'editOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchConvertQuote': True,
                 'fetchConvertTrade': False,
@@ -76,6 +84,7 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchFundingRateHistories': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
@@ -88,6 +97,8 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchOHLCV': True,
                 'fetchOpenInterest': True,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -100,8 +111,11 @@ class phemex(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransfers': True,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'sandbox': True,
                 'setLeverage': True,
                 'setMargin': True,
@@ -4068,7 +4082,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol of the market to set margin in
         :param float amount: the amount to set the margin to
         :param dict [params]: parameters specific to the exchange API endpoint
-        :returns dict: A `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

@@ -126,24 +126,42 @@ func (this *CoinspotCore) Describe() interface{} {
 			"private": map[string]interface{}{
 				"post": []interface{}{"orders", "orders/history", "my/coin/deposit", "my/coin/send", "quote/buy", "quote/sell", "my/balances", "my/orders", "my/buy", "my/sell", "my/buy/cancel", "my/sell/cancel", "ro/my/balances", "ro/my/balances/{cointype}", "ro/my/deposits", "ro/my/withdrawals", "ro/my/transactions", "ro/my/transactions/{cointype}", "ro/my/transactions/open", "ro/my/transactions/{cointype}/open", "ro/my/sendreceive", "ro/my/affiliatepayments", "ro/my/referralpayments"},
 			},
+			"v2": map[string]interface{}{
+				"public": map[string]interface{}{
+					"get": []interface{}{"latest", "latest/{cointype}", "latest/{cointype}/{markettype}", "buyprice/{cointype}", "buyprice/{cointype}/{markettype}", "sellprice/{cointype}", "sellprice/{cointype}/{markettype}", "orders/open/{cointype}", "orders/open/{cointype}/{markettype}", "orders/completed/{cointype}", "orders/completed/{cointype}/{markettype}", "orders/summary/completed/{cointype}", "orders/summary/completed/{cointype}/{markettype}"},
+				},
+				"private": map[string]interface{}{
+					"post": []interface{}{"status", "my/coin/deposit", "quote/buy/now", "quote/sell/now", "quote/swap/now", "my/buy", "my/buy/edit", "my/sell", "my/sell/edit", "my/buy/now", "my/sell/now", "my/swap/now", "my/buy/cancel", "my/buy/cancel/all", "my/sell/cancel", "my/sell/cancel/all", "my/coin/withdraw/senddetails", "my/coin/withdraw/send", "ro/status", "ro/orders/market/open", "ro/orders/market/completed", "ro/my/balances", "ro/my/balance/{cointype}", "ro/my/orders/market/open", "ro/my/orders/limit/open", "ro/my/orders/completed", "ro/my/orders/market/completed", "ro/my/sendreceive", "ro/my/deposits", "ro/my/withdrawals", "ro/my/affiliatepayments", "ro/my/referralpayments"},
+				},
+			},
 		},
 		"markets": map[string]interface{}{
-			"ADA/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "ada",
-				"symbol":  "ADA/AUD",
-				"base":    "ADA",
-				"quote":   "AUD",
-				"baseId":  "ada",
-				"quoteId": "aud",
-				"type":    "spot",
-				"spot":    true,
-			}),
 			"BTC/AUD": this.SafeMarketStructure(map[string]interface{}{
 				"id":      "btc",
 				"symbol":  "BTC/AUD",
 				"base":    "BTC",
 				"quote":   "AUD",
 				"baseId":  "btc",
+				"quoteId": "aud",
+				"type":    "spot",
+				"spot":    true,
+			}),
+			"BTC/USDT": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "btc",
+				"symbol":  "BTC/USDT",
+				"base":    "BTC",
+				"quote":   "USDT",
+				"baseId":  "btc",
+				"quoteId": "usdt",
+				"type":    "spot",
+				"spot":    true,
+			}),
+			"USDT/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "usdt",
+				"symbol":  "USDT/AUD",
+				"base":    "USDT",
+				"quote":   "AUD",
+				"baseId":  "usdt",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
@@ -158,22 +176,32 @@ func (this *CoinspotCore) Describe() interface{} {
 				"type":    "spot",
 				"spot":    true,
 			}),
+			"ADA/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "ada",
+				"symbol":  "ADA/AUD",
+				"base":    "ADA",
+				"quote":   "AUD",
+				"baseId":  "ada",
+				"quoteId": "aud",
+				"type":    "spot",
+				"spot":    true,
+			}),
+			"SOL/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "sol",
+				"symbol":  "SOL/AUD",
+				"base":    "SOL",
+				"quote":   "AUD",
+				"baseId":  "sol",
+				"quoteId": "aud",
+				"type":    "spot",
+				"spot":    true,
+			}),
 			"XRP/AUD": this.SafeMarketStructure(map[string]interface{}{
 				"id":      "xrp",
 				"symbol":  "XRP/AUD",
 				"base":    "XRP",
 				"quote":   "AUD",
 				"baseId":  "xrp",
-				"quoteId": "aud",
-				"type":    "spot",
-				"spot":    true,
-			}),
-			"LTC/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "ltc",
-				"symbol":  "LTC/AUD",
-				"base":    "LTC",
-				"quote":   "AUD",
-				"baseId":  "ltc",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
@@ -188,32 +216,22 @@ func (this *CoinspotCore) Describe() interface{} {
 				"type":    "spot",
 				"spot":    true,
 			}),
-			"RFOX/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "rfox",
-				"symbol":  "RFOX/AUD",
-				"base":    "RFOX",
+			"LTC/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "ltc",
+				"symbol":  "LTC/AUD",
+				"base":    "LTC",
 				"quote":   "AUD",
-				"baseId":  "rfox",
+				"baseId":  "ltc",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
 			}),
-			"POWR/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "powr",
-				"symbol":  "POWR/AUD",
-				"base":    "POWR",
+			"XLM/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "xlm",
+				"symbol":  "XLM/AUD",
+				"base":    "XLM",
 				"quote":   "AUD",
-				"baseId":  "powr",
-				"quoteId": "aud",
-				"type":    "spot",
-				"spot":    true,
-			}),
-			"NEO/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "neo",
-				"symbol":  "NEO/AUD",
-				"base":    "NEO",
-				"quote":   "AUD",
-				"baseId":  "neo",
+				"baseId":  "xlm",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
@@ -238,22 +256,32 @@ func (this *CoinspotCore) Describe() interface{} {
 				"type":    "spot",
 				"spot":    true,
 			}),
-			"XLM/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "xlm",
-				"symbol":  "XLM/AUD",
-				"base":    "XLM",
+			"A/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "eos",
+				"symbol":  "A/AUD",
+				"base":    "A",
 				"quote":   "AUD",
-				"baseId":  "xlm",
+				"baseId":  "eos",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
 			}),
-			"RHOC/AUD": this.SafeMarketStructure(map[string]interface{}{
-				"id":      "rhoc",
-				"symbol":  "RHOC/AUD",
-				"base":    "RHOC",
+			"NEO/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "neo",
+				"symbol":  "NEO/AUD",
+				"base":    "NEO",
 				"quote":   "AUD",
-				"baseId":  "rhoc",
+				"baseId":  "ans",
+				"quoteId": "aud",
+				"type":    "spot",
+				"spot":    true,
+			}),
+			"POWR/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "powr",
+				"symbol":  "POWR/AUD",
+				"base":    "POWR",
+				"quote":   "AUD",
+				"baseId":  "powr",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
@@ -264,6 +292,16 @@ func (this *CoinspotCore) Describe() interface{} {
 				"base":    "GAS",
 				"quote":   "AUD",
 				"baseId":  "gas",
+				"quoteId": "aud",
+				"type":    "spot",
+				"spot":    true,
+			}),
+			"RHOC/AUD": this.SafeMarketStructure(map[string]interface{}{
+				"id":      "rhoc",
+				"symbol":  "RHOC/AUD",
+				"base":    "RHOC",
+				"quote":   "AUD",
+				"baseId":  "rhoc",
 				"quoteId": "aud",
 				"type":    "spot",
 				"spot":    true,
@@ -373,8 +411,8 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes2698 := (<-this.LoadMarkets())
-		PanicOnError(retRes2698)
+		retRes3398 := (<-this.LoadMarkets())
+		PanicOnError(retRes3398)
 		var method interface{} = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
 
 		response := (<-this.CallDynamically(method, params))
@@ -423,8 +461,8 @@ func (this *CoinspotCore) FetchOrderBook(symbol interface{}, optionalArgs ...int
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes3028 := (<-this.LoadMarkets())
-		PanicOnError(retRes3028)
+		retRes3728 := (<-this.LoadMarkets())
+		PanicOnError(retRes3728)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"cointype": GetValue(market, "id"),
@@ -494,8 +532,8 @@ func (this *CoinspotCore) FetchTicker(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 0, map[string]interface{}{})
 		_ = params
 
-		retRes3578 := (<-this.LoadMarkets())
-		PanicOnError(retRes3578)
+		retRes4278 := (<-this.LoadMarkets())
+		PanicOnError(retRes4278)
 		var market interface{} = this.Market(symbol)
 
 		response := (<-this.PublicGetLatest(params))
@@ -543,8 +581,8 @@ func (this *CoinspotCore) FetchTickers(optionalArgs ...interface{}) <-chan inter
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes3898 := (<-this.LoadMarkets())
-		PanicOnError(retRes3898)
+		retRes4598 := (<-this.LoadMarkets())
+		PanicOnError(retRes4598)
 
 		response := (<-this.PublicGetLatest(params))
 		PanicOnError(response)
@@ -608,8 +646,8 @@ func (this *CoinspotCore) FetchTrades(symbol interface{}, optionalArgs ...interf
 		params := GetArg(optionalArgs, 2, map[string]interface{}{})
 		_ = params
 
-		retRes4358 := (<-this.LoadMarkets())
-		PanicOnError(retRes4358)
+		retRes5058 := (<-this.LoadMarkets())
+		PanicOnError(retRes5058)
 		var market interface{} = this.Market(symbol)
 		var request interface{} = map[string]interface{}{
 			"cointype": GetValue(market, "id"),
@@ -659,8 +697,8 @@ func (this *CoinspotCore) FetchMyTrades(optionalArgs ...interface{}) <-chan inte
 		params := GetArg(optionalArgs, 3, map[string]interface{}{})
 		_ = params
 
-		retRes4658 := (<-this.LoadMarkets())
-		PanicOnError(retRes4658)
+		retRes5358 := (<-this.LoadMarkets())
+		PanicOnError(retRes5358)
 		var request interface{} = map[string]interface{}{}
 		var market interface{} = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -809,8 +847,8 @@ func (this *CoinspotCore) CreateOrder(symbol interface{}, typeVar interface{}, s
 		params := GetArg(optionalArgs, 1, map[string]interface{}{})
 		_ = params
 
-		retRes5978 := (<-this.LoadMarkets())
-		PanicOnError(retRes5978)
+		retRes6678 := (<-this.LoadMarkets())
+		PanicOnError(retRes6678)
 		var method interface{} = Add("privatePostMy", this.Capitalize(side))
 		if IsTrue(IsEqual(typeVar, "market")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))

@@ -600,7 +600,8 @@ class backpack(ccxt.async_support.backpack):
             first = self.safe_value(trades, 0)
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
 
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
         """

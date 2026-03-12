@@ -357,13 +357,12 @@ export default class binance extends binanceRest {
         const market = this.safeMarket (marketId, undefined, '', 'contract');
         const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation (rawLiquidation, market);
-        let liquidations = this.safeValue (this.liquidations, symbol);
-        if (liquidations === undefined) {
+        if (this.liquidations === undefined) {
             const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);
-            liquidations = new ArrayCache (limit);
+            this.liquidations = new ArrayCache (limit);
         }
-        liquidations.append (liquidation);
-        this.liquidations[symbol] = liquidations;
+        const cache = this.liquidations;
+        cache.append (liquidation);
         client.resolve ([ liquidation ], 'liquidations');
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
     }
@@ -571,13 +570,13 @@ export default class binance extends binanceRest {
         const market = this.safeMarket (marketId, undefined, undefined, 'swap');
         const symbol = this.safeSymbol (marketId, market);
         const liquidation = this.parseWsLiquidation (message, market);
-        let myLiquidations = this.safeValue (this.myLiquidations, symbol);
-        if (myLiquidations === undefined) {
+        let cache = this.myLiquidations;
+        if (cache === undefined) {
             const limit = this.safeInteger (this.options, 'myLiquidationsLimit', 1000);
-            myLiquidations = new ArrayCache (limit);
+            cache = new ArrayCache (limit);
         }
-        myLiquidations.append (liquidation);
-        this.myLiquidations[symbol] = myLiquidations;
+        cache.append (liquidation);
+        this.myLiquidations = cache;
         client.resolve ([ liquidation ], 'myLiquidations');
         client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
     }
@@ -2455,6 +2454,96 @@ export default class binance extends binanceRest {
         client.resolve (message, messageHash);
     }
 
+    /**
+     * @name binance#ensureUserDataStreamWsSubscribeListenToken
+     * @description subscribes to user data stream using listenToken (for margin)
+     * @param {string} marketType - the market type (e.g., 'margin')
+     * @param {object} params - extra parameters specific to the request
+     * @param {string} [params.symbol] - required for isolated margin
+     * @param {boolean} [params.isIsolated] - whether it is isolated margin
+     * @param {number} [params.validity] - validity in milliseconds, default 24 hours, max 24 hours
+     * @see {@link https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream Binance User Data Stream Documentation}
+     * @returns Promise<void>
+     */
+    async ensureUserDataStreamWsSubscribeListenToken (marketType: string = 'margin', params = {}) {
+        const url = this.urls['api']['ws']['ws-api']['spot'];
+        const options = this.safeDict (this.options, marketType, {});
+        const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
+        const listenTokenRefreshRate = this.safeInteger (this.options, 'listenTokenRefreshRate', 82800000); // 23 hours default
+        const time = this.milliseconds ();
+        const delay = this.sum (listenTokenRefreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
+            // Step 1: Create listenToken via REST API
+            const symbol = this.safeString (params, 'symbol');
+            const isIsolated = this.safeBool (params, 'isIsolated', false);
+            const validity = this.safeInteger (params, 'validity');
+            const request: Dict = {};
+            if (isIsolated) {
+                if (symbol === undefined) {
+                    throw new ArgumentsRequired (this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+                }
+                const marketId = this.marketId (symbol);
+                request['symbol'] = marketId;
+                request['isIsolated'] = true;
+            }
+            if (validity !== undefined) {
+                request['validity'] = validity;
+            }
+            const response = await this.sapiPostUserListenToken (request);
+            const listenToken = this.safeString (response, 'token');
+            const expirationTime = this.safeInteger (response, 'expirationTime');
+            // Step 2: Subscribe to user data stream via WebSocket API
+            const requestId = this.requestId (url);
+            const messageHash = requestId.toString ();
+            const message: Dict = {
+                'id': messageHash,
+                'method': 'userDataStream.subscribe.listenToken',
+                'params': {
+                    'listenToken': listenToken,
+                },
+            };
+            const subscription: Dict = {
+                'id': messageHash,
+                'method': this.handleUserDataStreamSubscribe,
+                'subscription': marketType,
+            };
+            this.options[marketType] = this.extend (options, {
+                'listenToken': listenToken,
+                'expirationTime': expirationTime,
+                'lastAuthenticatedTime': time,
+                'symbol': symbol,
+                'isIsolated': isIsolated,
+                'validity': validity,
+            });
+            // Schedule token renewal before expiration
+            const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
+            if (renewalTime > 0) {
+                const extendedParams = this.extend (params, { 'type': marketType });
+                this.delay (renewalTime, this.renewListenToken, extendedParams);
+            }
+            await this.watch (url, messageHash, message, messageHash, subscription);
+        }
+    }
+
+    async renewListenToken (params = {}) {
+        const type = this.safeString (params, 'type', 'margin');
+        const options = this.safeDict (this.options, type, {});
+        const symbol = this.safeString (options, 'symbol');
+        const isIsolated = this.safeBool (options, 'isIsolated', false);
+        const validity = this.safeInteger (options, 'validity');
+        const renewParams: Dict = {};
+        if (symbol !== undefined) {
+            renewParams['symbol'] = symbol;
+        }
+        if (isIsolated) {
+            renewParams['isIsolated'] = isIsolated;
+        }
+        if (validity !== undefined) {
+            renewParams['validity'] = validity;
+        }
+        await this.ensureUserDataStreamWsSubscribeListenToken (type, renewParams);
+    }
+
     async authenticate (params = {}) {
         const time = this.milliseconds ();
         let type = undefined;
@@ -2476,8 +2565,19 @@ export default class binance extends binanceRest {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('authenticate', params);
         const isIsolatedMargin = (marginMode === 'isolated');
-        const isCrossMargin = (marginMode === 'cross') || (marginMode === undefined);
         const symbol = this.safeString (params, 'symbol');
+        // For margin use WebSocket API listenToken subscription
+        if (type === 'margin' || isIsolatedMargin) {
+            const marginParams: Dict = {};
+            if (symbol !== undefined) {
+                marginParams['symbol'] = symbol;
+            }
+            if (isIsolatedMargin) {
+                marginParams['isIsolated'] = true;
+            }
+            await this.ensureUserDataStreamWsSubscribeListenToken ('margin', marginParams);
+            return;
+        }
         params = this.omit (params, 'symbol');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
@@ -2492,15 +2592,6 @@ export default class binance extends binanceRest {
                 response = await this.fapiPrivatePostListenKey (params);
             } else if (type === 'delivery') {
                 response = await this.dapiPrivatePostListenKey (params);
-            } else if (type === 'margin' && isCrossMargin) {
-                response = await this.sapiPostUserDataStream (params);
-            } else if (isIsolatedMargin) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' authenticate() requires a symbol argument for isolated margin mode');
-                }
-                const marketId = this.marketId (symbol);
-                params = this.extend (params, { 'symbol': marketId });
-                response = await this.sapiPostUserDataStreamIsolated (params);
             } else {
                 response = await this.publicPostUserDataStream (params);
             }
@@ -2525,6 +2616,10 @@ export default class binance extends binanceRest {
         } else if (this.isInverse (type, subType)) {
             type = 'delivery';
         }
+        // For margin, token renewal is handled by renewListenToken method
+        if (type === 'margin') {
+            return;
+        }
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
@@ -2532,7 +2627,6 @@ export default class binance extends binanceRest {
             return;
         }
         const request: Dict = {};
-        const symbol = this.safeString (params, 'symbol');
         params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();
         try {
@@ -2545,12 +2639,7 @@ export default class binance extends binanceRest {
                 await this.dapiPrivatePutListenKey (this.extend (request, params));
             } else {
                 request['listenKey'] = listenKey;
-                if (type === 'margin') {
-                    request['symbol'] = symbol;
-                    await this.sapiPutUserDataStream (this.extend (request, params));
-                } else {
-                    await this.publicPutUserDataStream (this.extend (request, params));
-                }
+                await this.publicPutUserDataStream (this.extend (request, params));
             }
         } catch (error) {
             let urlType = type;
@@ -2772,7 +2861,12 @@ export default class binance extends binanceRest {
                 payload['symbol'] = market['id'];
             }
         }
-        const type = this.getMarketType ('fetchPositionsWs', market, params);
+        let type = this.getMarketType ('fetchPositionsWs', market, params);
+        if (symbols === undefined && (type === 'spot')) {
+            // when symbols aren't provide
+            // we shouldn't rely on the defaultType
+            type = 'future';
+        }
         if (type !== 'future' && type !== 'delivery') {
             throw new BadRequest (this.id + ' fetchPositionsWs only supports swap markets');
         }
@@ -2864,9 +2958,9 @@ export default class binance extends binanceRest {
         }
         let url = '';
         let urlType = type;
-        if (type === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             // route to WebSocket API connection where the user data stream is subscribed
-            url = this.urls['api']['ws']['ws-api'][type];
+            url = this.urls['api']['ws']['ws-api']['spot'];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -3652,9 +3746,9 @@ export default class binance extends binanceRest {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchOrders', 'papi', 'portfolioMargin', false);
         let url = '';
-        if (type === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             // route orders to ws-api user data stream
-            url = this.urls['api']['ws']['ws-api'][type];
+            url = this.urls['api']['ws']['ws-api']['spot'];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';
@@ -4391,8 +4485,8 @@ export default class binance extends binanceRest {
         let isPortfolioMargin = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
         let url = '';
-        if (type === 'spot') {
-            url = this.urls['api']['ws']['ws-api'][type];
+        if (type === 'spot' || type === 'margin') {
+            url = this.urls['api']['ws']['ws-api']['spot'];
         } else {
             if (isPortfolioMargin) {
                 urlType = 'papi';

@@ -1181,8 +1181,9 @@ class bitmart extends Exchange {
         if ($this->options['adjustForTimeDifference']) {
             $this->load_time_difference();
         }
-        $spot = $this->fetch_spot_markets($params);
-        $contract = $this->fetch_contract_markets($params);
+        $spotPromise = $this->fetch_spot_markets($params);
+        $contractPromise = $this->fetch_contract_markets($params);
+        list($spot, $contract) = array( $spotPromise, $contractPromise );
         return $this->array_concat($spot, $contract);
     }
 
@@ -5271,7 +5272,7 @@ class bitmart extends Exchange {
          * @param {int} [$limit] max number of ledger entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
          */
         $this->load_markets();
         $currency = null;

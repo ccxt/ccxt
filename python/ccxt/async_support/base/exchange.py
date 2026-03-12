@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.29'
+__version__ = '4.5.39'
 
 # -----------------------------------------------------------------------------
 
@@ -416,6 +416,7 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
+        self.open()  # ensure self.asyncio_loop is set
         self.clients = self.clients or {}
         if url not in self.clients:
             on_message = self.handle_message
@@ -851,7 +852,11 @@ class Exchange(BaseExchange):
         raise NotSupported(self.id + ' fetchOpenInterestHistory() is not supported yet')
 
     async def fetch_open_interest(self, symbol: str, params={}):
-        raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
+        if self.has['fetchOpenInterests']:
+            openInterests = await self.fetch_open_interests([symbol], params)
+            return self.safe_dict(openInterests, symbol)
+        else:
+            raise NotSupported(self.id + ' fetchOpenInterest() is not supported yet')
 
     async def fetch_open_interests(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchOpenInterests() is not supported yet')
@@ -1235,6 +1240,9 @@ class Exchange(BaseExchange):
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         raise NotSupported(self.id + ' createOrder() is not supported yet')
 
+    async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}):
+        raise NotSupported(self.id + ' createTwapOrder() is not supported yet')
+
     async def create_convert_trade(self, id: str, fromCode: str, toCode: str, amount: Num = None, params={}):
         raise NotSupported(self.id + ' createConvertTrade() is not supported yet')
 
@@ -1246,6 +1254,26 @@ class Exchange(BaseExchange):
 
     async def fetch_position_mode(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchPositionMode() is not supported yet')
+
+    async def fetch_adl_rank(self, symbol: str, params={}):
+        raise NotSupported(self.id + ' fetchADLRank() is not supported yet')
+
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
+
+    async def fetch_position_adl_rank(self, symbol: str, params={}):
+        if self.has['fetchPositionsADLRank']:
+            await self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            ranks = await self.fetch_positions_adl_rank([symbol], params)
+            rank = self.safe_dict(ranks, 0)
+            if rank is None:
+                raise NullResponse(self.id + ' fetchPositionsADLRank() could not find a rank for ' + symbol)
+            else:
+                return rank
+        else:
+            raise NotSupported(self.id + ' fetchPositionsADLRank() is not supported yet')
 
     async def create_trailing_amount_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, trailingAmount: Num = None, trailingTriggerPrice: Num = None, params={}):
         """
@@ -1640,6 +1668,9 @@ class Exchange(BaseExchange):
             orders = await self.fetch_orders(symbol, since, limit, params)
             return self.filter_by(orders, 'status', 'closed')
         raise NotSupported(self.id + ' fetchClosedOrders() is not supported yet')
+
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchCanceledOrders() is not supported yet')
 
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
@@ -2044,7 +2075,8 @@ class Exchange(BaseExchange):
         if removeRepeatedOption:
             uniqueResults = self.remove_repeated_elements_from_array(result)
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
-        return self.filter_by_since_limit(uniqueResults, since, limit, key)
+        sortedRes = self.sort_by(uniqueResults, key)
+        return self.filter_by_since_limit(sortedRes, since, limit, key)
 
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None
@@ -2204,6 +2236,9 @@ class Exchange(BaseExchange):
             return positions
         else:
             raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    async def load_markets_and_sign_in(self):
+        await asyncio.gather(*[self.load_markets(), self.sign_in()])
 
     async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         """

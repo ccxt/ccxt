@@ -252,7 +252,7 @@ export default class okx extends okxRest {
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            messageHashes.push('unsubscribe:' + channel + symbol);
+            messageHashes.push('unsubscribe:' + channel + ':' + symbol);
             const marketId = this.marketId(symbol);
             const topic = {
                 'channel': channel,
@@ -758,13 +758,12 @@ export default class okx extends okxRest {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseWsLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
+            if (this.liquidations === undefined) {
                 const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache(limit);
+                this.liquidations = new ArrayCache(limit);
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'liquidations');
             client.resolve([liquidation], 'liquidations::' + symbol);
         }
@@ -857,13 +856,12 @@ export default class okx extends okxRest {
             }
             const liquidation = this.parseWsMyLiquidation(rawLiquidation);
             const symbol = this.safeString(liquidation, 'symbol');
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
-                liquidations = new ArrayCache(limit);
+            if (this.liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                this.liquidations = new ArrayCache(limit);
             }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            const cache = this.liquidations;
+            cache.append(liquidation);
             client.resolve([liquidation], 'myLiquidations');
             client.resolve([liquidation], 'myLiquidations::' + symbol);
         }
@@ -1798,7 +1796,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
-            if (position['contracts'] === 0) {
+            if (position['contracts'] === 0 && rawPosition['posSide'] === 'net') {
                 position['side'] = 'long';
                 const shortPosition = this.clone(position);
                 shortPosition['side'] = 'short';
@@ -1863,7 +1861,7 @@ export default class okx extends okxRest {
         }
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
-    handleOrders(client, message, subscription = undefined) {
+    handleOrders(client, message) {
         //
         //     {
         //         "arg":{
@@ -2067,6 +2065,12 @@ export default class okx extends okxRest {
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, params);
+        const market = this.market(symbol);
+        const instIdCode = this.safeInteger(market, 'instIdCode');
+        if (instIdCode !== undefined) {
+            delete args['instId'];
+            args['instIdCode'] = instIdCode;
+        }
         const ordType = this.safeString(args, 'ordType');
         if ((ordType === 'trigger') || (ordType === 'conditional') || (type === 'oco') || (type === 'move_order_stop') || (type === 'iceberg') || (type === 'twap')) {
             throw new BadRequest(this.id + ' createOrderWs() does not support algo trading. this.options["createOrderWs"]["op"] must be either order or batch-order');
@@ -2137,6 +2141,12 @@ export default class okx extends okxRest {
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
+        const market = this.market(symbol);
+        const instIdCode = this.safeInteger(market, 'instIdCode');
+        if (instIdCode !== undefined) {
+            delete args['instId'];
+            args['instIdCode'] = instIdCode;
+        }
         const request = {
             'id': messageHash,
             'op': op,
@@ -2165,8 +2175,10 @@ export default class okx extends okxRest {
         const messageHash = this.requestId();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         params = this.omit(params, ['clientOrderId', 'clOrdId']);
+        const market = this.market(symbol);
+        const instIdCode = this.safeInteger(market, 'instIdCode');
         const arg = {
-            'instId': this.marketId(symbol),
+            'instIdCode': instIdCode,
         };
         if (clientOrderId !== undefined) {
             arg['clOrdId'] = clientOrderId;
@@ -2204,11 +2216,15 @@ export default class okx extends okxRest {
         const url = this.getUrl('private', 'private');
         const messageHash = this.requestId();
         const args = [];
+        const market = this.market(symbol);
+        const instIdCode = this.safeInteger(market, 'instIdCode');
+        const instParams = {
+            'instIdCode': instIdCode,
+        };
         for (let i = 0; i < idsLength; i++) {
-            const arg = {
-                'instId': this.marketId(symbol),
+            const arg = this.extend(instParams, {
                 'ordId': ids[i],
-            };
+            });
             args.push(arg);
         }
         const request = {

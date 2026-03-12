@@ -2538,6 +2538,24 @@ func (this *ExchangeTyped) CreateOrder(symbol string, typeVar string, side strin
 	}
 	return NewOrder(res), nil
 }
+func (this *ExchangeTyped) CreateTwapOrder(symbol string, side string, amount float64, duration float64, options ...CreateTwapOrderOptions) (Order, error) {
+
+	opts := CreateTwapOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.CreateTwapOrder(symbol, side, amount, duration, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
 func (this *ExchangeTyped) CreateConvertTrade(id string, fromCode string, toCode string, options ...CreateConvertTradeOptions) (Conversion, error) {
 
 	opts := CreateConvertTradeOptionsStruct{}
@@ -3601,6 +3619,39 @@ func (this *ExchangeTyped) FetchClosedOrders(options ...FetchClosedOrdersOptions
 		params = *opts.Params
 	}
 	res := <-this.Exchange.FetchClosedOrders(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewOrderArray(res), nil
+}
+func (this *ExchangeTyped) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
+
+	opts := FetchCanceledOrdersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Exchange.FetchCanceledOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}

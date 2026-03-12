@@ -2032,7 +2032,7 @@ func (this *FoxbitCore) Withdraw(code interface{}, amount interface{}, address i
 		PanicOnError(response)
 
 		// {
-		//     "amount": "1",
+		//     "amount": "2",
 		//     "currency_symbol": "xrp",
 		//     "network_code": "ripple",
 		//     "destination_address": "0x1234567890123456789012345678",

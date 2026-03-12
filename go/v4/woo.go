@@ -2350,7 +2350,7 @@ func (this *WooCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{})
 			AddElementToObject(request, "limit", mathMin(limit, 1000))
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "after", since)
+			AddElementToObject(request, "after", Subtract(since, 1)) // #27793
 		}
 		var until interface{} = this.SafeInteger(params, "until")
 		params = this.Omit(params, "until")
@@ -2919,7 +2919,7 @@ func (this *WooCore) GetAssetHistoryRows(optionalArgs ...interface{}) <-chan int
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *WooCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4283,7 +4283,7 @@ func (this *WooCore) SetLeverage(leverage interface{}, optionalArgs ...interface
  * @param {float} amount amount of margin to add
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *WooCore) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})
@@ -4311,7 +4311,7 @@ func (this *WooCore) AddMargin(symbol interface{}, amount interface{}, optionalA
  * @param {float} amount amount of margin to remove
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
- * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *WooCore) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

@@ -91,6 +91,8 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_response_headers    interface{}
+	LastResponseHeaders      interface{}
 	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
@@ -162,12 +164,12 @@ type Exchange struct {
 	Orders         interface{} // *ArrayCache  // cache object, not a map
 	MyTrades       interface{} // *ArrayCache  // cache object, not a map
 	Orderbooks     *sync.Map
-	Liquidations   *sync.Map
+	Liquidations   interface{} // *ArrayCacheBySymbolBySide
 	FundingRates   interface{}
 	Bidsasks       *sync.Map
 	TriggerOrders  interface{} // *ArrayCache
 	Transactions   *sync.Map
-	MyLiquidations *sync.Map
+	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
 
@@ -267,15 +269,6 @@ func (this *Exchange) InitParent(userConfig map[string]interface{}, exchangeConf
 		Timeout:   30 * time.Second,
 		Transport: transport,
 	}
-	userOptions := this.SafeDict(userConfig, "options")
-	if userOptions == nil {
-		userOptions = map[string]interface{}{}
-	}
-	if IsTrue(IsTrue(this.SafeBool(userOptions, "sandbox")) || IsTrue(this.SafeBool(userOptions, "testnet"))) {
-		this.SetSandboxMode(true)
-	}
-
-	// fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) Init(userConfig map[string]interface{}) {
@@ -483,6 +476,7 @@ func (this *Exchange) Sleep(milliseconds interface{}) <-chan bool {
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
+		ch <- true
 		return true
 	}()
 	return ch
@@ -578,6 +572,8 @@ func NewError(errType interface{}, message ...interface{}) error {
 	stack := ""
 	if len(message) > 0 {
 		msg = ToString(message[0])
+		msgParts := strings.Split(msg, "]\nStack:")
+		msg = msgParts[0]
 		if len(message) > 1 {
 			stack = ToString(message[1])
 		}
@@ -1185,6 +1181,28 @@ func (this *Exchange) SetProperty(obj interface{}, property interface{}, default
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be set\n", propName)
 	}
+}
+
+func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{} {
+	include := true
+	if len(includeStack) > 0 {
+		include = includeStack[0].(bool)
+	}
+
+	var message string
+
+	if include {
+		message = fmt.Sprintf("[%T] %+v", exc, exc)
+	} else {
+		message = fmt.Sprintf("[%T] %v", exc, exc)
+	}
+
+	length := len(message)
+	if length > 100000 {
+		length = 100000
+	}
+
+	return message[:length]
 }
 
 func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {

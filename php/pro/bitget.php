@@ -958,7 +958,20 @@ class bitget extends \ccxt\async\bitget {
             }
         } else {
             $orderbook = $this->order_book(array());
-            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp);
+            $bidsKey = 'bids';
+            $asksKey = 'asks';
+            // bitget UTA has `a` and `b` instead of `$asks` and `$bids`
+            if (is_array($rawOrderBook) && array_key_exists('a', $rawOrderBook)) {
+                if (!(is_array($rawOrderBook) && array_key_exists('asks', $rawOrderBook))) {
+                    $asksKey = 'a';
+                }
+            }
+            if (is_array($rawOrderBook) && array_key_exists('b', $rawOrderBook)) {
+                if (!(is_array($rawOrderBook) && array_key_exists('bids', $rawOrderBook))) {
+                    $bidsKey = 'b';
+                }
+            }
+            $parsedOrderbook = $this->parse_order_book($rawOrderBook, $symbol, $timestamp, $bidsKey, $asksKey);
             $orderbook->reset ($parsedOrderbook);
             $this->orderbooks[$symbol] = $orderbook;
         }
@@ -2934,16 +2947,16 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($argsList); $i++) {
             $arg = $argsList[$i];
             $channel = $this->safe_string_2($arg, 'channel', 'topic');
-            if ($channel === 'books') {
+            if (mb_strpos($channel, 'books') !== false) {
                 // for now only unWatchOrderBook is supporteod
                 $this->handle_order_book_un_subscription($client, $message);
-            } elseif (($channel === 'trade') || ($channel === 'publicTrade')) {
+            } elseif ((mb_strpos($channel, 'trade') !== false) || (mb_strpos($channel, 'publicTrade') !== false)) {
                 $this->handle_trades_un_subscription($client, $message);
-            } elseif ($channel === 'ticker') {
+            } elseif (mb_strpos($channel, 'ticker') !== false) {
                 $this->handle_ticker_un_subscription($client, $message);
-            } elseif (str_starts_with($channel, 'candle')) {
+            } elseif (mb_strpos($channel, 'candle') !== false) {
                 $this->handle_ohlcv_un_subscription($client, $message);
-            } elseif (str_starts_with($channel, 'kline')) {
+            } elseif (mb_strpos($channel, 'kline') !== false) {
                 $this->handle_ohlcv_un_subscription($client, $message);
             }
         }

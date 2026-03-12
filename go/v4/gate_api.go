@@ -763,6 +763,10 @@ func (this *GateCore) PrivateFuturesGetSettlePositionsContract(args ...interface
 	return this.callEndpointAsync("privateFuturesGetSettlePositionsContract", args...)
 }
 
+func (this *GateCore) PrivateFuturesGetSettleGetLeverageContract(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesGetSettleGetLeverageContract", args...)
+}
+
 func (this *GateCore) PrivateFuturesGetSettleDualCompPositionsContract(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesGetSettleDualCompPositionsContract", args...)
 }
@@ -823,6 +827,10 @@ func (this *GateCore) PrivateFuturesPostSettlePositionsContractLeverage(args ...
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractLeverage", args...)
 }
 
+func (this *GateCore) PrivateFuturesPostSettlePositionsContractSetLeverage(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractSetLeverage", args...)
+}
+
 func (this *GateCore) PrivateFuturesPostSettlePositionsContractRiskLimit(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractRiskLimit", args...)
 }
@@ -837,6 +845,10 @@ func (this *GateCore) PrivateFuturesPostSettleDualCompPositionsCrossMode(args ..
 
 func (this *GateCore) PrivateFuturesPostSettleDualMode(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateFuturesPostSettleDualMode", args...)
+}
+
+func (this *GateCore) PrivateFuturesPostSettleSetPositionMode(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateFuturesPostSettleSetPositionMode", args...)
 }
 
 func (this *GateCore) PrivateFuturesPostSettleDualCompPositionsContractMargin(args ...interface{}) <-chan interface{} {
@@ -1087,6 +1099,10 @@ func (this *GateCore) PrivateEarnGetDualOrders(args ...interface{}) <-chan inter
 	return this.callEndpointAsync("privateEarnGetDualOrders", args...)
 }
 
+func (this *GateCore) PrivateEarnGetDualBalance(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateEarnGetDualBalance", args...)
+}
+
 func (this *GateCore) PrivateEarnGetStructuredOrders(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateEarnGetStructuredOrders", args...)
 }
@@ -1309,4 +1325,40 @@ func (this *GateCore) PrivateRebateGetUserInfo(args ...interface{}) <-chan inter
 
 func (this *GateCore) PrivateRebateGetUserSubRelation(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("privateRebateGetUserSubRelation", args...)
+}
+
+func (this *GateCore) PrivateOtcGetGetUserDefBank(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetGetUserDefBank", args...)
+}
+
+func (this *GateCore) PrivateOtcGetOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetOrderList", args...)
+}
+
+func (this *GateCore) PrivateOtcGetStableCoinOrderList(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetStableCoinOrderList", args...)
+}
+
+func (this *GateCore) PrivateOtcGetOrderDetail(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcGetOrderDetail", args...)
+}
+
+func (this *GateCore) PrivateOtcPostQuote(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostQuote", args...)
+}
+
+func (this *GateCore) PrivateOtcPostOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderCreate", args...)
+}
+
+func (this *GateCore) PrivateOtcPostStableCoinOrderCreate(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostStableCoinOrderCreate", args...)
+}
+
+func (this *GateCore) PrivateOtcPostOrderPaid(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderPaid", args...)
+}
+
+func (this *GateCore) PrivateOtcPostOrderCancel(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("privateOtcPostOrderCancel", args...)
 }

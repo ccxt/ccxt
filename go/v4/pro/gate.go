@@ -2057,18 +2057,18 @@ func  (this *GateCore) HandleLiquidation(client interface{}, message interface{}
     //
     var rawLiquidations interface{} = this.SafeList(message, "result", []interface{}{})
     var newLiquidations interface{} = []interface{}{}
+    if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
+        var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
+        this.Liquidations = ccxt.NewArrayCache(limit)
+    }
+    var cache interface{} = this.Liquidations
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawLiquidations)); i++ {
         var rawLiquidation interface{} = ccxt.GetValue(rawLiquidations, i)
         var liquidation interface{} = this.ParseWsLiquidation(rawLiquidation)
+        cache.(ccxt.Appender).Append(liquidation)
         var symbol interface{} = this.SafeString(liquidation, "symbol")
-        var liquidations interface{} = this.SafeValue(this.Liquidations, symbol)
-        if ccxt.IsTrue(ccxt.IsEqual(liquidations, nil)) {
-            var limit interface{} = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
-            liquidations = ccxt.NewArrayCache(limit)
-        }
-        liquidations.(ccxt.Appender).Append(liquidation)
-        ccxt.AddElementToObject(this.Liquidations, symbol, liquidations)
-        client.(ccxt.ClientInterface).Resolve(liquidations, ccxt.Add("myLiquidations::", symbol))
+        var symbolLiquidations interface{} = this.SafeValue(cache, symbol, []interface{}{})
+        client.(ccxt.ClientInterface).Resolve(symbolLiquidations, ccxt.Add("myLiquidations::", symbol))
     }
     client.(ccxt.ClientInterface).Resolve(newLiquidations, "myLiquidations")
 }

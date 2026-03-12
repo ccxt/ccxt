@@ -1470,7 +1470,7 @@ func (this *DeepcoinCore) ParseDepositAddress(response interface{}, optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest ledger entry
  * @param {string} [params.type] 'spot' or 'swap', the market type for the ledger (default 'spot')
- * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *DeepcoinCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

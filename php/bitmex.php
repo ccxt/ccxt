@@ -70,6 +70,8 @@ class bitmex extends Exchange {
                 'fetchMyLiquidations' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => 'emulated',
+                'fetchOpenInterests' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -1333,7 +1335,7 @@ class bitmex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entries to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $this->load_markets();
         $request = array(
@@ -1891,10 +1893,12 @@ class bitmex extends Exchange {
         } else {
             $filled = $cumQty;
         }
-        $execInst = $this->safe_string($order, 'execInst');
+        $execInst = $this->safe_string($order, 'execInst', '');
         $postOnly = null;
-        if ($execInst !== null) {
-            $postOnly = ($execInst === 'ParticipateDoNotInitiate');
+        $reduceOnly = null;
+        if (strlen($execInst) > 0) {
+            $postOnly = (mb_strpos($execInst, 'ParticipateDoNotInitiate') !== false);
+            $reduceOnly = ((mb_strpos($execInst, 'ReduceOnly') !== false) || (mb_strpos($execInst, 'Close') !== false));
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'timestamp'));
         $triggerPrice = $this->safe_number($order, 'stopPx');
@@ -1910,6 +1914,7 @@ class bitmex extends Exchange {
             'type' => $this->safe_string_lower($order, 'ordType'),
             'timeInForce' => $this->parse_time_in_force($this->safe_string($order, 'timeInForce')),
             'postOnly' => $postOnly,
+            'reduceOnly' => $reduceOnly,
             'side' => $this->safe_string_lower($order, 'side'),
             'price' => $this->safe_string($order, 'price'),
             'triggerPrice' => $triggerPrice,
@@ -2019,6 +2024,8 @@ class bitmex extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $market['type'] . ' orders, $reduceOnly orders are supported for swap and future markets only');
             }
         }
+        $postOnly = $this->safe_bool($params, 'postOnly');
+        $params = $this->omit($params, array( 'reduceOnly', 'postOnly' ));
         $brokerId = $this->safe_string($this->options, 'brokerId', 'CCXT');
         $qty = $this->parse_to_int($this->amount_to_precision($symbol, $amount));
         $request = array(
@@ -2028,6 +2035,17 @@ class bitmex extends Exchange {
             'ordType' => $orderType,
             'text' => $brokerId,
         );
+        $execInstructions = array();
+        if ($reduceOnly === true) {
+            $execInstructions[] = 'ReduceOnly';
+        }
+        if ($postOnly === true) {
+            $execInstructions[] = 'ParticipateDoNotInitiate';
+        }
+        $execInstLength = count($execInstructions);
+        if ($execInstLength > 0) {
+            $request['execInst'] = implode(',', $execInstructions);
+        }
         // support for unified trigger format
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         $trailingAmount = $this->safe_string_2($params, 'trailingAmount', 'pegOffsetValue');
@@ -2962,6 +2980,72 @@ class bitmex extends Exchange {
         //    )
         //
         return $this->parse_deposit_withdraw_fees($assets, $codes, 'asset');
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array ()) {
+        /**
+         * Retrieves the open interest for a list of $symbols
+         *
+         * @see https://docs.bitmex.com/api-explorer/get-stats
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] exchange specific parameters
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
+         */
+        $this->load_markets();
+        $request = array();
+        $response = null;
+        $response = $this->publicGetStats ($this->extend($request, $params));
+        //
+        //    array(
+        //        {
+        //            currency => 'XBt',
+        //            openInterest => '0',
+        //            openValue => '323890820079',
+        //            rootSymbol => 'Total',
+        //            turnover24h => '447088001322',
+        //            volume24h => '0'
+        //        }
+        //        ...
+        //    )
+        //
+        $symbols = $this->market_symbols($symbols);
+        return $this->parse_open_interests($response, $symbols);
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency => 'XBt',
+        //        $openInterest => '0',
+        //        $openValue => '323890820079',
+        //        rootSymbol => 'Total',
+        //        turnover24h => '447088001322',
+        //        volume24h => '0'
+        //    }
+        //
+        $quoteId = $this->safe_string($interest, 'currency');
+        $baseId = $this->safe_string($interest, 'rootSymbol');
+        $quoteSymbol = $this->safe_currency_code($quoteId);
+        $baseSymbol = $this->safe_currency_code($baseId);
+        $symbol = $baseSymbol;
+        if ($quoteSymbol !== null) {
+            $symbol = $baseSymbol . '/' . $quoteSymbol . ':' . $quoteSymbol;
+        }
+        $openInterest = $this->safe_number($interest, 'openInterest');
+        $openValue = $this->safe_number($interest, 'openValue');
+        return $this->safe_open_interest(array(
+            'info' => $interest,
+            'symbol' => $symbol,
+            'baseVolume' => $openInterest,  // deprecated
+            'quoteVolume' => $openValue,  // deprecated
+            'openInterestAmount' => $openInterest,
+            'openInterestValue' => $openValue,
+            'timestamp' => null,
+            'datetime' => null,
+        ), $market);
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array ()) {

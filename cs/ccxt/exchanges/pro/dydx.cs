@@ -105,7 +105,7 @@ public partial class dydx : ccxt.dydx
         //                 "size": "0.024",
         //                 "price": "114581",
         //                 "type": "LIMIT",
-        //                 "createdAt": "2025-08-04T00:42:07.118Z",
+        //                 "createdAt": "2025-08-04T00:42:07.119Z",
         //                 "createdAtHeight": "45487245"
         //             }
         //         ]
@@ -138,13 +138,13 @@ public partial class dydx : ccxt.dydx
     {
         //
         // {
-        //     "id": "02b6148d0000000200000005",
+        //     "id": "02b6148d0000000200000003",
         //     "side": "BUY",
         //     "size": "0.024",
         //     "price": "114581",
         //     "type": "LIMIT",
         //     "createdAt": "2025-08-04T00:42:07.118Z",
-        //     "createdAtHeight": "45487245"
+        //     "createdAtHeight": "45487244"
         // }
         //
         object timestamp = this.parse8601(this.safeString(trade, "createdAt"));

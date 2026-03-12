@@ -20,6 +20,9 @@ public partial class BaseTest
                 { "dict", new Dictionary<string, object>() {
                     { "a", 1 },
                 } },
+                { "listOfDicts", new List<object>() {new Dictionary<string, object>() {
+            { "a", 1 },
+        }} },
                 { "str", "heLlo" },
                 { "strNumber", "3" },
                 { "zeroNumeric", 0 },
@@ -89,6 +92,10 @@ public partial class BaseTest
             Assert(equals(dictObject, compareDict));
             Assert(isEqual(exchange.safeList(inputDict, "dict"), null));
             Assert(isEqual(exchange.safeList(inputList, 1), null));
+            object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts");
+            Assert(equals(getValue(arrayOfDicts, 0), new Dictionary<string, object>() {
+                { "a", 1 },
+            }));
             // safeList2
             listObject = exchange.safeList2(inputDict, "a", "list");
             Assert(equals(dictObject, compareDict));

@@ -668,7 +668,7 @@ func (this *Blofin) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
  * @param {string} [params.marginMode] 'cross' or 'isolated'
  * @param {int} [params.until] the latest time in ms to fetch entries for
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Blofin) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

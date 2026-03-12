@@ -72,7 +72,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         try:
             await client.send({'id': self.safe_integer(message, 'id'), 'method': 'public/respond-heartbeat'})
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed with error ' + self.exception_message(e))
             client.reset(error)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

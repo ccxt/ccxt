@@ -72,7 +72,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             try {
                 Async\await($client->send (array( 'id' => $this->safe_integer($message, 'id'), 'method' => 'public/respond-heartbeat' )));
             } catch (Exception $e) {
-                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->json($e));
+                $error = new NetworkError ($this->id . ' pong failed with $error ' . $this->exception_message($e));
                 $client->reset ($error);
             }
         }) ();

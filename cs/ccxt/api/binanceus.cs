@@ -1116,6 +1116,11 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiGetPortfolioEarnAssetBalance",parameters);
     }
 
+    public async Task<object> sapiGetPortfolioDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetPortfolioDeltaMode",parameters);
+    }
+
     public async Task<object> sapiGetStakingProductList (object parameters = null)
     {
         return await this.callAsync ("sapiGetStakingProductList",parameters);
@@ -1294,6 +1299,21 @@ public partial class binanceus : binance
     public async Task<object> sapiGetDciProductAccounts (object parameters = null)
     {
         return await this.callAsync ("sapiGetDciProductAccounts",parameters);
+    }
+
+    public async Task<object> sapiGetAccumulatorProductList (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetAccumulatorProductList",parameters);
+    }
+
+    public async Task<object> sapiGetAccumulatorProductPositionList (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetAccumulatorProductPositionList",parameters);
+    }
+
+    public async Task<object> sapiGetAccumulatorProductSumHolding (object parameters = null)
+    {
+        return await this.callAsync ("sapiGetAccumulatorProductSumHolding",parameters);
     }
 
     public async Task<object> sapiGetAssetAssetDistributionHistory (object parameters = null)
@@ -1629,6 +1649,11 @@ public partial class binanceus : binance
     public async Task<object> sapiPostUserDataStreamIsolated (object parameters = null)
     {
         return await this.callAsync ("sapiPostUserDataStreamIsolated",parameters);
+    }
+
+    public async Task<object> sapiPostUserListenToken (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostUserListenToken",parameters);
     }
 
     public async Task<object> sapiPostFuturesTransfer (object parameters = null)
@@ -1986,6 +2011,11 @@ public partial class binanceus : binance
         return await this.callAsync ("sapiPostPortfolioEarnAssetTransfer",parameters);
     }
 
+    public async Task<object> sapiPostPortfolioDeltaMode (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostPortfolioDeltaMode",parameters);
+    }
+
     public async Task<object> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
     {
         return await this.callAsync ("sapiPostLendingAutoInvestPlanAdd",parameters);
@@ -2054,6 +2084,11 @@ public partial class binanceus : binance
     public async Task<object> sapiPostDciProductAutoCompoundEdit (object parameters = null)
     {
         return await this.callAsync ("sapiPostDciProductAutoCompoundEdit",parameters);
+    }
+
+    public async Task<object> sapiPostAccumulatorProductSubscribe (object parameters = null)
+    {
+        return await this.callAsync ("sapiPostAccumulatorProductSubscribe",parameters);
     }
 
     public async Task<object> sapiPostOtcQuotes (object parameters = null)
@@ -3351,6 +3386,11 @@ public partial class binanceus : binance
         return await this.callAsync ("eapiPrivateGetBlockTrades",parameters);
     }
 
+    public async Task<object> eapiPrivateGetComission (object parameters = null)
+    {
+        return await this.callAsync ("eapiPrivateGetComission",parameters);
+    }
+
     public async Task<object> eapiPrivatePostOrder (object parameters = null)
     {
         return await this.callAsync ("eapiPrivatePostOrder",parameters);
@@ -3604,6 +3644,16 @@ public partial class binanceus : binance
     public async Task<object> privatePostOrderListOtoco (object parameters = null)
     {
         return await this.callAsync ("privatePostOrderListOtoco",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOpo (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOpo",parameters);
+    }
+
+    public async Task<object> privatePostOrderListOpoco (object parameters = null)
+    {
+        return await this.callAsync ("privatePostOrderListOpoco",parameters);
     }
 
     public async Task<object> privatePostSorOrder (object parameters = null)

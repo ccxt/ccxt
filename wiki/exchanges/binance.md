@@ -1901,7 +1901,7 @@ binance.fetchMySettlementHistory (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://developers.binance.com/docs/derivatives/option/account/Account-Funding-Flow  
 
@@ -1923,7 +1923,7 @@ binance.fetchLedgerEntry (id, code[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -1957,7 +1957,7 @@ binance.fetchLedger ([code, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**
 
@@ -1983,7 +1983,7 @@ binance.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>binance</code>](#binance)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**
 
@@ -2735,6 +2735,30 @@ watches best bid & ask for symbols
 
 ```javascript
 binance.ensureUserDataStreamWsSubscribeSignature (marketType, [undefined])
+```
+
+
+<a name="ensureUserDataStreamWsSubscribeListenToken" id="ensureuserdatastreamwssubscribelistentoken"></a>
+
+### ensureUserDataStreamWsSubscribeListenToken{docsify-ignore}
+subscribes to user data stream using listenToken (for margin)
+
+**Kind**: instance property of [<code>binance</code>](#binance)  
+**Returns**: Promise<void>
+
+**See**: [Binance User Data Stream Documentation](https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-api/user-data-stream)  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marketType | <code>string</code> | Yes | the market type (e.g., 'margin') |
+| params | <code>object</code> | Yes | extra parameters specific to the request |
+| params.symbol | <code>string</code> | No | required for isolated margin |
+| params.isIsolated | <code>boolean</code> | No | whether it is isolated margin |
+| params.validity | <code>number</code> | No | validity in milliseconds, default 24 hours, max 24 hours |
+
+
+```javascript
+binance.ensureUserDataStreamWsSubscribeListenToken (marketType, params[])
 ```
 
 

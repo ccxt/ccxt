@@ -683,11 +683,11 @@ class coinbase extends Exchange {
             //     }
             //
             $accounts = $this->safe_list($response, 'accounts', array());
-            $length = count($accounts);
-            $lastIndex = $length - 1;
-            $last = $this->safe_dict($accounts, $lastIndex);
+            $accountsLength = count($accounts);
             $cursor = $this->safe_string($response, 'cursor');
-            if (($cursor !== null) && ($cursor !== '')) {
+            if (($accountsLength > 0) && ($cursor !== null) && ($cursor !== '')) {
+                $lastIndex = $accountsLength - 1;
+                $last = $this->safe_dict($accounts, $lastIndex);
                 $last['cursor'] = $cursor;
                 $accounts[$lastIndex] = $last;
             }
@@ -2278,7 +2278,8 @@ class coinbase extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'trades', array());
-            $ticker = $this->parse_ticker($data[0], $market);
+            $first = $this->safe_dict($data, 0, array());
+            $ticker = $this->parse_ticker($first, $market);
             $ticker['bid'] = $this->safe_number($response, 'best_bid');
             $ticker['ask'] = $this->safe_number($response, 'best_ask');
             return $ticker;
@@ -2591,7 +2592,7 @@ class coinbase extends Exchange {
              * @param {int} [$limit] max number of $ledger entries to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#$pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=$ledger-entry-structure $ledger structure~
              */
             Async\await($this->load_markets());
             $paginate = false;
@@ -3059,6 +3060,7 @@ class coinbase extends Exchange {
              * @param {string} [$params->retail_portfolio_id] portfolio uid
              * @param {boolean} [$params->is_max] Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
              * @param {string} [$params->tradable_balance] $amount of tradable balance
+             * @param {float} [$params->reduceOnly] set to true for closing a position or use closePosition
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
@@ -3069,6 +3071,12 @@ class coinbase extends Exchange {
                 'product_id' => $market['id'],
                 'side' => strtoupper($side),
             );
+            $reduceOnly = $this->safe_bool($params, 'reduceOnly');
+            if ($reduceOnly) {
+                $params = $this->omit($params, 'reduceOnly');
+                $params['amount'] = $amount;
+                return Async\await($this->close_position($symbol, $side, $params));
+            }
             $triggerPrice = $this->safe_number_n($params, array( 'stopPrice', 'stop_price', 'triggerPrice' ));
             $stopLossPrice = $this->safe_number($params, 'stopLossPrice');
             $takeProfitPrice = $this->safe_number($params, 'takeProfitPrice');
@@ -4200,19 +4208,27 @@ class coinbase extends Exchange {
             /**
              * make a withdrawal
              *
-             * @see https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-transactions#send-money
+             * @see https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto
              *
              * @param {string} $code unified $currency $code
              * @param {float} $amount the $amount to withdraw
              * @param {string} $address the $address to withdraw to
              * @param {string} [$tag] an optional $tag for the withdrawal
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->network] the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+             * @param {array} [$params->travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
+            $request = array(
+                'type' => 'send',
+                'to' => $address,
+                'amount' => $this->number_to_string($amount),
+                'currency' => $currency['id'],
+            );
             $accountId = $this->safe_string_2($params, 'account_id', 'accountId');
             $params = $this->omit($params, array( 'account_id', 'accountId' ));
             if ($accountId === null) {
@@ -4223,14 +4239,10 @@ class coinbase extends Exchange {
                 if ($accountId === null) {
                     throw new ExchangeError($this->id . ' withdraw() could not find account id for ' . $code);
                 }
+                $request['account_id'] = $accountId;
+            } else {
+                $request['account_id'] = $accountId;
             }
-            $request = array(
-                'account_id' => $accountId,
-                'type' => 'send',
-                'to' => $address,
-                'amount' => $amount,
-                'currency' => $currency['id'],
-            );
             if ($tag !== null) {
                 $request['destination_tag'] = $tag;
             }

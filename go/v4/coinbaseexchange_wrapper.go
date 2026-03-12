@@ -727,7 +727,7 @@ func (this *Coinbaseexchange) Withdraw(code string, amount float64, address stri
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Coinbaseexchange) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

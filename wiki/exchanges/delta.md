@@ -489,7 +489,7 @@ delta.fetchMyTrades (symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.delta.exchange/#get-wallet-transactions  
 
@@ -575,7 +575,7 @@ delta.fetchFundingRates (symbols[, params])
 add margin
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.delta.exchange/#add-remove-position-margin  
 
@@ -597,7 +597,7 @@ delta.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>delta</code>](#delta)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.delta.exchange/#add-remove-position-margin  
 

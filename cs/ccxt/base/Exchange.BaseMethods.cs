@@ -391,7 +391,12 @@ public partial class Exchange
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, new List<object>() {key}, defaultValue);
+        object value = this.safeValue(dictionary, key, defaultValue);
+        if (isTrue((value is bool)))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public virtual object safeDictN(object dictionaryOrList, object keys, object defaultValue = null)
@@ -422,7 +427,16 @@ public partial class Exchange
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, new List<object>() {key}, defaultValue);
+        object value = this.safeValue(dictionary, key, defaultValue);
+        if (isTrue(isEqual(value, null)))
+        {
+            return defaultValue;
+        }
+        if (isTrue(isTrue(((value is IDictionary<string, object>))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public virtual object safeDict2(object dictionary, object key1, object key2, object defaultValue = null)
@@ -475,7 +489,16 @@ public partial class Exchange
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, new List<object>() {key}, defaultValue);
+        object value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (isTrue(isEqual(value, null)))
+        {
+            return defaultValue;
+        }
+        if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            return value;
+        }
+        return defaultValue;
     }
 
     public virtual void handleDeltas(object orderbook, object deltas)
@@ -1413,7 +1436,14 @@ public partial class Exchange
     public async virtual Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        if (isTrue(getValue(this.has, "fetchOpenInterests")))
+        {
+            object openInterests = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
+            return this.safeDict(openInterests, symbol);
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
+        }
     }
 
     public async virtual Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
@@ -5046,6 +5076,12 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrder() is not supported yet")) ;
     }
 
+    public async virtual Task<object> createTwapOrder(object symbol, object side, object amount, object duration, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createTwapOrder() is not supported yet")) ;
+    }
+
     public async virtual Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5744,6 +5780,12 @@ public partial class Exchange
             return this.filterBy(orders, "status", "closed");
         }
         throw new NotSupported ((string)add(this.id, " fetchClosedOrders() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchCanceledOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -7467,7 +7509,8 @@ public partial class Exchange
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
         object key = ((bool) isTrue((isEqual(method, "fetchOHLCV")))) ? 0 : "timestamp";
-        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+        object sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
 
     public async virtual Task<object> safeDeterministicCall(object method, object symbol = null, object since = null, object limit = null, object timeframe = null, object parameters = null)
@@ -8112,6 +8155,11 @@ public partial class Exchange
         }
     }
 
+    public async virtual Task loadMarketsAndSignIn()
+    {
+        await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
+    }
+
     public async virtual Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -8340,6 +8388,40 @@ public partial class Exchange
                 }
             }
         }
+    }
+
+    public virtual object timeframeFromMilliseconds(object ms)
+    {
+        if (isTrue(isLessThanOrEqual(ms, 0)))
+        {
+            return "";
+        }
+        object second = 1000;
+        object minute = multiply(60, second);
+        object hour = multiply(60, minute);
+        object day = multiply(24, hour);
+        object week = multiply(7, day);
+        if (isTrue(isEqual(mod(ms, week), 0)))
+        {
+            return add((divide(ms, week)), "w");
+        }
+        if (isTrue(isEqual(mod(ms, day), 0)))
+        {
+            return add((divide(ms, day)), "d");
+        }
+        if (isTrue(isEqual(mod(ms, hour), 0)))
+        {
+            return add((divide(ms, hour)), "h");
+        }
+        if (isTrue(isEqual(mod(ms, minute), 0)))
+        {
+            return add((divide(ms, minute)), "m");
+        }
+        if (isTrue(isEqual(mod(ms, second), 0)))
+        {
+            return add((divide(ms, second)), "s");
+        }
+        return "";
     }
 }
 

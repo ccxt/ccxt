@@ -2618,7 +2618,7 @@ func (this *BitrueCore) CancelOrder(id interface{}, optionalArgs ...interface{})
 		//         "code": "0",
 		//         "msg": "Success",
 		//         "data": {
-		//             "orderId": 1690615847831143159
+		//             "orderId": 1690615847831143154
 		//         }
 		//     }
 		//

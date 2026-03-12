@@ -18,6 +18,9 @@ func TestOHLCV(exchange ccxt.ICoreExchange, skippedProperties interface{}, metho
 	}
 	var high interface{} = exchange.SafeString(entry, 2)
 	var low interface{} = exchange.SafeString(entry, 3)
+	if IsTrue(InOp(skippedProperties, "compareOHLCV")) {
+		return
+	}
 	AssertLessOrEqual(exchange, skippedProperties, method, entry, "1", high)
 	AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low)
 	AssertLessOrEqual(exchange, skippedProperties, method, entry, "4", high)

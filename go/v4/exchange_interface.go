@@ -29,6 +29,8 @@ type IBaseExchange interface {
 	GetLast_request_url() interface{}
 	GetLast_request_body() interface{}
 	GetLast_request_headers() map[string]interface{}
+	GetLast_response_headers() map[string]interface{}
+	GetLastResponseHeaders() map[string]interface{}
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val interface{})
 	GetHas() map[string]interface{}
@@ -52,6 +54,8 @@ type IBaseExchange interface {
 	GetCurrency(currencyId string) Currency
 	GetCurrenciesList() []Currency
 	Throttle(cost interface{}) <-chan interface{}
+	Close() []error
+	ParseTimeframe(timeframe interface{}) interface{}
 	// methods from base
 }
 
@@ -112,6 +116,7 @@ type ICoreExchange interface {
 	SafeString(obj interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	Describe() interface{}
 	SetSandboxMode(enable interface{})
+	FeatureValue(symbol interface{}, optionalArgs ...interface{}) interface{}
 	Market(symbol interface{}) interface{}
 	Nonce() interface{}
 	FetchTime(optionalArgs ...interface{}) <-chan interface{}
@@ -145,7 +150,6 @@ type ICoreExchange interface {
 	ParseNumber(v interface{}, a ...interface{}) interface{}
 	OmitZero(v interface{}) interface{}
 	FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
-	ParseTimeframe(timeframe interface{}) interface{}
 	FetchLeverageTiers(optionalArgs ...interface{}) <-chan interface{}
 	FetchMarginMode(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
@@ -221,6 +225,7 @@ type ICoreExchange interface {
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
 	GetProperty(obj interface{}, property interface{}) interface{}
+	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
 	SignIn(optionalArgs ...interface{}) <-chan interface{}
@@ -314,6 +319,8 @@ type ICoreExchange interface {
 	WatchTrades(symbol interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WatchTradesForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	WithdrawWs(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{}
+	Close() []error
+	ParseTimeframe(timeframe interface{}) interface{}
 }
 
 type IDerivedExchange interface {
@@ -401,6 +408,8 @@ type IDerivedExchange interface {
 	WatchMyLiquidationsForSymbols(symbols interface{}, optionalArgs ...interface{}) <-chan interface{}
 	FetchOrdersWs(optionalArgs ...interface{}) <-chan interface{}
 	ParseWsTrade(trade interface{}, optionalArgs ...interface{}) interface{}
+	FetchPositionsADLRank(optionalArgs ...interface{}) <-chan interface{}
+	ParseADLRank(info interface{}, optionalArgs ...interface{}) interface{}
 }
 
 type Describer interface {

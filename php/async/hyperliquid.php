@@ -216,6 +216,9 @@ class hyperliquid extends Exchange {
                     'Insufficient spot balance asset' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance for withdrawal' => '\\ccxt\\InsufficientFunds',
                     'Insufficient balance for token transfer' => '\\ccxt\\InsufficientFunds',
+                    'TWAP order value too small. Min is $1200, which is $10 per minute.' => '\\ccxt\\InvalidOrder',
+                    'TWAP was never placed, already canceled, or filled.' => '\\ccxt\\OrderNotFound',
+                    'Too many cumulative requests sent' => '\\ccxt\\RateLimitExceeded', // array("status":"err","response":"Too many cumulative requests sent (37986 > 10436) for cumulative volume traded $437.92. Place taker orders to free up 1 request per USDC traded.")
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -592,16 +595,23 @@ class hyperliquid extends Exchange {
             $fetchDexesList = array();
             $options = $this->safe_dict($this->options, 'fetchMarkets', array());
             $hip3 = $this->safe_dict($options, 'hip3', array());
-            $dexesProvided = $this->safe_list($hip3, 'dexes'); // $users provide their own list of dexes to load
+            $dexesProvided = $this->safe_list($hip3, 'dexes', array()); // $users provide their own list of dexes to load
             $maxLimit = $this->safe_integer($hip3, 'limit', 10);
-            if ($dexesProvided !== null) {
-                $userProvidedDexesLength = count($dexesProvided);
+            $userProvidedDexesLength = count($dexesProvided);
+            if ($userProvidedDexesLength > 0) {
                 if ($userProvidedDexesLength > 0) {
                     $fetchDexesList = $dexesProvided;
                 }
             } else {
+                $fetchDexesLength = count($fetchDexes);
                 for ($i = 1; $i < $maxLimit; $i++) {
+                    if ($i >= $fetchDexesLength) {
+                        break;
+                    }
                     $dex = $this->safe_dict($fetchDexes, $i, array());
+                    if ($dex === null) {
+                        continue;
+                    }
                     $dexName = $this->safe_string($dex, 'name');
                     $fetchDexesList[] = $dexName;
                 }
@@ -1080,6 +1090,14 @@ class hyperliquid extends Exchange {
         ));
     }
 
+    public function update_spot_currency_code(string $code): string {
+        if ($code === null) {
+            return $code;
+        }
+        $spotCurrencyMapping = $this->safe_dict($this->options, 'spotCurrencyMapping', array());
+        return $this->safe_string($spotCurrencyMapping, $code, $code);
+    }
+
     public function fetch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1148,7 +1166,8 @@ class hyperliquid extends Exchange {
                 $spotBalances = array( 'info' => $response );
                 for ($i = 0; $i < count($balances); $i++) {
                     $balance = $balances[$i];
-                    $code = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $unifiedCode = $this->safe_currency_code($this->safe_string($balance, 'coin'));
+                    $code = $isSpot ? $this->update_spot_currency_code($unifiedCode) : $unifiedCode;
                     $account = $this->account();
                     $total = $this->safe_string($balance, 'total');
                     $used = $this->safe_string($balance, 'hold');
@@ -1421,6 +1440,7 @@ class hyperliquid extends Exchange {
             'datetime' => null,
             'previousClose' => $this->safe_number($ticker, 'prevDayPx'),
             'close' => $this->safe_number($ticker, 'midPx'),
+            'last' => $this->safe_number($ticker, 'price'),
             'bid' => $this->safe_number($bidAsk, 0),
             'ask' => $this->safe_number($bidAsk, 1),
             'quoteVolume' => $this->safe_number($ticker, 'dayNtlVlm'),
@@ -1747,6 +1767,18 @@ class hyperliquid extends Exchange {
         return $this->sign_user_signed_action($messageTypes, $message);
     }
 
+    public function build_user_abstraction_sig($message) {
+        $messageTypes = array(
+            'HyperliquidTransaction:UserSetAbstraction' => array(
+                array( 'name' => 'hyperliquidChain', 'type' => 'string' ),
+                array( 'name' => 'user', 'type' => 'address' ),
+                array( 'name' => 'abstraction', 'type' => 'string' ),
+                array( 'name' => 'nonce', 'type' => 'uint64' ),
+            ),
+        );
+        return $this->sign_user_signed_action($messageTypes, $message);
+    }
+
     public function build_approve_builder_fee_sig($message) {
         $messageTypes = array(
             'HyperliquidTransaction:ApproveBuilderFee' => array(
@@ -1857,26 +1889,38 @@ class hyperliquid extends Exchange {
         }) ();
     }
 
-    public function enable_user_dex_abstraction(bool $enabled, $params = array ()) {
-        return Async\async(function () use ($enabled, $params) {
+    public function set_user_abstraction(string $abstraction, $params = array ()) {
+        return Async\async(function () use ($abstraction, $params) {
+            /**
+             * set user $abstraction mode
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#set-user-$abstraction
+             *
+             * @param {string} $abstraction one of the strings ["disabled", "unifiedAccount", "portfolioMargin"],
+             * @param {array} [$params]
+             * @param {string} [$params->type] 'userSetAbstraction' or 'agentSetAbstraction' default is 'userSetAbstraction'
+             * @return dictionary response from the exchange
+             */
             $userAddress = null;
-            list($userAddress, $params) = $this->handle_public_address('enableUserDexAbstraction', $params);
+            list($userAddress, $params) = $this->handle_public_address('setUserAbstraction', $params);
             $nonce = $this->milliseconds();
             $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $type = $this->safe_string($params, 'type', 'userSetAbstraction');
+            $params = $this->omit($params, 'type');
             $payload = array(
                 'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
                 'user' => $userAddress,
-                'enabled' => $enabled,
+                'abstraction' => $abstraction,
                 'nonce' => $nonce,
             );
-            $sig = $this->build_user_dex_abstraction_sig($payload);
+            $sig = $this->build_user_abstraction_sig($payload);
             $action = array(
                 'hyperliquidChain' => $payload['hyperliquidChain'],
                 'signatureChainId' => '0x66eee',
-                'enabled' => $payload['enabled'],
+                'abstraction' => $payload['abstraction'],
                 'user' => $payload['user'],
                 'nonce' => $nonce,
-                'type' => 'userDexAbstraction',
+                'type' => $type,
             );
             $request = array(
                 'action' => $action,
@@ -1893,6 +1937,78 @@ class hyperliquid extends Exchange {
             // }
             //
             return Async\await($this->privatePostExchange ($request));
+        }) ();
+    }
+
+    public function enable_user_dex_abstraction(bool $enabled, $params = array ()) {
+        return Async\async(function () use ($enabled, $params) {
+            /**
+             * If set, actions on HIP-3 perps will automatically transfer collateral from validator-operated USDC perps balance for HIP-3 DEXs where USDC is the collateral token, and spot otherwise
+             * @param $enabled
+             * @param $params
+             * @param {string} [$params->type] 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction'
+             * @return dictionary response from the exchange
+             */
+            $userAddress = null;
+            list($userAddress, $params) = $this->handle_public_address('enableUserDexAbstraction', $params);
+            $nonce = $this->milliseconds();
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $type = $this->safe_string($params, 'type', 'userDexAbstraction');
+            $params = $this->omit($params, 'type');
+            $payload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'user' => $userAddress,
+                'enabled' => $enabled,
+                'nonce' => $nonce,
+            );
+            $sig = $this->build_user_dex_abstraction_sig($payload);
+            $action = array(
+                'hyperliquidChain' => $payload['hyperliquidChain'],
+                'signatureChainId' => '0x66eee',
+                'enabled' => $payload['enabled'],
+                'user' => $payload['user'],
+                'nonce' => $nonce,
+                'type' => $type,
+            );
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $sig,
+                'vaultAddress' => null,
+            );
+            //
+            // {
+            //     "status" => "ok",
+            //     "response" => {
+            //         "type" => "default"
+            //     }
+            // }
+            //
+            return Async\await($this->privatePostExchange ($request));
+        }) ();
+    }
+
+    public function set_agent_abstraction(string $abstraction, $params = array ()) {
+        return Async\async(function () use ($abstraction, $params) {
+            /**
+             * set agent $abstraction mode
+             * @param {string} $abstraction one of the strings ["i", "u", "p"] where "i" is "disabled", "u" is "unifiedAccount", and "p" is "portfolioMargin"
+             * @param {array} [$params]
+             * @return dictionary $response from the exchange
+             */
+            $nonce = $this->milliseconds();
+            $request = array(
+                'nonce' => $nonce,
+            );
+            $action = array(
+                'type' => 'agentSetAbstraction',
+                'abstraction' => $abstraction,
+            );
+            $signature = $this->sign_l1_action($action, $nonce);
+            $request['action'] = $action;
+            $request['signature'] = $signature;
+            $response = Async\await($this->privatePostExchange ($this->extend($request, $params)));
+            return $response;
         }) ();
     }
 
@@ -1923,6 +2039,83 @@ class hyperliquid extends Exchange {
             list($order, $globalParams) = $this->parse_create_edit_order_args(null, $symbol, $type, $side, $amount, $price, $params);
             $orders = Async\await($this->create_orders(array( $order ), $globalParams));
             return $orders[0];
+        }) ();
+    }
+
+    public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $amount, $duration, $params) {
+            /**
+             * create a trade order that is executed TWAP order over a specified $duration->
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {int} $duration the $duration of the TWAP order in milliseconds
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {bool} [$params->randomize] whether to $randomize the time intervals of the TWAP order slices (default is false, meaning equal intervals)
+             * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+             * @param {int} [$params->expiresAfter] time in ms after which the twap order expires
+             * @param {string} [$params->vaultAddress] the vault address for order
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            Async\await($this->initialize_client());
+            $market = $this->market($symbol);
+            $nonce = $this->milliseconds();
+            $isBuy = ($side === 'BUY');
+            $vaultAddress = null;
+            $randomize = $this->safe_bool($params, 'randomize', false);
+            $params = $this->omit($params, 'randomize');
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'createOrder', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $durationMins = (int) floor($duration / 1000 / 60); // convert from ms to minutes
+            $orderObj = array(
+                'a' => $this->parse_to_int($market['baseId']),
+                'b' => $isBuy,
+                's' => $this->amount_to_precision($symbol, $amount),
+                'r' => $this->safe_bool($params, 'reduceOnly', false),
+                'm' => $durationMins,
+                't' => $randomize,
+            );
+            $orderAction = array(
+                'type' => 'twapOrder',
+                'twap' => $orderObj,
+            );
+            $signature = $this->sign_l1_action($orderAction, $nonce, $vaultAddress);
+            $request = array(
+                'action' => $orderAction,
+                'nonce' => $nonce,
+                'signature' => $signature,
+                // 'vaultAddress' => $vaultAddress,
+            );
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
+            $expiresAfter = $this->safe_integer($params, 'expiresAfter');
+            if ($expiresAfter !== null) {
+                $request['expiresAfter'] = $expiresAfter;
+                $params = $this->omit($params, 'expiresAfter');
+            }
+            $response = Async\await($this->privatePostExchange ($request));
+            // {
+            //     "status":"ok",
+            //     "response":{
+            //         "type":"twapOrder",
+            //         "data":{
+            //             "status" => {
+            //                 "running":{
+            //                 "twapId":77738308
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
+            $responseObj = $this->safe_dict($response, 'response', array());
+            $data = $this->safe_dict($responseObj, 'data', array());
+            $status = $this->safe_dict($data, 'status', array());
+            $running = $this->safe_dict($status, 'running', array());
+            $orderId = $this->safe_string($running, 'twapId');
+            return $this->parse_order(array( 'status' => 'running', 'oid' => $orderId ), $market);
         }) ();
     }
 
@@ -2164,8 +2357,13 @@ class hyperliquid extends Exchange {
              * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
              * @param {string} [$params->vaultAddress] the vault address for order
              * @param {string} [$params->subAccountAddress] sub account user address
+             * @param {boolean} [$params->twap] whether the order to cancel is a twap order, (default is false)
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
+            if ($this->safe_bool($params, 'twap', false)) {
+                $params = $this->omit($params, 'twap');
+                return Async\await($this->cancel_twap_order($id, $symbol, $params));
+            }
             $orders = Async\await($this->cancel_orders(array( $id ), $symbol, $params));
             return $this->safe_dict($orders, 0);
         }) ();
@@ -2220,6 +2418,69 @@ class hyperliquid extends Exchange {
                 ));
             }
             return $orders;
+        }) ();
+    }
+
+    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels a running twap order
+             *
+             * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-a-twap-order
+             *
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {int} [$params->expiresAfter] time in ms after which the twap order expires
+             * @param {string} [$params->vaultAddress] the vault address for order
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelTwapOrder() requires a $symbol argument');
+            }
+            $market = $this->market($symbol);
+            $vaultAddress = null;
+            list($vaultAddress, $params) = $this->handle_option_and_params($params, 'cancelTwapOrder', 'vaultAddress');
+            $vaultAddress = $this->format_vault_address($vaultAddress);
+            $action = array(
+                'type' => 'twapCancel',
+                'a' => $this->parse_to_int($market['baseId']),
+                't' => $this->parse_to_numeric($id),
+            );
+            $nonce = $this->milliseconds();
+            $signature = $this->sign_l1_action($action, $nonce, $vaultAddress);
+            $request = array(
+                'action' => $action,
+                'nonce' => $nonce,
+                'signature' => $signature,
+                // 'vaultAddress' => $vaultAddress,
+            );
+            if ($vaultAddress !== null) {
+                $params = $this->omit($params, 'vaultAddress');
+                $request['vaultAddress'] = $vaultAddress;
+            }
+            $expiresAfter = $this->safe_integer($params, 'expiresAfter');
+            if ($expiresAfter !== null) {
+                $request['expiresAfter'] = $expiresAfter;
+                $params = $this->omit($params, 'expiresAfter');
+            }
+            $response = Async\await($this->privatePostExchange ($request));
+            //
+            //  {
+            //     "status":"ok",
+            //     "response":{
+            //        "type":"twapCancel",
+            //        "data":{
+            //           "status" => "success"
+            //        }
+            //     }
+            //  }
+            //
+            $responseObj = $this->safe_dict($response, 'response', array());
+            $data = $this->safe_dict($responseObj, 'data', array());
+            $status = $this->safe_string($data, 'status');
+            return $this->parse_order(array( 'status' => $status, 'oid' => $id ), $market);
         }) ();
     }
 
@@ -2878,17 +3139,45 @@ class hyperliquid extends Exchange {
             //
             //     array(
             //         {
-            //             "coin" => "ETH",
-            //             "limitPx" => "2000.0",
-            //             "oid" => 3991946565,
-            //             "origSz" => "0.1",
-            //             "side" => "B",
-            //             "sz" => "0.1",
-            //             "timestamp" => 1704346468838
+            //             "order" => array(
+            //                 "coin" => "ETH",
+            //                 "limitPx" => "2000.0",
+            //                 "oid" => 3991946565,
+            //                 "origSz" => "0.1",
+            //                 "side" => "B",
+            //                 "sz" => "0.1",
+            //                 "timestamp" => 1704346468838
+            //             ),
+            //             "status" => "open",
+            //             "statusTimestamp" => 1704346468838
             //         }
             //     )
             //
-            return $this->parse_orders($response, $market, $since, $limit);
+            // Hyperliquid returns the full status history for each order,
+            // so a canceled order appears twice => once as 'open' and once as 'canceled'.
+            // Deduplicate by $oid, keeping the $entry with the most recent statusTimestamp.
+            $deduplicatedByOid = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $rawOrder = $response[$i];
+                $entry = $this->safe_dict($rawOrder, 'order');
+                if ($entry === null) {
+                    $entry = $rawOrder;
+                }
+                $oid = $this->safe_string($entry, 'oid');
+                if ($oid !== null) {
+                    if (!(is_array($deduplicatedByOid) && array_key_exists($oid, $deduplicatedByOid))) {
+                        $deduplicatedByOid[$oid] = $rawOrder;
+                    } else {
+                        $existingTimestamp = $this->safe_integer($deduplicatedByOid[$oid], 'statusTimestamp');
+                        $currentTimestamp = $this->safe_integer($rawOrder, 'statusTimestamp');
+                        if ($currentTimestamp !== null && ($existingTimestamp === null || $currentTimestamp > $existingTimestamp)) {
+                            $deduplicatedByOid[$oid] = $rawOrder;
+                        }
+                    }
+                }
+            }
+            $deduplicated = is_array($deduplicatedByOid) ? array_values($deduplicatedByOid) : array();
+            return $this->parse_orders($deduplicated, $market, $since, $limit);
         }) ();
     }
 
@@ -3067,6 +3356,7 @@ class hyperliquid extends Exchange {
         if ($entry === null) {
             $entry = $order;
         }
+        $filled = $this->safe_dict($order, 'filled', array());
         $coin = $this->safe_string($entry, 'coin');
         $marketId = null;
         if ($coin !== null) {
@@ -3111,7 +3401,7 @@ class hyperliquid extends Exchange {
             'amount' => $totalAmount,
             'cost' => null,
             'average' => $this->safe_string($entry, 'avgPx'),
-            'filled' => Precise::string_sub($totalAmount, $remaining),
+            'filled' => $this->safe_string($filled, 'totalSz', Precise::string_sub($totalAmount, $remaining)),
             'remaining' => $remaining,
             'status' => $this->parse_order_status($status),
             'fee' => null,
@@ -3247,6 +3537,10 @@ class hyperliquid extends Exchange {
         $crossed = $this->safe_bool($trade, 'crossed');
         if ($crossed !== null) {
             $takerOrMaker = $crossed ? 'taker' : 'maker';
+        }
+        $builderFee = $this->safe_string($trade, 'builderFee');
+        if ($builderFee !== null) {
+            $fee = Precise::string_add($fee, $builderFee);
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -3596,7 +3890,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
         }) ();
@@ -3614,7 +3908,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->vaultAddress] the vault address
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
         }) ();
@@ -4049,7 +4343,7 @@ class hyperliquid extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @param {string} [$params->subAccountAddress] sub account user address
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger ledger structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
             Async\await($this->load_markets());
             $userAddress = null;
@@ -4559,6 +4853,13 @@ class hyperliquid extends Exchange {
                 $message = $this->safe_string($statuses[$i], 'error');
                 if ($message !== null) {
                     break;
+                }
+            }
+            if (is_array($data) && array_key_exists('status', $data)) {
+                $errorStatus = $this->safe_dict($data, 'status', array());
+                $errorMsg = $this->safe_string($errorStatus, 'error');
+                if ($errorStatus !== null) {
+                    $message = $errorMsg;
                 }
             }
         }

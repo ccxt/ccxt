@@ -141,22 +141,39 @@ const sum = (...xs) => {
     const ns = xs.filter(type.isNumber); // leave only numbers
     return (ns.length > 0) ? ns.reduce((a, b) => a + b, 0) : undefined;
 };
-const deepExtend = function deepExtend(...xs) {
-    let out = undefined;
-    for (const x of xs) {
-        if (type.isDictionary(x)) {
-            if (!type.isDictionary(out)) {
-                out = {};
+const deepExtend = function (...args) {
+    let result = null;
+    let resultIsObject = false;
+    for (const arg of args) {
+        if (arg !== null && typeof arg === 'object' && arg.constructor === Object) {
+            // This is a plain object (even if empty) so set the return type.
+            if (result === null || !resultIsObject) {
+                result = {};
+                resultIsObject = true;
             }
-            for (const k in x) {
-                out[k] = deepExtend(out[k], x[k]);
+            // Skip actual merging if object is empty.
+            if (Object.keys(arg).length === 0) {
+                continue;
+            }
+            for (const key in arg) {
+                const value = arg[key];
+                const current = result[key];
+                if (current !== null && typeof current === 'object' && current.constructor === Object &&
+                    value !== null && typeof value === 'object' && value.constructor === Object) {
+                    result[key] = deepExtend(current, value);
+                }
+                else {
+                    result[key] = value;
+                }
             }
         }
         else {
-            out = x;
+            // arg is null or other non-object.
+            result = arg;
+            resultIsObject = false;
         }
     }
-    return out;
+    return result;
 };
 const merge = (target, ...args) => {
     // doesn't overwrite defined keys with undefined

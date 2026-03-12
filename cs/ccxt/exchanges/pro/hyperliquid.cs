@@ -340,6 +340,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -366,6 +367,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -376,10 +378,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         symbols = this.marketSymbols(symbols, null, true);
         object messageHash = "tickers";
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object channel = "webData2";
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", channel);
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "subscription", new Dictionary<string, object>() {
-                { "type", "webData2" },
+                { "type", channel },
                 { "user", "0x0000000000000000000000000000000000000000" },
             } },
         };
@@ -416,6 +422,7 @@ public partial class hyperliquid : ccxt.hyperliquid
      * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
@@ -424,12 +431,16 @@ public partial class hyperliquid : ccxt.hyperliquid
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true);
         object subMessageHash = "tickers";
+        object channel = "webData2";
+        var channelparametersVariable = this.handleOptionAndParams(parameters, "unWatchTickers", "channel", channel);
+        channel = ((IList<object>)channelparametersVariable)[0];
+        parameters = ((IList<object>)channelparametersVariable)[1];
         object messageHash = add("unsubscribe:", subMessageHash);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "subscription", new Dictionary<string, object>() {
-                { "type", "webData2" },
+                { "type", channel },
                 { "user", "0x0000000000000000000000000000000000000000" },
             } },
         };
@@ -595,7 +606,12 @@ public partial class hyperliquid : ccxt.hyperliquid
                     }, market);
                     ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
                 }
-                object messageHash = add("tickers:", this.safeString(data, "dex"));
+                object messageHash = "tickers";
+                object dexMessage = this.safeString(data, "dex");
+                if (isTrue(!isEqual(dexMessage, null)))
+                {
+                    messageHash = add(messageHash, add(":", dexMessage));
+                }
                 callDynamically(client as WebSocketClient, "resolve", new object[] {this.tickers, messageHash});
                 return true;
             }
@@ -1423,7 +1439,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //       "channel": "pong"
         //   }
         //
-        client.lastPong = this.safeInteger(message, "pong");
+        client.lastPong = this.safeInteger(message, "pong", this.milliseconds());
         return message;
     }
 

@@ -598,7 +598,7 @@ defx.closeAllPositions ([params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>defx</code>](#defx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://api-docs.defx.com/#38cc8974-794f-48c0-b959-db045a0ee565  
 

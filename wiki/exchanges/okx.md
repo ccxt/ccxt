@@ -902,7 +902,7 @@ okx.fetchOrderTrades (id, symbol[, since, limit, params])
 fetch the history of changes, actions done by the user or operations that altered balance of the user
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**
 
@@ -1497,7 +1497,7 @@ okx.fetchBorrowRateHistory (code[, since, limit, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin  
 
@@ -1519,7 +1519,7 @@ okx.reduceMargin (symbol, amount[, params])
 add margin
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#trading-account-rest-api-increase-decrease-margin  
 

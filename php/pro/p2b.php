@@ -522,7 +522,7 @@ class p2b extends \ccxt\async\p2b {
         //        id => 1706539608030
         //    }
         //
-        $client->lastPong = $this->safe_integer($message, 'id');
+        $client->lastPong = $this->safe_integer($message, 'id', $this->milliseconds());
         return $message;
     }
 

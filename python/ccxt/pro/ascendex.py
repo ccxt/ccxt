@@ -932,7 +932,7 @@ class ascendex(ccxt.async_support.ascendex):
         try:
             await client.send({'op': 'pong', 'hp': self.safe_integer(message, 'hp')})
         except Exception as e:
-            error = NetworkError(self.id + ' handlePing failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' handlePing failed with error ' + self.exception_message(e))
             client.reset(error)
 
     def handle_ping(self, client: Client, message):

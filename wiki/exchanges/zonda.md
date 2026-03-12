@@ -157,7 +157,7 @@ zonda.fetchTicker (symbol[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>zonda</code>](#zonda)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://docs.zondacrypto.exchange/reference/operations-history  
 

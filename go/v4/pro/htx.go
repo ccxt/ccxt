@@ -56,22 +56,22 @@ func  (this *HtxCore) Describe() interface{}  {
                         },
                         "future": map[string]interface{} {
                             "linear": map[string]interface{} {
-                                "public": "wss://api.hbdm.com/linear-swap-ws",
-                                "private": "wss://api.hbdm.com/linear-swap-notification",
+                                "public": "wss://api.hbdm.vn/linear-swap-ws",
+                                "private": "wss://api.hbdm.vn/linear-swap-notification",
                             },
                             "inverse": map[string]interface{} {
-                                "public": "wss://api.hbdm.com/ws",
-                                "private": "wss://api.hbdm.com/notification",
+                                "public": "wss://api.hbdm.vn/ws",
+                                "private": "wss://api.hbdm.vn/notification",
                             },
                         },
                         "swap": map[string]interface{} {
                             "inverse": map[string]interface{} {
-                                "public": "wss://api.hbdm.com/swap-ws",
-                                "private": "wss://api.hbdm.com/swap-notification",
+                                "public": "wss://api.hbdm.vn/swap-ws",
+                                "private": "wss://api.hbdm.vn/swap-notification",
                             },
                             "linear": map[string]interface{} {
-                                "public": "wss://api.hbdm.com/linear-swap-ws",
-                                "private": "wss://api.hbdm.com/linear-swap-notification",
+                                "public": "wss://api.hbdm.vn/linear-swap-ws",
+                                "private": "wss://api.hbdm.vn/linear-swap-notification",
                             },
                         },
                     },
@@ -2277,7 +2277,7 @@ func  (this *HtxCore) Pong(client interface{}, message interface{}) <- chan inte
                                 }
                                 ret_ = func(this *HtxCore) interface{} {
                                     // catch block:
-                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " pong failed "), this.Json(e)))
+                                            error := ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id, " pong failed "), this.ExceptionMessage(e)))
                     client.(ccxt.ClientInterface).Reset(error)
                                     return nil
                                 }(this)

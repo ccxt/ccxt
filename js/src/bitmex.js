@@ -77,6 +77,8 @@ export default class bitmex extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': 'emulated',
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
@@ -1329,7 +1331,7 @@ export default class bitmex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1881,10 +1883,12 @@ export default class bitmex extends Exchange {
         else {
             filled = cumQty;
         }
-        const execInst = this.safeString(order, 'execInst');
+        const execInst = this.safeString(order, 'execInst', '');
         let postOnly = undefined;
-        if (execInst !== undefined) {
-            postOnly = (execInst === 'ParticipateDoNotInitiate');
+        let reduceOnly = undefined;
+        if (execInst.length > 0) {
+            postOnly = (execInst.indexOf('ParticipateDoNotInitiate') >= 0);
+            reduceOnly = ((execInst.indexOf('ReduceOnly') >= 0) || (execInst.indexOf('Close') >= 0));
         }
         const timestamp = this.parse8601(this.safeString(order, 'timestamp'));
         const triggerPrice = this.safeNumber(order, 'stopPx');
@@ -1900,6 +1904,7 @@ export default class bitmex extends Exchange {
             'type': this.safeStringLower(order, 'ordType'),
             'timeInForce': this.parseTimeInForce(this.safeString(order, 'timeInForce')),
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': this.safeStringLower(order, 'side'),
             'price': this.safeString(order, 'price'),
             'triggerPrice': triggerPrice,
@@ -2008,6 +2013,8 @@ export default class bitmex extends Exchange {
                 throw new InvalidOrder(this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const postOnly = this.safeBool(params, 'postOnly');
+        params = this.omit(params, ['reduceOnly', 'postOnly']);
         const brokerId = this.safeString(this.options, 'brokerId', 'CCXT');
         const qty = this.parseToInt(this.amountToPrecision(symbol, amount));
         const request = {
@@ -2017,6 +2024,17 @@ export default class bitmex extends Exchange {
             'ordType': orderType,
             'text': brokerId,
         };
+        const execInstructions = [];
+        if (reduceOnly === true) {
+            execInstructions.push('ReduceOnly');
+        }
+        if (postOnly === true) {
+            execInstructions.push('ParticipateDoNotInitiate');
+        }
+        const execInstLength = execInstructions.length;
+        if (execInstLength > 0) {
+            request['execInst'] = execInstructions.join(',');
+        }
         // support for unified trigger format
         const triggerPrice = this.safeNumberN(params, ['triggerPrice', 'stopPx', 'stopPrice']);
         let trailingAmount = this.safeString2(params, 'trailingAmount', 'pegOffsetValue');
@@ -2945,6 +2963,70 @@ export default class bitmex extends Exchange {
         //    ]
         //
         return this.parseDepositWithdrawFees(assets, codes, 'asset');
+    }
+    /**
+     * @method
+     * @name bitmex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitmex.com/api-explorer/get-stats
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests(symbols = undefined, params = {}) {
+        await this.loadMarkets();
+        const request = {};
+        let response = undefined;
+        response = await this.publicGetStats(this.extend(request, params));
+        //
+        //    [
+        //        {
+        //            currency: 'XBt',
+        //            openInterest: '0',
+        //            openValue: '323890820079',
+        //            rootSymbol: 'Total',
+        //            turnover24h: '447088001322',
+        //            volume24h: '0'
+        //        }
+        //        ...
+        //    ]
+        //
+        symbols = this.marketSymbols(symbols);
+        return this.parseOpenInterests(response, symbols);
+    }
+    parseOpenInterest(interest, market = undefined) {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency: 'XBt',
+        //        openInterest: '0',
+        //        openValue: '323890820079',
+        //        rootSymbol: 'Total',
+        //        turnover24h: '447088001322',
+        //        volume24h: '0'
+        //    }
+        //
+        const quoteId = this.safeString(interest, 'currency');
+        const baseId = this.safeString(interest, 'rootSymbol');
+        const quoteSymbol = this.safeCurrencyCode(quoteId);
+        const baseSymbol = this.safeCurrencyCode(baseId);
+        let symbol = baseSymbol;
+        if (quoteSymbol !== undefined) {
+            symbol = baseSymbol + '/' + quoteSymbol + ':' + quoteSymbol;
+        }
+        const openInterest = this.safeNumber(interest, 'openInterest');
+        const openValue = this.safeNumber(interest, 'openValue');
+        return this.safeOpenInterest({
+            'info': interest,
+            'symbol': symbol,
+            'baseVolume': openInterest,
+            'quoteVolume': openValue,
+            'openInterestAmount': openInterest,
+            'openInterestValue': openValue,
+            'timestamp': undefined,
+            'datetime': undefined,
+        }, market);
     }
     calculateRateLimiterCost(api, method, path, params, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials(false);

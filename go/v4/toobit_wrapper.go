@@ -814,7 +814,7 @@ func (this *Toobit) Transfer(code string, amount float64, fromAccount string, to
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] end time in ms
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Toobit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

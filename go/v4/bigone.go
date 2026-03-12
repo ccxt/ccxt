@@ -801,7 +801,7 @@ func (this *BigoneCore) ParseTicker(ticker interface{}, optionalArgs ...interfac
 		"close":         close,
 		"last":          close,
 		"previousClose": nil,
-		"change":        this.SafeString2(ticker, "daily_change", "last24hPriceChange"),
+		"change":        this.SafeString(ticker, "daily_change"),
 		"percentage":    nil,
 		"average":       nil,
 		"baseVolume":    this.SafeString2(ticker, "volume", "volume24h"),
@@ -1511,7 +1511,7 @@ func (this *BigoneCore) ParseType(typeVar interface{}) interface{} {
 func (this *BigoneCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
 	//
 	//    {
-	//        "id": "42154072251",
+	//        "id": "42154072252",
 	//        "asset_pair_name": "SOL-USDT",
 	//        "price": "20",
 	//        "amount": "0.5",

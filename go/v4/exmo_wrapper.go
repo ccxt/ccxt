@@ -756,7 +756,7 @@ func (this *Exmo) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @param {string} [params.marginMode] set to "isolated" for margin orders
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Exmo) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]map[string]interface{}, error) {
+func (this *Exmo) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
 
 	opts := FetchCanceledOrdersOptionsStruct{}
 
@@ -787,7 +787,7 @@ func (this *Exmo) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return NewOrderArray(res), nil
 }
 
 /**

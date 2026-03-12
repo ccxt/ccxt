@@ -1780,8 +1780,10 @@ class okx(Exchange, ImplicitAPI):
         maxLeverage = Precise.string_max(maxLeverage, '1')
         maxSpotCost = self.safe_number(market, 'maxMktSz')
         status = self.safe_string(market, 'state')
+        instIdCode = self.safe_integer(market, 'instIdCode')
         return self.extend(fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -2948,6 +2950,9 @@ class okx(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
+        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         request: dict = {
             'instId': market['id'],
             # 'ccy': currency['id'],  # only applicable to cross MARGIN orders in single-currency margin
@@ -2958,7 +2963,7 @@ class okx(Exchange, ImplicitAPI):
             'ordType': type,
             # 'ordType': type,  # privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             # 'ordType': type,  # privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': self.amount_to_precision(symbol, amount),
+            # 'sz': self.amount_to_precision(symbol, amount),
             # 'px': self.price_to_precision(symbol, price),  # limit orders only
             # 'reduceOnly': False,
             #
@@ -2974,14 +2979,19 @@ class okx(Exchange, ImplicitAPI):
             # 'slTriggerPxType': 'last',  # Conditional default is last, mark or index(conditional orders)
             # 'slOrdPx': 10,  # Order price for Stop-Loss orders, if -1 will be executed at market price(conditional orders)
         }
+        isConditionalOrOCO = conditional or (type == 'oco')
+        closeFraction = self.safe_string(params, 'closeFraction')
+        shouldOmitSize = isConditionalOrOCO and closeFraction is not None
+        if not shouldOmitSize:
+            request['sz'] = self.amount_to_precision(symbol, amount)
         spot = market['spot']
         contract = market['contract']
         triggerPrice = self.safe_value_n(params, ['triggerPrice', 'stopPrice', 'triggerPx'])
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
-        takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
+        # takeProfitPrice = self.safe_value_2(params, 'takeProfitPrice', 'tpTriggerPx')
         tpOrdPx = self.safe_value(params, 'tpOrdPx', price)
         tpTriggerPxType = self.safe_string(params, 'tpTriggerPxType', 'last')
-        stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
+        # stopLossPrice = self.safe_value_2(params, 'stopLossPrice', 'slTriggerPx')
         slOrdPx = self.safe_value(params, 'slOrdPx', price)
         slTriggerPxType = self.safe_string(params, 'slTriggerPxType', 'last')
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
@@ -2994,7 +3004,7 @@ class okx(Exchange, ImplicitAPI):
         trailingPrice = self.safe_string_2(params, 'trailingPrice', 'callbackSpread')
         isTrailingPriceOrder = trailingPrice is not None
         trigger = (triggerPrice is not None) or (type == 'trigger')
-        isReduceOnly = self.safe_value(params, 'reduceOnly', False)
+        isReduceOnly = self.safe_value(params, 'reduceOnly', False) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
         marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not ommited so be extended into the request
         margin = False
@@ -3037,7 +3047,7 @@ class okx(Exchange, ImplicitAPI):
         params = self.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent'])
         ioc = (timeInForce == 'IOC') or (type == 'ioc')
         fok = (timeInForce == 'FOK') or (type == 'fok')
-        conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
+        # conditional = (stopLossPrice is not None) or (takeProfitPrice is not None) or (type == 'conditional')
         marketIOC = (isMarketOrder and ioc) or (type == 'optimal_limit_ioc')
         defaultTgtCcy = self.safe_string(self.options, 'tgtCcy', 'base_ccy')
         tgtCcy = self.safe_string(params, 'tgtCcy', defaultTgtCcy)
@@ -4745,7 +4755,7 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :param int [params.until]: the latest time in ms to fetch entries for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         self.load_markets()
         paginate = False
@@ -5865,7 +5875,7 @@ class okx(Exchange, ImplicitAPI):
         if initialMarginPercentage is None:
             initialMarginPercentage = self.parse_number(Precise.string_div(initialMarginString, notionalString, 4))
         elif initialMarginString is None:
-            initialMarginString = Precise.string_mul(initialMarginPercentage, notionalString)
+            initialMarginString = Precise.string_div(Precise.string_div(Precise.string_mul(contractsAbs, contractSizeString), entryPriceString), leverageString)
         rounder = '0.00005'  # round to closest 0.01%
         maintenanceMarginPercentage = self.parse_number(Precise.string_div(Precise.string_add(maintenanceMarginPercentageString, rounder), '1', 4))
         liquidationPrice = self.safe_number(position, 'liqPx')
@@ -6966,7 +6976,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: the amount of margin to remove
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'reduce', params)
 
@@ -6979,7 +6989,7 @@ class okx(Exchange, ImplicitAPI):
         :param str symbol: unified market symbol
         :param float amount: amount of margin to add
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
         return self.modify_margin_helper(symbol, amount, 'add', params)
 

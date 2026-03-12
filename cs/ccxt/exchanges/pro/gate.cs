@@ -1389,9 +1389,12 @@ public partial class gate : ccxt.gate
             }
         }
         // don't remove the future from the .futures cache
-        var future = getValue(client.futures, messageHash);
-        (future as Future).resolve(cache);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":position")});
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            var future = getValue(client.futures, messageHash);
+            (future as Future).resolve(cache);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {cache, add(type, ":position")});
+        }
     }
 
     public virtual void handlePositions(WebSocketClient client, object message)
@@ -1748,20 +1751,20 @@ public partial class gate : ccxt.gate
         //
         object rawLiquidations = this.safeList(message, "result", new List<object>() {});
         object newLiquidations = new List<object>() {};
+        if (isTrue(isEqual(this.liquidations, null)))
+        {
+            object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            this.liquidations = new ArrayCache(limit);
+        }
+        object cache = this.liquidations;
         for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseWsLiquidation(rawLiquidation);
+            callDynamically(cache, "append", new object[] {liquidation});
             object symbol = this.safeString(liquidation, "symbol");
-            object liquidations = this.safeValue(this.liquidations, symbol);
-            if (isTrue(isEqual(liquidations, null)))
-            {
-                object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
-                liquidations = new ArrayCache(limit);
-            }
-            callDynamically(liquidations, "append", new object[] {liquidation});
-            ((IDictionary<string,object>)this.liquidations)[(string)symbol] = liquidations;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {liquidations, add("myLiquidations::", symbol)});
+            object symbolLiquidations = this.safeValue(cache, symbol, new List<object>() {});
+            callDynamically(client as WebSocketClient, "resolve", new object[] {symbolLiquidations, add("myLiquidations::", symbol)});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newLiquidations, "myLiquidations"});
     }

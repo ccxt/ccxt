@@ -897,7 +897,16 @@ class bitget(ccxt.async_support.bitget):
                     return
         else:
             orderbook = self.order_book({})
-            parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp)
+            bidsKey = 'bids'
+            asksKey = 'asks'
+            # bitget UTA has `a` and `b` instead of `asks` and `bids`
+            if 'a' in rawOrderBook:
+                if not ('asks' in rawOrderBook):
+                    asksKey = 'a'
+            if 'b' in rawOrderBook:
+                if not ('bids' in rawOrderBook):
+                    bidsKey = 'b'
+            parsedOrderbook = self.parse_order_book(rawOrderBook, symbol, timestamp, bidsKey, asksKey)
             orderbook.reset(parsedOrderbook)
             self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
@@ -2698,15 +2707,15 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(argsList)):
             arg = argsList[i]
             channel = self.safe_string_2(arg, 'channel', 'topic')
-            if channel == 'books':
+            if channel.find('books') >= 0:
                 # for now only unWatchOrderBook is supporteod
                 self.handle_order_book_un_subscription(client, message)
-            elif (channel == 'trade') or (channel == 'publicTrade'):
+            elif (channel.find('trade') >= 0) or (channel.find('publicTrade') >= 0):
                 self.handle_trades_un_subscription(client, message)
-            elif channel == 'ticker':
+            elif channel.find('ticker') >= 0:
                 self.handle_ticker_un_subscription(client, message)
-            elif channel.startswith('candle'):
+            elif channel.find('candle') >= 0:
                 self.handle_ohlcv_un_subscription(client, message)
-            elif channel.startswith('kline'):
+            elif channel.find('kline') >= 0:
                 self.handle_ohlcv_un_subscription(client, message)
         return message

@@ -647,7 +647,7 @@ cryptocom.fetchDepositWithdrawFees (codes[, params])
 fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
 **Kind**: instance method of [<code>cryptocom</code>](#cryptocom)  
-**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger)
+**Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
 **See**: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-transactions  
 

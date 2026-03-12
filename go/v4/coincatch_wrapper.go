@@ -1694,7 +1694,7 @@ func (this *Coincatch) FetchPositions(options ...FetchPositionsOptions) ([]Posit
  * @param {string} [params.business] *swap only*
  * @param {string} [params.lastEndId] *swap only*
  * @param {bool} [params.next] *swap only*
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Coincatch) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

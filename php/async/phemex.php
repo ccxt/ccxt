@@ -38,6 +38,9 @@ class phemex extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'closePosition' => false,
@@ -48,9 +51,14 @@ class phemex extends Exchange {
                 'createStopMarketOrder' => true,
                 'createStopOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchConvertQuote' => true,
                 'fetchConvertTrade' => false,
@@ -67,6 +75,7 @@ class phemex extends Exchange {
                 'fetchFundingRateHistories' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
@@ -79,6 +88,8 @@ class phemex extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -91,8 +102,11 @@ class phemex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
@@ -4328,7 +4342,7 @@ class phemex extends Exchange {
              * @param {string} $symbol unified $market $symbol of the $market to set margin in
              * @param {float} $amount the $amount to set the margin to
              * @param {array} [$params] parameters specific to the exchange API endpoint
-             * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+             * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);

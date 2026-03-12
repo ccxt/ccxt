@@ -1093,7 +1093,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return(default 200, max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         request: dict = {}

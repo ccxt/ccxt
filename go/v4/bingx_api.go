@@ -359,6 +359,10 @@ func (this *BingxCore) SwapV2PrivateGetQuoteBookTicker(args ...interface{}) <-ch
 	return this.callEndpointAsync("swapV2PrivateGetQuoteBookTicker", args...)
 }
 
+func (this *BingxCore) SwapV2PrivatePostTradeGetVst(args ...interface{}) <-chan interface{} {
+	return this.callEndpointAsync("swapV2PrivatePostTradeGetVst", args...)
+}
+
 func (this *BingxCore) SwapV2PrivatePostTradeOrder(args ...interface{}) <-chan interface{} {
 	return this.callEndpointAsync("swapV2PrivatePostTradeOrder", args...)
 }

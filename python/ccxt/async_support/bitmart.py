@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitmart import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Any, Balances, BorrowInterest, Currencies, Currency, DepositAddress, FundingHistory, Int, IsolatedBorrowRate, IsolatedBorrowRates, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, MarketInterface, TransferEntry
 from typing import List
@@ -1191,8 +1192,9 @@ class bitmart(Exchange, ImplicitAPI):
         """
         if self.options['adjustForTimeDifference']:
             await self.load_time_difference()
-        spot = await self.fetch_spot_markets(params)
-        contract = await self.fetch_contract_markets(params)
+        spotPromise = self.fetch_spot_markets(params)
+        contractPromise = self.fetch_contract_markets(params)
+        spot, contract = await asyncio.gather(*[spotPromise, contractPromise])
         return self.array_concat(spot, contract)
 
     async def fetch_currencies(self, params={}) -> Currencies:
@@ -5023,7 +5025,7 @@ class bitmart(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
-        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger>`
+        :returns dict[]: a list of `ledger structures <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
         await self.load_markets()
         currency = None

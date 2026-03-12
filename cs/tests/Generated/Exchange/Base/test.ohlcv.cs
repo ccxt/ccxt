@@ -22,6 +22,10 @@ public partial class testMainClass : BaseTest
         }
         object high = exchange.safeString(entry, 2);
         object low = exchange.safeString(entry, 3);
+        if (isTrue(inOp(skippedProperties, "compareOHLCV")))
+        {
+            return;
+        }
         testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, "1", high);
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "1", low);
         testSharedMethods.assertLessOrEqual(exchange, skippedProperties, method, entry, "4", high);

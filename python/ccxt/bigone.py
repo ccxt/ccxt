@@ -848,11 +848,11 @@ class bigone(Exchange, ImplicitAPI):
             'ask': self.safe_string(ask, 'price'),
             'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),  # openValue is a broken number, we don't use it
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_string_2(ticker, 'daily_change', 'last24hPriceChange'),
+            'change': self.safe_string(ticker, 'daily_change'),  # last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
@@ -1414,7 +1414,7 @@ class bigone(Exchange, ImplicitAPI):
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
-        #        "id": "42154072251",
+        #        "id": "42154072252",
         #        "asset_pair_name": "SOL-USDT",
         #        "price": "20",
         #        "amount": "0.5",

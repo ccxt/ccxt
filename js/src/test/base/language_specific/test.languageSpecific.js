@@ -10,7 +10,6 @@ import testCamelCase from './test.camelcase.js';
 import testUnCamelCase from './test.uncamelcase.js';
 import testThrottle from './test.throttle.js';
 import testCalculateFee from './test.calculateFee.js';
-import testAggregate from './test.aggregate.js';
 import testSafeBalance from './test.safeBalance.js';
 import testLegacyHas from './test.legacyHas.js';
 import testTypes from './test.type.js';
@@ -23,7 +22,6 @@ async function testLanguageSpecific() {
     testUnCamelCase();
     testThrottle();
     testCalculateFee();
-    testAggregate();
     testSafeBalance();
     testLegacyHas();
     testTypes();

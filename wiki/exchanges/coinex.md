@@ -893,7 +893,7 @@ coinex.fetchLeverageTiers (symbols[, params])
 add margin
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=add-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin  
 
@@ -915,7 +915,7 @@ coinex.addMargin (symbol, amount[, params])
 remove margin from a position
 
 **Kind**: instance method of [<code>coinex</code>](#coinex)  
-**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=reduce-margin-structure)
+**Returns**: <code>object</code> - a [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
 **See**: https://docs.coinex.com/api/v2/futures/position/http/adjust-position-margin  
 

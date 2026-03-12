@@ -611,7 +611,7 @@ func (this *Dydx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.address] wallet address that made trades
  * @param {string} [params.subAccountNumber] sub account number
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Dydx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 

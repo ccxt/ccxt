@@ -6,7 +6,9 @@
 
 // ----------------------------------------------------------------------------
 import * as functions from './functions.js';
-import { keys as keysFunc, values as valuesFunc, 
+import { 
+// keys as keysFunc,
+// values as valuesFunc,
 // inArray as inArrayFunc,
 vwap as vwapFunc, } from './functions.js';
 // import exceptions from "./errors.js"
@@ -23,6 +25,8 @@ import { axolotl } from './functions/crypto.js';
 import { totp } from './functions/totp.js';
 import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { secp256k1 } from '../static_dependencies/noble-curves/secp256k1.js';
+import { keccak_256 } from '../static_dependencies/noble-hashes/sha3.js';
 import { SecureRandom } from '../static_dependencies/jsencrypt/lib/jsbn/rng.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '../static_dependencies/scure-starknet/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
@@ -93,7 +97,7 @@ export default class Exchange {
         this.verbose = false;
         this.twofa = undefined; // two-factor authentication (2-FA)
         this.balance = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orderbooks = {};
         this.tickers = {};
         this.fundingRates = {};
@@ -101,7 +105,7 @@ export default class Exchange {
         this.orders = undefined;
         this.triggerOrders = undefined;
         this.transactions = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.requiresWeb3 = false;
         this.requiresEddsa = false;
         this.precision = undefined;
@@ -166,8 +170,6 @@ export default class Exchange {
         this.deepExtend = deepExtend;
         this.deepExtendSafe = deepExtend;
         this.isNode = isNode;
-        this.keys = keysFunc;
-        this.values = valuesFunc;
         this.extend = extend;
         this.clone = clone;
         this.flatten = flatten;
@@ -311,12 +313,12 @@ export default class Exchange {
         this.bidsasks = {};
         this.orderbooks = {};
         this.tickers = {};
-        this.liquidations = {};
+        this.liquidations = undefined;
         this.orders = undefined;
         this.trades = {};
         this.transactions = {};
         this.ohlcvs = {};
-        this.myLiquidations = {};
+        this.myLiquidations = undefined;
         this.myTrades = undefined;
         this.positions = undefined;
         // web3 and cryptography flags
@@ -597,11 +599,15 @@ export default class Exchange {
         return undefined;
     }
     isBinaryMessage(msg) {
-        return msg instanceof Uint8Array;
+        return msg instanceof Uint8Array || msg instanceof ArrayBuffer;
     }
     decodeProtoMsg(data) {
         if (!protobufMexc) {
             throw new NotSupported(this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
+        }
+        if (data instanceof ArrayBuffer) {
+            // browser case
+            data = new Uint8Array(data);
         }
         if (data instanceof Uint8Array) {
             const decoded = protobufMexc.default.PushDataV3ApiWrapper.decode(data);
@@ -748,6 +754,9 @@ export default class Exchange {
             }
             throw e;
         }
+    }
+    jsonStringifyWithNull(obj) {
+        return JSON.stringify(obj, (_, v) => (v === undefined ? null : v));
     }
     parseJson(jsonString) {
         try {
@@ -1275,6 +1284,11 @@ export default class Exchange {
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
     }
+    exceptionMessage(exc, includeStack = true) {
+        const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
+        const length = Math.min(100000, message.length);
+        return message.slice(0, length);
+    }
     axolotl(payload, hexKey, ed25519) {
         return axolotl(payload, hexKey, ed25519);
     }
@@ -1294,6 +1308,23 @@ export default class Exchange {
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+    }
+    ethGetAddressFromPrivateKey(privateKey) {
+        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
+        // Removes the "0x" prefix if present
+        const cleanPrivateKey = this.remove0xPrefix(privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        const publicKeyBytes = secp256k1.getPublicKey(cleanPrivateKey);
+        // For Ethereum, we need to use the uncompressed public key (without the first byte which indicates compression)
+        // secp256k1.getPublicKey returns compressed key, we need uncompressed
+        const publicKeyUncompressed = secp256k1.ProjectivePoint.fromHex(publicKeyBytes).toRawBytes(false).slice(1); // Remove 0x04 prefix
+        // Hash the public key with Keccak256
+        const publicKeyHash = keccak_256(publicKeyUncompressed);
+        // Take the last 20 bytes (40 hex chars)
+        const addressBytes = publicKeyHash.slice(-20);
+        // Convert to hex and add 0x prefix
+        const addressHex = '0x' + this.binaryToBase16(addressBytes);
+        return addressHex;
     }
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = ethSigToPrivate(signature);
@@ -1939,7 +1970,11 @@ export default class Exchange {
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN(dictionary, [key], defaultValue);
+        const value = this.safeValue(dictionary, key, defaultValue);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        return defaultValue;
     }
     safeDictN(dictionaryOrList, keys, defaultValue = undefined) {
         /**
@@ -1964,7 +1999,14 @@ export default class Exchange {
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN(dictionary, [key], defaultValue);
+        const value = this.safeValue(dictionary, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if ((typeof value === 'object') && !Array.isArray(value)) {
+            return value;
+        }
+        return defaultValue;
     }
     safeDict2(dictionary, key1, key2, defaultValue = undefined) {
         /**
@@ -2007,7 +2049,14 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN(dictionaryOrList, [key], defaultValue);
+        const value = this.safeValue(dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
+        if (Array.isArray(value)) {
+            return value;
+        }
+        return defaultValue;
     }
     handleDeltas(orderbook, deltas) {
         for (let i = 0; i < deltas.length; i++) {
@@ -2632,7 +2681,13 @@ export default class Exchange {
         throw new NotSupported(this.id + ' fetchOpenInterestHistory() is not supported yet');
     }
     async fetchOpenInterest(symbol, params = {}) {
-        throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        if (this.has['fetchOpenInterests']) {
+            const openInterests = await this.fetchOpenInterests([symbol], params);
+            return this.safeDict(openInterests, symbol);
+        }
+        else {
+            throw new NotSupported(this.id + ' fetchOpenInterest() is not supported yet');
+        }
     }
     async fetchOpenInterests(symbols = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchOpenInterests() is not supported yet');
@@ -5442,6 +5497,9 @@ export default class Exchange {
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         throw new NotSupported(this.id + ' createOrder() is not supported yet');
     }
+    async createTwapOrder(symbol, side, amount, duration, params = {}) {
+        throw new NotSupported(this.id + ' createTwapOrder() is not supported yet');
+    }
     async createConvertTrade(id, fromCode, toCode, amount = undefined, params = {}) {
         throw new NotSupported(this.id + ' createConvertTrade() is not supported yet');
     }
@@ -5966,6 +6024,9 @@ export default class Exchange {
             return this.filterBy(orders, 'status', 'closed');
         }
         throw new NotSupported(this.id + ' fetchClosedOrders() is not supported yet');
+    }
+    async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchCanceledOrders() is not supported yet');
     }
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         throw new NotSupported(this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
@@ -7213,7 +7274,8 @@ export default class Exchange {
             uniqueResults = this.removeRepeatedElementsFromArray(result);
         }
         const key = (method === 'fetchOHLCV') ? 0 : 'timestamp';
-        return this.filterBySinceLimit(uniqueResults, since, limit, key);
+        const sortedRes = this.sortBy(uniqueResults, key);
+        return this.filterBySinceLimit(sortedRes, since, limit, key);
     }
     async safeDeterministicCall(method, symbol = undefined, since = undefined, limit = undefined, timeframe = undefined, params = {}) {
         let maxRetries = undefined;
@@ -7717,6 +7779,9 @@ export default class Exchange {
             throw new NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
         }
     }
+    async loadMarketsAndSignIn() {
+        await Promise.all([this.loadMarkets(), this.signIn()]);
+    }
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -7974,6 +8039,32 @@ export default class Exchange {
                 }
             }
         }
+    }
+    timeframeFromMilliseconds(ms) {
+        if (ms <= 0) {
+            return '';
+        }
+        const second = 1000;
+        const minute = 60 * second;
+        const hour = 60 * minute;
+        const day = 24 * hour;
+        const week = 7 * day;
+        if (ms % week === 0) {
+            return (ms / week) + 'w';
+        }
+        if (ms % day === 0) {
+            return (ms / day) + 'd';
+        }
+        if (ms % hour === 0) {
+            return (ms / hour) + 'h';
+        }
+        if (ms % minute === 0) {
+            return (ms / minute) + 'm';
+        }
+        if (ms % second === 0) {
+            return (ms / second) + 's';
+        }
+        return '';
     }
 }
 export { Exchange, };

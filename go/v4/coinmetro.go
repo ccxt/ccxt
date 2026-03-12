@@ -1276,7 +1276,7 @@ func (this *CoinmetroCore) ParseBalance(balances interface{}) interface{} {
  * @param {int} [limit] max number of ledger entries to return (default 200, max 500)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *CoinmetroCore) FetchLedger(optionalArgs ...interface{}) <-chan interface{} {
 	ch := make(chan interface{})

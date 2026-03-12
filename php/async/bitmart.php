@@ -15,6 +15,7 @@ use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use \React\Async;
+use \React\Promise;
 use \React\Promise\PromiseInterface;
 
 class bitmart extends Exchange {
@@ -1199,8 +1200,9 @@ class bitmart extends Exchange {
             if ($this->options['adjustForTimeDifference']) {
                 Async\await($this->load_time_difference());
             }
-            $spot = Async\await($this->fetch_spot_markets($params));
-            $contract = Async\await($this->fetch_contract_markets($params));
+            $spotPromise = $this->fetch_spot_markets($params);
+            $contractPromise = $this->fetch_contract_markets($params);
+            list($spot, $contract) = Async\await(Promise\all(array( $spotPromise, $contractPromise )));
             return $this->array_concat($spot, $contract);
         }) ();
     }
@@ -5381,7 +5383,7 @@ class bitmart extends Exchange {
              * @param {int} [$limit] max number of ledger entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
              */
             Async\await($this->load_markets());
             $currency = null;

@@ -175,6 +175,29 @@ export default class krakenfutures extends Exchange {
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     /**
      * @method
+     * @name krakenfutures#fetchOrders
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @description Gets all orders for an account from the exchange api
+     * @param {string} symbol Unified market symbol
+     * @param {int} [since] Timestamp (ms) of earliest order. (Not used by kraken api but filtered internally by CCXT)
+     * @param {int} [limit] How many orders to return. (Not used by kraken api but filtered internally by CCXT)
+     * @param {object} [params] Exchange specific parameters
+     * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    /**
+     * @method
+     * @name krakenfutures#fetchOrder
+     * @description fetches information on an order made by the user
+     * @see https://docs.kraken.com/api/docs/futures-api/trading/get-order-status/
+     * @param {string} id the order id
+     * @param {string} symbol unified market symbol that the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    /**
+     * @method
      * @name krakenfutures#fetchClosedOrders
      * @see https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events
      * @description Gets all closed orders, including trigger orders, for an account from the exchange api
@@ -182,6 +205,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
@@ -194,6 +218,7 @@ export default class krakenfutures extends Exchange {
      * @param {int} [since] Timestamp (ms) of earliest order.
      * @param {int} [limit] How many orders to return.
      * @param {object} [params] Exchange specific parameters
+     * @param {bool} [params.trigger] set to true if you wish to fetch only trigger orders
      * @returns An array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

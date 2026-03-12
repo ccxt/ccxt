@@ -24,6 +24,9 @@ function test_safe_methods() {
         'dict' => array(
             'a' => 1,
         ),
+        'listOfDicts' => [array(
+    'a' => 1,
+)],
         'str' => 'heLlo',
         'strNumber' => '3',
         'zeroNumeric' => 0,
@@ -93,6 +96,10 @@ function test_safe_methods() {
     assert(equals($dict_object, $compare_dict));
     assert($exchange->safe_list($input_dict, 'dict') === null);
     assert($exchange->safe_list($input_list, 1) === null);
+    $array_of_dicts = $exchange->safe_list($input_dict, 'listOfDicts');
+    assert(equals($array_of_dicts[0], array(
+        'a' => 1,
+    )));
     // safeList2
     $list_object = $exchange->safe_list_2($input_dict, 'a', 'list');
     assert(equals($dict_object, $compare_dict));

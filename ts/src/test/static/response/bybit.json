@@ -2,6 +2,211 @@
     "exchange": "bybit",
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "contract with a funding interval different from 8h",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ZRX/USDT:USDT",
+                    1769529863000,
+                    3
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00010131",
+                                "fundingRateTimestamp": "1769540400000"
+                            },
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00014161",
+                                "fundingRateTimestamp": "1769536800000"
+                            },
+                            {
+                                "symbol": "ZRXUSDT",
+                                "fundingRate": "-0.00017947",
+                                "fundingRateTimestamp": "1769533200000"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1769616369874"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00017947",
+                            "fundingRateTimestamp": "1769533200000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00017947,
+                        "timestamp": 1769533200000,
+                        "datetime": "2026-01-27T17:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00014161",
+                            "fundingRateTimestamp": "1769536800000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00014161,
+                        "timestamp": 1769536800000,
+                        "datetime": "2026-01-27T18:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "symbol": "ZRXUSDT",
+                            "fundingRate": "-0.00010131",
+                            "fundingRateTimestamp": "1769540400000"
+                        },
+                        "symbol": "ZRX/USDT:USDT",
+                        "fundingRate": -0.00010131,
+                        "timestamp": 1769540400000,
+                        "datetime": "2026-01-27T19:00:00.000Z"
+                    }
+                ]
+            }
+        ],
+        "fetchMarginMode": [
+            {
+                "description": "fetch margin mode",
+                "method": "fetchMarginMode",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "marginMode": "REGULAR_MARGIN",
+                        "updatedTime": "1723481446000",
+                        "unifiedMarginStatus": "5",
+                        "dcpStatus": "OFF",
+                        "timeWindow": "0",
+                        "smpGroup": "0",
+                        "isMasterTrader": false,
+                        "spotHedgingStatus": "OFF"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "marginMode": "REGULAR_MARGIN",
+                        "updatedTime": "1723481446000",
+                        "unifiedMarginStatus": "5",
+                        "dcpStatus": "OFF",
+                        "timeWindow": "0",
+                        "smpGroup": "0",
+                        "isMasterTrader": false,
+                        "spotHedgingStatus": "OFF"
+                    },
+                    "symbol": "BTC/USDT",
+                    "marginMode": "cross"
+                }
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch positions history",
+                "method": "fetchPositionsHistory",
+                "input": [
+                    null,
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "158c1180-3c98-4d0d-9c53-73ceed34dcf0%3A1768320162941%2C158c1180-3c98-4d0d-9c53-73ceed34dcf0%3A1768320162941",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "DOGEUSDT",
+                                "orderType": "Market",
+                                "leverage": "10",
+                                "updatedTime": "1768320162941",
+                                "side": "Sell",
+                                "orderId": "158c1180-3c98-4d0d-9c53-73ceed34dcf0",
+                                "closedPnl": "-0.0045183",
+                                "openFee": "0.00112151",
+                                "closeFee": "0.00112027",
+                                "avgEntryPrice": "0.13594",
+                                "qty": "15",
+                                "cumEntryValue": "2.0391",
+                                "createdTime": "1768320162935",
+                                "orderPrice": "0.13303",
+                                "closedSize": "15",
+                                "avgExitPrice": "0.13579",
+                                "execType": "Trade",
+                                "fillCount": "1",
+                                "cumExitValue": "2.03685"
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1768321837854"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "orderType": "Market",
+                            "leverage": "10",
+                            "updatedTime": "1768320162941",
+                            "side": "Sell",
+                            "orderId": "158c1180-3c98-4d0d-9c53-73ceed34dcf0",
+                            "closedPnl": "-0.0045183",
+                            "openFee": "0.00112151",
+                            "closeFee": "0.00112027",
+                            "avgEntryPrice": "0.13594",
+                            "qty": "15",
+                            "cumEntryValue": "2.0391",
+                            "createdTime": "1768320162935",
+                            "orderPrice": "0.13303",
+                            "closedSize": "15",
+                            "avgExitPrice": "0.13579",
+                            "execType": "Trade",
+                            "fillCount": "1",
+                            "cumExitValue": "2.03685"
+                        },
+                        "id": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "timestamp": 1768320162935,
+                        "datetime": "2026-01-13T16:02:42.935Z",
+                        "lastUpdateTimestamp": 1768320162941,
+                        "initialMargin": 2.0391,
+                        "initialMarginPercentage": 1.0011046468812137,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.13594,
+                        "notional": 2.03685,
+                        "leverage": 10,
+                        "unrealizedPnl": null,
+                        "realizedPnl": -0.0045183,
+                        "contracts": 15,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "lastPrice": 0.13579,
+                        "collateral": null,
+                        "marginMode": null,
+                        "side": "long",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": null
+                    }
+                ]
+            }
+        ],
         "editOrder": [
             {
                 "description": "edit order using clientOrderId",
@@ -2900,6 +3105,262 @@
         ],
         "fetchPositions": [
             {
+                "description": "positions with realisedPNL",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "TRIA/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "TRIAUSDT%2C1770811200032%2C0",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "TRIAUSDT",
+                                "leverage": "2",
+                                "breakEvenPrice": "0.01955723",
+                                "autoAddMargin": "0",
+                                "avgPrice": "0.01961459",
+                                "liqPrice": "0.04102339",
+                                "riskLimitValue": "5000",
+                                "takeProfit": "",
+                                "positionValue": "229.68681",
+                                "isReduceOnly": false,
+                                "positionIMByMp": "101.1025483",
+                                "tpslMode": "Full",
+                                "riskId": "1",
+                                "trailingStop": "0",
+                                "liqPriceByMp": "",
+                                "unrealisedPnl": "28.23968",
+                                "markPrice": "0.017203",
+                                "adlRankIndicator": "5",
+                                "cumRealisedPnl": "-0.41970255",
+                                "positionMM": "4.4079259",
+                                "createdTime": "1770457253034",
+                                "positionIdx": "0",
+                                "positionIM": "101.1025483",
+                                "positionMMByMp": "4.4079259",
+                                "seq": "130752219714",
+                                "updatedTime": "1770811200032",
+                                "side": "Sell",
+                                "bustPrice": "",
+                                "positionBalance": "0",
+                                "leverageSysUpdatedTime": "",
+                                "curRealisedPnl": "-0.41970255",
+                                "size": "11710",
+                                "positionStatus": "Normal",
+                                "mmrSysUpdatedTime": "",
+                                "stopLoss": "0.024012",
+                                "tradeMode": "0",
+                                "sessionAvgPrice": ""
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1770825492605"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "TRIAUSDT",
+                            "leverage": "2",
+                            "breakEvenPrice": "0.01955723",
+                            "autoAddMargin": "0",
+                            "avgPrice": "0.01961459",
+                            "liqPrice": "0.04102339",
+                            "riskLimitValue": "5000",
+                            "takeProfit": "",
+                            "positionValue": "229.68681",
+                            "isReduceOnly": false,
+                            "positionIMByMp": "101.1025483",
+                            "tpslMode": "Full",
+                            "riskId": "1",
+                            "trailingStop": "0",
+                            "liqPriceByMp": "",
+                            "unrealisedPnl": "28.23968",
+                            "markPrice": "0.017203",
+                            "adlRankIndicator": "5",
+                            "cumRealisedPnl": "-0.41970255",
+                            "positionMM": "4.4079259",
+                            "createdTime": "1770457253034",
+                            "positionIdx": "0",
+                            "positionIM": "101.1025483",
+                            "positionMMByMp": "4.4079259",
+                            "seq": "130752219714",
+                            "updatedTime": "1770811200032",
+                            "side": "Sell",
+                            "bustPrice": "",
+                            "positionBalance": "0",
+                            "leverageSysUpdatedTime": "",
+                            "curRealisedPnl": "-0.41970255",
+                            "size": "11710",
+                            "positionStatus": "Normal",
+                            "mmrSysUpdatedTime": "",
+                            "stopLoss": "0.024012",
+                            "tradeMode": "0",
+                            "sessionAvgPrice": "",
+                            "nextPageCursor": "TRIAUSDT%2C1770811200032%2C0"
+                        },
+                        "id": null,
+                        "symbol": "TRIA/USDT:USDT",
+                        "timestamp": 1770457253034,
+                        "datetime": "2026-02-07T09:40:53.034Z",
+                        "lastUpdateTimestamp": 1770811200032,
+                        "initialMargin": 101.1025483,
+                        "initialMarginPercentage": 0.44017568226926046,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 0.01961459,
+                        "notional": 229.68681,
+                        "leverage": 2,
+                        "unrealizedPnl": 28.23968,
+                        "realizedPnl": -0.41970255,
+                        "contracts": 11710,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": 0.04102339,
+                        "markPrice": 0.017203,
+                        "lastPrice": null,
+                        "collateral": 0,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "stopLossPrice": 0.024012,
+                        "takeProfitPrice": null,
+                        "hedged": false
+                    }
+                ]
+            },
+            {
+                "description": "fetch positions with hedged mode in the response",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "DOGEUSDT%2C1768320000039%2C2",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "DOGEUSDT",
+                                "leverage": "10",
+                                "breakEvenPrice": "0.14059702",
+                                "autoAddMargin": "0",
+                                "avgPrice": "0.14075",
+                                "liqPrice": "",
+                                "riskLimitValue": "250000",
+                                "takeProfit": "",
+                                "positionValue": "4.2225",
+                                "isReduceOnly": false,
+                                "positionIMByMp": "0.42960461",
+                                "tpslMode": "Full",
+                                "riskId": "206",
+                                "trailingStop": "0",
+                                "unrealisedPnl": "-0.048",
+                                "markPrice": "0.14235",
+                                "adlRankIndicator": "2",
+                                "cumRealisedPnl": "-0.00226936",
+                                "positionMM": "0.03458336",
+                                "createdTime": "1768319192333",
+                                "positionIdx": "2",
+                                "positionIM": "0.42960461",
+                                "positionMMByMp": "0.03458336",
+                                "seq": "24142759163",
+                                "updatedTime": "1768320000039",
+                                "side": "Sell",
+                                "bustPrice": "",
+                                "positionBalance": "0",
+                                "leverageSysUpdatedTime": "",
+                                "curRealisedPnl": "-0.00226936",
+                                "size": "30",
+                                "positionStatus": "Normal",
+                                "mmrSysUpdatedTime": "",
+                                "stopLoss": "",
+                                "tradeMode": "0",
+                                "sessionAvgPrice": ""
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1768321734055"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "DOGEUSDT",
+                            "leverage": "10",
+                            "breakEvenPrice": "0.14059702",
+                            "autoAddMargin": "0",
+                            "avgPrice": "0.14075",
+                            "liqPrice": "",
+                            "riskLimitValue": "250000",
+                            "takeProfit": "",
+                            "positionValue": "4.2225",
+                            "isReduceOnly": false,
+                            "positionIMByMp": "0.42960461",
+                            "tpslMode": "Full",
+                            "riskId": "206",
+                            "trailingStop": "0",
+                            "unrealisedPnl": "-0.048",
+                            "markPrice": "0.14235",
+                            "adlRankIndicator": "2",
+                            "cumRealisedPnl": "-0.00226936",
+                            "positionMM": "0.03458336",
+                            "createdTime": "1768319192333",
+                            "positionIdx": "2",
+                            "positionIM": "0.42960461",
+                            "positionMMByMp": "0.03458336",
+                            "seq": "24142759163",
+                            "updatedTime": "1768320000039",
+                            "side": "Sell",
+                            "bustPrice": "",
+                            "positionBalance": "0",
+                            "leverageSysUpdatedTime": "",
+                            "curRealisedPnl": "-0.00226936",
+                            "size": "30",
+                            "positionStatus": "Normal",
+                            "mmrSysUpdatedTime": "",
+                            "stopLoss": "",
+                            "tradeMode": "0",
+                            "sessionAvgPrice": "",
+                            "nextPageCursor": "DOGEUSDT%2C1768320000039%2C2"
+                        },
+                        "id": null,
+                        "symbol": "DOGE/USDT:USDT",
+                        "timestamp": 1768319192333,
+                        "datetime": "2026-01-13T15:46:32.333Z",
+                        "lastUpdateTimestamp": 1768320000039,
+                        "initialMargin": 0.42960461,
+                        "initialMarginPercentage": 0.1017417667258733,
+                        "maintenanceMargin": 0.03458336,
+                        "maintenanceMarginPercentage": 0.00819025695677916,
+                        "entryPrice": 0.14075,
+                        "notional": 4.2225,
+                        "leverage": 10,
+                        "unrealizedPnl": -0.048,
+                        "realizedPnl": -0.00226936,
+                        "contracts": 30,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": 0.14235,
+                        "lastPrice": null,
+                        "collateral": 0,
+                        "marginMode": null,
+                        "side": "short",
+                        "percentage": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "hedged": true
+                    }
+                ]
+            },
+            {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
                 "input": [
@@ -3132,6 +3593,124 @@
                     "percentage": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null,
+                    "hedged": false
+                }
+            },
+            {
+                "description": "inverse swap fetch position",
+                "method": "fetchPosition",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "list": [
+                            {
+                                "positionIdx": "0",
+                                "riskId": "1",
+                                "riskLimitValue": "150",
+                                "symbol": "BTCUSD",
+                                "side": "Buy",
+                                "size": "1",
+                                "avgPrice": "92850.51067781",
+                                "positionValue": "0.00001077",
+                                "tradeMode": "0",
+                                "positionStatus": "Normal",
+                                "autoAddMargin": "1",
+                                "adlRankIndicator": "2",
+                                "leverage": "10",
+                                "positionBalance": "0.00000109",
+                                "markPrice": "92805.30",
+                                "liqPrice": "100.00",
+                                "bustPrice": "100.00",
+                                "positionMM": "0.00005",
+                                "positionIM": "0.00000011",
+                                "tpslMode": "Full",
+                                "takeProfit": "0.00",
+                                "stopLoss": "0.00",
+                                "trailingStop": "0.00",
+                                "unrealisedPnl": "0",
+                                "cumRealisedPnl": "-0.00000016",
+                                "curRealisedPnl": "-0.00000001",
+                                "seq": "5994066061",
+                                "isReduceOnly": false,
+                                "mmrSysUpdatedTime": "",
+                                "leverageSysUpdatedTime": "",
+                                "sessionAvgPrice": "",
+                                "createdTime": "1705469399514",
+                                "updatedTime": "1768898436202"
+                            }
+                        ],
+                        "nextPageCursor": "",
+                        "category": "inverse"
+                    },
+                    "retExtInfo": {},
+                    "time": "1768898477889"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "positionIdx": "0",
+                        "riskId": "1",
+                        "riskLimitValue": "150",
+                        "symbol": "BTCUSD",
+                        "side": "Buy",
+                        "size": "1",
+                        "avgPrice": "92850.51067781",
+                        "positionValue": "0.00001077",
+                        "tradeMode": "0",
+                        "positionStatus": "Normal",
+                        "autoAddMargin": "1",
+                        "adlRankIndicator": "2",
+                        "leverage": "10",
+                        "positionBalance": "0.00000109",
+                        "markPrice": "92805.30",
+                        "liqPrice": "100.00",
+                        "bustPrice": "100.00",
+                        "positionMM": "0.00005",
+                        "positionIM": "0.00000011",
+                        "tpslMode": "Full",
+                        "takeProfit": "0.00",
+                        "stopLoss": "0.00",
+                        "trailingStop": "0.00",
+                        "unrealisedPnl": "0",
+                        "cumRealisedPnl": "-0.00000016",
+                        "curRealisedPnl": "-0.00000001",
+                        "seq": "5994066061",
+                        "isReduceOnly": false,
+                        "mmrSysUpdatedTime": "",
+                        "leverageSysUpdatedTime": "",
+                        "sessionAvgPrice": "",
+                        "createdTime": "1705469399514",
+                        "updatedTime": "1768898436202"
+                    },
+                    "id": null,
+                    "symbol": "BTC/USD:BTC",
+                    "timestamp": 1768898477889,
+                    "datetime": "2026-01-20T08:41:17.889Z",
+                    "lastUpdateTimestamp": 1768898436202,
+                    "initialMargin": 1.1e-7,
+                    "initialMarginPercentage": 0.010208583000000422,
+                    "maintenanceMargin": 0,
+                    "maintenanceMarginPercentage": 0,
+                    "entryPrice": 92850.51067781,
+                    "notional": 0.000010775246672334,
+                    "leverage": 10,
+                    "unrealizedPnl": null,
+                    "realizedPnl": -0.00000001,
+                    "contracts": 1,
+                    "contractSize": 1,
+                    "marginRatio": 0,
+                    "liquidationPrice": 100,
+                    "markPrice": 92805.3,
+                    "lastPrice": null,
+                    "collateral": 0.00000109,
+                    "marginMode": null,
+                    "side": "long",
+                    "percentage": null,
+                    "stopLossPrice": 0,
+                    "takeProfitPrice": 0,
                     "hedged": false
                 }
             }
@@ -5257,6 +5836,109 @@
                     "info": {
                         "resultStatus": "SU"
                     }
+                }
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetch position ADL rank",
+                "method": "fetchPositionADLRank",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "nextPageCursor": "BTCUSDT%2C1767085496112%2C0",
+                        "category": "linear",
+                        "list": [
+                            {
+                                "symbol": "BTCUSDT",
+                                "leverage": "",
+                                "autoAddMargin": "0",
+                                "avgPrice": "177489.6",
+                                "liqPrice": "",
+                                "riskLimitValue": "",
+                                "takeProfit": "",
+                                "positionValue": "1774.896",
+                                "isReduceOnly": false,
+                                "positionIMByMp": "",
+                                "tpslMode": "Full",
+                                "riskId": "0",
+                                "trailingStop": "0",
+                                "unrealisedPnl": "4.7843",
+                                "markPrice": "177968.03",
+                                "adlRankIndicator": "2",
+                                "cumRealisedPnl": "-9782.391468",
+                                "positionMM": "",
+                                "createdTime": "1699928551230",
+                                "positionIdx": "0",
+                                "positionIM": "",
+                                "positionMMByMp": "",
+                                "seq": "9558506126",
+                                "updatedTime": "1767085496112",
+                                "side": "Buy",
+                                "bustPrice": "",
+                                "positionBalance": "",
+                                "leverageSysUpdatedTime": "",
+                                "curRealisedPnl": "-0.9761928",
+                                "size": "0.01",
+                                "positionStatus": "Normal",
+                                "mmrSysUpdatedTime": "",
+                                "stopLoss": "",
+                                "tradeMode": "0",
+                                "sessionAvgPrice": ""
+                            }
+                        ]
+                    },
+                    "retExtInfo": {},
+                    "time": "1767086280636"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDT",
+                        "leverage": "",
+                        "autoAddMargin": "0",
+                        "avgPrice": "177489.6",
+                        "liqPrice": "",
+                        "riskLimitValue": "",
+                        "takeProfit": "",
+                        "positionValue": "1774.896",
+                        "isReduceOnly": false,
+                        "positionIMByMp": "",
+                        "tpslMode": "Full",
+                        "riskId": "0",
+                        "trailingStop": "0",
+                        "unrealisedPnl": "4.7843",
+                        "markPrice": "177968.03",
+                        "adlRankIndicator": "2",
+                        "cumRealisedPnl": "-9782.391468",
+                        "positionMM": "",
+                        "createdTime": "1699928551230",
+                        "positionIdx": "0",
+                        "positionIM": "",
+                        "positionMMByMp": "",
+                        "seq": "9558506126",
+                        "updatedTime": "1767085496112",
+                        "side": "Buy",
+                        "bustPrice": "",
+                        "positionBalance": "",
+                        "leverageSysUpdatedTime": "",
+                        "curRealisedPnl": "-0.9761928",
+                        "size": "0.01",
+                        "positionStatus": "Normal",
+                        "mmrSysUpdatedTime": "",
+                        "stopLoss": "",
+                        "tradeMode": "0",
+                        "sessionAvgPrice": ""
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "rank": 2,
+                    "rating": null,
+                    "percentage": null,
+                    "timestamp": 1767085496112,
+                    "datetime": "2025-12-30T09:04:56.112Z"
                 }
             }
         ]

@@ -417,6 +417,52 @@ func (this *Bitstamp) CreateOrder(symbol string, typeVar string, side string, am
 
 /**
  * @method
+ * @name bitstamp#editOrder
+ * @description edit a trade order
+ * @see https://www.bitstamp.net/api/#tag/Orders/operation/ReplaceOrder
+ * @param {string} id order id
+ * @param {string} [symbol] unified symbol of the market to create an order in
+ * @param {string} [type] 'market', 'limit' or 'stop_limit'
+ * @param {string} [side] 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price for the order, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.triggerPrice] the price to trigger a stop order
+ * @param {string} [params.timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
+ * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Bitstamp) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+	opts := EditOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var amount interface{} = nil
+	if opts.Amount != nil {
+		amount = *opts.Amount
+	}
+
+	var price interface{} = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
+	if IsError(res) {
+		return Order{}, CreateReturnError(res)
+	}
+	return NewOrder(res), nil
+}
+
+/**
+ * @method
  * @name bitstamp#cancelOrder
  * @description cancels an open order
  * @see https://www.bitstamp.net/api/#tag/Orders/operation/CancelOrder
@@ -588,6 +634,54 @@ func (this *Bitstamp) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 
 /**
  * @method
+ * @name bitstamp#fetchFundingRateHistory
+ * @description fetches historical funding rate prices
+ * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRateHistory
+ * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+ * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {string} [params.subType] "linear" or "inverse"
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
+ */
+func (this *Bitstamp) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
+
+	opts := FetchFundingRateHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol interface{} = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var since interface{} = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit interface{} = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingRateHistory(symbol, since, limit, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewFundingRateHistoryArray(res), nil
+}
+
+/**
+ * @method
  * @name bitstamp#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
  * @see https://www.bitstamp.net/api/#tag/Transactions-private/operation/GetUserTransactions
@@ -685,7 +779,7 @@ func (this *Bitstamp) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+ * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *Bitstamp) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, error) {
 
@@ -719,6 +813,34 @@ func (this *Bitstamp) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 		return nil, CreateReturnError(res)
 	}
 	return NewLedgerEntryArray(res), nil
+}
+
+/**
+ * @method
+ * @name bitstamp#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://www.bitstamp.net/api/#tag/Market-info/operation/GetFundingRate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+ */
+func (this *Bitstamp) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params interface{} = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
 }
 
 /**
@@ -962,9 +1084,6 @@ func (this *Bitstamp) EditLimitOrder(id string, symbol string, side string, amou
 func (this *Bitstamp) EditLimitSellOrder(id string, symbol string, amount float64, options ...EditLimitSellOrderOptions) (Order, error) {
 	return this.exchangeTyped.EditLimitSellOrder(id, symbol, amount, options...)
 }
-func (this *Bitstamp) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
-	return this.exchangeTyped.EditOrder(id, symbol, typeVar, side, options...)
-}
 func (this *Bitstamp) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
@@ -1033,12 +1152,6 @@ func (this *Bitstamp) FetchFundingInterval(symbol string, options ...FetchFundin
 }
 func (this *Bitstamp) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Bitstamp) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Bitstamp) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
-	return this.exchangeTyped.FetchFundingRateHistory(options...)
 }
 func (this *Bitstamp) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingRates(options...)

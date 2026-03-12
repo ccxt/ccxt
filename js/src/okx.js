@@ -1782,8 +1782,10 @@ export default class okx extends Exchange {
         maxLeverage = Precise.stringMax(maxLeverage, '1');
         const maxSpotCost = this.safeNumber(market, 'maxMktSz');
         const status = this.safeString(market, 'state');
+        const instIdCode = this.safeInteger(market, 'instIdCode');
         return this.extend(fees, {
             'id': id,
+            'instIdCode': instIdCode,
             'symbol': symbol,
             'base': base,
             'quote': quote,
@@ -3011,6 +3013,9 @@ export default class okx extends Exchange {
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
+        const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
+        const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
+        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         let request = {
             'instId': market['id'],
             // 'ccy': currency['id'], // only applicable to cross MARGIN orders in single-currency margin
@@ -3021,7 +3026,7 @@ export default class okx extends Exchange {
             'ordType': type,
             // 'ordType': type, // privatePostTradeOrder: market, limit, post_only, fok, ioc, optimal_limit_ioc
             // 'ordType': type, // privatePostTradeOrderAlgo: conditional, oco, trigger, move_order_stop, iceberg, twap
-            'sz': this.amountToPrecision(symbol, amount),
+            // 'sz': this.amountToPrecision (symbol, amount),
             // 'px': this.priceToPrecision (symbol, price), // limit orders only
             // 'reduceOnly': false,
             //
@@ -3037,14 +3042,20 @@ export default class okx extends Exchange {
             // 'slTriggerPxType': 'last', // Conditional default is last, mark or index (conditional orders)
             // 'slOrdPx': 10, // Order price for Stop-Loss orders, if -1 will be executed at market price (conditional orders)
         };
+        const isConditionalOrOCO = conditional || (type === 'oco');
+        const closeFraction = this.safeString(params, 'closeFraction');
+        const shouldOmitSize = isConditionalOrOCO && closeFraction !== undefined;
+        if (!shouldOmitSize) {
+            request['sz'] = this.amountToPrecision(symbol, amount);
+        }
         const spot = market['spot'];
         const contract = market['contract'];
         const triggerPrice = this.safeValueN(params, ['triggerPrice', 'stopPrice', 'triggerPx']);
         const timeInForce = this.safeString(params, 'timeInForce', 'GTC');
-        const takeProfitPrice = this.safeValue2(params, 'takeProfitPrice', 'tpTriggerPx');
+        // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
         const tpOrdPx = this.safeValue(params, 'tpOrdPx', price);
         const tpTriggerPxType = this.safeString(params, 'tpTriggerPxType', 'last');
-        const stopLossPrice = this.safeValue2(params, 'stopLossPrice', 'slTriggerPx');
+        // const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
         const slOrdPx = this.safeValue(params, 'slOrdPx', price);
         const slTriggerPxType = this.safeString(params, 'slTriggerPxType', 'last');
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
@@ -3057,7 +3068,7 @@ export default class okx extends Exchange {
         const trailingPrice = this.safeString2(params, 'trailingPrice', 'callbackSpread');
         const isTrailingPriceOrder = trailingPrice !== undefined;
         const trigger = (triggerPrice !== undefined) || (type === 'trigger');
-        const isReduceOnly = this.safeValue(params, 'reduceOnly', false);
+        const isReduceOnly = this.safeValue(params, 'reduceOnly', false) || (closeFraction !== undefined);
         const defaultMarginMode = this.safeString2(this.options, 'defaultMarginMode', 'marginMode', 'cross');
         let marginMode = this.safeString2(params, 'marginMode', 'tdMode'); // cross or isolated, tdMode not ommited so as to be extended into the request
         let margin = false;
@@ -3112,7 +3123,7 @@ export default class okx extends Exchange {
         params = this.omit(params, ['currency', 'ccy', 'marginMode', 'timeInForce', 'stopPrice', 'triggerPrice', 'clientOrderId', 'stopLossPrice', 'takeProfitPrice', 'slOrdPx', 'tpOrdPx', 'margin', 'stopLoss', 'takeProfit', 'trailingPercent']);
         const ioc = (timeInForce === 'IOC') || (type === 'ioc');
         const fok = (timeInForce === 'FOK') || (type === 'fok');
-        const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
+        // const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const marketIOC = (isMarketOrder && ioc) || (type === 'optimal_limit_ioc');
         const defaultTgtCcy = this.safeString(this.options, 'tgtCcy', 'base_ccy');
         const tgtCcy = this.safeString(params, 'tgtCcy', defaultTgtCcy);
@@ -4990,7 +5001,7 @@ export default class okx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -6173,7 +6184,7 @@ export default class okx extends Exchange {
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         }
         else if (initialMarginString === undefined) {
-            initialMarginString = Precise.stringMul(initialMarginPercentage, notionalString);
+            initialMarginString = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(contractsAbs, contractSizeString), entryPriceString), leverageString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
         const maintenanceMarginPercentage = this.parseNumber(Precise.stringDiv(Precise.stringAdd(maintenanceMarginPercentageString, rounder), '1', 4));
@@ -7327,7 +7338,7 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
@@ -7340,7 +7351,7 @@ export default class okx extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'add', params);

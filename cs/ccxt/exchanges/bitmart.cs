@@ -1099,8 +1099,11 @@ public partial class bitmart : Exchange
         {
             await this.loadTimeDifference();
         }
-        object spot = await this.fetchSpotMarkets(parameters);
-        object contract = await this.fetchContractMarkets(parameters);
+        object spotPromise = this.fetchSpotMarkets(parameters);
+        object contractPromise = this.fetchContractMarkets(parameters);
+        var spotcontractVariable = await promiseAll(new List<object>() {spotPromise, contractPromise});
+        var spot = ((IList<object>) spotcontractVariable)[0];
+        var contract = ((IList<object>) spotcontractVariable)[1];
         return this.arrayConcat(spot, contract);
     }
 
@@ -3684,7 +3687,7 @@ public partial class bitmart : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("canceled", symbol, since, limit, parameters);
@@ -5482,7 +5485,7 @@ public partial class bitmart : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
+     * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
