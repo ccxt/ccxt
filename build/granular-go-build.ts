@@ -2,21 +2,25 @@ import * as fs from 'fs';
 import * as path from 'path';
 import execSync from 'child_process';
 import log from 'ololog'
+import { isWindows } from './../ts/src/base/functions/platform.js';
 
 const WS_SUPPORT = true; // set to true when WS support is added
 
+
+const dirSep = isWindows ? '\\' : '/';
+
 const foldersToSearch = [
-    './go/v4'
+    `./go/v4`
 ];
 
 const filesToDelete =[
-    './go/tests/base/test.structs.go',
-    './go/tests/base/test.types.rest.go',
-    './go/tests/base/test.types.pro.go'
+    `./go/tests/base/test.structs.go`,
+    `./go/tests/base/test.types.rest.go`,
+    `./go/tests/base/test.types.pro.go`
 ]
 
 const whiteListFolders = [
-    'go/v4/protoc'
+    `go${dirSep}v4${dirSep}protoc`
 ]
 
 
@@ -44,7 +48,7 @@ function deleteFilesRecursively(directory: string, exchangesToKeep: string[]): v
             return; // Always keep exchange.go and exchange_X.go files
         }
 
-        if (whiteListFolders.some(folder => fullPath.startsWith(folder))) {
+        if (whiteListFolders.some(folder => fullPath.startsWith(folder) || fullPath.startsWith (`.${dirSep}${folder}`))) {
             return; // Always keep files in whitelisted folders
         }
 
