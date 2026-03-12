@@ -269,7 +269,7 @@ export default class grvt extends Exchange {
                 },
             },
             'requiredCredentials': {
-                'privateKey': false,
+                'privateKey': true,
                 'apiKey': false,
                 'secret': false,
             },

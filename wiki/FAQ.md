@@ -387,3 +387,24 @@ For example, while orders can be placed normally, cancelling an order on dYdX do
 - subAccountId, ccxt assumes 0 as default
 
 CCXT provides sensible defaults for the most common use cases; however, you may need to override these values (using params or options) depending on your specific requirements.
+
+### GRVT exchange
+
+An example to instantiate GRVT exchange:
+
+```
+exchange = ccxt.grvt({
+	'privateKey': 'XXXXXXX', // the l1 private key (hex)
+})
+```
+
+To use Apikey & Secret pair (which has less capabilities), you can :
+```
+exchange = ccxt.grvt({
+  'requiredCredentials': {
+    'privateKey': false,
+  },
+	'apiKey': 'XXXXXXX',
+	'secret': 'XXXXXXX',
+})
+```
