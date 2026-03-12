@@ -5,6 +5,7 @@
     "methods": {
         "fetchCurrencies": [
             {
+                "disbled": true,
                 "description": "fetchCurrencies",
                 "method": "fetchCurrencies",
                 "input": [],
