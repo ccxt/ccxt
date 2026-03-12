@@ -1320,6 +1320,10 @@ export default class kucoin extends kucoinRest {
         if (isFuturesMethod) {
             topic = trigger ? '/contractMarket/advancedOrders' : '/contractMarket/tradeOrders';
         }
+        if (symbol === undefined) {
+            const suffix = this.getOrdersMessageHashSuffix (topic);
+            messageHash += suffix;
+        }
         const request: Dict = {
             'privateChannel': true,
         };
@@ -1328,6 +1332,18 @@ export default class kucoin extends kucoinRest {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    getOrdersMessageHashSuffix (topic) {
+        let suffix = '-spot';
+        if (topic === '/spotMarket/advancedOrders') {
+            suffix += '-trigger';
+        } else if (topic === '/contractMarket/tradeOrders') {
+            suffix = '-contract';
+        } else if (topic === '/contractMarket/advancedOrders') {
+            suffix = '-contract-trigger';
+        }
+        return suffix;
     }
 
     parseWsOrderStatus (status) {
@@ -1468,8 +1484,7 @@ export default class kucoin extends kucoinRest {
         //        "type": "open"
         //    }
         //
-        const messageHash = 'orders';
-        const data = this.safeValue (message, 'data');
+        const data = this.safeDict (message, 'data');
         const tradeId = this.safeString (data, 'tradeId');
         if (tradeId !== undefined) {
             this.handleMyTrade (client, message);
@@ -1494,7 +1509,11 @@ export default class kucoin extends kucoinRest {
             }
         }
         cachedOrders.append (parsed);
-        client.resolve (cachedOrders, messageHash);
+        const messageHash = 'orders';
+        const topic = this.safeString (message, 'topic');
+        const suffix = this.getOrdersMessageHashSuffix (topic);
+        const typeSpecificMessageHash = messageHash + suffix;
+        client.resolve (cachedOrders, typeSpecificMessageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (cachedOrders, symbolSpecificMessageHash);
     }
