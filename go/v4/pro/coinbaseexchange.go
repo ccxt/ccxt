@@ -76,8 +76,8 @@ func  (this *CoinbaseexchangeCore) Subscribe(name interface{}, optionalArgs ...i
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes628 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes628)
+            retRes638 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes638)
             var market interface{} = nil
             var messageHash interface{} = messageHashStart
             var productIds interface{} = []interface{}{}
@@ -98,9 +98,9 @@ func  (this *CoinbaseexchangeCore) Subscribe(name interface{}, optionalArgs ...i
             }
             var request interface{} = this.Extend(subscribe, params)
         
-                retRes8415 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes8415)
-                ch <- retRes8415
+                retRes8515 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes8515)
+                ch <- retRes8515
                 return nil
         
             }()
@@ -118,8 +118,8 @@ func  (this *CoinbaseexchangeCore) SubscribeMultiple(name interface{}, optionalA
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes888 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes888)
+            retRes898 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes898)
             var market interface{} = nil
             symbols = this.MarketSymbols(symbols)
             var messageHashes interface{} = []interface{}{}
@@ -142,9 +142,9 @@ func  (this *CoinbaseexchangeCore) SubscribeMultiple(name interface{}, optionalA
             }
             var request interface{} = this.Extend(subscribe, params)
         
-                retRes11215 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
-                ccxt.PanicOnError(retRes11215)
-                ch <- retRes11215
+                retRes11315 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
+                ccxt.PanicOnError(retRes11315)
+                ch <- retRes11315
                 return nil
         
             }()
@@ -167,9 +167,9 @@ func  (this *CoinbaseexchangeCore) WatchTicker(symbol interface{}, optionalArgs 
             _ = params
             var name interface{} = "ticker"
         
-                retRes12515 :=  (<-this.Subscribe(name, symbol, name, params))
-                ccxt.PanicOnError(retRes12515)
-                ch <- retRes12515
+                retRes12615 :=  (<-this.Subscribe(name, symbol, name, params))
+                ccxt.PanicOnError(retRes12615)
+                ch <- retRes12615
                 return nil
         
             }()
@@ -194,8 +194,8 @@ func  (this *CoinbaseexchangeCore) WatchTickers(optionalArgs ...interface{}) <- 
             params := ccxt.GetArg(optionalArgs, 1, map[string]interface{} {})
             _ = params
         
-            retRes1388 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1388)
+            retRes1398 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1398)
             var symbolsLength interface{} =     ccxt.GetArrayLength(symbols)
             if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
                 panic(ccxt.BadSymbol(ccxt.Add(this.Id, " watchTickers requires a non-empty symbols array")))
@@ -241,8 +241,8 @@ func  (this *CoinbaseexchangeCore) WatchTrades(symbol interface{}, optionalArgs 
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes1658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1658)
+            retRes1668 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1668)
             symbol = this.Symbol(symbol)
             var name interface{} = "matches"
         
@@ -284,8 +284,8 @@ func  (this *CoinbaseexchangeCore) WatchTradesForSymbols(symbols interface{}, op
                 panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
             }
         
-            retRes1908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1908)
+            retRes1918 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes1918)
             symbols = this.MarketSymbols(symbols)
             var name interface{} = "matches"
         
@@ -330,8 +330,8 @@ func  (this *CoinbaseexchangeCore) WatchMyTrades(optionalArgs ...interface{}) <-
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchMyTrades() requires a symbol argument")))
             }
         
-            retRes2168 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2168)
+            retRes2178 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2178)
             symbol = this.Symbol(symbol)
             var name interface{} = "user"
             var messageHash interface{} = "myTrades"
@@ -372,8 +372,8 @@ func  (this *CoinbaseexchangeCore) WatchMyTradesForSymbols(symbols interface{}, 
             _ = params
             symbols = this.MarketSymbols(symbols, nil, false)
         
-            retRes2408 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2408)
+            retRes2418 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2418)
             var name interface{} = "user"
             var messageHash interface{} = "myTrades"
             var authentication interface{} = this.Authenticate()
@@ -414,8 +414,8 @@ func  (this *CoinbaseexchangeCore) WatchOrdersForSymbols(symbols interface{}, op
             params := ccxt.GetArg(optionalArgs, 2, map[string]interface{} {})
             _ = params
         
-            retRes2648 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2648)
+            retRes2658 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2658)
             symbols = this.MarketSymbols(symbols, nil, false)
             var name interface{} = "user"
             var messageHash interface{} = "orders"
@@ -462,8 +462,8 @@ func  (this *CoinbaseexchangeCore) WatchOrders(optionalArgs ...interface{}) <- c
                 panic(ccxt.BadSymbol(ccxt.Add(this.Id, " watchMyTrades requires a symbol")))
             }
         
-            retRes2928 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2928)
+            retRes2938 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes2938)
             symbol = this.Symbol(symbol)
             var name interface{} = "user"
             var messageHash interface{} = "orders"
@@ -505,8 +505,8 @@ func  (this *CoinbaseexchangeCore) WatchOrderBookForSymbols(symbols interface{},
             }
             var name interface{} = "level2"
         
-            retRes3198 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3198)
+            retRes3208 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3208)
             symbols = this.MarketSymbols(symbols)
             var marketIds interface{} = this.MarketIds(symbols)
             var messageHashes interface{} = []interface{}{}
@@ -558,8 +558,8 @@ func  (this *CoinbaseexchangeCore) WatchOrderBook(symbol interface{}, optionalAr
             _ = params
             var name interface{} = "level2"
         
-            retRes3588 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3588)
+            retRes3598 := (<-this.LoadMarkets())
+            ccxt.PanicOnError(retRes3598)
             var market interface{} = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash interface{} = ccxt.Add(ccxt.Add(name, ":"), ccxt.GetValue(market, "id"))
@@ -698,10 +698,10 @@ func  (this *CoinbaseexchangeCore) ParseWsTrade(trade interface{}, optionalArgs 
     if ccxt.IsTrue(ccxt.InOp(trade, "maker_fee_rate")) {
         isMaker = true
         ccxt.AddElementToObject(parsed, "takerOrMaker", "maker")
-        feeRate = this.SafeNumber(trade, "maker_fee_rate")
+        feeRate = this.SafeString(trade, "maker_fee_rate")
     } else {
         ccxt.AddElementToObject(parsed, "takerOrMaker", "taker")
-        feeRate = this.SafeNumber(trade, "taker_fee_rate")
+        feeRate = this.SafeString(trade, "taker_fee_rate")
         // side always represents the maker side of the trade
         // so if we're taker, we invert it
         var currentSide interface{} = ccxt.GetValue(parsed, "side")
@@ -716,12 +716,12 @@ func  (this *CoinbaseexchangeCore) ParseWsTrade(trade interface{}, optionalArgs 
     var feeCurrency interface{} = ccxt.GetValue(market, "quote")
     var feeCost interface{} = nil
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(parsed, "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(feeRate, nil)))) {
-        var cost interface{} = this.SafeNumber(parsed, "cost")
-        feeCost = ccxt.Multiply(cost, feeRate)
+        var cost interface{} = this.SafeString(parsed, "cost")
+        feeCost = ccxt.Precise.StringMul(cost, feeRate)
     }
     ccxt.AddElementToObject(parsed, "fee", map[string]interface{} {
-    "rate": feeRate,
-    "cost": feeCost,
+    "rate": this.ParseNumber(feeRate),
+    "cost": this.ParseNumber(feeCost),
     "currency": feeCurrency,
 })
     return parsed
@@ -846,25 +846,26 @@ func  (this *CoinbaseexchangeCore) HandleOrder(client interface{}, message inter
                     if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
                         ccxt.AddElementToObject(previousOrder, "trades", []interface{}{})
                     }
-                    retRes64524 := ccxt.GetValue(previousOrder, "trades")
-                    ccxt.AppendToArray(&retRes64524, trade)
+                    retRes64624 := ccxt.GetValue(previousOrder, "trades")
+                    ccxt.AppendToArray(&retRes64624, trade)
                     ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
-                    var totalCost interface{} = 0
-                    var totalAmount interface{} = 0
+                    var totalCost interface{} = "0"
+                    var totalAmount interface{} = "0"
                     var trades interface{} = ccxt.GetValue(previousOrder, "trades")
                     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(trades)); i++ {
                         var tradeEntry interface{} = ccxt.GetValue(trades, i)
-                        totalCost = this.Sum(totalCost, ccxt.GetValue(tradeEntry, "cost"))
-                        totalAmount = this.Sum(totalAmount, ccxt.GetValue(tradeEntry, "amount"))
+                        totalCost = this.SafeString(tradeEntry, "cost", "0")
+                        totalAmount = this.SafeString(tradeEntry, "amount", "0")
                     }
-                    if ccxt.IsTrue(ccxt.IsGreaterThan(totalAmount, 0)) {
-                        ccxt.AddElementToObject(previousOrder, "average", ccxt.Divide(totalCost, totalAmount))
+                    if !ccxt.IsTrue(ccxt.Precise.StringEq(totalAmount, "0")) {
+                        ccxt.AddElementToObject(previousOrder, "average", this.ParseNumber(ccxt.Precise.StringDiv(totalCost, totalAmount)))
                     }
-                    ccxt.AddElementToObject(previousOrder, "cost", totalCost)
-                    if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previousOrder, "filled"), nil)) {
-                        ccxt.AddElementToObject(previousOrder, "filled", ccxt.Add(ccxt.GetValue(previousOrder, "filled"), ccxt.GetValue(trade, "amount")))
+                    ccxt.AddElementToObject(previousOrder, "cost", this.ParseNumber(totalCost))
+                    var previousOrderFilled interface{} = this.SafeString(previousOrder, "filled")
+                    if ccxt.IsTrue(!ccxt.IsEqual(previousOrderFilled, nil)) {
+                        ccxt.AddElementToObject(previousOrder, "filled", this.ParseNumber(ccxt.Precise.StringAdd(previousOrderFilled, this.SafeString(trade, "amount"))))
                         if ccxt.IsTrue(!ccxt.IsEqual(ccxt.GetValue(previousOrder, "amount"), nil)) {
-                            ccxt.AddElementToObject(previousOrder, "remaining", ccxt.Subtract(ccxt.GetValue(previousOrder, "amount"), ccxt.GetValue(previousOrder, "filled")))
+                            ccxt.AddElementToObject(previousOrder, "remaining", this.ParseNumber(ccxt.Precise.StringSub(this.SafeString(previousOrder, "amount"), this.SafeString(previousOrder, "filled"))))
                         }
                     }
                     if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "fee"), nil)) {
@@ -875,6 +876,9 @@ func  (this *CoinbaseexchangeCore) HandleOrder(client interface{}, message inter
                     }
                     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), nil))) && ccxt.IsTrue((!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(trade, "fee"), "cost"), nil)))) {
                         ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.Sum(ccxt.GetValue(ccxt.GetValue(previousOrder, "fee"), "cost"), ccxt.GetValue(ccxt.GetValue(trade, "fee"), "cost")))
+                        var previousOrderFee interface{} = this.SafeDict(previousOrder, "fee")
+                        var tradeFee interface{} = this.SafeDict(trade, "fee")
+                        ccxt.AddElementToObject(ccxt.GetValue(previousOrder, "fee"), "cost", this.ParseNumber(ccxt.Precise.StringAdd(this.SafeString(previousOrderFee, "cost"), this.SafeString(tradeFee, "cost"))))
                     }
                     // update the newUpdates count
                     orders.(ccxt.Appender).Append(previousOrder)
@@ -907,21 +911,21 @@ func  (this *CoinbaseexchangeCore) ParseWsOrder(order interface{}, optionalArgs 
     var symbol interface{} = this.SafeSymbol(marketId)
     var side interface{} = this.SafeString(order, "side")
     var price interface{} = this.SafeNumber(order, "price")
-    var amount interface{} = this.SafeNumber2(order, "size", "funds")
+    var amount interface{} = this.SafeString2(order, "size", "funds")
     var time interface{} = this.SafeString(order, "time")
     var timestamp interface{} = this.Parse8601(time)
     var reason interface{} = this.SafeString(order, "reason")
     var status interface{} = this.ParseWsOrderStatus(reason)
     var orderType interface{} = this.SafeString(order, "order_type")
-    var remaining interface{} = this.SafeNumber(order, "remaining_size")
+    var remaining interface{} = this.SafeString(order, "remaining_size")
     var typeVar interface{} = this.SafeString(order, "type")
     var filled interface{} = nil
     if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(amount, nil))) && ccxt.IsTrue((!ccxt.IsEqual(remaining, nil)))) {
-        filled = ccxt.Subtract(amount, remaining)
+        filled = ccxt.Precise.StringSub(amount, remaining)
     } else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "received")) {
-        filled = 0
+        filled = "0"
         if ccxt.IsTrue(!ccxt.IsEqual(amount, nil)) {
-            remaining = ccxt.Subtract(amount, filled)
+            remaining = ccxt.Precise.StringSub(amount, filled)
         }
     }
     return this.SafeOrder(map[string]interface{} {
@@ -939,11 +943,11 @@ func  (this *CoinbaseexchangeCore) ParseWsOrder(order interface{}, optionalArgs 
         "price": price,
         "stopPrice": nil,
         "triggerPrice": nil,
-        "amount": amount,
+        "amount": this.ParseNumber(amount),
         "cost": nil,
         "average": nil,
-        "filled": filled,
-        "remaining": remaining,
+        "filled": this.ParseNumber(filled),
+        "remaining": this.ParseNumber(remaining),
         "status": status,
         "fee": nil,
         "trades": nil,
