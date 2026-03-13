@@ -23,7 +23,7 @@ ENV NODE_MAJOR=20
 RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
 RUN apt-get update && apt-get install -y nodejs
 # Python 3
-RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip
+RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip python-is-python3
 RUN pip3 install 'idna==2.9' --force-reinstall
 RUN pip3 install --upgrade setuptools==65.7.0
 RUN pip3 install tox
