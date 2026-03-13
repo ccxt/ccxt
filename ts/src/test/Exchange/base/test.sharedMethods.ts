@@ -343,11 +343,11 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     }
 }
 
-function assertTimestampOrder (exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending = true) {
+function assertTimestampOrder (exchange: Exchange, method: string, codeOrSymbol: string, items: any[], ascending = true, key: any = 'timestamp') {
     for (let i = 0; i < items.length; i++) {
         if (i > 0) {
-            const currentTs = items[i - 1]['timestamp'];
-            const nextTs = items[i]['timestamp'];
+            const currentTs = items[i - 1][key];
+            const nextTs = items[i][key];
             if (currentTs !== undefined && nextTs !== undefined) {
                 const ascendingOrDescending = ascending ? 'ascending' : 'descending';
                 const comparison = ascending ? (currentTs <= nextTs) : (currentTs >= nextTs);

@@ -21,7 +21,13 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     for (let i = 0; i < ohlcvs.length; i++) {
         testOHLCV (exchange, skippedProperties, method, ohlcvs[i], symbol, now);
     }
-    // todo: sorted timestamps check
+    // sorted timestamps check
+    if (!('timestampSort' in skippedProperties)) {
+        testSharedMethods.assertTimestampOrder (exchange, method, symbol, ohlcvs, true, 0);
+    }
+    // check if amount is greater than 0
+    const minRequiredLength = ('amountCheck' in skippedProperties) ? 1 : limit;
+    assert (ohlcvs.length >= minRequiredLength, exchange.id + ' ' + method + ' - no OHLCV data found for ' + symbol);
     return true;
 }
 
