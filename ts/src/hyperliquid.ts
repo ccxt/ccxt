@@ -4678,7 +4678,7 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString (delta, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
-            marketId = this.coinToMarketId(coin);
+            marketId = this.coinToMarketId (coin);
         }
         market = this.safeMarket (marketId, market);
         const amount = this.safeString (delta, 'usdc');
