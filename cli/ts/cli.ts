@@ -260,7 +260,7 @@ async function run () {
             process.exit (0);
         }
 
-        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions, params.length === 0);
+        const exchange = await loadSettingsAndCreateExchange (exchangeId, cliOptions);
 
         if (exchange[methodName] === undefined) {
             log.red (exchange.id + '.' + methodName + ': no such property');
