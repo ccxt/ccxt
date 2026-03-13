@@ -885,8 +885,8 @@ Upon instantiation the base exchange class takes each URL from its list of endpo
 ### Docstrings
 
 - when a method takes another parameter as a property on params (ex. `params['something']`) add that parameter to the docstring, as params.something
-   - if that parameter is required, the type is `{str}`, `{int}`, `{etc}`, if it's optional the type is `{str|undefined}`, `{int|undefined}`, `{etc|undefined}`
-- when a parameter's default value is `undefined`, but the method contains something like `if (symbol === undefined) { throw new ArgumentsRequired('...')}`, then set the type of that parameter as `{str}`, `{int}`, `{etc}`. If an error is not thrown, then the type is `{str|undefined}`, `{int|undefined}`, `{etc|undefined}`
+   - if that parameter is required, the type is `{string}`, `{int}`, `{object}`, `{etc}`, if it's optional the type is `{string|undefined}`, `{int|undefined}`, `{etc|undefined}`
+- when a parameter's default value is `undefined`, but the method contains something like `if (symbol === undefined) { throw new ArgumentsRequired('...')}`, then set the type of that parameter as `{string}`, `{int}`, `{etc}`. If an error is not thrown, then the type is `{string|undefined}`, `{int|undefined}`, `{etc|undefined}`
 - if a method doesn't use one of the unified parameters, set the description of that parameter to `not used by exchange_name.method_name ()` (replace `exchange_name` and `method_name` with the real exchange and method names)
 - if the method has any other special case uses, put these in the description of the docstring, these cases can be included in the class docstring as well
 
