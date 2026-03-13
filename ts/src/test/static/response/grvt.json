@@ -1248,7 +1248,7 @@
         ],
         "createOrder": [
             {
-                "description": "swap limit buy with triggerPrice builder",
+                "description": "swap limit buy with triggerPrice ascending tif  - builder",
                 "method": "createOrder",
                 "input": [
                     "ETH/USDT:USDT",
@@ -1256,14 +1256,18 @@
                     "buy",
                     0.02,
                     1000,
-                    "{reduceOnly:true,timeInForce:FOK,triggerPrice:1001,triggerDirection:descending}"
+                    {
+                        "timeInForce": "FOK",
+                        "triggerPrice": 3001,
+                        "triggerDirection": "ascending"
+                    }
                 ],
                 "httpResponse": {
                     "result": {
                         "order_id": "0x00",
                         "sub_account_id": "2255817062147681",
                         "is_market": false,
-                        "time_in_force": "GOOD_TILL_TIME",
+                        "time_in_force": "FILL_OR_KILL",
                         "post_only": false,
                         "reduce_only": false,
                         "legs": [
@@ -1276,21 +1280,21 @@
                         ],
                         "signature": {
                             "signer": "0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca",
-                            "r": "0xa7190b7b125aa1e7d0b30c7e3330396267ef74846a623c69165394577627e2bf",
-                            "s": "0x12c211fb606ea6b326764d665da6a58e55a3c20ad588611da3731dc47b99bb29",
-                            "v": 28,
-                            "expiration": "1773397216584000000",
-                            "nonce": 1773397186,
+                            "r": "0x561982d5cccea0ad8599b76c82323d9005570a97298c1d220fe015f100a83ac7",
+                            "s": "0x1a953c9de0fb564d78629ac5ae6067dcb51d6ac1a2c04c6d7d99addb09fe73ee",
+                            "v": 27,
+                            "expiration": "1773400928261000000",
+                            "nonce": 1773400898,
                             "chain_id": "325"
                         },
                         "metadata": {
-                            "client_order_id": "17733971860001",
-                            "create_time": "1773397186162665803",
+                            "client_order_id": "17734008980001",
+                            "create_time": "1773400897769668430",
                             "trigger": {
-                                "trigger_type": "UNSPECIFIED",
+                                "trigger_type": "STOP_LOSS",
                                 "tpsl": {
-                                    "trigger_by": "UNSPECIFIED",
-                                    "trigger_price": "0.0",
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "3001.0",
                                     "close_position": false,
                                     "is_split_position": false
                                 }
@@ -1308,7 +1312,7 @@
                             "traded_size": [
                                 "0.0"
                             ],
-                            "update_time": "1773397186162665803",
+                            "update_time": "1773400897769668430",
                             "avg_fill_price": [
                                 "0.0"
                             ]
@@ -1320,15 +1324,15 @@
                 "parsedResponse": {
                     "isMultiLeg": false,
                     "id": "0x00",
-                    "clientOrderId": "17733971860001",
-                    "timestamp": 1773397186162,
-                    "datetime": "2026-03-13T10:19:46.162Z",
+                    "clientOrderId": "17734008980001",
+                    "timestamp": 1773400897769,
+                    "datetime": "2026-03-13T11:21:37.769Z",
                     "lastTradeTimeStamp": null,
-                    "lastUpdateTimestamp": 1773397186162,
+                    "lastUpdateTimestamp": 1773400897769,
                     "status": "pending",
                     "symbol": "ETH/USDT:USDT",
                     "type": "limit",
-                    "timeInForce": "GTC",
+                    "timeInForce": "FOK",
                     "postOnly": false,
                     "side": "buy",
                     "price": 1000,
@@ -1345,7 +1349,7 @@
                         "order_id": "0x00",
                         "sub_account_id": "2255817062147681",
                         "is_market": false,
-                        "time_in_force": "GOOD_TILL_TIME",
+                        "time_in_force": "FILL_OR_KILL",
                         "post_only": false,
                         "reduce_only": false,
                         "legs": [
@@ -1358,21 +1362,21 @@
                         ],
                         "signature": {
                             "signer": "0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca",
-                            "r": "0xa7190b7b125aa1e7d0b30c7e3330396267ef74846a623c69165394577627e2bf",
-                            "s": "0x12c211fb606ea6b326764d665da6a58e55a3c20ad588611da3731dc47b99bb29",
-                            "v": 28,
-                            "expiration": "1773397216584000000",
-                            "nonce": 1773397186,
+                            "r": "0x561982d5cccea0ad8599b76c82323d9005570a97298c1d220fe015f100a83ac7",
+                            "s": "0x1a953c9de0fb564d78629ac5ae6067dcb51d6ac1a2c04c6d7d99addb09fe73ee",
+                            "v": 27,
+                            "expiration": "1773400928261000000",
+                            "nonce": 1773400898,
                             "chain_id": "325"
                         },
                         "metadata": {
-                            "client_order_id": "17733971860001",
-                            "create_time": "1773397186162665803",
+                            "client_order_id": "17734008980001",
+                            "create_time": "1773400897769668430",
                             "trigger": {
-                                "trigger_type": "UNSPECIFIED",
+                                "trigger_type": "STOP_LOSS",
                                 "tpsl": {
-                                    "trigger_by": "UNSPECIFIED",
-                                    "trigger_price": "0.0",
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "3001.0",
                                     "close_position": false,
                                     "is_split_position": false
                                 }
@@ -1390,7 +1394,169 @@
                             "traded_size": [
                                 "0.0"
                             ],
-                            "update_time": "1773397186162665803",
+                            "update_time": "1773400897769668430",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x21d2a053495994b1132a38cd1171acec40c6741e",
+                        "builder_fee": "0.01"
+                    },
+                    "lastTradeTimestamp": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "swap limit buy with triggerPrice descending tif  - builder",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.02,
+                    1000,
+                    {
+                        "timeInForce": "FOK",
+                        "triggerPrice": 1001,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "httpResponse": {
+                    "result": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2255817062147681",
+                        "is_market": false,
+                        "time_in_force": "FILL_OR_KILL",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "ETH_USDT_Perp",
+                                "size": "0.02",
+                                "limit_price": "1000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca",
+                            "r": "0x7db64c537dc14d9694ba538c785939a98a01aef4e4cbb448112a301d21936696",
+                            "s": "0x0aa479b8f2a2432d4c8fafc66be807c0cdd281145fc836382f0942cf11120a48",
+                            "v": 27,
+                            "expiration": "1773400875343000000",
+                            "nonce": 1773400845,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "17734008450001",
+                            "create_time": "1773400844855594988",
+                            "trigger": {
+                                "trigger_type": "TAKE_PROFIT",
+                                "tpsl": {
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "1001.0",
+                                    "close_position": false,
+                                    "is_split_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.02"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1773400844855594988",
+                            "avg_fill_price": [
+                                "0.0"
+                            ]
+                        },
+                        "builder": "0x21d2a053495994b1132a38cd1171acec40c6741e",
+                        "builder_fee": "0.01"
+                    }
+                },
+                "parsedResponse": {
+                    "isMultiLeg": false,
+                    "id": "0x00",
+                    "clientOrderId": "17734008450001",
+                    "timestamp": 1773400844855,
+                    "datetime": "2026-03-13T11:20:44.855Z",
+                    "lastTradeTimeStamp": null,
+                    "lastUpdateTimestamp": 1773400844855,
+                    "status": "pending",
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": "FOK",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "cost": 0,
+                    "average": null,
+                    "amount": 0.02,
+                    "filled": 0,
+                    "remaining": 0.02,
+                    "trades": [],
+                    "fees": [],
+                    "reduceOnly": false,
+                    "info": {
+                        "order_id": "0x00",
+                        "sub_account_id": "2255817062147681",
+                        "is_market": false,
+                        "time_in_force": "FILL_OR_KILL",
+                        "post_only": false,
+                        "reduce_only": false,
+                        "legs": [
+                            {
+                                "instrument": "ETH_USDT_Perp",
+                                "size": "0.02",
+                                "limit_price": "1000.0",
+                                "is_buying_asset": true
+                            }
+                        ],
+                        "signature": {
+                            "signer": "0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca",
+                            "r": "0x7db64c537dc14d9694ba538c785939a98a01aef4e4cbb448112a301d21936696",
+                            "s": "0x0aa479b8f2a2432d4c8fafc66be807c0cdd281145fc836382f0942cf11120a48",
+                            "v": 27,
+                            "expiration": "1773400875343000000",
+                            "nonce": 1773400845,
+                            "chain_id": "325"
+                        },
+                        "metadata": {
+                            "client_order_id": "17734008450001",
+                            "create_time": "1773400844855594988",
+                            "trigger": {
+                                "trigger_type": "TAKE_PROFIT",
+                                "tpsl": {
+                                    "trigger_by": "LAST",
+                                    "trigger_price": "1001.0",
+                                    "close_position": false,
+                                    "is_split_position": false
+                                }
+                            },
+                            "broker": "UNSPECIFIED",
+                            "is_position_transfer": false,
+                            "allow_crossing": false
+                        },
+                        "state": {
+                            "status": "PENDING",
+                            "reject_reason": "UNSPECIFIED",
+                            "book_size": [
+                                "0.02"
+                            ],
+                            "traded_size": [
+                                "0.0"
+                            ],
+                            "update_time": "1773400844855594988",
                             "avg_fill_price": [
                                 "0.0"
                             ]

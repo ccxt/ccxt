@@ -13,7 +13,7 @@
     "methods": {
         "createOrder": [
             {
-                "description": "swap limit buy with triggerPrice builder",
+                "description": "swap limit buy with triggerPrice ascending tif  - builder",
                 "method": "createOrder",
                 "url": "https://trades.grvt.io/full/v1/create_order",
                 "input": [
@@ -22,9 +22,31 @@
                     "buy",
                     0.02,
                     1000,
-                    "{reduceOnly:true,timeInForce:FOK,triggerPrice:1001,triggerDirection:descending}"
+                    {
+                        "timeInForce": "FOK",
+                        "triggerPrice": 3001,
+                        "triggerDirection": "ascending"
+                    }
                 ],
-                "output": "{\"0\":\"{\",\"1\":\"r\",\"2\":\"e\",\"3\":\"d\",\"4\":\"u\",\"5\":\"c\",\"6\":\"e\",\"7\":\"O\",\"8\":\"n\",\"9\":\"l\",\"10\":\"y\",\"11\":\":\",\"12\":\"t\",\"13\":\"r\",\"14\":\"u\",\"15\":\"e\",\"16\":\",\",\"17\":\"t\",\"18\":\"i\",\"19\":\"m\",\"20\":\"e\",\"21\":\"I\",\"22\":\"n\",\"23\":\"F\",\"24\":\"o\",\"25\":\"r\",\"26\":\"c\",\"27\":\"e\",\"28\":\":\",\"29\":\"F\",\"30\":\"O\",\"31\":\"K\",\"32\":\",\",\"33\":\"t\",\"34\":\"r\",\"35\":\"i\",\"36\":\"g\",\"37\":\"g\",\"38\":\"e\",\"39\":\"r\",\"40\":\"P\",\"41\":\"r\",\"42\":\"i\",\"43\":\"c\",\"44\":\"e\",\"45\":\":\",\"46\":\"1\",\"47\":\"0\",\"48\":\"0\",\"49\":\"1\",\"50\":\",\",\"51\":\"t\",\"52\":\"r\",\"53\":\"i\",\"54\":\"g\",\"55\":\"g\",\"56\":\"e\",\"57\":\"r\",\"58\":\"D\",\"59\":\"i\",\"60\":\"r\",\"61\":\"e\",\"62\":\"c\",\"63\":\"t\",\"64\":\"i\",\"65\":\"o\",\"66\":\"n\",\"67\":\":\",\"68\":\"d\",\"69\":\"e\",\"70\":\"s\",\"71\":\"c\",\"72\":\"e\",\"73\":\"n\",\"74\":\"d\",\"75\":\"i\",\"76\":\"n\",\"77\":\"g\",\"78\":\"}\",\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0xa7190b7b125aa1e7d0b30c7e3330396267ef74846a623c69165394577627e2bf\",\"s\":\"0x12c211fb606ea6b326764d665da6a58e55a3c20ad588611da3731dc47b99bb29\",\"v\":28,\"expiration\":\"1773397216584000000\",\"nonce\":1773397186,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733971860001\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
+                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"FILL_OR_KILL\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0x561982d5cccea0ad8599b76c82323d9005570a97298c1d220fe015f100a83ac7\",\"s\":\"0x1a953c9de0fb564d78629ac5ae6067dcb51d6ac1a2c04c6d7d99addb09fe73ee\",\"v\":27,\"expiration\":\"1773400928261000000\",\"nonce\":1773400898,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17734008980001\",\"trigger\":{\"trigger_type\":\"STOP_LOSS\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"3001\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
+            },
+            {
+                "description": "swap limit buy with triggerPrice descending tif  - builder",
+                "method": "createOrder",
+                "url": "https://trades.grvt.io/full/v1/create_order",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.02,
+                    1000,
+                    {
+                        "timeInForce": "FOK",
+                        "triggerPrice": 1001,
+                        "triggerDirection": "descending"
+                    }
+                ],
+                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"FILL_OR_KILL\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0x7db64c537dc14d9694ba538c785939a98a01aef4e4cbb448112a301d21936696\",\"s\":\"0x0aa479b8f2a2432d4c8fafc66be807c0cdd281145fc836382f0942cf11120a48\",\"v\":27,\"expiration\":\"1773400875343000000\",\"nonce\":1773400845,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17734008450001\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"1001\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
             },
             {
                 "description": "swap limit buy builder",
