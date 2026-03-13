@@ -1735,6 +1735,23 @@ var_dump($bitfinex->markets['XRP/BTC']);
 
 <!-- tabs:end -->
 
+### Caching the markets data
+
+Typically, after instantiating an exchange `loadMarkets()` might take several seconds. However, CCXT supports file caching of markets, so you can load markets & currencies instantly from local `.json` file. To enable that functionality, set `marketsCacheMinutes` to some value (other than zero):
+
+```
+const ex = new ccxt.kraken ({ 
+   "marketsCacheMinutes": 60, 
+});
+
+const startTime = ex.milliseconds();
+await kraken.loadMarkets ();
+console.log ('Loaded in ', ex.milliseconds() - startTime, ' milliseconds');
+```
+
+So, after first run, every next run will load markets in few milliseconds.
+
+
 # Implicit API
 
 - [API Methods / Endpoints](#api-methods--endpoints)

@@ -224,6 +224,7 @@ export default class Exchange {
     };
 
     headers: Dictionary<string> = {};
+    marketsCacheMinutes: number = 0.0;
     returnResponseHeaders: boolean = false;
     origin: string = '*';  // CORS origin
     MAX_VALUE: number = Number.MAX_VALUE;
@@ -1122,16 +1123,21 @@ export default class Exchange {
             }
             return this.markets;
         }
-        let currencies = undefined;
+        let [ markets, currencies ] = this.marketsCacheRead ();
+        if (markets !== undefined) {
+            return this.setMarkets (markets, currencies);
+        }
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
             currencies = await this.fetchCurrencies ();
             this.options['cachedCurrencies'] = currencies;
         }
-        const markets = await this.fetchMarkets (params);
+        markets = await this.fetchMarkets (params);
         if ('cachedCurrencies' in this.options) {
             delete this.options['cachedCurrencies'];
         }
+        // write new cache
+        this.marketsCacheSave (markets, currencies);
         return this.setMarkets (markets, currencies);
     }
 
@@ -2832,6 +2838,44 @@ export default class Exchange {
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+    }
+
+    marketsCacheFilePath () {
+        return this.getTempDir () + 'ccxt_cache_' + this.id + '_markets_currencies_.json';
+    }
+
+    marketsCacheRead () {
+        // only write if user has enabled caching
+        if (this.marketsCacheMinutes > 0) {
+            const cacheFilePath = this.marketsCacheFilePath ();
+            if (this.existsFile (cacheFilePath)) {
+                const content = this.readFile (cacheFilePath);
+                if (content !== undefined && content !== '' && content !== '{}') {
+                    // @ts-expect-error
+                    const values = JSON.parse (content);
+                    // if not expired
+                    const expirationMs = this.marketsCacheMinutes * 60 * 1000; // milliseconds
+                    if ((this.milliseconds () < values['saveTimestamp'] + expirationMs)) {
+                        return [ values['markets'], values['currencies'] ];
+                    }
+                }
+            }
+        }
+        return [ undefined, undefined ];
+    }
+
+    marketsCacheSave (markets, currencies: Dict = undefined) {
+        // only write if user has enabled caching
+        if (this.marketsCacheMinutes > 0) {
+            const cacheFile = this.marketsCacheFilePath ();
+            const values = {
+                'saveTimestamp': this.milliseconds (),
+                'markets': markets,
+                'currencies': currencies,
+            };
+            // write cache file
+            this.writeFile (cacheFile, this.json (values));
         }
     }
 
