@@ -274,6 +274,9 @@ class kraken(Exchange, ImplicitAPI):
             'options': {
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
+                'fetchBalance': {
+                    'autocorrectAbbreviations': False,
+                },
                 'marketsByAltname': {},
                 'delistedMarketsById': {},
                 # cannot withdraw/deposit these
@@ -1522,7 +1525,49 @@ class kraken(Exchange, ImplicitAPI):
         trades[length - 1] = lastTrade
         return self.parse_trades(trades, market, since, limit)
 
+    def parse_balance_new(self, response) -> Balances:
+        balances = self.safe_value(response, 'result', {})
+        result: dict = {
+            'info': response,
+            'timestamp': None,
+            'datetime': None,
+        }
+        currencyIds = list(balances.keys())
+        # see all details in fetchBalance comments
+        earningSuffix = '.F'
+        for i in range(0, len(currencyIds)):
+            currencyId = currencyIds[i]
+            balance = self.safe_dict(balances, currencyId, {})
+            account = self.account()
+            account['used'] = self.safe_string(balance, 'hold_trade')
+            account['total'] = self.safe_string(balance, 'balance')
+            account['info'] = balance
+            account['info']['originalId'] = currencyId
+            # now handle the key
+            unifiedCode = None
+            endsWithF = currencyId.endswith(earningSuffix)
+            if endsWithF:
+                # map e.g. XBT.F to XXBT
+                sourceCurrencyId = currencyId.replace(earningSuffix, '')
+                unifiedCode = self.common_currency_code(sourceCurrencyId)
+                # if key(eg. BTC) was already inserted, swap it
+                if unifiedCode in result:
+                    newId = unifiedCode + '_EARNING'
+                    result[newId] = result[unifiedCode]
+                result[unifiedCode] = account
+            else:
+                unifiedCode = self.common_currency_code(currencyId)
+                # if key(eg. BTC) was already inserted, swap it
+                if unifiedCode in result:
+                    newId = unifiedCode + '_EARNING'
+                    result[newId] = account
+                else:
+                    result[unifiedCode] = account
+        return self.safe_balance(result)
+
     def parse_balance(self, response) -> Balances:
+        if self.handle_option('fetchBalance', 'autocorrectAbbreviations', False):
+            return self.parse_balance_new(response)
         balances = self.safe_value(response, 'result', {})
         result: dict = {
             'info': response,
@@ -1562,9 +1607,31 @@ class kraken(Exchange, ImplicitAPI):
         #             "XXBT": {
         #                 "balance": 1.2435,
         #                 "hold_trade": 0.8423
-        #             }
+        #             },
+        #             "SOL": {
+        #                 "balance": "1.2340000000",
+        #                 "hold_trade": "0.0000000000"
+        #             },
         #         }
         #     }
+        #
+        # if "earning(rewards)" activated(see https://github.com/ccxt/ccxt/issues/24663), then some coins get .F suffix(such suffixed coins are not provided in fetchCurrencies response, unlike .M suffixed coins)
+        #
+        #     {
+        #         "error": [],
+        #         "result": {
+        #             "SOL": {
+        #                 "balance": "0.0000000000",
+        #                 "hold_trade": "0.0000000000"
+        #             },
+        #             "SOL.F": {
+        #                 "balance": "1.2340000000",
+        #                 "hold_trade": "0.0000000000"
+        #             },
+        #         }
+        #     }
+        #
+        # for more info, about prefix and suffix parts, see comments in "fetchCurrencies"
         #
         return self.parse_balance(response)
 
