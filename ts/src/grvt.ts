@@ -2200,7 +2200,7 @@ export default class grvt extends Exchange {
         const returnValue = {
             'subAccountID': order['sub_account_id'],
             'isMarket': order['is_market'],
-            'timeInForce': 1, // good_till_time
+            'timeInForce': this.timeInForceToInt (order['time_in_force']),
             'postOnly': order['post_only'],
             'reduceOnly': order['reduce_only'],
             'legs': legs,
@@ -3030,8 +3030,22 @@ export default class grvt extends Exchange {
             'GOOD_TILL_TIME': 'GTC', // yeah, not GTD
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
+            // exchange specific types
+            'ALL_OR_NONE': 'ALL_OR_NONE',
+            'RETAIL_PRICE_IMPROVEMENT': 'RETAIL_PRICE_IMPROVEMENT',
         };
         return this.safeStringUpper (types, type, type);
+    }
+
+    timeInForceToInt (timeInForce: Str): Int {
+        const timeInForces: Dict = {
+            'GOOD_TILL_TIME': 1,
+            'ALL_OR_NONE': 2,
+            'IMMEDIATE_OR_CANCEL': 3,
+            'FILL_OR_KILL': 4,
+            'RETAIL_PRICE_IMPROVEMENT': 5,
+        };
+        return this.safeInteger (timeInForces, timeInForce, 0);
     }
 
     parseOrderStatus (status: Str) {
