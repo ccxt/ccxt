@@ -2255,5 +2255,13 @@
                 "timestamp": "not provided"
             }
         }
+    },
+    "gleec": {
+        "skipMethods": {
+            "loadMarkets": {
+                "markets": ["ICPUSDT_PERP"],
+                "currencyIdAndCode": "ICP currency code is not available in currencies"
+            }
+        }
     }
 }
