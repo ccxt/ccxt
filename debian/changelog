@@ -1,0 +1,5 @@
+python3-ccxt (1.18.841-1) unstable; urgency=medium
+
+  * Initial package
+
+ -- Simon Brand <simon.brand@postadigitale.de>  Fri, 28 Jun 2019 01:55:09 +0200
