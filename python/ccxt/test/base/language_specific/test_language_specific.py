@@ -18,5 +18,5 @@ from ccxt.test.base.language_specific.test_throttler_performance import test_thr
 
 
 
-async def test_language_specific():
+def test_language_specific():
     test_throttler_performance()

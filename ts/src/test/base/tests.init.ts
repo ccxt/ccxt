@@ -38,7 +38,7 @@ import testCapitalize from './test.capitalize.js';
 import testConstants from './test.constants.js';
 
 async function baseTestsInit () {
-    await testLanguageSpecific ();
+    testLanguageSpecific ();
     testConstants ();
     testAfterConstructor ();
     testExtend ();
