@@ -1317,7 +1317,7 @@ public partial class bingx : ccxt.bingx
         }
         object type = null;
         object subType = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, "swap");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         var subTypeparametersVariable = this.handleSubTypeAndParams("watchPositions", market, parameters, "linear");
@@ -1506,6 +1506,11 @@ public partial class bingx : ccxt.bingx
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parseWsPosition(rawPosition);
+            object symbol = this.safeString(position, "symbol");
+            if (isTrue(isEqual(symbol, null)))
+            {
+                continue;
+            }
             object timestamp = this.safeInteger(message, "E");
             ((IDictionary<string,object>)position)["timestamp"] = timestamp;
             ((IDictionary<string,object>)position)["datetime"] = this.iso8601(timestamp);

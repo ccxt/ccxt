@@ -6312,6 +6312,7 @@ returns [enableUnifiedMargin, enableUnifiedAccount] so the user can check if uni
 
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#isunifiedenabled)
+* [hyperliquid](/exchanges/hyperliquid.md#isunifiedenabled)
 
 ---
 
@@ -6981,6 +6982,7 @@ unWatches information on multiple trades made by the user
 ##### Supported exchanges
 * [bybit](/exchanges/bybit.md#unwatchmytrades)
 * [hyperliquid](/exchanges/hyperliquid.md#unwatchmytrades)
+* [lighter](/exchanges/lighter.md#unwatchmytrades)
 
 ---
 
@@ -7663,6 +7665,7 @@ watches information on multiple trades made by the user
 * [htx](/exchanges/htx.md#watchmytrades)
 * [hyperliquid](/exchanges/hyperliquid.md#watchmytrades)
 * [kucoin](/exchanges/kucoin.md#watchmytrades)
+* [lighter](/exchanges/lighter.md#watchmytrades)
 * [mexc](/exchanges/mexc.md#watchmytrades)
 * [modetrade](/exchanges/modetrade.md#watchmytrades)
 * [okx](/exchanges/okx.md#watchmytrades)

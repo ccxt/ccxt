@@ -3413,9 +3413,10 @@ func (this *ToobitCore) Sign(path interface{}, optionalArgs ...interface{}) inte
 			body = Add(body, Add("&signature=", signature))
 		}
 		headers = map[string]interface{}{
-			"Referrer":     "CCXT",
-			"X-BB-APIKEY":  this.ApiKey,
-			"Content-Type": "application/x-www-form-urlencoded",
+			"Referrer":          "CCXT",
+			"X-BB-APIKEY":       this.ApiKey,
+			"X-BB-API-PLATFORM": this.SafeString(this.Options, "brokerId", "177321641268789"),
+			"Content-Type":      "application/x-www-form-urlencoded",
 		}
 	}
 	return map[string]interface{}{

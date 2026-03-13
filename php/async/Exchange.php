@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.42';
+$version = '4.5.43';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.5.42';
+    const VERSION = '4.5.43';
 
     public $browser;
     public $marketsLoading = null;
@@ -3962,7 +3962,8 @@ class Exchange extends \ccxt\Exchange {
 
     public function edit_order_with_client_order_id(string $clientOrderId, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($clientOrderId, $symbol, $type, $side, $amount, $price, $params) {
-            return Async\await($this->edit_order('', $symbol, $type, $side, $amount, $price, $this->extend(array( 'clientOrderId' => $clientOrderId ), $params)));
+            $extendedParams = $this->extend($params, array( 'clientOrderId' => $clientOrderId ));
+            return Async\await($this->edit_order('', $symbol, $type, $side, $amount, $price, $extendedParams));
         }) ();
     }
 

@@ -391,8 +391,8 @@ class lighter extends Exchange {
             list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
             if ($accountIndex === null) {
                 $walletAddress = $this->walletAddress;
-                if ($walletAddress === null) {
-                    throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . ' or ' . $optionName2 . ' parameter or $walletAddress to fetch accountIndex');
+                if ($walletAddress === null || $walletAddress === '') {
+                    throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch accountIndex');
                 }
                 $res = Async\await($this->publicGetAccountsByL1Address (array( 'l1_address' => $walletAddress )));
                 //
@@ -428,7 +428,7 @@ class lighter extends Exchange {
                     $this->options['accountIndex'] = $accountIndex;
                 }
             }
-            return array( $accountIndex, $params );
+            return array( $this->parse_to_int($accountIndex), $params );
         }) ();
     }
 
@@ -540,7 +540,7 @@ class lighter extends Exchange {
         list($orderExpiry, $params) = $this->handle_option_and_params($params, 'createOrder', 'orderExpiry', 0);
         $request['nonce'] = $nonce;
         $request['api_key_index'] = $apiKeyIndex;
-        $request['account_index'] = $accountIndex;
+        $request['account_index'] = $this->parse_to_int($accountIndex);
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');

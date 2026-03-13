@@ -1373,6 +1373,10 @@ class bingx extends \ccxt\async\bingx {
         for ($i = 0; $i < count($rawPositions); $i++) {
             $rawPosition = $rawPositions[$i];
             $position = $this->parse_ws_position($rawPosition);
+            $symbol = $this->safe_string($position, 'symbol');
+            if ($symbol === null) {
+                continue;
+            }
             $timestamp = $this->safe_integer($message, 'E');
             $position['timestamp'] = $timestamp;
             $position['datetime'] = $this->iso8601($timestamp);

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "4.5.42",
+  "version": "4.5.43",
   "description": "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go",
   "unpkg": "dist/ccxt.browser.min.js",
   "type": "module",
@@ -196,7 +196,8 @@
     "benchmark": "tsx examples/ts/benchmark.ts",
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
     "test-types-go": "go run -C go ./tests/types/types.go",
-    "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go"
+    "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go",
+    "go-build-single": "tsx ./build/granular-go-build.ts"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {

@@ -384,8 +384,8 @@ export default class lighter extends Exchange {
         [ accountIndex, params ] = this.handleOptionAndParams2 (params, methodName1, optionName1, optionName2, defaultValue);
         if (accountIndex === undefined) {
             const walletAddress = this.walletAddress;
-            if (walletAddress === undefined) {
-                throw new ArgumentsRequired (this.id + ' ' + methodName1 + '() requires an ' + optionName1 + ' or ' + optionName2 + ' parameter or walletAddress to fetch accountIndex');
+            if (walletAddress === undefined || walletAddress === '') {
+                throw new ArgumentsRequired (this.id + ' ' + methodName1 + '() requires an ' + optionName1 + '/' + optionName2 + ' parameter or walletAddress to fetch accountIndex');
             }
             const res = await this.publicGetAccountsByL1Address ({ 'l1_address': walletAddress });
             //
@@ -421,7 +421,7 @@ export default class lighter extends Exchange {
                 this.options['accountIndex'] = accountIndex;
             }
         }
-        return [ accountIndex, params ];
+        return [ this.parseToInt (accountIndex), params ];
     }
 
     async createSubAccount (name: string, params = {}) {
@@ -532,7 +532,7 @@ export default class lighter extends Exchange {
         [ orderExpiry, params ] = this.handleOptionAndParams (params, 'createOrder', 'orderExpiry', 0);
         request['nonce'] = nonce;
         request['api_key_index'] = apiKeyIndex;
-        request['account_index'] = accountIndex;
+        request['account_index'] = this.parseToInt (accountIndex);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');

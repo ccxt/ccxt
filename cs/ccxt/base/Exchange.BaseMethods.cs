@@ -4353,9 +4353,10 @@ public partial class Exchange
     public async virtual Task<object> editOrderWithClientOrderId(object clientOrderId, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.editOrder("", symbol, type, side, amount, price, this.extend(new Dictionary<string, object>() {
+        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderId", clientOrderId },
-        }, parameters));
+        });
+        return await this.editOrder("", symbol, type, side, amount, price, extendedParams);
     }
 
     public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)

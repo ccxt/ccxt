@@ -7,7 +7,7 @@ import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBoo
 export default class lighter extends Exchange {
     describe(): any;
     loadAccount(chainId: any, privateKey: any, apiKeyIndex: any, accountIndex: any, params?: {}): Promise<import("./base/types.js").Dictionary<any>>;
-    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<any[]>;
+    handleAccountIndex(params: object, methodName1: string, optionName1: string, optionName2: string, defaultValue?: any): Promise<(number | object)[]>;
     createSubAccount(name: string, params?: {}): Promise<any>;
     createAuth(params?: {}): string;
     pow(n: string, m: string): string;
