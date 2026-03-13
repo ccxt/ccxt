@@ -1051,6 +1051,7 @@ export default class kucoin extends Exchange {
                     'spot': 'trade',
                     'margin': 'margin',
                     'cross': 'margin',
+                    'marginV2': 'margin',
                     'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',

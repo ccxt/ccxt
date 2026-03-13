@@ -870,6 +870,7 @@ class kucoin extends kucoin$1["default"] {
                     'spot': 'trade',
                     'margin': 'margin',
                     'cross': 'margin',
+                    'marginV2': 'margin',
                     'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',

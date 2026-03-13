@@ -888,6 +888,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'spot': 'trade',
                     'margin': 'margin',
                     'cross': 'margin',
+                    'marginV2': 'margin',
                     'isolated': 'isolated',
                     'main': 'main',
                     'funding': 'main',
