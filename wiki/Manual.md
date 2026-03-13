@@ -5239,6 +5239,10 @@ To cancel an existing order use
 - `cancelAllOrders ()` for all open orders
 - `cancelAllOrdersAfter ()` for all open orders after the given timeout
 
+Note: typically batch order-canceling methods return an array of orders. If you experience otherwise from an obsolete exchange implementation, feel free to report to us.
+
+#### cancelOrder
+
 ```javascript
 cancelOrder (id, symbol = undefined, params = {})
 ```
@@ -5252,6 +5256,8 @@ Parameters
 Returns
 
 - An [order structure](#order-structure)
+
+#### cancelOrders
 
 ```javascript
 cancelOrders (ids, symbol = undefined, params = {})
@@ -5267,6 +5273,8 @@ Returns
 
 - An array of [order structures](#order-structure)
 
+#### cancelAllOrders
+
 ```javascript
 async cancelAllOrders (symbol = undefined, params = {})
 ```
@@ -5279,6 +5287,8 @@ Parameters
 Returns
 
 - An array of [order structures](#order-structure)
+
+#### cancelAllOrdersAfter
 
 ```javascript
 async cancelAllOrdersAfter (timeout, params = {})
