@@ -5,6 +5,7 @@ import path from 'path';
 import asTable from 'as-table';
 import { Agent } from 'https';
 import readline from 'readline';
+import { platform } from 'process';
 import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.js';
 
 ansi.nice;
@@ -14,6 +15,17 @@ let add_static_result;
 try {
     add_static_result = (await import ('../../utils/update-static-tests-data')).add_static_result;
 } catch (e) {
+    try {
+        // @ts-ignore
+        let dirname = new URL ('.', import.meta.url).pathname;
+        if (platform === 'win32' && dirname[0] === '/') {
+            dirname = dirname.substring (1);
+        }
+        const rootDir = dirname + '../../';
+        add_static_result = (await import (rootDir + 'utils/update-static-tests-data')).add_static_result;
+    } catch (e2) {
+        // noop
+    }
     // noop
 }
 let ccxt;
