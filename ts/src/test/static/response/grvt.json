@@ -6,9 +6,10 @@
         "AuthCookieValue": "sample123",
         "accountId": "2147050003876484",
         "signInExpiration": 1990000000000,
-        "approvedBuilderFee": true
+        "approvedBuilderFee": true,
+        "userMainAccountId": "0x0000000000000000000000000000000000000000"
     },
-    "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771","apiKey": "",
     "skipKeys": [ "r", "s", "v", "nonce", "expiration", "client_order_id" ],
     "methods": {
         "fetchMarkets": [
@@ -1265,7 +1266,7 @@
                 "httpResponse": {
                     "result": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "FILL_OR_KILL",
                         "post_only": false,
@@ -1347,7 +1348,7 @@
                     "reduceOnly": false,
                     "info": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "FILL_OR_KILL",
                         "post_only": false,
@@ -1427,7 +1428,7 @@
                 "httpResponse": {
                     "result": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "FILL_OR_KILL",
                         "post_only": false,
@@ -1509,7 +1510,7 @@
                     "reduceOnly": false,
                     "info": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "FILL_OR_KILL",
                         "post_only": false,
@@ -1584,7 +1585,7 @@
                 "httpResponse": {
                     "result": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "GOOD_TILL_TIME",
                         "post_only": false,
@@ -1666,7 +1667,7 @@
                     "reduceOnly": false,
                     "info": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "GOOD_TILL_TIME",
                         "post_only": false,
@@ -1741,7 +1742,7 @@
                 "httpResponse": {
                     "result": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": true,
                         "time_in_force": "GOOD_TILL_TIME",
                         "post_only": false,
@@ -1823,7 +1824,7 @@
                     "reduceOnly": false,
                     "info": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": true,
                         "time_in_force": "GOOD_TILL_TIME",
                         "post_only": false,
@@ -1898,7 +1899,7 @@
                 "httpResponse": {
                     "result": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "GOOD_TILL_TIME",
                         "post_only": false,
@@ -1980,7 +1981,7 @@
                     "reduceOnly": false,
                     "info": {
                         "order_id": "0x00",
-                        "sub_account_id": "2255817062147681",
+                        "sub_account_id": "2147050003876484",
                         "is_market": false,
                         "time_in_force": "GOOD_TILL_TIME",
                         "post_only": false,

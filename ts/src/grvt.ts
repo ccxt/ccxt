@@ -471,18 +471,6 @@ export default class grvt extends Exchange {
         };
     }
 
-    async loadMarketsAndSignIn () {
-        await Promise.all ([ this.loadMarkets (), this.signIn () ]);
-        await this.loadAccountInfos ();
-    }
-
-    async signInAndLoadAccountInfos () {
-        if (this.privateKey !== undefined || this.apiKey !== undefined) {
-            await this.signIn ();
-            await this.loadAccountInfos ();
-        }
-    }
-
     usesPrivateKey () {
         const privateKeyDefined = this.privateKey !== undefined && this.privateKey !== '';
         const apiKeyDefined = this.apiKey !== undefined && this.apiKey !== '';
@@ -507,6 +495,7 @@ export default class grvt extends Exchange {
         } else {
             await this.signInWithApiKey (params);
         }
+        await this.loadAccountInfos ();
         return true;
     }
 
@@ -660,8 +649,11 @@ export default class grvt extends Exchange {
         //            },
         //            ...
         //
-        const signInPromise = this.signInAndLoadAccountInfos ();
-        const results = await Promise.all ([ marketsPromise, signInPromise ]);
+        const promises = [ marketsPromise ];
+        if (this.privateKey !== undefined || this.apiKey !== undefined) {
+            promises.push (this.signIn ());
+        }
+        const results = await Promise.all (promises);
         const response = results[0];
         const result = this.safeList (response, 'result', []);
         return this.parseMarkets (result);

@@ -1372,6 +1372,9 @@ class testMainClass {
             }
         };
         const exchange = initExchange (exchangeName, options);
+        if (!exchange.requiredCredentials['apiKey']) {
+            exchange.apiKey = undefined;
+        }
         exchange.currencies = currencies;
         // not working in python if assigned  in the config dict
         return exchange;

@@ -5,10 +5,12 @@
         "AuthAccountId": "kbAc342752835723",
         "AuthCookieValue": "sample123",
         "accountId": "2147050003876484",
-        "signInExpiration": 1990000000000,
-        "approvedBuilderFee": true
+        "signInExpiration": 2290000000000,
+        "approvedBuilderFee": true,
+        "userMainAccountId": "0x0000000000000000000000000000000000000000"
     },
     "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "apiKey": "",
     "skipKeys": [ "r", "s", "v", "nonce", "expiration", "client_order_id" ],
     "methods": {
         "createOrder": [
@@ -28,7 +30,7 @@
                         "triggerDirection": "ascending"
                     }
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"FILL_OR_KILL\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0x561982d5cccea0ad8599b76c82323d9005570a97298c1d220fe015f100a83ac7\",\"s\":\"0x1a953c9de0fb564d78629ac5ae6067dcb51d6ac1a2c04c6d7d99addb09fe73ee\",\"v\":27,\"expiration\":\"1773400928261000000\",\"nonce\":1773400898,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17734008980001\",\"trigger\":{\"trigger_type\":\"STOP_LOSS\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"3001\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"FILL_OR_KILL\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x561982d5cccea0ad8599b76c82323d9005570a97298c1d220fe015f100a83ac7\",\"s\":\"0x1a953c9de0fb564d78629ac5ae6067dcb51d6ac1a2c04c6d7d99addb09fe73ee\",\"v\":27,\"expiration\":\"1773400928261000000\",\"nonce\":1773400898,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17734008980001\",\"trigger\":{\"trigger_type\":\"STOP_LOSS\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"3001\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
             },
             {
                 "description": "swap limit buy with triggerPrice descending tif  - builder",
@@ -46,7 +48,7 @@
                         "triggerDirection": "descending"
                     }
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"FILL_OR_KILL\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0x7db64c537dc14d9694ba538c785939a98a01aef4e4cbb448112a301d21936696\",\"s\":\"0x0aa479b8f2a2432d4c8fafc66be807c0cdd281145fc836382f0942cf11120a48\",\"v\":27,\"expiration\":\"1773400875343000000\",\"nonce\":1773400845,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17734008450001\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"1001\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"FILL_OR_KILL\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x7db64c537dc14d9694ba538c785939a98a01aef4e4cbb448112a301d21936696\",\"s\":\"0x0aa479b8f2a2432d4c8fafc66be807c0cdd281145fc836382f0942cf11120a48\",\"v\":27,\"expiration\":\"1773400875343000000\",\"nonce\":1773400845,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17734008450001\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"1001\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
             },
             {
                 "description": "swap limit buy builder",
@@ -59,7 +61,7 @@
                     0.02,
                     1000
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0xcd299bae083dfaeb9256c2cdb53ca87447a6de6f26cc54e922e7e7e104e0994d\",\"s\":\"0x4cac9aef16c28ac71ff0fbf9ea0fbafb0e28bac8adf8ab3fab3a5f5fb8cb2100\",\"v\":27,\"expiration\":\"1773396082784000000\",\"nonce\":1773396052,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733960520001\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"1000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0xcd299bae083dfaeb9256c2cdb53ca87447a6de6f26cc54e922e7e7e104e0994d\",\"s\":\"0x4cac9aef16c28ac71ff0fbf9ea0fbafb0e28bac8adf8ab3fab3a5f5fb8cb2100\",\"v\":27,\"expiration\":\"1773396082784000000\",\"nonce\":1773396052,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733960520001\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
             },
             {
                 "description": "swap market sell builder",
@@ -72,7 +74,7 @@
                     0.02,
                     null
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":null,\"is_buying_asset\":false}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0x08e0a63393ce1b7e01060130dfb126b26433cc991104cceee78e8a358af4f9bb\",\"s\":\"0x1df4b6feede6910346387a4a43341ad367334af8d38f54562247752a13a2af2f\",\"v\":28,\"expiration\":\"1773395991794000000\",\"nonce\":1773395961,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733959610001\"},\"is_market\":true,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":null,\"is_buying_asset\":false}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x08e0a63393ce1b7e01060130dfb126b26433cc991104cceee78e8a358af4f9bb\",\"s\":\"0x1df4b6feede6910346387a4a43341ad367334af8d38f54562247752a13a2af2f\",\"v\":28,\"expiration\":\"1773395991794000000\",\"nonce\":1773395961,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733959610001\"},\"is_market\":true,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
             },
             {
                 "description": "swap limit sell builder",
@@ -85,44 +87,7 @@
                     0.02,
                     3000
                 ],
-                "output": "{\"order\":{\"sub_account_id\":\"2255817062147681\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"3000\",\"is_buying_asset\":false}],\"signature\":{\"signer\":\"0x5d7821e8502bc53d2ef731ccd0d61c8e029150ca\",\"r\":\"0x6bb80ab5d93bfdbfb004df190b1c093bbfb6fbbeb9b34d8051b1f25d7f9cdf66\",\"s\":\"0x088a64d485fa88a570488d00f816e3334a8245991d3870b894973368202fd7c1\",\"v\":27,\"expiration\":\"1773395911733000000\",\"nonce\":1773395881,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733958810001\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
-            },
-            {
-                "description": "swap sell trigger & reduceOnly",
-                "method": "createOrder",
-                "url": "https://trades.grvt.io/full/v1/create_order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.002,
-                    73000,
-                    {
-                        "accountId": 2147050003876484,
-                        "triggerPrice": 77000,
-                        "triggerDirection": "descending",
-                        "reduceOnly": true
-                    }
-                ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"73000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0xb4286c0777ef3a2ddcafdf81e060bc6ab9a0203ff02325272b746aece955e741\",\"s\":\"0x650d0c165f60165cf1b8faff57e4da9736e36e7e7ae53fe62dff19d731fc6db4\",\"v\":28,\"expiration\":\"1770274373539000000\",\"nonce\":1770274343,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274343\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"77000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":true},\"accountId\":2147050003876484}"
-            },
-            {
-                "description": "swap buy trigger",
-                "method": "createOrder",
-                "url": "https://trades.grvt.io/full/v1/create_order",
-                "input": [
-                    "BTC/USDT:USDT",
-                    "limit",
-                    "buy",
-                    0.002,
-                    70000,
-                    {
-                        "accountId": 2147050003876484,
-                        "triggerPrice": 67000,
-                        "triggerDirection": "descending"
-                    }
-                ],
-                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"BTC_USDT_Perp\",\"size\":\"0.002\",\"limit_price\":\"70000\",\"is_buying_asset\":true}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x1e1f4c3f8df25ea1db1266fa120dca76d01f2fac6302a5a2dd92e6df8c3b0b27\",\"s\":\"0x0f5a4ba9c1c12d799f5595744ad153e9e993c63df77c9fab642bca4fe24296e9\",\"v\":28,\"expiration\":\"1770274322039000000\",\"nonce\":1770274292,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"1770274292\",\"trigger\":{\"trigger_type\":\"TAKE_PROFIT\",\"tpsl\":{\"trigger_by\":\"LAST\",\"trigger_price\":\"67000\",\"close_position\":false}}},\"is_market\":false,\"post_only\":false,\"reduce_only\":false},\"accountId\":2147050003876484}"
+                "output": "{\"order\":{\"sub_account_id\":\"2147050003876484\",\"time_in_force\":\"GOOD_TILL_TIME\",\"legs\":[{\"instrument\":\"ETH_USDT_Perp\",\"size\":\"0.02\",\"limit_price\":\"3000\",\"is_buying_asset\":false}],\"signature\":{\"signer\":\"0xb67f9a782d3678a0bac50c22eacbb4924fe9d4cf\",\"r\":\"0x6bb80ab5d93bfdbfb004df190b1c093bbfb6fbbeb9b34d8051b1f25d7f9cdf66\",\"s\":\"0x088a64d485fa88a570488d00f816e3334a8245991d3870b894973368202fd7c1\",\"v\":27,\"expiration\":\"1773395911733000000\",\"nonce\":1773395881,\"chain_id\":\"325\"},\"metadata\":{\"client_order_id\":\"17733958810001\"},\"is_market\":false,\"post_only\":false,\"reduce_only\":false,\"builder\":\"0x21d2a053495994b1132a38cd1171acec40c6741e\",\"builder_fee\":\"0.01\"}}"
             }
         ],
         "fetchPositions": [
