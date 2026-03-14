@@ -2,12 +2,12 @@ import ctypes
 from typing import Dict, List, Optional, Union, Tuple
 
 class ApiKeyResponse(ctypes.Structure):
-    _fields_ = [("privateKey", ctypes.c_char_p), ("publicKey", ctypes.c_char_p), ("err", ctypes.c_char_p)]
+    _fields_ = [('privateKey', ctypes.c_char_p), ('publicKey', ctypes.c_char_p), ('err', ctypes.c_char_p)]
 
 
 class CreateOrderTxReq(ctypes.Structure):
     _fields_ = [
-        ("MarketIndex", ctypes.c_uint8),
+        ("MarketIndex", ctypes.c_int),
         ("ClientOrderIndex", ctypes.c_longlong),
         ("BaseAmount", ctypes.c_longlong),
         ("Price", ctypes.c_uint32),
@@ -17,11 +17,14 @@ class CreateOrderTxReq(ctypes.Structure):
         ("ReduceOnly", ctypes.c_uint8),
         ("TriggerPrice", ctypes.c_uint32),
         ("OrderExpiry", ctypes.c_longlong),
+        ("IntegratorAccountIndex", ctypes.c_int64),
+        ("IntegratorTakerFee", ctypes.c_int64),
+        ("IntegratorMakerFee", ctypes.c_int64),
     ]
 
 
 class StrOrErr(ctypes.Structure):
-    _fields_ = [("str", ctypes.c_char_p), ("err", ctypes.c_char_p)]
+    _fields_ = [('str', ctypes.c_char_p), ('err', ctypes.c_char_p)]
 
 
 class SignedTxResponse(ctypes.Structure):
@@ -55,7 +58,7 @@ def load_lighter_library(path):
     lighterSigner.SignChangePubKey.restype = SignedTxResponse
 
     lighterSigner.SignCreateOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                                            ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+                                            ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCreateOrder.restype = SignedTxResponse
 
     lighterSigner.SignCreateGroupedOrders.argtypes = [ctypes.c_uint8, ctypes.POINTER(CreateOrderTxReq), ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
@@ -73,7 +76,7 @@ def load_lighter_library(path):
     lighterSigner.SignCancelAllOrders.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignCancelAllOrders.restype = SignedTxResponse
 
-    lighterSigner.SignModifyOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignModifyOrder.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignModifyOrder.restype = SignedTxResponse
 
     lighterSigner.SignTransfer.argtypes = [ctypes.c_longlong, ctypes.c_int16, ctypes.c_int8, ctypes.c_int8, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_char_p, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
@@ -91,6 +94,12 @@ def load_lighter_library(path):
     lighterSigner.SignBurnShares.argtypes = [ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignBurnShares.restype = SignedTxResponse
 
+    lighterSigner.SignStakeAssets.argtypes = [ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignStakeAssets.restype = SignedTxResponse
+
+    lighterSigner.SignUnstakeAssets.argtypes = [ctypes.c_longlong, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignUnstakeAssets.restype = SignedTxResponse
+
     lighterSigner.SignUpdateLeverage.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignUpdateLeverage.restype = SignedTxResponse
 
@@ -102,19 +111,23 @@ def load_lighter_library(path):
 
     lighterSigner.SignUpdateMargin.argtypes = [ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
     lighterSigner.SignUpdateMargin.restype = SignedTxResponse
+
+    lighterSigner.SignApproveIntegrator.argtypes = [ctypes.c_longlong, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_longlong, ctypes.c_longlong, ctypes.c_int, ctypes.c_longlong]
+    lighterSigner.SignApproveIntegrator.restype = SignedTxResponse
     return lighterSigner
 
 def decode_tx_info(result: SignedTxResponse) -> Union[Tuple[str, str, str, None], Tuple[None, None, None, str]]:
     if result.err:
         error = result.err.decode("utf-8")
-        return None, None, None, error
+        return None, None, None, None, error
     
     # Use txType from response if available, otherwise use the provided type
     tx_type = result.txType
     tx_info_str = result.txInfo.decode("utf-8") if result.txInfo else None
     tx_hash_str = result.txHash.decode("utf-8") if result.txHash else None
+    message_to_sign = result.messageToSign.decode("utf-8") if result.messageToSign else None
 
-    return tx_type, tx_info_str, tx_hash_str, None
+    return tx_type, tx_info_str, tx_hash_str, message_to_sign, None
 
 def decode_auth(result: StrOrErr) -> Union[Tuple[str, None], Tuple[None, str]]:
     if result.err:

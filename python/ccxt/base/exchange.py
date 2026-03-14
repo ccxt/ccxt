@@ -648,7 +648,6 @@ class Exchange(object):
         if files is not None:
             # requests would handle it for multipart/form-data
             del request_headers[content_type_key]
-            print(request_headers)
         if body:
             body = body.encode()
 
@@ -2280,6 +2279,9 @@ class Exchange(object):
                 ReduceOnly=order['reduce_only'],
                 TriggerPrice=order['trigger_price'],
                 OrderExpiry=order['order_expiry'],
+                IntegratorAccountIndex=order['integrator_account_index'],
+                IntegratorTakerFee=order['integrator_taker_fee'],
+                IntegratorMakerFee=order['integrator_maker_fee'],
             ))
         orders_carr = arr_type(*orders_arr)
         tx_type, tx_info, tx_hash, error = decode_tx_info(signer.SignCreateGroupedOrders(
@@ -2299,6 +2301,9 @@ class Exchange(object):
             request['reduce_only'],
             request['trigger_price'],
             request['order_expiry'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2361,6 +2366,9 @@ class Exchange(object):
             request['base_amount'],
             request['price'],
             request['trigger_price'],
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
             request['nonce'],
             request['api_key_index'],
             request['account_index'],
@@ -2421,6 +2429,22 @@ class Exchange(object):
         if error:
             raise Exception('lighter_sign_update_margin() failed with error: ' + str(error))
         return [tx_type, tx_info]
+    
+    def lighter_sign_approve_integrator(self, signer, request):
+        tx_type, tx_info, tx_hash, message_to_sign, error = decode_tx_info(signer.SignApproveIntegrator(
+            request['integrator_account_index'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            request['integrator_taker_fee'],
+            request['integrator_maker_fee'],
+            request['approval_expiry'],
+            request['nonce'],
+            request['api_key_index'],
+            request['account_index'],
+        ))
+        if error:
+            raise Exception('lighter_sign_approve_integrator() failed with error: ' + str(error))
+        return [tx_type, tx_info, message_to_sign]
 
     # ########################################################################
     # ########################################################################

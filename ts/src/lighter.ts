@@ -4,6 +4,9 @@ import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitEx
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, TransferEntry, Currency, Currencies, Transaction, Trade, Account, MarginModification } from './base/types.js';
+import { ecdsa } from './base/functions/crypto.js';
+import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
+import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -344,6 +347,9 @@ export default class lighter extends Exchange {
                 'apiKeyIndex': undefined,
                 'wasmExecPath': undefined, // [JS Only] users should set the path to wasm_exec.js. It can be downloaded here https://github.com/ccxt/lighter-wasm
                 'libraryPath': undefined, // users should set the path to the lighter signing library. It can be downloaded here https://github.com/elliottech/lighter-python/tree/main/lighter/signers, GO users don't need it
+                'integratorAccountIndex': 0,
+                'integratorMakerFee': 0,
+                'integratorTakerFee': 0,
             },
             'features': {
                 'default': {
@@ -485,6 +491,81 @@ export default class lighter extends Exchange {
         return r;
     }
 
+    hashMessage (message: string) {
+        const binaryMessage = this.encode (message);
+        const binaryMessageLength = this.binaryLength (binaryMessage);
+        const x19 = this.base16ToBinary ('19');
+        const newline = this.base16ToBinary ('0a');
+        const prefix = this.binaryConcat (x19, this.encode ('Ethereum Signed Message:'), newline, this.encode (this.numberToString (binaryMessageLength)));
+        return '0x' + this.hash (this.binaryConcat (prefix, binaryMessage), keccak, 'hex');
+    }
+
+    signHash (hash, privateKey) {
+        this.checkRequiredCredentials ();
+        const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
+        const v = this.intToBase16 (this.sum (27, signature['v']));
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
+    }
+
+    async handleBuilderFeeApproval () {
+        const buildFee = this.safeBool (this.options, 'builderFee', true);
+        if (!buildFee) {
+            return false;
+        }
+        const approvedBuilderFee = this.safeBool (this.options, 'approvedBuilderFee', false);
+        if (approvedBuilderFee) {
+            return true;
+        }
+        try {
+            const builder = this.safeNumber (this.options, 'integratorAccountIndex', 0);
+            const takerFeeRate = this.safeNumber (this.options, 'integratorTakerFee', 1000);
+            const makerFeeRate = this.safeNumber (this.options, 'integratorMakerFee', 1000);
+            await this.approveBuilderFee (builder, takerFeeRate, makerFeeRate);
+            this.options['approvedBuilderFee'] = true;
+        } catch (e) {
+            this.options['builderFee'] = false;
+        }
+        return true;
+    }
+
+    async approveBuilderFee (builder: number, takerFeeRate: number, makerFeeRate: number, params: object = {}) {
+        let apiKeyIndex = undefined;
+        [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'approveBuilderFee', 'apiKeyIndex', 'api_key_index');
+        if (apiKeyIndex === undefined) {
+            throw new ArgumentsRequired (this.id + ' approveBuilderFee() requires an apiKeyIndex parameter');
+        }
+        let accountIndex = undefined;
+        [ accountIndex, params ] = await this.handleAccountIndex (params, 'approveBuilderFee', 'accountIndex', 'account_index');
+        const nonce = await this.fetchNonce (accountIndex, apiKeyIndex);
+        const expiry = this.milliseconds () + 365 * 864000;
+        const signRaw = {
+            'eth_private_key': this.privateKey,
+            'integrator_account_index': builder,
+            'integrator_taker_fee': takerFeeRate,
+            'integrator_maker_fee': makerFeeRate,
+            'approval_expiry': expiry,
+            'nonce': nonce,
+            'api_key_index': apiKeyIndex,
+            'account_index': accountIndex,
+        };
+        const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
+        const [ txType, txInfo, messageToSign ] = this.lighterSignApproveIntegrator (signer, this.extend (signRaw, params));
+        const hashMessage = this.hashMessage (messageToSign);
+        const signature = this.signHash (hashMessage, this.options['ethPrivateKey']);
+        this.quoteJsonNumbers = false; // disable temporarliy
+        const decTxInfo = this.parseJson (txInfo);
+        this.quoteJsonNumbers = true;
+        decTxInfo['L1Sig'] = signature;
+        const request = {
+            'tx_type': txType,
+            'tx_info': this.json (decTxInfo),
+        };
+        const response = await this.publicPostSendTx (request);
+        return response;
+    }
+
     setSandboxMode (enable: boolean) {
         super.setSandboxMode (enable);
         this.options['sandboxMode'] = enable;
@@ -608,6 +689,9 @@ export default class lighter extends Exchange {
         request['base_amount'] = this.parseToInt (Precise.stringMul (amountStr, amountScale));
         request['avg_execution_price'] = this.parseToInt (Precise.stringMul (priceStr, priceScale));
         request['trigger_price'] = this.parseToInt (Precise.stringMul (triggerPriceStr, priceScale));
+        request['integrator_account_index'] = this.options['integratorAccountIndex'];
+        request['integrator_taker_fee'] = this.options['integratorTakerFee'];
+        request['integrator_maker_fee'] = this.options['integratorMakerFee'];
         const orders = [];
         orders.push (this.extend (request, params));
         if (hasStopLoss || hasTakeProfit) {
@@ -786,6 +870,9 @@ export default class lighter extends Exchange {
             'nonce': nonce,
             'api_key_index': apiKeyIndex,
             'account_index': accountIndex,
+            'integrator_account_index': this.options['integratorAccountIndex'],
+            'integrator_taker_fee': this.options['integratorTakerFee'],
+            'integrator_maker_fee': this.options['integratorMakerFee'],
         };
         const signer = await this.loadAccount (this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex, params);
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
