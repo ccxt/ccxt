@@ -594,7 +594,8 @@ public partial class hyperliquid : Exchange
         {
             // builder-deployed perp dexs start at 110000
             object dex = getValue(fetchDexes, i);
-            object offset = add(110000, multiply((subtract(i, 1)), 10000));
+            object secondPart = multiply((subtract(i, 1)), 10000);
+            object offset = this.sum(110000, secondPart);
             ((IDictionary<string,object>)perpDexesOffset)[(string)getValue(dex, "name")] = offset;
         }
         object fetchDexesList = new List<object>() {};
