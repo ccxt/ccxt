@@ -268,7 +268,8 @@ async function run () {
         }
 
         if (typeof exchange[methodName] !== 'function') {
-            printHumanReadable (exchange, exchange[methodName], cliOptions);
+            printHumanReadable (exchange, exchange[methodName], cliOptions, cliOptions.table);
+            return;
         }
 
         let i = 0;
