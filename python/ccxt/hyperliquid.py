@@ -567,7 +567,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         for i in range(1, len(fetchDexes)):
             # builder-deployed perp dexs start at 110000
             dex = fetchDexes[i]
-            offset = 110000 + (i - 1) * 10000
+            secondPart = (i - 1) * 10000
+            offset = self.sum(110000, secondPart)
             perpDexesOffset[dex['name']] = offset
         fetchDexesList = []
         options = self.safe_dict(self.options, 'fetchMarkets', {})
