@@ -589,7 +589,8 @@ class hyperliquid extends Exchange {
             for ($i = 1; $i < count($fetchDexes); $i++) {
                 // builder-deployed perp dexs start at 110000
                 $dex = $fetchDexes[$i];
-                $offset = 110000 . ($i - 1) * 10000;
+                $secondPart = ($i - 1) * 10000;
+                $offset = $this->sum(110000, $secondPart);
                 $perpDexesOffset[$dex['name']] = $offset;
             }
             $fetchDexesList = array();
