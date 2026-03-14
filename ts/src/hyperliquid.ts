@@ -581,8 +581,8 @@ export default class hyperliquid extends Exchange {
         for (let i = 1; i < fetchDexes.length; i++) {
             // builder-deployed perp dexs start at 110000
             const dex = fetchDexes[i];
-            // const offset = 110000 + (i - 1) * 10000;
-            const offset = this.sum (110000, (i - 1) * 10000);
+            const secondPart = (i - 1) * 10000;
+            const offset = this.sum (110000, secondPart);
             perpDexesOffset[dex['name']] = offset;
         }
         let fetchDexesList = [];
