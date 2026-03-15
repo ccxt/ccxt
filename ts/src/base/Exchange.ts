@@ -1635,6 +1635,17 @@ export default class Exchange {
         return this.base16ToBinary (TypedDataEncoder.encode (domain, messageTypes, messageData).slice (-132));
     }
 
+    ethGetPublicKeyFromPrivateKey (privateKey: string, compressed: boolean = false): string {
+        // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum public key
+        // Removes the "0x" prefix if present
+        const cleanPrivateKey = this.remove0xPrefix (privateKey);
+        // Get the public key from the private key using secp256k1 curve
+        // secp256k1.getPublicKey returns compressed by default; convert to requested format
+        const publicKeyBytes = secp256k1.getPublicKey (cleanPrivateKey);
+        const publicKey = secp256k1.ProjectivePoint.fromHex (publicKeyBytes).toRawBytes (!compressed);
+        return '0x' + this.binaryToBase16 (publicKey);
+    }
+
     ethGetAddressFromPrivateKey (privateKey: string): string {
         // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
         // Removes the "0x" prefix if present
