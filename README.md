@@ -4,7 +4,7 @@
 
 A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go.
 
-### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Disclaimer](#disclaimer) · [Social](#social)
+### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [EDL](edl/README.md) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Disclaimer](#disclaimer) · [Social](#social)
 
 The **CCXT** library is used to connect and trade with cryptocurrency exchanges and payment processing services worldwide. It provides quick access to market data for storage, analysis, visualization, indicator development, algorithmic trading, strategy backtesting, bot programming, and related software engineering.
 
@@ -692,6 +692,32 @@ Arguments:
 ```
 
 You can easily provide API keys by setting them as environment varibales eg: `BINANCE_APIKEY="XXXX"` or adding them to the config file located at `$CACHE/config.json`
+
+## Exchange Definition Language (EDL)
+
+EDL is an experimental declarative DSL for defining exchange integrations using YAML. Instead of writing repetitive TypeScript code, exchanges can be defined declaratively and compiled to TypeScript that is compatible with CCXT's transpiler.
+
+```yaml
+exchange:
+  id: myexchange
+  name: My Exchange
+  rateLimit: 1000
+
+api:
+  public:
+    get:
+      ticker:
+        path: /ticker/{symbol}
+        params:
+          symbol: { type: string, required: true }
+
+parsers:
+  ticker:
+    mapping:
+      last: { path: lastPrice, transform: parseNumber }
+```
+
+See [edl/README.md](edl/README.md) for full documentation.
 
 ## Contributing
 
