@@ -21,6 +21,7 @@ import testUnique from './test.unique.js';
 import testOmit from './test.omit.js';
 import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
+import testClone from './test.clone.js';
 import testFilterBy from './test.filterBy.js';
 import testUuid from './test.uuid.js';
 import testPrecisionFromString from './test.precisionFromString.js';
@@ -65,6 +66,7 @@ async function baseTestsInit () {
     testParsePrecision ();
     testPrecisionFromString ();
     testExtractParams ();
+    testClone ();
     testArraysConcat ();
     testUuid ();
     await testSetMarketsFromExchange ();
