@@ -333,19 +333,9 @@
         ],
         "fetchBalance": [
             {
-                "description": "Fetch spot Balance",
-                "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=spot",
-                "input": [
-                    {
-                        "type": "spot"
-                    }
-                ]
-            },
-            {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT&type=swap",
+                "url": "https://api-futures.kucoin.com/api/v1/account-overview?currency=USDT",
                 "input": [
                     {
                         "type": "swap"
@@ -383,15 +373,11 @@
         ],
         "fetchLedger": [
             {
-                "description": "fetch USDT ledger",
+                "description": "fetch ledger",
                 "method": "fetchLedger",
-                "options": {
-                    "hfMigrated": false
-                },
-                "url": "https://openapi-v2.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
-                "input": [
-                    "USDT"
-                ]
+                "url": "https://api-futures.kucoin.com/api/v1/transaction-history",
+                "input": [],
+                "output": null
             }
         ],
         "fetchDepositAddress": [
@@ -442,7 +428,7 @@
             {
                 "description": "Fetch order by client order id",
                 "method": "fetchOrder",
-                "url": "https://api-futures.kucoin.com/api/v1/orders/?clientOid=2234567890",
+                "url": "https://api-futures.kucoin.com/api/v1/orders/byClientOid?clientOid=2234567890",
                 "input": [
                     "",
                     "LTC/USDT:USDT",
@@ -584,7 +570,7 @@
             {
                 "description": "fetchTradingFee",
                 "method": "fetchTradingFee",
-                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbols=XBTUSDTM",
+                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbol=XBTUSDTM",
                 "input": [
                   "BTC/USDT:USDT"
                 ]
