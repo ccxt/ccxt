@@ -5143,16 +5143,19 @@ public partial class hyperliquid : Exchange
         object id = this.safeString(income, "hash");
         object timestamp = this.safeInteger(income, "time");
         object delta = this.safeDict(income, "delta");
-        object baseId = this.safeString(delta, "coin");
-        object marketSymbol = add(baseId, "/USDC:USDC");
-        market = this.safeMarket(marketSymbol);
-        object symbol = getValue(market, "symbol");
+        object coin = this.safeString(delta, "coin");
+        object marketId = null;
+        if (isTrue(!isEqual(coin, null)))
+        {
+            marketId = this.coinToMarketId(coin);
+        }
+        market = this.safeMarket(marketId, market);
         object amount = this.safeString(delta, "usdc");
-        object code = this.safeCurrencyCode("USDC");
+        object code = this.safeString(market, "settle", "USDC");
         object rate = this.safeNumber(delta, "fundingRate");
         return new Dictionary<string, object>() {
             { "info", income },
-            { "symbol", symbol },
+            { "symbol", getValue(market, "symbol") },
             { "code", code },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
