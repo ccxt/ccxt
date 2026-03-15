@@ -2542,24 +2542,32 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeBool2 (dictionary, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool2 (dictionaryOrList, key1: IndexType, key2: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        return this.safeBoolN (dictionary, [ key1, key2 ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key1);
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        const value2 = this.safeValue (dictionaryOrList, key2);
+        if (typeof value2 === 'boolean') {
+            return value2;
+        }
+        return defaultValue;
     }
 
-    safeBool (dictionary, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
+    safeBool (dictionaryOrList, key: IndexType, defaultValue: boolean = undefined): boolean | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract boolean value from dictionary or list
          * @returns {bool | undefined}
          */
-        const value = this.safeValue (dictionary, key, defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
         if (typeof value === 'boolean') {
             return value;
         }
@@ -2583,14 +2591,14 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict (dictionary, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict (dictionaryOrList, key: IndexType, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        const value = this.safeValue (dictionary, key, defaultValue);
+        const value = this.safeValue (dictionaryOrList, key, defaultValue);
         if (value === undefined) {
             return defaultValue;
         }
@@ -2600,14 +2608,22 @@ export default class Exchange {
         return defaultValue;
     }
 
-    safeDict2 (dictionary, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
+    safeDict2 (dictionaryOrList, key1: IndexType, key2: string, defaultValue: Dictionary<any> = undefined): Dictionary<any> | undefined {
         /**
          * @ignore
          * @method
          * @description safely extract a dictionary from dictionary or list
          * @returns {object | undefined}
          */
-        return this.safeDictN (dictionary, [ key1, key2 ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key1);
+        if ((value !== undefined) && (typeof value === 'object') && !Array.isArray (value)) {
+            return value;
+        }
+        const value2 = this.safeValue (dictionaryOrList, key2);
+        if ((value2 !== undefined) && (typeof value2 === 'object') && !Array.isArray (value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
 
     safeListN (dictionaryOrList, keys: IndexType[], defaultValue: any[] = undefined): any[] | undefined {
@@ -2634,7 +2650,15 @@ export default class Exchange {
          * @description safely extract an Array from dictionary or list
          * @returns {Array | undefined}
          */
-        return this.safeListN (dictionaryOrList, [ key1, key2 ], defaultValue);
+        const value = this.safeValue (dictionaryOrList, key1);
+        if ((value !== undefined) && Array.isArray (value)) {
+            return value;
+        }
+        const value2 = this.safeValue (dictionaryOrList, key2);
+        if ((value2 !== undefined) && Array.isArray (value2)) {
+            return value2;
+        }
+        return defaultValue;
     }
 
     safeList (dictionaryOrList, key: IndexType, defaultValue: any[] = undefined): any[] | undefined {
