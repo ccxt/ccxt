@@ -1650,6 +1650,25 @@ ${constStatements.join('\n')}
             [/ch <- nil\s+\/\/.+/g, ''],
 
             [/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange'],
+
+            // Fix SBE-related transpilation issues
+            [/buffer\.ByteLength/g, 'len(buffer.([]byte))'], // Fix buffer.ByteLength
+            // Fix error property access patterns BEFORE they become doubled
+            [/ToToString/g, 'ToString'], // Fix ToToString in any context
+            [/ToString\(ToString\(e\)\)/g, 'ToString(e)'], // Fix ToString(ToString(e)) if it occurs
+            [/e\.ToString\(\)/g, 'ToString(e)'], // Fix e.ToString() method call
+            [/ToString\(\s*e\s*\.\s*Message\s*\)/g, 'ToString(e)'], // Fix ToString(e.Message) with optional spaces
+            [/String\(\s*e\s*\.\s*Message\s*\)/g, 'ToString(e)'], // Fix String(e.Message) with optional spaces
+            [/e\.Message/g, 'ToString(e)'], // Fix e.Message
+            [/e\.Stack/g, '""'], // Fix e.Stack
+            [/(?<![a-zA-Z.])String\((\w+)\)/g, 'ToString($1)'], // Fix String(x) calls
+            // Fix TextDecoder in base class
+            [/NewTextDecoder\(\)\.Decode\((\w+)\)/g, 'string($1.([]byte))'],
+            // Fix IsInstance patterns with Error type
+            [/IsInstance\(e,\s*Error\)/g, 'true'], // Error is not a valid Go type, assume true in recover blocks
+            // Fix simplified ternary where both branches are the same
+            [/Ternary\(IsTrue\(true\),\s*ToString\(e\),\s*ToString\(e\)\)/g, 'ToString(e)'], // Simplify identical branches
+            [/Ternary\(IsTrue\(IsInstance\(e,\s*Error\)\),\s*ToString\(e\),\s*ToString\(e\)\)/g, 'ToString(e)'], // Simplify when both use ToString(e)
             // --- WebSocket related fixes specific to **Go** ----------------------
             // 1) Access the strongly-typed field instead of dynamic lookup.
             ["client.futures", "client.Futures"],
@@ -1676,6 +1695,43 @@ ${constStatements.join('\n')}
             // Fix setMarketsFromExchange parameter type
             [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
         ]);
+
+        // Fix ToToString pattern (created during transpilation)
+        baseClass = baseClass.replace(/ToToString/g, 'ToString');
+
+        // Replace the entire DecodeSbeResponse function with correct Go code
+        // The transpiler can't properly handle sequential try/catch blocks in Go
+        const decodeSbeResponsePattern = /func\s+\(this \*Exchange\)\s+DecodeSbeResponse\(buffer interface\{\}, url interface\{\}\)\s+interface\{\}\s+\{[\s\S]*?\nfunc\s+\(this \*Exchange\)\s+GetSbeDecoderRegistry/m;
+        if (decodeSbeResponsePattern.test(baseClass)) {
+            baseClass = baseClass.replace(decodeSbeResponsePattern,
+`func (this *Exchange) DecodeSbeResponse(buffer interface{}, url interface{}) interface{} {
+    var sbeError interface{} = nil
+    result := func(this *Exchange) (ret_ interface{}) {
+        defer func() {
+            if e := recover(); e != nil {
+                sbeError = e
+            }
+        }()
+        decoderRegistry := this.GetSbeDecoderRegistry()
+        res := this.DecodeSbeMessage(buffer, decoderRegistry)
+        return GetValue(res, "data")
+    }(this)
+    if sbeError == nil {
+        return result
+    }
+    // SBE decoding failed - attempt JSON fallback
+    return func(this *Exchange) (ret_ interface{}) {
+        defer func() {
+            if jsonError := recover(); jsonError != nil {
+                panic(ExchangeError(Add(Add(Add(this.Id, " decodeSbeResponse() failed. Error: "), ToString(sbeError)), ". Try setting useSbe to false in options.")))
+            }
+        }()
+        text := string(buffer.([]byte))
+        return JsonParse(text)
+    }(this)
+}
+func (this *Exchange) GetSbeDecoderRegistry`);
+        }
 
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -1967,8 +2023,8 @@ ${caseStatements.join('\n')}
     }
 
     safeOptionsStructFile(ws: boolean = false) {
-        const EXCHANGE_OPTIONS_FILE = ws 
-            ? './go/v4/pro/exchange_wrapper_structs.go' 
+        const EXCHANGE_OPTIONS_FILE = ws
+            ? './go/v4/pro/exchange_wrapper_structs.go'
             : './go/v4/exchange_wrapper_structs.go';
 
         const file = [
@@ -1992,6 +2048,124 @@ ${caseStatements.join('\n')}
         }
 
         fs.writeFileSync (EXCHANGE_OPTIONS_FILE, file.join('\n'));
+    }
+
+    /**
+     * Pre-processes TypeScript source to detect SBE usage (deprecated - no longer modifies content)
+     * @param tsContent The TypeScript source code
+     * @param exchangeName The exchange name (for context)
+     * @returns Object with original content and detected SBE info
+     */
+    preprocessSbeImports(tsContent: string, exchangeName: string): { content: string, hasSbe: boolean, sbePackage: string } {
+        // SBE detection only - no preprocessing needed
+        // SBE methods will use base implementation from exchange_sbe.go
+        return { content: tsContent, hasSbe: false, sbePackage: '' };
+    }
+
+    /**
+     * Post-processes transpiled Go code to add SBE imports and transform method calls
+     * Works generically for any exchange using SBE
+     * @param content The transpiled Go code
+     * @param exchangeName The exchange name (e.g., 'binance', 'okx')
+     * @param sbePackage The SBE package name extracted during preprocessing (e.g., 'binance', 'okx')
+     * @returns Go code with SBE imports and transformed method calls
+     */
+    postprocessSbeCode(content: string, exchangeName: string, sbePackage: string = ''): { content: string, additionalImports: string[] } {
+        const additionalImports: string[] = [];
+
+        // Replace SBE decoder references with nil placeholders until SBE is fully implemented
+        const sbeRegexes: Array<[RegExp, string | ((...args: string[]) => string)]> = [];
+
+        // Replace decoder type references in registry maps with nil
+        sbeRegexes.push(
+            [/(["']\d+["']:\s*)(\w+Decoder),/g, '$1nil, // $2 - TODO: implement SBE decoding']
+        );
+
+        // Replace NewXxxDecoder() constructor calls - make it panic so the catch block handles it
+        sbeRegexes.push(
+            [/(\w+) := New(\w+Decoder)\(\)\n\s*var (\w+) interface\{\} = \w+\.Decode\(.+\)/g,
+             'panic("SBE decoding not yet implemented in Go") // $2\n\tvar $3 interface{} = nil']
+        );
+        // Fallback: any remaining NewXxxDecoder() calls (exclude TextDecoder)
+        sbeRegexes.push(
+            [/New(?!Text)(\w+Decoder)\(\)/g, 'nil']
+        );
+
+        // SBE decoded object field access: decoded.Field, decodedResult.Field, etc.
+        // These are interface{} in Go and need GetValue() calls
+        const generalSbeObjects = ['decoded', 'decodedResult', 'sbeMessage'];
+        for (const objName of generalSbeObjects) {
+            sbeRegexes.push(
+                [new RegExp(`\\b${objName}\\.([A-Z]\\w*)`, 'g'),
+                 (match: string, field: string) => {
+                     const lcField = field.charAt(0).toLowerCase() + field.slice(1);
+                     return `ccxt.GetValue(${objName}, "${lcField}")`;
+                 }]
+            );
+        }
+        // For kline/trade/event, only match specific SBE field names to avoid string literal matches
+        const sbeFieldNames = 'Price|Qty|QuoteQty|Time|Id|IsBuyerMaker|IsBestMatch|OpenPrice|HighPrice|LowPrice|ClosePrice|CloseTime|QuoteVolume|NumTrades|TakerBuyBaseVolume|TakerBuyQuoteVolume|Volume|OpenTime|OrderId|CommissionAsset|Commission|Symbol|Side|OrderType|TimeInForce|PriceExponent|QtyExponent|CommissionExponent';
+        for (const objName of ['kline', 'trade', 'event']) {
+            sbeRegexes.push(
+                [new RegExp(`\\b${objName}\\.(${sbeFieldNames})\\b`, 'g'),
+                 (match: string, field: string) => {
+                     const lcField = field.charAt(0).toLowerCase() + field.slice(1);
+                     return `ccxt.GetValue(${objName}, "${lcField}")`;
+                 }]
+            );
+        }
+
+        // Replace bare String() calls (not ccxt.ToString) with ccxt.ToString()
+        sbeRegexes.push(
+            [/(?<![a-zA-Z.])String\(/g, 'ccxt.ToString(']
+        );
+
+        // Replace JS-specific binary types with Go equivalents
+        // Note: these run BEFORE addPackagePrefix, so no ccxt. prefix yet
+        sbeRegexes.push(
+            [/IsInstance\((\w+), ArrayBuffer\)/g, 'false'],
+            [/IsInstance\((\w+), Uint8Array\)/g, 'false'],
+            [/ArrayBuffer\.IsView\((\w+)\)/g, 'false'],
+            [/NewUint8Array\(([^)]*)\)/g, '$1.([]byte)'], // type assertion
+            [/NewDataView\([^)]*\)/g, 'nil'],
+            [/var (\w+) interface\{\} = nil$/gm, 'var $1 interface{}'], // fix untyped nil
+            [/(\w+) := nil$/gm, 'var $1 interface{}'], // fix untyped nil assignment
+            [/(\w+)\.GetUint16\(\d+, true\)/g, 'nil'], // DataView methods
+            [/(\w+)\.Buffer\b/g, '$1'], // .Buffer not needed in Go
+            [/(\w+)\.ByteOffset\b/g, '0'], // ByteOffset -> 0
+            [/(\w+)\.ByteLength\b/g, 'ccxt.GetArrayLength($1)'], // ByteLength
+            [/return this\.HandleSbeMessage\(/g, 'this.HandleSbeMessage('], // HandleSbeMessage returns void
+            // Fix nil.Decode calls from SBE decoder stubs (only match variable.Decode, not this.Decode)
+            [/(?<!this\.)(\w+)\.Decode\((\w+), \d+\)/g, 'nil'],
+            // Fix malformed multi-arg type assertions from NewUint8Array(a, b, c) -> a.([]byte)
+            [/(\w+), \d+, ccxt\.GetArrayLength\(\w+\)\.\(\[\]byte\)/g, '$1.([]byte)'],
+            // Fix unused view variable
+            [/var view interface\{\}\n/g, ''],
+            // Fix TextDecoder - use string conversion in Go
+            [/NewTextDecoder\(\)\.Decode\((\w+)\)/g, 'string($1.([]byte))'],
+            // Fix bare return in SBE catch blocks (return in func returning interface{})
+            [/return\n(\s*)\n(\s*}\(this\))/g, 'return nil\n$1\n$2'],
+            // Fix orderbook bids/asks Store calls - cast to OrderBookSide
+            [/GetValue\(orderbook, "(bids|asks)"\)\.Store\(/g, 'GetValue(orderbook, "$1").(*OrderBookSide).Store('],
+            // Fix processed/bid/ask SBE object access
+            [/(processed|bid|ask)\.(BidPx|BidSz|AskPx|AskSz|Bids|Asks|PxExponent|SzExponent|Px|Sz)\b/g, (match: string, obj: string, field: string) => {
+                const lcField = field.charAt(0).toLowerCase() + field.slice(1);
+                return `ccxt.GetValue(${obj}, "${lcField}")`;
+            }],
+        );
+
+        // Fix chained property access on GetValue results: ccxt.GetValue(x, "y").Field -> ccxt.GetValue(ccxt.GetValue(x, "y"), "field")
+        sbeRegexes.push(
+            [/ccxt\.GetValue\(([^)]+)\)\.([A-Z]\w*)/g,
+             (match: string, inner: string, field: string) => {
+                 const lcField = field.charAt(0).toLowerCase() + field.slice(1);
+                 return `ccxt.GetValue(ccxt.GetValue(${inner}), "${lcField}")`;
+             }]
+        );
+
+        content = this.regexAll(content, sbeRegexes);
+
+        return { content, additionalImports };
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, child = false, ws = false) {
@@ -2025,7 +2199,10 @@ ${caseStatements.join('\n')}
         const allFilesPath = exchanges.map ((file: string) => `${jsFolder}/${file}` );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[go] Transpiling [', exchanges.join(', '), ']');
+
+        // Transpile files normally - SBE imports will be ignored by the transpiler
         const transpiledFiles =  allFilesPath.map((file: string) => this.transpiler.transpileGoByPath(file));
+        const sbeInfo: Record<string, { hasSbe: boolean, sbePackage: string }> = {};
 
         for (let i = 0; i < transpiledFiles.length; i++) {
             const transpiled = transpiledFiles[i];
@@ -2034,7 +2211,11 @@ ${caseStatements.join('\n')}
 
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
         }
-        exchanges.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
+        exchanges.map ((file: string, idx: number) => {
+            const exchangeName = file.replace('.ts', '');
+            const sbePackage = sbeInfo[exchangeName]?.sbePackage || '';
+            return this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, sbePackage);
+        });
         if (exchanges.length > 1) {
             this.safeOptionsStructFile(ws);
         }
@@ -2134,8 +2315,8 @@ ${caseStatements.join('\n')}
             .join("\n");
     }
 
-    createGoExchange(className: string, goVersion: any, ws = false) {
-        const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
+    createGoExchange(className: string, goVersion: any, ws = false, sbePackage = '') {
+        let goImports = this.getGoImports(goVersion, ws).join("\n");
         let content = goVersion.content;
         const exchangeName = className;
 
@@ -2147,6 +2328,14 @@ ${caseStatements.join('\n')}
         let isExtended = this.isExtendedExchange(exchangeName);
         const isAlias = this.isAlias (exchangeName);
 
+        // Post-process SBE code and get additional imports
+        const sbeResult = this.postprocessSbeCode(content, exchangeName, sbePackage);
+        content = sbeResult.content;
+        if (sbeResult.additionalImports.length > 0) {
+            goImports += "\n" + sbeResult.additionalImports.join("\n");
+        }
+        goImports += "\n\n";
+
         if (!ws) {
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
@@ -2155,7 +2344,8 @@ ${caseStatements.join('\n')}
                 [/var (precise|preciseAmount) interface\{\} = /gm, "$1 := "],
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
-                [/<\-callDynamically/gm, '<-this.CallDynamically'],
+                [/callDynamically\(/gm, 'this.CallDynamically('], // Fix regular callDynamically calls
+                [/<\-callDynamically/gm, '<-this.CallDynamically'], // Fix channel receive calls
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
             ]);
@@ -2197,7 +2387,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         return goImports + content;
     }
 
-    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false) {
+    transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws = false, sbePackage = '') {
 
         const tsPath = `${tsFolder}/${filename}`;
 
@@ -2208,7 +2398,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ();
 
-        const go  = this.createGoExchange (extensionlessName, goResult, ws);
+        const go  = this.createGoExchange (extensionlessName, goResult, ws, sbePackage);
 
         if (goFolder) {
             overwriteFileAndFolder (`${goFolder}/${goFilename}`, go);

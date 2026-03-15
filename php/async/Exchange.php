@@ -492,7 +492,6 @@ class Exchange extends \ccxt\Exchange {
                 'createTriggerOrderWs' => null,
                 'deposit' => null,
                 'editOrder' => 'emulated',
-                'editOrderWithClientOrderId' => null,
                 'editOrders' => null,
                 'editOrderWs' => null,
                 'fetchAccounts' => null,
@@ -572,7 +571,6 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOption' => null,
                 'fetchOptionChain' => null,
                 'fetchOrder' => null,
-                'fetchOrderWithClientOrderId' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => null,
                 'fetchOrderBookWs' => null,
@@ -1005,6 +1003,30 @@ class Exchange extends \ccxt\Exchange {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings (' . $joinedProxyNames . '), please use only one from => $httpProxy, $httpsProxy, httpProxyCallback, httpsProxyCallback, $socksProxy, socksProxyCallback');
         }
         return array( $httpProxy, $httpsProxy, $socksProxy );
+    }
+
+    public function decode_sbe_response(string $buffer, string $url) {
+        // Use generic SBE decoder that follows the spec using global Exchange.decodeSbeMessage()
+        $sbeError = null;
+        try {
+            // Use decodeSbeMessage with exchange-specific decoder registry
+            $decoderRegistry = $this->get_sbe_decoder_registry();
+            $result = $this->decode_sbe_message($buffer, $decoderRegistry);
+            return $result['data'];
+        } catch (Exception $e) {
+            $sbeError = $e;
+        }
+        // SBE decoding failed — attempt JSON fallback (server may return JSON despite SBE request headers)
+        try {
+            $text = $buffer;
+            return json_decode($text, $as_associative_array = true);
+        } catch (Exception $jsonError) {
+            throw new ExchangeError($this->id . ' decodeSbeResponse() failed. Error => ' . 'strval' ($sbeError) . '. Try setting useSbe to false in options.');
+        }
+    }
+
+    public function get_sbe_decoder_registry() {
+        return array();
     }
 
     public function check_ws_proxy_settings() {

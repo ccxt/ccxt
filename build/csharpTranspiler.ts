@@ -98,6 +98,18 @@ class NewTranspiler {
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
+            // Fix SBE decoder class names - C# classes don't have "Decoder" suffix
+            [/(\w+ResponseDecoder)\(/gm, function(match, p1) {
+                // Remove "Decoder" suffix for SBE response classes
+                return p1.replace('Decoder', '') + '(';
+            }],
+            [/new\s+(\w+ResponseDecoder)\s*\(/gm, function(match, p1) {
+                // Remove "Decoder" suffix for SBE response classes in constructor calls
+                return 'new ' + p1.replace('Decoder', '') + '(';
+            }],
+            // Fix decodeSbeWebSocketMessage body - replace with stub since SBE not fully implemented in C#
+            [/public override object decodeSbeWebSocketMessage\(object buffer\)\s*\{[\s\S]*?return cleanMessage;\s*\}\s*catch\(Exception e\)\s*\{[\s\S]*?\}\s*\}/gm,
+             'public override object decodeSbeWebSocketMessage(object buffer)\n    {\n        // SBE WebSocket decoding not yet implemented in C#\n        return null;\n    }'],
             [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
             [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
@@ -131,6 +143,47 @@ class NewTranspiler {
             [/\(object client\)/gm, '(WebSocketClient client)'],
             [/object client =/gm, 'var client ='],
             [/object future =/gm, 'var future ='],
+            // Fix property access on decoded objects - common SBE pattern
+            [/decoded\.result/gm, 'getValue(decoded, "result")'],
+            [/decoded\.id/gm, 'getValue(decoded, "id")'],
+            [/decoded\.status/gm, 'getValue(decoded, "status")'],
+            [/decoded\.rateLimits/gm, 'getValue(decoded, "rateLimits")'],
+            [/decodedResult\.constructor\.name/gm, 'decodedResult.GetType().Name'],
+            [/decodedResult\.constructor/gm, 'decodedResult.GetType()'],
+            // Fix SBE decoded object property access (trade.price, kline.closeTime, bid.px, etc.)
+            // Use specific SBE field names to avoid matching string literals like "trade.l2update"
+            [/\b(trade|kline)\.(price|qty|quoteQty|time|id|isBuyerMaker|isBestMatch|openPrice|highPrice|lowPrice|closePrice|closeTime|quoteVolume|numTrades|takerBuyBaseVolume|takerBuyQuoteVolume|volume|openTime|orderId|commissionAsset|commission|symbol|side|orderType|timeInForce)(?!\s*\()/gm, function(match, obj, prop) {
+                return 'getValue(' + obj + ', "' + prop + '")';
+            }],
+            // Fix SBE orderbook entry access (bid.px, ask.sz, processed.bids, etc.)
+            [/\b(bid|ask)\.(px|sz)\b/gm, function(match, obj, prop) {
+                return 'getValue(' + obj + ', "' + prop + '")';
+            }],
+            [/\bprocessed\.(bids|asks|bidPx|bidSz|askPx|askSz)\b/gm, function(match, obj, prop) {
+                return 'getValue(processed, "' + prop + '")';
+            }],
+            // Fix JS-specific binary types that don't exist in C#
+            [/message is ArrayBuffer/gm, 'message is byte[]'],
+            [/ArrayBuffer\.isView\(\w+\)/gm, 'false'],
+            [/message is Uint8Array/gm, 'message is byte[]'],
+            [/new Uint8Array\([^)]*\)/gm, '(byte[])message'],
+            [/new DataView\([^)]*\)/gm, 'null'],
+            [/var view = null/gm, 'object view = null'], // fix implicitly-typed null
+            [/view\.\w+\(\d+, true\)/gm, 'null'],
+            [/new TextDecoder\(\)\.decode\(\w+\)/gm, 'System.Text.Encoding.UTF8.GetString((byte[])message)'],
+            [/this\.handleSbeMessage\(/gm, 'this.handleMessage('], // redirect to regular handler
+            // Fix this.log() with 2+ args (string + object)
+            [/this\.log\("([^"]+)",\s*(\w+)\)/gm, 'this.log((string)add("$1", $2))'],
+            // Fix .buffer, .byteOffset, .byteLength on object
+            [/(\w+)\.buffer\b/gm, '$1'],
+            [/(\w+)\.byteOffset\b/gm, '0'],
+            [/(\w+)\.byteLength\b/gm, 'getArrayLength($1)'],
+            // Fix String(x) calls - C# string is a type not a function
+            [/(?<![a-zA-Z.])String\(([^)]+)\)/gm, '(($1)).ToString()'],
+            // Fix getValue(...).store() - cast to IOrderBookSide
+            [/(getValue\([^)]+\))\.store\(/gm, '($1 as IOrderBookSide).store('],
+            // Fix .bind(this) pattern - C# doesn't need bind, just pass the method reference
+            [/(this\.\w+)\.bind\(this\)/gm, '$1'],
         ]
     }
 
@@ -764,6 +817,10 @@ class NewTranspiler {
         // baseClass = baseClass.replace("throw new getValue(exact, str)(message);", "throw new Exception ((string) message);"); // tmp fix for c#
 
 
+        // SBE fixes for base class
+        baseClass = baseClass.replaceAll(/new TextDecoder\(\)\.decode\((\w+)\)/gm, '$1 is byte[] _sbeBytes ? System.Text.Encoding.UTF8.GetString(_sbeBytes) : $1?.ToString()');
+        baseClass = baseClass.replaceAll(/(?<![a-zA-Z.])String\((\w+)\)/gm, '(($1)).ToString()');
+
         // WS fixes
         baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
         baseClass = baseClass.replace(/(object \w+) = client\.futures/gm, '$1 = (client as WebSocketClient).futures');
@@ -977,7 +1034,7 @@ class NewTranspiler {
     }
 
     createCSharpClass(csharpVersion: any, ws = false) {
-        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
+        let csharpImports = this.getCsharpImports(csharpVersion, ws);
         let content = csharpVersion.content;
 
         const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
@@ -990,6 +1047,35 @@ class NewTranspiler {
             content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
         }
         content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
+        // Fix SBE decoder class references - C# classes don't have "Decoder" suffix
+        // Bare references in dictionary values: e.g. { "50", WebSocketResponseDecoder } -> { "50", typeof(WebSocketResponse) }
+        content = content.replace(/,\s+(\w+)Decoder\s*}/gm, (match, p1) => ', typeof(' + p1 + ') }');
+        // Constructor calls: new XxxDecoder() -> new Xxx() (exclude TextDecoder)
+        content = content.replace(/new\s+(\w+)Decoder\s*\(/gm, (match, p1) => {
+            if (p1 === 'Text') return match;
+            return 'new ' + p1 + '(';
+        });
+        // Add SBE using directives based on TS imports
+        if (csharpVersion.imports) {
+            const sbePathToNamespace: Record<string, string> = {
+                'sbe/binance/spot_3_1': 'ccxt.sbe.binance_spot_3_1',
+                'sbe/binance/spot_3_2': 'ccxt.sbe.binance_spot_3_2',
+                'sbe/binance/stream_1_0': 'ccxt.sbe.binance_stream_1_0',
+                'sbe/okx/okx_sbe_1_0': 'ccxt.sbe.okx_1_0',
+            };
+            const sbeNamespaces = new Set<string>();
+            for (const imp of csharpVersion.imports) {
+                const path = imp.path || '';
+                for (const [sbePath, ns] of Object.entries(sbePathToNamespace)) {
+                    if (path.includes(sbePath)) {
+                        sbeNamespaces.add(ns);
+                    }
+                }
+            }
+            for (const ns of sbeNamespaces) {
+                csharpImports.unshift('using ' + ns + ';');
+            }
+        }
         // WS fixes
         if (ws) {
             const wsRegexes = this.getWsRegexes();
@@ -1002,7 +1088,7 @@ class NewTranspiler {
             content = constructorLine  + content;
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return csharpImports + content;
+        return csharpImports.join("\n") + "\n\n" + content;
     }
 
     replaceImportedRestClasses (content: string, imports: any[]) {

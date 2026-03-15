@@ -224,7 +224,9 @@ class Transpiler {
             [ /undefined/g, 'None' ],
             [ /\=\=\=?/g, '==' ],
             [ /\!\=\=?/g, '!=' ],
+            [ /new TextDecoder\s*\(\)\s*\.decode\s*\((\w+)\)/g, '$1' ], // TextDecoder not needed in Python for SBE fallback
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+            [ /this\.binaryToString\s*\((.*)\)/g, '$1' ],
             [ /\.shift\s*\(\)/g, '.pop(0)' ],
             // beware of .reverse() in python, because opposed to JS, python does in-place, so 
             // only cases like `x = x.reverse ()` should be transpiled, which will resul as 
@@ -458,7 +460,10 @@ class Transpiler {
 
             [ /undefined/g, 'null' ],
             [ /\} else if/g, '} elseif' ],
+            [ /(\w+)\.byteLength/g, 'strlen($1)' ], // Convert ArrayBuffer.byteLength to strlen() for strings in PHP
+            [ /new TextDecoder\s*\(\)\s*\.decode\s*\((\w+)\)/g, '$1' ], // TextDecoder not needed in PHP, strings are bytes
             [ /this\.stringToBinary\s*\((.*)\)/g, '$1' ],
+            [ /this\.binaryToString\s*\((.*)\)/g, '$1' ],
             [ /this\.stringToBase64\s/g, 'base64_encode' ],
             [ /this\.binaryToBase16\s/g, 'bin2hex' ],
             [ /this\.base64ToBinary\s/g, 'base64_decode' ],
@@ -493,6 +498,8 @@ class Transpiler {
         // insert common regexes in the middle (critical)
         ].concat (this.getCommonRegexes ()).concat ([
 
+            // Remove .bind(this) from method references before converting this. to $this->
+            [ /\.bind\s*\(\s*this\s*\)/g, '' ],
             [ /([a-zA-Z0-9_]+) in this(:?[^.])/g, 'property_exists($this, $1)$2' ],
             [ /\(this,/g, '($this,' ],
             [ /this\./g, '$this->' ],
@@ -1618,6 +1625,7 @@ class Transpiler {
                 'any': 'Any',
                 'boolean': 'bool',
                 'Int': 'Int',
+                'ArrayBuffer': 'bytes',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict'
@@ -1636,6 +1644,7 @@ class Transpiler {
                 const phpTypes: dict = {
                     'any': 'mixed',
                     'string': 'string',
+                    'ArrayBuffer': 'string',
                     'MarketType': 'string',
                     'SubType': 'string',
                     'Str': '?string',
