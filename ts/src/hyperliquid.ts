@@ -227,6 +227,7 @@ export default class hyperliquid extends Exchange {
                 'defaultSlippage': 0.05,
                 'marketHelperProps': [ 'hip3TokensByName', 'cachedCurrenciesById' ],
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
+                'defaultCurrencyPrecision': 5,
                 // below will be filled automatically
                 'spotCurrencyMapping': {
                     'UDZ': '2Z',
@@ -440,14 +441,8 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
-        if (this.checkRequiredCredentials (false)) {
-            await this.initializeClient ();
-        }
-        const request: Dict = {
-            // 'type': 'meta',
-            'type': 'spotMeta',
-        };
-        const response = await this.publicPostInfo (this.extend (request, params));
+        const promises = [];
+        promises.push (this.publicPostInfo (this.extend ({ 'type': 'meta' }, params)));
         //
         //     [
         //         {
@@ -462,9 +457,60 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        // const spotMeta = await this.publicPostInfo ({ 'type': 'spotMeta' });
-        const tokens = this.safeList (response, 'tokens', []);
-        // const meta = this.safeList (response, 'universe', []);
+        promises.push (this.publicPostInfo (this.extend ({ 'type': 'spotMeta' }, params)));
+        //
+        // {
+        //     universe: [
+        //       {
+        //         tokens: [
+        //             1,
+        //             0,
+        //         ],
+        //         name: "PURR/USDC",
+        //         index: "0",
+        //         isCanonical: true,
+        //       },
+        //         ...
+        //     ],
+        //     tokens: [
+        //       {
+        //         name: "USDC",
+        //         szDecimals: "8",
+        //         weiDecimals: "8",
+        //         index: "0",
+        //         tokenId: "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //         isCanonical: true,
+        //         evmContract: null,
+        //         fullName: null,
+        //         deployerTradingFeeShare: "0.0",
+        //       },
+        //       {
+        //         name: "UBTC",
+        //         szDecimals: "5",
+        //         weiDecimals: "10",
+        //         index: "197",
+        //         tokenId: "0x8f254b963e8468305d409b33aa137c67",
+        //         isCanonical: false,
+        //         evmContract: {
+        //             address: "0x9fdbda0a5e284c32744d2f17ee5c74b284993463",
+        //             evm_extra_wei_decimals: "-2",
+        //         },
+        //         fullName: "Unit Bitcoin",
+        //         deployerTradingFeeShare: "1.0",
+        //       },
+        //     ],
+        // }
+        //
+        if (this.checkRequiredCredentials (false)) {
+            promises.push (this.handleBuilderFeeApproval ());
+        }
+        const resolved = await Promise.all (promises);
+        const responseMeta = resolved[0];
+        const responseSpotMeta = resolved[1];
+        const meta = this.safeList (responseMeta, 'universe', []);
+        const tokens = this.safeList (responseSpotMeta, 'tokens', []);
+        const indexedTokens = this.indexBy (tokens, 'name');
+        const defaultPrecision = this.safeString (this.options, 'defaultCurrencyPrecision', '5');
         this.options['cachedCurrenciesById'] = {}; // used to map hip3 markets
         const result: Dict = {};
         for (let i = 0; i < tokens.length; i++) {
@@ -472,13 +518,14 @@ export default class hyperliquid extends Exchange {
             // const id = i;
             const id = this.safeString (data, 'index');
             const name = this.safeString (data, 'name');
+            const tokenInfo = this.safeDict (indexedTokens, name, {});
             const code = this.safeCurrencyCode (name);
             this.options['cachedCurrenciesById'][id] = name;
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': this.parsePrecision (this.safeString (data, 'weiDecimals')),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (tokenInfo, 'weiDecimals', defaultPrecision))),
                 'info': data,
                 'active': undefined,
                 'deposit': undefined,
