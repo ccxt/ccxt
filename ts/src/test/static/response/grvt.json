@@ -1452,7 +1452,7 @@
                         },
                         "metadata": {
                             "client_order_id": "17734008450001",
-                            "create_time": "1773400844855594988",
+                            "create_time": "1773400844855394988",
                             "trigger": {
                                 "trigger_type": "TAKE_PROFIT",
                                 "tpsl": {
@@ -1475,7 +1475,7 @@
                             "traded_size": [
                                 "0.0"
                             ],
-                            "update_time": "1773400844855594988",
+                            "update_time": "1773400844855394988",
                             "avg_fill_price": [
                                 "0.0"
                             ]
@@ -1534,7 +1534,7 @@
                         },
                         "metadata": {
                             "client_order_id": "17734008450001",
-                            "create_time": "1773400844855594988",
+                            "create_time": "1773400844855394988",
                             "trigger": {
                                 "trigger_type": "TAKE_PROFIT",
                                 "tpsl": {
@@ -1557,7 +1557,7 @@
                             "traded_size": [
                                 "0.0"
                             ],
-                            "update_time": "1773400844855594988",
+                            "update_time": "1773400844855394988",
                             "avg_fill_price": [
                                 "0.0"
                             ]
