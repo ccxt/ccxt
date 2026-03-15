@@ -354,6 +354,41 @@ func (this *Exchange) Describe() interface{} {
 		"rollingWindowSize": 60000,
 	}
 }
+func (this *Exchange) LoadMarketsHelper(optionalArgs ...interface{}) <-chan interface{} {
+	ch := make(chan interface{})
+	go func() interface{} {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		reload := GetArg(optionalArgs, 0, false)
+		_ = reload
+		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		_ = params
+		if IsTrue(!IsTrue(reload) && IsTrue(this.ValueIsDefined(this.Markets))) {
+			if !IsTrue(this.ValueIsDefined(this.Markets_by_id)) {
+				ch <- this.SetMarkets(this.Markets)
+				return nil
+			}
+			ch <- this.Markets
+			return nil
+		}
+		var currencies interface{} = nil
+		// only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
+		if IsTrue(IsEqual(GetValue(this.Has, "fetchCurrencies"), true)) {
+			currencies = (<-this.FetchCurrencies())
+			PanicOnError(currencies)
+			AddElementToObject(this.Options, "cachedCurrencies", currencies)
+		}
+		markets := (<-this.FetchMarkets(params))
+		PanicOnError(markets)
+		if IsTrue(InOp(this.Options, "cachedCurrencies")) {
+			Remove(this.Options, "cachedCurrencies")
+		}
+		ch <- this.SetMarkets(markets, currencies)
+		return nil
+
+	}()
+	return ch
+}
 func (this *Exchange) SafeBoolN(dictionaryOrList interface{}, keys interface{}, optionalArgs ...interface{}) interface{} {
 	/**
 	 * @ignore

@@ -1928,6 +1928,10 @@ class Exchange {
         return $this->set_markets($markets, $currencies);
     }
 
+    public function markets_mutex_locker($locked) {
+        // stub in php
+    }
+
     public function number($n) {
         return call_user_func($this->number, $n);
     }

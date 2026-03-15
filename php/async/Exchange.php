@@ -262,25 +262,6 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function load_markets_helper($reload = false, $params = array()) {
-        // copied from js
-        return React\Async\async(function () use ($reload, $params) {
-            if (!$reload && $this->markets) {
-                if (!$this->markets_by_id) {
-                    return $this->set_markets ($this->markets);
-                }
-                return $this->markets;
-            }
-            $currencies = null;
-            if (array_key_exists('fetchCurrencies', $this->has) && $this->has['fetchCurrencies'] === true) {
-                $currencies = React\Async\await($this->fetch_currencies());
-                $this->options['cachedCurrencies'] = $currencies;
-            }
-            $markets = React\Async\await($this->fetch_markets($params));
-            unset($this->options['cachedCurrencies']);
-            return $this->set_markets ($markets, $currencies);
-        }) ();
-    }
 
     public function loadMarkets($reload = false, $params = array()) {
         // returns a promise
