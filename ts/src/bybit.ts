@@ -184,7 +184,7 @@ export default class bybit extends Exchange {
                 'doc': [
                     'https://bybit-exchange.github.io/docs/inverse/',
                     'https://bybit-exchange.github.io/docs/linear/',
-                    'https://github.com/bybit-exchange',
+                    'https://bybit-exchange.github.io/docs/',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
                 'referral': 'https://www.bybit.com/invite?ref=XDK12WP',
