@@ -1660,6 +1660,7 @@ public struct MarketInterface
     public bool? spot;
     public bool? margin;
     public bool? swap;
+    public bool? perpetual;
     public bool? future;
     public bool? option;
     public bool? contract;
@@ -1695,6 +1696,7 @@ public struct MarketInterface
         spot = Exchange.SafeValue(market, "spot") != null ? (bool)Exchange.SafeValue(market, "spot") : null;
         margin = Exchange.SafeValue(market, "margin") != null ? (bool)Exchange.SafeValue(market, "margin") : null;
         swap = Exchange.SafeValue(market, "swap") != null ? (bool)Exchange.SafeValue(market, "swap") : null;
+        perpetual = Exchange.SafeValue(market, "perpetual") != null ? (bool)Exchange.SafeValue(market, "perpetual") : null;
         future = Exchange.SafeValue(market, "future") != null ? (bool)Exchange.SafeValue(market, "future") : null;
         option = Exchange.SafeValue(market, "option") != null ? (bool)Exchange.SafeValue(market, "option") : null;
         contract = Exchange.SafeValue(market, "contract") != null ? (bool)Exchange.SafeValue(market, "contract") : null;
