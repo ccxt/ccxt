@@ -81,6 +81,7 @@ type Exchange struct {
 	PrecisionMode          int
 	Limits                 map[string]interface{}
 	Fees                   map[string]interface{}
+	Status                 map[string]interface{}
 	CurrenciesById         *sync.Map
 	ReduceFees             bool
 
@@ -104,22 +105,27 @@ type Exchange struct {
 	// type check this
 	Number interface{}
 	// keys
-	Secret        string
-	ApiKey        string
-	Password      string
-	Uid           string
-	AccountId     string
+	Secret        interface{}
+	ApiKey        interface{}
+	Password      interface{}
+	Uid           interface{}
+	AccountId     interface{}
 	Token         interface{}
-	Login         string
-	PrivateKey    string
-	WalletAddress string
+	Login         interface{}
+	PrivateKey    interface{}
+	WalletAddress interface{}
+	Twofa         interface{}
 
 	httpClient *http.Client
 
 	HttpProxy            interface{}
-	HttpsProxy           interface{}
 	Http_proxy           interface{}
+	HttpProxyCallback    interface{}
+	Http_proxy_callback  interface{}
+	HttpsProxy           interface{}
 	Https_proxy          interface{}
+	HttpsProxyCallback   interface{}
+	Https_proxy_callback interface{}
 	Proxy                interface{}
 	ProxyUrl             interface{}
 	ProxyUrlCallback     interface{}
@@ -130,21 +136,12 @@ type Exchange struct {
 	SocksProxyCallback   interface{}
 	Socks_proxy_callback interface{}
 
-	HttpsProxyCallback   interface{}
-	Https_proxy_callback interface{}
-
-	HttpProxyCallback   interface{}
-	Http_proxy_callback interface{}
-	SocksroxyCallback   interface{}
-
-	WsSocksProxy   string
-	Ws_socks_proxy string
-
-	WssProxy  string
-	Wss_proxy string
-
-	WsProxy  string
-	Ws_proxy string
+	WsProxy        interface{}
+	Ws_proxy       interface{}
+	WssProxy       interface{}
+	Wss_proxy      interface{}
+	WsSocksProxy   interface{}
+	Ws_socks_proxy interface{}
 
 	HttpProxyAgentModule         interface{} // or interface{} if you don't have a type yet
 	HttpsProxyAgentModule        interface{}
@@ -154,8 +151,6 @@ type Exchange struct {
 	ProxiesModulesLoading        chan struct{} // or something to represent a Promise/future
 
 	SubstituteCommonCurrencyCodes bool
-
-	Twofa string
 
 	// WS - updated to use thread-safe sync.Map (except cache objects)
 	Ohlcvs         interface{} // map[string]map[string]*ArrayCacheByTimestamp
@@ -172,6 +167,10 @@ type Exchange struct {
 	MyLiquidations interface{} // *ArrayCacheBySymbolBySide
 
 	PaddingMode int
+
+	Countries map[string]interface{}
+	Certified bool
+	Pro       bool
 
 	MinFundingAddressLength int
 	MaxEntriesPerRequest    int
@@ -1186,11 +1185,14 @@ func (this *Exchange) ExceptionMessage(exc interface{}, includeStack ...interfac
 	return message[:length]
 }
 
-func (this *Exchange) GetProperty(obj interface{}, property interface{}) interface{} {
+func (this *Exchange) GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{} {
 	// Convert property to string
 	propName, ok := property.(string)
 	if !ok {
 		// fmt.Println("Property should be a string")
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 
@@ -1206,6 +1208,9 @@ func (this *Exchange) GetProperty(obj interface{}, property interface{}) interfa
 		return field.Interface()
 	} else {
 		// fmt.Printf("Field '%s' is either invalid or cannot be accessed\n", propName)
+		if len(defaultValue) > 0 {
+			return defaultValue[0]
+		}
 		return nil
 	}
 }

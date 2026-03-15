@@ -106,6 +106,7 @@ type ICoreExchange interface {
 	Sum(args ...interface{}) interface{}
 	NumberToString(num interface{}) interface{}
 	ParseToNumeric(value interface{}) interface{}
+	Capitalize(value interface{}) string
 	LoadMarkets(params ...interface{}) <-chan interface{}
 	SafeDict(dictionary interface{}, key interface{}, defaultValue ...interface{}) interface{}
 	InArray(needle interface{}, haystack interface{}) bool
@@ -224,7 +225,7 @@ type ICoreExchange interface {
 	CheckProxySettings(optionalArgs ...interface{}) interface{}
 	IsTickPrecision() interface{}
 	SetProperty(obj interface{}, property interface{}, defaultValue interface{})
-	GetProperty(obj interface{}, property interface{}) interface{}
+	GetProperty(obj interface{}, property interface{}, defaultValue ...interface{}) interface{}
 	ExceptionMessage(exc interface{}, includeStack ...interface{}) interface{}
 	SetProxyUrl(proxyUrl interface{})
 	SetSocksProxy(proxyUrl interface{})
