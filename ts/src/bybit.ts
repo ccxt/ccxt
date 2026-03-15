@@ -6825,6 +6825,16 @@ export default class bybit extends Exchange {
         }
         const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notional);
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
+        const isOption = (market['type'] === 'option');
+        let greeks: Dict = undefined;
+        if (isOption) {
+            greeks = {
+                'delta': this.safeNumber (position, 'delta'),
+                'gamma': this.safeNumber (position, 'gamma'),
+                'theta': this.safeNumber (position, 'theta'),
+                'vega': this.safeNumber (position, 'vega'),
+            };
+        }
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -6854,6 +6864,7 @@ export default class bybit extends Exchange {
             'stopLossPrice': this.safeNumber2 (position, 'stop_loss', 'stopLoss'),
             'takeProfitPrice': this.safeNumber2 (position, 'take_profit', 'takeProfit'),
             'hedged': hedged,
+            'greeks': greeks,
         });
     }
 
