@@ -4348,16 +4348,17 @@ class hyperliquid(Exchange, ImplicitAPI):
         id = self.safe_string(income, 'hash')
         timestamp = self.safe_integer(income, 'time')
         delta = self.safe_dict(income, 'delta')
-        baseId = self.safe_string(delta, 'coin')
-        marketSymbol = baseId + '/USDC:USDC'
-        market = self.safe_market(marketSymbol)
-        symbol = market['symbol']
+        coin = self.safe_string(delta, 'coin')
+        marketId = None
+        if coin is not None:
+            marketId = self.coin_to_market_id(coin)
+        market = self.safe_market(marketId, market)
         amount = self.safe_string(delta, 'usdc')
-        code = self.safe_currency_code('USDC')
+        code = self.safe_string(market, 'settle', 'USDC')
         rate = self.safe_number(delta, 'fundingRate')
         return {
             'info': income,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'code': code,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
