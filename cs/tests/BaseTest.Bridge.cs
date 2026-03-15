@@ -190,7 +190,7 @@ public partial class BaseTest
 {
     public async Task testLanguageSpecific()
     {
-        MultithreadTest().Wait();
+        MultithreadTest().Wait(); // temporary disable here
         
         // Run throttler performance test
         var baseTest = new BaseTest();
