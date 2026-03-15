@@ -29,8 +29,8 @@ type WSClient struct {
 	*Client
 
 	ConnectionStarted int64
-	Protocols         interface{}
-	Options           interface{}
+	Protocols         any
+	Options           any
 	StartedConnecting bool
 	ProxyUrl          string
 
@@ -38,7 +38,7 @@ type WSClient struct {
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
-func NewWSClient(url string, onMessageCallback func(client interface{}, err interface{}), onErrorCallback func(client interface{}, err interface{}), onCloseCallback func(client interface{}, err interface{}), onConnectedCallback func(client interface{}, err interface{}), proxyUrl string, config ...map[string]interface{}) *WSClient {
+func NewWSClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client any, err any), onCloseCallback func(client any, err any), onConnectedCallback func(client any, err any), proxyUrl string, config ...map[string]any) *WSClient {
 	// Call NewClient to do exactly the same initialization
 	client := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
 
@@ -176,7 +176,7 @@ func (this *WSClient) IsOpen() bool {
 	return this.Connection != nil
 }
 
-func (this *WSClient) ResetConnection(err interface{}) {
+func (this *WSClient) ResetConnection(err any) {
 	this.ClearConnectionTimeout()
 	this.ClearPingInterval()
 	this.Reject(err)
@@ -230,12 +230,12 @@ func (this *WSClient) OnPingInterval() {
 				err := RequestTimeout("Connection to " + this.Url + " timed out due to a ping-pong keepalive missing on time")
 				this.OnError(err)
 			} else {
-				var message interface{}
+				var message any
 				if this.Ping != nil {
-					if pingFunc, ok := this.Ping.(func(*WSClient) interface{}); ok {
+					if pingFunc, ok := this.Ping.(func(*WSClient) any); ok {
 						message = pingFunc(this)
 					}
-					if pingFunc, ok := this.Ping.(func(interface{}) interface{}); ok { // todo: type Ping() function properly inside derived files
+					if pingFunc, ok := this.Ping.(func(any) any); ok { // todo: type Ping() function properly inside derived files
 						message = pingFunc(this)
 					}
 				}
@@ -291,23 +291,23 @@ func (this *WSClient) Close() *Future {
 	return this.Disconnected.(*Future)
 }
 
-func (this *WSClient) Resolve(data interface{}, subHash interface{}) interface{} {
+func (this *WSClient) Resolve(data any, subHash any) any {
 	return this.Client.Resolve(data, subHash)
 }
 
-func (this *WSClient) Future(messageHash interface{}) <-chan interface{} {
+func (this *WSClient) Future(messageHash any) <-chan any {
 	return this.Client.Future(messageHash)
 }
 
-func (this *WSClient) Reject(err interface{}, messageHash ...interface{}) {
+func (this *WSClient) Reject(err any, messageHash ...any) {
 	this.Client.Reject(err, messageHash...)
 }
 
-func (this *WSClient) Send(message interface{}) <-chan interface{} {
+func (this *WSClient) Send(message any) <-chan any {
 	return this.Client.Send(message)
 }
 
-func (this *WSClient) Reset(err interface{}) {
+func (this *WSClient) Reset(err any) {
 	this.Client.Reset(err)
 }
 
@@ -327,21 +327,21 @@ func (this *WSClient) GetUrl() string {
 	return this.Client.GetUrl()
 }
 
-func (this *WSClient) GetSubscriptions() map[string]interface{} {
+func (this *WSClient) GetSubscriptions() map[string]any {
 	return this.Client.GetSubscriptions()
 }
-func (this *WSClient) GetLastPong() interface{} {
+func (this *WSClient) GetLastPong() any {
 	return this.Client.GetLastPong()
 }
-func (this *WSClient) SetLastPong(lastPong interface{}) {
+func (this *WSClient) SetLastPong(lastPong any) {
 	this.Client.SetLastPong(lastPong)
 }
-func (this *WSClient) GetKeepAlive() interface{} {
+func (this *WSClient) GetKeepAlive() any {
 	return this.Client.GetKeepAlive()
 }
-func (this *WSClient) SetKeepAlive(keepAlive interface{}) {
+func (this *WSClient) SetKeepAlive(keepAlive any) {
 	this.Client.SetKeepAlive(keepAlive)
 }
-func (this *WSClient) GetFutures() map[string]interface{} {
+func (this *WSClient) GetFutures() map[string]any {
 	return this.Client.GetFutures()
 }

@@ -105,7 +105,7 @@ func main() {
 	printMemStats("Initial State")
 
 	// Create exchange
-	binance := ccxt.NewBinance(map[string]interface{}{
+	binance := ccxt.NewBinance(map[string]any{
 		"verbose": false,
 	})
 
@@ -144,7 +144,7 @@ func main() {
 		// Create channels for results
 		type OrderBookResult struct {
 			Symbol    string
-			OrderBook interface{}
+			OrderBook any
 			Error     error
 		}
 		results := make(chan OrderBookResult, len(symbols))

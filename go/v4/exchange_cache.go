@@ -15,24 +15,24 @@ package ccxt
 
 import "sync"
 
-type Appender interface{ Append(interface{}) }
+type Appender interface{ Append(any) }
 
 type CacheType interface {
-	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheBySymbolBySide | map[string]interface{}
+	*ArrayCache | *ArrayCacheByTimestamp | *ArrayCacheBySymbolById | *ArrayCacheBySymbolBySide | map[string]any
 
-	Append(interface{})
+	Append(any)
 }
 
 type BaseCache struct {
 	MaxSize         int           `json:"-"`
 	Mu              sync.Mutex    `json:"-"`
-	Data            []interface{} `json:"data"`
+	Data            []any `json:"data"`
 	allNewUpdates   int           `json:"-"`
 	clearAllUpdates bool          `json:"-"`
 }
 
 func NewBaseCache(MaxSize int) *BaseCache {
-	return &BaseCache{MaxSize: MaxSize, Data: make([]interface{}, 0)}
+	return &BaseCache{MaxSize: MaxSize, Data: make([]any, 0)}
 }
 
 func (c *BaseCache) Clear() {
@@ -41,7 +41,7 @@ func (c *BaseCache) Clear() {
 	c.Data = c.Data[:0]
 }
 
-func (c *BaseCache) AppendInternal(item interface{}) {
+func (c *BaseCache) AppendInternal(item any) {
 	// helper (no lock)
 	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {
 		// drop the oldest element (behaviour identical to JS shift())
@@ -57,14 +57,14 @@ func (c *BaseCache) AppendInternal(item interface{}) {
 type ArrayCache struct {
 	*BaseCache
 
-	Hashmap                  map[string]map[string]interface{} `json:"-"`
+	Hashmap                  map[string]map[string]any `json:"-"`
 	nestedNewUpdates         bool                              `json:"-"`
 	newUpdatesBySymbol       map[string]Set                    `json:"-"`
 	clearUpdatesBySymbol     map[string]bool                   `json:"-"`
 	nestedNewUpdatesBySymbol bool                              `json:"-"`
 }
 
-func NewArrayCache(MaxSize interface{}) *ArrayCache {
+func NewArrayCache(MaxSize any) *ArrayCache {
 	size := 0
 	switch v := MaxSize.(type) {
 	case int:
@@ -76,19 +76,19 @@ func NewArrayCache(MaxSize interface{}) *ArrayCache {
 	}
 	return &ArrayCache{
 		BaseCache:                NewBaseCache(size),
-		Hashmap:                  make(map[string]map[string]interface{}),
+		Hashmap:                  make(map[string]map[string]any),
 		newUpdatesBySymbol:       make(map[string]Set),
 		clearUpdatesBySymbol:     make(map[string]bool),
 		nestedNewUpdatesBySymbol: false,
 	}
 }
 
-func (c *ArrayCache) Append(item interface{}) {
+func (c *ArrayCache) Append(item any) {
 	// We expect the incoming item to at least expose a "symbol" field; try to
-	// extract it when it is a map[string]interface{} – if not present we still
+	// extract it when it is a map[string]any – if not present we still
 	// store the item, it just won't participate in Hashmap logic.
 	var symbol, id string
-	if m, ok := item.(map[string]interface{}); ok {
+	if m, ok := item.(map[string]any); ok {
 		if s, ok := m["symbol"].(string); ok {
 			symbol = s
 		}
@@ -106,14 +106,14 @@ func (c *ArrayCache) Append(item interface{}) {
 		// keep reference for O(1) updates / de-dupe
 		byId := c.Hashmap[symbol]
 		if byId == nil {
-			byId = make(map[string]interface{})
+			byId = make(map[string]any)
 			c.Hashmap[symbol] = byId
 		}
 		if old, exists := byId[id]; exists {
 			// overwrite in-place (mirror JS behaviour where the reference is
 			// kept alive).  Shallow copy for now.
-			if om, ok := old.(map[string]interface{}); ok {
-				if nm, ok := item.(map[string]interface{}); ok {
+			if om, ok := old.(map[string]any); ok {
+				if nm, ok := item.(map[string]any); ok {
 					for k, v := range nm {
 						om[k] = v
 					}
@@ -129,7 +129,7 @@ func (c *ArrayCache) Append(item interface{}) {
 	if c.MaxSize != 0 && c.MaxSize == len(c.Data) && shouldAppend {
 		// remove first elem from data
 		removed := c.Data[0]
-		removedMap, ok := removed.(map[string]interface{})
+		removedMap, ok := removed.(map[string]any)
 		if ok {
 			removedSymbol, okSym := removedMap["symbol"].(string)
 			removedId, okId := removedMap["id"].(string)
@@ -186,9 +186,9 @@ func (c *ArrayCache) Append(item interface{}) {
 	c.allNewUpdates += (afterSize - beforeSize)
 }
 
-// func areArraysEqual(a interface{}, b interface{}) bool {
-// 	arrA, okA := a.([]interface{})
-// 	arrB, okB := b.([]interface{})
+// func areArraysEqual(a any, b any) bool {
+// 	arrA, okA := a.([]any)
+// 	arrB, okB := b.([]any)
 // 	if !okA || !okB {
 // 		return false
 // 	}
@@ -196,7 +196,7 @@ func (c *ArrayCache) Append(item interface{}) {
 // 		return false
 // 	}
 // 	for i := range arrA {
-// 		// elems can be ints, or map[string]interface{} etc
+// 		// elems can be ints, or map[string]any etc
 // 		if !IsEqual(arrA[i], arrB[i]) {
 // 			return false
 // 		}
@@ -208,18 +208,18 @@ func (c *ArrayCache) Append(item interface{}) {
 // }
 
 // ToArray implements the ArrayCache interface (defined in exchange.go).
-func (c *ArrayCache) ToArray() []interface{} {
+func (c *ArrayCache) ToArray() []any {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
 	// return a shallow copy to prevent external Mutation
-	out := make([]interface{}, len(c.Data))
+	out := make([]any, len(c.Data))
 	copy(out, c.Data)
 	return out
 }
 
-// The function returns interface{} so the transpiled code that works with
+// The function returns any so the transpiled code that works with
 // loosely-typed limits continues to compile.
-func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{} {
+func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	// if limit != nil {
 	// 	return limit
 	// }
@@ -229,7 +229,7 @@ func (c *ArrayCache) GetLimit(symbol interface{}, limit interface{}) interface{}
 	// 	}
 	// }
 	// return len(c.ToArray())
-	var newUpdatesValue interface{} = nil
+	var newUpdatesValue any = nil
 
 	if symbol == nil {
 		newUpdatesValue = c.allNewUpdates
@@ -266,9 +266,9 @@ func (c *ArrayCache) Remove(symbol string) {
 	delete(c.clearUpdatesBySymbol, symbol)
 
 	// Filter out items with this symbol from Data
-	var filteredData []interface{}
+	var filteredData []any
 	for _, item := range c.Data {
-		if m, ok := item.(map[string]interface{}); ok {
+		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
 				continue // Skip this item
 			}
@@ -283,13 +283,13 @@ func (c *ArrayCache) Remove(symbol string) {
 
 type ArrayCacheByTimestamp struct {
 	*BaseCache
-	Hashmap      map[int64]interface{}
+	Hashmap      map[int64]any
 	newUpdates   int
 	clearUpdates bool
 	sizeTracker  *Set
 }
 
-func NewArrayCacheByTimestamp(MaxSize interface{}) *ArrayCacheByTimestamp {
+func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 	size := 0
 	switch v := MaxSize.(type) {
 	case int:
@@ -301,14 +301,14 @@ func NewArrayCacheByTimestamp(MaxSize interface{}) *ArrayCacheByTimestamp {
 	}
 	return &ArrayCacheByTimestamp{
 		BaseCache:   NewBaseCache(size),
-		Hashmap:     make(map[int64]interface{}),
+		Hashmap:     make(map[int64]any),
 		sizeTracker: NewSet(),
 	}
 }
 
-func (c *ArrayCacheByTimestamp) Append(item interface{}) {
+func (c *ArrayCacheByTimestamp) Append(item any) {
 	var ts int64
-	if arr, ok := item.([]interface{}); ok && len(arr) > 0 {
+	if arr, ok := item.([]any); ok && len(arr) > 0 {
 		if v, okCast := arr[0].(int64); okCast {
 			ts = v
 		} else if vI, okI := arr[0].(int); okI {
@@ -325,15 +325,15 @@ func (c *ArrayCacheByTimestamp) Append(item interface{}) {
 			// c.Hashmap[ts] = item // update existing
 			// locate and update in Data as well
 			// to do use the reference in hashmap instead of searching
-			currItem := c.Hashmap[ts].([]interface{})
+			currItem := c.Hashmap[ts].([]any)
 			for i := range currItem {
-				if arr, ok := item.([]interface{}); ok && len(arr) > 0 {
+				if arr, ok := item.([]any); ok && len(arr) > 0 {
 					currItem[i] = arr[i]
 				}
 			}
 			// c.Hashmap[ts] = item
 			// for i, v := range c.Data {
-			// 	if arr, ok := v.([]interface{}); ok && len(arr) > 0 {
+			// 	if arr, ok := v.([]any); ok && len(arr) > 0 {
 			// 		var ets int64
 			// 		if v2, okCast := arr[0].(int64); okCast {
 			// 			ets = v2
@@ -362,17 +362,17 @@ func (c *ArrayCacheByTimestamp) Append(item interface{}) {
 	c.newUpdates = c.sizeTracker.Size()
 }
 
-func (c *ArrayCacheByTimestamp) ToArray() []interface{} {
+func (c *ArrayCacheByTimestamp) ToArray() []any {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-	out := make([]interface{}, len(c.Data))
+	out := make([]any, len(c.Data))
 	copy(out, c.Data)
 	return out
 }
 
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
-func (c *ArrayCacheByTimestamp) GetLimit(symbol interface{}, limit interface{}) interface{} {
+func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) any {
 	c.clearUpdates = true
 	if limit == nil {
 		return c.newUpdates
@@ -386,9 +386,9 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 	defer c.Mu.Unlock()
 
 	// Filter out items with this symbol from Data
-	var filteredData []interface{}
+	var filteredData []any
 	for _, item := range c.Data {
-		if m, ok := item.(map[string]interface{}); ok {
+		if m, ok := item.(map[string]any); ok {
 			if s, ok := m["symbol"].(string); ok && s == symbol {
 				continue
 			}
@@ -403,7 +403,7 @@ func (c *ArrayCacheByTimestamp) Remove(symbol string) {
 
 type ArrayCacheBySymbolById struct{ *ArrayCache }
 
-func NewArrayCacheBySymbolById(optionalArgs ...interface{}) *ArrayCacheBySymbolById {
+func NewArrayCacheBySymbolById(optionalArgs ...any) *ArrayCacheBySymbolById {
 	maxSize := GetArg(optionalArgs, 0, nil)
 	cache := &ArrayCacheBySymbolById{NewArrayCache(maxSize)}
 	cache.nestedNewUpdatesBySymbol = true
@@ -411,7 +411,7 @@ func NewArrayCacheBySymbolById(optionalArgs ...interface{}) *ArrayCacheBySymbolB
 }
 
 // GetLimit for nested caches delegates to the inner ArrayCache.
-func (c *ArrayCacheBySymbolById) GetLimit(symbol interface{}, limit interface{}) interface{} {
+func (c *ArrayCacheBySymbolById) GetLimit(symbol any, limit any) any {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 
@@ -432,9 +432,9 @@ func NewArrayCacheBySymbolBySide() *ArrayCacheBySymbolBySide {
 
 // These specialised caches currently rely on ArrayCache.Append which tracks by
 // (symbol, id).  For BySide we override Append to key by side instead.
-func (c *ArrayCacheBySymbolBySide) Append(item interface{}) {
+func (c *ArrayCacheBySymbolBySide) Append(item any) {
 	var symbol, side string
-	if m, ok := item.(map[string]interface{}); ok {
+	if m, ok := item.(map[string]any); ok {
 		if s, ok := m["symbol"].(string); ok {
 			symbol = s
 		}
@@ -450,21 +450,21 @@ func (c *ArrayCacheBySymbolBySide) Append(item interface{}) {
 	// if symbol != "" && side != "" {
 	// 	bySide := c.Hashmap[symbol]
 	// 	if bySide == nil {
-	// 		bySide = make(map[string]interface{})
+	// 		bySide = make(map[string]any)
 	// 		c.Hashmap[symbol] = bySide
 	// 	}
 	// 	bySide[side] = item
 	// }
 
 	if _, found := c.Hashmap[symbol]; !found {
-		c.Hashmap[symbol] = make(map[string]interface{})
+		c.Hashmap[symbol] = make(map[string]any)
 	}
 
 	bySide := c.Hashmap[symbol]
 
 	if _, exists := bySide[side]; exists {
-		if om, ok := bySide[side].(map[string]interface{}); ok {
-			if nm, ok := item.(map[string]interface{}); ok {
+		if om, ok := bySide[side].(map[string]any); ok {
+			if nm, ok := item.(map[string]any); ok {
 				for k, v := range nm {
 					om[k] = v
 				}
@@ -513,7 +513,7 @@ func (c *ArrayCacheBySymbolBySide) Append(item interface{}) {
 	c.allNewUpdates += (afterSize - beforeSize)
 }
 
-func (c *ArrayCacheBySymbolBySide) GetLimit(symbol interface{}, limit interface{}) interface{} {
+func (c *ArrayCacheBySymbolBySide) GetLimit(symbol any, limit any) any {
 	return c.ArrayCache.GetLimit(symbol, limit)
 }
 

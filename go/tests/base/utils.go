@@ -21,59 +21,59 @@ const (
 	PROXY_TEST_FILE_NAME = ""
 	IS_SYNCHRONOUS       = false
 	ROOT_DIR             = "/../"
-	// TEST_METHODS         = map[string]interface{}{}
+	// TEST_METHODS         = map[string]any{}
 )
 
-func AuthenticationError(v ...interface{}) error {
+func AuthenticationError(v ...any) error {
 	return ccxt.AuthenticationError(v)
 }
 
-func ExchangeError(v ...interface{}) error {
+func ExchangeError(v ...any) error {
 	return ccxt.ExchangeError(v)
 }
 
-func NotSupported(v ...interface{}) error {
+func NotSupported(v ...any) error {
 	return ccxt.NotSupported(v)
 }
 
-func OnMaintenance(v ...interface{}) error {
+func OnMaintenance(v ...any) error {
 	return ccxt.OnMaintenance(v)
 }
 
-func ExchangeNotAvailable(v ...interface{}) error {
+func ExchangeNotAvailable(v ...any) error {
 	return ccxt.ExchangeNotAvailable(v)
 }
 
-func OperationFailed(v ...interface{}) error {
+func OperationFailed(v ...any) error {
 	return ccxt.OperationFailed(v)
 }
 
-func InvalidProxySettings(v ...interface{}) error {
+func InvalidProxySettings(v ...any) error {
 	return ccxt.InvalidProxySettings(v)
 }
 
-func ArgumentsRequired(v ...interface{}) error {
+func ArgumentsRequired(v ...any) error {
 	return ccxt.ArgumentsRequired(v)
 }
 
-func InvalidNonce(v ...interface{}) error {
+func InvalidNonce(v ...any) error {
 	return ccxt.InvalidNonce(v)
 }
 
-func Error(v ...interface{}) error {
+func Error(v ...any) error {
 	return ccxt.NewError(v)
 }
 
-func NetworkError(v ...interface{}) error {
+func NetworkError(v ...any) error {
 	return ccxt.NetworkError(v)
 }
 
-func SetFetchResponse(exchange ccxt.ICoreExchange, response interface{}) ccxt.ICoreExchange {
+func SetFetchResponse(exchange ccxt.ICoreExchange, response any) ccxt.ICoreExchange {
 	exchange.SetFetchResponse(response)
 	return exchange
 }
 
-func GetCliArgValue(arg interface{}) bool {
+func GetCliArgValue(arg any) bool {
 	argStr := fmt.Sprintf("%v", arg) // Convert the argument to its string representation
 	for _, v := range os.Args {
 		if v == argStr {
@@ -83,7 +83,7 @@ func GetCliArgValue(arg interface{}) bool {
 	return false
 }
 
-func GetCliPositionalArg(index int) interface{} {
+func GetCliPositionalArg(index int) any {
 	index++
 	var filteredArgs []string
 	for _, arg := range os.Args {
@@ -97,8 +97,8 @@ func GetCliPositionalArg(index int) interface{} {
 	return nil
 }
 
-// func JsonParse(elem string) interface{} {
-// 	var result interface{}
+// func JsonParse(elem string) any {
+// 	var result any
 // 	err := json.Unmarshal([]byte(elem), &result)
 // 	if err != nil {
 // 		log.Fatal(err)
@@ -106,7 +106,7 @@ func GetCliPositionalArg(index int) interface{} {
 // 	return result
 // }
 
-func ConvertAscii(input interface{}) interface{} {
+func ConvertAscii(input any) any {
 	return input
 }
 
@@ -115,13 +115,13 @@ func GetTestName(str string) string {
 }
 
 // dump function to print passed arguments
-func Dump(args ...interface{}) {
+func Dump(args ...any) {
 	fmt.Println(args...)
 }
 
 // jsonParse function to parse a JSON string
-// func JsonParse(elem interface{}) interface{} {
-// 	var result interface{}
+// func JsonParse(elem any) any {
+// 	var result any
 // 	switch e := elem.(type) {
 // 	case string:
 // 		err := json.Unmarshal([]byte(e), &result)
@@ -135,7 +135,7 @@ func Dump(args ...interface{}) {
 // }
 
 // // jsonStringify function to convert an object to JSON string
-// func JsonStringify(elem interface{}) string {
+// func JsonStringify(elem any) string {
 // 	bytes, err := json.Marshal(elem)
 // 	if err != nil {
 // 		log.Fatal(err)
@@ -144,17 +144,17 @@ func Dump(args ...interface{}) {
 // }
 
 // convertAscii function (stub)
-// func ConvertAscii(input interface{}) interface{} {
+// func ConvertAscii(input any) any {
 // 	return input
 // }
 
 // // getTestName function to return the input as is
-// func GetTestName(str interface{}) interface{} {
+// func GetTestName(str any) any {
 // 	return str
 // }
 
 // ioFileExists function to check if a file exists
-func IoFileExists(path interface{}) bool {
+func IoFileExists(path any) bool {
 	switch p := path.(type) {
 	case string:
 		_, err := os.Stat(p)
@@ -166,7 +166,7 @@ func IoFileExists(path interface{}) bool {
 }
 
 // ioFileRead function to read a file and optionally decode its content
-func IoFileRead(path interface{}, decode ...interface{}) interface{} {
+func IoFileRead(path any, decode ...any) any {
 	var shouldDecode bool
 	if len(decode) > 0 {
 		shouldDecode = decode[0].(bool)
@@ -180,7 +180,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 		}
 
 		if shouldDecode {
-			var result interface{}
+			var result any
 			err := json.Unmarshal(content, &result)
 			if err != nil {
 				log.Fatal(err)
@@ -197,7 +197,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 }
 
 // ioDirRead function to read directory contents
-func IoDirRead(path interface{}) interface{} {
+func IoDirRead(path any) any {
 	switch p := path.(type) {
 	case string:
 		files, err := ioutil.ReadDir(p)
@@ -217,15 +217,15 @@ func IoDirRead(path interface{}) interface{} {
 }
 
 // callMethodSync function (empty in JS)
-func CallMethodSync(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args interface{}) interface{} {
+func CallMethodSync(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args any) any {
 	// Empty in Go, just returning
 	return nil
 }
 
-// func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
-// 	testFiles := testFiles2.(map[string]interface{})
+// func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan any {
+// 	testFiles := testFiles2.(map[string]any)
 // 	methodName := methodName2.(string)
-// 	args := args2.([]interface{})
+// 	args := args2.([]any)
 // 	method := reflect.ValueOf(testFiles[methodName])
 // 	in := make([]reflect.Value, len(args))
 // 	for i, arg := range args {
@@ -235,23 +235,23 @@ func CallMethodSync(testFiles2 interface{}, methodName2 interface{}, exchange in
 // 	return nil
 // }
 
-func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
+func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan any {
 	// Create the return channel
-	ch := make(chan interface{}, 1)
+	ch := make(chan any, 1)
 
 	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		testFiles := testFiles2.(map[string]interface{})
+		testFiles := testFiles2.(map[string]any)
 		methodName := methodName2.(string)
 
-		// Assert args2 to []interface{}, or default to an empty slice if nil
-		var args []interface{}
+		// Assert args2 to []any, or default to an empty slice if nil
+		var args []any
 		if args2 != nil {
-			args = args2.([]interface{})
+			args = args2.([]any)
 		} else {
-			args = []interface{}{}
+			args = []any{}
 		}
 
 		// Retrieve the function from testFiles
@@ -305,21 +305,21 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 	return ch
 }
 
-// func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interface{}, skippedProperties interface{}, args2 interface{}) <-chan interface{} {
+// func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties any, args2 any) <-chan any {
 // 	// Cast parameters to their expected types
-// 	ch := make(chan interface{})
+// 	ch := make(chan any)
 // 	go func() {
 // 		defer close(ch)
 // 		defer ReturnPanicError(ch)
-// 		testFiles := testFiles2.(map[string]interface{})
+// 		testFiles := testFiles2.(map[string]any)
 // 		methodName := methodName2.(string)
 
-// 		// Assert args2 to []interface{}, or default to an empty slice if nil
-// 		var args []interface{}
+// 		// Assert args2 to []any, or default to an empty slice if nil
+// 		var args []any
 // 		if args2 != nil {
-// 			args = args2.([]interface{})
+// 			args = args2.([]any)
 // 		} else {
-// 			args = []interface{}{}
+// 			args = []any{}
 // 		}
 
 // 		// Retrieve the function from testFiles
@@ -363,9 +363,9 @@ func CallMethod(testFiles2 interface{}, methodName2 interface{}, exchange interf
 // }
 
 // callExchangeMethodDynamically function to call exchange methods dynamically
-func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}, args2 interface{}) <-chan interface{} {
-	arg := args2.([]interface{})
-	ch := make(chan interface{})
+func CallExchangeMethodDynamically(exchange any, methodName2 any, args2 any) <-chan any {
+	arg := args2.([]any)
+	ch := make(chan any)
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -385,18 +385,18 @@ func CallExchangeMethodDynamically(exchange interface{}, methodName2 interface{}
 }
 
 // callExchangeMethodDynamicallySync function that throws an error
-func CallExchangeMethodDynamicallySync(exchange interface{}, methodName2 interface{}, args interface{}) error {
+func CallExchangeMethodDynamicallySync(exchange any, methodName2 any, args any) error {
 	return fmt.Errorf("this function shouldn't be called, only async functions apply here")
 }
 
 // callOverridenMethod function to call an overridden method dynamically
-func CallOverridenMethod(exchange interface{}, methodName string, args []interface{}) interface{} {
+func CallOverridenMethod(exchange any, methodName string, args []any) any {
 	// return callExchangeMethodDynamically(exchange, methodName, args)
 	return nil
 }
 
 // exceptionMessage function to generate a formatted error message
-func ExceptionMessage(exc interface{}) string {
+func ExceptionMessage(exc any) string {
 	// switch e := exc.(type) {
 	// case error:
 	// 	return fmt.Sprintf("[%T] %s", e, e.Error())
@@ -407,12 +407,12 @@ func ExceptionMessage(exc interface{}) string {
 }
 
 // getRootException function (stub)
-func GetRootException(exc interface{}) interface{} {
+func GetRootException(exc any) any {
 	return exc
 }
 
 // exitScript function to exit the program
-func ExitScript(code interface{}) {
+func ExitScript(code any) {
 	switch c := code.(type) {
 	case int:
 		os.Exit(c)
@@ -422,7 +422,7 @@ func ExitScript(code interface{}) {
 }
 
 // getExchangeProp function to retrieve a property from exchange
-func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...interface{}) interface{} {
+func GetExchangeProp(exchange2 any, prop2 any, defaultValue ...any) any {
 	exchange := exchange2.(ccxt.ICoreExchange)
 	res := exchange.GetProperty(exchange, prop2)
 	if res != nil {
@@ -435,7 +435,7 @@ func GetExchangeProp(exchange2 interface{}, prop2 interface{}, defaultValue ...i
 }
 
 // setExchangeProp function to set a property on exchange
-func SetExchangeProp(exchange2 interface{}, prop2 interface{}, value interface{}) {
+func SetExchangeProp(exchange2 any, prop2 any, value any) {
 	exchange := exchange2.(ccxt.ICoreExchange)
 	exchange.SetProperty(exchange, value, value)
 }
@@ -446,57 +446,57 @@ func UnCamelCase(str string) string {
 }
 
 // initExchange function to initialize an exchange (stub)
-func InitExchange(exchangeId interface{}, options ...interface{}) ccxt.ICoreExchange {
-	var exchangeOptions interface{} = nil
+func InitExchange(exchangeId any, options ...any) ccxt.ICoreExchange {
+	var exchangeOptions any = nil
 	var ws bool = false
 	if len(options) > 0 {
 		exchangeOptions = options[0]
 		ws = SafeValue(options, 1, false).(bool)
 	}
 	if exchangeOptions == nil {
-		exchangeOptions = make(map[string]interface{})
+		exchangeOptions = make(map[string]any)
 	}
 	var instance ccxt.ICoreExchange
 	var success bool = true
 	if ws {
-		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+		instance, success = ccxtPro.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 	} else {
-		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+		instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 	}
-	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]interface{}))
+	// instance, success := ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 	if !success {
 		return nil
 	}
-	globalSettings := SafeValue(options, 0, map[string]interface{}{}).(map[string]interface{})
-	globalOptions := SafeValue(globalSettings, "options", map[string]interface{}{}).(map[string]interface{})
+	globalSettings := SafeValue(options, 0, map[string]any{}).(map[string]any)
+	globalOptions := SafeValue(globalSettings, "options", map[string]any{}).(map[string]any)
 	instance.ExtendExchangeOptions(globalOptions)
 	return instance
 }
 
 // importTestFile function (stub for importing test files)
-func ImportTestFile(filePath interface{}) interface{} {
+func ImportTestFile(filePath any) any {
 	// In Go, dynamic import is not straightforward
 	return nil
 }
 
 // getTestFilesSync function (empty in JS)
-func GetTestFilesSync(properties interface{}, ws interface{}) interface{} {
+func GetTestFilesSync(properties any, ws any) any {
 	// Empty in Go, just returning
 	return nil
 }
 
 // // getTestFiles function to dynamically retrieve test files (stub)
-// func GetTestFiles(properties interface{}, ws interface{}) <-chan interface{} {
+// func GetTestFiles(properties any, ws any) <-chan any {
 // 	// Dynamically get test files logic (stub)
 // 	return nil
 // }
 
-func GetTestFiles(properties2 interface{}, ws bool) <-chan map[string]interface{} {
+func GetTestFiles(properties2 any, ws bool) <-chan map[string]any {
 	properties := properties2.([]string)
 	_ = properties
 	_ = ws
 
-	ch := make(chan map[string]interface{})
+	ch := make(chan map[string]any)
 	go func() {
 
 		defer close(ch)
@@ -527,11 +527,11 @@ func GetTestFiles(properties2 interface{}, ws bool) <-chan map[string]interface{
 	return ch
 }
 
-func IsNullValue(value interface{}) bool {
+func IsNullValue(value any) bool {
 	return value == nil
 }
 
-func Close(exchange interface{}) <-chan bool {
+func Close(exchange any) <-chan bool {
 	ch := make(chan bool)
 	close(ch)
 	return ch

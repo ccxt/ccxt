@@ -5,7 +5,7 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 
 
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (ccxt.ICoreExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
     switch exchangeId {
     case "aftermath":
         aftermathItf := NewAftermathCore()

@@ -527,11 +527,11 @@ class NewTranspiler {
             [/\.Append\(/g, '.(Appender).Append('],
             [/stored\.\(Appender\)\.Append\(this\.ParseOHLCV/g, "stored.Append(this.ParseOHLCV"],
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
-            [/stored := NewArrayCache\(limit\)/g, 'var stored interface{} = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
+            [/stored := NewArrayCache\(limit\)/g, 'var stored any = NewArrayCache(limit)'],  // needed for cex HandleTradesSnapshot
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
-            [/\(<\-future\)/g, '<-future.(<-chan interface{})'],
-            [/<-spawaned/g, '<-spawaned.(<-chan interface{})'],
+            [/\(<\-future\)/g, '<-future.(<-chan any)'],
+            [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
             [/([a-z]+)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
@@ -553,7 +553,7 @@ class NewTranspiler {
             [/client\.KeepAlive\s*=\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
             [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
-            [/(retRes\d+)\s+:=\s+<-future.\(<-chan interface{}\)/g, '$1 := <- future.(*ccxt.Future).Await()'],
+            [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <- future.(*ccxt.Future).Await()'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
             [/client\.Futures/g, 'client.(ClientInterface).GetFutures()'],
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
@@ -835,7 +835,7 @@ class NewTranspiler {
         }
 
         if (name.startsWith('unWatch')) { // type not unified yet
-            return `interface{}`;
+            return `any`;
         }
 
         if (name === 'fetchTime'){
@@ -843,7 +843,7 @@ class NewTranspiler {
         }
 
         if (name.startsWith('fetchDepositWithdrawFee')) { // tmp fix later with proper types
-            return `map[string]interface{}`;
+            return `map[string]any`;
         }
 
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
@@ -865,7 +865,7 @@ class NewTranspiler {
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
-            return addTaskIfNeeded('interface{}'); // default if type is unknown;
+            return addTaskIfNeeded('any'); // default if type is unknown;
         }
 
         if (wrappedType === 'string[][]') {
@@ -880,12 +880,12 @@ class NewTranspiler {
 
         if (this.isObject(wrappedType)) {
             if (isReturn) {
-                return addTaskIfNeeded('map[string]interface{}');
+                return addTaskIfNeeded('map[string]any');
             }
-            return addTaskIfNeeded('interface{}');
+            return addTaskIfNeeded('any');
         }
         if (this.isDictionary(wrappedType)) {
-            return addTaskIfNeeded('map[string]interface{}');
+            return addTaskIfNeeded('map[string]any');
         }
         if (this.isStringType(wrappedType)) {
             return addTaskIfNeeded('string');
@@ -931,7 +931,7 @@ class NewTranspiler {
         const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
         if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
             // handle params = {}
-            return 'params ...interface{}';
+            return 'params ...any';
         }
         const paramsParsed = params.map(param => this.convertJavascriptParamToGoParam(param)).join(', ');
         if (!needsVariadicOptions) {
@@ -952,7 +952,7 @@ class NewTranspiler {
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
         if (param.type == undefined) {
-            paramType = 'interface{}';
+            paramType = 'any';
         } else {
             paramType = this.jsTypeToGo(name, param.type);
         }
@@ -1095,7 +1095,7 @@ class NewTranspiler {
         }
 
         if (methodName === 'fetchDepositWithdrawFees' || methodName === 'fetchDepositWithdrawFee') {
-            return `(res).(map[string]interface{})`;
+            return `(res).(map[string]any)`;
         }
 
         if (methodName.startsWith('unWatch')) {
@@ -1104,12 +1104,12 @@ class NewTranspiler {
         }
 
         // handle the typescript type Dict
-        if (unwrappedType === 'Dict' || unwrappedType === 'map[string]interface{}') {
-            return `res.(map[string]interface{})`;
+        if (unwrappedType === 'Dict' || unwrappedType === 'map[string]any') {
+            return `res.(map[string]any)`;
         }
 
-        if (unwrappedType === '[]map[string]interface{}') {
-            return `res.([]map[string]interface{})`;
+        if (unwrappedType === '[]map[string]any') {
+            return `res.([]map[string]any)`;
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') &&
@@ -1158,7 +1158,7 @@ class NewTranspiler {
                     const capName = capitalize(param.name);
                     // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
                     let decl = `
-    var ${this.safeGoName(param.name)} interface{} = nil
+    var ${this.safeGoName(param.name)} any = nil
     if opts.${capName} != nil {
         ${this.safeGoName(param.name)} = *opts.${capName}
     }`;
@@ -1314,13 +1314,13 @@ class NewTranspiler {
             emptyObject = 'float64(-1)'
         } else if (unwrappedType === 'string') {
             emptyObject = '""'
-        } else if (unwrappedType === 'interface{}') {
+        } else if (unwrappedType === 'any') {
             emptyObject = 'nil';
         }
 
         const defaultParams =  this.getDefaultParamsWrappers(methodName, methodWrapper.parameters);
 
-        if (stringArgs =='params ...interface{}') {
+        if (stringArgs =='params ...any') {
             params = 'params...';
         }
 
@@ -1391,7 +1391,7 @@ class NewTranspiler {
             if (!WRAPPER_METHODS['Exchange']) {
                 throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
             }
-            missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`;
+            missingMethodsWrappers = `func (this *${capitalize(exchange)}) LoadMarkets(params ...any) (map[string]MarketInterface, error) { return this.exchangeTyped.LoadMarkets(params...) }\n`;
             missingMethodsWrappers += missingMethods.map (m => this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m])).filter(wrapper => wrapper !== '').join('\n');
         }
 
@@ -1442,7 +1442,7 @@ class NewTranspiler {
                 `   }`,
                 '}',
                 '',
-                'func (this *ExchangeTyped) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {',
+                'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
                 '	res := <-this.Exchange.LoadMarkets(params...)',
                 '	if IsError(res) {',
                 '		return nil, CreateReturnError(res)',
@@ -1467,7 +1467,7 @@ class NewTranspiler {
             }
 
             newMethod = [
-                'func New' + capitizedName + '(userConfig map[string]interface{}) *' + capitizedName + ' {',
+                'func New' + capitizedName + '(userConfig map[string]any) *' + capitizedName + ' {',
                 `   p := New${coreName}()`,
                 '   p.Init(userConfig)',
                 `   return &${capitizedName}{`,
@@ -1552,7 +1552,7 @@ class NewTranspiler {
         function GoMakeErrorFile (name: string, parent: any) {
             errorNames.push(name);
             const exception =
-`func ${name}(v ...interface{}) error {
+`func ${name}(v ...any) error {
     return NewError("${name}", v...)
 }`;
             return exception;
@@ -1567,7 +1567,7 @@ class NewTranspiler {
         return ${error}(v...)`;
         });
 
-        const functionDecl = `func CreateError(err string, v ...interface{}) error {
+        const functionDecl = `func CreateError(err string, v ...any) error {
     switch err {
 ${caseStatements.join('\n')}
         default:
@@ -1642,9 +1642,9 @@ ${constStatements.join('\n')}
             // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
             [/callDynamically\(/gm, 'this.CallDynamically('], //fix this on the transpiler
             [/throwDynamicException\(/gm, 'ThrowDynamicException('], //fix this on the transpiler
-            [/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,"],
-            [/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,"],
-            [/client interface\{\},/g, "client *Client,"],
+            [/currentRestInstance any,/g, "currentRestInstance Exchange,"],
+            [/parentRestInstance any,/g, "parentRestInstance Exchange,"],
+            [/client any,/g, "client *Client,"],
             [/this.Number = String/g, 'this.Number = "string"'],
             [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
             [/ch <- nil\s+\/\/.+/g, ''],
@@ -1672,9 +1672,9 @@ ${constStatements.join('\n')}
             [/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
-            [/(var \w+ interface{}) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
+            [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
             // Fix setMarketsFromExchange parameter type
-            [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange interface\{\}\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
+            [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
@@ -1704,7 +1704,7 @@ ${constStatements.join('\n')}
         });
 
         const functionDecl = `
-func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]interface{}) (${ws ? 'ccxt.' : ''}ICoreExchange, bool) {
+func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (${ws ? 'ccxt.' : ''}ICoreExchange, bool) {
     switch exchangeId {
 ${caseStatements.join('\n')}
     default:
@@ -1739,7 +1739,7 @@ ${caseStatements.join('\n')}
         });
 
         const functionDecl = `
-func CreateExchange(exchangeId string, options map[string]interface{}) IExchange {
+func CreateExchange(exchangeId string, options map[string]any) IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
 ${caseStatements.join('\n')}
@@ -1792,7 +1792,7 @@ type IExchange interface {
         });
 
         const functionDecl = `
-func CreateExchange(exchangeId string, options map[string]interface{}) ccxt.IExchange {
+func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
     exchangeId = strings.ToLower(exchangeId)
     switch exchangeId {
 ${caseStatements.join('\n')}
@@ -1980,7 +1980,7 @@ ${caseStatements.join('\n')}
         // add simple Options
         if (!ws) {
             file.push('type Options struct {');
-            file.push('    Params *map[string]interface{}');
+            file.push('    Params *map[string]any');
             file.push('}');
             file.push('');
         }
@@ -2152,7 +2152,7 @@ ${caseStatements.join('\n')}
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
                 [/base\.Describe/gm, "this.Exchange.Describe"],
                 [/"\0"/gm, '"\/\/\" + "0"'], // check this later in bl3p
-                [/var (precise|preciseAmount) interface\{\} = /gm, "$1 := "],
+                [/var (precise|preciseAmount) any = /gm, "$1 := "],
                 [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
@@ -2179,14 +2179,14 @@ ${caseStatements.join('\n')}
         let initMethod = '';
         if (!isAlias && !ws) {
             initMethod = `
-func (this *${className}) Init(userConfig map[string]interface{}) {
+func (this *${className}) Init(userConfig map[string]any) {
     this.Exchange = ${ws ? `ccxt.Exchange` : `Exchange`}{}
     this.Exchange.DerivedExchange = this
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+    this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }\n`;
         } else {
             initMethod = `
-func (this *${className}) Init(userConfig map[string]interface{}) {
+func (this *${className}) Init(userConfig map[string]any) {
     this.${ws ? 'base' : `${capitalize(baseClass)}`}.Init(this.DeepExtend(this.Describe(), userConfig))
     this.Itf = this
     this.Exchange.DerivedExchange = this
@@ -2230,8 +2230,8 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
         splitParts.shift();
         content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
         content = this.regexAll (content, [
-            [/var (\w+) interface{} = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
-            [/var (\w+) interface{} = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
+            [/var (\w+) any = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
+            [/var (\w+) any = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
             [/assert/g, 'Assert'],
         ]).trim ();
 
@@ -2390,10 +2390,10 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             const go = this.transpiler.transpileGoByPath(tsFile);
             let content = go.content;
             content = this.regexAll (content, [
-                [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]interface{}{}, $1)' ],
-                [/exchange interface\{\}, /g,'exchange *ccxt.Exchange, '], // in arguments
-                [/ interface\{\}(?= \= map\[string\]interface\{\} )/g, ' map[string]interface{}'], // fix incorrect variable type
-                [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
+                [/(\w+) := NewCcxt\.Exchange\(([\S\s]+?)\)/gm, '$1 := ccxt.NewExchange().(*ccxt.Exchange); $1.DerivedExchange = $1; $1.InitParent($2, map[string]any{}, $1)' ],
+                [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
+                [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
+                [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // deepEqual added
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
@@ -2446,14 +2446,14 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
-            [/var (mockedExchange|exchange) interface{} =/g, 'var $1 ccxt.ICoreExchange ='],
-            [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+            [/var (mockedExchange|exchange) any =/g, 'var $1 ccxt.ICoreExchange ='],
+            [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
-            [/InitOfflineExchange\(exchangeName interface{}\) interface\{\}  {/g, 'InitOfflineExchange(exchangeName interface{}) ccxt.ICoreExchange {'],
+            [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
-            [/OnlySpecificTests \[\]interface\{\}/g, 'OnlySpecificTests interface{} '],
-            [ /interface{}\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
+            [/OnlySpecificTests \[\]any/g, 'OnlySpecificTests any '],
+            [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ]);
 
         const file = [
@@ -2542,7 +2542,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
 
             let regexes = [
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange interface\{\}([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+                [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
                 [/testSharedMethods\./g, ''],
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
@@ -2552,7 +2552,7 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
                 [/(<-exchange.Watch\w+\(.+\))/g, 'UnWrapType($1)'],
                 // [/<-exchange.WatchOrderBook\(symbol\)/g, '(ToOrderBook(<-exchange.WatchOrderBook(symbol)))'], // orderbook watch
                 // [/<-exchange.WatchOrderBookForSymbols\((.*?)\)/g, '(ToOrderBook(<-exchange.WatchOrderBookForSymbols($1)))'],
-                [/(interface{}\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
+                [/(any\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
                 // Fix infinite loop bug in WebSocket tests - move now = exchange.Milliseconds() outside success check
                 [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
                 // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
@@ -2663,11 +2663,11 @@ func (this *${className}) Init(userConfig map[string]interface{}) {
             '',
             this.createGeneratedHeader().join('\n'),
             '',
-            'var FunctionsMap = map[string]interface{}{',
+            'var FunctionsMap = map[string]any{',
             ...normalizedTestNames.map((test,i) => `    "${normalizedFunctionNames[i]}": ${test},`),
             '}',
             '',
-            'var WsFunctionsMap = map[string]interface{}{',
+            'var WsFunctionsMap = map[string]any{',
             ...normalizedWsTestNames.map((test,i) => `    "${normalizedWsFunctionNames[i]}": ${test},`),
             '}',
         ].join('\n');

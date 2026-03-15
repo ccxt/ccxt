@@ -42,12 +42,12 @@ func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
 
-func (this *Exchange) Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, args ...interface{}) string {
+func (this *Exchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
 }
 
-func Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest string) string {
+func Hmac(request2 any, secret2 any, algorithm2 func() string, digest string) string {
 	var request []byte
 	switch v := request2.(type) {
 	case string:
@@ -111,12 +111,12 @@ func signHMACMD5(data, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Exchange) Hash(request2 interface{}, hash func() string, args ...interface{}) interface{} {
+func (this *Exchange) Hash(request2 any, hash func() string, args ...any) any {
 	digest2 := GetArg(args, 0, "hex")
 	return Hash(request2, hash, digest2)
 }
 
-func Hash(request2 interface{}, hash func() string, digest2 interface{}) interface{} {
+func Hash(request2 any, hash func() string, digest2 any) any {
 	var request string
 	switch v := request2.(type) {
 	case string:
@@ -156,7 +156,7 @@ func Hash(request2 interface{}, hash func() string, digest2 interface{}) interfa
 	return base64.StdEncoding.EncodeToString(signature)
 }
 
-func (this *Exchange) Axolotl(a interface{}, b interface{}, c interface{}) string {
+func (this *Exchange) Axolotl(a any, b any, c any) string {
 	return ""
 }
 
@@ -190,7 +190,7 @@ func signMD5(data string) []byte {
 	return h.Sum(nil)
 }
 
-func signKeccak(data interface{}) []byte {
+func signKeccak(data any) []byte {
 	var input []byte
 
 	switch v := data.(type) {
@@ -207,15 +207,15 @@ func signKeccak(data interface{}) []byte {
 	return hash.Sum(nil)
 }
 
-func Jwt(data interface{}, secret interface{}, hash func() string, optionalArgs ...interface{}) string {
+func Jwt(data any, secret any, hash func() string, optionalArgs ...any) string {
 	isRsa := GetArg(optionalArgs, 0, false).(bool)
-	params := GetArg(optionalArgs, 1, map[string]interface{}{}).(map[string]interface{})
+	params := GetArg(optionalArgs, 1, map[string]any{}).(map[string]any)
 	return JwtFull(data, secret, hash, isRsa, params)
 }
 
-func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa bool, options map[string]interface{}) string {
+func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[string]any) string {
 	if options == nil {
-		options = make(map[string]interface{})
+		options = make(map[string]any)
 	}
 	algorithm := hash()
 	algPrefix := "HS"
@@ -226,7 +226,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	if algOpt, ok := options["alg"]; ok {
 		alg = algOpt.(string)
 	}
-	header := map[string]interface{}{
+	header := map[string]any{
 		"alg": alg,
 		"typ": "JWT",
 	}
@@ -235,7 +235,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	}
 
 	if iat, ok := header["iat"]; ok {
-		if dataMap, ok := data.(map[string]interface{}); ok {
+		if dataMap, ok := data.(map[string]any); ok {
 			dataMap["iat"] = iat
 		}
 		delete(header, "iat")
@@ -266,7 +266,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	return token + "." + signature
 }
 
-func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) string {
+func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
 	data := data2.(string)
 	publicKey := privateKey2.(string)
 	// hashAlgorithm := hashAlgorithm2.(string)
@@ -348,14 +348,14 @@ func Base64ToBase64URL(base64Str string, stripPadding bool) string {
 	return base64URL
 }
 
-func Eddsa(data2 interface{}, secret interface{}, curve interface{}) string {
+func Eddsa(data2 any, secret any, curve any) string {
 	// it should use ed25519 and return a base64 string
 	data := data2.(string)
 	secretsBytes := []uint8{}
 	if s, ok := secret.([]uint8); ok {
 		secretsBytes = s
 	} else {
-		bytes, err := interfacesToBytes(secret.([]interface{}))
+		bytes, err := interfacesToBytes(secret.([]any))
 		if err != nil {
 			panic(err)
 		}
@@ -378,11 +378,11 @@ func Eddsa(data2 interface{}, secret interface{}, curve interface{}) string {
 	return Base64ToBase64URL(base64Str, true)
 }
 
-// func Ecdsa(request interface{}, secret interface{}, alg interface{}, hash interface{}) string {
+// func Ecdsa(request any, secret any, alg any, hash any) string {
 // 	return "" // to do
 // }
 
-func interfacesToBytes(input []interface{}) ([]uint8, error) {
+func interfacesToBytes(input []any) ([]uint8, error) {
 	result := make([]uint8, len(input))
 	for i, v := range input {
 		b, ok := v.(uint8) // type assertion
@@ -503,9 +503,9 @@ func enforceLowS(s *big.Int) *big.Int {
 // }
 
 // Main Ecdsa function
-func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, hashFunc func() string) map[string]interface{} {
+func Ecdsa(request any, secret any, curveFunc func() string, hashFunc func() string) map[string]any {
 	// Initialize return structure
-	result := map[string]interface{}{
+	result := map[string]any{
 		"r": "",
 		"s": "",
 		"v": 0,

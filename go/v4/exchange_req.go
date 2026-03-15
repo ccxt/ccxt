@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any {
+	ch := make(chan any)
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -41,9 +41,9 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		}
 
 		// Convert headers to map[string]string
-		headersMap, ok := headers.(map[string]interface{})
+		headersMap, ok := headers.(map[string]any)
 		if !ok {
-			panic("headers must be a map[string]interface{}")
+			panic("headers must be a map[string]any")
 		}
 
 		headersStrMap := make(map[string]string)
@@ -54,13 +54,13 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		headersOptions, ok := this.Options.Load("headers")
 		if ok {
 			if headersOptions != nil {
-				for key, value := range headersOptions.(map[string]interface{}) {
+				for key, value := range headersOptions.(map[string]any) {
 					if _, exists := headersStrMap[key]; !exists {
 						headersStrMap[key] = fmt.Sprintf("%v", value)
 					}
 				}
 			} else {
-				panic("headersOptions should be a map[string]interface{}")
+				panic("headersOptions should be a map[string]any")
 			}
 
 		}
@@ -140,7 +140,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// }
 
 		//set default headers
-		defaultHeaders := this.Headers.(map[string]interface{})
+		defaultHeaders := this.Headers.(map[string]any)
 		for key, value := range defaultHeaders {
 			req.Header.Set(key, value.(string))
 		}
@@ -200,7 +200,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		responseHeaders := HeaderToMap(resp.Header)
 
 		// Use ParseJSON to handle JSON parsing with proper number normalization
-		var result interface{}
+		var result any
 		result = ParseJSON(string(respBody))
 
 		if result == nil {
@@ -208,7 +208,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			result = string(respBody)
 		} else {
 			if this.ReturnResponseHeaders {
-				if resultMap, ok := result.(map[string]interface{}); ok {
+				if resultMap, ok := result.(map[string]any); ok {
 					resultMap["responseHeaders"] = responseHeaders
 					result = resultMap
 				}
@@ -245,21 +245,21 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 	return ch
 }
 
-func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{}, url interface{}, method interface{}, body interface{}) {
+func (this *Exchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
 
 	codeString := ToString(code)
 	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)
 
 	if codeinHttpExceptions != nil {
 		errorMessage := this.Id + " " + ToString(method) + " " + ToString(url) + " " + ToString(code) + " " + ToString(reason) + " " + ToString(body)
-		functionError := codeinHttpExceptions.(func(...interface{}) error)
+		functionError := codeinHttpExceptions.(func(...any) error)
 		panic(functionError(errorMessage))
 	}
 
 }
 
-func HeaderToMap(header http.Header) map[string]interface{} {
-	result := make(map[string]interface{})
+func HeaderToMap(header http.Header) map[string]any {
+	result := make(map[string]any)
 	for key, values := range header {
 		if len(values) == 1 {
 			result[key] = values[0]

@@ -174,7 +174,7 @@ type ReserveRequestWeightMessage struct {
 
 // =====================================  Hyperliquid Structs ===================================== //
 
-func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]interface{}) (string, error) {
+func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain, messageTypes map[string][]apitypes.Type, messageData map[string]any) (string, error) {
 	// domain {"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"}
 	// agent: {"Agent":[{"name":"source","type":"string"},{"name":"connectionId","type":"bytes32"}]}
 	// phantom: {"source":"a","connectionId":{"0":81,"1":132,"2":60,"3":100,"4":202,"5":146,"6":114,"7":128,"8":99,"9":200,"10":106,"11":37,"12":220,"13":61,"14":150,"15":236,"16":173,"17":119,"18":83,"19":11,"20":205,"21":91,"22":222,"23":149,"24":201,"25":182,"26":71,"27":103,"28":74,"29":0,"30":223,"31":202}}
@@ -215,16 +215,16 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 	return encodedHex, nil
 }
 
-func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2 interface{}, messageData2 interface{}) []uint8 {
+func (this *Exchange) EthEncodeStructuredData(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
 	// domain {"chainId":1337,"name":"Exchange","verifyingContract":"0x0000000000000000000000000000000000000000","version":"1"}
 	// agent: {"Agent":[{"name":"source","type":"string"},{"name":"connectionId","type":"bytes32"}]}
 	// phantom: {"source":"a","connectionId":{"0":81,"1":132,"2":60,"3":100,"4":202,"5":146,"6":114,"7":128,"8":99,"9":200,"10":106,"11":37,"12":220,"13":61,"14":150,"15":236,"16":173,"17":119,"18":83,"19":11,"20":205,"21":91,"22":222,"23":149,"24":201,"25":182,"26":71,"27":103,"28":74,"29":0,"30":223,"31":202}}
 	if this.Id != "hyperliquid" {
 		return []uint8{}
 	}
-	domain := domain2.(map[string]interface{})
-	messageTypes := messageTypes2.(map[string]interface{})
-	messageData := messageData2.(map[string]interface{})
+	domain := domain2.(map[string]any)
+	messageTypes := messageTypes2.(map[string]any)
+	messageData := messageData2.(map[string]any)
 
 	val, ok := messageData["nonce"]
 	if ok {
@@ -250,10 +250,10 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	primaryType := "" // check this what is the primary type
 	for key, value := range messageTypes {
 		primaryType = key
-		types := value.([]interface{})
+		types := value.([]any)
 		messageTypesTyped[key] = make([]apitypes.Type, len(types))
 		for i, type_ := range types {
-			typeMap := type_.(map[string]interface{})
+			typeMap := type_.(map[string]any)
 			messageTypesTyped[key][i] = apitypes.Type{
 				Name: typeMap["name"].(string),
 				Type: typeMap["type"].(string),
@@ -270,19 +270,19 @@ func (this *Exchange) EthEncodeStructuredData(domain2 interface{}, messageTypes2
 	return this.Base16ToBinary(hexData)
 }
 
-func (this *Exchange) EthAbiEncode(types interface{}, args interface{}) interface{} {
+func (this *Exchange) EthAbiEncode(types any, args any) any {
 	byteArray := []uint8{}
 	return byteArray
 }
 
-func ConvertInt64ToBigInt(data interface{}) interface{} { // these functions change in place the object, no bueno
+func ConvertInt64ToBigInt(data any) any { // these functions change in place the object, no bueno
 	switch v := data.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for key, value := range v {
 			v[key] = ConvertInt64ToBigInt(value)
 		}
 		return v
-	case []interface{}:
+	case []any:
 		for i, item := range v {
 			v[i] = ConvertInt64ToBigInt(item)
 		}
@@ -296,16 +296,16 @@ func ConvertInt64ToBigInt(data interface{}) interface{} { // these functions cha
 
 }
 
-// func ConvertInt64ToBigInt(data interface{}) interface{} {
+// func ConvertInt64ToBigInt(data any) any {
 // 	switch v := data.(type) {
-// 	case map[string]interface{}:
-// 		newMap := make(map[string]interface{}, len(v))
+// 	case map[string]any:
+// 		newMap := make(map[string]any, len(v))
 // 		for key, value := range v {
 // 			newMap[key] = ConvertInt64ToBigInt(value)
 // 		}
 // 		return newMap
-// 	case []interface{}:
-// 		newSlice := make([]interface{}, len(v))
+// 	case []any:
+// 		newSlice := make([]any, len(v))
 // 		for i, item := range v {
 // 			newSlice[i] = ConvertInt64ToBigInt(item)
 // 		}
@@ -317,27 +317,27 @@ func ConvertInt64ToBigInt(data interface{}) interface{} { // these functions cha
 // 	}
 // }
 
-func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated implementation
-	var outObj interface{}
+func DeepExtend(objs ...any) map[string]any { //tmp duplicated implementation
+	var outObj any
 	for _, x := range objs {
 		if x == nil {
 			continue
 		}
 		if reflect.TypeOf(x).Kind() == reflect.Map {
 			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
-				outObj = make(map[string]interface{})
+				outObj = make(map[string]any)
 			}
-			dictX := x.(map[string]interface{})
+			dictX := x.(map[string]any)
 			for k := range dictX {
-				arg1 := outObj.(map[string]interface{})[k]
+				arg1 := outObj.(map[string]any)[k]
 				arg2 := dictX[k]
 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
-					outObj.(map[string]interface{})[k] = DeepExtend(arg1, arg2)
+					outObj.(map[string]any)[k] = DeepExtend(arg1, arg2)
 				} else {
 					if arg2 != nil {
-						outObj.(map[string]interface{})[k] = arg2
+						outObj.(map[string]any)[k] = arg2
 					} else {
-						outObj.(map[string]interface{})[k] = arg1
+						outObj.(map[string]any)[k] = arg1
 					}
 				}
 			}
@@ -345,17 +345,17 @@ func DeepExtend(objs ...interface{}) map[string]interface{} { //tmp duplicated i
 			outObj = x
 		}
 	}
-	return outObj.(map[string]interface{})
+	return outObj.(map[string]any)
 }
 
-func ConvertInt64ToInt(data interface{}) interface{} { // these functions change in place the object, no bueno
+func ConvertInt64ToInt(data any) any { // these functions change in place the object, no bueno
 	switch v := data.(type) {
-	case map[string]interface{}:
+	case map[string]any:
 		for key, value := range v {
 			v[key] = ConvertInt64ToInt(value)
 		}
 		return v
-	case []interface{}:
+	case []any:
 		for i, item := range v {
 			v[i] = ConvertInt64ToInt(item)
 		}
@@ -367,16 +367,16 @@ func ConvertInt64ToInt(data interface{}) interface{} { // these functions change
 	}
 }
 
-// func ConvertInt64ToInt(data interface{}) interface{} { // "good"
+// func ConvertInt64ToInt(data any) any { // "good"
 // 	switch v := data.(type) {
-// 	case map[string]interface{}:
-// 		newMap := make(map[string]interface{}, len(v))
+// 	case map[string]any:
+// 		newMap := make(map[string]any, len(v))
 // 		for key, value := range v {
 // 			newMap[key] = ConvertInt64ToInt(value)
 // 		}
 // 		return newMap
-// 	case []interface{}:
-// 		newSlice := make([]interface{}, len(v))
+// 	case []any:
+// 		newSlice := make([]any, len(v))
 // 		for i, item := range v {
 // 			newSlice[i] = ConvertInt64ToInt(item)
 // 		}
@@ -388,14 +388,14 @@ func ConvertInt64ToInt(data interface{}) interface{} { // these functions change
 // 	}
 // }
 
-func (this *Exchange) Packb(data interface{}) []uint8 {
+func (this *Exchange) Packb(data any) []uint8 {
 
-	var dataObj interface{} = nil
+	var dataObj any = nil
 	dataJson := this.Json(data)
 	dataObj = this.ParseJson(dataJson)
 
-	// if subDict, ok := data.(map[string]interface{}); ok {
-	// 	dataObj = DeepExtend(subDict, map[string]interface{}{}) // create a new only to avoid changing the original
+	// if subDict, ok := data.(map[string]any); ok {
+	// 	dataObj = DeepExtend(subDict, map[string]any{}) // create a new only to avoid changing the original
 	// } else {
 	// 	dataObj = data
 	// }
@@ -548,7 +548,7 @@ func (this *Exchange) Packb(data interface{}) []uint8 {
 	return nil
 }
 
-func SafeInt(v interface{}) int64 {
+func SafeInt(v any) int64 {
 	switch val := v.(type) {
 	case int64:
 		return val
@@ -577,15 +577,15 @@ func SafeInt(v interface{}) int64 {
 
 // it's necessary to load lighter library in python
 // we create client with the given api credential in this function
-func (this *Exchange) LoadLighterLibrary(path interface{}, chainId interface{}, privateKey interface{}, apiKeyIndex interface{}, accountIndex interface{}) <-chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) LoadLighterLibrary(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any) <-chan any {
+	ch := make(chan any)
 	go func() {
 		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
 	}()
 	return ch
 }
 
-func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) interface{} {
+func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
 	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
 
 	httpClient := http.NewClient(url)
@@ -597,17 +597,17 @@ func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, priv
 	return txClient
 }
 
-func (this *Exchange) LighterSignCreateGroupedOrders(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignCreateGroupedOrders(signer any, request any) any {
+	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]any) any {
 	ordersRaw, ok := request["orders"]
 	if !ok {
 		panic("Missing 'orders' in request")
 	}
 
-	orders, ok := ordersRaw.([]interface{})
+	orders, ok := ordersRaw.([]any)
 	if !ok {
 		panic(fmt.Sprintf("'orders' must be an array, got %T", ordersRaw))
 	}
@@ -616,9 +616,9 @@ func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, re
 	ordersArr := make([]*types.CreateOrderTxReq, length)
 
 	for i, item := range orders {
-		orderMap, ok := item.(map[string]interface{})
+		orderMap, ok := item.(map[string]any)
 		if !ok {
-			panic(fmt.Sprintf("Order %d is not a map[string]interface{}", i))
+			panic(fmt.Sprintf("Order %d is not a map[string]any", i))
 		}
 
 		orderExpiry := int64(SafeInt(orderMap["order_expiry"]))
@@ -660,7 +660,7 @@ func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, re
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
@@ -668,11 +668,11 @@ func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, re
 	return res
 }
 
-func (this *Exchange) LighterSignCreateOrder(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignCreateOrder(signer any, request any) any {
+	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]any) any {
 	orderExpiry := int64(SafeInt(request["order_expiry"]))
 	if orderExpiry == -1 {
 		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
@@ -705,7 +705,7 @@ func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request ma
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	fmt.Println(txInfo.GetTxType(), txInfoStr, res, GetValue(res, 0), GetValue(res, 1))
@@ -713,11 +713,11 @@ func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request ma
 	return res
 }
 
-func (this *Exchange) LighterSignCancelOrder(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignCancelOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignCancelOrder(signer any, request any) any {
+	return this.lighterSignCancelOrder(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]any) any {
 	tx := &types.CancelOrderTxReq{
 		MarketIndex: int16(SafeInt(request["market_index"])),
 		Index:       int64(SafeInt(request["order_index"])),
@@ -736,17 +736,17 @@ func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request ma
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterSignWithdraw(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignWithdraw(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignWithdraw(signer any, request any) any {
+	return this.lighterSignWithdraw(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]any) any {
 	tx := &types.WithdrawTxReq{
 		AssetIndex: int16(SafeInt(request["asset_index"])),
 		RouteType:  uint8(SafeInt(request["route_type"])),
@@ -766,17 +766,17 @@ func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[s
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterSignCreateSubAccount(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignCreateSubAccount(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignCreateSubAccount(signer any, request any) any {
+	return this.lighterSignCreateSubAccount(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]any) any {
 	nonce := int64(SafeInt(request["nonce"]))
 	ops := &types.TransactOpts{
 		Nonce: &nonce,
@@ -791,17 +791,17 @@ func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, reque
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterSignCancelAllOrders(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignCancelAllOrders(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignCancelAllOrders(signer any, request any) any {
+	return this.lighterSignCancelAllOrders(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]any) any {
 	tx := &types.CancelAllOrdersTxReq{
 		TimeInForce: uint8(SafeInt(request["time_in_force"])),
 		Time:        int64(SafeInt(request["time"])),
@@ -820,17 +820,17 @@ func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, reques
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterSignModifyOrder(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignModifyOrder(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignModifyOrder(signer any, request any) any {
+	return this.lighterSignModifyOrder(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]any) any {
 	tx := &types.ModifyOrderTxReq{
 		MarketIndex:  int16(SafeInt(request["market_index"])),
 		Index:        int64(SafeInt(request["index"])),
@@ -852,17 +852,17 @@ func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request ma
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterSignTransfer(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignTransfer(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignTransfer(signer any, request any) any {
+	return this.lighterSignTransfer(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]any) any {
 	var memoArr [32]byte
 	bs := []byte(request["memo"].(string))
 	if len(bs) != 32 {
@@ -894,17 +894,17 @@ func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[s
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterSignUpdateLeverage(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignUpdateLeverage(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignUpdateLeverage(signer any, request any) any {
+	return this.lighterSignUpdateLeverage(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]any) any {
 	tx := &types.UpdateLeverageTxReq{
 		MarketIndex:           int16(SafeInt(request["market_index"])),
 		InitialMarginFraction: uint16(SafeInt(request["initial_margin_fraction"])),
@@ -924,17 +924,17 @@ func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) LighterCreateAuthToken(signer interface{}, request interface{}) interface{} {
-	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterCreateAuthToken(signer any, request any) any {
+	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]any) any {
 	deadline := time.Unix(int64(SafeInt(request["deadline"])), 0)
 
 	auth, err := signer.GetAuthToken(deadline)
@@ -945,11 +945,11 @@ func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request ma
 	return auth
 }
 
-func (this *Exchange) LighterSignUpdateMargin(signer interface{}, request interface{}) interface{} {
-	return this.lighterSignUpdateMargin(signer.(*client.TxClient), request.(map[string]interface{}))
+func (this *Exchange) LighterSignUpdateMargin(signer any, request any) any {
+	return this.lighterSignUpdateMargin(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]interface{}) interface{} {
+func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]any) any {
 	tx := &types.UpdateMarginTxReq{
 		MarketIndex: int16(SafeInt(request["market_index"])),
 		USDCAmount:  int64(SafeInt(request["usdc_amount"])),
@@ -969,14 +969,14 @@ func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request m
 		panic(err)
 	}
 
-	res := make([]interface{}, 0)
+	res := make([]any, 0)
 	res = append(res, txInfo.GetTxType())
 	res = append(res, txInfoStr)
 	return res
 }
 
-func (this *Exchange) EthGetAddressFromPrivateKey(privateKey interface{}) string {
-	// Convert interface{} to string
+func (this *Exchange) EthGetAddressFromPrivateKey(privateKey any) string {
+	// Convert any to string
 	privateKeyStr, ok := privateKey.(string)
 	if !ok {
 		panic("privateKey must be a string")
