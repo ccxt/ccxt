@@ -2981,7 +2981,7 @@ export default class grvt extends Exchange {
             const marketId = this.safeString (firstLeg, 'instrument');
             market = this.safeMarket (marketId, market);
             size = this.safeString (firstLeg, 'size');
-            side = this.safeString (firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
+            side = this.safeBool (firstLeg, 'is_buying_asset') ? 'buy' : 'sell';
             price = this.safeString (firstLeg, 'limit_price');
             filled = this.safeString (filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString (avgPrices, primaryOrderIndex);
