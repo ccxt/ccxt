@@ -3183,7 +3183,8 @@ export default class grvt extends Exchange {
         const definitions = this.eipDefinitions ();
         const ethEncodedMessage = this.ethEncodeStructuredData (domainData, definitions[structureType], messageData);
         const ethEncodedMessageHashed = '0x' + this.hash (ethEncodedMessage, keccak, 'hex');
-        const secretOrPrivkey = this.privateKey !== undefined ? this.privateKey : this.secret;
+        const usesPrivKey = this.usesPrivateKey (); // py transpiler needs this line separated
+        const secretOrPrivkey = usesPrivKey ? this.privateKey : this.secret;
         const privateKeyWithoutZero = this.remove0xPrefix (secretOrPrivkey);
         const signature = ecdsa (this.remove0xPrefix (ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, undefined);
         request['signature']['r'] = this.formatSignatureRS (signature['r']);
