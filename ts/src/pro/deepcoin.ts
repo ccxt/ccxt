@@ -49,8 +49,8 @@ export default class deepcoin extends deepcoinRest {
                 'api': {
                     'ws': {
                         'public': {
-                            'spot': 'wss://stream.deepcoin.com/streamlet/trade/public/spot?platform=api',
-                            'swap': 'wss://stream.deepcoin.com/streamlet/trade/public/swap?platform=api',
+                            'spot': 'wss://stream.deepcoin.com/streamlet/trade/public/spot?platform=api&version=v2',
+                            'swap': 'wss://stream.deepcoin.com/streamlet/trade/public/swap?platform=api&version=v2',
                         },
                         'private': 'wss://stream.deepcoin.com/v1/private',
                     },
@@ -116,13 +116,11 @@ export default class deepcoin extends deepcoinRest {
             action = '0'; // unsubscribe
         }
         const request = {
-            'sendTopicAction': {
-                'Action': action,
-                'FilterValue': 'DeepCoin_' + marketId + suffix,
-                'LocalNo': requestId,
-                'ResumeNo': -1, // -1 from the end, 0 from the beginning
-                'TopicID': topicID,
-            },
+            'Action': action,
+            'Symbol': marketId + suffix,
+            'LocalNo': requestId,
+            'ResumeNo': -1, // -1 from the end, 0 from the beginning
+            'Topic': topicID,
         };
         return request;
     }
@@ -208,7 +206,7 @@ export default class deepcoin extends deepcoinRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
-        return await this.watchPublic (market, messageHash, '7', params);
+        return await this.watchPublic (market, messageHash, 'market', params);
     }
 
     /**
@@ -227,7 +225,7 @@ export default class deepcoin extends deepcoinRest {
         const subscription = {
             'topic': 'ticker',
         };
-        return await this.unWatchPublic (market, messageHash, '7', params, subscription);
+        return await this.unWatchPublic (market, messageHash, 'market', params, subscription);
     }
 
     handleTicker (client: Client, message) {
@@ -236,9 +234,8 @@ export default class deepcoin extends deepcoinRest {
         //     m: 'Success',
         //     tt: 1760913034780,
         //     mt: 1760913034780,
-        //     r: [
-        //         {
-        //             d: {
+        //     d: [
+        //             {
         //                 I: 'BTC/USDT',
         //                 U: 1760913034742,
         //                 PF: 0,
@@ -258,16 +255,14 @@ export default class deepcoin extends deepcoinRest {
         //                 BP1: 109344.9,
         //                 AP1: 109345.2
         //             }
-        //         }
-        //     ]
+        //         [
         //
-        const response = this.safeList (message, 'r', []);
-        const first = this.safeDict (response, 0, {});
-        const data = this.safeDict (first, 'd', {});
-        const marketId = this.safeString (data, 'I');
+        const data = this.safeList (message, 'd', []);
+        const ticker = this.safeDict (data, 0, {});
+        const marketId = this.safeString (ticker, 'I');
         const market = this.safeMarket (marketId, undefined, '/');
         const symbol = this.safeSymbol (marketId, market);
-        const parsedTicker = this.parseWsTicker (data, market);
+        const parsedTicker = this.parseWsTicker (ticker, market);
         const messageHash = 'ticker' + '::' + symbol;
         this.tickers[symbol] = parsedTicker;
         client.resolve (parsedTicker, messageHash);
@@ -349,7 +344,7 @@ export default class deepcoin extends deepcoinRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
-        const trades = await this.watchPublic (market, messageHash, '2', params);
+        const trades = await this.watchPublic (market, messageHash, 'trade', params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -372,7 +367,7 @@ export default class deepcoin extends deepcoinRest {
         const subscription = {
             'topic': 'trades',
         };
-        return await this.unWatchPublic (market, messageHash, '2', params, subscription);
+        return await this.unWatchPublic (market, messageHash, 'trade', params, subscription);
     }
 
     handleTrades (client: Client, message) {
@@ -380,26 +375,24 @@ export default class deepcoin extends deepcoinRest {
         //     {
         //         "a": "PMT",
         //         "b": 0,
+        //         "S": "DeepCoin_BTCUSDT",
         //         "tt": 1760968672380,
         //         "mt": 1760968672380,
-        //         "r": [
+        //         "d": [
         //             {
-        //                 "d": {
-        //                     "TradeID": "1001056452325378",
-        //                     "I": "BTC/USDT",
-        //                     "D": "1",
-        //                     "P": 111061,
-        //                     "V": 0.00137,
-        //                     "T": 1760968672
-        //                 }
+        //                 "TradeID": "1000300459924428",
+        //                 "D": "1",
+        //                 "P": 64596.9,
+        //                 "V": 10,
+        //                 "T": 1771882868
         //             }
         //         ]
         //     }
         //
-        const response = this.safeList (message, 'r', []);
-        const first = this.safeDict (response, 0, {});
-        const data = this.safeDict (first, 'd', {});
-        const marketId = this.safeString (data, 'I');
+        const data = this.safeList (message, 'd', []);
+        const firstTrade = this.safeDict (data, 0, {});
+        const parts = this.safeString (message, 'S', '').split ('_');
+        const marketId = this.safeString (parts, 1);
         const market = this.safeMarket (marketId, undefined, '/');
         const symbol = this.safeSymbol (marketId, market);
         if (!(symbol in this.trades)) {
@@ -408,7 +401,7 @@ export default class deepcoin extends deepcoinRest {
         }
         const strored = this.trades[symbol];
         if (data !== undefined) {
-            const trade = this.parseWsTrade (data, market);
+            const trade = this.parseWsTrade (firstTrade, market);
             strored.append (trade);
         }
         const messageHash = 'trades' + '::' + symbol;
@@ -513,7 +506,7 @@ export default class deepcoin extends deepcoinRest {
         const interval = this.safeString (timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
         const suffix = '_' + interval;
-        const ohlcv = await this.watchPublic (market, messageHash, '11', params, suffix);
+        const ohlcv = await this.watchPublic (market, messageHash, 'kline', params, suffix);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -542,40 +535,35 @@ export default class deepcoin extends deepcoinRest {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [ [ symbol, timeframe ] ],
         };
-        return await this.unWatchPublic (market, messageHash, '11', params, subscription, suffix);
+        return await this.unWatchPublic (market, messageHash, 'kline', params, subscription, suffix);
     }
 
     handleOHLCV (client: Client, message) {
         //
         //     {
         //         "a": "PK",
+        //         "I": "BCHUSDT",
+        //         "P": "1m",
         //         "tt": 1760972831580,
         //         "mt": 1760972831580,
-        //         "r": [
-        //             {
-        //                 "d": {
-        //                     "I": "BTC/USDT",
-        //                     "P": "1m",
-        //                     "B": 1760972820,
-        //                     "O": 111373,
-        //                     "C": 111382.9,
-        //                     "H": 111382.9,
-        //                     "L": 111373,
-        //                     "V": 0.2414172,
-        //                     "M": 26888.19693324
-        //                 },
-        //                 "t": "LK"
-        //             }
-        //         ]
+        //         "d": [
+        //             [
+        //                 '1771883400',
+        //                 '500.0',
+        //                 '500.1',
+        //                 '500.0',
+        //                 '500.1',
+        //                 '340',
+        //                 '17000.8780'
+        //             ]
         //     }
         //
-        const response = this.safeList (message, 'r', []);
-        const first = this.safeDict (response, 0, {});
-        const data = this.safeDict (first, 'd', {});
-        const marketId = this.safeString (data, 'I');
+        const data = this.safeList (message, 'd', []);
+        const first = this.safeList (data, 0, []);
+        const marketId = this.safeString (message, 'I');
         const market = this.safeMarket (marketId, undefined, '/');
         const symbol = this.safeSymbol (marketId, market);
-        const interval = this.safeString (data, 'P');
+        const interval = this.safeString (message, 'P');
         const timeframe = this.findTimeframe (interval);
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
@@ -585,8 +573,8 @@ export default class deepcoin extends deepcoinRest {
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
         const stored = this.ohlcvs[symbol][timeframe];
-        if (data !== undefined) {
-            const ohlcv = this.parseWsOHLCV (data, market);
+        if (first !== undefined) {
+            const ohlcv = this.parseWsOHLCV (first, market);
             stored.append (ohlcv);
         }
         const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
@@ -595,25 +583,23 @@ export default class deepcoin extends deepcoinRest {
 
     parseWsOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
-        //     {
-        //         "I": "BTC/USDT",
-        //         "P": "1m",
-        //         "B": 1760972820,
-        //         "O": 111373,
-        //         "C": 111382.9,
-        //         "H": 111382.9,
-        //         "L": 111373,
-        //         "V": 0.2414172,
-        //         "M": 26888.19693324
-        //     }
+        //     [
+        //         '1771883400',
+        //         '500.0',
+        //         '500.1',
+        //         '500.0',
+        //         '500.1',
+        //         '340',
+        //         '17000.8780'
+        //     ]
         //
         return [
-            this.safeTimestamp (ohlcv, 'B'),
-            this.safeNumber (ohlcv, 'O'),
-            this.safeNumber (ohlcv, 'H'),
-            this.safeNumber (ohlcv, 'L'),
-            this.safeNumber (ohlcv, 'C'),
-            this.safeNumber (ohlcv, 'V'),
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -632,7 +618,7 @@ export default class deepcoin extends deepcoinRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
         const suffix = '_0.1';
-        const orderbook = await this.watchPublic (market, messageHash, '25', params, suffix);
+        const orderbook = await this.watchPublic (market, messageHash, 'book25', params, suffix);
         return orderbook.limit ();
     }
 
@@ -653,129 +639,63 @@ export default class deepcoin extends deepcoinRest {
         const subscription = {
             'topic': 'orderbook',
         };
-        return await this.unWatchPublic (market, messageHash, '25', params, subscription, suffix);
+        return await this.unWatchPublic (market, messageHash, 'book25', params, subscription, suffix);
     }
 
     handleOrderBook (client: Client, message) {
         //
         //     {
         //         "a": "PMO",
+        //         "S": "BTCUSDT_0.1",
         //         "t": "i", // i - update, f - snapshot
-        //         "r": [
-        //             {
-        //                 "d": { "I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979 }
-        //             },
-        //             {
-        //                 "d": { "I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724 }
-        //             }
+        //         "d": {
+        //             "b": [
+        //                 [ 4021, 54.39979 ], [ 4020.9, 0.001 ]...
+        //             ],
+        //             "a": [
+        //                 [ 4021.1, 49.56724 ], [ 4021.2, 0.001 ]...
+        //             ]
         //         ],
         //         "tt": 1760975816446,
         //         "mt": 1760975816446
         //     }
         //
-        const response = this.safeList (message, 'r', []);
-        const first = this.safeDict (response, 0, {});
-        const data = this.safeDict (first, 'd', {});
-        const marketId = this.safeString (data, 'I');
-        const market = this.safeMarket (marketId, undefined, '/');
-        const symbol = this.safeSymbol (marketId, market);
+        const type = this.safeString (message, 't');
+        const isSnapshot = (type === 'f');
+        const data = this.safeDict (message, 'd', {});
+        const split = this.safeString (message, 'S', '').split ('_');
+        const marketId = this.safeString (split, 0);
+        const market = this.safeMarket (marketId, undefined, undefined);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (message, 'mt');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
         }
         const orderbook = this.orderbooks[symbol];
-        const type = this.safeString (message, 't');
-        if (orderbook['timestamp'] === undefined) {
-            if (type === 'f') {
-                // snapshot
-                this.handleOrderBookSnapshot (client, message);
-            } else {
-                // cache the updates until the snapshot is received
-                orderbook.cache.push (message);
-            }
+        if (isSnapshot) {
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
+            orderbook.reset (snapshot);
         } else {
-            this.handleOrderBookMessage (client, message, orderbook);
-            const messageHash = 'orderbook' + '::' + symbol;
-            client.resolve (orderbook, messageHash);
-        }
-    }
-
-    handleOrderBookSnapshot (client: Client, message) {
-        const entries = this.safeList (message, 'r', []);
-        const first = this.safeDict (entries, 0, {});
-        const data = this.safeDict (first, 'd', {});
-        const marketId = this.safeString (data, 'I');
-        const market = this.safeMarket (marketId, undefined, '/');
-        const symbol = this.safeSymbol (marketId, market);
-        const orderbook = this.orderbooks[symbol];
-        const orderedEntries: Dict = {
-            'bids': [],
-            'asks': [],
-        };
-        for (let i = 0; i < entries.length; i++) {
-            const entry = entries[i];
-            const entryData = this.safeDict (entry, 'd', {});
-            const side = this.safeString (entryData, 'D');
-            const price = this.safeNumber (entryData, 'P');
-            const volume = this.safeNumber (entryData, 'V');
-            if (side === '0') {
-                // bid
-                orderedEntries['bids'].push ([ price, volume ]);
-            } else if (side === '1') {
-                // ask
-                orderedEntries['asks'].push ([ price, volume ]);
-            }
-        }
-        const timestamp = this.safeInteger (message, 'mt');
-        const snapshot = this.parseOrderBook (orderedEntries, symbol, timestamp);
-        orderbook.reset (snapshot);
-        const cachedMessages = orderbook.cache;
-        for (let j = 0; j < cachedMessages.length; j++) {
-            const cachedMessage = cachedMessages[j];
-            this.handleOrderBookMessage (client, cachedMessage, orderbook);
-        }
-        orderbook.cache = [];
-        const messageHash = 'orderbook' + '::' + symbol;
-        client.resolve (orderbook, messageHash);
-    }
-
-    handleOrderBookMessage (client: Client, message, orderbook) {
-        //     {
-        //         "a": "PMO",
-        //         "t": "i", // i - update, f - snapshot
-        //         "r": [
-        //             {
-        //                 "d": { "I": "ETH/USDT", "D": "1", "P": 4021, "V": 54.39979 }
-        //             },
-        //             {
-        //                 "d": { "I": "ETH/USDT", "D": "0", "P": 4021.1, "V": 49.56724 }
-        //             }
-        //         ],
-        //         "tt": 1760975816446,
-        //         "mt": 1760975816446
-        //     }
-        //
-        const timestamp = this.safeInteger (message, 'mt');
-        if (timestamp > orderbook['timestamp']) {
-            const response = this.safeList (message, 'r', []);
-            this.handleDeltas (orderbook, response);
+            const asks = this.safeList (data, 'a', []);
+            const bids = this.safeList (data, 'b', []);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
+        const messageHash = 'orderbook' + '::' + symbol;
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
     }
 
-    handleDelta (orderbook, entry) {
-        const data = this.safeDict (entry, 'd', {});
-        const bids = orderbook['bids'];
-        const asks = orderbook['asks'];
-        const side = this.safeString (data, 'D');
-        const price = this.safeNumber (data, 'P');
-        const volume = this.safeNumber (data, 'V');
-        if (side === '0') {
-            // bid
-            bids.store (price, volume);
-        } else if (side === '1') {
-            // ask
-            asks.store (price, volume);
+    handleDelta (bookside, delta) {
+        const bidAsk = this.parseBidAsk (delta, 0, 1);
+        bookside.storeArray (bidAsk);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
         }
     }
 
