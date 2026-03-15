@@ -1360,6 +1360,7 @@ export default class okx extends Exchange {
                         'mark': 100,
                         'index': 100,
                     },
+                    'rollingWindow': false,
                 },
                 'spot': {
                     'extends': 'default',
