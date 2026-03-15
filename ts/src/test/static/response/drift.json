@@ -1,0 +1,1371 @@
+{
+    "exchange": "drift",
+    "accountId": "ididididid",
+    "secret": "secretsecretsecretsecretsecretsecretsecrets",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "markets": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDC",
+                            "status": "active",
+                            "precision": 9,
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 20
+                                },
+                                "amount": {
+                                    "min": 0.0001,
+                                    "max": 3500
+                                }
+                            },
+                            "fees": {
+                                "maker": -0.00002,
+                                "taker": 0.00035
+                            },
+                            "oraclePrice": "68525.837797",
+                            "markPrice": "68481.850665",
+                            "baseVolume": "293.803700",
+                            "quoteVolume": "20508203.775252",
+                            "openInterest": {
+                                "long": "264.7866",
+                                "short": "-312.3766"
+                            },
+                            "fundingRate": {
+                                "long": "0.00093",
+                                "short": "-0.00093"
+                            },
+                            "fundingRate24h": "-0.000569",
+                            "fundingRateUpdateTs": 1770728410,
+                            "price": "68388.600000",
+                            "priceChange24h": "-741.000000",
+                            "priceChange24hPercent": "-1.07",
+                            "priceHigh": {
+                                "oracle": "71062.711743",
+                                "fill": "71050.000000"
+                            },
+                            "priceLow": {
+                                "oracle": "68263.971130",
+                                "fill": "68218.000000"
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "BTC-PERP",
+                        "lowercaseId": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "base": "BTC",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "BTC",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00035,
+                        "maker": -0.00002,
+                        "contractSize": null,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 1e-9,
+                            "price": 1e-9
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": 1,
+                                "max": 20
+                            },
+                            "amount": {
+                                "min": 0.0001,
+                                "max": 3500
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "baseAsset": "BTC",
+                            "quoteAsset": "USDC",
+                            "status": "active",
+                            "precision": 9,
+                            "limits": {
+                                "leverage": {
+                                    "min": 1,
+                                    "max": 20
+                                },
+                                "amount": {
+                                    "min": 0.0001,
+                                    "max": 3500
+                                }
+                            },
+                            "fees": {
+                                "maker": -0.00002,
+                                "taker": 0.00035
+                            },
+                            "oraclePrice": "68525.837797",
+                            "markPrice": "68481.850665",
+                            "baseVolume": "293.803700",
+                            "quoteVolume": "20508203.775252",
+                            "openInterest": {
+                                "long": "264.7866",
+                                "short": "-312.3766"
+                            },
+                            "fundingRate": {
+                                "long": "0.00093",
+                                "short": "-0.00093"
+                            },
+                            "fundingRate24h": "-0.000569",
+                            "fundingRateUpdateTs": 1770728410,
+                            "price": "68388.600000",
+                            "priceChange24h": "-741.000000",
+                            "priceChange24hPercent": "-1.07",
+                            "priceHigh": {
+                                "oracle": "71062.711743",
+                                "fill": "71050.000000"
+                            },
+                            "priceLow": {
+                                "oracle": "68263.971130",
+                                "fill": "68218.000000"
+                            }
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "bids": [
+                        {
+                            "price": "68691600000",
+                            "size": "110200000",
+                            "sources": {
+                                "dlob": "110200000"
+                            }
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "68731115338",
+                            "size": "4100000",
+                            "sources": {
+                                "dlob": "4100000"
+                            }
+                        }
+                    ],
+                    "marketName": "BTC-PERP",
+                    "marketType": "perp",
+                    "marketIndex": 1,
+                    "ts": 1770730108227,
+                    "slot": 399332134,
+                    "markPrice": "68711357669",
+                    "bestBidPrice": "68691600000",
+                    "bestAskPrice": "68731115338",
+                    "spreadPct": "57509",
+                    "spreadQuote": "39515338",
+                    "oracle": 68746842279,
+                    "oracleData": {
+                        "price": "68746842279",
+                        "slot": "399332133",
+                        "confidence": "989242",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68746842279",
+                        "twapConfidence": "68746842279"
+                    },
+                    "mmOracleData": {
+                        "price": "68746842279",
+                        "slot": "399332133",
+                        "confidence": "989242",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68746842279",
+                        "twapConfidence": "68746842279"
+                    },
+                    "marketSlot": 399332133
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "timestamp": 1770730108227,
+                    "datetime": "2026-02-10T13:28:28.227Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 68691.6,
+                    "bidVolume": 0.1102,
+                    "ask": 68731.115338,
+                    "askVolume": 0.0041,
+                    "close": null,
+                    "last": null,
+                    "change": null,
+                    "percentage": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "markPrice": null,
+                    "info": {
+                        "bids": [
+                            {
+                                "price": "68691600000",
+                                "size": "110200000",
+                                "sources": {
+                                    "dlob": "110200000"
+                                }
+                            }
+                        ],
+                        "asks": [
+                            {
+                                "price": "68731115338",
+                                "size": "4100000",
+                                "sources": {
+                                    "dlob": "4100000"
+                                }
+                            }
+                        ],
+                        "marketName": "BTC-PERP",
+                        "marketType": "perp",
+                        "marketIndex": 1,
+                        "ts": 1770730108227,
+                        "slot": 399332134,
+                        "markPrice": "68711357669",
+                        "bestBidPrice": "68691600000",
+                        "bestAskPrice": "68731115338",
+                        "spreadPct": "57509",
+                        "spreadQuote": "39515338",
+                        "oracle": 68746842279,
+                        "oracleData": {
+                            "price": "68746842279",
+                            "slot": "399332133",
+                            "confidence": "989242",
+                            "hasSufficientNumberOfDataPoints": true,
+                            "twap": "68746842279",
+                            "twapConfidence": "68746842279"
+                        },
+                        "mmOracleData": {
+                            "price": "68746842279",
+                            "slot": "399332133",
+                            "confidence": "989242",
+                            "hasSufficientNumberOfDataPoints": true,
+                            "twap": "68746842279",
+                            "twapConfidence": "68746842279"
+                        },
+                        "marketSlot": 399332133
+                    },
+                    "open": null,
+                    "average": null,
+                    "vwap": null,
+                    "previousClose": null,
+                    "indexPrice": null
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "bids": [
+                        {
+                            "price": "68864700000",
+                            "size": "72500000",
+                            "sources": {
+                                "vamm": "72500000"
+                            }
+                        }
+                    ],
+                    "asks": [
+                        {
+                            "price": "68918200000",
+                            "size": "217500000",
+                            "sources": {
+                                "vamm": "217500000"
+                            }
+                        }
+                    ],
+                    "marketName": "BTC-PERP",
+                    "marketType": "perp",
+                    "marketIndex": 1,
+                    "ts": 1770731534675,
+                    "slot": 399335746,
+                    "markPrice": "68891450000",
+                    "bestBidPrice": "68864700000",
+                    "bestAskPrice": "68918200000",
+                    "spreadPct": "77658",
+                    "spreadQuote": "53500000",
+                    "oracle": 68922094561,
+                    "oracleData": {
+                        "price": "68922094561",
+                        "slot": "399335745",
+                        "confidence": "4476719",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68922094561",
+                        "twapConfidence": "68922094561"
+                    },
+                    "mmOracleData": {
+                        "price": "68922094561",
+                        "slot": "399335745",
+                        "confidence": "4476719",
+                        "hasSufficientNumberOfDataPoints": true,
+                        "twap": "68922094561",
+                        "twapConfidence": "68922094561"
+                    },
+                    "marketSlot": 399335745
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            68864.7,
+                            0.0725
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            68918.2,
+                            0.2175
+                        ]
+                    ],
+                    "timestamp": 1770731534675,
+                    "datetime": "2026-02-10T13:52:14.675Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770731837,
+                            "txSig": "4wCmEKNdf57RWMYXKbhZRF2Ng2r3gUG5atkpc8GbU7g29ucuvrQXgHnuyWQ2884oDfhatwCVgE6QeSksa9WUUEH9",
+                            "txSigIndex": 1,
+                            "slot": 399336514,
+                            "fillerReward": "0.004825",
+                            "baseAssetAmountFilled": "0.001000000",
+                            "quoteAssetAmountFilled": "68.936100",
+                            "takerFee": "0.048256",
+                            "makerRebate": "-0.001861",
+                            "referrerReward": "0.000000",
+                            "quoteAssetAmountSurplus": "0.000000",
+                            "takerOrderBaseAssetAmount": "0.005300000",
+                            "takerOrderCumulativeBaseAssetAmountFilled": "0.005300000",
+                            "takerOrderCumulativeQuoteAssetAmountFilled": "365.354730",
+                            "makerOrderBaseAssetAmount": "0.110500000",
+                            "makerOrderCumulativeBaseAssetAmountFilled": "0.001000000",
+                            "makerOrderCumulativeQuoteAssetAmountFilled": "68.936100",
+                            "oraclePrice": "68941.288473",
+                            "makerFee": "-0.001861",
+                            "action": "fill",
+                            "actionExplanation": "orderFilledWithMatch",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "filler": "JE9m89yHHiCGzzL2FAeeZgHKAFwjkW4Qp1GfjegWnojR",
+                            "fillRecordId": "7062235",
+                            "taker": "4giLmCjex6SvXtC1rx38gxqKgsmw2kNrEuYeRA4En1kq",
+                            "takerOrderId": "6256",
+                            "takerOrderDirection": "long",
+                            "maker": "BrRpSaQ6hFDw8darPCyP9Sw7sjydMFQqB4ECAotXSEci",
+                            "makerOrderId": "38935885",
+                            "makerOrderDirection": "short",
+                            "spotFulfillmentMethodFee": "0.000000",
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "bitFlags": 1,
+                            "takerExistingQuoteEntryAmount": "",
+                            "takerExistingBaseAssetAmount": "",
+                            "makerExistingQuoteEntryAmount": "69.891378",
+                            "makerExistingBaseAssetAmount": ""
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770731837,
+                            "txSig": "4wCmEKNdf57RWMYXKbhZRF2Ng2r3gUG5atkpc8GbU7g29ucuvrQXgHnuyWQ2884oDfhatwCVgE6QeSksa9WUUEH9",
+                            "txSigIndex": 1,
+                            "slot": 399336514,
+                            "fillerReward": "0.004825",
+                            "baseAssetAmountFilled": "0.001000000",
+                            "quoteAssetAmountFilled": "68.936100",
+                            "takerFee": "0.048256",
+                            "makerRebate": "-0.001861",
+                            "referrerReward": "0.000000",
+                            "quoteAssetAmountSurplus": "0.000000",
+                            "takerOrderBaseAssetAmount": "0.005300000",
+                            "takerOrderCumulativeBaseAssetAmountFilled": "0.005300000",
+                            "takerOrderCumulativeQuoteAssetAmountFilled": "365.354730",
+                            "makerOrderBaseAssetAmount": "0.110500000",
+                            "makerOrderCumulativeBaseAssetAmountFilled": "0.001000000",
+                            "makerOrderCumulativeQuoteAssetAmountFilled": "68.936100",
+                            "oraclePrice": "68941.288473",
+                            "makerFee": "-0.001861",
+                            "action": "fill",
+                            "actionExplanation": "orderFilledWithMatch",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "filler": "JE9m89yHHiCGzzL2FAeeZgHKAFwjkW4Qp1GfjegWnojR",
+                            "fillRecordId": "7062235",
+                            "taker": "4giLmCjex6SvXtC1rx38gxqKgsmw2kNrEuYeRA4En1kq",
+                            "takerOrderId": "6256",
+                            "takerOrderDirection": "long",
+                            "maker": "BrRpSaQ6hFDw8darPCyP9Sw7sjydMFQqB4ECAotXSEci",
+                            "makerOrderId": "38935885",
+                            "makerOrderDirection": "short",
+                            "spotFulfillmentMethodFee": "0.000000",
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "bitFlags": 1,
+                            "takerExistingQuoteEntryAmount": "",
+                            "takerExistingBaseAssetAmount": "",
+                            "makerExistingQuoteEntryAmount": "69.891378",
+                            "makerExistingBaseAssetAmount": ""
+                        },
+                        "amount": 0.001,
+                        "datetime": "2026-02-10T13:57:17.000Z",
+                        "id": "7062235",
+                        "price": 68936.1,
+                        "timestamp": 1770731837000,
+                        "symbol": "BTC/USDC:USDC",
+                        "side": "buy",
+                        "cost": 68.9361,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.048256
+                        },
+                        "order": "6256",
+                        "takerOrMaker": null,
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.048256
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770731837,
+                            "txSig": "4wCmEKNdf57RWMYXKbhZRF2Ng2r3gUG5atkpc8GbU7g29ucuvrQXgHnuyWQ2884oDfhatwCVgE6QeSksa9WUUEH9",
+                            "txSigIndex": 1,
+                            "slot": 399336514,
+                            "fillerReward": "0.004825",
+                            "baseAssetAmountFilled": "0.001000000",
+                            "quoteAssetAmountFilled": "68.936100",
+                            "takerFee": "0.048256",
+                            "makerRebate": "-0.001861",
+                            "referrerReward": "0.000000",
+                            "quoteAssetAmountSurplus": "0.000000",
+                            "takerOrderBaseAssetAmount": "0.005300000",
+                            "takerOrderCumulativeBaseAssetAmountFilled": "0.005300000",
+                            "takerOrderCumulativeQuoteAssetAmountFilled": "365.354730",
+                            "makerOrderBaseAssetAmount": "0.110500000",
+                            "makerOrderCumulativeBaseAssetAmountFilled": "0.001000000",
+                            "makerOrderCumulativeQuoteAssetAmountFilled": "68.936100",
+                            "oraclePrice": "68941.288473",
+                            "makerFee": "-0.001861",
+                            "action": "fill",
+                            "actionExplanation": "orderFilledWithMatch",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "filler": "JE9m89yHHiCGzzL2FAeeZgHKAFwjkW4Qp1GfjegWnojR",
+                            "fillRecordId": "7062235",
+                            "taker": "4giLmCjex6SvXtC1rx38gxqKgsmw2kNrEuYeRA4En1kq",
+                            "takerOrderId": "6256",
+                            "takerOrderDirection": "long",
+                            "maker": "BrRpSaQ6hFDw8darPCyP9Sw7sjydMFQqB4ECAotXSEci",
+                            "makerOrderId": "38935885",
+                            "makerOrderDirection": "short",
+                            "spotFulfillmentMethodFee": "0.000000",
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "bitFlags": 1,
+                            "takerExistingQuoteEntryAmount": "",
+                            "takerExistingBaseAssetAmount": "",
+                            "makerExistingQuoteEntryAmount": "69.891378",
+                            "makerExistingBaseAssetAmount": ""
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770731837,
+                            "txSig": "4wCmEKNdf57RWMYXKbhZRF2Ng2r3gUG5atkpc8GbU7g29ucuvrQXgHnuyWQ2884oDfhatwCVgE6QeSksa9WUUEH9",
+                            "txSigIndex": 1,
+                            "slot": 399336514,
+                            "fillerReward": "0.004825",
+                            "baseAssetAmountFilled": "0.001000000",
+                            "quoteAssetAmountFilled": "68.936100",
+                            "takerFee": "0.048256",
+                            "makerRebate": "-0.001861",
+                            "referrerReward": "0.000000",
+                            "quoteAssetAmountSurplus": "0.000000",
+                            "takerOrderBaseAssetAmount": "0.005300000",
+                            "takerOrderCumulativeBaseAssetAmountFilled": "0.005300000",
+                            "takerOrderCumulativeQuoteAssetAmountFilled": "365.354730",
+                            "makerOrderBaseAssetAmount": "0.110500000",
+                            "makerOrderCumulativeBaseAssetAmountFilled": "0.001000000",
+                            "makerOrderCumulativeQuoteAssetAmountFilled": "68.936100",
+                            "oraclePrice": "68941.288473",
+                            "makerFee": "-0.001861",
+                            "action": "fill",
+                            "actionExplanation": "orderFilledWithMatch",
+                            "marketIndex": 1,
+                            "marketType": "perp",
+                            "filler": "JE9m89yHHiCGzzL2FAeeZgHKAFwjkW4Qp1GfjegWnojR",
+                            "fillRecordId": "7062235",
+                            "taker": "4giLmCjex6SvXtC1rx38gxqKgsmw2kNrEuYeRA4En1kq",
+                            "takerOrderId": "6256",
+                            "takerOrderDirection": "long",
+                            "maker": "BrRpSaQ6hFDw8darPCyP9Sw7sjydMFQqB4ECAotXSEci",
+                            "makerOrderId": "38935885",
+                            "makerOrderDirection": "short",
+                            "spotFulfillmentMethodFee": "0.000000",
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "bitFlags": 1,
+                            "takerExistingQuoteEntryAmount": "",
+                            "takerExistingBaseAssetAmount": "",
+                            "makerExistingQuoteEntryAmount": "69.891378",
+                            "makerExistingBaseAssetAmount": ""
+                        },
+                        "amount": 0.001,
+                        "datetime": "2026-02-10T13:57:17.000Z",
+                        "id": "7062235",
+                        "price": 68936.1,
+                        "timestamp": 1770731837000,
+                        "symbol": "BTC/USDC:USDC",
+                        "side": "buy",
+                        "cost": 68.9361,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 0.048256
+                        },
+                        "order": "6256",
+                        "takerOrMaker": null,
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 0.048256
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770732120,
+                            "fillOpen": 68959.2,
+                            "fillHigh": 68959.2,
+                            "fillClose": 68881.4,
+                            "fillLow": 68881.4,
+                            "oracleOpen": 68939.447441,
+                            "oracleHigh": 68939.447441,
+                            "oracleClose": 68898.529659,
+                            "oracleLow": 68898.529659,
+                            "quoteVolume": 268.63746,
+                            "baseVolume": 0.0039
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1770732120000,
+                        68959.2,
+                        68959.2,
+                        68881.4,
+                        68881.4,
+                        268.63746
+                    ]
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "input": [
+                    1
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "record": {
+                        "ts": 1770009167,
+                        "txSig": "",
+                        "txSigIndex": 1,
+                        "slot": 397499413,
+                        "user": "",
+                        "status": "open",
+                        "orderType": "oracle",
+                        "marketType": "perp",
+                        "orderId": 1,
+                        "userOrderId": 0,
+                        "marketIndex": 0,
+                        "price": "0",
+                        "baseAssetAmount": "0.01",
+                        "quoteAssetAmount": "0",
+                        "baseAssetAmountFilled": "0.01",
+                        "quoteAssetAmountFilled": "0.993918",
+                        "direction": "short",
+                        "reduceOnly": false,
+                        "triggerPrice": "0",
+                        "triggerCondition": "above",
+                        "existingPositionDirection": "long",
+                        "postOnly": false,
+                        "immediateOrCancel": false,
+                        "oraclePriceOffset": "-0.189943",
+                        "auctionDuration": 20,
+                        "auctionStartPrice": "-0.0539",
+                        "auctionEndPrice": "-0.1899",
+                        "maxTs": 1770009197,
+                        "marketFilter": "perp",
+                        "symbol": "BTC-PERP",
+                        "lastActionStatus": "filled",
+                        "lastActionExplanation": "orderFilledWithMatch",
+                        "lastUpdatedTs": 1770009171,
+                        "cumulativeFee": "0.000348"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ts": 1770009167,
+                        "txSig": "",
+                        "txSigIndex": 1,
+                        "slot": 397499413,
+                        "user": "",
+                        "status": "open",
+                        "orderType": "oracle",
+                        "marketType": "perp",
+                        "orderId": 1,
+                        "userOrderId": 0,
+                        "marketIndex": 0,
+                        "price": "0",
+                        "baseAssetAmount": "0.01",
+                        "quoteAssetAmount": "0",
+                        "baseAssetAmountFilled": "0.01",
+                        "quoteAssetAmountFilled": "0.993918",
+                        "direction": "short",
+                        "reduceOnly": false,
+                        "triggerPrice": "0",
+                        "triggerCondition": "above",
+                        "existingPositionDirection": "long",
+                        "postOnly": false,
+                        "immediateOrCancel": false,
+                        "oraclePriceOffset": "-0.189943",
+                        "auctionDuration": 20,
+                        "auctionStartPrice": "-0.0539",
+                        "auctionEndPrice": "-0.1899",
+                        "maxTs": 1770009197,
+                        "marketFilter": "perp",
+                        "symbol": "BTC-PERP",
+                        "lastActionStatus": "filled",
+                        "lastActionExplanation": "orderFilledWithMatch",
+                        "lastUpdatedTs": 1770009171,
+                        "cumulativeFee": "0.000348"
+                    },
+                    "id": "1",
+                    "timestamp": 1770009167000,
+                    "datetime": "2026-02-02T05:12:47.000Z",
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "market",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "sell",
+                    "price": 99.3918,
+                    "triggerPrice": 0,
+                    "triggerDirection": "above",
+                    "amount": 0.01,
+                    "cost": 0.993918,
+                    "average": 99.3918,
+                    "filled": 0.01,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "fees": [],
+                    "timeInForce": "GTC",
+                    "lastUpdateTimestamp": 1770009171000,
+                    "clientOrderId": null,
+                    "lastTradeTimestamp": null,
+                    "trades": [],
+                    "stopPrice": 0,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770009167,
+                            "txSig": "",
+                            "txSigIndex": 1,
+                            "slot": 397499413,
+                            "user": "",
+                            "status": "open",
+                            "orderType": "oracle",
+                            "marketType": "perp",
+                            "orderId": 1,
+                            "userOrderId": 0,
+                            "marketIndex": 0,
+                            "price": "0",
+                            "baseAssetAmount": "0.01",
+                            "quoteAssetAmount": "0",
+                            "baseAssetAmountFilled": "0.01",
+                            "quoteAssetAmountFilled": "0.993918",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "triggerPrice": "0",
+                            "triggerCondition": "above",
+                            "existingPositionDirection": "long",
+                            "postOnly": false,
+                            "immediateOrCancel": false,
+                            "oraclePriceOffset": "-0.189943",
+                            "auctionDuration": 20,
+                            "auctionStartPrice": "-0.0539",
+                            "auctionEndPrice": "-0.1899",
+                            "maxTs": 1770009197,
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "lastActionStatus": "filled",
+                            "lastActionExplanation": "orderFilledWithMatch",
+                            "lastUpdatedTs": 1770009171,
+                            "cumulativeFee": "0.000348"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770009167,
+                            "txSig": "",
+                            "txSigIndex": 1,
+                            "slot": 397499413,
+                            "user": "",
+                            "status": "open",
+                            "orderType": "oracle",
+                            "marketType": "perp",
+                            "orderId": 1,
+                            "userOrderId": 0,
+                            "marketIndex": 0,
+                            "price": "0",
+                            "baseAssetAmount": "0.01",
+                            "quoteAssetAmount": "0",
+                            "baseAssetAmountFilled": "0.01",
+                            "quoteAssetAmountFilled": "0.993918",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "triggerPrice": "0",
+                            "triggerCondition": "above",
+                            "existingPositionDirection": "long",
+                            "postOnly": false,
+                            "immediateOrCancel": false,
+                            "oraclePriceOffset": "-0.189943",
+                            "auctionDuration": 20,
+                            "auctionStartPrice": "-0.0539",
+                            "auctionEndPrice": "-0.1899",
+                            "maxTs": 1770009197,
+                            "marketFilter": "perp",
+                            "symbol": "BTC-PERP",
+                            "lastActionStatus": "filled",
+                            "lastActionExplanation": "orderFilledWithMatch",
+                            "lastUpdatedTs": 1770009171,
+                            "cumulativeFee": "0.000348"
+                        },
+                        "id": "1",
+                        "timestamp": 1770009167000,
+                        "datetime": "2026-02-02T05:12:47.000Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "market",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 99.3918,
+                        "triggerPrice": 0,
+                        "triggerDirection": "above",
+                        "amount": 0.01,
+                        "cost": 0.993918,
+                        "average": 99.3918,
+                        "filled": 0.01,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "fees": [],
+                        "timeInForce": "GTC",
+                        "lastUpdateTimestamp": 1770009171000,
+                        "clientOrderId": null,
+                        "lastTradeTimestamp": null,
+                        "trades": [],
+                        "stopPrice": 0,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "account": {
+                        "balance": "27.547672",
+                        "totalCollateral": "27.547672",
+                        "freeCollateral": "26.181103",
+                        "health": "99",
+                        "initialMargin": "1.366004",
+                        "maintenanceMargin": "0.238456",
+                        "leverage": "0.3992"
+                    },
+                    "positions": [],
+                    "balances": [
+                        {
+                            "symbol": "USDC",
+                            "marketIndex": 0,
+                            "balance": "28.202300",
+                            "openOrders": 0,
+                            "liquidationPrice": "0.031668"
+                        }
+                    ],
+                    "orders": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "marketType": "perp",
+                            "orderId": 14,
+                            "price": "300.000000",
+                            "baseAssetAmount": "0.010000000",
+                            "baseAssetAmountFilled": "0.000000000",
+                            "quoteAssetAmountFilled": "0.000000",
+                            "status": "open",
+                            "orderType": "limit",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "triggerPrice": "0.000000",
+                            "triggerCondition": "above"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "marketType": "perp",
+                            "orderId": 14,
+                            "price": "300.000000",
+                            "baseAssetAmount": "0.010000000",
+                            "baseAssetAmountFilled": "0.000000000",
+                            "quoteAssetAmountFilled": "0.000000",
+                            "status": "open",
+                            "orderType": "limit",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "triggerPrice": "0.000000",
+                            "triggerCondition": "above"
+                        },
+                        "id": "14",
+                        "timestamp": null,
+                        "datetime": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 300,
+                        "triggerPrice": 0,
+                        "triggerDirection": "above",
+                        "amount": 0.01,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.01,
+                        "status": "open",
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ],
+                        "timeInForce": "GTC",
+                        "lastUpdateTimestamp": null,
+                        "clientOrderId": null,
+                        "lastTradeTimestamp": null,
+                        "trades": [],
+                        "stopPrice": 0,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "account": {
+                        "balance": "27.547672",
+                        "totalCollateral": "27.547672",
+                        "freeCollateral": "26.181103",
+                        "health": "99",
+                        "initialMargin": "1.366004",
+                        "maintenanceMargin": "0.238456",
+                        "leverage": "0.3992"
+                    },
+                    "positions": [],
+                    "balances": [
+                        {
+                            "symbol": "USDC",
+                            "marketIndex": 0,
+                            "balance": "28.202300",
+                            "openOrders": 0,
+                            "liquidationPrice": "0.031668"
+                        }
+                    ],
+                    "orders": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "marketType": "perp",
+                            "orderId": 14,
+                            "price": "300.000000",
+                            "baseAssetAmount": "0.010000000",
+                            "baseAssetAmountFilled": "0.000000000",
+                            "quoteAssetAmountFilled": "0.000000",
+                            "status": "open",
+                            "orderType": "limit",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "triggerPrice": "0.000000",
+                            "triggerCondition": "above"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "account": {
+                            "balance": "27.547672",
+                            "totalCollateral": "27.547672",
+                            "freeCollateral": "26.181103",
+                            "health": "99",
+                            "initialMargin": "1.366004",
+                            "maintenanceMargin": "0.238456",
+                            "leverage": "0.3992"
+                        },
+                        "positions": [],
+                        "balances": [
+                            {
+                                "symbol": "USDC",
+                                "marketIndex": 0,
+                                "balance": "28.202300",
+                                "openOrders": 0,
+                                "liquidationPrice": "0.031668"
+                            }
+                        ],
+                        "orders": [
+                            {
+                                "symbol": "BTC-PERP",
+                                "marketIndex": 0,
+                                "marketType": "perp",
+                                "orderId": 14,
+                                "price": "300.000000",
+                                "baseAssetAmount": "0.010000000",
+                                "baseAssetAmountFilled": "0.000000000",
+                                "quoteAssetAmountFilled": "0.000000",
+                                "status": "open",
+                                "orderType": "limit",
+                                "direction": "short",
+                                "reduceOnly": false,
+                                "postOnly": false,
+                                "triggerPrice": "0.000000",
+                                "triggerCondition": "above"
+                            }
+                        ]
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "USDC": {
+                        "free": 28.2023,
+                        "used": 0,
+                        "total": 28.2023
+                    },
+                    "free": {
+                        "USDC": 28.2023
+                    },
+                    "used": {
+                        "USDC": 0
+                    },
+                    "total": {
+                        "USDC": 28.2023
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchBalance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "account": {
+                        "balance": "27.547672",
+                        "totalCollateral": "27.547672",
+                        "freeCollateral": "26.181103",
+                        "health": "99",
+                        "initialMargin": "1.366004",
+                        "maintenanceMargin": "0.238456",
+                        "leverage": "0.3992"
+                    },
+                    "positions": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "baseAssetAmount": "-0.050000000",
+                            "quoteEntryAmount": "4.198370",
+                            "settledPnl": "0.000000",
+                            "feesAndFunding": "-0.002247",
+                            "liquidationPrice": "614.750360"
+                        }
+                    ],
+                    "balances": [
+                        {
+                            "symbol": "USDC",
+                            "marketIndex": 0,
+                            "balance": "28.202300",
+                            "openOrders": 0,
+                            "liquidationPrice": "0.031668"
+                        }
+                    ],
+                    "orders": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "marketType": "perp",
+                            "orderId": 14,
+                            "price": "300.000000",
+                            "baseAssetAmount": "0.010000000",
+                            "baseAssetAmountFilled": "0.000000000",
+                            "quoteAssetAmountFilled": "0.000000",
+                            "status": "open",
+                            "orderType": "limit",
+                            "direction": "short",
+                            "reduceOnly": false,
+                            "postOnly": false,
+                            "triggerPrice": "0.000000",
+                            "triggerCondition": "above"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "BTC-PERP",
+                            "marketIndex": 0,
+                            "baseAssetAmount": "-0.050000000",
+                            "quoteEntryAmount": "4.198370",
+                            "settledPnl": "0.000000",
+                            "feesAndFunding": "-0.002247",
+                            "liquidationPrice": "614.750360"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "contracts": -0.05,
+                        "side": "short",
+                        "notional": 4.19837,
+                        "entryPrice": 83.9674,
+                        "liquidationPrice": 614.75036,
+                        "contractSize": null
+                    }
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770662471,
+                            "txSig": "",
+                            "txSigIndex": 3,
+                            "slot": 399465084,
+                            "userAuthority": "",
+                            "user": "",
+                            "marketIndex": 2,
+                            "fundingPayment": "0.000256",
+                            "baseAssetAmount": "-0.005000000",
+                            "userLastCumulativeFunding": "1179.301676333",
+                            "ammCumulativeFundingLong": "1179.722876302",
+                            "ammCumulativeFundingShort": "1179.352901291"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770662471,
+                            "txSig": "",
+                            "txSigIndex": 3,
+                            "slot": 399465084,
+                            "userAuthority": "",
+                            "user": "",
+                            "marketIndex": 2,
+                            "fundingPayment": "0.000256",
+                            "baseAssetAmount": "-0.005000000",
+                            "userLastCumulativeFunding": "1179.301676333",
+                            "ammCumulativeFundingLong": "1179.722876302",
+                            "ammCumulativeFundingShort": "1179.352901291"
+                        },
+                        "symbol": "BTC/USDC:USDC",
+                        "code": "USDC",
+                        "timestamp": 1770662471000,
+                        "datetime": "2026-02-09T18:41:11.000Z",
+                        "id": "3",
+                        "amount": 0.000256
+                    }
+                ]
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions",
+                "method": "fetchTransactions",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1750006818,
+                            "txSig": "",
+                            "txSigIndex": 1,
+                            "slot": 399216604,
+                            "amount": "1.000000",
+                            "oraclePrice": "0.999927",
+                            "marketDepositBalance": "125324486.312326148",
+                            "marketWithdrawBalance": "50709710.305888169",
+                            "marketCumulativeDepositInterest": "1.1996503210",
+                            "marketCumulativeBorrowInterest": "1.3923734825",
+                            "totalDepositsAfter": "29.989500",
+                            "totalWithdrawsAfter": "1.999864",
+                            "depositRecordId": "12638973",
+                            "userAuthority": "",
+                            "user": "",
+                            "direction": "withdraw",
+                            "explanation": "none",
+                            "marketIndex": 0,
+                            "symbol": "USDC"
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1750006818,
+                            "txSig": "",
+                            "txSigIndex": 1,
+                            "slot": 399216604,
+                            "amount": "1.000000",
+                            "oraclePrice": "0.999927",
+                            "marketDepositBalance": "125324486.312326148",
+                            "marketWithdrawBalance": "50709710.305888169",
+                            "marketCumulativeDepositInterest": "1.1996503210",
+                            "marketCumulativeBorrowInterest": "1.3923734825",
+                            "totalDepositsAfter": "29.989500",
+                            "totalWithdrawsAfter": "1.999864",
+                            "depositRecordId": "12638973",
+                            "userAuthority": "",
+                            "user": "",
+                            "direction": "withdraw",
+                            "explanation": "none",
+                            "marketIndex": 0,
+                            "symbol": "USDC"
+                        },
+                        "id": "USDC-12638973",
+                        "txid": null,
+                        "timestamp": 1750006818000,
+                        "datetime": "2025-06-15T17:00:18.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 1,
+                        "currency": "USDC",
+                        "status": "ok",
+                        "updated": null,
+                        "fee": null,
+                        "network": null,
+                        "comment": "none",
+                        "internal": null
+                    }
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetchLedger",
+                "method": "fetchLedger",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "records": [
+                        {
+                            "ts": 1770111117,
+                            "txSig": "",
+                            "txSigIndex": 2,
+                            "slot": 398222413,
+                            "pnl": "0.028690",
+                            "user": "",
+                            "baseAssetAmount": "0.000000000",
+                            "quoteAssetAmountAfter": "0.000000",
+                            "quoteEntryAmount": "0.000000",
+                            "settlePrice": "80.073147",
+                            "marketIndex": 0,
+                            "explanation": "none"
+                        }
+                    ],
+                    "meta": {
+                        "nextPage": null
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "ts": 1770111117,
+                            "txSig": "",
+                            "txSigIndex": 2,
+                            "slot": 398222413,
+                            "pnl": "0.028690",
+                            "user": "",
+                            "baseAssetAmount": "0.000000000",
+                            "quoteAssetAmountAfter": "0.000000",
+                            "quoteEntryAmount": "0.000000",
+                            "settlePrice": "80.073147",
+                            "marketIndex": 0,
+                            "explanation": "none"
+                        },
+                        "id": null,
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": null,
+                        "type": "pnl",
+                        "currency": "USDC",
+                        "amount": 0.02869,
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "timestamp": 1770111117000,
+                        "datetime": "2026-02-03T09:31:57.000Z",
+                        "fee": null
+                    }
+                ]
+            }
+        ]
+    }
+}
