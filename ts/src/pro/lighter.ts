@@ -449,7 +449,7 @@ export default class lighter extends lighterRest {
         //         "ask_account_id": 99349,
         //         "bid_account_id": 243008,
         //         "is_maker_ask": false,
-        //         "block_height": 102322769,
+        //         "block_height": 102322768,
         //         "timestamp": 1763623734215,
         //         "taker_position_size_before": "0.0346",
         //         "taker_entry_quote_before": "104.359926",
