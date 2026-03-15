@@ -4624,16 +4624,18 @@ class hyperliquid extends Exchange {
         $id = $this->safe_string($income, 'hash');
         $timestamp = $this->safe_integer($income, 'time');
         $delta = $this->safe_dict($income, 'delta');
-        $baseId = $this->safe_string($delta, 'coin');
-        $marketSymbol = $baseId . '/USDC:USDC';
-        $market = $this->safe_market($marketSymbol);
-        $symbol = $market['symbol'];
+        $coin = $this->safe_string($delta, 'coin');
+        $marketId = null;
+        if ($coin !== null) {
+            $marketId = $this->coin_to_market_id($coin);
+        }
+        $market = $this->safe_market($marketId, $market);
         $amount = $this->safe_string($delta, 'usdc');
-        $code = $this->safe_currency_code('USDC');
+        $code = $this->safe_string($market, 'settle', 'USDC');
         $rate = $this->safe_number($delta, 'fundingRate');
         return array(
             'info' => $income,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'code' => $code,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
