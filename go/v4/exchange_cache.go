@@ -41,6 +41,10 @@ func (c *BaseCache) Clear() {
 	c.Data = c.Data[:0]
 }
 
+func (c *BaseCache) GetData() []interface{} {
+	return c.Data
+}
+
 func (c *BaseCache) AppendInternal(item interface{}) {
 	// helper (no lock)
 	if c.MaxSize > 0 && len(c.Data) >= c.MaxSize {

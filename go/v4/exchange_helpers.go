@@ -32,7 +32,19 @@ func UnWrapType(value interface{}) interface{} {
 		return v.ToMap()
 	case ArrayCacheByTimestamp:
 		return v.ToArray()
+	case *ArrayCacheByTimestamp:
+		return v.ToArray()
 	case ArrayCache:
+		return v.ToArray()
+	case *ArrayCache:
+		return v.ToArray()
+	case ArrayCacheBySymbolById:
+		return v.ToArray()
+	case *ArrayCacheBySymbolById:
+		return v.ToArray()
+	case ArrayCacheBySymbolBySide:
+		return v.ToArray()
+	case *ArrayCacheBySymbolBySide:
 		return v.ToArray()
 	case string:
 		panic(v)
@@ -404,6 +416,19 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 		if obs, ok := collection.(IOrderBookSide); ok {
 			return (obs.GetData())[keyNum]
 		}
+	}
+
+	// to access
+	if val, ok := collection.(interface{ GetData() []interface{} }); ok {
+		intKey := ParseInt(key)
+		if intKey == math.MinInt64 {
+			return nil // Key is not an int, invalid index
+		}
+		data := val.GetData()
+		if intKey >= 0 && intKey < int64(len(data)) {
+			return data[int(intKey)]
+		}
+		return nil
 	}
 
 	// this is needed in checkRequiredCredentials or alike
