@@ -882,7 +882,7 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
-            if (baseName === undefined) {
+            if (baseName === undefined || quoteId === undefined) {
                 continue;
                 // why sandbox sending this? check it later
             }
