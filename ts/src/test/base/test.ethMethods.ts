@@ -14,6 +14,9 @@ function testEthMethods () {
     const publicKey = '0x3096cD9827766E03f8b6DF58996399406DC270Af';
     const generatedAddress = exchange.ethGetAddressFromPrivateKey (privateKey);
     assert (generatedAddress.toLowerCase () === publicKey.toLowerCase (), 'ethGetAddressFromPrivateKey did not generate the expected address: ' + generatedAddress + ' != ' + publicKey);
+
+    const publicKeyGenerated = exchange.ethGetPublicKeyFromPrivateKey (privateKey);
+    assert (publicKeyGenerated.toLowerCase () === publicKey.toLowerCase (), 'ethGetPublicKeyFromPrivateKey did not generate the expected public key: ' + publicKeyGenerated + ' != ' + publicKey);
 }
 
 export default testEthMethods;
