@@ -20,6 +20,35 @@ public partial class testMainClass : BaseTest
         object method = "watchTickers";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
+        void consumer(Message message)
+        {
+            if (isTrue(message.error))
+            {
+                throw new ExchangeError ((string)message.error) ;
+            }
+            if (!isTrue(message.payload))
+            {
+                throw new ExchangeError ((string)"received null or undefined payload") ;
+            }
+        };
+        try
+        {
+            await exchange.subscribeTickers(argSymbols, consumer, argParams);
+        } catch(Exception e)
+        {
+            // for some exchanges, specifically watchTickers method not subscribe
+            // to "all tickers" itself, and it requires symbols to be set
+            // so, in such case, if it's arguments-required exception, we don't
+            // mark tests as failed, but just skip them
+            if (isTrue(isTrue((e is ArgumentsRequired)) && isTrue((isTrue(isEqual(argSymbols, null)) || isTrue(isEqual(getArrayLength(argSymbols), 0))))))
+            {
+                // todo: provide random symbols to try
+                return false;
+            } else if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
+            {
+                throw e;
+            }
+        }
         while (isLessThan(now, ends))
         {
             object response = null;

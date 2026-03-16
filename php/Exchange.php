@@ -41,8 +41,11 @@ use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
+use ccxt\pro\Message;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
+use ccxt\pro\Stream;
+
 
 $version = '4.5.43';
 
@@ -274,6 +277,8 @@ class Exchange {
     public $reduceFees = true;
 
     public $timeframes = array();
+
+    public $stream;
 
     public $requiredCredentials = array(
         'apiKey' => true,
@@ -1160,6 +1165,8 @@ class Exchange {
             }
         }
 
+        $this->stream = new Stream ();
+        
         $this->after_construct();
 
         if ($this->safe_bool($options, 'sandbox') || $this->safe_bool($options, 'testnet')) {
@@ -2579,6 +2586,44 @@ class Exchange {
         return $modifiedContent;
     }
 
+    public function stream_reconnect_on_error() {
+        return function(Message $message) {
+            if ($message->error && !($message->error instanceof ExchangeClosedByUser) && !($message->error instanceof \ccxt\pro\ConsumerFunctionError)) {
+                try {
+                    $this->stream_reconnect();
+                } catch (Exception $e) {
+                    $this->log("Stream failed to reconnect: ", $e);
+                }
+            }
+        };
+    }
+
+    public function stream_ohlcvs() {
+        return function(Message $message) {
+            $payload = $message->payload;
+            $err = $message->error;
+            $symbol = $this->safe_string($payload, 'symbol');
+            if ($symbol !== null) {
+                $this->stream_produce('ohlcvs::' . $symbol, $payload, $err);
+                $timeframe = $this->safe_string($payload, 'timeframe');
+                if ($timeframe !== null) {
+                    $this->stream_produce('ohlcvs::' . $symbol . '::' . $timeframe, $payload, $err);
+                }
+            }
+        };
+    }
+
+    public function stream_to_symbol($topic) {
+        return function(Message $message) use ($topic) {
+            $payload = $message->payload;
+            $symbol = isset($payload['symbol']) ? $payload['symbol'] : null;
+            if ($symbol) {
+                $newTopic = "{$topic}::{$symbol}";
+                $this->stream->produce($newTopic, $payload);
+            }
+        };
+    }
+    
     public function extend_exchange_options($newOptions) {
         $this->options = array_merge($this->options, $newOptions);
     }
@@ -2695,6 +2740,67 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+
+    public function setup_stream() {
+        /**
+         * @ignore
+         * setup the $stream object $options and create subscriptions so the streams of multiple symbols publish to the individual ones
+         */
+        $stream = $this->stream;
+        if ($this->stream === null) {
+            throw new ExchangeError('Stream is not initialized');
+        }
+        if ($this->is_streaming_enabled()) {
+            return;
+        }
+        $this->options['enableStreaming'] = true;
+        $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'));
+        $stream->subscribe ('orderbooks', $this->stream_to_symbol('orderbooks'));
+        $stream->subscribe ('orders', $this->stream_to_symbol('orders'));
+        $stream->subscribe ('positions', $this->stream_to_symbol('positions'));
+        $stream->subscribe ('trades', $this->stream_to_symbol('trades'));
+        $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'));
+        $stream->subscribe ('ohlcvs', $this->stream_ohlcvs());
+        $stream->subscribe ('liquidations', $this->stream_to_symbol('liquidations'));
+        $stream->subscribe ('myLiquidations', $this->stream_to_symbol('myLiquidations'));
+        $options = $this->safe_dict($this->options, 'streaming', array());
+        $reconnect = $this->safe_bool($options, 'autoreconnect', true);
+        if ($reconnect) {
+            $stream->subscribe ('errors', $this->stream_reconnect_on_error());
+        }
+    }
+
+    public function stream_produce(string $topic, mixed $payload = null, mixed $error = null) {
+        /**
+         * @ignore
+         * produce a message to a $topic of the $stream
+         * @return array(bool | null)
+         */
+        $stream = $this->stream;
+        $stream->produce ($topic, $payload, $error);
+    }
+
+    public function stream_reconnect() {
+        /**
+         * @ignore
+         * Calls all watchFunctions that were being used.
+         * @return array(bool | null)
+         */
+        if ($this->verbose) {
+            $this->log('Stream reconnecting active watch functions');
+        }
+        $stream = $this->stream;
+        $activeFunctions = $stream->active_watch_functions;
+        $tasks = array();
+        for ($i = 0; $i < count($activeFunctions); $i++) {
+            $activeFunction = $activeFunctions[$i];
+            $method = $this->safe_string($activeFunction, 'method');
+            $args = $this->safe_list($activeFunction, 'args');
+            $future = $this->spawn($this->$method, ...$args);
+            $tasks[] = $future;
+        }
+        return Promise\all($tasks);
+    }
 
     public function describe(): mixed {
         return array(
@@ -3517,8 +3623,89 @@ class Exchange {
         throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
     }
 
+    public function subscribe_liquidations(string $symbol, mixed $callback, mixed $params = array ()) {
+        /**
+         * watch the public liquidations of a trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('liquidations::' . $symbol, $callback, $params);
+        }
+        $stream->add_watch_function('liquidations', array( $symbol, null, null, $params ));
+        return $this->watch_liquidations($symbol, null, null, $params);
+    }
+
+    public function unsubscribe_liquidations(string $symbol, mixed $callback) {
+        /**
+         * unsubscribe from the public liquidations of a trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        return $stream->unsubscribe ('liquidations::' . $symbol, $callback);
+    }
+
     public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    public function subscribe_liquidations_for_symbols(array $symbols, mixed $callback, mixed $params = array ()) {
+        /**
+         * watch the public liquidations of trading pairs
+         * @param {string[]} $symbols unified CCXT market symbol
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->subscribe ('liquidations::' . $symbols[$i], $callback, $params);
+            }
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('liquidations', $callback, $params);
+            }
+        }
+        $stream->add_watch_function('watchLiquidationsForSymbols', array( $symbols, null, null, $params ));
+        return $this->watch_liquidations_for_symbols($symbols, null, null, $params);
+    }
+
+    public function unsubscribe_liquidations_for_symbols(array $symbols, mixed $callback) {
+        /**
+         * unsubscribe from the public liquidations of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $stream->unsubscribe ('liquidations::' . $symbols[$i], $callback);
+        }
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('liquidations', $callback);
+        }
+        return true;
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -3536,6 +3723,40 @@ class Exchange {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
+    public function subscribe_trades(string $symbol, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe $callback to be called with each trade
+         * @param {string[]} symbols unified $symbol of the market to fetch trades for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('trades::' . $symbol, $callback, $params);
+        }
+        $stream->add_watch_function('watchTrades', array( $symbol, null, null, $params ));
+        return $this->watch_trades($symbol, null, null, $params);
+    }
+
+    public function unsubscribe_trades(string $symbol, mixed $callback) {
+        /**
+         * unsubscribe from trades of a trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        return $stream->unsubscribe ('trades::' . $symbol, $callback);
+    }
+
     public function un_watch_orders(?string $symbol = null, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchOrders() is not supported yet');
     }
@@ -3548,6 +3769,53 @@ class Exchange {
         throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
     }
 
+    public function subscribe_trades_for_symbols(array $symbols, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe $callback to be called with each trade
+         * @param {string[]} $symbols unified symbol of the market to fetch trades for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->subscribe ('trades::' . $symbols[$i], $callback, $params);
+            }
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('trades', $callback, $params);
+            }
+        }
+        $stream->add_watch_function('watchTradesForSymbols', array( $symbols, null, null, $params ));
+        return $this->watch_trades_for_symbols($symbols, null, null, $params);
+    }
+
+    public function unsubscribe_trades_for_symbols(array $symbols, mixed $callback) {
+        /**
+         * unsubscribe from trades of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $stream->unsubscribe ('trades::' . $symbols[$i], $callback);
+        }
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('trades', $callback);
+        }
+        return true;
+    }
+
     public function un_watch_trades_for_symbols(array $symbols, $params = array ()) {
         throw new NotSupported($this->id . ' unWatchTradesForSymbols() is not supported yet');
     }
@@ -3556,12 +3824,157 @@ class Exchange {
         throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
     }
 
+    public function subscribe_my_trades_for_symbols(array $symbols, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe $callback to be called with each user trade
+         * @param {string[]} $symbols unified symbol of the market to fetch trades for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('myTrades', $callback, $params);
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('myTrades::' . $symbols[$i], $callback, $params);
+                }
+            }
+        }
+        $stream->add_watch_function('watchMyTradesForSymbols', array( $symbols, null, null, $params ));
+        return $this->watch_my_trades_for_symbols($symbols, null, null, $params);
+    }
+
+    public function unsubscribe_my_trades_for_symbols(array $symbols, mixed $callback) {
+        /**
+         * unsubscribe from user trades of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('myTrades', $callback);
+        } else {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->unsubscribe ('myTrades::' . $symbols[$i], $callback);
+            }
+        }
+        return true;
+    }
+
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
     }
 
+    public function subscribe_orders_for_symbols(array $symbols, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe $callback to be called with order
+         * @param {string[]} $symbols unified symbol of the market to fetch orders for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->subscribe ('orders::' . $symbols[$i], $callback, $params);
+            }
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('orders', $callback, $params);
+            }
+        }
+        $stream->add_watch_function('watchOrdersForSymbols', array( $symbols, null, null, $params ));
+        return $this->watch_orders_for_symbols($symbols, null, null, $params);
+    }
+
+    public function unsubscribe_orders_for_symbols(array $symbols, mixed $callback) {
+        /**
+         * unsubscribe from orders of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $stream->unsubscribe ('orders::' . $symbols[$i], $callback);
+        }
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('orders', $callback);
+        }
+        return true;
+    }
+
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
+    }
+
+    public function subscribe_ohlcv_for_symbols(array $symbolsAndTimeframes, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe $callback to be called with order
+         * @param {string[]} symbols unified $symbol of the market to fetch orders for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $stream = $this->stream;
+        if ($callback !== null) {
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symbol = $this->symbol($symbolsAndTimeframes[$i][0]);
+                $timeframe = $symbolsAndTimeframes[$i][1];
+                $stream->subscribe ('ohlcvs' . '::' . $symbol . '::' . $timeframe, $callback, $params);
+            }
+            if ($this->is_empty($symbolsAndTimeframes)) {
+                $stream->subscribe ('ohlcvs', $callback, $params);
+            }
+        }
+        $stream->add_watch_function('watchOHLCVForSymbols', array( $symbolsAndTimeframes, null, null, $params ));
+        return $this->watch_ohlcv_for_symbols($symbolsAndTimeframes, null, null, $params);
+    }
+
+    public function unsubscribe_ohlcv_for_symbols(array $symbolsAndTimeframes, mixed $callback) {
+        /**
+         * unsubscribe from OHLCV data of trading pairs and timeframes
+         * @param {string[][]} $symbolsAndTimeframes array of [$symbol, $timeframe] pairs
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+            $symbol = $this->symbol($symbolsAndTimeframes[$i][0]);
+            $timeframe = $symbolsAndTimeframes[$i][1];
+            $stream->unsubscribe ('ohlcvs::' . $symbol . '::' . $timeframe, $callback);
+        }
+        if ($this->is_empty($symbolsAndTimeframes)) {
+            $stream->unsubscribe ('ohlcvs', $callback);
+        }
+        return true;
     }
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
@@ -3570,6 +3983,54 @@ class Exchange {
 
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    public function subscribe_order_book_for_symbols(array $symbols, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribes to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} $symbols unified array of $symbols
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        if ($callback !== null) {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->subscribe ('orderbooks::' . $symbols[$i], $callback, $params);
+            }
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('orderbooks', $callback, $params);
+            }
+        }
+        $stream->add_watch_function('watchOrderBookForSymbols', array( $symbols, null, $params ));
+        return $this->watch_order_book_for_symbols($symbols, null, $params);
+    }
+
+    public function unsubscribe_order_book_for_symbols(array $symbols, mixed $callback) {
+        /**
+         * unsubscribe from order book data of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        for ($i = 0; $i < count($symbols); $i++) {
+            $stream->unsubscribe ('orderbooks::' . $symbols[$i], $callback);
+        }
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('orderbooks', $callback);
+        }
+        return true;
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array ()) {
@@ -3634,6 +4095,30 @@ class Exchange {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+    }
+
+    public function subscribe_order_book(string $symbol, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        return $this->subscribe_order_book_for_symbols(array( $symbol ), $callback, $params);
+    }
+
+    public function unsubscribe_order_book(string $symbol, mixed $callback) {
+        /**
+         * unsubscribe from order book data of a trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        return $this->unsubscribe_order_book_for_symbols(array( $symbol ), $callback);
     }
 
     public function un_watch_order_book(string $symbol, $params = array ()) {
@@ -3922,6 +4407,9 @@ class Exchange {
     public function after_construct() {
         // networks
         $this->create_networks_by_id_object();
+        if ($this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
         $this->features_generator();
         // init predefined markets if any
         if ($this->markets) {
@@ -4160,7 +4648,12 @@ class Exchange {
                 'CRO' => array( 'CRC20' => 'CRONOS' ),
                 'BRC20' => array( 'BRC20' => 'BTC' ),
             ),
+            'enableStreaming' => false, // flag to enable or disable streaming functionality
         );
+    }
+
+    public function is_streaming_enabled(): bool {
+        return $this->safe_bool($this->options, 'enableStreaming', false);
     }
 
     public function safe_ledger_entry(array $entry, ?array $currency = null) {
@@ -5327,6 +5820,45 @@ class Exchange {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
+    public function subscribe_ohlcv(string $symbol, $timeframe = '1m', mixed $callback = null, mixed $params = array ()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbol = $this->symbol($symbol);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('ohlcvs::' . $symbol . '::' . $timeframe, $callback, $params);
+        }
+        $stream->add_watch_function('watchOHLCV', array( $symbol, $timeframe, null, null, $params ));
+        return $this->watch_ohlcv($symbol, $timeframe, null, null, $params);
+    }
+
+    public function unsubscribe_ohlcv(string $symbol, mixed $callback, $timeframe = '1m') {
+        /**
+         * unsubscribe from OHLCV data of a trading pair and $timeframe
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbol = $this->symbol($symbol);
+        return $stream->unsubscribe ('ohlcvs::' . $symbol . '::' . $timeframe, $callback);
+    }
+
     public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_list($ohlcvs, $timestamp, array());
@@ -6236,12 +6768,104 @@ class Exchange {
         throw new NotSupported($this->id . ' watchPosition() is not supported yet');
     }
 
+    public function subscribe_position(string $symbol, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe to information on open positions with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the market to fetch the position for
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbol = $this->symbol($symbol);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('positions::' . $symbol, $callback, $params);
+        }
+        $stream->add_watch_function('watchPosition', array( $symbol, null, $params ));
+        return $this->watch_position($symbol, $params);
+    }
+
+    public function unsubscribe_position(string $symbol, mixed $callback) {
+        /**
+         * unsubscribe from position data of a trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbol = $this->symbol($symbol);
+        return $stream->unsubscribe ('positions::' . $symbol, $callback);
+    }
+
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchPositions() is not supported yet');
     }
 
+    public function subscribe_positions(?array $symbols = null, mixed $callback = null, mixed $params = array ()) {
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('positions', $callback, $params);
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('positions::' . $symbols[$i], $callback, $params);
+                }
+            }
+        }
+        $stream->add_watch_function('watchPositions', array( $symbols, null, null, $params ));
+        return $this->watch_positions($symbols, null, null, $params);
+    }
+
+    public function unsubscribe_positions(mixed $callback, ?array $symbols = null) {
+        /**
+         * unsubscribe from position data of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('positions', $callback);
+        } else {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->unsubscribe ('positions::' . $symbols[$i], $callback);
+            }
+        }
+        return true;
+    }
+
     public function watch_position_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return $this->watch_positions($symbols, $since, $limit, $params);
+    }
+
+    public function subscribe_position_for_symbols(?array $symbols = null, mixed $callback = null, mixed $params = array ()) {
+        return $this->subscribe_positions($symbols, $callback, $params);
+    }
+
+    public function unsubscribe_position_for_symbols(mixed $callback, ?array $symbols = null) {
+        /**
+         * unsubscribe from position data of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed from all $symbols, false otherwise
+         */
+        return $this->unsubscribe_positions($callback, $symbols);
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
@@ -6415,6 +7039,38 @@ class Exchange {
 
     public function watch_balance($params = array ()) {
         throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+    }
+
+    public function subscribe_balance(mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe to balance updates
+         * @param {Function} $callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('balances', $callback, $params);
+        }
+        $stream->add_watch_function('watchBalance', array( $params ));
+        return $this->watch_balance($params);
+    }
+
+    public function unsubscribe_balance(mixed $callback) {
+        /**
+         * unsubscribe from balance updates
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        return $stream->unsubscribe ('balances', $callback);
     }
 
     public function fetch_partial_balance($part, $params = array ()) {
@@ -6710,6 +7366,42 @@ class Exchange {
         throw new NotSupported($this->id . ' watchTicker() is not supported yet');
     }
 
+    public function subscribe_ticker(string $symbol, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe to watchTicker
+         * @param {string} $symbol unified $symbol of the market to watch ticker
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbol = $this->symbol($symbol);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('tickers::' . $symbol, $callback, $params);
+        }
+        $stream->add_watch_function('watchTicker', array( $symbol, $params ));
+        return $this->watch_ticker($symbol, $params);
+    }
+
+    public function unsubscribe_ticker(string $symbol, mixed $callback) {
+        /**
+         * unsubscribe from ticker data of a trading pair
+         * @param {string} $symbol unified CCXT market $symbol
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbol = $this->symbol($symbol);
+        return $stream->unsubscribe ('tickers::' . $symbol, $callback);
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
@@ -6732,6 +7424,55 @@ class Exchange {
 
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
+    }
+
+    public function subscribe_tickers(?array $symbols = null, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribe to watchTickers
+         * @param {string[]} $symbols unified $symbols of the market to watch tickers
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols, null, true);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            if ($this->is_empty($symbols)) {
+                $stream->subscribe ('tickers', $callback, $params);
+            } else {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('tickers::' . $symbols[$i], $callback, $params);
+                }
+            }
+        }
+        $stream->add_watch_function('watchTickers', array( $symbols, $params ));
+        return $this->watch_tickers($symbols, $params);
+    }
+
+    public function unsubscribe_tickers(mixed $callback, ?array $symbols = null) {
+        /**
+         * unsubscribe from ticker data of trading pairs
+         * @param {string[]} $symbols unified CCXT market $symbols
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbols = $this->market_symbols($symbols, null, true);
+        if ($this->is_empty($symbols)) {
+            $stream->unsubscribe ('tickers', $callback);
+        } else {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $stream->unsubscribe ('tickers::' . $symbols[$i], $callback);
+            }
+        }
+        return true;
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array ()) {
@@ -7313,6 +8054,103 @@ class Exchange {
         throw new NotSupported($this->id . ' watchOrders() is not supported yet');
     }
 
+    public function subscribe_raw(mixed $callback, mixed $params = array ()) {
+        /**
+         * subscribe to all raw messages received from websocket
+         * @param {Function} $callback function to call when receiving an update
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $stream = $this->stream;
+        $stream->subscribe ('raw', $callback, $params);
+    }
+
+    public function unsubscribe_raw(mixed $callback) {
+        /**
+         * unsubscribe from raw messages
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        return $stream->unsubscribe ('raw', $callback);
+    }
+
+    public function subscribe_errors(mixed $callback, mixed $params = array ()) {
+        /**
+         * subscribe to all errors thrown by $stream
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $stream = $this->stream;
+        $stream->subscribe ('errors', $callback, $params);
+    }
+
+    public function unsubscribe_errors(mixed $callback) {
+        /**
+         * unsubscribe from error messages
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        return $stream->unsubscribe ('errors', $callback);
+    }
+
+    public function subscribe_orders(?string $symbol = null, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * subscribes information on multiple orders made by the user
+         * @param {string} $symbol unified market $symbol of the market the orders were made in
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbol = $this->symbol($symbol);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            if ($symbol === null) {
+                $stream->subscribe ('orders', $callback, $params);
+            } else {
+                $stream->subscribe ('orders::' . $symbol, $callback, $params);
+            }
+        }
+        $stream->add_watch_function('watchOrders', array( $symbol, null, null, $params ));
+        return $this->watch_orders($symbol, null, null, $params);
+    }
+
+    public function unsubscribe_orders(mixed $callback, ?string $symbol = null) {
+        /**
+         * unsubscribe from order data of a trading pair or all orders
+         * @param {string} $symbol unified CCXT market $symbol (optional, if null unsubscribes from all orders)
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbol = $this->symbol($symbol);
+        if ($symbol === null) {
+            return $stream->unsubscribe ('orders', $callback);
+        } else {
+            return $stream->unsubscribe ('orders::' . $symbol, $callback);
+        }
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         if ($this->has['fetchOrders']) {
             $orders = $this->fetch_orders($symbol, $since, $limit, $params);
@@ -7371,6 +8209,42 @@ class Exchange {
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
+    }
+
+    public function subscribe_my_trades(?string $symbol = null, mixed $callback = null, mixed $params = array ()) {
+        /**
+         * watches information on multiple trades made by the user
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} synchronous if set to true, the $callback will wait to finish before passing next message
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         */
+        if (!$this->is_streaming_enabled()) {
+            $this->setup_stream();
+        }
+        $this->load_markets();
+        $symbol = $this->symbol($symbol);
+        $stream = $this->stream;
+        if ($callback !== null) {
+            $stream->subscribe ('myTrades::' . $symbol, $callback, $params);
+        }
+        $stream->add_watch_function('watchMyTrades', array( $symbol, null, null, $params ));
+        return $this->watch_my_trades($symbol, null, null, $params);
+    }
+
+    public function unsubscribe_my_trades(mixed $callback, ?string $symbol = null) {
+        /**
+         * unsubscribe from user trade data of a trading pair or all trades
+         * @param {string} $symbol unified CCXT market $symbol (optional, if null unsubscribes from all trades)
+         * @param {Function} $callback Consumer function to unsubscribe
+         * @return {boolean} true if the consumer was successfully unsubscribed, false otherwise
+         */
+        if (!$this->is_streaming_enabled()) {
+            return false;
+        }
+        $stream = $this->stream;
+        $symbol = $this->symbol($symbol);
+        return $stream->unsubscribe ('myTrades::' . $symbol, $callback);
     }
 
     public function fetch_greeks(string $symbol, $params = array ()) {
@@ -8549,6 +9423,14 @@ class Exchange {
          * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function create_stream_ohlcv(?string $symbol, ?string $timeframe, $data) {
+        return array(
+            'symbol' => $symbol,
+            'timeframe' => $timeframe,
+            'ohlcv' => $data,
+        );
     }
 
     public function filter_by_array_adl_ranks($objects, int|string $key, $values = null, $indexed = true) {

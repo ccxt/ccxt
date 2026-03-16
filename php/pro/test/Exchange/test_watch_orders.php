@@ -16,6 +16,21 @@ function test_watch_orders($exchange, $skipped_properties, $symbol) {
         $method = 'watchOrders';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
+        $consumer = function ($message) {
+            if ($message->error) {
+                throw new ExchangeError($message->error);
+            }
+            if (!$message->payload) {
+                throw new ExchangeError('received null or undefined payload');
+            }
+        };
+        try {
+            Async\await($exchange->subscribe_orders($symbol, $consumer));
+        } catch(\Throwable $e) {
+            if (!is_temporary_failure($e)) {
+                throw $e;
+            }
+        }
         while ($now < $ends) {
             $response = null;
             $success = true;

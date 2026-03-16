@@ -12,6 +12,7 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.errors import ExchangeError  # noqa E402
 from ccxt.test.exchange.base import test_trade  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
@@ -19,6 +20,16 @@ async def test_watch_my_trades(exchange, skipped_properties, symbol):
     method = 'watchMyTrades'
     now = exchange.milliseconds()
     ends = now + 15000
+    def consumer(message):
+        if message.error:
+            raise ExchangeError(message.error)
+        if not message.payload:
+            raise ExchangeError('received null or undefined payload')
+    try:
+        await exchange.subscribe_my_trades(symbol, consumer)
+    except Exception as e:
+        if not test_shared_methods.is_temporary_failure(e):
+            raise e
     while now < ends:
         success = True
         response = None

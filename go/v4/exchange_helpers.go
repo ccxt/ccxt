@@ -426,6 +426,30 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 			return field.Interface()
 		}
 
+		// Try to get method if field not found
+		// Use the original collection value (before Elem()) to preserve receiver
+		methodValue := reflect.ValueOf(collection).MethodByName(stringKeyCapitalized)
+		if methodValue.IsValid() {
+			return methodValue.Interface()
+		}
+		methodValue = reflect.ValueOf(collection).MethodByName(stringKey)
+		if methodValue.IsValid() {
+			return methodValue.Interface()
+		}
+
+		if exch, ok := collection.(*Exchange); ok {
+			if exch.DerivedExchange != nil {
+				derivedMethodValue := reflect.ValueOf(exch.DerivedExchange).MethodByName(stringKeyCapitalized)
+				if derivedMethodValue.IsValid() {
+					return derivedMethodValue.Interface()
+				}
+				derivedMethodValue = reflect.ValueOf(exch.DerivedExchange).MethodByName(stringKey)
+				if derivedMethodValue.IsValid() {
+					return derivedMethodValue.Interface()
+				}
+			}
+		}
+
 		return nil
 	}
 

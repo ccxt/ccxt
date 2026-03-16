@@ -118,6 +118,7 @@ export default class aftermath extends aftermathRest {
         const messageHash = market['id'] + '@trade';
         const trades = this.trades[symbol];
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         this.trades[symbol] = trades;
         client.resolve (trades, messageHash);
     }
@@ -176,6 +177,7 @@ export default class aftermath extends aftermathRest {
             const nonce = this.safeInteger (message, 'nonce');
             if (nonce === (prevNonce + 1)) {
                 this.handleOrderBookMessage (client, message, orderbook);
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, topic);
             }
         }
@@ -197,8 +199,10 @@ export default class aftermath extends aftermathRest {
             const orderbook = this.orderbooks[symbol];
             orderbook.reset (snapshot);
             this.orderbooks[symbol] = orderbook;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } catch (e) {
+            this.streamProduce ('orderbooks', undefined, e);
             delete client.subscriptions[messageHash];
             client.reject (e, messageHash);
         }
@@ -332,6 +336,7 @@ export default class aftermath extends aftermathRest {
         const market = this.safeMarket (symbol);
         const position = this.parsePosition (message, market);
         cache.append (position);
+        this.streamProduce ('positions', position);
         const messageHash = 'positions::' + market['symbol'];
         client.resolve (position, messageHash);
         client.resolve ([ position ], 'positions');
@@ -348,6 +353,7 @@ export default class aftermath extends aftermathRest {
                     this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                     throw new ExchangeError (message);
                 } catch (error) {
+                    this.streamProduce ('errors', undefined, error);
                     if (error instanceof AuthenticationError) {
                         const messageHash = 'authenticated';
                         client.reject (error, messageHash);
@@ -365,6 +371,7 @@ export default class aftermath extends aftermathRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

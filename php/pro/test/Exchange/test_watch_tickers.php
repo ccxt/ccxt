@@ -25,6 +25,28 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
         $method = 'watchTickers';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
+        $consumer = function ($message) {
+            if ($message->error) {
+                throw new ExchangeError($message->error);
+            }
+            if (!$message->payload) {
+                throw new ExchangeError('received null or undefined payload');
+            }
+        };
+        try {
+            Async\await($exchange->subscribe_tickers($arg_symbols, $consumer, $arg_params));
+        } catch(\Throwable $e) {
+            // for some exchanges, specifically watchTickers method not subscribe
+            // to "all tickers" itself, and it requires symbols to be set
+            // so, in such case, if it's arguments-required exception, we don't
+            // mark tests as failed, but just skip them
+            if (($e instanceof ArgumentsRequired) && ($arg_symbols === null || count($arg_symbols) === 0)) {
+                // todo: provide random symbols to try
+                return false;
+            } elseif (!is_temporary_failure($e)) {
+                throw $e;
+            }
+        }
         while ($now < $ends) {
             $response = null;
             $success = true;

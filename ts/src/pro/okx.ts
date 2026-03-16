@@ -338,6 +338,7 @@ export default class okx extends okxRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
     }
@@ -600,6 +601,7 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             newTickers[symbol] = ticker;
         }
         const messageHash = channel + '::' + symbol;
@@ -787,6 +789,7 @@ export default class okx extends okxRest {
             }
             const cache = this.liquidations;
             cache.append (liquidation);
+            this.streamProduce ('liquidations', liquidation);
             client.resolve ([ liquidation ], 'liquidations');
             client.resolve ([ liquidation ], 'liquidations::' + symbol);
         }
@@ -886,6 +889,7 @@ export default class okx extends okxRest {
             }
             const cache = this.liquidations;
             cache.append (liquidation);
+            this.streamProduce ('myLiquidations', liquidation);
             client.resolve ([ liquidation ], 'myLiquidations');
             client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
         }
@@ -1135,6 +1139,8 @@ export default class okx extends okxRest {
             }
             stored.append (parsed);
             const messageHash = channel + ':' + market['id'];
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
             // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain symbol
@@ -1382,6 +1388,7 @@ export default class okx extends okxRest {
                 if (symbol !== undefined) {
                     delete this.orderbooks[symbol];
                 }
+                this.streamProduce ('orderbooks::' + symbol, undefined, error);
                 client.reject (error, messageHash);
             }
         }
@@ -1501,6 +1508,7 @@ export default class okx extends okxRest {
                 this.orderbooks[symbol] = orderbook;
                 orderbook['symbol'] = symbol;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
             }
         } else if (action === 'update') {
@@ -1509,6 +1517,7 @@ export default class okx extends okxRest {
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
                     this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
+                    this.streamProduce ('orderbooks', orderbook);
                     client.resolve (orderbook, messageHash);
                 }
             }
@@ -1522,6 +1531,7 @@ export default class okx extends okxRest {
                 const timestamp = this.safeInteger (update, 'ts');
                 const snapshot = this.parseOrderBook (update, symbol, timestamp, 'bids', 'asks', 0, 1);
                 orderbook.reset (snapshot);
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
             }
         }
@@ -1632,6 +1642,7 @@ export default class okx extends okxRest {
         const oldBalance = this.safeValue (this.balance, type, {});
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], channel);
     }
 
@@ -1840,8 +1851,10 @@ export default class okx extends okxRest {
                 shortPosition['side'] = 'short';
                 cache.append (shortPosition);
                 newPositions.push (shortPosition);
+                this.streamProduce ('positions', shortPosition);
             }
             newPositions.push (position);
+            this.streamProduce ('positions', position);
             cache.append (position);
         }
         let messageHash = channel;
@@ -1973,6 +1986,7 @@ export default class okx extends okxRest {
             for (let i = 0; i < parsed.length; i++) {
                 const order = parsed[i];
                 stored.append (order);
+                this.streamProduce ('orders', order);
                 const symbol = order['symbol'];
                 const market = this.market (symbol);
                 marketIds.push (market['id']);
@@ -2067,6 +2081,7 @@ export default class okx extends okxRest {
             const rawTrade = filteredOrders[i];
             const trade = this.orderToTrade (rawTrade);
             myTrades.append (trade);
+            this.streamProduce ('myTrades', trade);
             const symbol = trade['symbol'];
             symbols[symbol] = true;
         }
@@ -2416,6 +2431,7 @@ export default class okx extends okxRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

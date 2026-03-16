@@ -270,6 +270,7 @@ export default class deepcoin extends deepcoinRest {
         const parsedTicker = this.parseWsTicker (data, market);
         const messageHash = 'ticker' + '::' + symbol;
         this.tickers[symbol] = parsedTicker;
+        this.streamProduce ('tickers', parsedTicker);
         client.resolve (parsedTicker, messageHash);
     }
 
@@ -410,6 +411,7 @@ export default class deepcoin extends deepcoinRest {
         if (data !== undefined) {
             const trade = this.parseWsTrade (data, market);
             strored.append (trade);
+            this.streamProduce ('trades', trade);
         }
         const messageHash = 'trades' + '::' + symbol;
         client.resolve (strored, messageHash);
@@ -588,6 +590,8 @@ export default class deepcoin extends deepcoinRest {
         if (data !== undefined) {
             const ohlcv = this.parseWsOHLCV (data, market);
             stored.append (ohlcv);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, ohlcv);
+            this.streamProduce ('ohlcvs', ohlcvs);
         }
         const messageHash = 'ohlcv' + '::' + symbol + '::' + timeframe;
         client.resolve (stored, messageHash);
@@ -695,6 +699,7 @@ export default class deepcoin extends deepcoinRest {
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
             const messageHash = 'orderbook' + '::' + symbol;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -735,6 +740,7 @@ export default class deepcoin extends deepcoinRest {
         }
         orderbook.cache = [];
         const messageHash = 'orderbook' + '::' + symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -851,6 +857,7 @@ export default class deepcoin extends deepcoinRest {
             const stored = this.myTrades;
             const parsed = this.parseWsTrade (data, market);
             stored.append (parsed);
+            this.streamProduce ('myTrades', parsed);
             client.resolve (stored, messageHash);
             client.resolve (stored, symbolMessageHash);
         }
@@ -927,6 +934,7 @@ export default class deepcoin extends deepcoinRest {
             }
             const parsed = this.parseWsOrder (data, market);
             this.orders.append (parsed);
+            this.streamProduce ('orders', parsed);
             client.resolve (this.orders, messageHash);
             client.resolve (this.orders, symbolMessageHash);
         }
@@ -1068,6 +1076,7 @@ export default class deepcoin extends deepcoinRest {
             }
             const parsed = this.parseWsPosition (data, market);
             this.positions.append (parsed);
+            this.streamProduce ('positions', parsed);
             client.resolve (this.positions, messageHash);
             client.resolve (this.positions, symbolMessageHash);
         }
@@ -1147,6 +1156,7 @@ export default class deepcoin extends deepcoinRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (message === 'pong') {
             this.handlePong (client, message);
         } else {
@@ -1247,6 +1257,7 @@ export default class deepcoin extends deepcoinRest {
             this.throwBroadlyMatchedException (this.exceptions['broad'], messageText, feedback);
             throw new ExchangeError (feedback);
         } catch (e) {
+            this.streamProduce ('errors', undefined, e);
             client.reject (e, messageHash);
         }
     }

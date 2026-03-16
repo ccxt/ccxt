@@ -348,6 +348,18 @@ You don't need the Docker image if you're not going to develop CCXT. If you just
 
 ---
 
+## AI Assistant Support
+
+CCXT provides language-specific skills for AI coding assistants (Claude Code, Cursor, Copilot, Windsurf, Codex, and 30+ others):
+
+```bash
+npx skills add ccxt/ccxt
+```
+
+See [AI Skills documentation](https://github.com/ccxt/ccxt/wiki/AI-Skills) and [llms.txt](https://raw.githubusercontent.com/ccxt/ccxt/master/llms.txt) for more details.
+
+---
+
 ## Usage
 
 ### Intro

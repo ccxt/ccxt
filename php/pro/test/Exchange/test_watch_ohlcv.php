@@ -26,6 +26,21 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
         $limit = 10;
         $duration = $exchange->parse_timeframe($chosen_timeframe_key);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
+        $consumer = function ($message) {
+            if ($message->error) {
+                throw new ExchangeError($message->error);
+            }
+            if (!$message->payload) {
+                throw new ExchangeError('received null or undefined payload');
+            }
+        };
+        try {
+            Async\await($exchange->subscribe_ohlcv($symbol, $chosen_timeframe_key, $consumer, true));
+        } catch(\Throwable $e) {
+            if (!is_temporary_failure($e)) {
+                throw $e;
+            }
+        }
         while ($now < $ends) {
             $response = null;
             $success = true;

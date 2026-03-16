@@ -268,7 +268,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        client.resolve (ticker, this.getMessageHash ('ticker', market['symbol']));
+        const messageHash = this.getMessageHash ('ticker', market['symbol']);
+        this.streamProduce ('tickers', ticker);
+        client.resolve (ticker, messageHash);
+        return message;
     }
 
     /**
@@ -426,6 +429,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
             future.resolve (cache);
+            this.streamProduce ('positions', position);
             client.resolve (position, 'position:' + symbol);
         }
     }
@@ -541,6 +545,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
         const position = this.extend (currentPosition, newPosition);
         cache.append (position);
+        this.streamProduce ('positions', position);
         client.resolve (position, messageHash);
     }
 
@@ -673,6 +678,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (trades, messageHash);
         return message;
@@ -752,6 +758,8 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
         const stored = this.ohlcvs[symbol][timeframe];
         stored.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
     }
 
@@ -941,6 +949,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             return;
         }
         this.handleDelta (storedOrderBook, data);
+        this.streamProduce ('orderbooks', storedOrderBook);
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -1098,6 +1107,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
                 }
             }
             cachedOrders.append (parsed);
+            this.streamProduce ('orders', parsed);
             client.resolve (this.orders, messageHash);
             const symbolSpecificMessageHash = messageHash + ':' + symbol;
             client.resolve (this.orders, symbolSpecificMessageHash);
@@ -1152,6 +1162,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         account['used'] = this.safeString (data, 'holdBalance');
         this.balance[code] = account;
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, 'balance');
     }
 
@@ -1209,6 +1220,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
         }
         this.balance['info'] = this.safeValue (snapshot, 'info', {});
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1288,7 +1300,12 @@ export default class kucoinfutures extends kucoinfuturesRest {
             }
             this.options['urls'][type] = undefined;
         }
-        this.handleErrors (1, '', client.url, '', {}, data, message, {}, {});
+        try {
+            this.handleErrors (1, '', client.url, '', {}, data, message, {}, {});
+        } catch (e) {
+            this.streamProduce ('errors', undefined, e);
+            client.reject (e);
+        }
         return true;
     }
 
@@ -1324,6 +1341,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,

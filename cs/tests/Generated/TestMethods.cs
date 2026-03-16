@@ -240,11 +240,11 @@ public partial class testMainClass
         this.checkedPublicTests = new Dictionary<string, object>() {};
     }
 
-    public virtual object addPadding(object message, object size)
+    public virtual object addPadding(object msg, object size)
     {
         // has to be transpilable
         object res = "";
-        object messageLength = ((string)message).Length; // avoid php transpilation issue
+        object messageLength = ((string)msg).Length; // avoid php transpilation issue
         object missingSpace = subtract(subtract(size, messageLength), 0); // - 0 is added just to trick transpile to treat the .length as a string for php
         if (isTrue(isGreaterThan(missingSpace, 0)))
         {
@@ -253,7 +253,7 @@ public partial class testMainClass
                 res = add(res, " ");
             }
         }
-        return add(message, res);
+        return add(msg, res);
     }
 
     public async virtual Task<object> testMethod(object methodName, Exchange exchange, object args, object isPublic)
@@ -989,14 +989,14 @@ public partial class testMainClass
         return true;  // required in c#
     }
 
-    public virtual void assertStaticError(object cond, object message, object calculatedOutput, object storedOutput, object key = null)
+    public virtual void assertStaticError(object cond, object msg, object calculatedOutput, object storedOutput, object key = null)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         object calculatedString = jsonStringify(calculatedOutput);
         object storedString = jsonStringify(storedOutput);
-        object errorMessage = message;
+        object errorMessage = msg;
         if (isTrue(!isEqual(key, null)))
         {
             errorMessage = add(add("[", key), "]");

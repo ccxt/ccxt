@@ -457,6 +457,10 @@ Example files starting with `async-` require Python 3.6 with `async`/`await` and
 
 - [Source Ip Address](./examples/py/source-ip-address.md)
 
+- [Subscribe Ws Tickers](./examples/py/subscribe-ws-tickers.md)
+
+- [Subscribe](./examples/py/subscribe.md)
+
 - [Symbols](./examples/py/symbols.md)
 
 - [Test Server](./examples/py/test-server.md)

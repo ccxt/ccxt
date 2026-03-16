@@ -136,6 +136,10 @@ php -f path/to/example.php # substitute for actual filename here
 
 - [Shared Markets](./examples/php/shared-markets.md)
 
+- [Subscribe Ws Tickers](./examples/php/subscribe-ws-tickers.md)
+
+- [Subscribe](./examples/php/subscribe.md)
+
 - [Symbols](./examples/php/symbols.md)
 
 - [Trading View](./examples/php/trading-view.md)

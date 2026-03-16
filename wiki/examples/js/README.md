@@ -263,6 +263,10 @@ node path/to/example.js # substitute for actual filename here
 
 - [Sort Swap Markets By Hourly Price Change](./examples/js/sort-swap-markets-by-hourly-price-change.md)
 
+- [Subscribe Ws Tickers](./examples/js/subscribe-ws-tickers.md)
+
+- [Subscribe](./examples/js/subscribe.md)
+
 - [Symbols](./examples/js/symbols.md)
 
 - [Theocean](./examples/js/theocean.md)

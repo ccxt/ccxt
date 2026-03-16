@@ -53,6 +53,7 @@ const errorHierarchy = {
             'CancelPending': {},
         },
         'UnsubscribeError': {},
+        'ConsumerFunctionError': {},
     },
 };
 

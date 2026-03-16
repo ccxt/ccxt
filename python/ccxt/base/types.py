@@ -1,6 +1,8 @@
+from __future__ import annotations
+from asyncio import Future
 import sys
 import types
-from typing import Type, Union, List, Optional, Any as PythonAny
+from typing import Callable, Type, Union, List, Optional, Any as PythonAny
 from decimal import Decimal
 
 
@@ -600,6 +602,23 @@ LeverageTiers = Dict[Str, List[LeverageTier]]
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]
 
+Topic = str
+MessagePayload = Any
+ConsumerFunction = Callable[['Message'], Optional[Future[None]]]
+
+
+class Metadata:
+    def __init__(self, stream, topic: Topic, index: int):
+        self.stream = stream
+        self.topic = topic
+        self.index = index
+
+
+class Message:
+    def __init__(self, payload: Any, error: Any, stream, topic: Topic, index: int):
+        self.payload = payload
+        self.error = error
+        self.metadata = Metadata(stream, topic, index)
 class ConstructorArgs(TypedDict, total=False):
     apiKey: str
     secret: str

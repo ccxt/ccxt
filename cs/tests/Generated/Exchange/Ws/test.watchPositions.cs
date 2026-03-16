@@ -13,6 +13,27 @@ public partial class testMainClass : BaseTest
         object method = "watchPositions";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
+        void consumer(Message message)
+        {
+            if (isTrue(message.error))
+            {
+                throw new ExchangeError ((string)message.error) ;
+            }
+            if (!isTrue(message.payload))
+            {
+                throw new ExchangeError ((string)"received null or undefined payload") ;
+            }
+        };
+        try
+        {
+            await exchange.subscribePositions(new List<object>() {symbol}, consumer);
+        } catch(Exception e)
+        {
+            if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
+            {
+                throw e;
+            }
+        }
         while (isLessThan(now, ends))
         {
             object response = null;

@@ -14,6 +14,7 @@ sys.path.append(root)
 
 import asyncio
 from ccxt.base.errors import ArgumentsRequired  # noqa E402
+from ccxt.base.errors import ExchangeError  # noqa E402
 from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
@@ -27,6 +28,23 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
     method = 'watchTickers'
     now = exchange.milliseconds()
     ends = now + 15000
+    def consumer(message):
+        if message.error:
+            raise ExchangeError(message.error)
+        if not message.payload:
+            raise ExchangeError('received null or undefined payload')
+    try:
+        await exchange.subscribe_tickers(arg_symbols, consumer, arg_params)
+    except Exception as e:
+        # for some exchanges, specifically watchTickers method not subscribe
+        # to "all tickers" itself, and it requires symbols to be set
+        # so, in such case, if it's arguments-required exception, we don't
+        # mark tests as failed, but just skip them
+        if (isinstance(e, ArgumentsRequired)) and (arg_symbols is None or len(arg_symbols) == 0):
+            # todo: provide random symbols to try
+            return False
+        elif not test_shared_methods.is_temporary_failure(e):
+            raise e
     while now < ends:
         response = None
         success = True

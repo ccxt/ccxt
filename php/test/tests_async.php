@@ -221,17 +221,17 @@ class testMainClass {
         $this->checked_public_tests = array();
     }
 
-    public function add_padding($message, $size) {
+    public function add_padding($msg, $size) {
         // has to be transpilable
         $res = '';
-        $message_length = strlen($message); // avoid php transpilation issue
+        $message_length = strlen($msg); // avoid php transpilation issue
         $missing_space = $size - $message_length - 0; // - 0 is added just to trick transpile to treat the .length as a string for php
         if ($missing_space > 0) {
             for ($i = 0; $i < $missing_space; $i++) {
                 $res .= ' ';
             }
         }
-        return $message . $res;
+        return $msg . $res;
     }
 
     public function test_method($method_name, $exchange, $args, $is_public) {
@@ -854,13 +854,13 @@ class testMainClass {
         }) ();
     }
 
-    public function assert_static_error($cond, $message, $calculated_output, $stored_output, $key = null) {
+    public function assert_static_error($cond, $msg, $calculated_output, $stored_output, $key = null) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
         $calculated_string = json_stringify($calculated_output);
         $stored_string = json_stringify($stored_output);
-        $error_message = $message;
+        $error_message = $msg;
         if ($key !== null) {
             $error_message = '[' . $key . ']';
         }

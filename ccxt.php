@@ -104,6 +104,7 @@ require_once PATH_TO_CCXT . 'BadResponse.php';
 require_once PATH_TO_CCXT . 'NullResponse.php';
 require_once PATH_TO_CCXT . 'CancelPending.php';
 require_once PATH_TO_CCXT . 'UnsubscribeError.php';
+require_once PATH_TO_CCXT . 'ConsumerFunctionError.php';
 
 
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';

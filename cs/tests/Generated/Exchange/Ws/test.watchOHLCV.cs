@@ -24,6 +24,27 @@ public partial class testMainClass : BaseTest
         object limit = 10;
         object duration = exchange.parseTimeframe(chosenTimeframeKey);
         object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
+        void consumer(Message message)
+        {
+            if (isTrue(message.error))
+            {
+                throw new ExchangeError ((string)message.error) ;
+            }
+            if (!isTrue(message.payload))
+            {
+                throw new ExchangeError ((string)"received null or undefined payload") ;
+            }
+        };
+        try
+        {
+            await exchange.subscribeOHLCV(symbol, chosenTimeframeKey, consumer, true);
+        } catch(Exception e)
+        {
+            if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
+            {
+                throw e;
+            }
+        }
         while (isLessThan(now, ends))
         {
             object response = null;

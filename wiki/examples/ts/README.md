@@ -52,6 +52,10 @@
 
 - [Sample Local Proxy Server With Cors](./examples/ts/sample-local-proxy-server-with-cors.md)
 
+- [Subscribe Ws Tickers](./examples/ts/subscribe-ws-tickers.md)
+
+- [Subscribe](./examples/ts/subscribe.md)
+
 - [Watch Ohlcv For Symbols](./examples/ts/watch-OHLCV-For-Symbols.md)
 
 - [Watch Ohlcv](./examples/ts/watch-OHLCV.md)

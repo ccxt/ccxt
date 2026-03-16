@@ -171,15 +171,15 @@ class testMainClass:
         self.skipped_methods = exchange.safe_value(skipped_settings_for_exchange, 'skipMethods', {})
         self.checked_public_tests = {}
 
-    def add_padding(self, message, size):
+    def add_padding(self, msg, size):
         # has to be transpilable
         res = ''
-        message_length = len(message)  # avoid php transpilation issue
+        message_length = len(msg)  # avoid php transpilation issue
         missing_space = size - message_length - 0  # - 0 is added just to trick transpile to treat the .length as a string for php
         if missing_space > 0:
             for i in range(0, missing_space):
                 res += ' '
-        return message + res
+        return msg + res
 
     def test_method(self, method_name, exchange, args, is_public):
         # todo: temporary skip for c#
@@ -675,13 +675,13 @@ class testMainClass:
                 close(exchange)
             raise e
 
-    def assert_static_error(self, cond, message, calculated_output, stored_output, key=None):
+    def assert_static_error(self, cond, msg, calculated_output, stored_output, key=None):
         #  -----------------------------------------------------------------------------
         #  --- Init of static tests functions------------------------------------------
         #  -----------------------------------------------------------------------------
         calculated_string = json_stringify(calculated_output)
         stored_string = json_stringify(stored_output)
-        error_message = message
+        error_message = msg
         if key is not None:
             error_message = '[' + key + ']'
         error_message += ' computed: ' + stored_string + ' stored: ' + calculated_string
