@@ -1719,6 +1719,23 @@
             }
         }
     },
+    "o2": {
+        "preferredSpotSymbol": "ETH/USDC",
+        "skipMethods": {
+            "fetchBalance": "requires on-chain account setup",
+            "createOrder": "requires on-chain session",
+            "cancelOrder": "requires on-chain session",
+            "fetchOrder": "requires on-chain session",
+            "fetchOpenOrders": "requires on-chain session",
+            "fetchClosedOrders": "requires on-chain session",
+            "fetchMyTrades": "requires on-chain session",
+            "withdraw": "requires on-chain session and wallet signature",
+            "fetchCurrencies": {
+                "precision": "not provided by API",
+                "fee": "not provided by API"
+            }
+        }
+    },
     "onetrading": {
         "skip": "API was changed: https://github.com/ccxt/ccxt/pull/21991, also our regular proxy does not seem to work, need smth fix",
         "skipWs": "same",

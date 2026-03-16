@@ -1,0 +1,154 @@
+{
+    "exchange": "o2",
+    "skipKeys": ["info"],
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for FUEL/USDC",
+                "method": "fetchTicker",
+                "input": ["FUEL/USDC"],
+                "httpResponse": [
+                    {
+                        "ask": "1143260",
+                        "ask_volume": "1208970000000",
+                        "average": "1169755",
+                        "base_volume": "1586209824905331",
+                        "bid": "1143080",
+                        "bid_volume": "2085410000000",
+                        "change": "5210",
+                        "close": "1142080",
+                        "high": "1208880",
+                        "last": "1142080",
+                        "low": "1138630",
+                        "open": "1136870",
+                        "percentage": "0.458",
+                        "previous_close": "1136870",
+                        "quote_volume": "1856876304788",
+                        "timestamp": 1773666993000
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "FUEL/USDC",
+                    "timestamp": 1773666993000,
+                    "datetime": "2026-03-16T13:16:33.000Z",
+                    "high": 0.00120888,
+                    "low": 0.00113863,
+                    "bid": 0.00114308,
+                    "bidVolume": 2085.41,
+                    "ask": 0.00114326,
+                    "askVolume": 1208.97,
+                    "vwap": 0.001170637248384729,
+                    "open": 0.00113687,
+                    "close": 0.00114208,
+                    "last": 0.00114208,
+                    "previousClose": 0.00113687,
+                    "change": 0.00000521,
+                    "percentage": 0.458,
+                    "average": 0.001169755,
+                    "baseVolume": 1586209.824905331,
+                    "quoteVolume": 1856.876304788,
+                    "info": {},
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for ETH/USDC",
+                "method": "fetchTrades",
+                "input": ["ETH/USDC"],
+                "httpResponse": [
+                    {
+                        "trade_id": 18175917755139743000,
+                        "price": 2278.03,
+                        "base_volume": 0.001,
+                        "quote_volume": 2.27803,
+                        "timestamp": 1773666993000,
+                        "type": "buy"
+                    },
+                    {
+                        "trade_id": 3673901557905399000,
+                        "price": 2278.11,
+                        "base_volume": 0.062000544,
+                        "quote_volume": 141.244059291,
+                        "timestamp": 1773666993000,
+                        "type": "sell"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "18175917755139744000",
+                        "info": {},
+                        "timestamp": 1773666993000,
+                        "datetime": "2026-03-16T13:16:33.000Z",
+                        "symbol": "ETH/USDC",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 2278.03,
+                        "amount": 0.001,
+                        "cost": 2.27803,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "3673901557905399000",
+                        "info": {},
+                        "timestamp": 1773666993000,
+                        "datetime": "2026-03-16T13:16:33.000Z",
+                        "symbol": "ETH/USDC",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 2278.11,
+                        "amount": 0.062000544,
+                        "cost": 141.244059291,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for ETH/USDC",
+                "method": "fetchOrderBook",
+                "input": ["ETH/USDC"],
+                "httpResponse": {
+                    "timestamp": 1773666993000,
+                    "bids": [
+                        [2274.59, 0.5],
+                        [2270.00, 1.2]
+                    ],
+                    "asks": [
+                        [2276.56, 37.749],
+                        [2279.64, 0.001]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDC",
+                    "bids": [
+                        [2274.59, 0.5],
+                        [2270.00, 1.2]
+                    ],
+                    "asks": [
+                        [2276.56, 37.749],
+                        [2279.64, 0.001]
+                    ],
+                    "timestamp": 1773666993000,
+                    "datetime": "2026-03-16T13:16:33.000Z",
+                    "nonce": null
+                }
+            }
+        ]
+    }
+}

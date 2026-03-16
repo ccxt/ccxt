@@ -1,0 +1,40 @@
+{
+    "exchange": "o2",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for FUEL/USDC",
+                "method": "fetchTicker",
+                "url": "https://api.o2.app/v1/markets/ticker?market_id=0x3074a3b0290306e78968896e1ea7f91f15bb13da1d2e06cc50d714deb75ea0d2",
+                "input": [
+                    "FUEL/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for ETH/USDC",
+                "method": "fetchOrderBook",
+                "url": "https://api.o2.app/v1/aggregated/orderbook?market_pair=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for ETH/USDC",
+                "method": "fetchTrades",
+                "url": "https://api.o2.app/v1/aggregated/trades?market_pair=ETH_USDC",
+                "input": [
+                    "ETH/USDC"
+                ],
+                "output": null
+            }
+        ]
+    }
+}
