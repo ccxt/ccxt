@@ -379,6 +379,13 @@ export default class lighter extends Exchange {
         return signer;
     }
 
+    /**
+     * @method
+     * @name lighter#preLoadLighterLibrary
+     * @description if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+     * @param params
+     * @returns {boolean} true if the signer was loaded, false otherwise
+     */
     async preLoadLighterLibrary (params = {}) {
         let signer = this.safeDict (this.options, 'signer');
         if (signer !== undefined) {
