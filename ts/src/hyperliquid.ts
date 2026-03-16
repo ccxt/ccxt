@@ -882,6 +882,10 @@ export default class hyperliquid extends Exchange {
             const quoteTokenInfo = this.safeDict (tokens, quoteTokenPos, {});
             const baseName = this.safeString (baseTokenInfo, 'name');
             const quoteId = this.safeString (quoteTokenInfo, 'name');
+            if (baseName === undefined) {
+                continue;
+                // why sandbox sending this? check it later
+            }
             // do spot currency mapping
             const spotCurrencyMapping = this.safeDict (this.options, 'spotCurrencyMapping', {});
             const mappedBaseName = this.safeString (spotCurrencyMapping, baseName, baseName);
