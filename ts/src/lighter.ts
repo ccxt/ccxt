@@ -396,7 +396,7 @@ export default class lighter extends Exchange {
         let apiKeyIndex = undefined;
         [ apiKeyIndex, params ] = this.handleOptionAndParams2 (params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'loadAccount', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = this.handleOptionAndParams2 (params, 'loadAccount', 'accountIndex', 'account_index');
         const privateKeyIsSet = (this.privateKey !== undefined) && (this.privateKey !== '');
         if (privateKeyIsSet && (libraryPath !== undefined) && (apiKeyIndex !== undefined) && (accountIndex !== undefined)) {
             signer = await this.loadLighterLibrary (libraryPath, this.options['chainId'], this.privateKey, apiKeyIndex, accountIndex);
