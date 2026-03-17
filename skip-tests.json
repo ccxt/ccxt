@@ -2255,6 +2255,17 @@
         }
     },
     "bitdelta": {
-        "skipMethods": {}
+        "skipMethods": {
+            "fetchCurrencies": {
+                "activeMajorCurrencies": "exchange does not provide fetchCurrencies"
+            },
+            "ticker": {
+                "bid": "exchange does not provide real bid/ask in ticker",
+                "ask": "exchange does not provide real bid/ask in ticker"
+            },
+            "fetchTickers": {
+                "checkActiveSymbols": "todo"
+            }
+        }
     }
 }

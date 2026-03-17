@@ -1,0 +1,170 @@
+{
+    "exchange": "bitdelta",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api.bitdelta.com/open/api/v1/pairs",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch ticker for BTC/USDT",
+                "method": "fetchTicker",
+                "url": "https://api.bitdelta.com/open/api/v1/pairs?symbol=BTCUSDT",
+                "input": ["BTC/USDT"],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch all tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitdelta.com/open/api/v1/pairs",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetch order book for BTC/USDT",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitdelta.com/open/api/v1/orderbook?symbol=BTCUSDT&level=2",
+                "input": ["BTC/USDT"],
+                "output": null
+            },
+            {
+                "description": "fetch order book with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitdelta.com/open/api/v1/orderbook?symbol=BTCUSDT&level=2&depth=5",
+                "input": ["BTC/USDT", 5],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades for BTC/USDT",
+                "method": "fetchTrades",
+                "url": "https://api.bitdelta.com/open/api/v1/trades?symbol=BTCUSDT",
+                "input": ["BTC/USDT"],
+                "output": null
+            },
+            {
+                "description": "fetch trades with limit",
+                "method": "fetchTrades",
+                "url": "https://api.bitdelta.com/open/api/v1/trades?symbol=BTCUSDT&limit=5",
+                "input": ["BTC/USDT", null, 5],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch OHLCV with since and limit",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitdelta.com/open/api/v1/tradingview/history?symbol=BTCUSDT&resolution=60&countback=5&from=1700000000&to=1700018000",
+                "input": ["BTC/USDT", "1h", 1700000000000, 5],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit buy order",
+                "method": "createOrder",
+                "url": "https://public-api.bitdelta.com/api/v1/limit-order",
+                "input": ["BTC/USDT", "limit", "buy", 1, 50000],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":0,\"amount\":\"1\",\"price\":\"50000\"}"
+            },
+            {
+                "description": "create market sell order",
+                "method": "createOrder",
+                "url": "https://public-api.bitdelta.com/api/v1/market-order",
+                "input": ["BTC/USDT", "market", "sell", 0.5],
+                "output": "{\"symbol\":\"BTCUSDT\",\"side\":1,\"amount\":\"0.5\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel buy order",
+                "method": "cancelOrder",
+                "url": "https://public-api.bitdelta.com/api/v1/cancel-order",
+                "input": ["123456", "BTC/USDT", {"side": "buy"}],
+                "output": "{\"trade_id\":\"123456\",\"side\":0}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://public-api.bitdelta.com/api/v1/cancel-all-order",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://public-api.bitdelta.com/api/v1/balance",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders for BTC/USDT",
+                "method": "fetchOpenOrders",
+                "url": "https://public-api.bitdelta.com/api/v1/open-orders?symbol=BTCUSDT",
+                "input": ["BTC/USDT"],
+                "output": null
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders for BTC/USDT",
+                "method": "fetchClosedOrders",
+                "url": "https://public-api.bitdelta.com/api/v1/order-history?symbol=BTCUSDT",
+                "input": ["BTC/USDT"],
+                "output": null
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades for BTC/USDT",
+                "method": "fetchMyTrades",
+                "url": "https://public-api.bitdelta.com/api/v1/trade-history?symbol=BTCUSDT",
+                "input": ["BTC/USDT"],
+                "output": null
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch all deposits",
+                "method": "fetchDeposits",
+                "url": "https://public-api.bitdelta.com/api/v1/transaction?type=deposit",
+                "input": [],
+                "output": null
+            },
+            {
+                "description": "fetch deposits for BTC",
+                "method": "fetchDeposits",
+                "url": "https://public-api.bitdelta.com/api/v1/transaction?type=deposit&coin=BTC",
+                "input": ["BTC"],
+                "output": null
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch all withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://public-api.bitdelta.com/api/v1/transaction?type=withdrawal",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}
