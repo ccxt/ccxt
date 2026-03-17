@@ -4698,7 +4698,7 @@ export default class htx extends Exchange {
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchMultiAssetModeCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchMultiAssetModeCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMultiAssetModeCanceledAndClosedOrders() requires a symbol argument');
         }
@@ -6255,7 +6255,7 @@ export default class htx extends Exchange {
             let orderRequest = undefined;
             [ isMultiAssetMode, params ] = this.handleOptionAndParams (orderParams, 'createOrders', 'multiAssetMode', false);
             if (isMultiAssetMode) {
-                orderRequest = await this.createMultiAssetModeOrderRequest (marketId, type, side, amount, price, orderParams);
+                orderRequest = this.createMultiAssetModeOrderRequest (marketId, type, side, amount, price, orderParams);
             } else if (market['spot']) {
                 orderRequest = await this.createSpotOrderRequest (marketId, type, side, amount, price, orderParams);
             } else {
