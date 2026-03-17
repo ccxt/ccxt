@@ -3044,6 +3044,7 @@ export default class gate extends Exchange {
      * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-account-totals
      * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
+     * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-account-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#query-account-information
@@ -3334,7 +3335,7 @@ export default class gate extends Exchange {
      * @method
      * @name gateio#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#market-candlesticks    // spot
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#market-candlesticks        // spot
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
      * @see https://www.gate.com/docs/developers/apiv4/en/#market-candlesticks       // future
      * @see https://www.gate.com/docs/developers/apiv4/en/#get-options-candlesticks  // option
@@ -3644,7 +3645,7 @@ export default class gate extends Exchange {
      * @method
      * @name gate#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
      * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -4602,9 +4603,6 @@ export default class gate extends Exchange {
                 }
             }
         } else {
-            if (clientOrderId !== undefined) {
-                request['text'] = clientOrderId;
-            }
             if (market['option']) {
                 throw new NotSupported (this.id + ' createOrder() conditional option orders are not supported');
             }
@@ -4658,6 +4656,9 @@ export default class gate extends Exchange {
                 if (timeInForce !== undefined) {
                     request['initial']['tif'] = timeInForce;
                 }
+                if (clientOrderId !== undefined) {
+                    request['initial']['text'] = clientOrderId;
+                }
             } else {
                 // spot conditional order
                 const options = this.safeValue (this.options, 'createOrder', {});
@@ -4696,6 +4697,9 @@ export default class gate extends Exchange {
                         'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     };
+                    if (clientOrderId !== undefined) {
+                        request['trigger']['text'] = clientOrderId;
+                    }
                 }
             }
         }
@@ -5130,9 +5134,17 @@ export default class gate extends Exchange {
         const initial = this.safeDict (order, 'initial', {});
         const reduceOnlyInitial = this.safeBool (initial, 'is_reduce_only');
         const reduceOnly = this.safeBool (order, 'is_reduce_only', reduceOnlyInitial);
+        let clientOrderId = this.safeString (order, 'text');
+        if (clientOrderId === undefined) {
+            if ('initial' in order) {
+                clientOrderId = this.safeString (order['initial'], 'text');
+            } else if ('trigger' in order) {
+                clientOrderId = this.safeString (order['trigger'], 'text');
+            }
+        }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'text'),
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -5686,8 +5698,7 @@ export default class gate extends Exchange {
      * @method
      * @name gate#cancelOrders
      * @description cancel multiple orders
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
-     * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+     * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list
      * @param {string[]} ids order ids
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
