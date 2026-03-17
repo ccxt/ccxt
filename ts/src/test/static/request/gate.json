@@ -69,6 +69,23 @@
         ],
         "createOrder": [
             {
+                "description": "trigger order with custom clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.gateio.ws/api/v4/futures/usdt/price_orders",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "sell",
+                    1,
+                    51,
+                    {
+                        "stopLossPrice": 50,
+                        "clientOrderId": "myCustomId"
+                    }
+                ],
+                "output": "{\"initial\":{\"contract\":\"LTC_USDT\",\"size\":-1,\"price\":\"51\",\"text\":\"myCustomId\"},\"trigger\":{\"price_type\":0,\"price\":\"50\",\"rule\":2}}"
+            },
+            {
                 "description": "order with non ascii symbol",
                 "method": "createOrder",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/orders",

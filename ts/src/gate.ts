@@ -4599,9 +4599,6 @@ export default class gate extends Exchange {
                 }
             }
         } else {
-            if (clientOrderId !== undefined) {
-                request['text'] = clientOrderId;
-            }
             if (market['option']) {
                 throw new NotSupported (this.id + ' createOrder() conditional option orders are not supported');
             }
@@ -4655,6 +4652,9 @@ export default class gate extends Exchange {
                 if (timeInForce !== undefined) {
                     request['initial']['tif'] = timeInForce;
                 }
+                if (clientOrderId !== undefined) {
+                    request['initial']['text'] = clientOrderId;
+                }
             } else {
                 // spot conditional order
                 const options = this.safeValue (this.options, 'createOrder', {});
@@ -4693,6 +4693,9 @@ export default class gate extends Exchange {
                         'rule': rule, // >= triggered when market price larger than or equal to price field, <= triggered when market price less than or equal to price field
                         'expiration': expiration, // required, how long (in seconds) to wait for the condition to be triggered before cancelling the order
                     };
+                    if (clientOrderId !== undefined) {
+                        request['trigger']['text'] = clientOrderId;
+                    }
                 }
             }
         }
@@ -5127,9 +5130,17 @@ export default class gate extends Exchange {
         const initial = this.safeDict (order, 'initial', {});
         const reduceOnlyInitial = this.safeBool (initial, 'is_reduce_only');
         const reduceOnly = this.safeBool (order, 'is_reduce_only', reduceOnlyInitial);
+        let clientOrderId = this.safeString (order, 'text');
+        if (clientOrderId === undefined) {
+            if ('initial' in order) {
+                clientOrderId = this.safeString (order['initial'], 'text');
+            } else if ('trigger' in order) {
+                clientOrderId = this.safeString (order['trigger'], 'text');
+            }
+        }
         return this.safeOrder ({
             'id': this.safeString (order, 'id'),
-            'clientOrderId': this.safeString (order, 'text'),
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
