@@ -27,6 +27,7 @@ export default class grvt extends Exchange {
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
+            'dex': true,
             'pro': true,
             'has': {
                 'CORS': undefined,
