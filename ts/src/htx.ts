@@ -4678,12 +4678,12 @@ export default class htx extends Exchange {
         [ isMultiAssetMode, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'multiAssetMode', false);
         if (isMultiAssetMode) {
             if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() in multiAssetMode requires a symbol argument');
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders () multiAssetMode requires a symbol argument');
             }
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchClosedOrders', params);
             if (marginMode === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchClosedOrders() in multiAssetMode requires a marginMode param, isolated or cross');
+                throw new ArgumentsRequired (this.id + ' fetchClosedOrders () multiAssetMode requires a marginMode param isolated or cross');
             }
             let request: Dict = {
                 'contract_code': market['id'],
