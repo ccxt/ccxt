@@ -5,6 +5,7 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
+import { Precise } from '../base/Precise.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -1570,7 +1571,7 @@ export default class okx extends okxRest {
      * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot', 'swap', 'future' or 'option' (default is 'spot')
+     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future' or 'option' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
@@ -1687,7 +1688,7 @@ export default class okx extends okxRest {
         let messageHash = channel + ':' + type;
         client.resolve (this.balance[type], messageHash);
         // then handling with other types of balance
-        const types = [ 'swap', 'future', 'option' ];
+        const types = [ 'margin', 'swap', 'future', 'option' ];
         const data = this.safeList (message, 'data');
         const first = this.safeDict (data, 0, {});
         for (let i = 0; i < types.length; i++) {
@@ -1696,13 +1697,17 @@ export default class okx extends okxRest {
             const oldTotal = this.safeDict (oldBalance, 'total');
             const oldAmount = this.safeNumber (oldTotal, 'USD');
             const balanceKey = this.getBalanceKey (type);
-            const newAmount = this.safeNumber (first, balanceKey);
-            if ((oldAmount === undefined) || (oldAmount !== newAmount)) {
+            let newAmount = this.safeString (first, balanceKey);
+            if (type === 'margin') {
+                newAmount = Precise.stringNeg (newAmount);
+            }
+            const newAmountNumeric = this.parseNumber (newAmount);
+            if ((oldAmount === undefined) || (oldAmount !== newAmountNumeric)) {
                 const result: Dict = {
                     'info': message,
                 };
                 const account = this.account ();
-                account['total'] = this.numberToString (newAmount);
+                account['total'] = newAmount;
                 result['USD'] = account;
                 const timestamp = this.safeInteger (first, 'uTime');
                 result['timestamp'] = timestamp;
@@ -1716,6 +1721,7 @@ export default class okx extends okxRest {
 
     getBalanceKey (type) {
         const balanceKeys: Dict = {
+            'margin': 'notionalUsdForBorrow',
             'swap': 'notionalUsdForSwap',
             'future': 'notionalUsdForFutures',
             'option': 'notionalUsdForOption',
