@@ -11,9 +11,9 @@ function testImplodeParams () {
     const params = {
         'timeframe_id': '1m',
         'symbol_id': 'BTC/USDT',
-        'extra_param': 'something',
+        'extra_param': 'should_be_ignored',
     };
-    const expected = 'v2/watchlists/1m/BTC/USDT?extra_param=something';
+    const expected = 'v2/watchlists/1m/BTC/USDT';
     const result = exchange.implodeParams (path, params);
     assert (result === expected, 'implodeParams did not produce the expected result: ' + result + ' != ' + expected);
 
