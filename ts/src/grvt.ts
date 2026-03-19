@@ -651,7 +651,7 @@ export default class grvt extends Exchange {
         //            ...
         //
         const promises = [ marketsPromise ];
-        if (this.privateKey !== undefined || this.apiKey !== undefined) {
+        if (this.nonEmptyString (this.apiKey) || this.nonEmptyString (this.privateKey)) {
             promises.push (this.signIn ());
         }
         const results = await Promise.all (promises);
