@@ -10,7 +10,7 @@ public partial class gate
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-server-current-time"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#get-server-current-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -129,6 +129,7 @@ public partial class gate
     /// fetch a dictionary of addresses for a currency, indexed by network
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#generate-currency-deposit-address"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -174,7 +175,7 @@ public partial class gate
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-trading-fees"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -194,7 +195,7 @@ public partial class gate
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#query-a-batch-of-user-trading-fee-rates"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -214,7 +215,7 @@ public partial class gate
     /// please use fetchDepositWithdrawFees instead
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#query-withdrawal-status"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -289,7 +290,7 @@ public partial class gate
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-order-book"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-order-book"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-order-book"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-order-book-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#options-order-book"/>  <br/>
@@ -319,6 +320,7 @@ public partial class gate
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-ticker-information"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2"/>  <br/>
@@ -365,6 +367,8 @@ public partial class gate
     /// undefined
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#list-spot-accounts"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-account-totals"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#margin-account-list"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts"/>  <br/>
@@ -480,7 +484,7 @@ public partial class gate
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-market-trades"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-market-trades"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#options-trade-history"/>  <br/>
@@ -529,7 +533,7 @@ public partial class gate
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4"/>  <br/>
@@ -566,7 +570,7 @@ public partial class gate
     /// Fetch personal trading history
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4"/>  <br/>
@@ -669,7 +673,7 @@ public partial class gate
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#get-deposit-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -715,7 +719,7 @@ public partial class gate
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#get-withdrawal-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -761,7 +765,7 @@ public partial class gate
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#withdraw"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -781,8 +785,8 @@ public partial class gate
     /// Create an order on the exchange
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-an-order"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#create-an-order"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-price-triggered-order"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2"/>  <br/>
@@ -922,7 +926,7 @@ public partial class gate
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-batch-of-orders"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-orders"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1022,7 +1026,8 @@ public partial class gate
     /// Retrieves information on an order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-single-order"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-price-triggered-order"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-3"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-4"/>  <br/>
@@ -1075,7 +1080,7 @@ public partial class gate
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-open-orders"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1134,8 +1139,8 @@ public partial class gate
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-orders"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-2"/>  <br/>
@@ -1212,7 +1217,8 @@ public partial class gate
     /// Cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-single-order"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-price-triggered-order"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-3"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-4"/>  <br/>
@@ -1247,8 +1253,7 @@ public partial class gate
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1274,7 +1279,7 @@ public partial class gate
     /// cancel multiple orders for multiple symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1300,7 +1305,8 @@ public partial class gate
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders-in-specified-currency-pair"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2"/>  <br/>
     /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3"/>  <br/>
@@ -1329,7 +1335,7 @@ public partial class gate
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts"/>  <br/>
+    /// See <see href="https://www.gate.com/en-eu/docs/developers/apiv4/#transfer-between-trading-accounts"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

@@ -21,7 +21,7 @@ class gate extends Exchange {
             'pro' => true,
             'urls' => array(
                 'logo' => 'https://github.com/user-attachments/assets/64f988c5-07b6-4652-b5c1-679a6bf67c85',
-                'doc' => 'https://www.gate.com/docs/developers/apiv4/en/',
+                'doc' => 'https://www.gate.com/en-eu/docs/developers/apiv4/',
                 'www' => 'https://gate.com',
                 'api' => array(
                     'public' => array(
@@ -1211,7 +1211,7 @@ class gate extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#get-server-current-time
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-server-current-time
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -1936,7 +1936,7 @@ class gate extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-currencies-details
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-currencies-details
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -2295,6 +2295,9 @@ class gate extends Exchange {
     public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
         /**
          * fetch a dictionary of addresses for a $currency, indexed by network
+         *
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#generate-$currency-deposit-address
+         *
          * @param {string} $code unified $currency $code of the $currency for the deposit address
          * @param {array} [$params] extra parameters specific to the api endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by the network
@@ -2356,7 +2359,7 @@ class gate extends Exchange {
         /**
          * fetch the trading fees for a $market
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-trading-fees
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2389,7 +2392,7 @@ class gate extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-a-batch-of-user-trading-fee-rates
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
@@ -2459,7 +2462,7 @@ class gate extends Exchange {
          * @deprecated
          * please use fetchDepositWithdrawFees instead
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#query-withdrawal-status
          *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2691,7 +2694,7 @@ class gate extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-order-book
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-order-book
          * @see https://www.gate.com/docs/developers/apiv4/en/#futures-order-book
          * @see https://www.gate.com/docs/developers/apiv4/en/#futures-order-book-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#options-order-book
@@ -2813,6 +2816,7 @@ class gate extends Exchange {
         /**
          * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-$ticker-information
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2
@@ -3026,6 +3030,8 @@ class gate extends Exchange {
     public function fetch_balance($params = array ()): array {
         /**
          *
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-spot-accounts
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#$query-personal-account-totals
          * @see https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
@@ -3319,7 +3325,7 @@ class gate extends Exchange {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#$market-candlesticks       // spot
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#$market-candlesticks        // spot
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-futures-candlesticks  // swap
          * @see https://www.gate.com/docs/developers/apiv4/en/#$market-candlesticks       // future
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-options-candlesticks  // option
@@ -3517,7 +3523,7 @@ class gate extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-$market-trades
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-$market-trades
          * @see https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history
          * @see https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#options-trade-history
@@ -3629,7 +3635,7 @@ class gate extends Exchange {
         /**
          * fetch all the trades made from a single order
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -3672,7 +3678,7 @@ class gate extends Exchange {
         /**
          * Fetch personal trading history
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -3980,7 +3986,7 @@ class gate extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-deposit-records
          *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -4019,7 +4025,7 @@ class gate extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-withdrawal-records
          *
          * @param {string} $code unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -4058,7 +4064,7 @@ class gate extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#withdraw
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#withdrawal
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -4241,8 +4247,8 @@ class gate extends Exchange {
         /**
          * Create an order on the exchange
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#create-an-order
-         * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-$price-triggered-order
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#create-an-order
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-$price-triggered-order
          * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order
          * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-$price-triggered-order-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2
@@ -4416,7 +4422,7 @@ class gate extends Exchange {
          * create a list of trade $orders
          *
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
-         * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-$orders
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-batch-of-$orders
          * @see https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-$orders
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
@@ -5177,7 +5183,8 @@ class gate extends Exchange {
         /**
          * Retrieves information on an order
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-single-order
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-price-triggered-order
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-3
          * @see https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-4
@@ -5230,7 +5237,7 @@ class gate extends Exchange {
         /**
          * fetch all unfilled currently open orders
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-open-orders
          * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
          *
          * @param {string} $symbol unified market $symbol
@@ -5250,8 +5257,8 @@ class gate extends Exchange {
         /**
          * fetches information on multiple closed orders made by the user
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#list-orders
-         * @see https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders
          * @see https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-2
@@ -5548,7 +5555,8 @@ class gate extends Exchange {
         /**
          * Cancels an open order
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-single-order
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-price-triggered-order
          * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-3
          * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-4
@@ -5680,8 +5688,7 @@ class gate extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-$id-list
-         * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-$id-list-2
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-$id-list
          *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $symbol of the $market the order was made in
@@ -5730,7 +5737,7 @@ class gate extends Exchange {
         /**
          * cancel multiple $orders for multiple symbols
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-$orders-with-an-$id-list
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-$orders-with-an-$id-list
          *
          * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -5771,7 +5778,8 @@ class gate extends Exchange {
         /**
          * cancel all open orders
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders-in-specified-currency-pair
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders
          * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched
          * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
          * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
@@ -5847,7 +5855,7 @@ class gate extends Exchange {
         /**
          * transfer $currency internally between wallets on the same account
          *
-         * @see https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts
+         * @see https://www.gate.com/en-eu/docs/developers/apiv4/#transfer-between-trading-accounts
          *
          * @param {string} $code unified $currency $code for $currency being transferred
          * @param {float} $amount the $amount of $currency to transfer

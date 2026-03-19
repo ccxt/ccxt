@@ -96,7 +96,6 @@ from ccxt.pro.coinex import coinex                                        # noqa
 from ccxt.pro.coinone import coinone                                      # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.deepcoin import deepcoin                                    # noqa: F401
-from ccxt.pro.defx import defx                                            # noqa: F401
 from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.derive import derive                                        # noqa: F401
 from ccxt.pro.dydx import dydx                                            # noqa: F401
@@ -178,7 +177,6 @@ exchanges = [
     'coinone',
     'cryptocom',
     'deepcoin',
-    'defx',
     'deribit',
     'derive',
     'dydx',

@@ -139,7 +139,6 @@ from ccxt.coinspot import coinspot                                    # noqa: F4
 from ccxt.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.cryptomus import cryptomus                                  # noqa: F401
 from ccxt.deepcoin import deepcoin                                    # noqa: F401
-from ccxt.defx import defx                                            # noqa: F401
 from ccxt.delta import delta                                          # noqa: F401
 from ccxt.deribit import deribit                                      # noqa: F401
 from ccxt.derive import derive                                        # noqa: F401
@@ -184,7 +183,6 @@ from ccxt.paradex import paradex                                      # noqa: F4
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
-from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
 from ccxt.toobit import toobit                                        # noqa: F401
 from ccxt.upbit import upbit                                          # noqa: F401
@@ -254,7 +252,6 @@ exchanges = [
     'cryptocom',
     'cryptomus',
     'deepcoin',
-    'defx',
     'delta',
     'deribit',
     'derive',
@@ -299,7 +296,6 @@ exchanges = [
     'paymium',
     'phemex',
     'poloniex',
-    'timex',
     'tokocrypto',
     'toobit',
     'upbit',

@@ -122,7 +122,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#get-server-current-time  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#get-server-current-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -169,7 +169,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#list-all-currencies-details  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-currencies-details  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -231,6 +231,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#generate-currency-deposit-address  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -273,7 +274,7 @@ fetch the trading fees for a market
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-trading-fees  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -294,7 +295,7 @@ fetch the trading fees for multiple markets
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - a dictionary of [fee structures](https://docs.ccxt.com/?id=fee-structure) indexed by market symbols
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-personal-trading-fee  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#query-a-batch-of-user-trading-fee-rates  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -316,7 +317,7 @@ please use fetchDepositWithdrawFees instead
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-status  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#query-withdrawal-status  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -387,7 +388,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#retrieve-order-book
+- https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-order-book
 - https://www.gate.com/docs/developers/apiv4/en/#futures-order-book
 - https://www.gate.com/docs/developers/apiv4/en/#futures-order-book-2
 - https://www.gate.com/docs/developers/apiv4/en/#options-order-book
@@ -415,6 +416,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 **See**
 
+- https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-ticker-information
 - https://www.gate.com/docs/developers/apiv4/en/#get-details-of-a-specifc-order
 - https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers
 - https://www.gate.com/docs/developers/apiv4/en/#list-futures-tickers-2
@@ -467,6 +469,8 @@ gate.fetchTickers (symbols[, params])
 
 **See**
 
+- https://www.gate.com/en-eu/docs/developers/apiv4/#list-spot-accounts
+- https://www.gate.com/en-eu/docs/developers/apiv4/#query-personal-account-totals
 - https://www.gate.com/docs/developers/apiv4/en/#margin-account-list
 - https://www.gate.com/docs/developers/apiv4/en/#get-unified-account-information
 - https://www.gate.com/docs/developers/apiv4/en/#list-spot-trading-accounts
@@ -525,7 +529,7 @@ get the list of most recent trades for a particular symbol
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#retrieve-market-trades
+- https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-market-trades
 - https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history
 - https://www.gate.com/docs/developers/apiv4/en/#futures-trading-history-2
 - https://www.gate.com/docs/developers/apiv4/en/#options-trade-history
@@ -556,7 +560,7 @@ fetch all the trades made from a single order
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+- https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
 - https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
 - https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
 - https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -586,7 +590,7 @@ Fetch personal trading history
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history
+- https://www.gate.com/en-eu/docs/developers/apiv4/#list-personal-trading-history
 - https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-2
 - https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-3
 - https://www.gate.com/docs/developers/apiv4/en/#list-personal-trading-history-4
@@ -624,7 +628,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-deposit-records  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#get-deposit-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -649,7 +653,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#retrieve-withdrawal-records  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#get-withdrawal-records  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -674,7 +678,7 @@ make a withdrawal
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#withdraw  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#withdrawal  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -700,8 +704,8 @@ Create an order on the exchange
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#create-an-order
-- https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order
+- https://www.gate.com/en-eu/docs/developers/apiv4/#create-an-order
+- https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-price-triggered-order
 - https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order
 - https://www.gate.com/docs/developers/apiv4/en/#create-a-price-triggered-order-2
 - https://www.gate.com/docs/developers/apiv4/en/#create-a-futures-order-2
@@ -752,7 +756,7 @@ create a list of trade orders
 **See**
 
 - https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
-- https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-orders
+- https://www.gate.com/en-eu/docs/developers/apiv4/#create-a-batch-of-orders
 - https://www.gate.com/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
 
 
@@ -831,7 +835,8 @@ Retrieves information on an order
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order
+- https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-single-order
+- https://www.gate.com/en-eu/docs/developers/apiv4/#get-a-price-triggered-order
 - https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-2
 - https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-3
 - https://www.gate.com/docs/developers/apiv4/en/#get-a-single-order-4
@@ -864,7 +869,7 @@ fetch all unfilled currently open orders
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#list-all-open-orders
+- https://www.gate.com/en-eu/docs/developers/apiv4/#list-all-open-orders
 - https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
 
 
@@ -895,8 +900,8 @@ fetches information on multiple closed orders made by the user
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#list-orders
-- https://www.gate.com/docs/developers/apiv4/en/#retrieve-running-auto-order-list
+- https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
+- https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
 - https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders
 - https://www.gate.com/docs/developers/apiv4/en/#list-all-auto-orders
 - https://www.gate.com/docs/developers/apiv4/en/#list-futures-orders-2
@@ -933,7 +938,8 @@ Cancels an open order
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order
+- https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-single-order
+- https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-price-triggered-order
 - https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-2
 - https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-3
 - https://www.gate.com/docs/developers/apiv4/en/#cancel-a-single-order-4
@@ -961,11 +967,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**
-
-- https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
-- https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
-
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -988,7 +990,7 @@ cancel multiple orders for multiple symbols
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-a-batch-of-orders-with-an-id-list  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -1013,7 +1015,8 @@ cancel all open orders
 
 **See**
 
-- https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
+- https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders-in-specified-currency-pair
+- https://www.gate.com/en-eu/docs/developers/apiv4/#cancel-all-open-orders
 - https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched
 - https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-2
 - https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-matched-3
@@ -1039,7 +1042,7 @@ transfer currency internally between wallets on the same account
 **Kind**: instance method of [<code>gate</code>](#gate)  
 **Returns**: A [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://www.gate.com/docs/developers/apiv4/en/#transfer-between-trading-accounts  
+**See**: https://www.gate.com/en-eu/docs/developers/apiv4/#transfer-between-trading-accounts  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
