@@ -5,7 +5,6 @@ import okxRest from '../okx.js';
 import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Precise } from '../base/Precise.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -1571,16 +1570,12 @@ export default class okx extends okxRest {
      * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-account-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot', 'margin', 'swap', 'future' or 'option' (default is 'spot')
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
         await this.loadMarkets ();
         await this.authenticate ();
-        let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        const messageHash = 'account' + ':' + marketType;
-        return await this.subscribe ('private', messageHash, 'account', undefined, params);
+        return await this.subscribe ('private', 'account', 'account', undefined, params);
     }
 
     handleBalanceAndPosition (client: Client, message) {
@@ -1679,54 +1674,10 @@ export default class okx extends okxRest {
         //
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
-        // at first handling with spot balance
-        let type = 'spot';
         const balance = this.parseTradingBalance (message);
-        let oldBalance = this.safeValue (this.balance, type, {});
-        const newBalance = this.deepExtend (oldBalance, balance);
-        this.balance[type] = this.safeBalance (newBalance);
-        let messageHash = channel + ':' + type;
-        client.resolve (this.balance[type], messageHash);
-        // then handling with other types of balance
-        const types = [ 'margin', 'swap', 'future', 'option' ];
-        const data = this.safeList (message, 'data');
-        const first = this.safeDict (data, 0, {});
-        for (let i = 0; i < types.length; i++) {
-            type = types[i];
-            oldBalance = this.safeValue (this.balance, type, {});
-            const oldTotal = this.safeDict (oldBalance, 'total');
-            const oldAmount = this.safeNumber (oldTotal, 'USD');
-            const balanceKey = this.getBalanceKey (type);
-            let newAmount = this.safeString (first, balanceKey);
-            if (type === 'margin') {
-                newAmount = Precise.stringNeg (newAmount);
-            }
-            const newAmountNumeric = this.parseNumber (newAmount);
-            if ((oldAmount === undefined) || (oldAmount !== newAmountNumeric)) {
-                const result: Dict = {
-                    'info': message,
-                };
-                const account = this.account ();
-                account['total'] = newAmount;
-                result['USD'] = account;
-                const timestamp = this.safeInteger (first, 'uTime');
-                result['timestamp'] = timestamp;
-                result['datetime'] = this.iso8601 (timestamp);
-                this.balance[type] = this.safeBalance (result);
-                messageHash = channel + ':' + type;
-                client.resolve (this.balance[type], messageHash);
-            }
-        }
-    }
-
-    getBalanceKey (type) {
-        const balanceKeys: Dict = {
-            'margin': 'notionalUsdForBorrow',
-            'swap': 'notionalUsdForSwap',
-            'future': 'notionalUsdForFutures',
-            'option': 'notionalUsdForOption',
-        };
-        return this.safeString (balanceKeys, type, type);
+        const newBalance = this.deepExtend (this.balance, balance);
+        this.balance = this.safeBalance (newBalance);
+        client.resolve (this.balance, channel);
     }
 
     orderToTrade (order, market = undefined) {
