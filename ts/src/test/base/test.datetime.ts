@@ -117,7 +117,7 @@ function testMicroseconds () {
         'id': 'sampleexchange',
     });
     const value = exchange.microseconds ();
-    const valueString = value.toString ();
+    const valueString: string = value.toString ();
     assert (value > 0);
     assert (valueString.length === 16);
 }
@@ -127,7 +127,7 @@ function testMilliseconds () {
         'id': 'sampleexchange',
     });
     const value = exchange.milliseconds ();
-    const valueString = value.toString ();
+    const valueString: string  = value.toString ();
     assert (value > 0);
     assert (valueString.length === 13);
 }
@@ -137,7 +137,7 @@ function testSeconds () {
         'id': 'sampleexchange',
     });
     const value = exchange.seconds ();
-    const valueString = value.toString ();
+    const valueString: string = value.toString ();
     assert (value > 0);
     assert (valueString.length === 10);
 }
