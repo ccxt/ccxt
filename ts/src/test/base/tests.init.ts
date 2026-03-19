@@ -23,6 +23,7 @@ import testGroupBy from './test.groupBy.js';
 import testIndexBy from './test.indexBy.js';
 import testFilterBy from './test.filterBy.js';
 import testUuid from './test.uuid.js';
+import testIsEmtpy from './test.isEmpty.js';
 import testPrecisionFromString from './test.precisionFromString.js';
 import testUrlencodeBase64 from './test.urlencodeBase64.js';
 import testAfterConstructor from './test.afterConstructor.js';
@@ -62,6 +63,7 @@ async function baseTestsInit () {
     testFilterBy ();
     testHandleMethods ();
     testRemoveRepeatedElementsFromArray ();
+    testIsEmtpy ();
     testParsePrecision ();
     testPrecisionFromString ();
     testExtractParams ();
