@@ -7,6 +7,7 @@ import testNumberToString from './test.numberToString.js';
 import testPrecise from './test.precise.js';
 import testDatetime from './test.datetime.js';
 import testCryptography from './test.cryptography.js';
+import testToArray from './test.toArray.js';
 import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
@@ -52,6 +53,7 @@ async function baseTestsInit () {
     testPrecise ();
     testSafeMethods ();
     testSafeTicker ();
+    testToArray ();
     testJson ();
     testSortBy ();
     testSum ();
