@@ -1864,6 +1864,15 @@
         ],
         "fetchMarketLeverageTiers": [
             {
+                "description": "fetch market leverage tiers for future",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://api.gateio.ws/api/v4/delivery/usdt/risk_limit_tiers?contract=BTC_USDT_20260626",
+                "input": [
+                    "BTC/USDT:USDT-260626"
+                ],
+                "output": null
+            },
+            {
                 "description": "fetchMarketLeverageTiers",
                 "method": "fetchMarketLeverageTiers",
                 "url": "https://api.gateio.ws/api/v4/futures/usdt/risk_limit_tiers?contract=BTC_USDT",
